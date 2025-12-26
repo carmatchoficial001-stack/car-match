@@ -5,7 +5,8 @@ import { trackRealView } from '@/lib/realNotifications'
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const session = await auth()
-        const vehicleId = params.id
+        const { id } = await params
+        const vehicleId = id
 
         await trackRealView(session?.user?.id || null, vehicleId, 'vehicle')
 
