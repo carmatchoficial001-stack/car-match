@@ -52,5 +52,14 @@ export default async function BusinessDetailPage({ params }: Props) {
         notFound()
     }
 
-    return <BusinessDetailClient business={business} />
+    const safeBusiness = {
+        ...business,
+        user: {
+            ...business.user,
+            name: business.user.name || 'Usuario CarMatch',
+            image: business.user.image || ''
+        }
+    }
+
+    return <BusinessDetailClient business={safeBusiness} />
 }
