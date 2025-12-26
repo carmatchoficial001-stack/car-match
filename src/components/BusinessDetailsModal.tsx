@@ -1,4 +1,3 @@
-```typescript
 "use client"
 
 import { useState } from 'react'
@@ -66,7 +65,7 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
 
     // Helper to format full address
     const fullAddress = [
-        business.street ? `${ business.street } ${ business.streetNumber || '' } ` : '',
+        business.street ? `${business.street} ${business.streetNumber || ''} ` : '',
         business.colony,
         business.city,
         business.state
@@ -115,7 +114,7 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                                         {business.images.map((_, idx) => (
                                             <div
                                                 key={idx}
-                                                className={`w - 2 h - 2 rounded - full transition - all shadow - sm ${ idx === currentImageIndex ? 'bg-white w-6' : 'bg-white/50' } `}
+                                                className={`w - 2 h - 2 rounded - full transition - all shadow - sm ${idx === currentImageIndex ? 'bg-white w-6' : 'bg-white/50'} `}
                                             />
                                         ))}
                                     </div>
@@ -186,134 +185,134 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                         {business.whatsapp && (
                             <a
                                 href={`https://wa.me/${business.whatsapp.replace(/\D/g, '')}`}
-target = "_blank"
-rel = "noopener noreferrer"
-className = "col-span-2 sm:col-span-1 bg-[#25D366] hover:bg-[#20bd5a] text-white py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition transform hover:scale-[1.02] shadow-lg shadow-green-900/20"
-    >
-    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" /></svg>
-WhatsApp
-                            </a >
-                        )}
-{
-    business.phone && (
-        <a
-            href={`tel:${business.phone}`}
-            className="col-span-2 sm:col-span-1 bg-surface-highlight hover:bg-surface-highlight/80 text-text-primary border border-white/10 py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition"
-        >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-            {t('business_details.call')}
-        </a>
-    )
-}
-{/* Redes Sociales */ }
-<div className="col-span-2 flex gap-2">
-    {business.facebook && (
-        <a href={business.facebook} target="_blank" className="flex-1 bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2]/20 py-3 rounded-xl flex items-center justify-center transition">
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
-        </a>
-    )}
-    {business.instagram && (
-        <a href={business.instagram} target="_blank" className="flex-1 bg-gradient-to-tr from-[#FF0069]/10 to-[#C13584]/10 text-[#C13584] hover:bg-pink-500/10 py-3 rounded-xl flex items-center justify-center transition">
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
-        </a>
-    )}
-    {business.tiktok && (
-        <a href={business.tiktok} target="_blank" className="flex-1 bg-black hover:bg-gray-900 text-white border border-white/10 py-3 rounded-xl flex items-center justify-center transition shadow-lg relative overflow-hidden group/tiktok">
-            <svg className="w-6 h-6 z-10" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 0 1-5.201 1.743l-.002-.001.002.001a2.895 2.895 0 0 1 3.183-4.51v-3.5a6.329 6.329 0 0 0-5.394 10.692 6.33 6.33 0 0 0 10.857-4.424V8.687a8.182 8.182 0 0 0 4.773 1.526V6.79a4.831 4.831 0 0 1-1.003-.104z" />
-            </svg>
-        </a>
-    )}
-</div>
-                    </div >
-
-    <div className="grid md:grid-cols-2 gap-6">
-        {/* 📄 Description */}
-        {business.description && (
-            <div className="bg-surface-highlight/30 p-5 rounded-2xl">
-                <h3 className="font-bold text-text-primary mb-3 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    {t('business_details.about')}
-                </h3>
-                <p className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">
-                    {business.description}
-                </p>
-            </div>
-        )}
-
-        <div className="space-y-4">
-            {/* 📍 Info Details */}
-            {fullAddress && (
-                <div className="bg-surface-highlight/30 p-4 rounded-2xl">
-                    <h3 className="font-bold text-text-primary mb-2 text-sm flex items-center gap-2">
-                        <svg className="w-4 h-4 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        {t('business_details.location')}
-                    </h3>
-                    <p className="text-text-secondary text-sm mb-3">
-                        {fullAddress}
-                    </p>
-
-                    {/* Navigation Buttons */}
-                    {business.latitude && business.longitude && (
-                        <div className="grid grid-cols-2 gap-2 mt-3">
-                            {/* Ver en Mapa de CarMatch */}
-                            <a
-                                href={`/map?lat=${business.latitude}&lng=${business.longitude}&category=${business.category}&highlight=${business.id}`}
-                                className="px-3 py-2 bg-primary-700/20 hover:bg-primary-700/30 text-primary-400 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition border border-primary-700/30"
-                                onClick={onClose}
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
-                                {t('business_details.view_map')}
-                            </a>
-
-                            {/* Navegar en Google Maps */}
-                            <a
-                                href={`https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition border border-blue-500/30"
+                                className="col-span-2 sm:col-span-1 bg-[#25D366] hover:bg-[#20bd5a] text-white py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition transform hover:scale-[1.02] shadow-lg shadow-green-900/20"
                             >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
-                                {t('business_details.navigate_gps')}
-                            </a>
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" /></svg>
+                                WhatsApp
+                            </a >
+                        )}
+                        {
+                            business.phone && (
+                                <a
+                                    href={`tel:${business.phone}`}
+                                    className="col-span-2 sm:col-span-1 bg-surface-highlight hover:bg-surface-highlight/80 text-text-primary border border-white/10 py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                                    {t('business_details.call')}
+                                </a>
+                            )
+                        }
+                        {/* Redes Sociales */}
+                        <div className="col-span-2 flex gap-2">
+                            {business.facebook && (
+                                <a href={business.facebook} target="_blank" className="flex-1 bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2]/20 py-3 rounded-xl flex items-center justify-center transition">
+                                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
+                                </a>
+                            )}
+                            {business.instagram && (
+                                <a href={business.instagram} target="_blank" className="flex-1 bg-gradient-to-tr from-[#FF0069]/10 to-[#C13584]/10 text-[#C13584] hover:bg-pink-500/10 py-3 rounded-xl flex items-center justify-center transition">
+                                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+                                </a>
+                            )}
+                            {business.tiktok && (
+                                <a href={business.tiktok} target="_blank" className="flex-1 bg-black hover:bg-gray-900 text-white border border-white/10 py-3 rounded-xl flex items-center justify-center transition shadow-lg relative overflow-hidden group/tiktok">
+                                    <svg className="w-6 h-6 z-10" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 0 1-5.201 1.743l-.002-.001.002.001a2.895 2.895 0 0 1 3.183-4.51v-3.5a6.329 6.329 0 0 0-5.394 10.692 6.33 6.33 0 0 0 10.857-4.424V8.687a8.182 8.182 0 0 0 4.773 1.526V6.79a4.831 4.831 0 0 1-1.003-.104z" />
+                                    </svg>
+                                </a>
+                            )}
                         </div>
-                    )}
-                </div>
-            )}
+                    </div >
 
-            {business.hours && (
-                <div className="bg-surface-highlight/30 p-4 rounded-2xl">
-                    <h3 className="font-bold text-text-primary mb-2 text-sm flex items-center gap-2">
-                        <svg className="w-4 h-4 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        {t('business_details.hours')}
-                    </h3>
-                    <p className="text-text-secondary text-sm whitespace-pre-line">
-                        {business.hours}
-                    </p>
-                </div>
-            )}
-        </div>
-    </div>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {/* 📄 Description */}
+                        {business.description && (
+                            <div className="bg-surface-highlight/30 p-5 rounded-2xl">
+                                <h3 className="font-bold text-text-primary mb-3 flex items-center gap-2">
+                                    <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    {t('business_details.about')}
+                                </h3>
+                                <p className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">
+                                    {business.description}
+                                </p>
+                            </div>
+                        )}
 
-{/* 🛠️ Servicios */ }
-{
-    business.services && business.services.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-surface-highlight/50">
-            <h4 className="text-sm font-bold text-text-primary mb-3 flex items-center gap-2">
-                {t('business_details.services')}
-            </h4>
-            <div className="flex flex-wrap gap-2">
-                {business.services.map((service, idx) => (
-                    <span key={idx} className="px-3 py-1 bg-surface-highlight/30 text-text-secondary text-xs rounded-full border border-surface-highlight">
-                        {service}
-                    </span>
-                ))}
-            </div>
-        </div>
-    )
-}
+                        <div className="space-y-4">
+                            {/* 📍 Info Details */}
+                            {fullAddress && (
+                                <div className="bg-surface-highlight/30 p-4 rounded-2xl">
+                                    <h3 className="font-bold text-text-primary mb-2 text-sm flex items-center gap-2">
+                                        <svg className="w-4 h-4 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                        {t('business_details.location')}
+                                    </h3>
+                                    <p className="text-text-secondary text-sm mb-3">
+                                        {fullAddress}
+                                    </p>
 
-{/* ⚙️ Footer Info - Hidden by request
+                                    {/* Navigation Buttons */}
+                                    {business.latitude && business.longitude && (
+                                        <div className="grid grid-cols-2 gap-2 mt-3">
+                                            {/* Ver en Mapa de CarMatch */}
+                                            <a
+                                                href={`/map?lat=${business.latitude}&lng=${business.longitude}&category=${business.category}&highlight=${business.id}`}
+                                                className="px-3 py-2 bg-primary-700/20 hover:bg-primary-700/30 text-primary-400 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition border border-primary-700/30"
+                                                onClick={onClose}
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+                                                {t('business_details.view_map')}
+                                            </a>
+
+                                            {/* Navegar en Google Maps */}
+                                            <a
+                                                href={`https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition border border-blue-500/30"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+                                                {t('business_details.navigate_gps')}
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {business.hours && (
+                                <div className="bg-surface-highlight/30 p-4 rounded-2xl">
+                                    <h3 className="font-bold text-text-primary mb-2 text-sm flex items-center gap-2">
+                                        <svg className="w-4 h-4 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        {t('business_details.hours')}
+                                    </h3>
+                                    <p className="text-text-secondary text-sm whitespace-pre-line">
+                                        {business.hours}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 🛠️ Servicios */}
+                    {
+                        business.services && business.services.length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-surface-highlight/50">
+                                <h4 className="text-sm font-bold text-text-primary mb-3 flex items-center gap-2">
+                                    {t('business_details.services')}
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {business.services.map((service, idx) => (
+                                        <span key={idx} className="px-3 py-1 bg-surface-highlight/30 text-text-secondary text-xs rounded-full border border-surface-highlight">
+                                            {service}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )
+                    }
+
+                    {/* ⚙️ Footer Info - Hidden by request
                     <div className="pt-4 border-t border-surface-highlight/50 flex justify-between items-center text-xs text-text-secondary">
                         <span>ID: {business.id.slice(-6).toUpperCase()}</span>
                     </div>
