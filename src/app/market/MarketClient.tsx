@@ -203,7 +203,7 @@ function MarketContent({ vehicles, brands, vehicleTypes, colors, searchParams }:
                 // Filtrar vehículos dentro del radio actual
 
                 const withDistances = sourceVehicles
-                    .filter(v => v.latitude != null && v.longitude != null)
+                    .filter((v: Vehicle) => v.latitude != null && v.longitude != null)
                     .map(vehicle => ({
                         ...vehicle,
                         distance: calcDist(userLat, userLng, vehicle.latitude!, vehicle.longitude!)
@@ -211,7 +211,7 @@ function MarketContent({ vehicles, brands, vehicleTypes, colors, searchParams }:
 
 
                 // 🌍 FRONTERA DIGITAL: Filtrar por país
-                const inCountry = withDistances.filter(v => {
+                const inCountry = withDistances.filter((v: any) => {
                     const vCountry = v.country || 'MX'
                     return vCountry === currentCountry
                 })
@@ -229,7 +229,7 @@ function MarketContent({ vehicles, brands, vehicleTypes, colors, searchParams }:
                     { max: 99999, items: [] as any[] }    // +5000km (Todo)
                 ]
 
-                inCountry.filter(v => v.distance <= searchRadius).forEach(v => {
+                inCountry.filter((v: any) => v.distance <= searchRadius).forEach((v: any) => {
                     const tier = tiers.find(t => v.distance <= t.max)
                     if (tier) tier.items.push(v)
                 })
@@ -327,7 +327,7 @@ function MarketContent({ vehicles, brands, vehicleTypes, colors, searchParams }:
         const result = await searchCity(locationInput)
         if (result) {
             setManualLocation(result)
-            setSearchRadius(12) // Reset radius logic to start local around new city
+            setTierIndex(0) // Reset radius logic to start local around new city
             setShowLocationModal(false)
         } else {
             alert('Ciudad no encontrada')
@@ -434,7 +434,7 @@ function MarketContent({ vehicles, brands, vehicleTypes, colors, searchParams }:
                                                 ) : (
                                                     <div className="absolute inset-0 flex items-center justify-center text-text-secondary opacity-20">
                                                         <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
-                                                            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" />
+                                                            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" />
                                                         </svg>
                                                     </div>
                                                 )}
@@ -621,4 +621,21 @@ function MarketContent({ vehicles, brands, vehicleTypes, colors, searchParams }:
             </div>
         </div>
     )
+}
+
+function calcDist(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371 // km
+    const dLat = toRad(lat2 - lat1)
+    const dLon = toRad(lon2 - lon1)
+    const lat1Rad = toRad(lat1)
+    const lat2Rad = toRad(lat2)
+
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1Rad) * Math.cos(lat2Rad)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return R * c
+}
+
+function toRad(value: number) {
+    return value * Math.PI / 180
 }
