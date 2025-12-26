@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         // Obtener datos agregados para el análisis
         const [vehicleStats, businessStats] = await Promise.all([
             prisma.vehicle.groupBy({
-                by: ['category'],
+                by: ['vehicleType'],
                 _count: { _all: true },
                 where: { status: 'ACTIVE' }
             }),
