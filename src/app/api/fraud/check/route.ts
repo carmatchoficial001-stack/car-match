@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
                 user: {
                     select: {
                         id: true,
-                        deviceFingerprints: {
+                        publicationFingerprints: {
                             orderBy: { createdAt: 'desc' },
                             take: 1
                         }
@@ -60,8 +60,8 @@ export async function POST(request: NextRequest) {
             let fraudScore = 0
 
             // Device match
-            const userDeviceFP = pub.user.deviceFingerprints[0]
-            if (userDeviceFP && userDeviceFP.visitorId === deviceFingerprint.visitorId) {
+            const userDeviceFP = pub.user.publicationFingerprints[0]
+            if (userDeviceFP && userDeviceFP.deviceHash === deviceFingerprint.visitorId) {
                 fraudScore += 30
             }
 
