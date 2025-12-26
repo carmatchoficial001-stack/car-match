@@ -1,0 +1,647 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import {
+    VEHICLE_CATEGORIES,
+    BRANDS,
+    TRANSMISSIONS,
+    FUELS,
+    TRACTIONS,
+    CONDITIONS,
+    COLORS,
+    getYears,
+    getFeaturesByCategory,
+    VehicleCategory
+} from '@/lib/vehicleTaxonomy'
+
+interface MarketFiltersAdvancedProps {
+    currentFilters: any
+    userCountry?: string
+    userState?: string
+    userCity?: string
+    // Legacy props kept for compatibility but ignored in favor of global taxonomy
+    brands?: string[]
+    vehicleTypes?: string[]
+    colors?: string[]
+}
+
+export default function MarketFiltersAdvanced({
+    currentFilters,
+    userCountry = 'México',
+    userState = '',
+    userCity = ''
+}: MarketFiltersAdvancedProps) {
+    const router = useRouter()
+    const searchParams = useSearchParams()
+    const availableYears = getYears()
+
+    // Estados de filtros
+    const [category, setCategory] = useState<VehicleCategory | ''>((currentFilters.category as VehicleCategory) || '')
+    const [subType, setSubType] = useState(currentFilters.subType || '')
+    const [brand, setBrand] = useState(currentFilters.brand || '')
+    const [model, setModel] = useState(currentFilters.model || '')
+    const [minPrice, setMinPrice] = useState(currentFilters.minPrice || '')
+    const [maxPrice, setMaxPrice] = useState(currentFilters.maxPrice || '')
+    const [minYear, setMinYear] = useState(currentFilters.minYear || '')
+    const [maxYear, setMaxYear] = useState(currentFilters.maxYear || '')
+    const [color, setColor] = useState(currentFilters.color || '')
+    const [condition, setCondition] = useState(currentFilters.condition || '')
+
+    // Ubicación
+    const [country, setCountry] = useState(currentFilters.country || userCountry)
+    const [state, setState] = useState(currentFilters.state || userState)
+    const [city, setCity] = useState(currentFilters.city || userCity)
+
+    // Técnicos
+    const [transmission, setTransmission] = useState<string[]>(currentFilters.transmission ? currentFilters.transmission.split(',') : [])
+    const [fuel, setFuel] = useState<string[]>(currentFilters.fuel ? currentFilters.fuel.split(',') : [])
+    const [traction, setTraction] = useState(currentFilters.traction || '')
+    const [minMileage, setMinMileage] = useState(currentFilters.minMileage || '')
+    const [maxMileage, setMaxMileage] = useState(currentFilters.maxMileage || '')
+    const [doors, setDoors] = useState(currentFilters.doors || '')
+
+    // Específicos
+    const [passengers, setPassengers] = useState(currentFilters.passengers || '')
+    const [hours, setHours] = useState(currentFilters.hours || '')
+    const [minEngine, setMinEngine] = useState(currentFilters.minEngine || '')
+    const [maxEngine, setMaxEngine] = useState(currentFilters.maxEngine || '')
+
+    // Documentación & Extras
+    const [hasInvoice, setHasInvoice] = useState(currentFilters.hasInvoice === 'true')
+    const [features, setFeatures] = useState<string[]>(currentFilters.features ? currentFilters.features.split(',') : [])
+
+    const [showAdvanced, setShowAdvanced] = useState(false)
+
+    // 🧠 AI SEARCH STATE
+    const [aiQuery, setAiQuery] = useState('')
+    const [isAnalyzing, setIsAnalyzing] = useState(false)
+    const [aiExplanation, setAiExplanation] = useState('')
+
+    const handleAiSearch = async () => {
+        if (!aiQuery.trim()) return
+
+        setIsAnalyzing(true)
+        setAiExplanation('')
+
+        try {
+            const res = await fetch('/api/ai/analyze-vehicle-query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: aiQuery })
+            })
+
+            if (!res.ok) throw new Error('AI Search Failed')
+
+            const data = await res.json()
+            const { filters, explanation } = data
+
+            if (filters) {
+                if (filters.category) setCategory(filters.category as VehicleCategory)
+                if (filters.brand) setBrand(filters.brand)
+                if (filters.model) setModel(filters.model)
+                if (filters.minPrice) setMinPrice(filters.minPrice.toString())
+                if (filters.maxPrice) setMaxPrice(filters.maxPrice.toString())
+                if (filters.minYear) setMinYear(filters.minYear.toString())
+                if (filters.maxYear) setMaxYear(filters.maxYear.toString())
+                if (filters.color) setColor(filters.color)
+
+                if (filters.transmission) {
+                    setTransmission(Array.isArray(filters.transmission) ? filters.transmission : [filters.transmission])
+                }
+                if (filters.fuel) {
+                    setFuel(Array.isArray(filters.fuel) ? filters.fuel : [filters.fuel])
+                }
+
+                setAiExplanation(explanation || 'Filtros aplicados correctamente.')
+
+                // Animamos la apertura de filtros avanzados si la IA configuró algo de ahí
+                if (filters.transmission || filters.fuel || filters.color) {
+                    setShowAdvanced(true)
+                }
+            }
+        } catch (error) {
+            console.error('Error in AI Search:', error)
+            setAiExplanation('Lo siento, hubo un problema al procesar tu solicitud con la IA.')
+        } finally {
+            setIsAnalyzing(false)
+        }
+    }
+
+    // Reset subtype and brand when category changes
+    useEffect(() => {
+        if (category && !VEHICLE_CATEGORIES[category]?.includes(subType)) {
+            setSubType('')
+        }
+        if (category && BRANDS[category] && !BRANDS[category].includes(brand)) {
+            setBrand('')
+        }
+        // Auto-expand advanced filters for special categories to show intelligence
+        if (['Motocicleta', 'Maquinaria', 'Camión', 'Especial'].includes(category)) {
+            setShowAdvanced(true)
+        }
+    }, [category])
+
+    const handleToggleArray = (value: string, array: string[], setter: (arr: string[]) => void) => {
+        if (array.includes(value)) {
+            setter(array.filter(v => v !== value))
+        } else {
+            setter([...array, value])
+        }
+    }
+
+    const applyFilters = () => {
+        const params = new URLSearchParams(searchParams.toString())
+
+        // Limpiar para sobreescribir
+        const keys = [
+            'category', 'subType', 'brand', 'model', 'minPrice', 'maxPrice',
+            'minYear', 'maxYear', 'color', 'condition', 'country', 'state', 'city',
+            'transmission', 'fuel', 'traction', 'minMileage', 'maxMileage', 'doors',
+            'passengers', 'hours', 'hasInvoice', 'features'
+        ]
+        keys.forEach(k => params.delete(k))
+
+        if (category) params.set('category', category)
+        if (subType) params.set('subType', subType)
+        if (brand) params.set('brand', brand)
+        if (model) params.set('model', model)
+        if (minPrice) params.set('minPrice', minPrice)
+        if (maxPrice) params.set('maxPrice', maxPrice)
+        if (minYear) params.set('minYear', minYear)
+        if (maxYear) params.set('maxYear', maxYear)
+        if (color) params.set('color', color)
+        if (condition) params.set('condition', condition)
+
+        if (country) params.set('country', country)
+        if (state) params.set('state', state)
+        if (city) params.set('city', city)
+
+        if (transmission.length) params.set('transmission', transmission.join(','))
+        if (fuel.length) params.set('fuel', fuel.join(','))
+        if (features.length) params.set('features', features.join(','))
+
+        if (traction) params.set('traction', traction)
+        if (minMileage) params.set('minMileage', minMileage)
+        if (maxMileage) params.set('maxMileage', maxMileage)
+        if (doors) params.set('doors', doors)
+        if (passengers) params.set('passengers', passengers)
+        if (hours) params.set('hours', hours)
+        if (minEngine) params.set('minEngine', minEngine)
+        if (maxEngine) params.set('maxEngine', maxEngine)
+
+        if (hasInvoice) params.set('hasInvoice', 'true')
+
+        router.push(`/market?${params.toString()}`)
+    }
+
+    const clearFilters = () => {
+        setCategory('')
+        setSubType('')
+        setBrand('')
+        setModel('')
+        setMinPrice('')
+        setMaxPrice('')
+        setMinYear('')
+        setMaxYear('')
+        setColor('')
+        setCondition('')
+        setCountry(userCountry)
+        setState(userState)
+        setCity(userCity)
+        setTransmission([])
+        setFuel([])
+        setTraction('')
+        setMinMileage('')
+        setMaxMileage('')
+        setDoors('')
+        setPassengers('')
+        setHours('')
+        setMinEngine('')
+        setMaxEngine('')
+        setHasInvoice(false)
+        setFeatures([])
+        router.push('/market')
+    }
+
+    // Dynamic Data State
+    const [dynamicBrands, setDynamicBrands] = useState<Record<string, string[]>>(BRANDS)
+    const [dynamicAllBrands, setDynamicAllBrands] = useState<string[]>([])
+    const [availableModels, setAvailableModels] = useState<string[]>([])
+
+    useEffect(() => {
+        // Fetch dynamic taxonomy (DB + Static)
+        const fetchTaxonomy = async () => {
+            try {
+                const res = await fetch('/api/taxonomy')
+                if (res.ok) {
+                    const data = await res.json()
+                    setDynamicBrands(data.brands)
+                    setDynamicAllBrands(data.allBrands)
+                    setAvailableModels(data.models)
+                }
+            } catch (error) {
+                console.error('Failed to load dynamic taxonomy:', error)
+            }
+        }
+        fetchTaxonomy()
+    }, [])
+
+    // Dynamic Options based on Category/State
+    const categoryFeatures = category ? getFeaturesByCategory(category) : []
+
+    // Choose specific category list OR flatten all if no category selected
+    const availableBrands = category
+        ? dynamicBrands[category] || []
+        : dynamicAllBrands.length > 0 ? dynamicAllBrands : Array.from(new Set(Object.values(dynamicBrands).flat())).sort()
+
+    return (
+        <div className="bg-surface border border-surface-highlight rounded-xl p-6 space-y-6 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+                <h2 className="text-lg font-bold text-text-primary">Filtros Inteligentes</h2>
+                <button onClick={clearFilters} className="text-sm text-primary-400 hover:underline">Limpiar todo</button>
+            </div>
+
+            {/* 🧠 SMART SEARCH AI */}
+            <div className="p-4 bg-primary-900/10 border border-primary-700/30 rounded-xl space-y-3 mb-4">
+                <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg">🧠</span>
+                    <label className="text-sm font-bold text-primary-400 uppercase tracking-wider">
+                        Búsqueda Asistida por IA
+                    </label>
+                </div>
+                <div className="space-y-2">
+                    <textarea
+                        value={aiQuery}
+                        onChange={(e) => setAiQuery(e.target.value)}
+                        placeholder="Ej. 'Busco una camioneta roja familiar barata'..."
+                        className="w-full bg-background/50 border border-surface-highlight rounded-xl p-4 text-base md:text-sm text-text-primary focus:border-primary-600 focus:outline-none resize-none h-24"
+                        disabled={isAnalyzing}
+                    />
+                    <button
+                        onClick={handleAiSearch}
+                        disabled={isAnalyzing || !aiQuery.trim()}
+                        className="w-full py-4 md:py-2 bg-primary-700 rounded-xl text-white font-bold hover:bg-primary-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                        {isAnalyzing ? (
+                            <>
+                                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Analizando...</span>
+                            </>
+                        ) : (
+                            'Configurar Filtros con AI'
+                        )}
+                    </button>
+                    {aiExplanation && (
+                        <p className="text-xs text-text-secondary italic animate-fade-in-up">
+                            {aiExplanation}
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            {/* MAIN FILTERS GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* 1. Categoría Principal */}
+                <div>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Tipo de Vehículo</label>
+                    <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value as VehicleCategory)}
+                        className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
+                    >
+                        <option value="">Todos</option>
+                        {Object.keys(VEHICLE_CATEGORIES).map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* 2. Subtipo (Dinámico) */}
+                <div>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Estilo / Carrocería</label>
+                    <select
+                        value={subType}
+                        onChange={(e) => setSubType(e.target.value)}
+                        disabled={!category}
+                        className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 disabled:opacity-50 text-base md:text-sm"
+                    >
+                        <option value="">Todos</option>
+                        {category && VEHICLE_CATEGORIES[category]?.map(t => (
+                            <option key={t} value={t}>{t}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* 3. Marca (Dinámica 'Global') */}
+                <div>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Marca</label>
+                    <input
+                        list="brands-list"
+                        value={brand}
+                        onChange={(e) => setBrand(e.target.value)}
+                        placeholder="Escribe o selecciona..."
+                        className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
+                    />
+                    <datalist id="brands-list">
+                        {availableBrands.map(b => (
+                            <option key={b} value={b} />
+                        ))}
+                    </datalist>
+                </div>
+
+                {/* 4. Modelo */}
+                <div>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Modelo</label>
+                    <input
+                        type="text"
+                        value={model}
+                        onChange={(e) => setModel(e.target.value)}
+                        placeholder="Ej. Corolla, Civic..."
+                        className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
+                        list="models-list"
+                    />
+                    <datalist id="models-list">
+                        {availableModels.map(m => (
+                            <option key={m} value={m} />
+                        ))}
+                    </datalist>
+                </div>
+
+                {/* 5. Precio Rango */}
+                <div className="flex gap-2">
+                    <div className="flex-1">
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Precio Min</label>
+                        <input
+                            type="number"
+                            min="0"
+                            onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
+                            value={minPrice}
+                            onChange={(e) => setMinPrice(Math.max(0, parseFloat(e.target.value)).toString())}
+                            placeholder="$0"
+                            className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-700"
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Max</label>
+                        <input
+                            type="number"
+                            min="0"
+                            onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
+                            value={maxPrice}
+                            onChange={(e) => setMaxPrice(Math.max(0, parseFloat(e.target.value)).toString())}
+                            placeholder="$Max"
+                            className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-700"
+                        />
+                    </div>
+                </div>
+
+                {/* 6. Año Rango */}
+                <div className="flex gap-2">
+                    <div className="flex-1">
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Año Min</label>
+                        <select
+                            value={minYear}
+                            onChange={(e) => setMinYear(e.target.value)}
+                            className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
+                        >
+                            <option value="">Todos</option>
+                            {availableYears.map(y => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="flex-1">
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Max</label>
+                        <select
+                            value={maxYear}
+                            onChange={(e) => setMaxYear(e.target.value)}
+                            className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
+                        >
+                            <option value="">Todos</option>
+                            {availableYears.map(y => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {/* ADVANCED TOGGLE */}
+            <button
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="w-full py-4 md:py-2 bg-surface-highlight/50 hover:bg-surface-highlight text-text-primary rounded-xl transition text-sm font-bold flex items-center justify-center gap-2"
+            >
+                {showAdvanced ? 'Menos Filtros' : 'Más Filtros Avanzados (Color, Transmisión, Motor...)'}
+                <svg className={`w-4 h-4 transform transition ${showAdvanced ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            {/* ADVANCED SECTION */}
+            {showAdvanced && (
+                <div className="space-y-6 pt-4 animate-in fade-in slide-in-from-top-2 duration-200">
+
+                    {/* Common Selects Row */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Color</label>
+                            <select
+                                value={color}
+                                onChange={(e) => setColor(e.target.value)}
+                                className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary"
+                            >
+                                <option value="">Cualquiera</option>
+                                {COLORS.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Condición</label>
+                            <select
+                                value={condition}
+                                onChange={(e) => setCondition(e.target.value)}
+                                className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary"
+                            >
+                                <option value="">Cualquiera</option>
+                                {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Tracción</label>
+                            <select
+                                value={traction}
+                                onChange={(e) => setTraction(e.target.value)}
+                                className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary"
+                            >
+                                <option value="">Cualquiera</option>
+                                {TRACTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{category === 'Maquinaria' ? 'Horas Uso Max' : 'Km Max'}</label>
+                            <input
+                                type="number"
+                                min="0"
+                                onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
+                                value={maxMileage}
+                                onChange={(e) => setMaxMileage(Math.max(0, parseFloat(e.target.value)).toString())}
+                                placeholder="Ej. 50000"
+                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
+                            />
+                        </div>
+
+
+                        {/* Pasajeros y Puertas */}
+                        <div className="col-span-2 md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-surface-highlight pt-4 mt-2">
+                            <div>
+                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
+                                    {category === 'Maquinaria' ? 'Operadores' : 'Pasajeros'}
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={passengers}
+                                    onChange={(e) => setPassengers(e.target.value)}
+                                    placeholder="Ej. 5"
+                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Puertas</label>
+                                <input
+                                    type="number"
+                                    min="2"
+                                    max="5"
+                                    value={doors}
+                                    onChange={(e) => setDoors(e.target.value)}
+                                    placeholder="Ej. 4"
+                                    disabled={category === 'Motocicleta' || category === 'Maquinaria'}
+                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary disabled:opacity-50"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Motor / Potencia Dinámico */}
+                        <div className="col-span-2 md:col-span-4 grid grid-cols-2 gap-4 border-t border-surface-highlight pt-4 mt-2">
+                            <div>
+                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
+                                    {category === 'Motocicleta' ? 'Cilindrada Min (cc)' :
+                                        category === 'Camión' || category === 'Maquinaria' ? 'Potencia Min (HP)' :
+                                            'Motor Min (Litros)'}
+                                </label>
+                                <input
+                                    type="number"
+                                    value={minEngine}
+                                    onChange={(e) => setMinEngine(e.target.value)}
+                                    placeholder={category === 'Motocicleta' ? 'Ej. 250' : category === 'Camión' ? 'Ej. 300' : 'Ej. 1.6'}
+                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
+                                    {category === 'Motocicleta' ? 'Cilindrada Max (cc)' :
+                                        category === 'Camión' || category === 'Maquinaria' ? 'Potencia Max (HP)' :
+                                            'Motor Max (Litros)'}
+                                </label>
+                                <input
+                                    type="number"
+                                    value={maxEngine}
+                                    onChange={(e) => setMaxEngine(e.target.value)}
+                                    placeholder={category === 'Motocicleta' ? 'Ej. 1200' : category === 'Camión' ? 'Ej. 600' : 'Ej. 5.0'}
+                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Transmisión Chips */}
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-2">Transmisión</label>
+                        <div className="flex flex-wrap gap-3">
+                            {TRANSMISSIONS.map(t => (
+                                <button
+                                    key={t}
+                                    onClick={() => handleToggleArray(t, transmission, setTransmission)}
+                                    className={`px-5 py-3 md:px-3 md:py-1 text-sm md:text-xs rounded-full border transition font-medium ${transmission.includes(t)
+                                        ? 'bg-primary-700 text-text-primary border-primary-700'
+                                        : 'bg-background text-text-secondary border-surface-highlight'
+                                        }`}
+                                >
+                                    {t}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Combustible Chips */}
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-2">Combustible</label>
+                        <div className="flex flex-wrap gap-3">
+                            {FUELS.map(f => (
+                                <button
+                                    key={f}
+                                    onClick={() => handleToggleArray(f, fuel, setFuel)}
+                                    className={`px-5 py-3 md:px-3 md:py-1 text-sm md:text-xs rounded-full border transition font-medium ${fuel.includes(f)
+                                        ? 'bg-primary-700 text-text-primary border-primary-700'
+                                        : 'bg-background text-text-secondary border-surface-highlight'
+                                        }`}
+                                >
+                                    {f}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Dynamic Features (Air Cond, GPS, etc) */}
+                    {categoryFeatures.length > 0 && (
+                        <div>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">Equipamiento</label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                {categoryFeatures.map(feat => (
+                                    <button
+                                        key={feat}
+                                        onClick={() => handleToggleArray(feat, features, setFeatures)}
+                                        className={`flex items-center gap-3 px-4 py-4 md:py-2 text-sm md:text-xs rounded-xl border text-left transition ${features.includes(feat)
+                                            ? 'bg-primary-700/20 border-primary-700 text-text-primary font-bold'
+                                            : 'bg-background border-surface-highlight text-text-secondary'
+                                            }`}
+                                    >
+                                        <div className={`w-3 h-3 md:w-2 md:h-2 rounded-full ${features.includes(feat) ? 'bg-primary-500' : 'bg-surface-highlight'}`} />
+                                        {feat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Unique Extras */}
+                    <div className="flex gap-4 border-t border-surface-highlight pt-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={hasInvoice}
+                                onChange={(e) => setHasInvoice(e.target.checked)}
+                                className="w-4 h-4 text-primary-700 bg-background border-surface-highlight rounded"
+                            />
+                            <span className="text-sm font-medium text-text-primary">Con Factura</span>
+                        </label>
+                    </div>
+
+                </div>
+            )}
+
+            {/* ACTION BUTTONS */}
+            <div className="pt-6 border-t border-surface-highlight flex gap-3">
+                <button
+                    onClick={applyFilters}
+                    className="flex-1 py-4 bg-primary-700 hover:bg-primary-600 text-white rounded-xl font-bold transition shadow-lg shadow-primary-900/20 active:scale-95"
+                >
+                    Aplicar Filtros
+                </button>
+            </div>
+        </div>
+    )
+}

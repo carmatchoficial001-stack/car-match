@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sin conexión - CarMatch</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0A0A0A 0%, #1a1a1a 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 400px;
+        }
+        .icon {
+            font-size: 80px;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 1rem;
+            color: #FF6B2C;
+        }
+        p {
+            color: #a0a0a0;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        button {
+            background: #FF6B2C;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #ff8547;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1>Sin conexión</h1>
+        <p>Parece que no tienes conexión a internet. Por favor, verifica tu conexión e intenta de nuevo.</p>
+        <button onclick="window.location.reload()">Reintentar</button>
+    </div>
+</body>
+</html>

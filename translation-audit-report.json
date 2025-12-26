@@ -1,0 +1,134 @@
+{
+  "complete": [
+    "ar",
+    "de",
+    "es",
+    "fr",
+    "he",
+    "hi",
+    "id",
+    "it",
+    "ja",
+    "ko",
+    "nl",
+    "pl",
+    "pt",
+    "ru",
+    "sv",
+    "th",
+    "tr",
+    "ur",
+    "vi",
+    "zh"
+  ],
+  "incomplete": [
+    "en"
+  ],
+  "details": {
+    "ar": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "de": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "en": {
+      "keyCount": 303,
+      "coverage": 100.3,
+      "missing": -1
+    },
+    "es": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "fr": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "he": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "hi": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "id": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "it": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "ja": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "ko": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "nl": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "pl": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "pt": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "ru": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "sv": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "th": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "tr": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "ur": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "vi": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    },
+    "zh": {
+      "keyCount": 302,
+      "coverage": 100,
+      "missing": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "file": "src/components/ImageUpload.tsx",
+    "fixedCount": 9,
+    "fixes": [
+      "VehÃ­culo → Vehículo (1x)",
+      "aÃºn → aún (1x)",
+      "mÃ¡ximo → máximo (2x)",
+      "imÃ¡genes → imágenes (4x)",
+      "serÃ¡ → será (1x)"
+    ]
+  },
+  {
+    "file": "src/app/my-businesses/MyBusinessesClient.tsx",
+    "fixedCount": 8,
+    "fixes": [
+      "ubicaciÃ³n → ubicación (1x)",
+      "SuspensiÃ³n → Suspensión (3x)",
+      "TransmisiÃ³n → Transmisión (1x)",
+      "DiagnÃ³stico → Diagnóstico (1x)",
+      "RestauraciÃ³n → Restauración (2x)"
+    ]
+  }
+]

@@ -1,0 +1,621 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+model User {
+  id                      String                    @id @default(cuid())
+  email                   String                    @unique
+  emailVerified           DateTime?
+  name                    String?
+  image                   String?
+  password                String?
+  phone                   String?
+  city                    String?
+  credits                 Int                       @default(0)
+  isActive                Boolean                   @default(true)
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  lastLatitude            Float?
+  lastLongitude           Float?
+  lastLocationUpdate      DateTime?
+  isAdmin                 Boolean                   @default(false)
+  fraudStrikes            Int                       @default(0)
+  accounts                Account[]
+  analyticsEvents         AnalyticsEvent[]
+  businesses              Business[]
+  businessFavorites       BusinessFavorite[]
+  buyerChats              Chat[]                    @relation("BuyerChats")
+  sellerChats             Chat[]                    @relation("SellerChats")
+  creditTransactions      CreditTransaction[]
+  fingerprint             DigitalFingerprint?
+  dislikes                Dislike[]
+  fakeNotifCounters       FakeNotificationCounter[]
+  favorites               Favorite[]
+  sentMessages            Message[]
+  notifications           Notification[]
+  payments                Payment[]
+  paymentMethods          PaymentMethod[]
+  publicationFingerprints PublicationFingerprint[]
+  pushSubscriptions       PushSubscription[]
+  sessions                Session[]
+  vehicles                Vehicle[]
+
+  @@index([email])
+  @@index([city])
+}
+
+model SystemLog {
+  id        String   @id @default(cuid())
+  level     String
+  message   String
+  source    String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Vehicle {
+  id                String           @id @default(cuid())
+  userId            String
+  title             String
+  description       String
+  brand             String
+  model             String
+  year              Int
+  price             Decimal          @db.Decimal(10, 2)
+  city              String
+  colony            String?
+  state             String?
+  country           String?          @default("MX")
+  currency          String           @default("MXN")
+  images            String[]
+  status            VehicleStatus    @default(ACTIVE)
+  moderationStatus  ModerationStatus @default(PENDING_AI)
+  isFreePublication Boolean          @default(true)
+  publishedAt       DateTime         @default(now())
+  expiresAt         DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  mileage           Int?
+  mileageUnit       String           @default("km")
+  transmission      String?
+  fuel              String?
+  engine            String?
+  doors             Int?
+  color             String?
+  vehicleType       String?
+  condition         String?
+  accidents         Boolean?
+  owners            Int?
+  features          String[]
+  searchIndex       String?
+  displacement      Int?
+  cargoCapacity     Float?
+  operatingHours    Int?
+  hasInvoice        Boolean?
+  hasTenencia       Boolean?
+  hasVerification   Boolean?
+  latitude          Float?
+  longitude         Float?
+  chats             Chat[]
+  dislikes          Dislike[]
+  favorites         Favorite[]
+  notifications     Notification[]
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([city])
+  @@index([status])
+  @@index([vehicleType])
+  @@index([brand])
+  @@index([year])
+  @@index([price])
+  @@index([latitude, longitude])
+  @@index([status, createdAt])
+  @@index([status, price])
+  @@index([status, year])
+  @@index([status, brand])
+  @@index([status, vehicleType])
+}
+
+model Business {
+  id                  String             @id @default(cuid())
+  userId              String
+  name                String
+  category            String
+  description         String?
+  phone               String?
+  additionalPhones    String[]
+  whatsapp            String?
+  telegram            String?
+  website             String?
+  facebook            String?
+  instagram           String?
+  tiktok              String?
+  hours               String?
+  address             String
+  street              String?
+  streetNumber        String?
+  colony              String?
+  city                String
+  state               String?
+  country             String?            @default("MX")
+  latitude            Float
+  longitude           Float
+  images              String[]
+  services            String[]
+  isActive            Boolean            @default(true)
+  isFreePublication   Boolean            @default(true)
+  publishedAt         DateTime           @default(now())
+  expiresAt           DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  hasEmergencyService Boolean            @default(false)
+  hasHomeService      Boolean            @default(false)
+  is24Hours           Boolean            @default(false)
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  favorites           BusinessFavorite[]
+  views               BusinessView[]
+  notifications       Notification[]
+
+  @@index([userId])
+  @@index([category])
+  @@index([city])
+  @@index([latitude, longitude])
+  @@index([isActive])
+  @@index([expiresAt])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  vehicleId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, vehicleId])
+  @@index([userId])
+}
+
+model Dislike {
+  id        String   @id @default(cuid())
+  userId    String
+  vehicleId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, vehicleId])
+  @@index([userId])
+}
+
+model BusinessView {
+  id         String   @id @default(cuid())
+  userId     String?
+  businessId String
+  createdAt  DateTime @default(now())
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model BusinessFavorite {
+  id         String   @id @default(cuid())
+  userId     String
+  businessId String
+  createdAt  DateTime @default(now())
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, businessId])
+  @@index([userId])
+  @@index([businessId])
+}
+
+model DigitalFingerprint {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  ipAddress String
+  userAgent String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([ipAddress])
+}
+
+model PublicationFingerprint {
+  id              String   @id @default(cuid())
+  userId          String
+  publicationType String
+  publicationId   String
+  latitude        Float
+  longitude       Float
+  ipAddress       String
+  deviceHash      String
+  userAgent       String?
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([publicationType])
+  @@index([latitude, longitude])
+  @@index([deviceHash])
+  @@index([ipAddress])
+  @@index([publicationId])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  userId        String
+  amount        Decimal       @db.Decimal(10, 2)
+  currency      String        @default("MXN")
+  status        PaymentStatus @default(PENDING)
+  paymentMethod String?
+  transactionId String?       @unique
+  creditsAdded  Int
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model CreditPackage {
+  id              String   @id @default(cuid())
+  name            String
+  credits         Int
+  price           Decimal  @db.Decimal(10, 2)
+  discountPercent Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+}
+
+model Chat {
+  id           String        @id @default(cuid())
+  vehicleId    String
+  buyerId      String
+  sellerId     String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  appointments Appointment[]
+  buyer        User          @relation("BuyerChats", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller       User          @relation("SellerChats", fields: [sellerId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  messages     Message[]
+
+  @@unique([vehicleId, buyerId])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([vehicleId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  chatId    String
+  senderId  String
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id         String    @id @default(cuid())
+  userId     String
+  type       String
+  title      String
+  message    String
+  link       String?
+  metadata   Json?
+  isRead     Boolean   @default(false)
+  isFake     Boolean   @default(false)
+  vehicleId  String?
+  businessId String?
+  fromUserId String?
+  createdAt  DateTime  @default(now())
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle    Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model SimulatedMetric {
+  id         String   @id @default(cuid())
+  targetId   String
+  targetType String
+  month      String
+  count      Int      @default(0)
+  target     Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([targetId, month])
+  @@index([targetType])
+}
+
+model Appointment {
+  id         String   @id @default(cuid())
+  chatId     String
+  proposerId String
+  date       DateTime
+  location   String
+  address    String?
+  latitude   Float?
+  longitude  Float?
+  status     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  chat       Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+  @@index([status])
+  @@index([date])
+}
+
+model PaymentMethod {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  last4     String
+  brand     String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model CreditTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Int
+  description String
+  relatedId   String?
+  details     Json?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model FakeNotificationCounter {
+  id            String   @id @default(cuid())
+  userId        String
+  monthYear     String
+  targetCount   Int
+  currentCount  Int      @default(0)
+  lastGenerated DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, monthYear])
+  @@index([monthYear])
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  userId     String?
+  eventType  String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([eventType])
+  @@index([entityType])
+  @@index([createdAt])
+}
+
+model Brand {
+  id         String    @id @default(cuid())
+  name       String    @unique
+  category   String
+  logoUrl    String?
+  isActive   Boolean   @default(true)
+  source     String    @default("manual")
+  confidence Float?
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  models     Model[]
+
+  @@index([category])
+  @@index([isActive])
+  @@index([source])
+}
+
+model Model {
+  id               String    @id @default(cuid())
+  name             String
+  brandId          String
+  yearIntroduced   Int?
+  yearDiscontinued Int?
+  isElectric       Boolean   @default(false)
+  isHybrid         Boolean   @default(false)
+  isActive         Boolean   @default(true)
+  source           String    @default("manual")
+  confidence       Float?
+  verifiedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  brand            Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@unique([brandId, name])
+  @@index([brandId])
+  @@index([isActive])
+  @@index([yearIntroduced])
+}
+
+model VehicleType {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  category    String
+  icon        String?
+  description String?
+  isActive    Boolean  @default(true)
+  source      String   @default("manual")
+  createdAt   DateTime @default(now())
+
+  @@index([category])
+  @@index([isActive])
+}
+
+model AutoUpdateLog {
+  id            String   @id @default(cuid())
+  status        String
+  brandsAdded   Int      @default(0)
+  modelsAdded   Int      @default(0)
+  typesAdded    Int      @default(0)
+  errors        String?
+  executionTime Int?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+enum VehicleStatus {
+  ACTIVE
+  INACTIVE
+  SOLD
+}
+
+enum BusinessType {
+  TALLER
+  CONCESIONARIO
+  CARWASH
+  DESPONCHADORA
+  FINANCIAMIENTO
+  REFACCIONES
+  PINTURA
+  MECANICA
+  ELECTRICO
+  OTRO
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ModerationStatus {
+  PENDING_AI
+  APPROVED
+  REJECTED
+  MANUAL_REVIEW
+}
+
+enum NotificationType {
+  VEHICLE_FAVORITED
+  VEHICLE_VIEWED
+  BUSINESS_VIEWED
+  BUSINESS_SEARCHED
+  PROFILE_VIEWED
+  MESSAGE_RECEIVED
+  APPOINTMENT_SCHEDULED
+}
+
+model SearchMetric {
+  id        String   @id @default(cuid())
+  query     String?
+  category  String?
+  latitude  Float
+  longitude Float
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@index([latitude, longitude])
+  @@index([createdAt])
+}
+
+model OpportunityLog {
+  id           String   @id @default(cuid())
+  businessType String
+  latitude     Float
+  longitude    Float
+  reason       String?
+  createdAt    DateTime @default(now())
+
+  @@index([latitude, longitude])
+  @@index([createdAt])
+}

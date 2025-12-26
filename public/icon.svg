@@ -1,0 +1,33 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle with Gradient -->
+  <circle cx="256" cy="256" r="256" fill="url(#gradient)"/>
+  
+  <!-- Car Icon -->
+  <g transform="translate(106, 180)">
+    <!-- Car Body -->
+    <path d="M300 80H60L40 120H320L300 80Z" fill="white" fill-opacity="0.95"/>
+    <rect x="40" y="120" width="280" height="80" rx="8" fill="white" fill-opacity="0.95"/>
+    
+    <!-- Windows -->
+    <path d="M80 90L100 120H140L150 90H80Z" fill="#0A0A0A" fill-opacity="0.3"/>
+    <path d="M180 90L190 120H230L240 90H180Z" fill="#0A0A0A" fill-opacity="0.3"/>
+    
+    <!-- Wheels -->
+    <circle cx="90" cy="200" r="30" fill="#2A2A2A"/>
+    <circle cx="90" cy="200" r="18" fill="#4A4A4A"/>
+    <circle cx="270" cy="200" r="30" fill="#2A2A2A"/>
+    <circle cx="270" cy="200" r="18" fill="#4A4A4A"/>
+    
+    <!-- Headlight -->
+    <circle cx="310" cy="150" r="8" fill="#FFD700"/>
+  </g>
+  
+  <!-- Gradient Definition -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF8547;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF6B2C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E85A1F;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>
