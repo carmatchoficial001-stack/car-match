@@ -4,13 +4,13 @@ import ProfileClient from "../ProfileClient"
 import { notFound } from "next/navigation"
 
 interface PublicProfilePageProps {
-    params: {
+    params: Promise<{
         id: string
-    }
+    }>
 }
 
 export default async function PublicProfilePage({ params }: PublicProfilePageProps) {
-    const { id } = params
+    const { id } = await params
     const session = await auth()
 
     // Buscar al usuario por ID
