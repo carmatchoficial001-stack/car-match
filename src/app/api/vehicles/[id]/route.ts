@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db'
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth()
@@ -21,7 +21,7 @@ export async function PATCH(
             return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
         }
 
-        const { id } = params
+        const { id } = await params
         const body = await request.json()
         const { status } = body
 
@@ -124,7 +124,7 @@ async function notifyFavoriters(vehicleId: string, title: string, brand: string,
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth()
@@ -137,7 +137,7 @@ export async function DELETE(
 
         if (!user) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
 
-        const { id } = params
+        const { id } = await params
         const vehicle = await prisma.vehicle.findUnique({
             where: { id },
             select: { userId: true }
