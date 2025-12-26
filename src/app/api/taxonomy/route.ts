@@ -11,8 +11,9 @@ export async function GET() {
         // but explicit distinct is safer for just getting the values.
 
         // Fetch discovered knowledge from AI
-        const discoveredBrands = await prisma.discoveredBrand.findMany()
-        const discoveredTypes = await prisma.discoveredType.findMany()
+        // Fetch discovered knowledge from AI (now mirrored in main tables)
+        const discoveredBrands = await prisma.brand.findMany({ where: { source: 'discovered' } })
+        const discoveredTypes = await prisma.vehicleType.findMany({ where: { source: 'discovered' } })
 
         const dbBrands = await prisma.vehicle.findMany({
             select: { brand: true, vehicleType: true },
