@@ -5,7 +5,7 @@ import { renewBusinessForOneMonth } from '@/lib/businessMonetization'
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth()
@@ -17,7 +17,8 @@ export async function PATCH(
             )
         }
 
-        const businessId = params.id
+        const { id } = await params
+        const businessId = id
         const body = await request.json()
 
         // Verificar que el negocio pertenece al usuario
@@ -105,7 +106,7 @@ export async function PATCH(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth()
@@ -117,7 +118,8 @@ export async function DELETE(
             )
         }
 
-        const businessId = params.id
+        const { id } = await params
+        const businessId = id
 
         // Verificar propiedad
         const business = await prisma.business.findUnique({
