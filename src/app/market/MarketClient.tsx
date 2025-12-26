@@ -204,7 +204,7 @@ function MarketContent({ vehicles, brands, vehicleTypes, colors, searchParams }:
 
                 const withDistances = sourceVehicles
                     .filter((v: Vehicle) => v.latitude != null && v.longitude != null)
-                    .map(vehicle => ({
+                    .map((vehicle: Vehicle) => ({
                         ...vehicle,
                         distance: calcDist(userLat, userLng, vehicle.latitude!, vehicle.longitude!)
                     }))
