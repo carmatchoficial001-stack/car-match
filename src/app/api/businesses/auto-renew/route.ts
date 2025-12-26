@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
                 where: { id: businessId },
                 data: {
                     isActive: true,
-                    activatedAt: now,
                     expiresAt: newExpiresAt
                 }
             })
