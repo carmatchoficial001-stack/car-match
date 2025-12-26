@@ -1,5 +1,19 @@
+import crypto from 'crypto'
 import { prisma } from './db'
 import { calculateGPSDistance, compareImageHashes, compareWritingStyle } from './fingerprint'
+// ... (rest of imports)
+
+// ...
+
+export function generateVehicleHash(data: {
+    brand: string
+    model: string
+    year: number
+    color?: string | null
+}) {
+    const str = `${data.brand}-${data.model}-${data.year}-${data.color || ''}`.toLowerCase().replace(/\s/g, '')
+    return crypto.createHash('sha256').update(str).digest('hex')
+}
 
 /**
  * Validar si una publicación es fraudulenta (duplicado)
@@ -125,15 +139,4 @@ export async function savePublicationFingerprint(data: {
     })
 }
 
-export function generateVehicleHash(data: {
-    brand: string
-    model: string
-    year: number
-    color?: string | null
-}) {
-    // Importación dinámica para evitar problemas de entorno si fuera necesario, 
-    // pero crypto está en Node stdlib.
-    const crypto = require('crypto')
-    const str = `${data.brand}-${data.model}-${data.year}-${data.color || ''}`.toLowerCase().replace(/\s/g, '')
-    return crypto.createHash('sha256').update(str).digest('hex')
-}
+
