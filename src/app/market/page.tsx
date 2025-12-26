@@ -29,10 +29,11 @@ interface SearchParams {
 }
 
 export default async function MarketPage({
-    searchParams
+    searchParams: searchParamsPromise
 }: {
-    searchParams: SearchParams
+    searchParams: Promise<SearchParams>
 }) {
+    const searchParams = await searchParamsPromise
     const session = await auth()
 
     if (!session?.user) {
