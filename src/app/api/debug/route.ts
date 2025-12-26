@@ -23,7 +23,7 @@ export async function GET() {
     }
 
     try {
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2024-06-20' })
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2025-02-24.acacia' })
         const balance = await stripe.balance.retrieve()
         diagnostics.stripe = 'OK (Live connection successful)'
     } catch (e: any) {
