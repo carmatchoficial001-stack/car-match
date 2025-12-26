@@ -79,7 +79,8 @@ export async function POST(request: NextRequest) {
             }
 
             // Precio similar
-            if (Math.abs(pub.price - vehicleData.price) / pub.price < 0.1) {
+            const pubPrice = pub.price.toNumber()
+            if (Math.abs(pubPrice - vehicleData.price) / pubPrice < 0.1) {
                 fraudScore += 10
             }
 
