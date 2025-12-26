@@ -49,6 +49,10 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
     const [chat, setChat] = useState<any>(null)
     const [showAppointmentModal, setShowAppointmentModal] = useState(false)
     const [showSafetyTips, setShowSafetyTips] = useState(false)
+    // Estados para Safe Places (agregados para evitar errores)
+    const [safePlaces, setSafePlaces] = useState<any[]>([])
+    const [showSafePlaces, setShowSafePlaces] = useState(false)
+    const [apiTip, setApiTip] = useState('')
 
     useEffect(() => {
         // Wait for session to load before making decisions
@@ -108,7 +112,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                 const data = await res.json()
                 // Deduplicate messages by ID
                 const uniqueMessages = Array.from(
-                    new Map(data.map((m: Message) => [m.id, m])).values()
+                    new Map<string, Message>(data.map((m: Message) => [m.id, m])).values()
                 )
                 setMessages(uniqueMessages)
             } else if (res.status === 410) {
