@@ -30,6 +30,26 @@ export default function MapClient({ businesses, user }: MapClientProps) {
     )
 }
 
+async function searchCity(query: string) {
+    try {
+        const res = await fetch(`/api/geolocation?q=${encodeURIComponent(query)}`)
+        if (!res.ok) return null
+        const data = await res.json()
+        if (data.latitude && data.longitude) {
+            return {
+                latitude: data.latitude,
+                longitude: data.longitude,
+                city: data.city || query, // Fallback al query si no hay ciudad
+                country: data.country || ''
+            }
+        }
+        return null
+    } catch (error) {
+        console.error('Error in searchCity:', error)
+        return null
+    }
+}
+
 function MapContent({ businesses, user }: MapClientProps) {
     const { t } = useLanguage()
     const { location, loading, error, refreshLocation, setManualLocation } = useLocation()
