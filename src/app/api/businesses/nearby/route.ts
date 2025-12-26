@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
         // Obtener todos los negocios activos
         const allBusinesses = await prisma.business.findMany({
             where: {
-                status: 'ACTIVE', // Enforcing status
+                isActive: true,
                 ...(category ? { category } : {})
             },
             select: {
