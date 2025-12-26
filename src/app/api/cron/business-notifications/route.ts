@@ -66,7 +66,6 @@ export async function GET(request: NextRequest) {
                             where: { id: business.id },
                             data: {
                                 isActive: true,
-                                activatedAt: now,
                                 expiresAt: newExpiresAt
                             }
                         })
