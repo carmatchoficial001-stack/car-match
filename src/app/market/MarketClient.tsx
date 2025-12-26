@@ -112,6 +112,14 @@ function MarketContent({ vehicles, brands, vehicleTypes, colors, searchParams }:
     const [visibleCount, setVisibleCount] = useState(6)
     const CARS_PER_PAGE = 6
 
+    // Missing state for Smart Expand
+    const [userLocationState, setUserLocationState] = useState<{ lat: number; lng: number } | null>(null)
+
+    // Silence unused warning for now (or use it)
+    useEffect(() => {
+        if (userLocationState) console.debug('Location locked for expansion:', userLocationState)
+    }, [userLocationState])
+
     // 🎲 Effect: Init Shuffle (Solo una vez al montar o cambiar data base)
     useEffect(() => {
         // Solo barajamos si no hay filtros de ordenamiento explícitos (ej. precio, año)
