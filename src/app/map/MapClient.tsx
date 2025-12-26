@@ -17,6 +17,11 @@ const MapBoxStoreLocator = dynamic(() => import('@/components/MapBoxStoreLocator
 
 const BusinessDetailsModal = dynamic(() => import('@/components/BusinessDetailsModal'), { ssr: false })
 
+interface MapClientProps {
+    businesses: any[]
+    user: any
+}
+
 export default function MapClient({ businesses, user }: MapClientProps) {
     return (
         <LocationProvider>
