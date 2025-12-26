@@ -56,6 +56,11 @@ export default async function FavoritesPage() {
             price: Number(fav.vehicle.price),
             latitude: fav.vehicle.latitude ? Number(fav.vehicle.latitude) : null,
             longitude: fav.vehicle.longitude ? Number(fav.vehicle.longitude) : null,
+            user: {
+                ...fav.vehicle.user,
+                name: fav.vehicle.user.name || 'Usuario CarMatch',
+                image: fav.vehicle.user.image || ''
+            }
         }
     }))
 
