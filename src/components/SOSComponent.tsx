@@ -178,6 +178,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SO
                                         lng={otherUserLocation.lastLongitude}
                                         name={otherUserLocation.name || 'Usuario'}
                                         lastUpdate={otherUserLocation.lastLocationUpdate}
+                                        locale={locale}
                                     />
                                 </div>
                             ) : (
@@ -227,9 +228,12 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SO
     )
 }
 
-function SOSMap({ lat, lng, name, lastUpdate }: { lat: number, lng: number, name: string, lastUpdate: string }) {
+function SOSMap({ lat, lng, name, lastUpdate, locale }: { lat: number, lng: number, name: string, lastUpdate: string, locale: string }) {
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<mapboxgl.Map | null>(null)
+
+    // Extract formatting logic
+    const formattedDate = new Date(lastUpdate).toLocaleString(locale === 'es' ? 'es-MX' : 'en-US')
 
     useEffect(() => {
         if (!mapContainer.current) return
@@ -254,7 +258,7 @@ function SOSMap({ lat, lng, name, lastUpdate }: { lat: number, lng: number, name
             .setHTML(`
                 <div class="p-2">
                     <strong class="block text-red-600">Ubicación de ${name}</strong>
-                    <span className="text-xs text-gray-500" suppressHydrationWarning>${new Date(lastUpdate).toLocaleString(locale === 'es' ? 'es-MX' : 'en-US')}</span>
+                    <span class="text-xs text-gray-500">${formattedDate}</span>
                 </div>
             `)
 
@@ -273,7 +277,7 @@ function SOSMap({ lat, lng, name, lastUpdate }: { lat: number, lng: number, name
         return () => {
             newMap.remove()
         }
-    }, [lat, lng, name, lastUpdate])
+    }, [lat, lng, name, lastUpdate, locale])
 
     return <div ref={mapContainer} className="w-full h-full" />
 }
