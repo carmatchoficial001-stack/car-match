@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
     experimental: {
         optimizePackageImports: ['lucide-react', 'framer-motion'],
     },
+    webpack: (config) => {
+        // Fix for EISDIR error on Windows with Next.js 15.5
+        config.resolve.symlinks = false
+        return config
+    },
     images: {
         remotePatterns: [
             {
