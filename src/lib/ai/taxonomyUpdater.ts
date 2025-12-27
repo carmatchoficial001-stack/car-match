@@ -24,12 +24,13 @@ export async function updateTaxonomyDatabase() {
   for (const [category, brands] of Object.entries(newBrands)) {
     for (const brandName of brands) {
       try {
-        await prisma.discoveredBrand.upsert({
+        await prisma.brand.upsert({
           where: { name: brandName },
           update: {}, // Already exists, do nothing
           create: {
             name: brandName,
-            category: category
+            category: category,
+            source: 'AI'
           }
         });
         addedBrands++;
@@ -43,12 +44,13 @@ export async function updateTaxonomyDatabase() {
   for (const [category, types] of Object.entries(newCategories)) {
     for (const typeName of types) {
       try {
-        await prisma.discoveredType.upsert({
+        await prisma.vehicleType.upsert({
           where: { name: typeName },
           update: {},
           create: {
             name: typeName,
-            category: category
+            category: category,
+            source: 'AI'
           }
         });
         addedTypes++;
