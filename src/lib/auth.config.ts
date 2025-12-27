@@ -26,7 +26,7 @@ export const authConfig: NextAuthConfig = {
         Twitter({
             clientId: process.env.TWITTER_CLIENT_ID,
             clientSecret: process.env.TWITTER_CLIENT_SECRET,
-            version: "2.0",
+            // version: "2.0", // Deprecated/Inferred in newer versions
             allowDangerousEmailAccountLinking: true,
         }),
     ],
