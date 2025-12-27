@@ -73,7 +73,7 @@ export async function processChatMessage(chatId: string, messageContent: string,
                         email: 'ai-bot@carmatch.App',
                         image: 'https://cdn-icons-png.flaticon.com/512/4712/4712035.png',
                         password: 'bot-secure-password-hash',
-                        role: 'ADMIN'
+                        isAdmin: true
                     }
                 })
             }
