@@ -18,11 +18,11 @@ export default function LocationSelector({
     showRadiusControl = false
 }: LocationSelectorProps) {
     const { t } = useLanguage()
-    const { location, loading, error, manualCity, setManualCity, refreshLocation } = useLocation()
+    const { location, loading, error, manualLocation, setManualLocation, refreshLocation } = useLocation()
     const [showCitySelector, setShowCitySelector] = useState(false)
 
-    const currentCity = manualCity || location?.city || t('common.unknown_location')
-    const isManual = manualCity !== null
+    const currentCity = manualLocation?.city || location?.city || t('common.unknown_location')
+    const isManual = manualLocation !== null
     const isGPS = !isManual && location?.latitude !== 0
 
     return (
@@ -60,7 +60,7 @@ export default function LocationSelector({
                         <p className="font-bold text-text-primary">
                             {currentCity}
                         </p>
-                        {error && !manualCity && (
+                        {error && !manualLocation && (
                             <p className="text-xs text-red-400 mt-1">{error}</p>
                         )}
                     </div>
@@ -111,7 +111,7 @@ export default function LocationSelector({
                             <button
                                 key={city}
                                 onClick={() => {
-                                    setManualCity(city)
+                                    setManualLocation({ city, latitude: 0, longitude: 0 })
                                     setShowCitySelector(false)
                                 }}
                                 className={`px-3 py-2 rounded-lg text-sm transition ${currentCity === city
@@ -128,7 +128,7 @@ export default function LocationSelector({
                     {isManual && (
                         <button
                             onClick={() => {
-                                setManualCity(null)
+                                setManualLocation(null)
                                 setShowCitySelector(false)
                             }}
                             className="mt-3 w-full px-4 py-2 bg-surface-highlight text-text-primary rounded-lg hover:bg-surface transition text-sm flex items-center justify-center gap-2"
