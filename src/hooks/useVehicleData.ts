@@ -61,15 +61,17 @@ export function useModels(brandIdOrName?: string) {
             return
         }
 
+        const validBrand = brandIdOrName
+
         async function fetchModels() {
             try {
                 setLoading(true)
 
                 // Detectar si es ID (cuid) o nombre
-                const isId = brandIdOrName.startsWith('cl') || brandIdOrName.startsWith('cm')
+                const isId = validBrand.startsWith('cl') || validBrand.startsWith('cm')
                 const param = isId ? 'brandId' : 'brandName'
 
-                const res = await fetch(`/api/vehicles/models?${param}=${encodeURIComponent(brandIdOrName)}`)
+                const res = await fetch(`/api/vehicles/models?${param}=${encodeURIComponent(validBrand)}`)
                 if (!res.ok) throw new Error('Failed to fetch models')
 
                 const data = await res.json()
