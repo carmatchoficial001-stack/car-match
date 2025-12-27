@@ -250,7 +250,7 @@ export default function MapBoxStoreLocator({ businesses, categoryColors, categor
             });
 
             // Click Handler Function
-            const handlePointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] } | mapboxgl.EventData) => {
+            const handlePointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
                 if (!e.features || !e.features[0]) return
 
                 const feature = e.features[0]
