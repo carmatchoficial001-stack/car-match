@@ -5,8 +5,10 @@ import { Search } from 'lucide-react'
 
 interface Suggestion {
     id: string
-    place_name: string
+    text?: string // Short name (e.g. "Reforma")
+    place_name: string // Full formatted address
     center: [number, number]
+    address?: string // Street number
     context?: any[]
 }
 
