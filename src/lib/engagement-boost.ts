@@ -177,7 +177,7 @@ export async function generateBusinessEngagementNotifications() {
 
             // Pequeña variación basada en tipo de negocio
             let simulatedViews = baseSimulated
-            if (business.businessType === 'CONCESIONARIO' || business.businessType === 'FINANCIAMIENTO') {
+            if (business.category === 'CONCESIONARIO' || business.category === 'FINANCIAMIENTO') {
                 simulatedViews += Math.floor(Math.random() * 5)
             }
 
