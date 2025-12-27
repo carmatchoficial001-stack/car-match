@@ -6,29 +6,35 @@ import type { NextAuthConfig } from "next-auth"
 // ⚙️ Configuración base compatible con Edge (Middleware)
 export const authConfig: NextAuthConfig = {
     providers: [
-        Google({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            authorization: {
-                params: {
-                    prompt: "select_account",
-                    access_type: "offline",
-                    response_type: "code"
-                }
-            },
-            allowDangerousEmailAccountLinking: true,
-        }),
-        Facebook({
-            clientId: process.env.FACEBOOK_CLIENT_ID,
-            clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-            allowDangerousEmailAccountLinking: true,
-        }),
-        Twitter({
-            clientId: process.env.TWITTER_CLIENT_ID,
-            clientSecret: process.env.TWITTER_CLIENT_SECRET,
-            // version: "2.0", // Deprecated/Inferred in newer versions
-            allowDangerousEmailAccountLinking: true,
-        }),
+        ...(process.env.GOOGLE_CLIENT_ID ? [
+            Google({
+                clientId: process.env.GOOGLE_CLIENT_ID,
+                clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                authorization: {
+                    params: {
+                        prompt: "select_account",
+                        access_type: "offline",
+                        response_type: "code"
+                    }
+                },
+                allowDangerousEmailAccountLinking: true,
+            })
+        ] : []),
+        ...(process.env.FACEBOOK_CLIENT_ID ? [
+            Facebook({
+                clientId: process.env.FACEBOOK_CLIENT_ID,
+                clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+                allowDangerousEmailAccountLinking: true,
+            })
+        ] : []),
+        ...(process.env.TWITTER_CLIENT_ID ? [
+            Twitter({
+                clientId: process.env.TWITTER_CLIENT_ID,
+                clientSecret: process.env.TWITTER_CLIENT_SECRET,
+                // version: "2.0", 
+                allowDangerousEmailAccountLinking: true,
+            })
+        ] : []),
     ],
     pages: {
         signIn: "/auth",
