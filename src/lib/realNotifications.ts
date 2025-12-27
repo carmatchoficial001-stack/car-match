@@ -21,7 +21,7 @@ export async function notifyRealFavorite(userId: string, targetId: string, type:
                 fromUserId: userId,
                 type: 'VEHICLE_FAVORITED',
                 title: '👍 ¡A alguien le gustó tu vehículo!',
-                message: `Alguien le dio like a tu "${item.title}".`,
+                message: `Alguien le dio like a tu "${(item as any).title}".`,
                 vehicleId: targetId,
                 isFake: false
             }
@@ -88,8 +88,8 @@ export async function trackRealView(userId: string | null, targetId: string, typ
                 type: isVehicle ? 'VEHICLE_VIEWED' : 'BUSINESS_VIEWED',
                 title: isVehicle ? '👀 ¡Interés real!' : '⭐ ¡Alguien ve tu negocio!',
                 message: isVehicle
-                    ? `Una persona está viendo los detalles de tu "${item.title}".`
-                    : `Un cliente potencial acaba de abrir la información de tu negocio "${item.name}".`,
+                    ? `Una persona está viendo los detalles de tu "${(item as any).title}".`
+                    : `Un cliente potencial acaba de abrir la información de tu negocio "${(item as any).name}".`,
                 vehicleId: isVehicle ? targetId : null,
                 businessId: !isVehicle ? targetId : null,
                 isFake: false
