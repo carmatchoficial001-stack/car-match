@@ -34,12 +34,19 @@ export default function PushNotificationRequest() {
         }
     }, [])
 
+    const [isLoading, setIsLoading] = useState(false)
+
     const subscribeUser = async () => {
+        setIsLoading(true)
         try {
             const registration = await navigator.serviceWorker.ready
             const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
 
-            if (!vapidKey) return
+            if (!vapidKey) {
+                console.error('Missing VAPID key')
+                alert('Error de configuración: Contacta al administrador')
+                return
+            }
 
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
@@ -47,19 +54,25 @@ export default function PushNotificationRequest() {
             })
 
             // Enviar al backend
-            await fetch('/api/push/subscribe', {
+            const response = await fetch('/api/push/subscribe', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(subscription)
             })
 
+            if (!response.ok) throw new Error('Failed to sync with server')
+
             setPermission('granted')
             setShowPrompt(false)
             console.log('Push subscription success!')
+            // Opcional: Mostrar toast de éxito aquí
 
         } catch (error) {
             console.error('Failed to subscribe to push:', error)
             setPermission('denied')
+            alert('No pudimos activar las notificaciones. Verifica los permisos de tu navegador.')
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -90,9 +103,10 @@ export default function PushNotificationRequest() {
                             </button>
                             <button
                                 onClick={subscribeUser}
-                                className="px-4 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold rounded-lg transition shadow-lg shadow-primary-500/20"
+                                disabled={isLoading}
+                                className="px-4 py-1.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-bold rounded-lg transition shadow-lg shadow-primary-500/20"
                             >
-                                Activar
+                                {isLoading ? 'Activando...' : 'Activar'}
                             </button>
                         </div>
                     </div>
