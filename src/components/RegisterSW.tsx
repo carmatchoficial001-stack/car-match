@@ -8,35 +8,33 @@ export default function RegisterSW() {
 
     useEffect(() => {
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker
-                    .register('/sw.js')
-                    .then((registration) => {
-                        console.log('✅ Service Worker registrado:', registration.scope)
+            navigator.serviceWorker
+                .register('/sw.js')
+                .then((registration) => {
+                    console.log('✅ Service Worker registrado:', registration.scope)
 
-                        // Detectar nueva versión
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing
-                            if (!newWorker) return
+                    // Detectar nueva versión
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing
+                        if (!newWorker) return
 
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // Nueva versión disponible
-                                    setWaitingWorker(newWorker)
-                                    setShowUpdatePrompt(true)
-                                }
-                            })
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // Nueva versión disponible
+                                setWaitingWorker(newWorker)
+                                setShowUpdatePrompt(true)
+                            }
                         })
+                    })
 
-                        // Revisar actualizaciones cada 1 hora
-                        setInterval(() => {
-                            registration.update()
-                        }, 60 * 60 * 1000)
-                    })
-                    .catch((error) => {
-                        console.error('❌ Error al registrar Service Worker:', error)
-                    })
-            })
+                    // Revisar actualizaciones cada 1 hora
+                    setInterval(() => {
+                        registration.update()
+                    }, 60 * 60 * 1000)
+                })
+                .catch((error) => {
+                    console.error('❌ Error al registrar Service Worker:', error)
+                })
 
             // Detectar cuando el Service Worker toma control
             let refreshing = false

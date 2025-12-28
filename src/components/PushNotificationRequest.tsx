@@ -39,7 +39,14 @@ export default function PushNotificationRequest() {
     const subscribeUser = async () => {
         setIsLoading(true)
         try {
-            const registration = await navigator.serviceWorker.ready
+            // Race condition: wait for SW ready or timeout after 3s
+            const registration = await Promise.race([
+                navigator.serviceWorker.ready,
+                new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('Service Worker registration timeout')), 3000)
+                )
+            ]) as ServiceWorkerRegistration
+
             const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
 
             if (!vapidKey) {
