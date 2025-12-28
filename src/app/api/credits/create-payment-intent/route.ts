@@ -4,13 +4,15 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth'
 
 // Inicializar Stripe con la clave secreta (desde .env)
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-    apiVersion: '2024-12-18.acacia' as any,
-})
 
 const EXCHANGE_API = 'https://api.exchangerate-api.com/v4/latest/MXN'
 
 export async function POST(request: NextRequest) {
+    // Inicializar Stripe con la clave secreta (desde .env)
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+        apiVersion: '2024-12-18.acacia' as any,
+    })
+
     try {
         const session = await auth()
         if (!session?.user?.id || !session?.user?.email) {
