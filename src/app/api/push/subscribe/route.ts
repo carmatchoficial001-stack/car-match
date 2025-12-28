@@ -10,6 +10,10 @@ export async function POST(req: NextRequest) {
 
     try {
         const subscription = await req.json()
+        console.log('[API] Push Subscription Request:', {
+            userId: session.user.id,
+            endpoint: subscription.endpoint ? 'Present' : 'Missing'
+        })
 
         // Guardar suscripción
         await prisma.pushSubscription.create({
