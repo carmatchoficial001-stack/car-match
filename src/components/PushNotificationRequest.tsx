@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Bell } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 
 // Función auxiliar para convertir VAPID key
 function urlBase64ToUint8Array(base64String: string) {
@@ -20,6 +21,7 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 export default function PushNotificationRequest() {
+    const { data: session, status } = useSession()
     const [showPrompt, setShowPrompt] = useState(false)
     const [permission, setPermission] = useState('default')
     const [debugLogs, setDebugLogs] = useState<string[]>([])
@@ -29,6 +31,8 @@ export default function PushNotificationRequest() {
     const addLog = (msg: string) => setDebugLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`])
 
     useEffect(() => {
+        if (status !== 'authenticated') return
+
         if ('Notification' in window) {
             setPermission(Notification.permission)
             if (Notification.permission === 'default') {
@@ -38,9 +42,15 @@ export default function PushNotificationRequest() {
         } else {
             addLog('❌ Este navegador no soporta notificaciones')
         }
-    }, [])
+    }, [status])
 
     const subscribeUser = async () => {
+        if (!session?.user?.id) {
+            addLog('❌ Error: No hay sesión de usuario activa')
+            alert('Debes iniciar sesión para activar las notificaciones')
+            return
+        }
+
         setIsLoading(true)
         setDebugLogs([]) // Limpiar logs anteriores
         addLog('🚀 Iniciando proceso de activación...')
@@ -119,6 +129,9 @@ export default function PushNotificationRequest() {
         }
     }
 
+    // No renderizar si no está autenticado
+    if (status !== 'authenticated') return null
+
     if (!showPrompt && debugLogs.length === 0) return null
     if (permission === 'granted' && debugLogs.length === 0) return null
 
@@ -136,9 +149,9 @@ export default function PushNotificationRequest() {
                         <h4 className="font-bold text-text-primary mb-1">Activar Notificaciones</h4>
                         <p className="text-sm text-text-secondary mb-3">
                             Recibe alertas de mensajes y favoritos.
-                            <br/>
+                            <br />
                             <span className="text-[10px] text-gray-500 font-mono">
-                                v2.0-DEBUG | VAPID: {process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? 'OK' : 'MISSING'}
+                                v2.1-AUTH | VAPID: {process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? 'OK' : 'MISSING'}
                             </span>
                         </p>
 
