@@ -35,30 +35,24 @@ const nextConfig: NextConfig = {
 // Injected by Sentry
 import { withSentryConfig } from "@sentry/nextjs";
 
-// For all available options, see:
-// https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+export default withSentryConfig(nextConfig, {
+    // For all available options, see:
+    // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
-// Sentry Webpack Plugin Options
-silent: true,
+    // Sentry Webpack Plugin Options
+    silent: true,
     org: "carmatch",
-        project: "javascript-nextjs",
+    transpileClientSDK: true,
 
-            // Sentry Next.js Options
-            // Upload a larger set of source maps for prettier stack traces (increases build time)
-            widenClientFileUpload: true,
+    // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers (increases server load)
+    tunnelRoute: "/monitoring",
 
-                // Transpiles SDK to be compatible with IE11 (increases bundle size)
-                transpileClientSDK: true,
+    // Hides source maps from generated client bundles
+    hideSourceMaps: true,
 
-                    // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers (increases server load)
-                    tunnelRoute: "/monitoring",
+    // Automatically tree-shake Sentry logger statements to reduce bundle size
+    disableLogger: true,
 
-                        // Hides source maps from generated client bundles
-                        hideSourceMaps: true,
-
-                            // Automatically tree-shake Sentry logger statements to reduce bundle size
-                            disableLogger: true,
-
-                                // Enables automatic instrumentation of Vercel Cron Monitors.
-                                automaticVercelMonitors: true,
+    // Enables automatic instrumentation of Vercel Cron Monitors.
+    automaticVercelMonitors: true,
 });
