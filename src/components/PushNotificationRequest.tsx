@@ -136,6 +136,10 @@ export default function PushNotificationRequest() {
                         <h4 className="font-bold text-text-primary mb-1">Activar Notificaciones</h4>
                         <p className="text-sm text-text-secondary mb-3">
                             Recibe alertas de mensajes y favoritos.
+                            <br/>
+                            <span className="text-[10px] text-gray-500 font-mono">
+                                v2.0-DEBUG | VAPID: {process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? 'OK' : 'MISSING'}
+                            </span>
                         </p>
 
                         {/* DEBUG CONSOLE */}
