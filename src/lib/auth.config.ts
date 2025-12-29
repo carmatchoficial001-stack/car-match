@@ -55,4 +55,5 @@ export const authConfig: NextAuthConfig = {
             return token
         },
     },
+    trustHost: true,
 }
