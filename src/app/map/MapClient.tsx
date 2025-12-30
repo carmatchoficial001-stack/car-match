@@ -509,6 +509,7 @@ function MapContent({ businesses, user }: MapClientProps) {
                         businesses={filteredBusinesses}
                         categoryColors={CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.color }), {})}
                         categoryEmojis={CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.icon }), {})}
+                        initialLocation={location ? { latitude: location.latitude, longitude: location.longitude } : undefined}
                     />
                 </div>
 

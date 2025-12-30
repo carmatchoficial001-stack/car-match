@@ -22,9 +22,15 @@ interface MapBoxStoreLocatorProps {
     businesses: Business[]
     categoryColors: Record<string, string>
     categoryEmojis: Record<string, string>
+    initialLocation?: { latitude: number; longitude: number }
 }
 
-export default function MapBoxStoreLocator({ businesses, categoryColors, categoryEmojis }: MapBoxStoreLocatorProps) {
+export default function MapBoxStoreLocator({
+    businesses,
+    categoryColors,
+    categoryEmojis,
+    initialLocation
+}: MapBoxStoreLocatorProps) {
     const { t } = useLanguage()
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<mapboxgl.Map | null>(null)
@@ -44,10 +50,14 @@ export default function MapBoxStoreLocator({ businesses, categoryColors, categor
         }
         mapboxgl.accessToken = token
 
+        const center: [number, number] = initialLocation
+            ? [initialLocation.longitude, initialLocation.latitude]
+            : [DEFAULT_LNG, DEFAULT_LAT]
+
         const newMap = new mapboxgl.Map({
             container: mapContainer.current,
             style: 'mapbox://styles/mapbox/outdoors-v12', // Light Mode
-            center: [DEFAULT_LNG, DEFAULT_LAT],
+            center: center,
             zoom: 12,
             pitch: 0, // Flat view
         })
