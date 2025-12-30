@@ -10,6 +10,7 @@ interface BeforeInstallPromptEvent extends Event {
 export function usePWAInstall() {
     const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
     const [isInstallable, setIsInstallable] = useState(false)
+    const [isStandalone, setIsStandalone] = useState(false)
 
     useEffect(() => {
         // Verificar si ya está instalada como PWA
@@ -19,6 +20,7 @@ export function usePWAInstall() {
 
         if (isStandalone) {
             console.log("📱 La aplicación ya está corriendo como PWA")
+            setIsStandalone(true)
             setIsInstallable(false)
             return
         }
@@ -66,5 +68,5 @@ export function usePWAInstall() {
         return false
     }
 
-    return { isInstallable, triggerInstall }
+    return { isInstallable, isStandalone, triggerInstall }
 }

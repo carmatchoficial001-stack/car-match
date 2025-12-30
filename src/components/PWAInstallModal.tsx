@@ -109,55 +109,46 @@ export default function PWAInstallModal({ isOpen, onClose, platform = 'auto' }: 
                         <div className="space-y-4">
                             <div className="bg-gradient-to-r from-green-500/10 to-teal-500/10 border border-green-500/30 rounded-xl p-4">
                                 <p className="text-sm font-bold text-primary-400 mb-2">
-                                    📱 Detectamos que usas Android
+                                    🤖 Android: Instalación Directa
                                 </p>
                                 <p className="text-xs text-text-secondary">
-                                    Sigue estos pasos para instalar CarMatch
+                                    Si el botón de instalación automática no aparece (común si desinstalaste recientemente), usa este método manual:
                                 </p>
                             </div>
 
                             <div className="space-y-4">
                                 <StepCard
                                     number={1}
-                                    title="Abre Chrome"
-                                    description="Usa el navegador Google Chrome para la mejor experiencia"
-                                    icon="🌐"
+                                    title="Toca los tres puntos (⋮)"
+                                    description="Están en la esquina superior derecha de tu navegador Chrome o Samsung Internet."
+                                    icon="📶"
                                 />
                                 <StepCard
                                     number={2}
-                                    title="Busca el banner"
-                                    description='Aparecerá un mensaje "Instalar aplicación" en la parte inferior'
-                                    icon="💬"
-                                />
-                                <StepCard
-                                    number={3}
-                                    title="Toca Instalar"
-                                    description="O ve a Menú (⋮) → 'Agregar a pantalla de inicio'"
+                                    title="Busca la opción de instalar"
+                                    description='Toca en "Instalar aplicación" o "Agregar a pantalla de inicio".'
                                     icon="📲"
                                 />
                                 <StepCard
-                                    number={4}
-                                    title="Confirma"
-                                    description="Toca 'Instalar' o 'Agregar' en el diálogo"
+                                    number={3}
+                                    title="Confirma la instalación"
+                                    description="Toca 'Instalar' en la ventana emergente y ¡listo!"
                                     icon="✅"
                                 />
                             </div>
 
                             <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
                                 <p className="text-xs font-bold text-amber-400 mb-1">
-                                    💡 Tip para Android
+                                    💡 ¿Por qué no veo el aviso automático?
                                 </p>
                                 <p className="text-[11px] text-text-secondary">
-                                    Si acabas de borrar la app, Chrome puede tardar un poco en volver a mostrar el botón de instalación automática. Si no lo ves, usa el <b>Paso 3</b> (Menú ⋮ → Agregar).
+                                    Chrome bloquea por unos días el aviso automático si desinstalaste la app hoy. <b>Hacerlo manual (pasos 1 y 2) funciona SIEMPRE.</b>
                                 </p>
                             </div>
 
-                            <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
-                                <p className="text-sm font-bold text-green-400 mb-1">
-                                    🎉 ¡Perfecto!
-                                </p>
-                                <p className="text-xs text-text-secondary">
-                                    CarMatch estará en tu cajón de aplicaciones y pantalla de inicio
+                            <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-center">
+                                <p className="text-sm font-bold text-green-400">
+                                    🚀 CarMatch estará ahora en tu menú de aplicaciones
                                 </p>
                             </div>
                         </div>

@@ -2,6 +2,22 @@
     "name": "CarMatch - Compra y Vende Vehículos",
     "short_name": "CarMatch",
     "description": "Red social para comprar, vender y descubrir vehículos y negocios automotrices en tiempo real",
+    "screenshots": [
+        {
+            "src": "https://raw.githubusercontent.com/RubenRuizG/CarMatch/main/public/screenshots/carMatchSwipe-mobile.png",
+            "sizes": "1080x1920",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Swipe Feed - Tinder Style"
+        },
+        {
+            "src": "https://raw.githubusercontent.com/RubenRuizG/CarMatch/main/public/screenshots/marketCar-mobile.png",
+            "sizes": "1080x1920",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "MarketCar Feed"
+        }
+    ],
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0f172a",
