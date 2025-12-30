@@ -8,7 +8,7 @@ import { ResponsiveViewportFix } from "./responsive-viewport-fix";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "CarMatch - Compra, Vende y Descubre Vehículos",
+    title: "CarMatch",
     description: "Red social para compra, venta y descubrimiento de vehículos y negocios automotrices en tiempo real",
     manifest: "/manifest.json",
     appleWebApp: {
