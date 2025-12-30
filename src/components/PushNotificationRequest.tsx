@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell } from 'lucide-react'
+import { Bell, X } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
 // Función auxiliar para convertir VAPID key
@@ -23,86 +23,61 @@ function urlBase64ToUint8Array(base64String: string) {
 export default function PushNotificationRequest() {
     const { data: session, status } = useSession()
     const [showPrompt, setShowPrompt] = useState(false)
-    const [permission, setPermission] = useState('default')
-    const [debugLogs, setDebugLogs] = useState<string[]>([])
     const [isLoading, setIsLoading] = useState(false)
-
-    // Helper para logs
-    const addLog = (msg: string) => setDebugLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`])
 
     useEffect(() => {
         if (status !== 'authenticated') return
 
-        if ('Notification' in window) {
-            setPermission(Notification.permission)
-            if (Notification.permission === 'default') {
-                const timer = setTimeout(() => setShowPrompt(true), 2000)
-                return () => clearTimeout(timer)
-            }
-        } else {
-            addLog('❌ Este navegador no soporta notificaciones')
+        // Solo mostrar si las notificaciones están soportadas y en estado 'default'
+        if ('Notification' in window && Notification.permission === 'default') {
+            const timer = setTimeout(() => setShowPrompt(true), 2000)
+            return () => clearTimeout(timer)
         }
     }, [status])
 
     const subscribeUser = async () => {
         if (!session?.user?.id) {
-            addLog('❌ Error: No hay sesión de usuario activa')
             alert('Debes iniciar sesión para activar las notificaciones')
             return
         }
 
         setIsLoading(true)
-        setDebugLogs([]) // Limpiar logs anteriores
-        addLog('🚀 Iniciando proceso de activación...')
 
         try {
-            // 1. Verificar Service Worker Environment
+            // Verificar soporte de Service Worker
             if (!('serviceWorker' in navigator)) {
-                throw new Error('Service Worker no soportado en este navegador')
+                throw new Error('Tu navegador no soporta notificaciones push')
             }
-            addLog('✅ Service Worker soportado')
 
-            // 2. Verificar Registro y Estado
-            addLog('⏳ Esperando Service Worker Ready...')
-
-            // Race condition timeout
+            // Esperar a que el Service Worker esté listo
             const registration = await Promise.race([
                 navigator.serviceWorker.ready,
                 new Promise<never>((_, reject) =>
-                    setTimeout(() => reject(new Error('TIMEOUT: Service Worker no respondió en 5s')), 5000)
+                    setTimeout(() => reject(new Error('Tiempo de espera agotado')), 5000)
                 )
             ]) as ServiceWorkerRegistration
 
-            addLog(`✅ Service Worker Ready (Scope: ${registration.scope})`)
-
-            if (!registration.active) {
-                addLog('⚠️ SW registrado pero no activo. Intentando reactivar...')
+            // Verificar VAPID Key
+            const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+            if (!vapidKey) {
+                throw new Error('Error de configuración del servidor')
             }
 
-            // 3. Verificar VAPID Key
-            const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-            if (!vapidKey) throw new Error('❌ Falta NEXT_PUBLIC_VAPID_PUBLIC_KEY')
-            addLog(`✅ VAPID Key encontrada (${vapidKey.substring(0, 10)}...)`)
-
-            // 4. Solicitar Permiso de Notificación
-            addLog('⏳ Solicitando permiso al usuario...')
+            // Solicitar permiso
             const permissionResult = await Notification.requestPermission()
-            addLog(`Respuesta usuario: ${permissionResult}`)
 
             if (permissionResult !== 'granted') {
-                throw new Error('Permiso denegado por el usuario')
+                setShowPrompt(false)
+                return
             }
 
-            // 5. Suscribirse en PushManager
-            addLog('⏳ Creando suscripción en navegador...')
+            // Crear suscripción
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(vapidKey)
             })
-            addLog('✅ Suscripción de navegador creada')
 
-            // 6. Enviar al Backend
-            addLog('⏳ Enviando a servidor...')
+            // Enviar al backend
             const response = await fetch('/api/push/subscribe', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -110,73 +85,72 @@ export default function PushNotificationRequest() {
             })
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}))
-                throw new Error(`Error servidor: ${response.status} - ${errorData.error || 'Unknown'}`)
+                throw new Error('Error al guardar la suscripción')
             }
 
-            addLog('✅ ¡ÉXITO! Suscripción guardada en BD.')
-            setPermission('granted')
-
-            // Delay para que el usuario pueda leer los logs de éxito antes de cerrar
-            setTimeout(() => setShowPrompt(false), 3000)
+            // Ocultar el prompt inmediatamente después del éxito
+            setShowPrompt(false)
 
         } catch (error: any) {
             console.error('Push Error:', error)
-            addLog(`❌ ERROR FATAL: ${error.message || error}`)
-            alert(`Error: ${error.message}`)
+            alert(error.message || 'Error al activar las notificaciones')
+            setShowPrompt(false)
         } finally {
             setIsLoading(false)
         }
     }
 
-    // No renderizar si no está autenticado
-    if (status !== 'authenticated') return null
+    const handleDismiss = () => {
+        setShowPrompt(false)
+    }
 
-    if (!showPrompt && debugLogs.length === 0) return null
-    if (permission === 'granted' && debugLogs.length === 0) return null
+    // No mostrar si no está autenticado o si ya no debe mostrarse
+    if (status !== 'authenticated' || !showPrompt) {
+        return null
+    }
 
     return (
-        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-8 md:bottom-8 z-50 animate-in slide-in-from-bottom-5">
-            <div className="bg-surface border border-primary-500/20 rounded-xl shadow-2xl p-4 max-w-sm ml-auto relative overflow-hidden">
+        <div className="fixed bottom-24 md:bottom-8 left-4 right-4 md:left-auto md:right-8 z-50 animate-in slide-in-from-bottom-5">
+            <div className="bg-surface border border-primary-500/20 rounded-xl shadow-2xl p-4 max-w-sm md:ml-auto relative overflow-hidden">
+                {/* Barra lateral de acento */}
                 <div className="absolute top-0 left-0 w-1 h-full bg-primary-500"></div>
 
+                {/* Botón cerrar */}
+                <button
+                    onClick={handleDismiss}
+                    className="absolute top-2 right-2 text-text-secondary hover:text-text-primary transition"
+                    aria-label="Cerrar"
+                >
+                    <X size={18} />
+                </button>
+
                 <div className="flex gap-4">
+                    {/* Ícono */}
                     <div className="w-12 h-12 bg-primary-500/10 rounded-full flex items-center justify-center flex-shrink-0">
                         <Bell className="text-primary-600" size={24} />
                     </div>
 
-                    <div className="flex-1">
+                    {/* Contenido */}
+                    <div className="flex-1 pr-6">
                         <h4 className="font-bold text-text-primary mb-1">Activar Notificaciones</h4>
-                        <p className="text-sm text-text-secondary mb-3">
+                        <p className="text-sm text-text-secondary mb-4">
                             Recibe alertas de mensajes y favoritos.
-                            <br />
-                            <span className="text-[10px] text-gray-500 font-mono">
-                                v2.1-AUTH | VAPID: {process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ? 'OK' : 'MISSING'}
-                            </span>
                         </p>
 
-                        {/* DEBUG CONSOLE */}
-                        {debugLogs.length > 0 && (
-                            <div className="mb-3 p-2 bg-black/90 rounded text-[10px] font-mono text-green-400 h-32 overflow-y-auto border border-green-900 shadow-inner">
-                                {debugLogs.map((log, i) => (
-                                    <div key={i} className="border-b border-green-900/30 pb-0.5 mb-0.5">{log}</div>
-                                ))}
-                            </div>
-                        )}
-
+                        {/* Botones */}
                         <div className="flex gap-2">
                             <button
-                                onClick={() => { setShowPrompt(false); setDebugLogs([]) }}
+                                onClick={handleDismiss}
                                 className="px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary transition"
                             >
-                                Cerrar
+                                Ahora no
                             </button>
                             <button
                                 onClick={subscribeUser}
                                 disabled={isLoading}
                                 className="px-4 py-1.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-bold rounded-lg transition shadow-lg shadow-primary-500/20"
                             >
-                                {isLoading ? 'Procesando...' : 'Activar'}
+                                {isLoading ? 'Activando...' : 'Activar'}
                             </button>
                         </div>
                     </div>

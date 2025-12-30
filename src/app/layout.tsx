@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import MobileNav from "@/components/MobileNav";
+import { ResponsiveViewportFix } from "./responsive-viewport-fix";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,10 +31,12 @@ export const metadata: Metadata = {
 export const viewport = {
     width: "device-width",
     initialScale: 1,
+    minimumScale: 1,
     maximumScale: 1,
     userScalable: false,
     viewportFit: "cover", // For iPhone notch
-    themeColor: "#0f172a"
+    themeColor: "#0f172a",
+    interactiveWidget: "resizes-content" // Para teclados móviles
 };
 
 export default function RootLayout({
@@ -44,6 +47,7 @@ export default function RootLayout({
     return (
         <html lang="es" className="dark">
             <body className={`${inter.className} min-h-screen-safe overflow-x-hidden`}>
+                <ResponsiveViewportFix />
                 <Providers>
                     <main className="pb-20 md:pb-0">
                         {children}
