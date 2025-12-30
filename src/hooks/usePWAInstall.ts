@@ -12,18 +12,33 @@ export function usePWAInstall() {
     const [isInstallable, setIsInstallable] = useState(false)
 
     useEffect(() => {
+        // Verificar si ya está instalada como PWA
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+            (window.navigator as any).standalone ||
+            document.referrer.includes('android-app://')
+
+        if (isStandalone) {
+            console.log("📱 La aplicación ya está corriendo como PWA")
+            setIsInstallable(false)
+            return
+        }
+
         const handler = (e: Event) => {
-            // Prevenir que Chrome muestre el prompt automáticamente (opcional, para controlarlo nosotros)
+            console.log("📥 PWA Install Prompt capturado!")
             e.preventDefault()
-            // Guardar el evento para dispararlo después
             setDeferredPrompt(e as BeforeInstallPromptEvent)
             setIsInstallable(true)
-            console.log("✅ PWA Install Prompt capturado y listo para usar")
         }
 
         window.addEventListener('beforeinstallprompt', handler)
 
-        // Limpieza
+        // Escuchar cuando se instale con éxito
+        window.addEventListener('appinstalled', () => {
+            console.log("🎉 PWA instalada con éxito")
+            setDeferredPrompt(null)
+            setIsInstallable(false)
+        })
+
         return () => {
             window.removeEventListener('beforeinstallprompt', handler)
         }
@@ -31,21 +46,24 @@ export function usePWAInstall() {
 
     const triggerInstall = async () => {
         if (!deferredPrompt) {
-            console.log("❌ No hay prompt de instalación diferido")
+            console.warn("⚠️ No deferredPrompt available yet. User might need to interact with the page first or wait.")
             return false
         }
 
-        // Mostrar el prompt nativo
-        deferredPrompt.prompt()
+        try {
+            deferredPrompt.prompt()
+            const { outcome } = await deferredPrompt.userChoice
+            console.log(`User response to install prompt: ${outcome}`)
 
-        // Esperar a que el usuario responda
-        const { outcome } = await deferredPrompt.userChoice
-        console.log(`User response to install prompt: ${outcome}`)
-
-        // Limpiar el prompt ya que solo se puede usar una vez
-        setDeferredPrompt(null)
-        setIsInstallable(false)
-        return true
+            if (outcome === 'accepted') {
+                setDeferredPrompt(null)
+                setIsInstallable(false)
+                return true
+            }
+        } catch (err) {
+            console.error("❌ Error triggering PWA install:", err)
+        }
+        return false
     }
 
     return { isInstallable, triggerInstall }

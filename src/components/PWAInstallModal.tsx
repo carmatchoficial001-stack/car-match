@@ -62,7 +62,7 @@ export default function PWAInstallModal({ isOpen, onClose, platform = 'auto' }: 
                                     📱 Detectamos que usas iPhone/iPad
                                 </p>
                                 <p className="text-xs text-text-secondary">
-                                    Sigue estos pasos para instalar CarMatch como app nativa
+                                    Apple no permite la instalación automática. Sigue estos pasos manuales:
                                 </p>
                             </div>
 
@@ -141,6 +141,15 @@ export default function PWAInstallModal({ isOpen, onClose, platform = 'auto' }: 
                                     description="Toca 'Instalar' o 'Agregar' en el diálogo"
                                     icon="✅"
                                 />
+                            </div>
+
+                            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+                                <p className="text-xs font-bold text-amber-400 mb-1">
+                                    💡 Tip para Android
+                                </p>
+                                <p className="text-[11px] text-text-secondary">
+                                    Si acabas de borrar la app, Chrome puede tardar un poco en volver a mostrar el botón de instalación automática. Si no lo ves, usa el <b>Paso 3</b> (Menú ⋮ → Agregar).
+                                </p>
                             </div>
 
                             <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
