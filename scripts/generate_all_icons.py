@@ -1,7 +1,7 @@
 from PIL import Image
 import os
 
-def process_logo(src_path, dest_path, dest_size=None, zoom_factor=1.85):
+def process_logo(src_path, dest_path, dest_size=None, zoom_factor=1.85, fill_bg=False):
     try:
         if not os.path.exists(src_path):
             print(f"Error: No se encuentra el archivo origen en {src_path}")
@@ -21,17 +21,21 @@ def process_logo(src_path, dest_path, dest_size=None, zoom_factor=1.85):
         
         img = img.crop((left, top, right, bottom))
         
-        # 2. Hacer el fondo transparente
+        # 2. Manejo de fondo (Transparente o Color Sólido #0f172a)
         datas = img.getdata()
         newData = []
         
         # El color de fondo es aproximadamente #0f172a (15, 23, 42)
-        # Vamos a ser un poco más agresivos para capturar bordes
+        # Para iconos de la tienda (Android/iOS), rellenamos con este color en lugar de transparencia
+        bg_color_rgb = (15, 23, 42, 255)
+        
         for item in datas:
-            # Si el pixel es muy oscuro, lo hacemos transparente
-            # r<60, g<70, b<90 para capturar variaciones del azul oscuro
+            # Si el pixel es muy oscuro (fondo original), lo reemplazamos
             if (item[0] < 60 and item[1] < 70 and item[2] < 90):
-                newData.append((0, 0, 0, 0)) # Transparente
+                if fill_bg:
+                    newData.append(bg_color_rgb) # Color de marca sólido
+                else:
+                    newData.append((0, 0, 0, 0)) # Transparente
             else:
                 newData.append(item)
                 
@@ -56,14 +60,17 @@ PUBLIC_DIR = os.path.join(BASE_DIR, "public")
 SRC_LOGO = os.path.join(PUBLIC_DIR, "logo.png")
 
 jobs = [
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "logo-v9.png"), None),
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "favicon-v9.png"), (32, 32)),
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-192-v9.png"), (192, 192)),
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-512-v9.png"), (512, 512))
+    # Logos con transparencia (para web/dentro de la app)
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "logo-v10.png"), None, False),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "favicon-v10.png"), (32, 32), False),
+    
+    # Iconos con fondo sólido para tiendas/PWA (evita el fondo blanco de Android)
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-192-v10.png"), (192, 192), True),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-512-v10.png"), (512, 512), True)
 ]
 
 if __name__ == "__main__":
-    print("🚀 Iniciando generación de iconos CarMatch v9...")
-    for src, dest, size in jobs:
-        process_logo(src, dest, dest_size=size)
+    print("🚀 Iniciando generación de iconos CarMatch v10 (con fondos móviles)...")
+    for src, dest, size, fill in jobs:
+        process_logo(src, dest, dest_size=size, fill_bg=fill)
     print("✨ Proceso completado.")
