@@ -1,0 +1,35 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo azul oscuro -->
+  <rect width="512" height="512" fill="#1e293b"/>
+  
+  <!-- Carro naranja simplificado - MUY GRANDE -->
+  <g transform="translate(256, 256) scale(3.2)">
+    <!-- Carrocería principal -->
+    <path d="M-60,-20 L-50,-35 L-20,-40 L30,-40 L50,-35 L60,-20 L60,15 L-60,15 Z" 
+          fill="#fb923c" stroke="#ea580c" stroke-width="2"/>
+    
+    <!-- Techo/Cabina -->
+    <path d="M-35,-40 L-25,-50 L20,-50 L35,-40 Z" 
+          fill="#fb923c" stroke="#ea580c" stroke-width="2"/>
+    
+    <!-- Ventanas -->
+    <rect x="-30" y="-48" width="22" height="12" fill="#0f172a" opacity="0.7"/>
+    <rect x="8" y="-48" width="22" height="12" fill="#0f172a" opacity="0.7"/>
+    
+    <!-- Faros delanteros -->
+    <circle cx="45" cy="-25" r="4" fill="#fef08a"/>
+    <circle cx="45" cy="-15" r="4" fill="#fef08a"/>
+    
+    <!-- Llanta delantera -->
+    <circle cx="35" cy="18" r="12" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+    <circle cx="35" cy="18" r="6" fill="#64748b"/>
+    
+    <!-- Llanta trasera -->
+    <circle cx="-35" cy="18" r="12" fill="#1e293b" stroke="#94a3b8" stroke-width="2"/>
+    <circle cx="-35" cy="18" r="6" fill="#64748b"/>
+    
+    <!-- Detalles de diseño (líneas deportivas) -->
+    <line x1="-50" y1="-10" x2="40" y2="-10" stroke="#ea580c" stroke-width="1.5"/>
+    <line x1="-45" y1="0" x2="45" y2="0" stroke="#ea580c" stroke-width="1.5"/>
+  </g>
+</svg>
