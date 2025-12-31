@@ -15,7 +15,7 @@ export default function AuthPageContent() {
                 <Link href="/" className="flex justify-center mb-4">
                     <Logo
                         className="w-20 h-20 md:w-32 md:h-32"
-                        showText={true}
+                        showText={false}
                         textClassName="text-3xl md:text-5xl font-bold text-white"
                     />
                 </Link>

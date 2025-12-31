@@ -141,7 +141,7 @@ export default function Header() {
                     >
                         <Logo
                             className="w-12 h-12 md:w-20 md:h-20"
-                            showText={true}
+                            showText={false}
                             textClassName="text-3xl font-bold text-white hidden sm:block"
                         />
                     </div>

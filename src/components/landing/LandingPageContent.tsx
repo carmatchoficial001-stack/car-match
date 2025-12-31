@@ -37,7 +37,7 @@ export default function LandingPageContent() {
 
             {/* Navbar */}
             <nav className="absolute top-0 left-0 w-full z-50 px-6 py-6 flex justify-between items-center max-w-7xl mx-auto left-0 right-0">
-                <Logo showText={true} />
+                <Logo showText={false} />
                 <div className="flex items-center gap-4">
                     <LanguageSelectorPublic />
                     <Link href="/auth" className="px-6 py-2 bg-white/5 border border-white/10 rounded-full font-semibold hover:bg-white/10 transition text-sm">
