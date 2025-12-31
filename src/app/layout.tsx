@@ -18,12 +18,12 @@ export const metadata: Metadata = {
     },
     icons: {
         icon: [
-            { url: "/favicon-v17.png", sizes: "32x32", type: "image/png" },
-            { url: "/icon-192-v17.png", sizes: "192x192", type: "image/png" },
-            { url: "/icon-512-v17.png", sizes: "512x512", type: "image/png" }
+            { url: "/favicon-v18.png", sizes: "32x32", type: "image/png" },
+            { url: "/icon-192-v18.png", sizes: "192x192", type: "image/png" },
+            { url: "/icon-512-v18.png", sizes: "512x512", type: "image/png" }
         ],
         apple: [
-            { url: "/maskable-192-v17.png" }
+            { url: "/icon-192-v18.png" }
         ]
     }
 };
@@ -48,6 +48,7 @@ export default function RootLayout({
         <html lang="es" className="dark" style={{ colorScheme: 'dark' }}>
             <body className={`${inter.className} min-h-screen-safe overflow-x-hidden bg-[#0f172a]`}>
                 <Providers>
+                    <ResponsiveViewportFix />
                     <main className="min-h-screen-safe">
                         {children}
                     </main>

@@ -71,19 +71,19 @@ PUBLIC_DIR = os.path.join(BASE_DIR, "public")
 SRC_LOGO = os.path.join(PUBLIC_DIR, "logo.png")
 
 jobs = [
-    # Web / UI (Transparentes)
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "logo-v17.png"), None, False, 1.0),
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "favicon-v17.png"), (32, 32), False, 1.0),
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-192-v17.png"), (192, 192), False, 0.90),
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-512-v17.png"), (512, 512), False, 0.90),
+    # Web / UI (Ahora con fondo sólido para evitar marcos blancos en lanzadores)
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "logo-v18.png"), None, False, 1.0),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "favicon-v18.png"), (32, 32), False, 1.0),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-192-v18.png"), (192, 192), True, 0.85),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-512-v18.png"), (512, 512), True, 0.85),
     
     # Adaptive / Maskable (Sólidos para evitar círculo blanco)
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "maskable-192-v17.png"), (192, 192), True, 0.85),
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "maskable-512-v17.png"), (512, 512), True, 0.85)
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "maskable-192-v18.png"), (192, 192), True, 0.85),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "maskable-512-v18.png"), (512, 512), True, 0.85)
 ]
 
 if __name__ == "__main__":
-    print("🚀 Generando iconos CarMatch v17 (ULTRA CACHE BUSTER)...")
+    print("🚀 Generando iconos CarMatch v18 (ULTRA CACHE BUSTER)...")
     for src, dest, size, fill, scale in jobs:
         process_logo(src, dest, dest_size=size, fill_bg=fill, logo_scale=scale)
     print("✨ Proceso completado.")

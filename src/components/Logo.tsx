@@ -12,7 +12,7 @@ export function Logo({ className = "w-12 h-12", showText = false, textClassName 
         <div className="flex flex-col items-center justify-center gap-2 sm:flex-row">
             <div className={`relative ${className}`}>
                 <Image
-                    src="/logo-v17.png"
+                    src="/logo-v18.png"
                     alt="CarMatch Logo"
                     fill
                     className="object-contain"
