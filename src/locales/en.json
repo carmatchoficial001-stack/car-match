@@ -20,6 +20,7 @@
         "change_city": "Change city",
         "select_city": "Select a city:",
         "back_to_gps": "Back to GPS location",
+        "all_rights_reserved": "All rights reserved.",
         "errors": {
             "connection": "Connection error",
             "chat_creation": "Error creating conversation",

@@ -10,7 +10,7 @@ import { usePWAInstall } from '@/hooks/usePWAInstall'
 
 export default function LandingPageContent() {
     const { t } = useLanguage()
-    const { triggerInstall } = usePWAInstall()
+    const { triggerInstall, isStandalone } = usePWAInstall()
     const [showInstallModal, setShowInstallModal] = useState(false)
     const [selectedPlatform, setSelectedPlatform] = useState<'ios' | 'android' | 'auto'>('auto')
 
@@ -48,22 +48,24 @@ export default function LandingPageContent() {
 
             {/* Hero Section */}
             <div className="relative z-10 container mx-auto px-4 min-h-screen flex flex-col justify-center items-center pt-20 pb-10">
-                <div className="flex flex-wrap justify-center gap-4 mb-12">
-                    <button onClick={handleIOSClick} className="flex items-center gap-3 bg-white/5 border border-white/10 px-6 py-3 rounded-2xl hover:bg-white/10 hover:border-white/20 transition group">
-                        <svg className="w-8 h-8 text-text-primary group-hover:scale-110 transition" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81. 03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" /></svg>
-                        <div className="text-left">
-                            <div className="text-[10px] uppercase tracking-wider text-gray-500">{t('landing.download_on')}</div>
-                            <div className="text-sm font-bold leading-none">{t('landing.app_store')}</div>
-                        </div>
-                    </button>
-                    <button onClick={handleAndroidClick} className="flex items-center gap-3 bg-white/5 border border-white/10 px-6 py-3 rounded-2xl hover:bg-white/10 hover:border-white/20 transition group">
-                        <svg className="w-8 h-8 text-text-primary group-hover:scale-110 transition" viewBox="0 0 24 24" fill="currentColor"><path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" /></svg>
-                        <div className="text-left">
-                            <div className="text-[10px] uppercase tracking-wider text-gray-500">{t('landing.get_it_on')}</div>
-                            <div className="text-sm font-bold leading-none">{t('landing.google_play')}</div>
-                        </div>
-                    </button>
-                </div>
+                {!isStandalone && (
+                    <div className="flex flex-wrap justify-center gap-4 mb-12">
+                        <button onClick={handleIOSClick} className="flex items-center gap-3 bg-white/5 border border-white/10 px-6 py-3 rounded-2xl hover:bg-white/10 hover:border-white/20 transition group">
+                            <svg className="w-8 h-8 text-text-primary group-hover:scale-110 transition" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" /></svg>
+                            <div className="text-left">
+                                <div className="text-[10px] uppercase tracking-wider text-gray-500">{t('landing.download_on')}</div>
+                                <div className="text-sm font-bold leading-none">{t('landing.app_store')}</div>
+                            </div>
+                        </button>
+                        <button onClick={handleAndroidClick} className="flex items-center gap-3 bg-white/5 border border-white/10 px-6 py-3 rounded-2xl hover:bg-white/10 hover:border-white/20 transition group">
+                            <svg className="w-8 h-8 text-text-primary group-hover:scale-110 transition" viewBox="0 0 24 24" fill="currentColor"><path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" /></svg>
+                            <div className="text-left">
+                                <div className="text-[10px] uppercase tracking-wider text-gray-500">{t('landing.get_it_on')}</div>
+                                <div className="text-sm font-bold leading-none">{t('landing.google_play')}</div>
+                            </div>
+                        </button>
+                    </div>
+                )}
 
                 <h1 className="text-6xl md:text-9xl font-black text-center mb-6 tracking-tighter leading-none max-w-6xl mx-auto">
                     <span className="text-text-primary">{t('landing.hero_title_1')}</span>
@@ -138,9 +140,70 @@ export default function LandingPageContent() {
                 onClose={() => setShowInstallModal(false)}
                 platform={selectedPlatform}
             />
+
+            {/* Footer Section */}
+            <footer className="relative z-10 w-full max-w-7xl mx-auto py-12 px-8 border-t border-white/10 mt-24">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+                    <Logo showText={true} />
+                    <div className="flex flex-col items-center md:items-end gap-4">
+                        <span className="text-gray-400 font-medium">{t('landing.follow_us')}</span>
+                        <div className="flex gap-6">
+                            <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
+                                <XIcon className="w-6 h-6" />
+                            </a>
+                            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
+                                <YoutubeIcon className="w-6 h-6" />
+                            </a>
+                            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
+                                <FacebookIcon className="w-6 h-6" />
+                            </a>
+                            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
+                                <InstagramIcon className="w-8 h-6" />
+                            </a>
+                            <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
+                                <TikTokIcon className="w-6 h-6" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div className="mt-12 text-center text-gray-500 text-sm">
+                    © {new Date().getFullYear()} CarMatch. {t('common.all_rights_reserved')}
+                </div>
+            </footer>
         </div>
     )
 }
+
+// Social Media Icons
+const XIcon = ({ className }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+)
+
+const YoutubeIcon = ({ className }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+    </svg>
+)
+
+const FacebookIcon = ({ className }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+)
+
+const InstagramIcon = ({ className }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.668-.072-4.948-.197-4.359-2.62-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4.162 4.162 0 1 1 0-8.324 4.162 4.162 0 0 1 0 8.324zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
+    </svg>
+)
+
+const TikTokIcon = ({ className }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12.53.02C13.84 5.11 18.11 9.01 23.36 9.39V14.29C21.84 14.12 20.41 12.52 19.49 11.11V18.52C19.49 23.01 15.86 26.65 11.37 26.65C6.88 26.65 3.25 23.01 3.25 18.52C3.25 14.03 6.88 10.39 11.37 10.39C12.16 10.39 12.92 10.51 13.62 10.72V15.6C12.94 15.26 12.18 15.07 11.37 15.07C9.46 15.07 7.93 16.6 7.93 18.51C7.93 20.42 9.46 21.95 11.37 21.95C13.28 21.95 14.81 20.42 14.81 18.51V0L12.53.02Z" />
+    </svg>
+)
 
 function AdvantageItem({ title, desc, icon }: { title: string, desc: string, icon: React.ReactNode }) {
     return (

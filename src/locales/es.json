@@ -26,7 +26,8 @@
         "refresh_gps": "Actualizar ubicación GPS",
         "change_city": "Cambiar ciudad",
         "select_city": "Selecciona una ciudad:",
-        "back_to_gps": "Volver a ubicación GPS"
+        "back_to_gps": "Volver a ubicación GPS",
+        "all_rights_reserved": "Todos los derechos reservados."
     },
     "nav": {
         "carmatch": "CarMatch",

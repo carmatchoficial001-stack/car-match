@@ -14,12 +14,13 @@ export function usePWAInstall() {
 
     useEffect(() => {
         // Verificar si ya está instalada como PWA
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+        const checkStandalone = () => window.matchMedia('(display-mode: standalone)').matches ||
             (window.navigator as any).standalone ||
-            document.referrer.includes('android-app://')
+            document.referrer.includes('android-app://') ||
+            localStorage.getItem('pwa-installed') === 'true'
 
-        if (isStandalone) {
-            console.log("📱 La aplicación ya está corriendo como PWA")
+        if (checkStandalone()) {
+            console.log("📱 La aplicación ya está detectada como instalada")
             setIsStandalone(true)
             setIsInstallable(false)
             return
@@ -37,8 +38,10 @@ export function usePWAInstall() {
         // Escuchar cuando se instale con éxito
         window.addEventListener('appinstalled', () => {
             console.log("🎉 PWA instalada con éxito")
+            localStorage.setItem('pwa-installed', 'true')
             setDeferredPrompt(null)
             setIsInstallable(false)
+            setIsStandalone(true)
         })
 
         return () => {
