@@ -16,8 +16,7 @@ export function usePWAInstall() {
         // Verificar si ya está instalada como PWA
         const checkStandalone = () => window.matchMedia('(display-mode: standalone)').matches ||
             (window.navigator as any).standalone ||
-            document.referrer.includes('android-app://') ||
-            localStorage.getItem('pwa-installed') === 'true'
+            document.referrer.includes('android-app://')
 
         if (checkStandalone()) {
             console.log("📱 La aplicación ya está detectada como instalada")
