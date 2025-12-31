@@ -12,16 +12,16 @@ export default function AuthPageContent() {
         <div className="min-h-screen bg-background flex items-center justify-center px-4">
             <div className="max-w-md w-full">
                 {/* Logo */}
-                <Link href="/" className="flex justify-center mb-8">
+                <Link href="/" className="flex justify-center mb-4">
                     <Logo
-                        className="w-40 h-40"
+                        className="w-20 h-20 md:w-32 md:h-32"
                         showText={true}
-                        textClassName="text-6xl font-bold text-white"
+                        textClassName="text-3xl md:text-5xl font-bold text-white"
                     />
                 </Link>
 
                 {/* Card */}
-                <div className="bg-surface rounded-2xl shadow-2xl p-8 border border-surface-highlight">
+                <div className="bg-surface rounded-2xl shadow-2xl p-6 sm:p-8 border border-surface-highlight">
                     <h1 className="text-3xl font-bold text-center mb-2 text-text-primary">
                         {t('auth.welcome')}
                     </h1>

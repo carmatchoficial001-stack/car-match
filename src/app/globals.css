@@ -9,6 +9,7 @@
 
 /* 📱 Forzar viewport móvil correctamente desde el inicio */
 html {
+  color-scheme: dark;
   -webkit-text-size-adjust: 100%; /* Prevenir ajuste automático de texto en iOS */
   -ms-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -16,6 +17,7 @@ html {
   height: 100%;
   width: 100%;
   overflow-x: hidden;
+  background-color: #0f172a;
 }
 
 body {

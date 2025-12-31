@@ -9,10 +9,10 @@ interface LogoProps {
 
 export function Logo({ className = "w-12 h-12", showText = false, textClassName = "text-2xl font-black tracking-tight" }: LogoProps) {
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-center justify-center gap-2 sm:flex-row">
             <div className={`relative ${className}`}>
                 <Image
-                    src="/logo-v16.png"
+                    src="/logo-v17.png"
                     alt="CarMatch Logo"
                     fill
                     className="object-contain"
