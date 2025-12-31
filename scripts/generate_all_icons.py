@@ -1,7 +1,7 @@
 from PIL import Image
 import os
 
-def process_logo(src_path, dest_path, dest_size=None, zoom_factor=1.85, fill_bg=True, logo_scale=0.60):
+def process_logo(src_path, dest_path, dest_size=None, zoom_factor=1.85, fill_bg=True, logo_scale=0.75):
     try:
         if not os.path.exists(src_path):
             print(f"Error: No se encuentra el archivo origen en {src_path}")
@@ -28,23 +28,25 @@ def process_logo(src_path, dest_path, dest_size=None, zoom_factor=1.85, fill_bg=
         for item in datas:
             r, g, b, a = item
             # Quitar blanco y el azul oscuro viejo
-            if (r > 200 and g > 200 and b > 200) or (r < 80 and g < 90 and b < 110):
+            if (r > 210 and g > 210 and b > 210) or (r < 80 and g < 90 and b < 110):
                 newData.append((0, 0, 0, 0))
             else:
                 newData.append(item)
         img.putdata(newData)
         
-        # 3. Composición sobre fondo de marca sólido
+        # 3. Composición
         brand_color = (15, 23, 42) # #0f172a
         
         if dest_size:
             target_w, target_h = dest_size
             if fill_bg:
+                # SÓLIDO PARA MASKABLE (Android Home Screen)
                 final_img = Image.new("RGB", dest_size, brand_color)
             else:
+                # TRANSPARENTE PARA WEB/SHORTCUTS
                 final_img = Image.new("RGBA", dest_size, (0, 0, 0, 0))
             
-            # Escala 60% para máxima seguridad en Adaptive Icons
+            # Escala sugerida: 75% para que se vea "más grande" pero siga en zona segura
             logo_w = int(target_w * logo_scale)
             logo_h = int(target_h * logo_scale)
             logo_resized = img.resize((logo_w, logo_h), Image.Resampling.LANCZOS)
@@ -55,32 +57,34 @@ def process_logo(src_path, dest_path, dest_size=None, zoom_factor=1.85, fill_bg=
             final_img.paste(logo_resized, (offset_x, offset_y), logo_resized)
             final_img.save(dest_path, "PNG")
         else:
-            img.save(dest_path, "PNG")
+            final_img = Image.new("RGBA", img.size, (0, 0, 0, 0))
+            final_img.paste(img, (0, 0), img)
+            final_img.save(dest_path, "PNG")
             
         print(f"✅ Guardado: {dest_path}")
         
     except Exception as e:
         print(f"❌ Error: {e}")
 
-# Configuración v14
+# Configuración v15
 BASE_DIR = "e:/carmatchapp"
 PUBLIC_DIR = os.path.join(BASE_DIR, "public")
 SRC_LOGO = os.path.join(PUBLIC_DIR, "logo.png")
 
 jobs = [
-    # 1. Logo principal transparente para la web UI
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "logo-v14.png"), None, False, 1.0),
+    # Web / UI (Transparentes)
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "logo-v15.png"), None, False, 1.0),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "favicon-v15.png"), (32, 32), False, 1.0),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-192-v15.png"), (192, 192), False, 0.85),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-512-v15.png"), (512, 512), False, 0.85),
     
-    # 2. Favicon: Solo este es transparente para la pestaña
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "favicon-v14.png"), (32, 32), False, 1.0),
-    
-    # 3. Iconos de App: TODOS SÓLIDOS Y RENOMBRADOS
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "app-icon-192-v14.png"), (192, 192), True, 0.60),
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "app-icon-512-v14.png"), (512, 512), True, 0.60)
+    # Adaptive / Maskable (Sólidos para evitar círculo blanco)
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "maskable-192-v15.png"), (192, 192), True, 0.75),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "maskable-512-v15.png"), (512, 512), True, 0.75)
 ]
 
 if __name__ == "__main__":
-    print("🚀 Generando iconos CarMatch v14 (ULTRA PROFESSIONAL SÓLIDOS)...")
+    print("🚀 Generando iconos CarMatch v15 (Scale 75% + Split Maskable/Any)...")
     for src, dest, size, fill, scale in jobs:
         process_logo(src, dest, dest_size=size, fill_bg=fill, logo_scale=scale)
     print("✨ Proceso completado.")

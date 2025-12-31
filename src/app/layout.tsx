@@ -18,26 +18,23 @@ export const metadata: Metadata = {
     },
     icons: {
         icon: [
-            { url: "/favicon-v14.png", sizes: "32x32", type: "image/png" },
-            { url: "/app-icon-192-v14.png", sizes: "192x192", type: "image/png" },
-            { url: "/app-icon-512-v14.png", sizes: "512x512", type: "image/png" }
+            { url: "/favicon-v15.png", sizes: "32x32", type: "image/png" },
+            { url: "/icon-192-v15.png", sizes: "192x192", type: "image/png" },
+            { url: "/icon-512-v15.png", sizes: "512x512", type: "image/png" }
         ],
         apple: [
-            { url: "/app-icon-192-v14.png" }
+            { url: "/maskable-192-v15.png" }
         ]
     }
 };
 
-// Viewport export (Next.js 15+)
-export const viewport = {
+export const viewport: Viewport = {
+    themeColor: "#0f172a",
     width: "device-width",
     initialScale: 1,
-    minimumScale: 1,
     maximumScale: 1,
     userScalable: false,
-    viewportFit: "cover", // For iPhone notch
-    themeColor: "#0f172a",
-    interactiveWidget: "resizes-content" // Para teclados móviles
+    viewportFit: "cover",
 };
 
 export default function RootLayout({
