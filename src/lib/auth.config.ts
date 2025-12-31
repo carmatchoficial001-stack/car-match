@@ -45,6 +45,12 @@ export const authConfig: NextAuthConfig = {
             if (session.user && token) {
                 // @ts-ignore
                 session.user.id = (token.id as string) || (token.sub as string)
+
+                // 🔑 Admin Maestro via Environment Variable
+                if (session.user.email === process.env.ADMIN_EMAIL) {
+                    // @ts-ignore
+                    session.user.isAdmin = true
+                }
             }
             return session
         },

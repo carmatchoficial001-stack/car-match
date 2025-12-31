@@ -9,14 +9,18 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // Check if user is admin
-        const user = await prisma.user.findUnique({
-            where: { id: session.user.id },
-            select: { isAdmin: true }
-        })
+        // 🛡️ Admin Check Master (ENV or DB)
+        const isAdminMaster = session.user.email === process.env.ADMIN_EMAIL
 
-        if (!user?.isAdmin) {
-            return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 })
+        if (!isAdminMaster) {
+            const user = await prisma.user.findUnique({
+                where: { id: session.user.id },
+                select: { isAdmin: true }
+            })
+
+            if (!user?.isAdmin) {
+                return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 })
+            }
         }
 
         // Fetch system statistics

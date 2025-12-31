@@ -13,60 +13,66 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // Verificar admin
-        const user = await prisma.user.findUnique({
-            where: { id: session.user.id },
-            select: { isAdmin: true }
-        })
+        // 🛡️ Admin Check Master (ENV or DB)
+        const isAdminMaster = session.user.email === process.env.ADMIN_EMAIL
 
-        if (!user?.isAdmin) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        if (!isAdminMaster) {
+            const user = await prisma.user.findUnique({
+                where: { id: session.user.id },
+                select: { isAdmin: true }
+            })
+
+            if (!user?.isAdmin) {
+                return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+            }
         }
 
         if (!genAI) {
             return NextResponse.json({ error: 'AI not configured' }, { status: 503 })
         }
 
-        // Obtener datos agregados para el análisis
+        // Obtener datos agregados por ciudad para detectar oportunidades físicas reales
         const [vehicleStats, businessStats] = await Promise.all([
             prisma.vehicle.groupBy({
-                by: ['vehicleType'],
+                by: ['city', 'vehicleType'],
                 _count: { _all: true },
                 where: { status: 'ACTIVE' }
             }),
             prisma.business.groupBy({
-                by: ['category'],
+                by: ['city', 'category'],
                 _count: { _all: true }
             })
         ])
 
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
-        const prompt = `Actúa como un CONSULTOR ESTRATÉGICO DE NEGOCIOS AUTOMOTRICES DE ÉLITE. Tu objetivo es analizar la base de datos de CarMatch y detectar oportunidades de negocio con una efectividad del 90%+.
+        const prompt = `Actúa como un CONSULTOR ESTRATÉGICO DE NEGOCIOS AUTOMOTRICES DE ÉLITE. Tu misión es analizar los datos de CarMatch para crear NEGOCIOS FÍSICOS altamente rentables.
 
-**DATOS ACTUALES DEL SISTEMA:**
-- Vehículos Activos por Categoría: ${JSON.stringify(vehicleStats)}
-- Negocios Registrados por Categoría: ${JSON.stringify(businessStats)}
+**OBJETIVO:** Identificar oportunidades de inversión con una efectividad del 90%+ basada en la demanda real de los usuarios en cada ciudad.
 
-**TUS MISIONES:**
-1.  **Detectar el "Market GAP"**: Si hay muchos vehículos de una categoría (ej. Camiones) pero pocos negocios relacionados (ej. Talleres Diesel), identifica el problema.
-2.  **Sugerencias de Negocio**: Recomienda qué tipo de negocios debería reclutar o promocionar el administrador para satisfacer la demanda de los usuarios.
-3.  **Restricción de Rubro**: Solo sugiere negocios relacionados con VEHÍCULOS MOTORIZADOS TERRESTRES (Mecánica, Refacciones, Estética automotriz, Grúas, Yonkes, etc.).
-4.  **Tono de Reporte**: Profesional, analítico y directo.
+**DATOS ACTUALES (Agrupados por Ciudad y Categoría):**
+- Oferta de Vehículos: ${JSON.stringify(vehicleStats)}
+- Competencia (Negocios Existentes): ${JSON.stringify(businessStats)}
+
+**TUS MISIONES ESTRATÉGICAS:**
+1.  **Detección de "Océanos Azules"**: Encuentra ciudades específicas donde el volumen de vehículos supera por mucho a los servicios disponibles.
+2.  **Plan de Inversión Física**: Recomienda qué negocio físico abrir (Taller especializado, Refaccionaria, Autolavado Premium, etc.) para capturar el mercado local.
+3.  **Restricción de Rubro**: Solo negocios relacionados con el mundo automotriz terrestre.
+4.  **Tono**: Ejecutivo, enfocado en ROI y éxito garantizado.
 
 **FORMATO DE RESPUESTA (ESTRICTO JSON):**
 {
-    "summary": "Resumen ejecutivo de la situación actual del mercado en la plataforma.",
+    "summary": "Resumen ejecutivo de la situación actual y potencial por ciudad.",
     "insights": [
         {
             "priority": "HIGH/MEDIUM/LOW",
-            "observation": "Descripción del hallazgo (ej. Hay 500 motocicletas pero solo 1 taller de motos).",
-            "recommendation": "Acción específica para el administrador."
+            "observation": "Descripción del hallazgo (ej. En CDMX hay exceso de SUVs pero pocos centros de detallado).",
+            "recommendation": "Acción específica de inversión física."
         }
     ],
     "businessOppotunities": [
-        "Negocio Tipo A",
-        "Negocio Tipo B"
+        "Negocio Físico Sugerido 1",
+        "Negocio Físico Sugerido 2"
     ],
     "effectivenessScore": 95
 }
