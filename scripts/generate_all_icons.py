@@ -1,7 +1,7 @@
 from PIL import Image
 import os
 
-def process_logo(src_path, dest_path, dest_size=None, zoom_factor=1.85, fill_bg=True, logo_scale=0.75):
+def process_logo(src_path, dest_path, dest_size=None, zoom_factor=1.85, fill_bg=True, logo_scale=0.85):
     try:
         if not os.path.exists(src_path):
             print(f"Error: No se encuentra el archivo origen en {src_path}")
@@ -46,7 +46,7 @@ def process_logo(src_path, dest_path, dest_size=None, zoom_factor=1.85, fill_bg=
                 # TRANSPARENTE PARA WEB/SHORTCUTS
                 final_img = Image.new("RGBA", dest_size, (0, 0, 0, 0))
             
-            # Escala sugerida: 75% para que se vea "más grande" pero siga en zona segura
+            # Escala v16: 85% para que llene casi todo el espacio seguro
             logo_w = int(target_w * logo_scale)
             logo_h = int(target_h * logo_scale)
             logo_resized = img.resize((logo_w, logo_h), Image.Resampling.LANCZOS)
@@ -66,25 +66,25 @@ def process_logo(src_path, dest_path, dest_size=None, zoom_factor=1.85, fill_bg=
     except Exception as e:
         print(f"❌ Error: {e}")
 
-# Configuración v15
+# Configuración v16
 BASE_DIR = "e:/carmatchapp"
 PUBLIC_DIR = os.path.join(BASE_DIR, "public")
 SRC_LOGO = os.path.join(PUBLIC_DIR, "logo.png")
 
 jobs = [
     # Web / UI (Transparentes)
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "logo-v15.png"), None, False, 1.0),
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "favicon-v15.png"), (32, 32), False, 1.0),
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-192-v15.png"), (192, 192), False, 0.85),
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-512-v15.png"), (512, 512), False, 0.85),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "logo-v16.png"), None, False, 1.0),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "favicon-v16.png"), (32, 32), False, 1.0),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-192-v16.png"), (192, 192), False, 0.90),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "icon-512-v16.png"), (512, 512), False, 0.90),
     
     # Adaptive / Maskable (Sólidos para evitar círculo blanco)
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "maskable-192-v15.png"), (192, 192), True, 0.75),
-    (SRC_LOGO, os.path.join(PUBLIC_DIR, "maskable-512-v15.png"), (512, 512), True, 0.75)
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "maskable-192-v16.png"), (192, 192), True, 0.85),
+    (SRC_LOGO, os.path.join(PUBLIC_DIR, "maskable-512-v16.png"), (512, 512), True, 0.85)
 ]
 
 if __name__ == "__main__":
-    print("🚀 Generando iconos CarMatch v15 (Scale 75% + Split Maskable/Any)...")
+    print("🚀 Generando iconos CarMatch v16 (Scale 85% + Ultra Fix Splash)...")
     for src, dest, size, fill, scale in jobs:
         process_logo(src, dest, dest_size=size, fill_bg=fill, logo_scale=scale)
     print("✨ Proceso completado.")
