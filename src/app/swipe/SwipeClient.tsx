@@ -129,10 +129,16 @@ function SwipeContent({ vehicles, currentUserId }: { vehicles: Vehicle[], curren
             return upper.substring(0, 2)
         }
 
+        const normalizeString = (s?: string | null) => {
+            if (!s) return ""
+            return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim()
+        }
+
         const userCountryRaw = location?.countryCode || location?.country || 'MX'
         const userCountry = normalizeCountry(userCountryRaw) || 'MX'
+        const userCity = normalizeString(location?.city)
 
-        console.log(`[CARMATCH] User Country: ${userCountry} (Raw: ${userCountryRaw})`)
+        console.log(`[CARMATCH] User: ${userCountry} / ${location?.city || 'No City'} (Raw: ${userCountryRaw})`)
 
         const withDist = vehicles
             .filter(v => {
@@ -140,9 +146,6 @@ function SwipeContent({ vehicles, currentUserId }: { vehicles: Vehicle[], curren
                 // Si el vehículo no tiene país, asumimos que es del mismo país que el usuario (o MX por defecto)
                 // para evitar ocultar coches sin datos.
                 const match = (vCountry || 'MX') === userCountry
-                if (!match) {
-                    // console.log(`[CARMATCH] Filtered out ${v.id} (${vCountry}) != ${userCountry}`)
-                }
                 return match
             })
             .map(v => {
@@ -152,7 +155,15 @@ function SwipeContent({ vehicles, currentUserId }: { vehicles: Vehicle[], curren
                 } else if (!lat || !lng) {
                     d = 0
                 } else if (v.latitude === null || v.longitude === null) {
-                    d = 4999 // Si no tiene coords, lo mandamos lejos (pero dentro de 5000km)
+                    // ⚡ FIX: Si no tiene coordenadas pero es la misma ciudad del usuario,
+                    // asignamos 0.1km para que salga en el mazo inicial (12km)
+                    const vCity = normalizeString(v.city)
+                    if (vCity && userCity && vCity === userCity) {
+                        console.log(`[CARMATCH] City Match for ${v.title} (${v.city}) - Set distance to 0.1km`)
+                        d = 0.1
+                    } else {
+                        d = 4999 // Si no tiene coords y no es la ciudad, mandamos al final
+                    }
                 }
                 return { ...v, distance: d }
             })

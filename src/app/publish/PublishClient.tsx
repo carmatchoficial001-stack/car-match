@@ -142,35 +142,63 @@ export default function PublishClient() {
             const validation = await res.json()
             setAiConfidence(100)
 
-            if (!validation.valid) {
-                setAiError(validation.reason || 'Las imágenes no contienen vehículos válidos')
+            // 🚨 PORTADA RECHAZADA: Mostrar error con recomendaciones
+            if (!validation.valid && validation.reason) {
+                setAiError(validation.reason)
                 setIsAnalyzing(false)
+
+                // Si la portada es inválida, marcarla visualmente
+                if (validation.invalidIndices?.includes(0)) {
+                    setInvalidImageUrls(new Set([images[0]]))
+                }
                 return
             }
 
+            // 🔥 GALERÍA: Filtrar automáticamente fotos inválidas (sin molestar al usuario)
             if (validation.invalidIndices && validation.invalidIndices.length > 0) {
-                // Filtrar imágenes automáticamente
-                const validImages = images.filter((_, idx) => !validation.invalidIndices!.includes(idx))
-                const count = validation.invalidIndices.length
+                const invalidCount = validation.invalidIndices.length
+                const hasInvalidCover = validation.invalidIndices.includes(0)
 
-                // 🔔 Feedback visual explícito para el usuario
-                const toast = document.createElement('div');
-                toast.className = 'fixed bottom-4 right-4 bg-red-600 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
-                toast.innerHTML = `
-                    <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <div>
-                        <h4 class="font-bold">Seguridad: Filtrado Activo</h4>
-                        <p class="text-sm">Se eliminaron ${count} imagen(es) no válida(s).</p>
-                    </div>
-                `;
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 4000);
+                // Si la portada es inválida, NO continuar (ya manejado arriba)
+                if (hasInvalidCover) {
+                    setAiError('La foto de portada no es válida. Por favor elige una foto que muestre el vehículo completo.')
+                    setInvalidImageUrls(new Set([images[0]]))
+                    setIsAnalyzing(false)
+                    return
+                }
 
-                setImages(validImages)
+                // Filtrar solo las fotos de GALERÍA (índices 1-9) que sean inválidas
+                const invalidGalleryIndices = validation.invalidIndices.filter(idx => idx > 0)
+
+                if (invalidGalleryIndices.length > 0) {
+                    // Filtrar automáticamente las fotos inválidas
+                    const validImages = images.filter((_, idx) => !validation.invalidIndices!.includes(idx))
+
+                    console.log(`🔍 Filtrado automático: ${invalidGalleryIndices.length} fotos de galería eliminadas`)
+
+                    // Actualizar las imágenes sin bloquear al usuario
+                    setImages(validImages)
+
+                    // Mostrar notificación discreta (desaparece sola)
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-20 right-4 bg-blue-600 text-white px-6 py-3 rounded-xl shadow-xl z-50 flex items-center gap-3 transition-all';
+                    toast.innerHTML = `
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <p class="text-sm font-medium">✨ ${invalidGalleryIndices.length} foto(s) filtrada(s) automáticamente</p>
+                        </div>
+                    `;
+                    document.body.appendChild(toast);
+                    setTimeout(() => {
+                        toast.style.opacity = '0';
+                        setTimeout(() => toast.remove(), 300);
+                    }, 3000);
+                }
             }
-            // Siempre limpiar errores de imágenes previas si avanzamos
+
+            // Siempre limpiar marcas visuales de errores previos
             setInvalidImageUrls(new Set())
 
             if (validation.valid) {
@@ -368,9 +396,25 @@ export default function PublishClient() {
                 const fraudCheck = await fetch('/api/fraud/check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ deviceFingerprint: deviceFP, images, vehicleData, gpsLocation: { latitude, longitude }, description })
+                    body: JSON.stringify({ deviceFingerprint: deviceFP, images, vehicleData, gpsLocation: { latitude, longitude } })
                 })
                 const fraudResult = await fraudCheck.json()
+
+                // 🔥 NUEVO: Manejar caso de crédito requerido
+                if (fraudResult.action === 'REQUIRE_CREDIT') {
+                    setLoading(false)
+                    const confirmCredit = confirm(
+                        `${fraudResult.message}\n\n¿Deseas comprar créditos ahora para continuar?`
+                    )
+                    if (confirmCredit) {
+                        router.push('/credits?reason=republication')
+                    } else {
+                        router.push('/profile')
+                    }
+                    return
+                }
+
+                // Redirigir si ya existe
                 if (fraudResult.action === 'REDIRECT') {
                     setRedirectUrl(fraudResult.redirectTo)
                     setShowPortal(true)

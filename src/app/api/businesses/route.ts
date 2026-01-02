@@ -72,6 +72,26 @@ export async function POST(request: NextRequest) {
 
         const isFirstBusiness = businessCount === 0
 
+        // 💰 MONETIZACIÓN DE NEGOCIOS
+        // Primer negocio: 3 MESES GRATIS
+        // Negocios 2+: REQUIEREN 1 CRÉDITO desde el inicio (NO hay período gratuito)
+
+        if (!isFirstBusiness) {
+            // Verificar si tiene créditos
+            const user = await prisma.user.findUnique({
+                where: { id: session.user.id },
+                select: { credits: true }
+            })
+
+            if (!user || user.credits < 1) {
+                return NextResponse.json({
+                    error: 'REQUIRES_CREDIT',
+                    message: 'Necesitas 1 crédito para publicar negocios adicionales. El primer negocio es gratis por 3 meses, los siguientes requieren 1 crédito/mes.',
+                    redirectTo: '/credits?reason=business'
+                }, { status: 402 }) // 402 Payment Required
+            }
+        }
+
         // 🛡️ VALIDAR HUELLA DIGITAL para detectar duplicados
         const { fingerprint } = body
         if (!fingerprint?.deviceHash) {
@@ -101,16 +121,25 @@ export async function POST(request: NextRequest) {
         }
 
         let expiresAt: Date | null = null
+        let isFreePublication = false
 
         if (isFirstBusiness) {
-            // PRIMER NEGOCIO: 3 MESES GRATIS (Regla explícita)
+            // PRIMER NEGOCIO: 3 MESES GRATIS
             expiresAt = new Date()
             expiresAt.setMonth(expiresAt.getMonth() + 3)
+            isFreePublication = true
 
         } else {
-            // SIGUIENTES NEGOCIOS: Se crean INACTIVOS
-            // No se cobra crédito aquí. El usuario deberá activarlo manualmente en el panel.
-            expiresAt = null
+            // SIGUIENTES NEGOCIOS: 1 mes desde el inicio (ya cobramos crédito arriba)
+            expiresAt = new Date()
+            expiresAt.setMonth(expiresAt.getMonth() + 1)
+            isFreePublication = false // NO es gratis, requirió crédito
+
+            // Descontar el crédito inmediatamente
+            await prisma.user.update({
+                where: { id: session.user.id },
+                data: { credits: { decrement: 1 } }
+            })
         }
 
         // Crear negocio
@@ -147,12 +176,11 @@ export async function POST(request: NextRequest) {
                 hasHomeService: body.hasHomeService || false,
 
 
-                // LÓGICA DE ACTIVACIÓN:
-                // Si es el primero -> ACTIVO (True)
-                // Si no es el primero -> INACTIVO (False)
-                isActive: isFirstBusiness,
+                // 🔥 FIX: Todos los negocios inician ACTIVOS con período gratuito
+                // El cron job se encargará de desactivarlos cuando expiren
+                isActive: true,
 
-                isFreePublication: isFirstBusiness,
+                isFreePublication,
                 publishedAt: new Date(),
                 expiresAt,
                 services: Array.isArray(services) ? services : []
@@ -188,9 +216,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             business,
             message: isFirstBusiness
-                ? '¡Negocio recibido! Nuestro Equipo de Seguridad lo verificará en breve. Disfruta de tu PRIMER MES GRATIS 🎉'
-                : 'Negocio registrado. El Equipo de Seguridad validará la información pronto. Recuerda activarlo en tu panel.',
-            isFirstBusiness
+                ? '¡Negocio creado con éxito! Disfruta de 3 MESES GRATIS 🎉'
+                : '✅ Negocio creado. Se descontó 1 crédito de tu cuenta. Activo por 30 días.',
+            isFirstBusiness,
+            creditCharged: !isFirstBusiness
         }, { status: 201 })
 
     } catch (error) {

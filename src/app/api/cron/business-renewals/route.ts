@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
+/**
+ * Cron job para renovar/expirar negocios
+ * Similar a vehicle-renewals pero para Business
+ * 
+ * POLÍTICA:
+ * - Primer negocio: 3 meses gratis
+ * - Negocios adicionales: 1 mes gratis → luego 1 crédito/mes
+ */
 export async function GET(request: NextRequest) {
     try {
         // Verificar cron secret
@@ -12,8 +20,8 @@ export async function GET(request: NextRequest) {
         const now = new Date()
         const twoDaysFromNow = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000)
 
-        // Buscar vehículos próximos a expirar o ya expirados
-        const vehicles = await prisma.vehicle.findMany({
+        // Buscar negocios próximos a expirar o ya expirados
+        const businesses = await prisma.business.findMany({
             where: {
                 expiresAt: {
                     lte: twoDaysFromNow
@@ -42,25 +50,21 @@ export async function GET(request: NextRequest) {
         let expiredDueToNoCredits = 0
         let notificationsSent = 0
 
-        for (const vehicle of vehicles) {
-            // 🔥 FIX CRÍTICO: No saltar vehículos solo porque no estén activos
-            // Necesitamos procesar TODOS los vehículos que tienen expiresAt
-            if (!vehicle.expiresAt) continue
+        for (const business of businesses) {
+            if (!business.expiresAt) continue
 
-            const daysLeft = Math.ceil((vehicle.expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+            const daysLeft = Math.ceil((business.expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
             const hasExpired = daysLeft < 0
             const aboutToExpire = daysLeft >= 0 && daysLeft <= 2
+            const isActive = business.isActive
 
-            // Solo procesar vehículos ACTIVOS para renovación/expiración
-            const isActive = vehicle.status === 'ACTIVE'
-
-            // AUTO-RENOVACIÓN AUTOMÁTICA SI EXPIRA
+            // AUTO-RENOVACIÓN SI EXPIRA
             if (hasExpired || daysLeft === 0) {
-                const user = vehicle.user
+                const user = business.user
 
                 // Solo intentar renovar si está activo
                 if (!isActive) {
-                    console.log(`⏭️ Vehículo ${vehicle.id} ya está ${vehicle.status}, ignorando expiración`)
+                    console.log(`⏭️ Negocio ${business.id} ya está inactivo, ignorando expiración`)
                     continue
                 }
 
@@ -73,10 +77,10 @@ export async function GET(request: NextRequest) {
                             where: { id: user.id },
                             data: { credits: { decrement: 1 } }
                         }),
-                        prisma.vehicle.update({
-                            where: { id: vehicle.id },
+                        prisma.business.update({
+                            where: { id: business.id },
                             data: {
-                                status: 'ACTIVE',
+                                isActive: true,
                                 expiresAt: newExpiresAt
                             }
                         })
@@ -86,13 +90,13 @@ export async function GET(request: NextRequest) {
                     await prisma.notification.create({
                         data: {
                             userId: user.id,
-                            type: 'VEHICLE_AUTO_RENEWED',
-                            title: '✅ Vehículo renovado automáticamente',
-                            message: `Tu vehículo "${vehicle.title}" se renovó automáticamente por 30 días más. Créditos restantes: ${user.credits - 1}`,
-                            link: '/profile',
+                            type: 'BUSINESS_AUTO_RENEWED',
+                            title: '✅ Negocio renovado automáticamente',
+                            message: `Tu negocio "${business.name}" se renovó automáticamente por 30 días más. Créditos restantes: ${user.credits - 1}`,
+                            link: '/profile?tab=businesses',
                             metadata: {
-                                vehicleId: vehicle.id,
-                                vehicleTitle: vehicle.title,
+                                businessId: business.id,
+                                businessName: business.name,
                                 creditsUsed: 1,
                                 creditsRemaining: user.credits - 1,
                                 newExpiresAt: newExpiresAt.toISOString()
@@ -100,34 +104,32 @@ export async function GET(request: NextRequest) {
                         }
                     })
 
-                    console.log(`✅ Auto-renovado: ${vehicle.title} (${vehicle.id})`)
+                    console.log(`✅ Negocio auto-renovado: ${business.name} (${business.id})`)
                     autoRenewed++
                 } else {
-                    // SIN CRÉDITOS → Desactivar + Notificación con STATS
-                    await prisma.vehicle.update({
-                        where: { id: vehicle.id },
-                        data: { status: 'INACTIVE' }
+                    // SIN CRÉDITOS → Desactivar
+                    await prisma.business.update({
+                        where: { id: business.id },
+                        data: { isActive: false }
                     })
 
-                    // Calcular estadísticas reales
-                    const totalFavorites = vehicle.favorites.length
-                    const estimatedInterest = Math.floor(totalFavorites * 0.2)
-                    const potentialOffers = estimatedInterest * parseFloat(vehicle.price.toString()) * 0.8
+                    // Calcular estadísticas
+                    const totalFavorites = business.favorites.length
+                    const estimatedViews = totalFavorites * 5 // Estimación: 1 favorito por cada 5 visitas
 
                     await prisma.notification.create({
                         data: {
                             userId: user.id,
-                            type: 'VEHICLE_EXPIRED_NO_CREDITS',
-                            title: '⚠️ Vehículo desactivado - Compra créditos',
-                            message: `Tu vehículo "${vehicle.title}" se desactivó por falta de créditos.\n\n📊 Últimos 30 días:\n• ${totalFavorites} favoritos\n• ~${estimatedInterest} personas interesadas\n• Est. $${potentialOffers.toFixed(0)} en ofertas potenciales\n\n💡 Reactívalo con 1 crédito/mes y sigue recibiendo ofertas.`,
+                            type: 'BUSINESS_EXPIRED_NO_CREDITS',
+                            title: '⚠️ Negocio desactivado - Compra créditos',
+                            message: `Tu negocio "${business.name}" se desactivó por falta de créditos.\n\n📊 Últimos 30 días:\n• ${totalFavorites} favoritos\n• ~${estimatedViews} visitas estimadas\n\n💡 Reactívalo con 1 crédito/mes y sigue atrayendo clientes.`,
                             link: '/profile?tab=credits',
                             metadata: {
-                                vehicleId: vehicle.id,
-                                vehicleTitle: vehicle.title,
+                                businessId: business.id,
+                                businessName: business.name,
                                 stats: {
                                     favorites: totalFavorites,
-                                    estimatedInterest: estimatedInterest,
-                                    potentialOffers: potentialOffers,
+                                    estimatedViews: estimatedViews,
                                     period: '30 days'
                                 },
                                 action: 'buy_credits'
@@ -135,18 +137,18 @@ export async function GET(request: NextRequest) {
                         }
                     })
 
-                    console.log(`❌ Expirado sin créditos: ${vehicle.title} (${vehicle.id})`)
+                    console.log(`❌ Negocio expirado sin créditos: ${business.name} (${business.id})`)
                     expiredDueToNoCredits++
                 }
             } else if (aboutToExpire && daysLeft === 2 && isActive) {
-                // Notificación preventiva 2 días antes (solo para vehículos activos)
+                // Notificación preventiva 2 días antes
                 const existingNotif = await prisma.notification.findFirst({
                     where: {
-                        userId: vehicle.userId,
-                        type: 'VEHICLE_EXPIRES_2_DAYS',
+                        userId: business.userId,
+                        type: 'BUSINESS_EXPIRES_2_DAYS',
                         metadata: {
-                            path: ['vehicleId'],
-                            equals: vehicle.id
+                            path: ['businessId'],
+                            equals: business.id
                         },
                         createdAt: {
                             gte: new Date(now.getTime() - 24 * 60 * 60 * 1000)
@@ -155,27 +157,27 @@ export async function GET(request: NextRequest) {
                 })
 
                 if (!existingNotif) {
-                    const userHasCredits = vehicle.user.credits >= 1
+                    const userHasCredits = business.user.credits >= 1
 
                     await prisma.notification.create({
                         data: {
-                            userId: vehicle.userId,
-                            type: 'VEHICLE_EXPIRES_2_DAYS',
-                            title: userHasCredits ? '🔄 Próxima renovación automática' : '⏰ Sin créditos - Compra ahora',
+                            userId: business.userId,
+                            type: 'BUSINESS_EXPIRES_2_DAYS',
+                            title: userHasCredits ? '🔄 Próxima renovación de negocio' : '⏰ Sin créditos - Compra ahora',
                             message: userHasCredits
-                                ? `Tu vehículo "${vehicle.title}" se renovará automáticamente en 2 días (1 crédito). Créditos disponibles: ${vehicle.user.credits}`
-                                : `Tu vehículo "${vehicle.title}" expira en 2 días pero no tienes créditos. Compra ahora para renovación automática.`,
-                            link: userHasCredits ? '/profile' : '/profile?tab=credits',
+                                ? `Tu negocio "${business.name}" se renovará automáticamente en 2 días (1 crédito). Créditos disponibles: ${business.user.credits}`
+                                : `Tu negocio "${business.name}" expira en 2 días pero no tienes créditos. Compra ahora para renovación automática.`,
+                            link: userHasCredits ? '/profile?tab=businesses' : '/profile?tab=credits',
                             metadata: {
-                                vehicleId: vehicle.id,
-                                vehicleTitle: vehicle.title,
+                                businessId: business.id,
+                                businessName: business.name,
                                 daysLeft: 2,
                                 willAutoRenew: userHasCredits
                             }
                         }
                     })
 
-                    console.log(`🔔 Notificación 2 días: ${vehicle.title} (${vehicle.id})`)
+                    console.log(`🔔 Notificación negocio 2 días: ${business.name} (${business.id})`)
                     notificationsSent++
                 }
             }
@@ -189,7 +191,7 @@ export async function GET(request: NextRequest) {
         })
 
     } catch (error) {
-        console.error('Error in vehicle renewals cron:', error)
+        console.error('Error in business renewals cron:', error)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }

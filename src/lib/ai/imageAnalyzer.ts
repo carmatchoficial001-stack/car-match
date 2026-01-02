@@ -211,6 +211,76 @@ RESPONDE ÚNICAMENTE CON ESTE JSON (SIN MARKDOWN NI EXPLICACIONES):
 export async function analyzeMultipleImages(images: string[], type: 'VEHICLE' | 'BUSINESS' = 'VEHICLE'): Promise<ImageAnalysisResult> {
   console.log(`🤖 [GEMINI 1.5 FLASH] Analizando ${images.length} imágenes (${type}) - MODO INTELIGENTE ACTIVADO`);
 
+  // 🔥 PASO 1: VALIDACIÓN ESPECIAL DE PORTADA (Solo para VEHÍCULOS)
+  if (type === 'VEHICLE' && images.length > 0) {
+    console.log('🔍 [PASO 1] Validando foto de PORTADA...');
+
+    const coverPrompt = `
+🚨 VALIDACIÓN ESPECIAL DE FOTO DE PORTADA - CARMATCH 🚨
+
+Esta es la PRIMERA FOTO que verán los compradores. Debe ser ATRACTIVA y mostrar el vehículo CLARAMENTE.
+
+✅ APROBAR (Foto de portada válida):
+- Vista COMPLETA del vehículo: frontal, lateral, trasero, 3/4, esquinado
+- El vehículo ocupa AL MENOS 60% del encuadre
+- Se puede identificar claramente qué vehículo es
+- Foto nítida y bien iluminada
+- Vehículo terrestre motorizado (auto, moto, camión, maquinaria)
+
+❌ RECHAZAR (Foto de portada NO válida):
+- SOLO un DETALLE: llanta, espejo retrovisor, volante, logo, puerta
+- Motor de cerca (a menos que sea la publicación de un motor como repuesto)
+- Interior sin mostrar exterior
+- Vehículo muy pequeño (menos del 50% del encuadre)
+- Foto muy borrosa o con poca luz
+- NO es un vehículo terrestre motorizado
+
+RESPONDE ÚNICAMENTE ESTE JSON:
+{
+  "isValidCover": true/false,
+  "reason": "Razón específica si es false (en Español)",
+  "suggestions": "Sugerencias de mejora (opcional)"
+}
+`;
+
+    try {
+      const coverImagePart = {
+        inlineData: {
+          data: images[0],
+          mimeType: "image/jpeg",
+        },
+      };
+
+      const coverResult = await geminiModel.generateContent([coverPrompt, coverImagePart]);
+      const coverResponse = await coverResult.response;
+      const coverText = coverResponse.text();
+
+      console.log("🖼️ Respuesta Validación Portada:", coverText);
+
+      const firstBrace = coverText.indexOf('{');
+      const lastBrace = coverText.lastIndexOf('}');
+
+      if (firstBrace !== -1 && lastBrace !== -1) {
+        const jsonString = coverText.substring(firstBrace, lastBrace + 1);
+        const coverAnalysis = JSON.parse(jsonString);
+
+        // Si la portada no es válida, rechazar inmediatamente
+        if (coverAnalysis.isValidCover === false) {
+          console.log('❌ PORTADA RECHAZADA:', coverAnalysis.reason);
+          return {
+            valid: false,
+            reason: `Foto de portada inválida: ${coverAnalysis.reason}. ${coverAnalysis.suggestions || 'Usa una foto que muestre el vehículo completo.'}`,
+            invalidIndices: [0]
+          };
+        }
+        console.log('✅ Portada aprobada, continuando con el resto...');
+      }
+    } catch (error) {
+      console.error('⚠️ Error validando portada, continuando...', error);
+    }
+  }
+
+  // 🔥 PASO 2: VALIDACIÓN DE TODAS LAS IMÁGENES (Vehículos válidos)
   const vehiclePrompt = `
 🚨 MODERADOR DE CONTENIDO AUTOMOTRIZ - MODO ESTRICTO 🚨
 Tu trabajo es clasificar CADA IMAGEN individualmente como "VALID" (Vehículo/Parte) o "INVALID" (Cualquier otra cosa).
@@ -219,10 +289,12 @@ Tu trabajo es clasificar CADA IMAGEN individualmente como "VALID" (Vehículo/Par
 - Naturaleza: plantas, árboles, flores, pasto, paisajes sin coches.
 - Seres vivos: personas, mascotas, animales.
 - Objetos no relacionados: comida, muebles, memes, texto, dibujos.
+- Contenido inapropiado: sexual, violencia, drogas.
 
 ✅ REGLAS DE ACEPTACIÓN (VALID):
-- Vehículos terrestres motorizados (autos, motos, camiones, maquinas).
-- Partes de vehículos (motor, interior, llantas).
+- Vehículos terrestres motorizados (autos, motos, camiones, tractores, maquinaria).
+- Partes de vehículos: motor, interior completo, llantas, chasis, transmisión.
+- Detalles del vehículo: tablero, asientos, maletero, rines.
 `;
 
   const businessPrompt = `
@@ -298,7 +370,6 @@ FORMATO DE RESPUESTA REQUERIDO:
     const analysis = Array.isArray(parsed.analysis) ? parsed.analysis : [];
 
     // 🛡️ TYPE SAFETY: Asegurar que invalidIndices son números
-    // La IA a veces devuelve "index": "1" (string) y esto rompe el filtro estricto
     const invalidIndices = analysis
       .filter((item: any) => item.isValid === false || item.isValid === "false")
       .map((item: any) => Number(item.index))
@@ -307,17 +378,77 @@ FORMATO DE RESPUESTA REQUERIDO:
     // Verificar si queda alguna válida
     const validCount = analysis.filter((item: any) => item.isValid === true || item.isValid === "true").length;
 
+    // 🔥 PASO 3: VALIDACIÓN DE COHERENCIA (Solo para VEHÍCULOS con 2+ fotos válidas)
+    if (type === 'VEHICLE' && validCount >= 2) {
+      console.log('🔍 [PASO 3] Validando COHERENCIA entre fotos...');
+
+      const coherencePrompt = `
+🔍 VERIFICACIÓN DE COHERENCIA - MISMO VEHÍCULO
+
+Has recibido ${images.length} fotos de una publicación de vehículo.
+Tu trabajo es verificar si TODAS las fotos válidas son del MISMO vehículo.
+
+⚠️ IMPORTANTE:
+- PERMITIR fotos de detalles (motor, interior, llantas) si son del mismo vehículo
+- RECHAZAR si hay fotos de vehículos DIFERENTES
+
+COMPARA:
+- Color predominante del vehículo
+- Marca y modelo visible
+- Características distintivas: rines, accesorios, pegatinas, daños
+- Año aproximado
+
+RESPONDE ÚNICAMENTE ESTE JSON:
+{
+  "isSameVehicle": true/false,
+  "confidence": 0-100,
+  "reason": "Explicación breve si isSameVehicle = false"
+}
+
+EJEMPLOS:
+✅ 5 fotos exteriores + 3 fotos del interior + 2 fotos del motor del mismo Honda Civic = isSameVehicle: true
+❌ 5 fotos de un Toyota Corolla + 5 fotos de un Nissan Sentra = isSameVehicle: false
+`;
+
+      try {
+        const coherenceResult = await geminiModel.generateContent([coherencePrompt, ...imageParts]);
+        const coherenceResponse = await coherenceResult.response;
+        const coherenceText = coherenceResponse.text();
+
+        console.log("🔍 Respuesta Coherencia:", coherenceText);
+
+        const cohFirstBrace = coherenceText.indexOf('{');
+        const cohLastBrace = coherenceText.lastIndexOf('}');
+
+        if (cohFirstBrace !== -1 && cohLastBrace !== -1) {
+          const cohJsonString = coherenceText.substring(cohFirstBrace, cohLastBrace + 1);
+          const coherenceAnalysis = JSON.parse(cohJsonString);
+
+          // Si NO son del mismo vehículo, rechazar
+          if (coherenceAnalysis.isSameVehicle === false || coherenceAnalysis.confidence < 50) {
+            console.log('❌ COHERENCIA RECHAZADA:', coherenceAnalysis.reason);
+            return {
+              valid: false,
+              reason: `Las fotos no parecen ser del mismo vehículo. ${coherenceAnalysis.reason || 'Asegúrate de subir solo fotos de UN vehículo.'}`,
+              invalidIndices: []
+            };
+          }
+          console.log(`✅ Coherencia aprobada (${coherenceAnalysis.confidence}% confianza)`);
+        }
+      } catch (error) {
+        console.error('⚠️ Error validando coherencia, continuando...', error);
+      }
+    }
+
     return {
       valid: validCount > 0,
       invalidIndices: invalidIndices,
-      // Usar los detalles globales extraídos de las fotos válidas
       details: parsed.globalDetails || {},
       category: analysis.find((a: any) => a.isValid)?.category || 'automovil'
     };
 
   } catch (error) {
     console.error("❌ Error CRÍTICO en análisis multi-foto:", error);
-    // Fallback: Si todo falla, no bloqueamos pero no devolvemos indices invalidos
     return { valid: true, invalidIndices: [] };
   }
 }
