@@ -168,7 +168,7 @@ export default function PublishClient() {
                 }
 
                 // Filtrar solo las fotos de GALERÍA (índices 1-9) que sean inválidas
-                const invalidGalleryIndices = validation.invalidIndices.filter(idx => idx > 0)
+                const invalidGalleryIndices = validation.invalidIndices.filter((idx: number) => idx > 0)
 
                 if (invalidGalleryIndices.length > 0) {
                     // Filtrar automáticamente las fotos inválidas
