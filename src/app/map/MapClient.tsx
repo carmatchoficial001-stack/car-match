@@ -357,7 +357,7 @@ function MapContent({ businesses, user }: MapClientProps) {
 
                 {/* 🗂️ Sidebar (Desktop & Mobile Drawer) */}
                 <div className={`
-                    fixed inset-0 z-[500] bg-black/50 md:static md:bg-transparent md:inset-auto md:z-auto
+                    fixed inset-0 z-[500] bg-black/50 md:static md:bg-transparent md:inset-auto md:z-auto flex-shrink-0
                     ${showSidebar ? 'block' : 'hidden md:block'}
                 `}>
                     <div className="h-full w-80 bg-surface border-r border-surface-highlight flex flex-col shadow-2xl md:shadow-none animate-slide-in-left">

@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
     webpack: (config) => {
         // Fix for EISDIR error on Windows with Next.js 15.5
         config.resolve.symlinks = false
+        config.cache = false
         return config
     },
     images: {

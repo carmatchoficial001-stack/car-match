@@ -409,7 +409,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                 </div>
 
                 {/* Safety Tips Sidebar - Fixed right side */}
-                <div className={`fixed inset-y-0 right-0 w-80 bg-surface border-l border-surface-highlight shadow-2xl transform transition-transform duration-300 z-30 lg:relative lg:shadow-none lg:translate-x-0 ${showSafetyTips ? 'translate-x-0' : 'translate-x-full lg:hidden'}`}>
+                <div className={`fixed inset-y-0 right-0 w-80 bg-surface border-l border-surface-highlight shadow-2xl transform transition-transform duration-300 z-30 lg:relative lg:shadow-none lg:translate-x-0 flex-shrink-0 ${showSafetyTips ? 'translate-x-0' : 'translate-x-full lg:hidden'}`}>
                     <div className="h-full flex flex-col">
                         <div className="p-4 border-b border-surface-highlight flex justify-between items-center bg-accent-500/10">
                             <h3 className="font-bold text-lg text-accent-500 flex items-center gap-2">

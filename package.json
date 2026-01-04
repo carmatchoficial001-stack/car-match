@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "rimraf .next && prisma generate && next build",
+    "clean": "rimraf .next",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
@@ -43,6 +44,7 @@
     "eslint-config-next": "^15.1.0",
     "postcss": "^8",
     "prisma": "^6.1.0",
+    "rimraf": "^6.0.1",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }
