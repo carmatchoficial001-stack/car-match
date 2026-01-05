@@ -11,33 +11,41 @@ import { useEffect } from 'react'
  */
 export function ResponsiveViewportFix() {
     useEffect(() => {
-        // Forzar re-render del viewport
-        const viewport = document.querySelector('meta[name="viewport"]')
-        if (viewport) {
-            const content = viewport.getAttribute('content')
-            viewport.setAttribute('content', content + ', interactive-widget=resizes-content')
+        // Enforce mobile viewport settings
+        const metaViewport = document.querySelector('meta[name="viewport"]') || document.createElement('meta');
+        metaViewport.setAttribute('name', 'viewport');
+
+        // Ensure critical mobile viewport properties are present
+        // We overwrite to ensure no cached 'desktop' settings remain
+        metaViewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover, interactive-widget=resizes-content');
+
+        if (!metaViewport.parentElement) {
+            document.head.appendChild(metaViewport);
         }
 
-        // Prevenir zoom no deseado
-        document.addEventListener('gesturestart', function (e) {
-            e.preventDefault()
-        })
+        // Prevent unwanted zoom on iOS
+        const preventZoom = (e: Event) => {
+            e.preventDefault();
+        };
 
-        // Fix para Safari iOS
+        document.addEventListener('gesturestart', preventZoom);
+
+        // Safari iOS 100vh Fix
         const handleResize = () => {
-            const vh = window.innerHeight * 0.01
-            document.documentElement.style.setProperty('--vh', `${vh}px`)
-        }
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
 
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        window.addEventListener('orientationchange', handleResize)
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', handleResize);
 
         return () => {
-            window.removeEventListener('resize', handleResize)
-            window.removeEventListener('orientationchange', handleResize)
-        }
-    }, [])
+            document.removeEventListener('gesturestart', preventZoom);
+            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('orientationchange', handleResize);
+        };
+    }, []);
 
-    return null
+    return null;
 }
