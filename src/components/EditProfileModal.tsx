@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import ImageUpload from './ImageUpload'
 
 interface EditProfileModalProps {
     isOpen: boolean
@@ -102,6 +103,29 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                         <label className="block text-sm font-medium text-text-secondary mb-3">
                             Foto de Perfil
                         </label>
+
+                        {/* Subir Foto Personalizada */}
+                        <div className="mb-6">
+                            <ImageUpload
+                                label="Subir Foto Personalizada"
+                                images={selectedImage ? [selectedImage] : []}
+                                onImagesChange={(imgs) => setSelectedImage(imgs[0] || '')}
+                                maxImages={1}
+                                required={false}
+                            />
+                            <div className="mt-2 text-xs text-blue-300 bg-blue-900/20 border border-blue-900/30 p-2 rounded-lg flex items-start gap-2">
+                                <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>
+                                    <strong>Recomendación:</strong> CarMatch es una comunidad automotriz. ¡Sube una foto de tu nave o auto favorito para destacar!
+                                </span>
+                            </div>
+                        </div>
+
+                        <p className="text-sm font-medium text-text-secondary mb-3">
+                            O elige de nuestra galería:
+                        </p>
 
                         <div className="grid grid-cols-4 gap-3 mb-4">
                             {PREDEFINED_AVATARS.map((avatar, idx) => (
