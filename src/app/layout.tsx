@@ -32,9 +32,8 @@ export const viewport: Viewport = {
     themeColor: "#0f172a",
     width: "device-width",
     initialScale: 1,
-    // Removed maximumScale and userScalable to improve accessibility and potential redirect issues
-    // maximumScale: 1,
-    // userScalable: false,
+    maximumScale: 1,
+    userScalable: false,
     viewportFit: "cover",
     colorScheme: "dark",
     interactiveWidget: "resizes-content",
