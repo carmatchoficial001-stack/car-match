@@ -14,15 +14,7 @@ interface EditProfileModalProps {
     userVehicles: any[] // Lista de vehículos del usuario para usar como foto
 }
 
-// Lista de avatares diversos (Representando diferentes tipos de usuarios)
-const PREDEFINED_AVATARS = [
-    "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=200", // Deportivo (CarMatch default)
-    "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80&w=200", // Moto
-    "https://images.unsplash.com/photo-1605218427368-35b8686e06dd?auto=format&fit=crop&q=80&w=200", // RZR / UTV (Offroad)
-    "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=200", // Tractor / Maquinaria
-    "https://images.unsplash.com/photo-1533106497176-45ae19e68ba2?auto=format&fit=crop&q=80&w=200", // Pickup / Truck
-    "https://images.unsplash.com/photo-1503376763036-066120622c74?auto=format&fit=crop&q=80&w=200", // Clásico
-]
+
 
 export default function EditProfileModal({ isOpen, onClose, currentUser, userVehicles }: EditProfileModalProps) {
     const router = useRouter()
@@ -126,34 +118,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                             </div>
                         </div>
 
-                        <p className="text-sm font-medium text-text-secondary mb-3">
-                            O elige de nuestra galería:
-                        </p>
 
-                        <div className="grid grid-cols-4 gap-3 mb-4">
-                            {PREDEFINED_AVATARS.map((avatar, idx) => (
-                                <button
-                                    key={idx}
-                                    type="button"
-                                    onClick={() => setSelectedImage(avatar)}
-                                    className={`relative aspect-square rounded-xl overflow-hidden border-2 transition ${selectedImage === avatar
-                                        ? 'border-primary-500 scale-105'
-                                        : 'border-transparent hover:border-surface-highlight'
-                                        }`}
-                                >
-                                    <img src={avatar} alt={`Avatar ${idx}`} className="w-full h-full object-cover" />
-                                    {selectedImage === avatar && (
-                                        <div className="absolute inset-0 bg-primary-500/20 flex items-center justify-center">
-                                            <div className="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center">
-                                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
 
                         {/* Vehículos del Usuario (si tiene) */}
                         {userVehicles.length > 0 && (
