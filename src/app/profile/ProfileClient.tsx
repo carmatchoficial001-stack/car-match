@@ -7,6 +7,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import EditProfileModal from "@/components/EditProfileModal"
+import ReportImageButton from "@/components/ReportImageButton"
 
 interface ProfileClientProps {
     user: any // Typed as any to match the dynamic prisma include structure for now
@@ -45,6 +46,12 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                     Editar Perfil
                                                 </button>
                                             </div>
+                                        )}
+                                        {!isOwner && (
+                                            <ReportImageButton
+                                                imageUrl={user.image}
+                                                targetUserId={user.id}
+                                            />
                                         )}
                                     </div>
                                 ) : (

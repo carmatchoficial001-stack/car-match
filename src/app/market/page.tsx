@@ -257,9 +257,39 @@ export default async function MarketPage({
         getCachedColors()
     ])
 
+    // Obtener negocios activos para inyectar en el feed
+    const businesses = await prisma.business.findMany({
+        where: {
+            isActive: true,
+            userId: { not: currentUser.id }
+        },
+        select: {
+            id: true,
+            name: true,
+            category: true,
+            city: true,
+            latitude: true,
+            longitude: true,
+            images: true,
+            country: true,
+            user: {
+                select: {
+                    name: true,
+                    image: true
+                }
+            }
+        },
+        orderBy: { createdAt: 'desc' }
+    })
+
+    const initialItems = [
+        ...vehiclesWithFavoriteStatus.map(v => ({ ...v, feedType: 'VEHICLE' as const })),
+        ...businesses.map(b => ({ ...b, title: b.name, feedType: 'BUSINESS' as const }))
+    ]
+
     return (
         <MarketClient
-            initialVehicles={serializeDecimal(vehiclesWithFavoriteStatus) as any}
+            initialItems={serializeDecimal(initialItems) as any}
             currentUserId={currentUser.id}
             brands={brands}
             vehicleTypes={vehicleTypes}

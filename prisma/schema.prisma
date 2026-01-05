@@ -46,6 +46,10 @@ model User {
   pushSubscriptions       PushSubscription[]
   sessions                Session[]
   vehicles                Vehicle[]
+  
+  // Relations for Reporting System
+  reportsMade             Report[]                  @relation("Reporter")
+  reportsReceived         Report[]                  @relation("ReportedUser")
 
   @@index([email])
   @@index([city])
@@ -144,6 +148,7 @@ model Vehicle {
   dislikes          Dislike[]
   favorites         Favorite[]
   notifications     Notification[]
+  reports           Report[]
   user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -200,6 +205,7 @@ model Business {
   favorites           BusinessFavorite[]
   views               BusinessView[]
   notifications       Notification[]
+  reports             Report[]
 
   @@index([userId])
   @@index([category])
@@ -618,4 +624,37 @@ model OpportunityLog {
 
   @@index([latitude, longitude])
   @@index([createdAt])
+}
+
+model Report {
+  id           String       @id @default(cuid())
+  reporterId   String
+  reason       String
+  description  String?
+  status       ReportStatus @default(PENDING)
+  
+  // Polymorphic targets
+  vehicleId    String?
+  businessId   String?
+  targetUserId String?
+  imageUrl     String?      // The specific image URL being flagged
+  
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  reporter     User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle?     @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  business     Business?    @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  targetUser   User?        @relation("ReportedUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([reporterId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  DISMISSED
+  ACTION_TAKEN
 }

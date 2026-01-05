@@ -101,9 +101,21 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
 
                         {/* Subir Foto Personalizada */}
                         <div className="mb-6">
+                            {/* Si no hay imagen seleccionada (o es inválida), mostramos la inicial */}
+                            {(!selectedImage || (!selectedImage.startsWith('http') && !selectedImage.startsWith('/'))) && (
+                                <div className="mb-4 flex flex-col items-center justify-center p-6 border-2 border-dashed border-surface-highlight rounded-xl bg-surface-highlight/50">
+                                    <div className="w-full max-w-md aspect-video rounded-xl bg-gradient-to-br from-primary-600 to-primary-900 flex items-center justify-center text-6xl font-bold text-white shadow-xl mb-3">
+                                        {currentUser.name?.[0]?.toUpperCase() || '?'}
+                                    </div>
+                                    <p className="text-sm text-text-secondary text-center">
+                                        Así se ve tu perfil actualmente (sin foto).
+                                    </p>
+                                </div>
+                            )}
+
                             <ImageUpload
-                                label="Subir Foto Personalizada"
-                                images={selectedImage ? [selectedImage] : []}
+                                label={(!selectedImage || (!selectedImage.startsWith('http') && !selectedImage.startsWith('/'))) ? "¡Sube tu primera foto!" : "Cambiar Foto"}
+                                images={(selectedImage && (selectedImage.startsWith('http') || selectedImage.startsWith('/'))) ? [selectedImage] : []}
                                 onImagesChange={(imgs) => setSelectedImage(imgs[0] || '')}
                                 maxImages={1}
                                 required={false}
@@ -113,7 +125,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 <span>
-                                    <strong>Recomendación:</strong> CarMatch es una comunidad automotriz. ¡Sube una foto de tu nave o auto favorito para destacar!
+                                    <strong>Recomendación:</strong> CarMatch es una comunidad automotriz. ¡Sube una foto de tu nave, auto favorito, o el vehículo que vendes para destacar!
                                 </span>
                             </div>
                         </div>

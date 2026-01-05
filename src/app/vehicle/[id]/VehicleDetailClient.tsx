@@ -8,6 +8,7 @@ import { ArrowLeft, MapPin, MessageCircle, Calendar, Gauge, Fuel, CheckCircle2 }
 import FavoriteButton from '@/components/FavoriteButton'
 import ContactButton from '@/components/ContactButton'
 import ShareButton from '@/components/ShareButton'
+import ReportImageButton from '@/components/ReportImageButton'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { formatPrice, formatNumber } from '@/lib/vehicleTaxonomy'
 
@@ -108,6 +109,12 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail }: Vehic
                                     size="lg"
                                 />
                             </div>
+
+                            <ReportImageButton
+                                imageUrl={vehicle.images?.[activeImage] || ''}
+                                vehicleId={vehicle.id}
+                                className="absolute top-4 left-4 z-10"
+                            />
                         </div>
 
                         {/* Thumbnails */}

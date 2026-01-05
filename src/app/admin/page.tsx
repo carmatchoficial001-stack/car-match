@@ -19,6 +19,19 @@ interface SystemStats {
         source: string | null
         createdAt: string
     }>
+    reports: Array<{
+        id: string
+        reason: string
+        description: string | null
+        status: string
+        imageUrl: string | null
+        vehicleId: string | null
+        targetUserId: string | null
+        createdAt: string
+        reporter: { name: string; email: string }
+        targetUser?: { name: string; email: string }
+        vehicle?: { title: string }
+    }>
 }
 
 export default function AdminDashboard() {
@@ -220,13 +233,13 @@ export default function AdminDashboard() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {aiAnalysis.insights.map((insight: any, idx: number) => (
                                     <div key={idx} className={`p-4 rounded-xl border ${insight.priority === 'HIGH' ? 'bg-red-900/10 border-red-900/20' :
-                                            insight.priority === 'MEDIUM' ? 'bg-yellow-900/10 border-yellow-900/20' :
-                                                'bg-blue-900/10 border-blue-900/20'
+                                        insight.priority === 'MEDIUM' ? 'bg-yellow-900/10 border-yellow-900/20' :
+                                            'bg-blue-900/10 border-blue-900/20'
                                         }`}>
                                         <div className="flex items-center justify-between mb-2">
                                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${insight.priority === 'HIGH' ? 'bg-red-500 text-white' :
-                                                    insight.priority === 'MEDIUM' ? 'bg-yellow-500 text-black' :
-                                                        'bg-blue-500 text-white'
+                                                insight.priority === 'MEDIUM' ? 'bg-yellow-500 text-black' :
+                                                    'bg-blue-500 text-white'
                                                 }`}>
                                                 {insight.priority}
                                             </span>
@@ -271,6 +284,94 @@ export default function AdminDashboard() {
                             <p className="text-text-secondary/60 text-sm mt-1">Pulsa el botón para que el analista maestro revise tu base de datos.</p>
                         </div>
                     )}
+                </div>
+
+                {/* Image Reports */}
+                <div className="bg-surface rounded-2xl border border-red-500/20 shadow-lg shadow-red-900/5 overflow-hidden">
+                    <div className="p-6 border-b border-surface-highlight flex items-center justify-between">
+                        <div>
+                            <h2 className="text-xl font-bold text-text-primary flex items-center gap-2">
+                                <span className="text-red-500">🚩</span> Reportes de Imágenes
+                            </h2>
+                            <p className="text-sm text-text-secondary mt-1">Imágenes marcadas por la comunidad</p>
+                        </div>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-background">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Imagen</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Motivo</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Reportado por</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Contexto</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-surface-highlight">
+                                {stats.reports.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-8 text-center text-text-secondary">
+                                            No hay reportes pendientes
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    stats.reports.map((report) => (
+                                        <tr key={report.id} className="hover:bg-background/50 transition">
+                                            <td className="px-6 py-4">
+                                                {report.imageUrl ? (
+                                                    <div className="w-20 h-12 bg-black rounded overflow-hidden border border-surface-highlight relative group">
+                                                        <img src={report.imageUrl} className="w-full h-full object-cover" />
+                                                        <a
+                                                            href={report.imageUrl}
+                                                            target="_blank"
+                                                            className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[10px] text-white transition"
+                                                        >
+                                                            Ver Full
+                                                        </a>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-text-secondary italic text-xs">Sin imagen</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className="text-sm font-bold text-text-primary block">{report.reason}</span>
+                                                {report.description && <span className="text-xs text-text-secondary block truncate max-w-[150px]">{report.description}</span>}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-xs">
+                                                    <p className="font-bold text-text-primary">{report.reporter.name}</p>
+                                                    <p className="text-text-secondary">{report.reporter.email}</p>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-xs">
+                                                    {report.vehicle && <p className="text-primary-400 font-bold">Auto: {report.vehicle.title}</p>}
+                                                    {report.targetUser && <p className="text-purple-400">Perfil: {report.targetUser.name}</p>}
+                                                    <p className="text-text-secondary mt-1">{new Date(report.createdAt).toLocaleDateString()}</p>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex gap-2">
+                                                    <AdminReportAction
+                                                        reportId={report.id}
+                                                        action="DISMISS"
+                                                        label="Ignorar"
+                                                        className="bg-surface-highlight text-text-secondary hover:text-text-primary"
+                                                    />
+                                                    <AdminReportAction
+                                                        reportId={report.id}
+                                                        action="RESOLVE"
+                                                        label="Marcar como Resuelto"
+                                                        className="bg-green-900/40 text-green-400 hover:bg-green-900/60"
+                                                    />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 {/* Error Logs */}
@@ -353,5 +454,36 @@ function StatCard({ icon, title, value, subtitle, color, locale }: {
             <div className="text-4xl font-bold mb-1" suppressHydrationWarning>{formatNumber(value, locale)}</div>
             <div className="text-sm opacity-80">{subtitle}</div>
         </div>
+    )
+}
+
+function AdminReportAction({ reportId, action, label, className }: { reportId: string, action: string, label: string, className: string }) {
+    const [loading, setLoading] = useState(false)
+
+    const handleAction = async () => {
+        if (!confirm(`¿Seguro que deseas ${label.toLowerCase()} este reporte?`)) return
+        setLoading(true)
+        try {
+            await fetch(`/api/admin/reports/${reportId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action })
+            })
+            window.location.reload()
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    return (
+        <button
+            onClick={handleAction}
+            disabled={loading}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition disabled:opacity-50 ${className}`}
+        >
+            {loading ? '...' : label}
+        </button>
     )
 }

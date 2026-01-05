@@ -33,7 +33,8 @@ export async function GET(request: NextRequest) {
             totalChats,
             totalAppointments,
             activeAppointments,
-            recentLogs
+            recentLogs,
+            recentReports
         ] = await Promise.all([
             prisma.user.count(),
             prisma.user.count({ where: { isActive: true } }),
@@ -46,6 +47,15 @@ export async function GET(request: NextRequest) {
             prisma.systemLog.findMany({
                 take: 50,
                 orderBy: { createdAt: 'desc' }
+            }),
+            prisma.report.findMany({
+                take: 50,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    reporter: { select: { name: true, email: true } },
+                    targetUser: { select: { name: true, email: true } },
+                    vehicle: { select: { title: true } },
+                }
             })
         ])
 
@@ -68,7 +78,8 @@ export async function GET(request: NextRequest) {
                 total: totalAppointments,
                 active: activeAppointments
             },
-            logs: recentLogs
+            logs: recentLogs,
+            reports: recentReports
         })
     } catch (error) {
         console.error('Error fetching admin stats:', error)

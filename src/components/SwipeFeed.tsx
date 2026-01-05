@@ -5,35 +5,38 @@ import { X, ThumbsUp, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import ContactButton from './ContactButton'
 import ShareButton from './ShareButton'
+import ReportImageButton from './ReportImageButton'
 import { formatPrice } from '@/lib/vehicleTaxonomy'
 
-interface Vehicle {
+interface FeedItem {
     id: string
     title: string
-    brand: string
-    model: string
-    year: number
-    price: number
+    brand?: string
+    model?: string
+    category?: string
+    year?: number
+    price?: number
     currency?: string | null
     city: string
     images?: string[]
+    feedType?: 'VEHICLE' | 'BUSINESS'
     user: {
         name: string
         image: string | null
     }
-    _count: {
+    _count?: {
         favorites: number
     }
 }
 
 interface SwipeCardProps {
-    vehicle: Vehicle
+    item: FeedItem
     onSwipe: (direction: 'left' | 'right') => void
     isTop: boolean
     exitX?: number
 }
 
-function SwipeCard({ vehicle, onSwipe, isTop, exitX }: SwipeCardProps) {
+function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
     const x = useMotionValue(0)
     const rotate = useTransform(x, [-200, 200], [-25, 25])
     const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0])
@@ -42,13 +45,13 @@ function SwipeCard({ vehicle, onSwipe, isTop, exitX }: SwipeCardProps) {
         const threshold = 100
 
         if (info.offset.x > threshold) {
-            // Swipe derecha = Like
             onSwipe('right')
         } else if (info.offset.x < -threshold) {
-            // Swipe izquierda = Dislike
             onSwipe('left')
         }
     }
+
+    const isBusiness = item.feedType === 'BUSINESS'
 
     return (
         <motion.div
@@ -78,10 +81,10 @@ function SwipeCard({ vehicle, onSwipe, isTop, exitX }: SwipeCardProps) {
             <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-full">
                 {/* Imagen */}
                 <div className="relative flex-1 min-h-0 bg-gradient-to-br from-surface-highlight to-surface overflow-hidden">
-                    {vehicle.images && vehicle.images[0] ? (
+                    {item.images && item.images[0] ? (
                         <img
-                            src={vehicle.images[0]}
-                            alt={vehicle.title}
+                            src={item.images[0]}
+                            alt={item.title}
                             className="w-full h-full object-cover"
                             draggable={false}
                         />
@@ -93,7 +96,19 @@ function SwipeCard({ vehicle, onSwipe, isTop, exitX }: SwipeCardProps) {
                         </div>
                     )}
 
+                    {isBusiness && (
+                        <div className="absolute top-4 left-4 z-30 px-3 py-1 bg-primary-600 text-white text-[10px] font-bold rounded-full shadow-lg flex items-center gap-1 uppercase tracking-widest">
+                            <MapPin size={10} />
+                            Negocio MapStore
+                        </div>
+                    )}
 
+                    <ReportImageButton
+                        imageUrl={item.images?.[0] || ''}
+                        vehicleId={!isBusiness ? item.id : undefined}
+                        businessId={isBusiness ? item.id : undefined}
+                        className="absolute top-4 right-4 z-30"
+                    />
 
                     {/* Indicadores de swipe */}
                     <motion.div
@@ -103,7 +118,7 @@ function SwipeCard({ vehicle, onSwipe, isTop, exitX }: SwipeCardProps) {
                         }}
                     >
                         <div className="px-6 py-3 bg-green-500 text-white rounded-2xl font-bold text-2xl rotate-12 border-4 border-white shadow-xl">
-                            ME GUSTA
+                            {isBusiness ? 'INTERESADO' : 'ME GUSTA'}
                         </div>
                     </motion.div>
 
@@ -114,7 +129,7 @@ function SwipeCard({ vehicle, onSwipe, isTop, exitX }: SwipeCardProps) {
                         }}
                     >
                         <div className="px-6 py-3 bg-red-500 text-white rounded-2xl font-bold text-2xl -rotate-12 border-4 border-white shadow-xl">
-                            NOPE
+                            {isBusiness ? 'PASAR' : 'NOPE'}
                         </div>
                     </motion.div>
                 </div>
@@ -123,33 +138,41 @@ function SwipeCard({ vehicle, onSwipe, isTop, exitX }: SwipeCardProps) {
                 <div className="p-6 space-y-4">
                     <div className="flex justify-between items-start">
                         <div className="flex-1">
-                            <Link href={`/vehicle/${vehicle.id}`} onPointerDown={(e) => e.stopPropagation()}>
+                            <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} onPointerDown={(e) => e.stopPropagation()}>
                                 <h2 className="text-2xl font-bold text-text-primary mb-2 hover:text-primary-400 transition cursor-pointer leading-tight">
-                                    {vehicle.title}
+                                    {item.title}
                                 </h2>
                             </Link>
-                            <ShareButton
-                                title={vehicle.title}
-                                text={`¡Mira este ${vehicle.title} en CarMatch!`}
-                                url={`https://carmatch.app/vehicle/${vehicle.id}`}
-                                variant="minimal"
-                                className="z-20 opacity-70 hover:opacity-100 transition"
-                            />
-                            <div className="flex items-center gap-1 text-xs text-text-secondary mt-1 opacity-60">
-                                <MapPin size={12} />
-                                <span>{vehicle.city}</span>
+                            <div className="flex items-center gap-2">
+                                <ShareButton
+                                    title={item.title}
+                                    text={`¡Mira este ${item.title} en CarMatch!`}
+                                    url={isBusiness ? `https://carmatch.app/map-store?id=${item.id}` : `https://carmatch.app/vehicle/${item.id}`}
+                                    variant="minimal"
+                                    className="z-20 opacity-70 hover:opacity-100 transition"
+                                />
+                                <div className="flex items-center gap-1 text-xs text-text-secondary opacity-60">
+                                    <MapPin size={12} />
+                                    <span>{item.city}</span>
+                                </div>
                             </div>
                         </div>
                         <div className="text-right ml-4">
-                            <div className="text-2xl font-bold text-primary-700">
-                                {formatPrice(vehicle.price, vehicle.currency || 'MXN')}
-                            </div>
+                            {!isBusiness ? (
+                                <div className="text-2xl font-bold text-primary-700">
+                                    {formatPrice(item.price || 0, item.currency || 'MXN')}
+                                </div>
+                            ) : (
+                                <div className="text-sm font-bold text-primary-400 uppercase tracking-tighter">
+                                    {item.category || 'Negocio'}
+                                </div>
+                            )}
                             <Link
-                                href={`/vehicle/${vehicle.id}`}
+                                href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
                                 onPointerDown={(e) => e.stopPropagation()}
                                 className="text-sm text-primary-400 hover:underline font-medium"
                             >
-                                Ver más
+                                {isBusiness ? 'Ver en mapa' : 'Ver más'}
                             </Link>
                         </div>
                     </div>
@@ -160,42 +183,39 @@ function SwipeCard({ vehicle, onSwipe, isTop, exitX }: SwipeCardProps) {
 }
 
 interface SwipeFeedProps {
-    vehicles: Vehicle[]
-    onLike: (vehicleId: string) => void
-    onDislike: (vehicleId: string) => void
+    items: FeedItem[]
+    onLike: (id: string) => void
+    onDislike: (id: string) => void
     onNeedMore: () => void
 }
 
-export default function SwipeFeed({ vehicles, onLike, onDislike, onNeedMore }: SwipeFeedProps) {
+export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: SwipeFeedProps) {
     const [isSwiping, setIsSwiping] = useState(false)
     const [exitX, setExitX] = useState<number | undefined>(undefined)
 
     const handleSwipe = (swipeDirection: 'left' | 'right') => {
-        if (isSwiping || vehicles.length === 0) return
+        if (isSwiping || items.length === 0) return
 
-        const currentVehicle = vehicles[0]
+        const currentItem = items[0]
         setIsSwiping(true)
         setExitX(swipeDirection === 'left' ? -1000 : 1000)
 
-        // Wait for exit animation to halfway complete before unlocking
         setTimeout(() => {
-            // Trigger external callbacks AFTER animation to prevent list jump/flash
             if (swipeDirection === 'right') {
-                onLike(currentVehicle.id)
+                onLike(currentItem.id)
             } else {
-                onDislike(currentVehicle.id)
+                onDislike(currentItem.id)
             }
 
             setExitX(undefined)
             setIsSwiping(false)
-        }, 400) // Reduced slightly to feel snappier but safe
+        }, 400)
     }
 
-    const currentVehicle = vehicles[0]
-    const nextVehicle = vehicles[1]
+    const currentItem = items[0]
+    const nextItem = items[1]
 
-    // Si ya no hay más vehículos
-    if (vehicles.length === 0 && !isSwiping) {
+    if (items.length === 0 && !isSwiping) {
         return (
             <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
                 <div className="w-24 h-24 bg-surface-highlight rounded-full flex items-center justify-center mb-6">
@@ -204,10 +224,10 @@ export default function SwipeFeed({ vehicles, onLike, onDislike, onNeedMore }: S
                     </svg>
                 </div>
                 <h2 className="text-2xl font-bold text-text-primary mb-3">
-                    ¡Has visto todos los carros cercanos!
+                    ¡Has visto todo en esta zona!
                 </h2>
                 <p className="text-text-secondary mb-8 max-w-md">
-                    Expande tu búsqueda para descubrir más vehículos en tu zona
+                    Expande tu búsqueda para descubrir más vehículos y negocios cercanos
                 </p>
                 <button
                     onClick={onNeedMore}
@@ -224,14 +244,12 @@ export default function SwipeFeed({ vehicles, onLike, onDislike, onNeedMore }: S
 
     return (
         <div className="relative w-full max-w-[420px] mx-auto flex flex-col h-full min-h-[500px]">
-            {/* Container de cards */}
             <div className="relative flex-1 mb-4 h-[500px] md:h-[600px] flex justify-center">
                 <AnimatePresence mode="popLayout">
-                    {/* Current card (top) */}
-                    {currentVehicle && (
+                    {currentItem && (
                         <SwipeCard
-                            key={currentVehicle.id}
-                            vehicle={currentVehicle}
+                            key={currentItem.id}
+                            item={currentItem}
                             onSwipe={handleSwipe}
                             isTop={true}
                             exitX={exitX}
@@ -239,12 +257,11 @@ export default function SwipeFeed({ vehicles, onLike, onDislike, onNeedMore }: S
                     )}
                 </AnimatePresence>
 
-                {/* Next card (background - consistently visible underneath) */}
-                {nextVehicle && (
+                {nextItem && (
                     <div className="absolute w-full h-full max-w-[420px] pointer-events-none -z-10">
                         <SwipeCard
-                            key={nextVehicle.id}
-                            vehicle={nextVehicle}
+                            key={nextItem.id}
+                            item={nextItem}
                             onSwipe={() => { }}
                             isTop={false}
                         />
@@ -252,7 +269,6 @@ export default function SwipeFeed({ vehicles, onLike, onDislike, onNeedMore }: S
                 )}
             </div>
 
-            {/* Botones de acción */}
             <div className="flex justify-center gap-6 mt-8">
                 <button
                     onClick={() => handleSwipe('left')}

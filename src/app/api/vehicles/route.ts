@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
         const user = await prisma.user.findUnique({
             where: { email: session.user.email! },
-            select: { id: true, fraudStrikes: true }
+            select: { id: true, fraudStrikes: true, isAdmin: true }
         })
 
         if (!user) {
@@ -98,7 +98,9 @@ export async function POST(request: NextRequest) {
 
         const isPermanentlyRestricted = (user.fraudStrikes || 0) >= 10
 
-        if (!isFirstVehicle) {
+        const isAdmin = user.isAdmin || session.user.email === process.env.ADMIN_EMAIL
+
+        if (!isFirstVehicle && !isAdmin) {
             // Buscar duplicados recientes (mismo carro físico)
             const recentDuplicates = await prisma.vehicle.findFirst({
                 where: {
@@ -130,7 +132,12 @@ export async function POST(request: NextRequest) {
         let expiresAt = new Date()
         let isFreePublication = true
 
-        if (isPermanentlyRestricted) {
+        if (isAdmin) {
+            // ⭐ ADMIN PERKS: 10 años gratis
+            expiresAt.setFullYear(now.getFullYear() + 10)
+            isFreePublication = true
+        }
+        else if (isPermanentlyRestricted) {
             // 🚫 VETADO: Usuario con historial de abuso (>10 strikes).
             // Siempre paga desde el día 1, sin excepciones.
             expiresAt = new Date()

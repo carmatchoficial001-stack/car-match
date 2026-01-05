@@ -76,7 +76,9 @@ export async function POST(request: NextRequest) {
         // Primer negocio: 3 MESES GRATIS
         // Negocios 2+: REQUIEREN 1 CRÉDITO desde el inicio (NO hay período gratuito)
 
-        if (!isFirstBusiness) {
+        const isAdmin = userExists.isAdmin || session.user.email === process.env.ADMIN_EMAIL
+
+        if (!isFirstBusiness && !isAdmin) {
             // Verificar si tiene créditos
             const user = await prisma.user.findUnique({
                 where: { id: session.user.id },
@@ -94,7 +96,7 @@ export async function POST(request: NextRequest) {
 
         // 🛡️ VALIDAR HUELLA DIGITAL para detectar duplicados
         const { fingerprint } = body
-        if (!fingerprint?.deviceHash) {
+        if (!fingerprint?.deviceHash && !isAdmin) {
             return NextResponse.json(
                 { error: 'Huella digital requerida' },
                 { status: 400 }
@@ -104,26 +106,33 @@ export async function POST(request: NextRequest) {
         // Importar validateFingerprint
         const { validatePublicationFingerprint, savePublicationFingerprint } = await import('@/lib/validateFingerprint')
 
-        const fraudCheck = await validatePublicationFingerprint({
-            userId: session.user.id,
-            publicationType: 'BUSINESS',
-            latitude,
-            longitude,
-            deviceHash: fingerprint.deviceHash,
-            ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
-        })
+        if (!isAdmin) {
+            const fraudCheck = await validatePublicationFingerprint({
+                userId: session.user.id,
+                publicationType: 'BUSINESS',
+                latitude,
+                longitude,
+                deviceHash: fingerprint.deviceHash,
+                ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+            })
 
-        if (fraudCheck.isFraud) {
-            return NextResponse.json(
-                { error: `No puedes publicar: ${fraudCheck.reason}` },
-                { status: 400 }
-            )
+            if (fraudCheck.isFraud) {
+                return NextResponse.json(
+                    { error: `No puedes publicar: ${fraudCheck.reason}` },
+                    { status: 400 }
+                )
+            }
         }
 
         let expiresAt: Date | null = null
         let isFreePublication = false
 
-        if (isFirstBusiness) {
+        if (isAdmin) {
+            // ⭐ ADMIN PERKS: 10 años gratis
+            expiresAt = new Date()
+            expiresAt.setFullYear(expiresAt.getFullYear() + 10)
+            isFreePublication = true
+        } else if (isFirstBusiness) {
             // PRIMER NEGOCIO: 3 MESES GRATIS
             expiresAt = new Date()
             expiresAt.setMonth(expiresAt.getMonth() + 3)
