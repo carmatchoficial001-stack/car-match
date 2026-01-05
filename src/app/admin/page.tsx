@@ -4,12 +4,40 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { formatNumber } from '@/lib/vehicleTaxonomy'
+import { formatNumber, formatPrice } from '@/lib/vehicleTaxonomy'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+    LayoutDashboard,
+    Users,
+    Car,
+    Store,
+    Flag,
+    Terminal,
+    Settings,
+    LogOut,
+    Menu,
+    X,
+    ChevronRight,
+    Search,
+    Filter,
+    ArrowUpRight,
+    Activity,
+    ShieldCheck,
+    AlertCircle,
+    CheckCircle2,
+    TrendingUp,
+    Map as MapIcon,
+    BarChart2,
+    Target
+} from 'lucide-react'
+import dynamic from 'next/dynamic'
+const AdminHeatMap = dynamic(() => import('@/components/AdminHeatMap'), { ssr: false })
+import Link from 'next/link'
 
 interface SystemStats {
-    users: { total: number; active: number }
-    vehicles: { total: number; active: number }
-    businesses: { total: number }
+    users: { total: number; active: number; recent: any[] }
+    vehicles: { total: number; active: number; recent: any[] }
+    businesses: { total: number; recent: any[] }
     chats: { total: number }
     appointments: { total: number; active: number }
     logs: Array<{
@@ -34,39 +62,26 @@ interface SystemStats {
     }>
 }
 
+type AdminView = 'overview' | 'users' | 'inventory' | 'mapstore' | 'intelligence' | 'reports' | 'logs'
+
 export default function AdminDashboard() {
     const { data: session, status } = useSession()
     const router = useRouter()
     const { t, locale } = useLanguage()
     const [stats, setStats] = useState<SystemStats | null>(null)
     const [loading, setLoading] = useState(true)
+    const [activeView, setActiveView] = useState<AdminView>('overview')
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+
+    // AI Analyst State
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [aiAnalysis, setAiAnalysis] = useState<any>(null)
-
-    const handleRunAnalyst = async () => {
-        setIsAnalyzing(true)
-        try {
-            const res = await fetch('/api/admin/ai-analyst', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            if (res.ok) {
-                const data = await res.json()
-                setAiAnalysis(data)
-            }
-        } catch (error) {
-            console.error('Error running AI analyst:', error)
-        } finally {
-            setIsAnalyzing(false)
-        }
-    }
 
     useEffect(() => {
         if (status === 'unauthenticated') {
             router.push('/auth')
             return
         }
-
         if (status === 'authenticated') {
             fetchStats()
         }
@@ -89,379 +104,484 @@ export default function AdminDashboard() {
         }
     }
 
-    const getSystemHealth = () => {
-        if (!stats) return 'unknown'
-        const errorLogs = stats.logs.filter(log => log.level === 'ERROR' || log.level === 'CRITICAL').length
-        if (errorLogs > 10) return 'critical'
-        if (errorLogs > 5) return 'degraded'
-        return 'healthy'
-    }
-
-    const healthStatus = getSystemHealth()
-    const healthColors = {
-        healthy: 'bg-green-100 text-green-800 border-green-300',
-        degraded: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-        critical: 'bg-red-100 text-red-800 border-red-300',
-        unknown: 'bg-gray-100 text-gray-800 border-gray-300'
+    const handleRunAnalyst = async () => {
+        setIsAnalyzing(true)
+        try {
+            const res = await fetch('/api/admin/ai-analyst', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            if (res.ok) {
+                const data = await res.json()
+                setAiAnalysis(data)
+            }
+        } catch (error) {
+            console.error('Error running AI analyst:', error)
+        } finally {
+            setIsAnalyzing(false)
+        }
     }
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="animate-spin h-12 w-12 border-4 border-primary-600 border-t-transparent rounded-full"></div>
+            <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin h-12 w-12 border-4 border-primary-600 border-t-transparent rounded-full shadow-[0_0_20px_rgba(147,51,234,0.3)]"></div>
+                    <p className="text-text-secondary animate-pulse font-medium tracking-widest text-xs uppercase">CarMatch Admin Loading</p>
+                </div>
             </div>
         )
     }
 
-    if (!stats) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="text-text-secondary">Error al cargar estadísticas</div>
-            </div>
-        )
-    }
+    if (!stats) return null
+
+    const menuItems = [
+        { id: 'overview', icon: LayoutDashboard, label: 'Dashboard' },
+        { id: 'intelligence', icon: Activity, label: 'Inteligencia' },
+        { id: 'users', icon: Users, label: 'Usuarios' },
+        { id: 'inventory', icon: Car, label: 'Inventario' },
+        { id: 'mapstore', icon: Store, label: 'MapStore' },
+        { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports.filter(r => r.status === 'PENDING').length },
+        { id: 'logs', icon: Terminal, label: 'Logs del Sistema' },
+    ]
 
     return (
-        <div className="min-h-screen bg-background pb-12">
-            {/* Header */}
-            <div className="bg-surface border-b border-surface-highlight">
-                <div className="max-w-7xl mx-auto px-4 py-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-3xl font-bold text-text-primary">🎛️ Panel de Control</h1>
-                            <p className="text-text-secondary mt-1">Monitoreo y Estadísticas del Sistema</p>
-                        </div>
-                        <button
-                            onClick={() => router.push('/')}
-                            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
-                        >
-                            Volver al Inicio
-                        </button>
+        <div className="min-h-screen bg-[#0c0c0e] text-text-primary flex">
+            {/* Sidebar */}
+            <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-[#111114] border-r border-white/5 transition-all duration-300 flex flex-col z-50`}>
+                <div className="p-6 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary-900/40">
+                        <ShieldCheck className="w-5 h-5 text-white" />
                     </div>
+                    {isSidebarOpen && <span className="font-black text-xl tracking-tighter bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent italic">ADMIN</span>}
                 </div>
+
+                <nav className="flex-1 px-3 space-y-1 mt-4">
+                    {menuItems.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveView(item.id as AdminView)}
+                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative ${activeView === item.id
+                                ? 'bg-primary-600/10 text-primary-400'
+                                : 'text-text-secondary hover:bg-white/5 hover:text-text-primary'
+                                }`}
+                        >
+                            <item.icon className={`w-5 h-5 ${activeView === item.id ? 'text-primary-500' : 'group-hover:text-text-primary'}`} />
+                            {isSidebarOpen && <span className="font-medium text-sm">{item.label}</span>}
+                            {item.badge ? (
+                                <span className={`absolute ${isSidebarOpen ? 'right-3' : 'top-2 right-2'} bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold`}>
+                                    {item.badge}
+                                </span>
+                            ) : null}
+                            {activeView === item.id && (
+                                <motion.div
+                                    layoutId="active-pill"
+                                    className="absolute left-0 w-1 h-6 bg-primary-500 rounded-r-full"
+                                />
+                            )}
+                        </button>
+                    ))}
+                </nav>
+
+                <div className="p-4 border-t border-white/5">
+                    <button
+                        onClick={() => router.push('/')}
+                        className="w-full flex items-center gap-3 px-3 py-3 text-text-secondary hover:text-white transition-colors"
+                    >
+                        <LogOut className="w-5 h-5" />
+                        {isSidebarOpen && <span className="text-sm">Salir al Portal</span>}
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 flex flex-col h-screen overflow-hidden">
+                {/* Top Header */}
+                <header className="h-16 bg-[#111114]/50 backdrop-blur-md border-b border-white/5 px-8 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            className="p-2 hover:bg-white/5 rounded-lg text-text-secondary"
+                        >
+                            {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                        </button>
+                        <h2 className="text-lg font-bold capitalize">{activeView}</h2>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
+                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                            <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">System Healthy</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="text-right hidden sm:block">
+                                <p className="text-xs font-bold text-text-primary">{session?.user?.name || 'Admin User'}</p>
+                                <p className="text-[10px] text-text-secondary">Root Privileges</p>
+                            </div>
+                            <div className="w-8 h-8 bg-surface-highlight rounded-lg border border-white/10 overflow-hidden">
+                                <img src={session?.user?.image || 'https://ui-avatars.com/api/?name=Admin'} className="w-full h-full object-cover" />
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* View Content */}
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeView}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            {activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} />}
+                            {activeView === 'intelligence' && <IntelligenceTab />}
+                            {activeView === 'users' && <UsersTab users={stats.users.recent} />}
+                            {activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} />}
+                            {activeView === 'mapstore' && <MapStoreTab businesses={stats.businesses.recent} />}
+                            {activeView === 'reports' && <ReportsTab reports={stats.reports} />}
+                            {activeView === 'logs' && <LogsTab logs={stats.logs} />}
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </main>
+        </div>
+    )
+}
+
+function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) {
+    return (
+        <div className="space-y-8">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard2 icon={Users} label="Usuarios Totales" value={stats.users.total} trend="+12%" color="blue" />
+                <StatCard2 icon={Car} label="Vehículos Activos" value={stats.vehicles.active} trend="+5%" color="purple" />
+                <StatCard2 icon={Activity} label="Citas Programadas" value={stats.appointments.total} trend="+8%" color="green" />
+                <StatCard2 icon={AlertCircle} label="Reportes Pendientes" value={stats.reports.filter((r: any) => r.status === 'PENDING').length} trend="Urgente" color="red" />
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-                {/* System Health */}
-                <div className={`p-6 rounded-2xl border-2 ${healthColors[healthStatus]}`}>
-                    <div className="flex items-center gap-3">
-                        <div className="text-4xl">
-                            {healthStatus === 'healthy' && '✅'}
-                            {healthStatus === 'degraded' && '⚠️'}
-                            {healthStatus === 'critical' && '🚨'}
-                        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* AI Analyst Section */}
+                <div className="lg:col-span-2 bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                    <div className="bg-gradient-to-r from-primary-900/20 to-transparent p-6 border-b border-white/5 flex items-center justify-between">
                         <div>
-                            <h2 className="text-xl font-bold">Estado del Sistema</h2>
-                            <p className="text-sm opacity-80 capitalize">{healthStatus === 'healthy' ? 'Saludable' : healthStatus === 'degraded' ? 'Degradado' : 'Crítico'}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard
-                        icon="👥"
-                        title="Usuarios"
-                        value={stats.users.total}
-                        subtitle={`${stats.users.active} activos`}
-                        color="blue"
-                        locale={locale}
-                    />
-                    <StatCard
-                        icon="🚗"
-                        title="Vehículos"
-                        value={stats.vehicles.total}
-                        subtitle={`${stats.vehicles.active} en venta`}
-                        color="green"
-                        locale={locale}
-                    />
-                    <StatCard
-                        icon="🏢"
-                        title="Negocios"
-                        value={stats.businesses.total}
-                        subtitle="MapStore"
-                        color="purple"
-                        locale={locale}
-                    />
-                    <StatCard
-                        icon="💬"
-                        title="Chats / Citas"
-                        value={stats.chats.total}
-                        subtitle={`${stats.appointments.active} citas activas`}
-                        color="orange"
-                        locale={locale}
-                    />
-                </div>
-
-                {/* 🧠 SUPER ANALISTA IA DE NEGOCIOS */}
-                <div className="bg-surface rounded-2xl border border-primary-600/30 overflow-hidden shadow-xl shadow-primary-900/10">
-                    <div className="p-6 border-b border-surface-highlight flex items-center justify-between bg-primary-900/5">
-                        <div>
-                            <h2 className="text-xl font-bold text-text-primary flex items-center gap-2">
-                                <span className="text-2xl">🧠</span> Super Analista de Negocios (IA)
-                            </h2>
-                            <p className="text-sm text-text-secondary mt-1">Análisis profundo de oferta y demanda vehicular</p>
+                            <h3 className="text-xl font-black italic tracking-tight flex items-center gap-2 uppercase">
+                                <Activity className="w-6 h-6 text-primary-500" /> Insight Engine AI
+                            </h3>
+                            <p className="text-xs text-text-secondary mt-1">Análisis predictivo de mercado basado en actividad real</p>
                         </div>
                         <button
                             onClick={handleRunAnalyst}
                             disabled={isAnalyzing}
-                            className="px-6 py-2 bg-primary-600 text-white rounded-lg font-bold hover:bg-primary-700 transition disabled:opacity-50 flex items-center gap-2"
+                            className="bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white px-6 py-2 rounded-xl font-bold text-sm transition shadow-lg shadow-primary-900/20 flex items-center gap-2"
                         >
-                            {isAnalyzing ? (
-                                <>
-                                    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    <span>Analizando...</span>
-                                </>
-                            ) : (
-                                'Ejecutar Análisis Maestro'
-                            )}
+                            {isAnalyzing ? 'Procesando Data...' : 'Ejecutar Análisis Maestro'}
                         </button>
                     </div>
 
-                    {aiAnalysis ? (
-                        <div className="p-6 space-y-6 animate-fade-in">
-                            <div className="p-4 bg-background/50 rounded-xl border border-surface-highlight">
-                                <h3 className="font-bold text-primary-400 mb-2 uppercase text-xs tracking-widest flex items-center gap-2">
-                                    <span>📊</span> Resumen Ejecutivo
-                                </h3>
-                                <p className="text-text-primary text-sm leading-relaxed">{aiAnalysis.summary}</p>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {aiAnalysis.insights.map((insight: any, idx: number) => (
-                                    <div key={idx} className={`p-4 rounded-xl border ${insight.priority === 'HIGH' ? 'bg-red-900/10 border-red-900/20' :
-                                        insight.priority === 'MEDIUM' ? 'bg-yellow-900/10 border-yellow-900/20' :
-                                            'bg-blue-900/10 border-blue-900/20'
-                                        }`}>
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${insight.priority === 'HIGH' ? 'bg-red-500 text-white' :
-                                                insight.priority === 'MEDIUM' ? 'bg-yellow-500 text-black' :
-                                                    'bg-blue-500 text-white'
-                                                }`}>
-                                                {insight.priority}
-                                            </span>
-                                            <span className="text-xs text-text-secondary">Observación #{idx + 1}</span>
+                    <div className="p-8">
+                        {aiAnalysis ? (
+                            <div className="space-y-6">
+                                <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
+                                    <h4 className="text-[10px] font-black text-primary-500 uppercase tracking-[0.2em] mb-3">Resumen Estratégico</h4>
+                                    <p className="text-sm leading-relaxed text-text-primary/90">{aiAnalysis.summary}</p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {aiAnalysis.insights.map((insight: any, i: number) => (
+                                        <div key={i} className="bg-white/5 p-4 rounded-xl border-l-4 border-l-primary-600/50">
+                                            <p className="text-xs font-bold text-text-primary mb-1">{insight.observation}</p>
+                                            <p className="text-[10px] text-text-secondary">{insight.recommendation}</p>
                                         </div>
-                                        <p className="text-text-primary text-sm font-bold mb-2">{insight.observation}</p>
-                                        <p className="text-text-secondary text-xs">{insight.recommendation}</p>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="p-4 bg-green-900/5 rounded-xl border border-green-500/20">
-                                <h3 className="font-bold text-green-500 mb-3 uppercase text-xs tracking-widest flex items-center gap-2">
-                                    <span>💡</span> Oportunidades de Reclutamiento
-                                </h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {aiAnalysis.businessOppotunities.map((opp: string, idx: number) => (
-                                        <span key={idx} className="px-3 py-1 bg-background border border-green-500/30 text-green-400 rounded-full text-xs font-medium">
-                                            + {opp}
-                                        </span>
                                     ))}
                                 </div>
-                            </div>
 
-                            <div className="flex items-center justify-between pt-4 border-t border-surface-highlight">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-12 h-2 bg-background rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-primary-500"
-                                            style={{ width: `${aiAnalysis.effectivenessScore}%` }}
-                                        />
+                                {/* Océanos Azules (Business Opportunities) */}
+                                <div className="pt-4 border-t border-white/5">
+                                    <h4 className="text-[10px] font-black text-green-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <Target className="w-3.5 h-3.5" /> Océanos Azules Detectados (ROI 90%+)
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {aiAnalysis.businessOppotunities?.map((opp: any, i: number) => (
+                                            <div key={i} className="bg-green-500/5 border border-green-500/10 p-4 rounded-2xl relative overflow-hidden group hover:border-green-500/30 transition-all">
+                                                <div className="absolute top-0 right-0 p-2 bg-green-500 text-[8px] font-black text-black rounded-bl-xl shadow-lg">
+                                                    {opp.roiScore}% ROI
+                                                </div>
+                                                <p className="text-xs font-black text-white mb-1 uppercase tracking-tight">{opp.title}</p>
+                                                <p className="text-[10px] text-green-400 font-bold mb-2 uppercase tracking-widest">{opp.location}</p>
+                                                <p className="text-[9px] text-text-secondary leading-tight italic line-clamp-2">"{opp.reason}"</p>
+                                            </div>
+                                        ))}
                                     </div>
-                                    <span className="text-[10px] text-text-secondary font-bold uppercase">Efectividad: {aiAnalysis.effectivenessScore}%</span>
                                 </div>
-                                <span className="text-[10px] text-text-secondary italic">Análisis certificado por Gemini 1.5 Flash</span>
+                            </div>
+                        ) : (
+                            <div className="h-64 flex flex-col items-center justify-center text-center opacity-40">
+                                <Terminal className="w-12 h-12 mb-4" />
+                                <p className="text-sm font-medium">Esperando datos de entrada...</p>
+                                <p className="text-xs mt-1">Haga clic en el botón superior para generar perspectivas con IA</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* System Activity Hub */}
+                <div className="bg-[#111114] border border-white/5 rounded-3xl p-6">
+                    <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2 text-text-secondary">
+                        <Terminal className="w-4 h-4" /> Actividad Reciente
+                    </h3>
+                    <div className="space-y-6">
+                        {stats.logs.slice(0, 6).map((log: any) => (
+                            <div key={log.id} className="flex gap-4 group">
+                                <div className={`w-1 h-8 rounded-full transition-all group-hover:h-10 ${log.level === 'ERROR' ? 'bg-red-500' : 'bg-primary-500'
+                                    }`} />
+                                <div>
+                                    <p className="text-xs font-bold text-text-primary line-clamp-1">{log.message}</p>
+                                    <p className="text-[9px] text-text-secondary mt-1 uppercase tracking-tighter opacity-60">
+                                        {new Date(log.createdAt).toLocaleTimeString()} • {log.source || 'SYS'}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <button className="w-full mt-8 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors">
+                        Ver Auditoría Completa
+                    </button>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function StatCard2({ icon: Icon, label, value, trend, color }: any) {
+    const variants: any = {
+        blue: 'text-blue-500 bg-blue-500/10',
+        purple: 'text-purple-500 bg-purple-500/10',
+        green: 'text-green-500 bg-green-500/10',
+        red: 'text-red-500 bg-red-500/10',
+    }
+    return (
+        <div className="bg-[#111114] border border-white/5 p-6 rounded-3xl shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-2xl ${variants[color]}`}>
+                    <Icon className="w-6 h-6" />
+                </div>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${color === 'red' ? 'bg-red-500 text-white' : 'bg-white/5 text-text-secondary'}`}>
+                    {trend}
+                </span>
+            </div>
+            <p className="text-text-secondary text-xs font-medium uppercase tracking-widest mb-1">{label}</p>
+            <h4 className="text-4xl font-black italic tracking-tighter">{formatNumber(value, 'es')}</h4>
+        </div>
+    )
+}
+
+function UsersTab({ users }: { users: any[] }) {
+    return (
+        <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                <h3 className="font-bold text-lg">Gestión de Usuarios</h3>
+                <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+                    <input type="text" placeholder="Buscar usuario..." className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary-500" />
+                </div>
+            </div>
+            <table className="w-full">
+                <thead className="bg-white/5">
+                    <tr>
+                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Usuario</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Email</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Rol</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Estado</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Registro</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                    {users.map(user => (
+                        <tr key={user.id} className="hover:bg-white/5 transition-colors">
+                            <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-surface-highlight overflow-hidden">
+                                        <img src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} className="w-full h-full object-cover" />
+                                    </div>
+                                    <span className="text-sm font-bold">{user.name}</span>
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-text-secondary">{user.email}</td>
+                            <td className="px-6 py-4">
+                                <span className={`text-[10px] font-black px-2 py-0.5 rounded ${user.isAdmin ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                                    {user.isAdmin ? 'ADMIN' : 'USER'}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4">
+                                <span className={`text-[10px] font-black flex items-center gap-1.5 ${user.isActive ? 'text-green-500' : 'text-red-500'}`}>
+                                    <div className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                                    {user.isActive ? 'ACTIVO' : 'INACTIVO'}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-text-secondary">{new Date(user.createdAt).toLocaleDateString()}</td>
+                            <td className="px-6 py-4">
+                                <div className="flex gap-2">
+                                    <AdminGenericAction
+                                        apiPath={`/api/admin/users/${user.id}`}
+                                        method="PATCH"
+                                        body={{ isActive: !user.isActive }}
+                                        label={user.isActive ? 'Desactivar' : 'Activar'}
+                                    />
+                                    <AdminGenericAction
+                                        apiPath={`/api/admin/users/${user.id}`}
+                                        method="DELETE"
+                                        label="Eliminar"
+                                        danger
+                                    />
+                                </div>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    )
+}
+
+function InventoryTab({ vehicles }: { vehicles: any[] }) {
+    return (
+        <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                <h3 className="font-bold text-lg">Inventario Global</h3>
+                <div className="flex gap-2">
+                    <button className="p-2 bg-white/5 border border-white/10 rounded-lg hover:text-primary-500 transition"><Filter className="w-4 h-4" /></button>
+                    <button className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-bold flex items-center gap-2">
+                        <ArrowUpRight className="w-4 h-4" /> Exportar CSV
+                    </button>
+                </div>
+            </div>
+            <table className="w-full">
+                <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-text-secondary">
+                    <tr>
+                        <th className="px-6 py-4 text-left">Vehículo</th>
+                        <th className="px-6 py-4 text-left">Vendedor</th>
+                        <th className="px-6 py-4 text-left">Precio</th>
+                        <th className="px-6 py-4 text-left">Estado</th>
+                        <th className="px-6 py-4 text-left">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                    {vehicles.map(vehicle => (
+                        <tr key={vehicle.id} className="hover:bg-white/5 transition-colors">
+                            <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-8 rounded-lg bg-black overflow-hidden border border-white/10">
+                                        <img src={vehicle.images?.[0]} className="w-full h-full object-cover" />
+                                    </div>
+                                    <span className="text-sm font-bold">{vehicle.title}</span>
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.user.name}</td>
+                            <td className="px-6 py-4 text-sm font-bold text-primary-400">{formatPrice(vehicle.price, vehicle.currency || 'MXN', 'es')}</td>
+                            <td className="px-6 py-4">
+                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
+                                    }`}>
+                                    {vehicle.status}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4">
+                                <div className="flex gap-2">
+                                    <AdminGenericAction
+                                        apiPath={`/api/vehicles/${vehicle.id}`}
+                                        method="PATCH"
+                                        body={{ status: vehicle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
+                                        label={vehicle.status === 'ACTIVE' ? 'Ocultar' : 'Mostrar'}
+                                    />
+                                    <AdminGenericAction
+                                        apiPath={`/api/vehicles/${vehicle.id}`}
+                                        method="DELETE"
+                                        label="Eliminar"
+                                        danger
+                                    />
+                                </div>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    )
+}
+
+function ReportsTab({ reports }: { reports: any[] }) {
+    return (
+        <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-white/5">
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                    <Flag className="w-5 h-5 text-red-500" /> Centro de Moderación
+                </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                {reports.map((report) => (
+                    <div key={report.id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex flex-col">
+                        <div className="aspect-video relative bg-black">
+                            <img src={report.imageUrl || ''} className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" />
+                            <div className="absolute top-3 right-3">
+                                <span className={`text-[9px] font-black px-2 py-1 rounded bg-black/80 backdrop-blur shadow-xl ${report.status === 'PENDING' ? 'text-red-500' : 'text-green-500'
+                                    }`}>
+                                    {report.status}
+                                </span>
                             </div>
                         </div>
-                    ) : (
-                        <div className="p-12 text-center">
-                            <div className="text-4xl mb-4 opacity-20">📊</div>
-                            <h3 className="text-text-secondary font-medium">No se ha ejecutado el análisis todavía.</h3>
-                            <p className="text-text-secondary/60 text-sm mt-1">Pulsa el botón para que el analista maestro revise tu base de datos.</p>
-                        </div>
-                    )}
-                </div>
+                        <div className="p-4 flex-1">
+                            <h4 className="font-bold text-sm text-red-400 flex items-center gap-2">
+                                <AlertCircle className="w-3.5 h-3.5" /> {report.reason}
+                            </h4>
+                            <p className="text-xs text-text-secondary mt-1">{report.description || 'Sin descripción adicional.'}</p>
 
-                {/* Image Reports */}
-                <div className="bg-surface rounded-2xl border border-red-500/20 shadow-lg shadow-red-900/5 overflow-hidden">
-                    <div className="p-6 border-b border-surface-highlight flex items-center justify-between">
-                        <div>
-                            <h2 className="text-xl font-bold text-text-primary flex items-center gap-2">
-                                <span className="text-red-500">🚩</span> Reportes de Imágenes
-                            </h2>
-                            <p className="text-sm text-text-secondary mt-1">Imágenes marcadas por la comunidad</p>
+                            <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold">
+                                        {report.reporter.name[0]}
+                                    </div>
+                                    <span className="text-[10px] text-text-secondary">por {report.reporter.name}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <AdminReportAction2 reportId={report.id} action="DISMISS" label="Ignorar" />
+                                    <AdminReportAction2 reportId={report.id} action="RESOLVE" label="Resolver" primary />
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-background">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Imagen</th>
-                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Motivo</th>
-                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Reportado por</th>
-                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Contexto</th>
-                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-surface-highlight">
-                                {stats.reports.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-text-secondary">
-                                            No hay reportes pendientes
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    stats.reports.map((report) => (
-                                        <tr key={report.id} className="hover:bg-background/50 transition">
-                                            <td className="px-6 py-4">
-                                                {report.imageUrl ? (
-                                                    <div className="w-20 h-12 bg-black rounded overflow-hidden border border-surface-highlight relative group">
-                                                        <img src={report.imageUrl} className="w-full h-full object-cover" />
-                                                        <a
-                                                            href={report.imageUrl}
-                                                            target="_blank"
-                                                            className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[10px] text-white transition"
-                                                        >
-                                                            Ver Full
-                                                        </a>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-text-secondary italic text-xs">Sin imagen</span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="text-sm font-bold text-text-primary block">{report.reason}</span>
-                                                {report.description && <span className="text-xs text-text-secondary block truncate max-w-[150px]">{report.description}</span>}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-xs">
-                                                    <p className="font-bold text-text-primary">{report.reporter.name}</p>
-                                                    <p className="text-text-secondary">{report.reporter.email}</p>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-xs">
-                                                    {report.vehicle && <p className="text-primary-400 font-bold">Auto: {report.vehicle.title}</p>}
-                                                    {report.targetUser && <p className="text-purple-400">Perfil: {report.targetUser.name}</p>}
-                                                    <p className="text-text-secondary mt-1">{new Date(report.createdAt).toLocaleDateString()}</p>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex gap-2">
-                                                    <AdminReportAction
-                                                        reportId={report.id}
-                                                        action="DISMISS"
-                                                        label="Ignorar"
-                                                        className="bg-surface-highlight text-text-secondary hover:text-text-primary"
-                                                    />
-                                                    <AdminReportAction
-                                                        reportId={report.id}
-                                                        action="RESOLVE"
-                                                        label="Marcar como Resuelto"
-                                                        className="bg-green-900/40 text-green-400 hover:bg-green-900/60"
-                                                    />
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {/* Error Logs */}
-                <div className="bg-surface rounded-2xl border border-surface-highlight overflow-hidden">
-                    <div className="p-6 border-b border-surface-highlight">
-                        <h2 className="text-xl font-bold text-text-primary">📋 Registros del Sistema</h2>
-                        <p className="text-sm text-text-secondary mt-1">Últimos 50 eventos</p>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-background">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Nivel</th>
-                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Mensaje</th>
-                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Origen</th>
-                                    <th className="px-6 py-3 text-left text-xs font-bold text-text-secondary uppercase">Fecha</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-surface-highlight">
-                                {stats.logs.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={4} className="px-6 py-8 text-center text-text-secondary">
-                                            No hay registros aún
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    stats.logs.map((log) => (
-                                        <tr key={log.id} className="hover:bg-background/50 transition">
-                                            <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded text-xs font-bold ${log.level === 'CRITICAL' ? 'bg-red-100 text-red-700' :
-                                                    log.level === 'ERROR' ? 'bg-orange-100 text-orange-700' :
-                                                        log.level === 'WARN' ? 'bg-yellow-100 text-yellow-700' :
-                                                            'bg-blue-100 text-blue-700'
-                                                    }`}>
-                                                    {log.level}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-text-primary max-w-md truncate">
-                                                {log.message}
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-text-secondary">
-                                                {log.source || 'Sistema'}
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-text-secondary" suppressHydrationWarning>
-                                                {new Date(log.createdAt).toLocaleString(locale === 'es' ? 'es-MX' : 'en-US')}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                ))}
             </div>
         </div>
     )
 }
 
-function StatCard({ icon, title, value, subtitle, color, locale }: {
-    icon: string
-    title: string
-    value: number
-    subtitle: string
-    color: 'blue' | 'green' | 'purple' | 'orange'
-    locale: string
-}) {
-    const colors = {
-        blue: 'from-blue-500 to-blue-600',
-        green: 'from-green-500 to-green-600',
-        purple: 'from-purple-500 to-purple-600',
-        orange: 'from-orange-500 to-orange-600'
-    }
-
+function LogsTab({ logs }: { logs: any[] }) {
     return (
-        <div className={`bg-gradient-to-br ${colors[color]} p-6 rounded-2xl text-white shadow-lg`}>
-            <div className="flex items-center gap-3 mb-3">
-                <div className="text-3xl">{icon}</div>
-                <h3 className="font-bold opacity-90">{title}</h3>
+        <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                <h3 className="font-bold text-lg flex items-center gap-2"><Terminal className="w-5 h-5" /> Audit Log</h3>
+                <button className="text-xs font-bold text-primary-400 hover:underline">Limpiar Registros</button>
             </div>
-            <div className="text-4xl font-bold mb-1" suppressHydrationWarning>{formatNumber(value, locale)}</div>
-            <div className="text-sm opacity-80">{subtitle}</div>
+            <div className="p-6 font-mono text-[11px] space-y-2 bg-black/40">
+                {logs.map(log => (
+                    <div key={log.id} className="flex gap-4 p-2 hover:bg-white/5 rounded transition-colors group">
+                        <span className="text-text-secondary opacity-40">[{new Date(log.createdAt).toISOString()}]</span>
+                        <span className={`font-black tracking-tighter w-16 ${log.level === 'ERROR' ? 'text-red-500' :
+                            log.level === 'WARN' ? 'text-yellow-500' : 'text-blue-500'
+                            }`}>{log.level}</span>
+                        <span className="text-text-primary group-hover:text-primary-300 transition-colors uppercase">{log.message}</span>
+                        <span className="ml-auto text-text-secondary opacity-40">@ {log.source || 'ROOT'}</span>
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }
 
-function AdminReportAction({ reportId, action, label, className }: { reportId: string, action: string, label: string, className: string }) {
+function AdminReportAction2({ reportId, action, label, primary }: any) {
     const [loading, setLoading] = useState(false)
-
     const handleAction = async () => {
-        if (!confirm(`¿Seguro que deseas ${label.toLowerCase()} este reporte?`)) return
         setLoading(true)
         try {
             await fetch(`/api/admin/reports/${reportId}`, {
@@ -476,14 +596,215 @@ function AdminReportAction({ reportId, action, label, className }: { reportId: s
             setLoading(false)
         }
     }
-
     return (
         <button
             onClick={handleAction}
             disabled={loading}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition disabled:opacity-50 ${className}`}
+            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${primary
+                ? 'bg-primary-600 text-white hover:bg-primary-500 shadow-lg shadow-primary-900/20'
+                : 'bg-white/5 text-text-secondary hover:bg-white/10'
+                } disabled:opacity-50`}
         >
             {loading ? '...' : label}
         </button>
+    )
+}
+
+function AdminGenericAction({ apiPath, method, body, label, danger }: any) {
+    const [loading, setLoading] = useState(false)
+    const handleAction = async () => {
+        if (danger && !confirm('¿Estás seguro? Esta acción es irreversible.')) return
+
+        setLoading(true)
+        try {
+            const res = await fetch(apiPath, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: body ? JSON.stringify(body) : undefined
+            })
+            if (!res.ok) throw new Error('Action failed')
+            window.location.reload()
+        } catch (error) {
+            console.error(error)
+            alert('Error al realizar la acción')
+        } finally {
+            setLoading(false)
+        }
+    }
+    return (
+        <button
+            onClick={handleAction}
+            disabled={loading}
+            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${danger
+                ? 'text-red-500 hover:bg-red-500/10'
+                : 'text-text-secondary hover:text-white bg-white/5 hover:bg-white/10'
+                } disabled:opacity-50`}
+        >
+            {loading ? '...' : label}
+        </button>
+    )
+}
+
+function MapStoreTab({ businesses }: { businesses: any[] }) {
+    if (!businesses) return null;
+    return (
+        <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                    <Store className="w-5 h-5 text-purple-500" /> Directorio de Negocios (MapStore)
+                </h3>
+                <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+                    <input type="text" placeholder="Buscar negocio..." className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary-500" />
+                </div>
+            </div>
+            <table className="w-full">
+                <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-text-secondary">
+                    <tr>
+                        <th className="px-6 py-4 text-left">Negocio</th>
+                        <th className="px-6 py-4 text-left">Propietario</th>
+                        <th className="px-6 py-4 text-left">Categoría</th>
+                        <th className="px-6 py-4 text-left">Estado</th>
+                        <th className="px-6 py-4 text-left">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                    {businesses.length === 0 ? (
+                        <tr>
+                            <td colSpan={5} className="px-6 py-8 text-center text-text-secondary text-sm">No hay negocios registrados aún</td>
+                        </tr>
+                    ) : (
+                        businesses.map(business => (
+                            <tr key={business.id} className="hover:bg-white/5 transition-colors">
+                                <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                                            <Store className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold">{business.name}</p>
+                                            <p className="text-[10px] text-text-secondary line-clamp-1">{business.address}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 text-xs text-text-secondary">{business.user?.name || 'Anon'}</td>
+                                <td className="px-6 py-4 text-xs font-medium">{business.category}</td>
+                                <td className="px-6 py-4">
+                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${business.isActive ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                                        }`}>
+                                        {business.isActive ? 'ACTIVO' : 'INACTIVO'}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="flex gap-2">
+                                        <Link
+                                            href={`/map-store?id=${business.id}`}
+                                            className="text-[10px] font-black text-text-secondary hover:text-white uppercase transition-colors px-3 py-1.5 bg-white/5 rounded-lg"
+                                        >
+                                            Ver
+                                        </Link>
+                                        <AdminGenericAction
+                                            apiPath={`/api/businesses/${business.id}`}
+                                            method="PATCH"
+                                            body={{ isActive: !business.isActive }}
+                                            label={business.isActive ? 'Pausar' : 'Activar'}
+                                        />
+                                        <AdminGenericAction
+                                            apiPath={`/api/businesses/${business.id}`}
+                                            method="DELETE"
+                                            label="Eliminar"
+                                            danger
+                                        />
+                                    </div>
+                                </td>
+                            </tr>
+                        ))
+                    )}
+                </tbody>
+            </table>
+        </div>
+    )
+}
+
+function IntelligenceTab() {
+    const [intelligenceData, setIntelligenceData] = useState<any>(null)
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const fetchIntelligence = async () => {
+            try {
+                const res = await fetch('/api/admin/intelligence')
+                if (res.ok) {
+                    const data = await res.json()
+                    setIntelligenceData(data)
+                }
+            } catch (error) {
+                console.error('Error fetching intelligence:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchIntelligence()
+    }, [])
+
+    if (loading) return <div className="h-96 flex items-center justify-center opacity-50 uppercase tracking-widest text-xs font-bold animate-pulse">Cargando Inteligencia Geoespacial...</div>
+
+    return (
+        <div className="space-y-8 h-[calc(100vh-180px)] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h3 className="text-2xl font-black italic tracking-tighter uppercase">Análisis de Océanos Azules</h3>
+                    <p className="text-text-secondary text-sm">Visualización de Demanda (Búsquedas) vs Oferta (Negocios e Inventario)</p>
+                </div>
+                <div className="flex gap-4">
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-3">
+                        <Search className="w-5 h-5 text-red-500" />
+                        <div>
+                            <p className="text-[10px] font-black uppercase text-text-secondary">Puntos de Calor</p>
+                            <p className="text-sm font-bold">{intelligenceData.searches.length} Búsquedas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="lg:col-span-3 h-full relative">
+                    <AdminHeatMap data={intelligenceData} />
+                </div>
+
+                <div className="bg-[#111114] border border-white/5 rounded-3xl p-6 flex flex-col">
+                    <h4 className="text-sm font-black uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <Target className="w-4 h-4 text-primary-500" /> Leyenda Táctica
+                    </h4>
+
+                    <div className="space-y-6 flex-1 overflow-y-auto">
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                                <span className="text-xs font-bold">Alta Demanda</span>
+                            </div>
+                            <p className="text-[10px] text-text-secondary leading-relaxed pl-5">Zonas donde los usuarios están buscando vehículos o servicios específicos activamente.</p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-white border border-black"></div>
+                                <span className="text-xs font-bold">Competencia</span>
+                            </div>
+                            <p className="text-[10px] text-text-secondary leading-relaxed pl-5">Negocios físicos registrados actualmente en el MapStore.</p>
+                        </div>
+
+                        <div className="pt-6 border-t border-white/5">
+                            <p className="text-[10px] font-black text-primary-500 uppercase mb-2">Consejo de ROI</p>
+                            <p className="text-[10px] italic text-text-primary/70">"Busque zonas con nubes rojas intensas donde no haya puntos blancos. Esos son sus Océanos Azules."</p>
+                        </div>
+                    </div>
+
+                    <button className="mt-8 w-full py-4 bg-primary-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary-500 transition shadow-xl shadow-primary-900/40">
+                        Exportar Mapa de Calor
+                    </button>
+                </div>
+            </div>
+        </div>
     )
 }

@@ -34,6 +34,7 @@ interface FeedItem {
     vehicleType?: string
     isFavorited?: boolean
     feedType: 'VEHICLE' | 'BUSINESS'
+    isBoosted?: boolean
     category?: string
     user: {
         name: string
@@ -50,14 +51,51 @@ interface MarketClientProps {
     searchParams: any
 }
 
-// Utility: Fisher-Yates Shuffle
-function shuffleArray<T>(array: T[]): T[] {
-    const newArray = [...array]
-    for (let i = newArray.length - 1; i > 0; i--) {
+// Utility: Fisher-Yates Shuffle with 300% Boost Prioritization
+function boostShuffleArray(array: FeedItem[]): FeedItem[] {
+    const boosted = array.filter(item => item.isBoosted)
+    const regular = array.filter(item => !item.isBoosted)
+
+    // Shuffle regular items
+    for (let i = regular.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        [regular[i], regular[j]] = [regular[j], regular[i]];
     }
-    return newArray
+
+    // Shuffle boosted items
+    for (let i = boosted.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [boosted[i], boosted[j]] = [boosted[j], boosted[i]];
+    }
+
+    // Algorithm: 
+    // 1. Put boosted items at the beginning (Top slots)
+    // 2. Sprinkle boosted items throughout the feed to increase density
+
+    const result: FeedItem[] = []
+
+    // First items should be boosted if available
+    const initialBoost = boosted.slice(0, 3)
+    const remainingBoost = boosted.slice(3)
+
+    result.push(...initialBoost)
+
+    // Distribute remaining boosted items every 3 regular items (300% visibility)
+    let bIndex = 0
+    let rIndex = 0
+
+    while (rIndex < regular.length || bIndex < remainingBoost.length) {
+        // Add up to 3 regular items
+        for (let k = 0; k < 3 && rIndex < regular.length; k++) {
+            result.push(regular[rIndex++])
+        }
+        // Add 1 boosted item if available
+        if (bIndex < remainingBoost.length) {
+            result.push(remainingBoost[bIndex++])
+        }
+    }
+
+    return result
 }
 
 export default function MarketClient({
@@ -110,7 +148,7 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
         // Shuffle only on first load if no specific sort
         const shouldShuffle = !searchParams.sort || searchParams.sort === 'newest'
         if (shouldShuffle) {
-            setItems(shuffleArray(initialFeedItems))
+            setItems(boostShuffleArray(initialFeedItems))
         }
     }, [initialFeedItems, searchParams.sort])
 

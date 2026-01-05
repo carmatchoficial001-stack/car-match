@@ -34,7 +34,10 @@ export async function GET(request: NextRequest) {
             totalAppointments,
             activeAppointments,
             recentLogs,
-            recentReports
+            recentReports,
+            recentUsers,
+            recentVehicles,
+            recentBusinesses
         ] = await Promise.all([
             prisma.user.count(),
             prisma.user.count({ where: { isActive: true } }),
@@ -56,20 +59,38 @@ export async function GET(request: NextRequest) {
                     targetUser: { select: { name: true, email: true } },
                     vehicle: { select: { title: true } },
                 }
+            }),
+            prisma.user.findMany({
+                take: 50,
+                orderBy: { createdAt: 'desc' },
+                select: { id: true, name: true, email: true, image: true, isAdmin: true, isActive: true, createdAt: true }
+            }),
+            prisma.vehicle.findMany({
+                take: 50,
+                orderBy: { createdAt: 'desc' },
+                include: { user: { select: { name: true } } }
+            }),
+            prisma.business.findMany({
+                take: 50,
+                orderBy: { createdAt: 'desc' },
+                include: { user: { select: { name: true } } }
             })
         ])
 
         return NextResponse.json({
             users: {
                 total: totalUsers,
-                active: activeUsers
+                active: activeUsers,
+                recent: recentUsers
             },
             vehicles: {
                 total: totalVehicles,
-                active: activeVehicles
+                active: activeVehicles,
+                recent: recentVehicles
             },
             businesses: {
-                total: totalBusinesses
+                total: totalBusinesses,
+                recent: recentBusinesses
             },
             chats: {
                 total: totalChats

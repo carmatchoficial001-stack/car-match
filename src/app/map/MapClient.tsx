@@ -179,13 +179,26 @@ function MapContent({ businesses, user }: MapClientProps) {
         const catParam = searchParams.get('category')
         const latParam = searchParams.get('lat')
         const lngParam = searchParams.get('lng')
-        // const highlightParam = searchParams.get('highlight') // Podríamos usarlo para resaltar el marker
+        const highlightParam = searchParams.get('id') // Added handling for 'id' directly
 
         if (catParam) {
             setSelectedCategories([catParam])
         }
 
-        if (latParam && lngParam) {
+        if (highlightParam) {
+            const business = businesses.find(b => b.id === highlightParam)
+            if (business) {
+                setSelectedBusiness(business)
+                setManualLocation({
+                    latitude: Number(business.latitude),
+                    longitude: Number(business.longitude),
+                    city: business.city || '',
+                    country: ''
+                })
+                // Trigger view
+                fetch(`/api/businesses/${highlightParam}/view`, { method: 'POST' }).catch(() => { })
+            }
+        } else if (latParam && lngParam) {
             const lat = parseFloat(latParam)
             const lng = parseFloat(lngParam)
             if (!isNaN(lat) && !isNaN(lng)) {

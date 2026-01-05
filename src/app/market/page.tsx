@@ -42,18 +42,23 @@ export default async function MarketPage({
 
     const currentUser = await prisma.user.findUnique({
         where: { email: session.user.email! },
-        select: { id: true }
+        select: { id: true, isAdmin: true }
     })
 
     if (!currentUser) {
         redirect("/auth")
     }
 
+    const isAdmin = currentUser.isAdmin || currentUser.id === process.env.ADMIN_EMAIL // Fallback comparison
 
-    // Construir query dinámico basado en filtros (sin filtrar por ciudad - se hará con GPS)
+    // Construir query dinámico basado en filtros
     const where: any = {
         status: "ACTIVE",
-        userId: {
+    }
+
+    // Si NO es admin, ocultar propios. Si ES admin, mostrarlos (para que pueda verse a sí mismo)
+    if (!isAdmin) {
+        where.userId = {
             not: currentUser.id
         }
     }
@@ -200,6 +205,21 @@ export default async function MarketPage({
             break
     }
 
+    // Registrar métrica de búsqueda para Inteligencia (Océanos Azules)
+    if (searchParams.search || searchParams.brand || searchParams.vehicleType || searchParams.category) {
+        // Ejecutar en segundo plano para no bloquear el renderizado
+        prisma.searchMetric.create({
+            data: {
+                query: searchParams.search || null,
+                category: (searchParams.category as string) || (searchParams.vehicleType as string) || null,
+                userId: currentUser.id,
+                // Tomamos la ubicación del usuario si está disponible, si no, intentamos por ciudad filter
+                latitude: currentUser.lastLatitude || 0,
+                longitude: currentUser.lastLongitude || 0
+            }
+        }).catch(err => console.error("Error saving SearchMetric:", err));
+    }
+
     // Obtener vehículos con filtros aplicados
     const vehicles = await prisma.vehicle.findMany({
         where,
@@ -223,7 +243,8 @@ export default async function MarketPage({
             user: {
                 select: {
                     name: true,
-                    image: true
+                    image: true,
+                    isAdmin: true
                 }
             },
             _count: {
@@ -257,11 +278,15 @@ export default async function MarketPage({
         getCachedColors()
     ])
 
-    // Obtener negocios activos para inyectar en el feed
+    // Obtener SOLO negocios de administradores para inyectar en el feed (exclusividad solicitada)
     const businesses = await prisma.business.findMany({
         where: {
             isActive: true,
-            userId: { not: currentUser.id }
+            // Si NO es admin, filtrar para mostrar SOLO los del admin
+            // Si ES admin, mostrar también los propios
+            user: {
+                isAdmin: true
+            }
         },
         select: {
             id: true,
@@ -275,21 +300,31 @@ export default async function MarketPage({
             user: {
                 select: {
                     name: true,
-                    image: true
+                    image: true,
+                    isAdmin: true
                 }
             }
         },
         orderBy: { createdAt: 'desc' }
     })
 
-    const initialItems = [
-        ...vehiclesWithFavoriteStatus.map(v => ({ ...v, feedType: 'VEHICLE' as const })),
-        ...businesses.map(b => ({ ...b, title: b.name, feedType: 'BUSINESS' as const }))
+    const itemsWithBoost = [
+        ...vehiclesWithFavoriteStatus.map(v => ({
+            ...v,
+            feedType: 'VEHICLE' as const,
+            isBoosted: v.user.isAdmin
+        })),
+        ...businesses.map(b => ({
+            ...b,
+            title: b.name,
+            feedType: 'BUSINESS' as const,
+            isBoosted: true // Todos los negocios en el feed son de admin ahora
+        }))
     ]
 
     return (
         <MarketClient
-            initialItems={serializeDecimal(initialItems) as any}
+            initialItems={serializeDecimal(itemsWithBoost) as any}
             currentUserId={currentUser.id}
             brands={brands}
             vehicleTypes={vehicleTypes}

@@ -26,6 +26,7 @@ interface FeedItem {
     country?: string | null
     images?: string[]
     isFavorited?: boolean
+    isBoosted?: boolean // Added for 300% boost
     user: {
         name: string
         image: string | null
@@ -40,13 +41,45 @@ interface SwipeClientProps {
     currentUserId: string
 }
 
-function shuffleArray<T>(array: T[]): T[] {
-    const newArray = [...array]
-    for (let i = newArray.length - 1; i > 0; i--) {
+// Utility: Fisher-Yates Shuffle with 300% Boost Prioritization
+function boostShuffleArray(array: FeedItem[]): FeedItem[] {
+    const boosted = array.filter(item => item.isBoosted)
+    const regular = array.filter(item => !item.isBoosted)
+
+    // Shuffle regular items
+    for (let i = regular.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        [regular[i], regular[j]] = [regular[j], regular[i]];
     }
-    return newArray
+
+    // Shuffle boosted items
+    for (let i = boosted.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [boosted[i], boosted[j]] = [boosted[j], boosted[i]];
+    }
+
+    const result: FeedItem[] = []
+
+    // First items should be boosted if available
+    const initialBoost = boosted.slice(0, 3)
+    const remainingBoost = boosted.slice(3)
+
+    result.push(...initialBoost)
+
+    // Distribute remaining boosted items every 3 regular items (300% visibility)
+    let bIndex = 0
+    let rIndex = 0
+
+    while (rIndex < regular.length || bIndex < remainingBoost.length) {
+        for (let k = 0; k < 3 && rIndex < regular.length; k++) {
+            result.push(regular[rIndex++])
+        }
+        if (bIndex < remainingBoost.length) {
+            result.push(remainingBoost[bIndex++])
+        }
+    }
+
+    return result
 }
 
 export default function SwipeClient({ initialItems, currentUserId }: SwipeClientProps) {
@@ -127,7 +160,8 @@ function SwipeContent({ items, currentUserId }: { items: FeedItem[], currentUser
             tier.items.push(item)
         })
 
-        return tiers.reduce((acc, ss) => [...acc, ...shuffleArray(ss.items)], [] as any[])
+        // Combine tiers and apply boost-aware shuffle
+        return tiers.reduce((acc, ss) => [...acc, ...boostShuffleArray(ss.items)], [] as any[])
     }, [items, location, locationLoading])
 
     // 3. FILTRADO FINAL

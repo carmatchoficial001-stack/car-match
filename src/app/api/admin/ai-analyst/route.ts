@@ -31,8 +31,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'AI not configured' }, { status: 503 })
         }
 
-        // Obtener datos agregados por ciudad para detectar oportunidades físicas reales
-        const [vehicleStats, businessStats] = await Promise.all([
+        // Obtener datos agregados para detectar oportunidades reales
+        const [vehicleStats, businessStats, searchStats] = await Promise.all([
             prisma.vehicle.groupBy({
                 by: ['city', 'vehicleType'],
                 _count: { _all: true },
@@ -41,43 +41,58 @@ export async function POST(req: NextRequest) {
             prisma.business.groupBy({
                 by: ['city', 'category'],
                 _count: { _all: true }
+            }),
+            prisma.searchMetric.groupBy({
+                by: ['category'],
+                _count: { _all: true },
+                where: {
+                    createdAt: {
+                        gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Últimos 30 días
+                    }
+                }
             })
         ])
 
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
-        const prompt = `Actúa como un CONSULTOR ESTRATÉGICO DE NEGOCIOS AUTOMOTRICES DE ÉLITE. Tu misión es analizar los datos de CarMatch para crear NEGOCIOS FÍSICOS altamente rentables.
+        const prompt = `Actúa como un CONSULTOR ESTRATÉGICO DE NEGOCIOS AUTOMOTRICES DE ÉLITE y experto en GEOMARKETING. Tu misión es analizar los datos de CarMatch para detectar OPPORTUNIDADES DE ORO y OCÉANOS AZULES con un 90%+ de probabilidad de éxito.
 
-**OBJETIVO:** Identificar oportunidades de inversión con una efectividad del 90%+ basada en la demanda real de los usuarios en cada ciudad.
+**CONTEXTO:**
+CarMatch es una red social automotriz que rastrea lo que los usuarios buscan (Demanda) y qué negocios existen (Competencia).
 
-**DATOS ACTUALES (Agrupados por Ciudad y Categoría):**
-- Oferta de Vehículos: ${JSON.stringify(vehicleStats)}
-- Competencia (Negocios Existentes): ${JSON.stringify(businessStats)}
+**DATOS DE INTELIGENCIA REAL (Últimos 30 días):**
+- Oferta de Vehículos (Inventario Activo): ${JSON.stringify(vehicleStats)}
+- Competencia (Negocios Físicos Registrados): ${JSON.stringify(businessStats)}
+- Demanda Real (Métricas de Búsqueda de Usuarios): ${JSON.stringify(searchStats)}
 
-**TUS MISIONES ESTRATÉGICAS:**
-1.  **Detección de "Océanos Azules"**: Encuentra ciudades específicas donde el volumen de vehículos supera por mucho a los servicios disponibles.
-2.  **Plan de Inversión Física**: Recomienda qué negocio físico abrir (Taller especializado, Refaccionaria, Autolavado Premium, etc.) para capturar el mercado local.
-3.  **Restricción de Rubro**: Solo negocios relacionados con el mundo automotriz terrestre.
-4.  **Tono**: Ejecutivo, enfocado en ROI y éxito garantizado.
+**TUS MISIONES CRÍTICAS:**
+1.  **Detección de Océanos Azules**: Identifica combinaciones de CIUDAD + CATEGORÍA que tengan un volumen de búsqueda ALTO pero 0 o muy pocos negocios registrados. (ROI Inmediato).
+2.  **Análisis de ROI del 90%+**: Proporciona recomendaciones tácticas para abrir negocios físicos (ej. "Abre una Desponchadora 24/7 en [Ciudad] porque hay 500 búsquedas nocturnas y 0 servicios").
+3.  **Gap Analysis Geográfico**: Explica dónde está el dinero que se está perdiendo por falta de servicios.
+4.  **Priorización Agresiva**: Clasifica las oportunidades por efectividad real basada en el déficit de oferta.
 
 **FORMATO DE RESPUESTA (ESTRICTO JSON):**
 {
-    "summary": "Resumen ejecutivo de la situación actual y potencial por ciudad.",
+    "summary": "Análisis ejecutivo de alto nivel sobre los huecos de mercado detectados.",
     "insights": [
         {
-            "priority": "HIGH/MEDIUM/LOW",
-            "observation": "Descripción del hallazgo (ej. En CDMX hay exceso de SUVs pero pocos centros de detallado).",
-            "recommendation": "Acción específica de inversión física."
+            "priority": "CRITICAL/HIGH/MEDIUM",
+            "observation": "Hueco detectado (ej. 300 personas buscaron transmisiones en Monterrey esta semana y no hay talleres especializados).",
+            "recommendation": "Acción de inversión física específica."
         }
     ],
     "businessOppotunities": [
-        "Negocio Físico Sugerido 1",
-        "Negocio Físico Sugerido 2"
+        {
+            "title": "Nombre del Negocio Sugerido",
+            "location": "Ciudad sugerida",
+            "roiScore": 95,
+            "reason": "Justificación basada en datos"
+        }
     ],
-    "effectivenessScore": 95
+    "effectivenessScore": 98
 }
 
-Responde SOLO con el JSON válido.`
+Responde SOLO con el JSON válido, sin explicaciones adicionales fuera del JSON.`
 
         const result = await model.generateContent(prompt)
         const responseText = result.response.text()

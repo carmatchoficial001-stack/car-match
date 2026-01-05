@@ -14,28 +14,34 @@ export default async function SwipePage() {
 
     const currentUser = await prisma.user.findUnique({
         where: { email: session.user.email! },
-        select: { id: true }
+        select: { id: true, isAdmin: true }
     })
 
     if (!currentUser) {
         redirect("/auth")
     }
 
+    const isAdmin = currentUser.isAdmin || currentUser.id === process.env.ADMIN_EMAIL
 
-    // Obtener TODOS los vehículos ACTIVOS (sin filtrar por ciudad)
-    // El filtrado por proximidad (12km) se hará en el cliente con GPS
-    const vehicles = await prisma.vehicle.findMany({
-        where: {
-            status: "ACTIVE",
-            userId: {
-                not: currentUser.id // No mostrar propios vehículos
-            },
-            dislikes: {
-                none: {
-                    userId: currentUser.id
-                }
+    // Obtener vehículos ACTIVOS
+    const vehiclesWhere: any = {
+        status: "ACTIVE",
+        dislikes: {
+            none: {
+                userId: currentUser.id
             }
-        },
+        }
+    }
+
+    // Si NO es admin, ocultar propios
+    if (!isAdmin) {
+        vehiclesWhere.userId = {
+            not: currentUser.id
+        }
+    }
+
+    const vehicles = await prisma.vehicle.findMany({
+        where: vehiclesWhere,
         select: {
             id: true,
             title: true,
@@ -51,7 +57,8 @@ export default async function SwipePage() {
             user: {
                 select: {
                     name: true,
-                    image: true
+                    image: true,
+                    isAdmin: true
                 }
             },
             _count: {
@@ -79,11 +86,13 @@ export default async function SwipePage() {
         favorites: undefined // Remove the array to keep payload clean
     }))
 
-    // Obtener negocios activos para inyectar en el feed
+    // Obtener SOLO negocios de administradores para inyectar en el feed (exclusividad solicitada)
     const businesses = await prisma.business.findMany({
         where: {
             isActive: true,
-            userId: { not: currentUser.id }
+            user: {
+                isAdmin: true
+            }
         },
         select: {
             id: true,
@@ -97,21 +106,31 @@ export default async function SwipePage() {
             user: {
                 select: {
                     name: true,
-                    image: true
+                    image: true,
+                    isAdmin: true
                 }
             }
         },
         orderBy: { createdAt: 'desc' }
     })
 
-    const initialItems = [
-        ...vehiclesWithFavoriteStatus.map(v => ({ ...v, feedType: 'VEHICLE' as const })),
-        ...businesses.map(b => ({ ...b, title: b.name, feedType: 'BUSINESS' as const }))
+    const itemsWithBoost = [
+        ...vehiclesWithFavoriteStatus.map(v => ({
+            ...v,
+            feedType: 'VEHICLE' as const,
+            isBoosted: v.user.isAdmin
+        })),
+        ...businesses.map(b => ({
+            ...b,
+            title: b.name,
+            feedType: 'BUSINESS' as const,
+            isBoosted: true
+        }))
     ]
 
     return (
         <SwipeClient
-            initialItems={serializeDecimal(initialItems) as any}
+            initialItems={serializeDecimal(itemsWithBoost) as any}
             currentUserId={currentUser.id}
         />
     )
