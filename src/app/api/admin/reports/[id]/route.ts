@@ -4,9 +4,10 @@ import { prisma } from '@/lib/db'
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await context.params;
         const session = await auth()
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -30,7 +31,7 @@ export async function PATCH(
         const status = action === 'DISMISS' ? 'DISMISSED' : 'ACTION_TAKEN'
 
         const updatedReport = await prisma.report.update({
-            where: { id: params.id },
+            where: { id },
             data: { status }
         })
 
