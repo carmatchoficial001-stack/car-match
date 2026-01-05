@@ -23,6 +23,7 @@
     "@stripe/stripe-js": "^8.6.0",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.5.1",
+    "dotenv": "^17.2.3",
     "framer-motion": "^12.23.25",
     "lucide-react": "^0.556.0",
     "mapbox-gl": "^3.16.0",

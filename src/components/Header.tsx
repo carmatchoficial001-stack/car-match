@@ -233,8 +233,8 @@ export default function Header() {
                                         className="fixed inset-0 z-40"
                                         onClick={() => setShowMenu(false)}
                                     />
-                                    <div className="absolute right-0 mt-2 w-[480px] bg-surface rounded-xl shadow-xl border border-surface-highlight overflow-hidden z-50">
-                                        <div className="p-2 grid grid-cols-3 gap-1 max-h-[500px] overflow-y-auto">
+                                    <div className="absolute right-0 mt-2 w-[300px] md:w-[480px] bg-surface rounded-xl shadow-xl border border-surface-highlight overflow-hidden z-50">
+                                        <div className="p-2 grid grid-cols-2 md:grid-cols-3 gap-1 max-h-[500px] overflow-y-auto">
                                             {[
                                                 { code: 'es', flag: '🇪🇸', name: 'Español' },
                                                 { code: 'en', flag: '🇺🇸', name: 'English' },

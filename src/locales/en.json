@@ -548,5 +548,20 @@
     "map_locator": {
         "view_details": "View Details",
         "loading_3d": "Loading 3D map..."
+    },
+    "radius": {
+        "no_more_nearby": "No more nearby",
+        "zone_checked": "Zone checked",
+        "national_viewed": "You've seen all the ads from the whole country. Tap below to see them again from the beginning!",
+        "expand_hint": "Didn't find anything interesting? Let's search a bit further.",
+        "restart": "Start over",
+        "expand": "Expand search"
+    },
+    "smart_search": {
+        "tooltip_hint": "Try: \"Looking for a red 4x4 pickup truck cheap...\"",
+        "placeholder_active": "Consulting with specialists...",
+        "placeholder_default": "Describe the vehicle you're looking for...",
+        "btn_analyzing": "Analyzing...",
+        "btn_search": "Search"
     }
 }
