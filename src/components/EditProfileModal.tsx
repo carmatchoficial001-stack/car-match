@@ -14,14 +14,14 @@ interface EditProfileModalProps {
     userVehicles: any[] // Lista de vehículos del usuario para usar como foto
 }
 
-// Lista de avatares predefinidos (Autos de alta calidad)
+// Lista de avatares diversos (Representando diferentes tipos de usuarios)
 const PREDEFINED_AVATARS = [
-    "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=200", // Deportivo Azul
-    "https://images.unsplash.com/photo-1583121274602-3e2820c698d9?auto=format&fit=crop&q=80&w=200", // Rojo Clásico
-    "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=200", // SUV Elegante
-    "https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&q=80&w=200", // Convertible
-    "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&q=80&w=200", // Supercar
-    "https://images.unsplash.com/photo-1542282088-fe8426682b8f?auto=format&fit=crop&q=80&w=200", // Deportivo Plata
+    "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=200", // Deportivo (CarMatch default)
+    "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80&w=200", // Moto
+    "https://images.unsplash.com/photo-1605218427368-35b8686e06dd?auto=format&fit=crop&q=80&w=200", // RZR / UTV (Offroad)
+    "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=200", // Tractor / Maquinaria
+    "https://images.unsplash.com/photo-1533106497176-45ae19e68ba2?auto=format&fit=crop&q=80&w=200", // Pickup / Truck
+    "https://images.unsplash.com/photo-1503376763036-066120622c74?auto=format&fit=crop&q=80&w=200", // Clásico
 ]
 
 export default function EditProfileModal({ isOpen, onClose, currentUser, userVehicles }: EditProfileModalProps) {
@@ -81,6 +81,15 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                         <label className="block text-sm font-medium text-text-secondary mb-2">
                             Nombre del Perfil
                         </label>
+
+                        {/* Tip movido arriba por solicitud del usuario */}
+                        <div className="mb-3 p-3 bg-primary-900/20 border border-primary-900/30 rounded-lg">
+                            <p className="text-xs text-primary-300">
+                                💡 <strong>Idea Creativa:</strong> ¿Por qué no usar un nombre divertido? <br />
+                                Ejemplos: <em>"El Garaje de {currentUser.name?.split(' ')[0] || 'Ana'}", "Autos del Norte", "La Colección de {currentUser.name?.split(' ')[0] || 'Mike'}"</em>
+                            </p>
+                        </div>
+
                         <input
                             type="text"
                             value={name}
@@ -90,12 +99,6 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                             className="w-full bg-background border border-surface-highlight rounded-xl px-4 py-3 text-text-primary focus:ring-2 focus:ring-primary-500 outline-none transition"
                             placeholder="Ej: Juan Pérez"
                         />
-                        <div className="mt-3 p-3 bg-primary-900/20 border border-primary-900/30 rounded-lg">
-                            <p className="text-xs text-primary-300">
-                                💡 <strong>Idea Creativa:</strong> ¿Por qué no usar un nombre divertido? <br />
-                                Ejemplos: <em>"El Garaje de {currentUser.name?.split(' ')[0] || 'Ana'}", "Autos del Norte", "La Colección de {currentUser.name?.split(' ')[0] || 'Mike'}"</em>
-                            </p>
-                        </div>
                     </div>
 
                     {/* Sección Imagen */}
