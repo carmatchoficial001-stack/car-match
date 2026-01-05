@@ -37,19 +37,7 @@ export default function MobileNav() {
                     const Icon = item.icon
                     const active = isActive(item.href)
 
-                    if (item.isCenter) {
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className="relative -top-6 flex items-center justify-center"
-                            >
-                                <div className="w-14 h-14 bg-primary-600 rounded-full flex items-center justify-center shadow-lg shadow-primary-900/40 border-4 border-surface group active:scale-95 transition">
-                                    <Icon className="w-7 h-7 text-white" />
-                                </div>
-                            </Link>
-                        )
-                    }
+
 
                     return (
                         <Link
