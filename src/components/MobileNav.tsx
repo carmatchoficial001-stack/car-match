@@ -25,7 +25,7 @@ export default function MobileNav() {
     const navItems = [
         { href: "/swipe", icon: Flame, label: t('nav.carmatch'), color: "text-orange-500" },
         { href: "/market", icon: Car, label: t('nav.marketcar'), color: "text-blue-500" },
-        { href: "/vehicles/new", icon: PlusCircle, label: t('common.publish'), isCenter: true },
+        // Boton de publicar eliminado por solicitud del usuario
         { href: "/map", icon: MapIcon, label: t('nav.mapstore'), color: "text-green-500" },
         { href: "/profile", icon: User, label: t('nav.profile'), color: "text-purple-500" },
     ]
