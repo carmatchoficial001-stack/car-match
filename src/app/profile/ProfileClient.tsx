@@ -37,9 +37,12 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                                                 <button
                                                     onClick={() => setShowEditModal(true)}
-                                                    className="bg-primary-700 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium shadow-lg transform translate-y-2 group-hover:translate-y-0 transition"
+                                                    className="bg-primary-700 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium shadow-lg transform translate-y-2 group-hover:translate-y-0 transition flex items-center gap-2"
                                                 >
-                                                    Cambiar Portada
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    </svg>
+                                                    Editar Perfil
                                                 </button>
                                             </div>
                                         )}
@@ -63,7 +66,7 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                 <button
                                                     onClick={() => setShowEditModal(true)}
                                                     className="bg-black/50 hover:bg-primary-700 text-white p-2 rounded-full backdrop-blur-sm transition"
-                                                    title="Subir foto personalizada"
+                                                    title="Editar Perfil"
                                                 >
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -75,9 +78,22 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                 )}
                             </div>
                             <div>
-                                <h1 className="text-3xl font-bold text-text-primary mb-1 flex items-center gap-2">
-                                    {user.name}
-                                </h1>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <h1 className="text-3xl font-bold text-text-primary">
+                                        {user.name}
+                                    </h1>
+                                    {isOwner && (
+                                        <button
+                                            onClick={() => setShowEditModal(true)}
+                                            className="text-text-secondary hover:text-primary-400 transition p-1"
+                                            title="Editar nombre"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                </div>
                                 <p className="text-text-secondary text-sm">
                                     {t('profile.member_since')} {formattedDate}
                                 </p>
