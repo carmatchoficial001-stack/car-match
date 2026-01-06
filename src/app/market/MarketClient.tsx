@@ -2,6 +2,7 @@
 // v1.2 Random Feed & Global Country Lock
 
 import { useEffect, useState, useRef } from 'react'
+import { MapPin } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
