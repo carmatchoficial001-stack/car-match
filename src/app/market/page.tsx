@@ -26,6 +26,7 @@ interface SearchParams {
     maxCargoCapacity?: string
     sort?: string
     features?: string
+    category?: string
 }
 
 export default async function MarketPage({
