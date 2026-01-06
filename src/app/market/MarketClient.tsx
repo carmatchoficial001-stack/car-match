@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { LocationProvider } from '@/contexts/LocationContext'
-import { filterNearbyVehicles, searchCity, LocationData, getUserLocation, reverseGeocode, EXPANSION_TIERS } from '@/lib/geolocation'
+import { filterNearbyVehicles, searchCity, LocationData, getUserLocation, reverseGeocode, EXPANSION_TIERS, calculateDistance } from '@/lib/geolocation'
 import DistanceBadge from '@/components/DistanceBadge'
 import Header from '@/components/Header'
 import MarketFilters from '@/components/MarketFilters'
@@ -575,21 +575,4 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
             </div>
         </div>
     )
-}
-
-function calcDist(lat1: number, lon1: number, lat2: number, lon2: number) {
-    const R = 6371 // km
-    const dLat = toRad(lat2 - lat1)
-    const dLon = toRad(lon2 - lon1)
-    const lat1Rad = toRad(lat1)
-    const lat2Rad = toRad(lat2)
-
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1Rad) * Math.cos(lat2Rad)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    return R * c
-}
-
-function toRad(value: number) {
-    return value * Math.PI / 180
 }
