@@ -262,44 +262,55 @@ export default function MarketFiltersAdvanced({
                 <button onClick={clearFilters} className="text-sm text-primary-400 hover:underline">Limpiar todo</button>
             </div>
 
-            {/* 🧠 SMART SEARCH AI */}
-            <div className="p-4 bg-primary-900/10 border border-primary-700/30 rounded-xl space-y-3 mb-4">
-                <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">🧠</span>
-                    <label className="text-sm font-bold text-primary-400 uppercase tracking-wider">
-                        Búsqueda Asistida por IA
-                    </label>
+            {/* 🧠 SMART SEARCH AI - REBRANDED TO ASESOR PERSONAL */}
+            <div className="p-4 bg-gradient-to-br from-gray-900 to-primary-950/30 border border-primary-700/30 rounded-xl space-y-3 mb-4 relative overflow-hidden">
+                {/* Background Decor */}
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                    <svg className="w-32 h-32 text-primary-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                    </svg>
                 </div>
-                <div className="space-y-2">
-                    <textarea
-                        value={aiQuery}
-                        onChange={(e) => setAiQuery(e.target.value)}
-                        placeholder="Ej. 'Busco una camioneta roja familiar barata'..."
-                        className="w-full bg-background/50 border border-surface-highlight rounded-xl p-4 text-base md:text-sm text-text-primary focus:border-primary-600 focus:outline-none resize-none h-24"
-                        disabled={isAnalyzing}
-                    />
-                    <button
-                        onClick={handleAiSearch}
-                        disabled={isAnalyzing || !aiQuery.trim()}
-                        className="w-full py-4 md:py-2 bg-primary-700 rounded-xl text-white font-bold hover:bg-primary-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                        {isAnalyzing ? (
-                            <>
-                                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span>Analizando...</span>
-                            </>
-                        ) : (
-                            'Configurar Filtros con AI'
+
+                <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl bg-primary-500/20 p-1 rounded-lg">👨‍🔧</span>
+                        <label className="text-sm font-bold text-primary-300 uppercase tracking-wider">
+                            Tu Asesor Personal CarMatch
+                        </label>
+                    </div>
+                    <div className="space-y-2">
+                        <textarea
+                            value={aiQuery}
+                            onChange={(e) => setAiQuery(e.target.value)}
+                            placeholder="Ej. 'Hola, busco una camioneta segura para viajar con mi familia y que no gaste mucha gasolina'..."
+                            className="w-full bg-black/40 border border-primary-900/50 rounded-xl p-3 text-base md:text-sm text-gray-200 placeholder-gray-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all resize-none h-24 shadow-inner"
+                            disabled={isAnalyzing}
+                        />
+                        <button
+                            onClick={handleAiSearch}
+                            disabled={isAnalyzing || !aiQuery.trim()}
+                            className="w-full py-4 md:py-3 bg-primary-700 hover:bg-primary-600 active:scale-95 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary-900/20"
+                        >
+                            {isAnalyzing ? (
+                                <>
+                                    <svg className="w-4 h-4 animate-spin text-primary-200" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Consultando experto...</span>
+                                </>
+                            ) : (
+                                'Preguntar a mi Asesor'
+                            )}
+                        </button>
+                        {aiExplanation && (
+                            <div className="mt-2 bg-primary-900/20 border border-primary-500/10 rounded-lg p-3 animate-fade-in-up">
+                                <p className="text-xs text-primary-200 italic">
+                                    "Entendido: {aiExplanation}"
+                                </p>
+                            </div>
                         )}
-                    </button>
-                    {aiExplanation && (
-                        <p className="text-xs text-text-secondary italic animate-fade-in-up">
-                            {aiExplanation}
-                        </p>
-                    )}
+                    </div>
                 </div>
             </div>
 
