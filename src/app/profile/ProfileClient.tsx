@@ -208,6 +208,15 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                         }`} suppressHydrationWarning>
                                                         {formatPrice(vehicle.price, vehicle.currency || 'MXN', locale)}
                                                     </p>
+                                                    {isOwner && vehicle.expiresAt && (
+                                                        <p className="text-xs font-medium text-text-secondary bg-surface-highlight/30 px-2 py-1 rounded inline-block mt-2">
+                                                            📅 Vence: {new Date(vehicle.expiresAt).toLocaleDateString(locale === 'es' ? 'es-MX' : 'en-US', {
+                                                                day: 'numeric',
+                                                                month: 'long',
+                                                                year: 'numeric'
+                                                            })}
+                                                        </p>
+                                                    )}
                                                 </div>
 
                                                 {isOwner ? (

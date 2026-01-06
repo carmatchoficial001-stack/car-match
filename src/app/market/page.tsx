@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db"
 import MarketClient from "./MarketClient"
 import { getCachedBrands, getCachedVehicleTypes, getCachedColors } from "@/lib/cached-data"
 import { serializeDecimal } from "@/lib/serialize"
+import { VEHICLE_CATEGORIES } from "@/lib/vehicleTaxonomy"
 
 interface SearchParams {
     search?: string
@@ -91,18 +92,24 @@ export default async function MarketPage({
 
     if (searchParams.vehicleType) {
         where.vehicleType = searchParams.vehicleType
+    } else if (searchParams.category && Object.keys(VEHICLE_CATEGORIES).includes(searchParams.category)) {
+        // 🛠️ FIX: Si hay categoría pero no subtipo, filtrar por TODOS los tipos de esa categoría
+        const categoryTypes = VEHICLE_CATEGORIES[searchParams.category as keyof typeof VEHICLE_CATEGORIES] || []
+        if (categoryTypes.length > 0) {
+            where.vehicleType = { in: categoryTypes }
+        }
     }
 
     if (searchParams.transmission) {
-        where.transmission = searchParams.transmission
+        where.transmission = { in: searchParams.transmission.split(',') }
     }
 
     if (searchParams.fuel) {
-        where.fuel = searchParams.fuel
+        where.fuel = { in: searchParams.fuel.split(',') }
     }
 
     if (searchParams.color) {
-        where.color = searchParams.color
+        where.color = { in: searchParams.color.split(',') }
     }
 
     if (searchParams.doors) {
@@ -143,6 +150,26 @@ export default async function MarketPage({
             where.cargoCapacity.lte = parseFloat(searchParams.maxCargoCapacity)
         }
     }
+
+    // 🚜 Filtros Nuevos (Traction, Pasajeros, Horas)
+    if (searchParams.traction) {
+        where.traction = searchParams.traction
+    }
+
+    if (searchParams.passengers) {
+        where.passengers = {
+            gte: parseInt(searchParams.passengers)
+        }
+    }
+
+    // "hours" param maps to "operatingHours" in DB
+    if (searchParams.hours) {
+        where.operatingHours = {
+            lte: parseInt(searchParams.hours)
+        }
+    }
+
+
 
     // Búsqueda por texto en título y descripción
     if (searchParams.search) {

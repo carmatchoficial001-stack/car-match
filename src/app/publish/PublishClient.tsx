@@ -81,16 +81,15 @@ export default function PublishClient() {
     const [doors, setDoors] = useState('')
     const [color, setColor] = useState('')
     const [condition, setCondition] = useState('')
+    const [traction, setTraction] = useState('')
+    const [passengers, setPassengers] = useState('')
 
     // Specific fields
     const [displacement, setDisplacement] = useState('')
     const [cargoCapacity, setCargoCapacity] = useState('')
     const [operatingHours, setOperatingHours] = useState('')
 
-    // Documentation
-    const [hasInvoice, setHasInvoice] = useState<boolean | null>(null)
-    const [hasTenencia, setHasTenencia] = useState<boolean | null>(null)
-    const [hasVerification, setHasVerification] = useState<boolean | null>(null)
+
 
     // Step 5: Location
     const [latitude, setLatitude] = useState<number | null>(null)
@@ -387,9 +386,11 @@ export default function PublishClient() {
                 doors: doors ? parseInt(doors) : null,
                 color: color || null,
                 condition: condition || null,
+                traction: traction || null,
+                passengers: passengers ? parseInt(passengers) : null,
                 displacement: displacement ? parseInt(displacement) : null,
                 cargoCapacity: cargoCapacity ? parseFloat(cargoCapacity) : null,
-                hasInvoice, hasTenencia, hasVerification,
+                cargoCapacity: cargoCapacity ? parseFloat(cargoCapacity) : null,
             }
 
             if (deviceFP) {
@@ -687,6 +688,28 @@ export default function PublishClient() {
                                     options={FUELS}
                                     strict={true}
                                 />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2 col-span-1">
+                                    <label className="block text-text-primary font-medium">Tracción <span className="text-text-secondary text-xs font-normal">(4x4, AWD...)</span></label>
+                                    <SearchableSelect
+                                        value={traction}
+                                        onChange={setTraction}
+                                        // TODO: Import TRACTIONS
+                                        options={['Delantera (FWD)', 'Trasera (RWD)', '4x4 (4WD)', 'Integral (AWD)', '6x4', '6x6', '8x4', '8x8']}
+                                        strict={true}
+                                    />
+                                </div>
+                                <div className="space-y-2 col-span-1">
+                                    <label className="block text-text-primary font-medium">Pasajeros <span className="text-text-secondary text-xs font-normal">(Asientos)</span></label>
+                                    <SearchableSelect
+                                        value={passengers}
+                                        onChange={setPassengers}
+                                        options={['2', '4', '5', '7', '8', '12', '15', '40+']}
+                                        strict={false}
+                                    />
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

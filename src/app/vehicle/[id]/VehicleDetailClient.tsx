@@ -38,6 +38,9 @@ interface VehicleDetailProps {
         vehicleType: string | null
         displacement: number | null
         cargoCapacity: number | null
+        operatingHours?: number | null
+        traction?: string | null
+        passengers?: number | null
         features: string[]
         hasInvoice: boolean | null
         hasTenencia: boolean | null
@@ -197,29 +200,31 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail }: Vehic
                                     <DetailItem icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>} label="Categoría" value={vehicle.vehicleType || 'N/A'} />
 
                                     <DetailItem icon={<CheckCircle2 size={18} />} label="Condición" value={vehicle.condition || 'N/A'} />
-                                    {vehicle.hasInvoice !== null && (
-                                        <DetailItem
-                                            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
-                                            label="Factura"
-                                            value={vehicle.hasInvoice === true ? 'Sí' : 'No'}
-                                        />
-                                    )}
-                                    {vehicle.hasTenencia !== null && (
-                                        <DetailItem
-                                            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                            label="Tenencias"
-                                            value={vehicle.hasTenencia === true ? 'Al día' : 'Pendientes'}
-                                        />
-                                    )}
-                                    {vehicle.hasVerification !== null && (
-                                        <DetailItem
-                                            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                            label="Verificación"
-                                            value={vehicle.hasVerification === true ? 'Sí' : 'No'}
-                                        />
-                                    )}
+
 
                                     {vehicle.cargoCapacity && <DetailItem icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>} label="Carga" value={`${vehicle.cargoCapacity} kg`} />}
+
+                                    {vehicle.traction && (
+                                        <DetailItem
+                                            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
+                                            label="Tracción"
+                                            value={vehicle.traction}
+                                        />
+                                    )}
+                                    {vehicle.passengers && (
+                                        <DetailItem
+                                            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>}
+                                            label="Pasajeros"
+                                            value={vehicle.passengers.toString()}
+                                        />
+                                    )}
+                                    {vehicle.operatingHours && (
+                                        <DetailItem
+                                            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                                            label="Horas de Uso"
+                                            value={`${formatNumber(vehicle.operatingHours, locale)} hrs`}
+                                        />
+                                    )}
                                 </div>
                             </div>
 

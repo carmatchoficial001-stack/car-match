@@ -35,6 +35,7 @@ interface Business {
     facebook?: string
     instagram?: string
     tiktok?: string
+    expiresAt?: string
 }
 
 export default function MyBusinessesClient() {
@@ -960,6 +961,15 @@ export default function MyBusinessesClient() {
                                         <div className="flex items-center gap-2 text-sm text-text-secondary">
                                             <span>📍 {business.city}</span>
                                         </div>
+                                        {business.expiresAt && (
+                                            <div className="mt-2 text-xs font-medium text-text-secondary bg-surface-highlight/30 px-2 py-1 rounded inline-block">
+                                                📅 Vence: {new Date(business.expiresAt).toLocaleDateString('es-MX', {
+                                                    day: 'numeric',
+                                                    month: 'long',
+                                                    year: 'numeric'
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="px-4 pb-4 pt-0 flex gap-2">
                                         <button

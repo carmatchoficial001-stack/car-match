@@ -38,7 +38,7 @@ export default function MarketFiltersAdvanced({
 
     // Estados de filtros
     const [category, setCategory] = useState<VehicleCategory | ''>((currentFilters.category as VehicleCategory) || '')
-    const [subType, setSubType] = useState(currentFilters.subType || '')
+    const [subType, setSubType] = useState(currentFilters.vehicleType || currentFilters.subType || '')
     const [brand, setBrand] = useState(currentFilters.brand || '')
     const [model, setModel] = useState(currentFilters.model || '')
     const [minPrice, setMinPrice] = useState(currentFilters.minPrice || '')
@@ -67,8 +67,7 @@ export default function MarketFiltersAdvanced({
     const [minEngine, setMinEngine] = useState(currentFilters.minEngine || '')
     const [maxEngine, setMaxEngine] = useState(currentFilters.maxEngine || '')
 
-    // Documentación & Extras
-    const [hasInvoice, setHasInvoice] = useState(currentFilters.hasInvoice === 'true')
+    // Extras
     const [features, setFeatures] = useState<string[]>(currentFilters.features ? currentFilters.features.split(',') : [])
 
     const [showAdvanced, setShowAdvanced] = useState(false)
@@ -158,12 +157,12 @@ export default function MarketFiltersAdvanced({
             'category', 'subType', 'brand', 'model', 'minPrice', 'maxPrice',
             'minYear', 'maxYear', 'color', 'condition', 'country', 'state', 'city',
             'transmission', 'fuel', 'traction', 'minMileage', 'maxMileage', 'doors',
-            'passengers', 'hours', 'hasInvoice', 'features'
+            'passengers', 'hours', 'features'
         ]
         keys.forEach(k => params.delete(k))
 
         if (category) params.set('category', category)
-        if (subType) params.set('subType', subType)
+        if (subType) params.set('vehicleType', subType)
         if (brand) params.set('brand', brand)
         if (model) params.set('model', model)
         if (minPrice) params.set('minPrice', minPrice)
@@ -187,10 +186,10 @@ export default function MarketFiltersAdvanced({
         if (doors) params.set('doors', doors)
         if (passengers) params.set('passengers', passengers)
         if (hours) params.set('hours', hours)
-        if (minEngine) params.set('minEngine', minEngine)
-        if (maxEngine) params.set('maxEngine', maxEngine)
+        if (hours) params.set('hours', hours)
+        if (minEngine) params.set('minDisplacement', minEngine)
+        if (maxEngine) params.set('maxDisplacement', maxEngine)
 
-        if (hasInvoice) params.set('hasInvoice', 'true')
 
         router.push(`/market?${params.toString()}`)
     }
@@ -587,6 +586,54 @@ export default function MarketFiltersAdvanced({
                         </div>
                     </div>
 
+
+                    {/* Tracción y Pasajeros */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">Tracción</label>
+                            <select
+                                value={traction}
+                                onChange={(e) => setTraction(e.target.value)}
+                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary text-sm"
+                            >
+                                <option value="">Cualquiera</option>
+                                <option value="Delantera (FWD)">FWD</option>
+                                <option value="Trasera (RWD)">RWD</option>
+                                <option value="4x4 (4WD)">4x4</option>
+                                <option value="Integral (AWD)">AWD</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">Pasajeros Min</label>
+                            <select
+                                value={passengers}
+                                onChange={(e) => setPassengers(e.target.value)}
+                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary text-sm"
+                            >
+                                <option value="">Cualquiera</option>
+                                <option value="2">2+</option>
+                                <option value="4">4+</option>
+                                <option value="5">5+</option>
+                                <option value="7">7+</option>
+                                <option value="8">8+</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Horas (Maquinaria/Barcos) */}
+                    {(category === 'Maquinaria' || category === 'Especial') && (
+                        <div>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">Horas de Uso Max</label>
+                            <input
+                                type="number"
+                                value={hours}
+                                onChange={(e) => setHours(e.target.value)}
+                                placeholder="Ej. 5000"
+                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
+                            />
+                        </div>
+                    )}
+
                     {/* Combustible Chips */}
                     <div>
                         <label className="block text-xs font-bold text-text-secondary uppercase mb-2">Combustible</label>
@@ -628,18 +675,7 @@ export default function MarketFiltersAdvanced({
                         </div>
                     )}
 
-                    {/* Unique Extras */}
-                    <div className="flex gap-4 border-t border-surface-highlight pt-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={hasInvoice}
-                                onChange={(e) => setHasInvoice(e.target.checked)}
-                                className="w-4 h-4 text-primary-700 bg-background border-surface-highlight rounded"
-                            />
-                            <span className="text-sm font-medium text-text-primary">Con Factura</span>
-                        </label>
-                    </div>
+
 
                 </div>
             )}

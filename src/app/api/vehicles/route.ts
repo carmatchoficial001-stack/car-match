@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
             isFreePublication = true
         }
         else {
-            // ✅ BENEFICIO ESTÁNDAR: 7 Días Gratis (Actualizado)
+            // ✅ BENEFICIO ESTÁNDAR: 7 Días Gratis (Estrategia de gancho para vendedores)
             expiresAt.setDate(now.getDate() + 7)
             isFreePublication = true
         }
@@ -182,6 +182,8 @@ export async function POST(request: NextRequest) {
                 color: body.color || null,
                 vehicleType: body.vehicleType || null,
                 doors: body.doors ? parseInt(body.doors) : null,
+                passengers: body.passengers ? parseInt(body.passengers) : null,
+                traction: body.traction || null,
                 condition: body.condition || null,
                 currency: body.currency || 'MXN',
                 // Documentación

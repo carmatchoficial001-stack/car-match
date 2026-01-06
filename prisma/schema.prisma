@@ -126,9 +126,11 @@ model Vehicle {
   mileage           Int?
   mileageUnit       String           @default("km")
   transmission      String?
+  traction          String?
   fuel              String?
   engine            String?
   doors             Int?
+  passengers        Int?
   color             String?
   vehicleType       String?
   condition         String?
