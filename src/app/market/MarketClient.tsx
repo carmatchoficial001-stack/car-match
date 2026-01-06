@@ -138,6 +138,7 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
     const [showLocationModal, setShowLocationModal] = useState(false)
     const [locationInput, setLocationInput] = useState('')
     const [userCountry, setUserCountry] = useState<string>('MX')
+    const [gpsCity, setGpsCity] = useState<string>('')
 
     // Pagination
     const CARS_PER_PAGE = 6
@@ -156,7 +157,10 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
     // --- LÓGICA DE FILTRADO Y DISTANCIA ---
     useEffect(() => {
         const filterItems = async () => {
-            if (!items.length) return
+            if (!items.length) {
+                setLoading(false)
+                return
+            }
             setLoading(true)
 
             try {
@@ -166,13 +170,31 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
 
                 if (!userLat || !userLng) {
                     try {
-                        const coords = await getUserLocation()
+                        // Race condition: GPS vs 10s Timeout
+                        const coordsPromise = getUserLocation()
+                        const timeoutPromise = new Promise<{ latitude: number, longitude: number }>((_, reject) =>
+                            setTimeout(() => reject(new Error('GPS Timeout')), 10000)
+                        )
+
+                        const coords = await Promise.race([coordsPromise, timeoutPromise])
+
                         userLat = coords.latitude
                         userLng = coords.longitude
-                        const locData = await reverseGeocode(userLat, userLng)
-                        if (locData.countryCode) setUserCountry(locData.countryCode.toUpperCase())
+
+                        // Reverse geocoding in background (don't await strictly if not critical)
+                        reverseGeocode(userLat, userLng)
+                            .then(locData => {
+                                if (locData.countryCode) setUserCountry(locData.countryCode.toUpperCase())
+                                if (locData.city) setGpsCity(locData.city)
+                                else if (locData.state) setGpsCity(locData.state)
+                            })
+                            .catch(e => console.warn('Reverse geo fail', e))
+
                     } catch (e) {
-                        console.warn('GPS fail', e)
+                        console.warn('GPS fail or timeout', e)
+                        // Si falla el GPS, no ponemos default, dejamos que el usuario elija manual
+                        // Opcional: Podríamos activar el modal aquí si queremos forzar ubicación
+                        // setShowLocationModal(true)
                     }
                 }
 
@@ -309,20 +331,40 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
                                 </button>
                             </div>
                         </form>
+
+                        {/* Indicador de Distancia */}
+                        <div className="hidden md:block">
+                            <DistanceBadge
+                                distance={searchRadius}
+                                locationName={manualLocation ? manualLocation.city : (gpsCity || 'Localizando...')}
+                                onClick={() => setShowLocationModal(true)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Mobile Distance Indicator */}
+                    <div className="md:hidden mt-4 flex justify-center">
+                        <DistanceBadge
+                            distance={searchRadius}
+                            locationName={manualLocation ? manualLocation.city : (gpsCity || 'Localizando...')}
+                            onClick={() => setShowLocationModal(true)}
+                        />
                     </div>
                 </header>
 
                 {/* Área de Filtros (Full Width) */}
-                {showFilters && (
-                    <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-300">
-                        <MarketFilters
-                            brands={brands}
-                            vehicleTypes={vehicleTypes}
-                            colors={colors}
-                            currentFilters={searchParams}
-                        />
-                    </div>
-                )}
+                {
+                    showFilters && (
+                        <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-300">
+                            <MarketFilters
+                                brands={brands}
+                                vehicleTypes={vehicleTypes}
+                                colors={colors}
+                                currentFilters={searchParams}
+                            />
+                        </div>
+                    )
+                }
 
                 {/* Grid de Vehículos */}
                 <div>
@@ -525,54 +567,56 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
                 </div>
 
                 {/* LOCATION MODAL */}
-                {showLocationModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4">
-                        <div className="bg-surface border border-surface-highlight rounded-xl w-full max-w-md p-6 relative">
-                            <button
-                                onClick={() => setShowLocationModal(false)}
-                                className="absolute top-4 right-4 text-text-secondary hover:text-white"
-                            >
-                                ✕
-                            </button>
+                {
+                    showLocationModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4">
+                            <div className="bg-surface border border-surface-highlight rounded-xl w-full max-w-md p-6 relative">
+                                <button
+                                    onClick={() => setShowLocationModal(false)}
+                                    className="absolute top-4 right-4 text-text-secondary hover:text-white"
+                                >
+                                    ✕
+                                </button>
 
-                            <h3 className="text-xl font-bold text-text-primary mb-4">Cambiar Ubicación</h3>
-                            <p className="text-text-secondary text-sm mb-6">
-                                Ingresa una ciudad para ver vehículos en esa zona (ej. "Guadalajara", "Miami").
-                            </p>
+                                <h3 className="text-xl font-bold text-text-primary mb-4">Cambiar Ubicación</h3>
+                                <p className="text-text-secondary text-sm mb-6">
+                                    Ingresa una ciudad para ver vehículos en esa zona (ej. "Guadalajara", "Miami").
+                                </p>
 
-                            <form onSubmit={searchManualLocation} className="space-y-4">
-                                <input
-                                    type="text"
-                                    value={locationInput}
-                                    onChange={(e) => setLocationInput(e.target.value)}
-                                    placeholder="Ciudad o Código Postal..."
-                                    className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-500 outline-none"
-                                    autoFocus
-                                />
+                                <form onSubmit={searchManualLocation} className="space-y-4">
+                                    <input
+                                        type="text"
+                                        value={locationInput}
+                                        onChange={(e) => setLocationInput(e.target.value)}
+                                        placeholder="Ciudad o Código Postal..."
+                                        className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-500 outline-none"
+                                        autoFocus
+                                    />
 
-                                <div className="flex gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setManualLocation(null) // Reset to GPS
-                                            setShowLocationModal(false)
-                                            setLocationInput('')
-                                        }}
-                                        className="flex-1 px-4 py-3 bg-surface-highlight text-text-primary rounded-lg font-medium hover:bg-surface-highlight/80"
-                                    >
-                                        Usar mi GPS
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg font-bold hover:bg-primary-700"
-                                    >
-                                        Buscar Zona
-                                    </button>
-                                </div>
-                            </form>
+                                    <div className="flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setManualLocation(null) // Reset to GPS
+                                                setShowLocationModal(false)
+                                                setLocationInput('')
+                                            }}
+                                            className="flex-1 px-4 py-3 bg-surface-highlight text-text-primary rounded-lg font-medium hover:bg-surface-highlight/80"
+                                        >
+                                            Usar mi GPS
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg font-bold hover:bg-primary-700"
+                                        >
+                                            Buscar Zona
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
             </div>
         </div>
     )
