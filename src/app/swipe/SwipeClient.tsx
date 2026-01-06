@@ -8,7 +8,7 @@ import SwipeFeed from '@/components/SwipeFeed'
 import Header from '@/components/Header'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { MapPin, RefreshCw, Search } from 'lucide-react'
-import { calculateDistance, searchCity } from '@/lib/geolocation'
+import { calculateDistance, searchCity, normalizeCountryCode } from '@/lib/geolocation'
 
 interface FeedItem {
     id: string
@@ -117,24 +117,18 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         }
     }, [])
 
-    // 2. MAZO ESTABLE
+    // 2. MAZO ESTABLE CON FRONTERA DIGITAL
     const stablePool = useMemo(() => {
         if (locationLoading || !location) return []
 
-        const normalizeCountry = (c?: string | null) => {
-            if (!c) return null
-            const upper = c.toUpperCase()
-            if (upper.includes('MEX') || upper === 'MX') return 'MX'
-            if (upper.includes('USA') || upper.includes('UNIT') || upper.includes('ESTAD') || upper === 'US') return 'US'
-            return upper.substring(0, 2)
-        }
-
-        const userCountry = normalizeCountry(location?.country)
+        const userCountry = normalizeCountryCode(location?.country)
 
         const withDist = items
             .filter((item: FeedItem) => {
-                const itemCountry = normalizeCountry(item.country)
-                return (itemCountry || 'MX') === userCountry
+                // 🔐 FRONTERA DIGITAL ESTRICTA
+                // Solo mostrar vehículos del mismo país que la ubicación del usuario.
+                const itemCountry = normalizeCountryCode(item.country)
+                return itemCountry === userCountry
             })
             .map((item: FeedItem) => {
                 const distance = calculateDistance(
@@ -241,13 +235,24 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                         <h2 className="text-2xl font-bold mb-4 tracking-tight">
                             ¡Has visto todo en esta zona!
                         </h2>
-                        <button
-                            onClick={expandSearch}
-                            className="w-full py-5 bg-primary-700 hover:bg-primary-600 text-white rounded-2xl font-bold transition shadow-xl active:scale-95 flex items-center justify-center gap-3 text-lg"
-                        >
-                            <RefreshCw size={20} />
-                            {tierIndex === RADIUS_TIERS.length - 1 ? 'Reiniciar' : 'Expandir'}
-                        </button>
+
+                        <div className="flex flex-col gap-3 w-full">
+                            <button
+                                onClick={expandSearch}
+                                className="w-full py-4 bg-primary-700 hover:bg-primary-600 text-white rounded-2xl font-bold transition shadow-xl active:scale-95 flex items-center justify-center gap-3 text-lg"
+                            >
+                                <RefreshCw size={20} />
+                                {tierIndex === RADIUS_TIERS.length - 1 ? 'Reiniciar' : 'Expandir radio'}
+                            </button>
+
+                            <button
+                                onClick={() => setShowLocationModal(true)}
+                                className="w-full py-4 bg-surface-highlight/30 hover:bg-surface-highlight/50 text-text-primary border border-white/10 rounded-2xl font-medium transition active:scale-95 flex items-center justify-center gap-3"
+                            >
+                                <MapPin size={20} />
+                                Buscar en otra ciudad
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     <div className="w-full flex-1 flex flex-col">

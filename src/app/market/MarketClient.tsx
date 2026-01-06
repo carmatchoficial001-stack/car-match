@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useLocation } from '@/contexts/LocationContext'
-import { searchCity, calculateDistance } from '@/lib/geolocation'
+import { searchCity, calculateDistance, normalizeCountryCode } from '@/lib/geolocation'
 import DistanceBadge from '@/components/DistanceBadge'
 import Header from '@/components/Header'
 import MarketFilters from '@/components/MarketFilters'
@@ -124,7 +124,7 @@ export default function MarketClient({
     // Ubicación Activa
     const activeLocation = manualLocation || location
     const displayCity = activeLocation?.city || activeLocation?.state || (locationLoading ? 'Localizando...' : 'Ubicación desconocida')
-    const userCountry = activeLocation?.countryCode?.toUpperCase() || 'MX'
+    const userCountry = normalizeCountryCode(activeLocation?.countryCode || activeLocation?.country)
 
     // Pagination
     const CARS_PER_PAGE = 6
@@ -161,9 +161,9 @@ export default function MarketClient({
                         }
                         return { ...item, distance: d }
                     })
-                    // 🌍 FRONTERA DIGITAL: Filtrar por país
+                    // 🌍 FRONTERA DIGITAL: Filtrar estrictamente por país normalizado
                     .filter(item => {
-                        const itemCountry = item.country?.toUpperCase() || 'MX'
+                        const itemCountry = normalizeCountryCode(item.country)
                         return itemCountry === userCountry
                     })
                     // Filtrar por radio
@@ -493,28 +493,31 @@ export default function MarketClient({
                                         </p>
                                     </div>
 
-                                    {/* Action Button for Empty List */}
-                                    {searchRadius < 5000 ? (
+                                    {/* Action Buttons for Empty List */}
+                                    <div className="flex flex-col md:flex-row gap-3">
+                                        {/* Always show Expand/Restart button here */}
                                         <button
                                             onClick={handleExpandSearch}
-                                            className="inline-flex items-center gap-2 px-8 py-4 bg-primary-700 text-text-primary rounded-xl hover:bg-primary-600 transition font-bold shadow-lg"
+                                            className="inline-flex items-center gap-2 px-8 py-4 bg-primary-700 text-text-primary rounded-xl hover:bg-primary-600 transition font-bold shadow-lg justify-center whitespace-nowrap"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                             </svg>
                                             {tierIndex === RADIUS_TIERS.length - 1 ? "Volver a empezar" : "Expandir búsqueda"}
                                         </button>
-                                    ) : (
-                                        <Link
-                                            href="/publish"
-                                            className="inline-flex items-center gap-2 px-8 py-4 bg-surface border border-primary-700/50 text-primary-400 rounded-xl hover:bg-primary-700 hover:text-text-primary transition font-bold"
+
+                                        {/* New: Change Location Button */}
+                                        <button
+                                            onClick={() => setShowLocationModal(true)}
+                                            className="inline-flex items-center gap-2 px-8 py-4 bg-surface-highlight/50 text-text-primary rounded-xl hover:bg-surface-highlight transition font-medium justify-center whitespace-nowrap"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
-                                            {t('market.publish_cta')}
-                                        </Link>
-                                    )}
+                                            Buscar en otra ciudad
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </>
