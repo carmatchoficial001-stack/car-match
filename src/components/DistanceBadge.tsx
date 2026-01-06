@@ -4,16 +4,23 @@ import { formatDistance } from '@/lib/geolocation'
 
 interface DistanceBadgeProps {
     distance: number
+    locationName?: string
+    onClick?: () => void
     className?: string
 }
 
 /**
- * Badge que muestra la distancia al vehículo
+ * Badge que muestra la distancia al vehículo o el radio de búsqueda actual
  */
-export default function DistanceBadge({ distance, className = '' }: DistanceBadgeProps) {
+export default function DistanceBadge({ distance, locationName, onClick, className = '' }: DistanceBadgeProps) {
+    const Component = onClick ? 'button' : 'div'
+
     return (
-        <div className={`inline-flex items-center gap-1.5 px-2 py-1 bg-primary-900/20 text-primary-400 rounded-lg text-xs font-medium ${className}`}>
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <Component
+            onClick={onClick}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-900/20 text-primary-400 rounded-lg text-xs font-bold transition hover:bg-primary-900/30 ${onClick ? 'cursor-pointer hover:scale-105 select-none' : ''} ${className}`}
+        >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -27,7 +34,9 @@ export default function DistanceBadge({ distance, className = '' }: DistanceBadg
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                 />
             </svg>
-            <span>{formatDistance(distance)}</span>
-        </div>
+            <span className="truncate max-w-[150px]">
+                {locationName ? `${locationName} (${formatDistance(distance)})` : formatDistance(distance)}
+            </span>
+        </Component>
     )
 }
