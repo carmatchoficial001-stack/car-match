@@ -43,7 +43,7 @@ export default async function MarketPage({
 
     const currentUser = await prisma.user.findUnique({
         where: { email: session.user.email! },
-        select: { id: true, isAdmin: true }
+        select: { id: true, isAdmin: true, lastLatitude: true, lastLongitude: true }
     })
 
     if (!currentUser) {
