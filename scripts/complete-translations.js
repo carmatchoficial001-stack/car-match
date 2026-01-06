@@ -77,9 +77,10 @@ function buildJsonFromKeys(keyValuePairs) {
     return result;
 }
 
-// Función para traducir un lote de claves usando Gemini
-async function translateBatch(keysToTranslate, baseData, targetLang) {
+// Función para traducir un lote de claves usando Gemini con reintentos automáticos
+async function translateBatch(keysToTranslate, baseData, targetLang, attempt = 1) {
     const langName = LANGUAGE_NAMES[targetLang] || targetLang;
+    const MAX_RETRIES = 5;
 
     // Preparar el JSON a traducir
     const toTranslate = {};
@@ -123,6 +124,23 @@ Return the translated JSON:`;
         const translated = JSON.parse(jsonMatch[0]);
         return translated;
     } catch (error) {
+        // Manejar error de cuota (429)
+        if (error.message.includes('429') || error.message.includes('Quota exceeded')) {
+            if (attempt <= MAX_RETRIES) {
+                // Intentar extraer el tiempo de espera recomendado (ej. "retry in 25s")
+                let waitTime = Math.pow(2, attempt) * 5000; // Backoff básico (10s, 20s, 40s...)
+
+                const retryMatch = error.message.match(/retry in ([\d.]+)s/);
+                if (retryMatch) {
+                    waitTime = (parseFloat(retryMatch[1]) + 2) * 1000;
+                }
+
+                console.warn(`   ⚠️  Rate limit hit. Retrying in ${Math.round(waitTime / 1000)}s... (Attempt ${attempt}/${MAX_RETRIES})`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+                return translateBatch(keysToTranslate, baseData, targetLang, attempt + 1);
+            }
+        }
+
         console.error(`❌ Error translating batch to ${langName}:`, error.message);
         throw error;
     }
@@ -193,7 +211,7 @@ async function completeTranslations() {
 
                 // Delay para no saturar la API
                 if (i < batches.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await new Promise(resolve => setTimeout(resolve, 5000));
                 }
             }
 

@@ -502,7 +502,7 @@ function MapContent({ businesses, user }: MapClientProps) {
                                                     )}
                                                 </div>
                                                 <span className={`text-sm ${isSelected ? 'text-white font-medium' : 'text-gray-400'}`}>
-                                                    {cat.label}
+                                                    {t(`map_store.categories.${cat.id}`) || cat.label}
                                                 </span>
                                             </div>
                                         )

@@ -10,6 +10,7 @@ interface EditProfileModalProps {
     currentUser: {
         name: string | null
         image: string | null
+        email?: string | null
     }
     userVehicles: any[] // Lista de vehículos del usuario para usar como foto
 }
@@ -21,6 +22,9 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
     const [name, setName] = useState(currentUser.name || '')
     const [selectedImage, setSelectedImage] = useState(currentUser.image || '')
     const [loading, setLoading] = useState(false)
+
+    const [imageError, setImageError] = useState(false)
+    const initial = (currentUser.name?.[0] || currentUser.email?.[0] || '?').toUpperCase()
 
     if (!isOpen) return null
 
@@ -45,6 +49,8 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
             setLoading(false)
         }
     }
+
+    const hasValidImage = selectedImage && (selectedImage.startsWith('http') || selectedImage.startsWith('/')) && !imageError
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -102,15 +108,26 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                         {/* Subir Foto Personalizada */}
                         <div className="mb-6">
                             {/* Si no hay imagen seleccionada (o es inválida), mostramos la inicial */}
-                            {(!selectedImage || (!selectedImage.startsWith('http') && !selectedImage.startsWith('/'))) && (
+                            {!hasValidImage && (
                                 <div className="mb-4 flex flex-col items-center justify-center p-6 border-2 border-dashed border-surface-highlight rounded-xl bg-surface-highlight/50">
                                     <div className="w-full max-w-md aspect-video rounded-xl bg-gradient-to-br from-primary-600 to-primary-900 flex items-center justify-center text-6xl font-bold text-white shadow-xl mb-3">
-                                        {currentUser.name?.[0]?.toUpperCase() || '?'}
+                                        {initial}
                                     </div>
                                     <p className="text-sm text-text-secondary text-center">
-                                        Así se ve tu perfil actualmente (sin foto).
+                                        {imageError ? 'Tu foto actual no se puede cargar.' : 'Así se ve tu perfil actualmente (sin foto).'}
                                     </p>
                                 </div>
+                            )}
+
+                            {/* Guardamos el img original oculto para detectar errores */}
+                            {selectedImage && (selectedImage.startsWith('http') || selectedImage.startsWith('/')) && (
+                                <img
+                                    src={selectedImage}
+                                    className="hidden"
+                                    onError={() => setImageError(true)}
+                                    onLoad={() => setImageError(false)}
+                                    alt=""
+                                />
                             )}
 
                             <ImageUpload

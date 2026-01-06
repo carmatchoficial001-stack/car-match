@@ -277,7 +277,11 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
             <EditProfileModal
                 isOpen={showEditModal}
                 onClose={() => setShowEditModal(false)}
-                currentUser={{ name: user.name, image: user.image }}
+                currentUser={{
+                    name: user.name,
+                    image: user.image,
+                    email: user.email
+                }}
                 userVehicles={vehiclesToShow}
             />
         </div>

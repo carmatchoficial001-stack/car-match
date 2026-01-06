@@ -134,7 +134,7 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                             style={{ borderColor: categoryColor }}
                         >
                             <span className="text-lg">{categoryEmoji}</span>
-                            <span className="tracking-wider">{business.category.toUpperCase()}</span>
+                            <span className="tracking-wider">{(t(`map_store.categories.${business.category.toLowerCase()}`) || business.category).toUpperCase()}</span>
                         </span>
                     </div>
                 </div>

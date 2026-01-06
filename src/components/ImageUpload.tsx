@@ -163,6 +163,11 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
                                 alt={`Foto ${index + 1}`}
                                 fill
                                 className="object-cover"
+                                onError={(e) => {
+                                    // Si falla la imagen, podemos ocultar el contenedor o mostrar un placeholder
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                }}
                             />
 
                             {/* Badge de foto principal */}
