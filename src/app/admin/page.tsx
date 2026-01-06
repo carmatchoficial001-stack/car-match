@@ -28,10 +28,12 @@ import {
     TrendingUp,
     Map as MapIcon,
     BarChart2,
-    Target
+    Target,
+    QrCode
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 const AdminHeatMap = dynamic(() => import('@/components/AdminHeatMap'), { ssr: false })
+import QRCodeModal from '@/components/QRCodeModal'
 import Link from 'next/link'
 
 interface SystemStats {
@@ -76,6 +78,7 @@ export default function AdminDashboard() {
     // AI Analyst State
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [aiAnalysis, setAiAnalysis] = useState<any>(null)
+    const [showQRModal, setShowQRModal] = useState(false)
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -209,6 +212,18 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="flex items-center gap-6">
+                        {/* QR Code Button */}
+                        <button
+                            onClick={() => setShowQRModal(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-primary-600/10 hover:bg-primary-600/20 border border-primary-600/20 rounded-xl transition group"
+                            title="Compartir CarMatch con QR"
+                        >
+                            <QrCode className="w-4 h-4 text-primary-400 group-hover:text-primary-300" />
+                            <span className="text-xs font-bold text-primary-400 group-hover:text-primary-300 uppercase tracking-wider hidden sm:block">
+                                Compartir App
+                            </span>
+                        </button>
+
                         <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
                             <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">System Healthy</span>
@@ -246,6 +261,12 @@ export default function AdminDashboard() {
                     </AnimatePresence>
                 </div>
             </main>
+
+            {/* QR Code Modal */}
+            <QRCodeModal
+                isOpen={showQRModal}
+                onClose={() => setShowQRModal(false)}
+            />
         </div>
     )
 }

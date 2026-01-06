@@ -6,6 +6,7 @@ import { Logo } from '@/components/Logo'
 import LanguageSelectorPublic from '@/components/LanguageSelectorPublic'
 import { useLanguage } from '@/contexts/LanguageContext'
 import PWAInstallModal from '@/components/PWAInstallModal'
+import QRCodeModal from '@/components/QRCodeModal'
 import { usePWAInstall } from '@/hooks/usePWAInstall'
 
 export default function LandingPageContent() {
@@ -13,6 +14,7 @@ export default function LandingPageContent() {
     const { triggerInstall, isStandalone } = usePWAInstall()
     const [showInstallModal, setShowInstallModal] = useState(false)
     const [selectedPlatform, setSelectedPlatform] = useState<'ios' | 'android' | 'auto'>('auto')
+    const [showQRModal, setShowQRModal] = useState(false)
 
     const handleIOSClick = () => {
         setSelectedPlatform('ios')
@@ -141,6 +143,11 @@ export default function LandingPageContent() {
                 platform={selectedPlatform}
             />
 
+            <QRCodeModal
+                isOpen={showQRModal}
+                onClose={() => setShowQRModal(false)}
+            />
+
             {/* Footer Section */}
             <footer className="relative z-10 w-full max-w-7xl mx-auto py-12 px-8 border-t border-white/10 mt-24">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-8">
@@ -163,6 +170,16 @@ export default function LandingPageContent() {
                             <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
                                 <TikTokIcon className="w-6 h-6" />
                             </a>
+                            {/* QR Code Button */}
+                            <button
+                                onClick={() => setShowQRModal(true)}
+                                className="text-gray-400 hover:text-white transition-all hover:scale-110 group relative"
+                                title="Compartir con QR"
+                            >
+                                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm-2 14h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zm-6 4h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h2v2h-2v-2zm2-2h2v2h-2v-2zm0-4h2v2h-2v-2zm-4 0h2v2h-2v-2z" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
