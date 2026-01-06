@@ -1,18 +1,17 @@
 "use client"
-// v1.2 Random Feed & Global Country Lock
+// v1.4 Refactor: Global LocationContext Usage
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { MapPin } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { LocationProvider } from '@/contexts/LocationContext'
-import { filterNearbyVehicles, searchCity, LocationData, getUserLocation, reverseGeocode, EXPANSION_TIERS, calculateDistance } from '@/lib/geolocation'
+import { useLocation } from '@/contexts/LocationContext'
+import { searchCity, calculateDistance } from '@/lib/geolocation'
 import DistanceBadge from '@/components/DistanceBadge'
 import Header from '@/components/Header'
 import MarketFilters from '@/components/MarketFilters'
 import FavoriteButton from '@/components/FavoriteButton'
-import ContactButton from '@/components/ContactButton'
 import ShareButton from '@/components/ShareButton'
 import ReportImageButton from '@/components/ReportImageButton'
 import { formatPrice, formatNumber } from '@/lib/vehicleTaxonomy'
@@ -69,10 +68,6 @@ function boostShuffleArray(array: FeedItem[]): FeedItem[] {
         [boosted[i], boosted[j]] = [boosted[j], boosted[i]];
     }
 
-    // Algorithm: 
-    // 1. Put boosted items at the beginning (Top slots)
-    // 2. Sprinkle boosted items throughout the feed to increase density
-
     const result: FeedItem[] = []
 
     // First items should be boosted if available
@@ -107,96 +102,56 @@ export default function MarketClient({
     colors,
     searchParams
 }: MarketClientProps) {
-    return (
-        <LocationProvider>
-            <MarketContent
-                items={initialItems}
-                brands={brands}
-                vehicleTypes={vehicleTypes}
-                colors={colors}
-                searchParams={searchParams}
-            />
-        </LocationProvider>
-    )
-}
-
-function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, searchParams }: any) {
     const { t, locale } = useLanguage()
-    const [loading, setLoading] = useState(true)
+
+    // 🔥 USANDO CONTEXTO GLOBAL
+    const { location, loading: locationLoading, manualLocation, setManualLocation } = useLocation()
+    const [isFiltering, setIsFiltering] = useState(true)
 
     // ANILLOS PROGRESIVOS
     const RADIUS_TIERS = [12, 100, 250, 500, 1000, 2500, 5000]
     const [tierIndex, setTierIndex] = useState(0)
     const searchRadius = RADIUS_TIERS[tierIndex]
 
-    const [items, setItems] = useState<FeedItem[]>(initialFeedItems)
+    const [items, setItems] = useState<FeedItem[]>(initialItems)
     const [filteredItems, setFilteredItems] = useState<FeedItem[]>([])
     const [showFilters, setShowFilters] = useState(false)
 
-    // Manual Location State
-    const [manualLocation, setManualLocation] = useState<LocationData | null>(null)
+    // Modal UI State
     const [showLocationModal, setShowLocationModal] = useState(false)
     const [locationInput, setLocationInput] = useState('')
-    const [userCountry, setUserCountry] = useState<string>('MX')
-    const [gpsCity, setGpsCity] = useState<string>('')
+
+    // Ubicación Activa
+    const activeLocation = manualLocation || location
+    const displayCity = activeLocation?.city || activeLocation?.state || (locationLoading ? 'Localizando...' : 'Ubicación desconocida')
+    const userCountry = activeLocation?.countryCode?.toUpperCase() || 'MX'
 
     // Pagination
     const CARS_PER_PAGE = 6
     const [visibleCount, setVisibleCount] = useState(CARS_PER_PAGE)
 
-    const [userLocationState, setUserLocationState] = useState<{ lat: number; lng: number } | null>(null)
-
     useEffect(() => {
         // Shuffle only on first load if no specific sort
         const shouldShuffle = !searchParams.sort || searchParams.sort === 'newest'
         if (shouldShuffle) {
-            setItems(boostShuffleArray(initialFeedItems))
+            setItems(boostShuffleArray(initialItems))
         }
-    }, [initialFeedItems, searchParams.sort])
+    }, [initialItems, searchParams.sort])
 
     // --- LÓGICA DE FILTRADO Y DISTANCIA ---
     useEffect(() => {
         const filterItems = async () => {
-            if (!items.length) {
-                setLoading(false)
+            // Si estamos cargando ubicación inicial, mostramos spinner
+            if (locationLoading && !activeLocation) {
+                setIsFiltering(true)
                 return
             }
-            setLoading(true)
+
+            setIsFiltering(true)
 
             try {
-                // Priority: Manual > GPS
-                let userLat: number | null = manualLocation?.latitude || null
-                let userLng: number | null = manualLocation?.longitude || null
-
-                if (!userLat || !userLng) {
-                    try {
-                        // Race condition: GPS vs 10s Timeout
-                        const coordsPromise = getUserLocation()
-                        const timeoutPromise = new Promise<{ latitude: number, longitude: number }>((_, reject) =>
-                            setTimeout(() => reject(new Error('GPS Timeout')), 10000)
-                        )
-
-                        const coords = await Promise.race([coordsPromise, timeoutPromise])
-
-                        userLat = coords.latitude
-                        userLng = coords.longitude
-
-                        // Reverse geocoding in background (don't await strictly if not critical)
-                        reverseGeocode(userLat, userLng)
-                            .then(locData => {
-                                if (locData.countryCode) setUserCountry(locData.countryCode.toUpperCase())
-                                if (locData.city) setGpsCity(locData.city)
-                                else if (locData.state) setGpsCity(locData.state)
-                            })
-                            .catch(e => console.warn('Reverse geo fail', e))
-
-                    } catch (e) {
-                        console.warn('GPS fail or timeout', e)
-                        // Si falla el GPS, no ponemos default, dejamos que el usuario elija manual
-                        // Opcional: Podríamos activar el modal aquí si queremos forzar ubicación
-                        // setShowLocationModal(true)
-                    }
-                }
+                const userLat = activeLocation?.latitude
+                const userLng = activeLocation?.longitude
 
                 const processed = items
                     .map(item => {
@@ -212,7 +167,10 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
                         return itemCountry === userCountry
                     })
                     // Filtrar por radio
-                    .filter(item => item.distance <= searchRadius)
+                    .filter(item => {
+                        if (!userLat || !userLng) return true
+                        return item.distance <= searchRadius
+                    })
                     .sort((a, b) => (a.distance || 0) - (b.distance || 0))
 
                 setFilteredItems(processed)
@@ -220,12 +178,12 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
                 console.error('Filter error', error)
                 setFilteredItems(items)
             } finally {
-                setLoading(false)
+                setIsFiltering(false)
             }
         }
 
         filterItems()
-    }, [items, searchRadius, manualLocation, userCountry])
+    }, [items, searchRadius, activeLocation, locationLoading, userCountry])
 
     const router = useRouter()
     const [searchText, setSearchText] = useState(searchParams.search || '')
@@ -256,11 +214,11 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
     }
 
     const handleExpandSearch = () => {
-        setLoading(true)
+        setIsFiltering(true)
         setTimeout(() => {
             setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length)
             setVisibleCount(CARS_PER_PAGE)
-            setLoading(false)
+            setIsFiltering(false)
         }, 300)
     }
 
@@ -269,7 +227,7 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
         if (!locationInput.trim()) return
         const result = await searchCity(locationInput)
         if (result) {
-            setManualLocation(result)
+            setManualLocation(result) // Usa el método del Contexto Global
             setTierIndex(0)
             setShowLocationModal(false)
         }
@@ -336,7 +294,7 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
                         <div className="hidden md:block">
                             <DistanceBadge
                                 distance={searchRadius}
-                                locationName={manualLocation ? manualLocation.city : (gpsCity || 'Localizando...')}
+                                locationName={displayCity}
                                 onClick={() => setShowLocationModal(true)}
                             />
                         </div>
@@ -346,7 +304,7 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
                     <div className="md:hidden mt-4 flex justify-center">
                         <DistanceBadge
                             distance={searchRadius}
-                            locationName={manualLocation ? manualLocation.city : (gpsCity || 'Localizando...')}
+                            locationName={displayCity}
                             onClick={() => setShowLocationModal(true)}
                         />
                     </div>
@@ -368,17 +326,14 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
 
                 {/* Grid de Vehículos */}
                 <div>
-                    {loading && (
+                    {(isFiltering || (locationLoading && !activeLocation)) ? (
                         <div className="flex items-center justify-center py-20">
                             <div className="text-center">
                                 <div className="w-12 h-12 border-4 border-primary-700 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                                 <p className="text-text-secondary">{t('market.searching')}</p>
                             </div>
                         </div>
-                    )}
-
-                    {/* Grid de resultados */}
-                    {!loading && (
+                    ) : (
                         <>
                             {filteredItems.length > 0 ? (
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-8">
@@ -400,7 +355,7 @@ function MarketContent({ items: initialFeedItems, brands, vehicleTypes, colors, 
                                                                 <MapPin className="w-16 h-16" />
                                                             ) : (
                                                                 <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
-                                                                    <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12l-2.08-5.99z" />
+                                                                    <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12l-2.08-5.99z" />
                                                                 </svg>
                                                             )}
                                                         </div>

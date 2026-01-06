@@ -3,12 +3,12 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import { LocationProvider, useLocation } from '@/contexts/LocationContext'
+import { useLocation } from '@/contexts/LocationContext'
 import SwipeFeed from '@/components/SwipeFeed'
 import Header from '@/components/Header'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { MapPin, RefreshCw } from 'lucide-react'
-import { calculateDistance } from '@/lib/geolocation'
+import { MapPin, RefreshCw, Search } from 'lucide-react'
+import { calculateDistance, searchCity } from '@/lib/geolocation'
 
 interface FeedItem {
     id: string
@@ -26,7 +26,7 @@ interface FeedItem {
     country?: string | null
     images?: string[]
     isFavorited?: boolean
-    isBoosted?: boolean // Added for 300% boost
+    isBoosted?: boolean
     user: {
         name: string
         image: string | null
@@ -41,18 +41,15 @@ interface SwipeClientProps {
     currentUserId: string
 }
 
-// Utility: Fisher-Yates Shuffle with 300% Boost Prioritization
 function boostShuffleArray(array: FeedItem[]): FeedItem[] {
     const boosted = array.filter(item => item.isBoosted)
     const regular = array.filter(item => !item.isBoosted)
 
-    // Shuffle regular items
     for (let i = regular.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [regular[i], regular[j]] = [regular[j], regular[i]];
     }
 
-    // Shuffle boosted items
     for (let i = boosted.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [boosted[i], boosted[j]] = [boosted[j], boosted[i]];
@@ -60,13 +57,11 @@ function boostShuffleArray(array: FeedItem[]): FeedItem[] {
 
     const result: FeedItem[] = []
 
-    // First items should be boosted if available
     const initialBoost = boosted.slice(0, 3)
     const remainingBoost = boosted.slice(3)
 
     result.push(...initialBoost)
 
-    // Distribute remaining boosted items every 3 regular items (300% visibility)
     let bIndex = 0
     let rIndex = 0
 
@@ -83,16 +78,10 @@ function boostShuffleArray(array: FeedItem[]): FeedItem[] {
 }
 
 export default function SwipeClient({ initialItems, currentUserId }: SwipeClientProps) {
-    return (
-        <LocationProvider>
-            <SwipeContent items={initialItems} currentUserId={currentUserId} />
-        </LocationProvider>
-    )
-}
-
-function SwipeContent({ items, currentUserId }: { items: FeedItem[], currentUserId: string }) {
     const { t } = useLanguage()
-    const { location, loading: locationLoading } = useLocation()
+    const { location, loading: locationLoading, setManualLocation } = useLocation()
+
+    const items = initialItems
 
     // ANILLOS PROGRESIVOS
     const RADIUS_TIERS = [12, 100, 250, 500, 1000, 2500, 5000]
@@ -101,6 +90,10 @@ function SwipeContent({ items, currentUserId }: { items: FeedItem[], currentUser
     const [tierIndex, setTierIndex] = useState(0)
     const [seenIds, setSeenIds] = useState<Set<string>>(new Set())
     const [isInternalLoading, setIsInternalLoading] = useState(false)
+
+    // Modal State
+    const [showLocationModal, setShowLocationModal] = useState(false)
+    const [locationInput, setLocationInput] = useState('')
 
     const currentRadius = RADIUS_TIERS[tierIndex]
 
@@ -160,7 +153,6 @@ function SwipeContent({ items, currentUserId }: { items: FeedItem[], currentUser
             tier.items.push(item)
         })
 
-        // Combine tiers and apply boost-aware shuffle
         return tiers.reduce((acc, ss) => [...acc, ...boostShuffleArray(ss.items)], [] as any[])
     }, [items, location, locationLoading])
 
@@ -204,15 +196,37 @@ function SwipeContent({ items, currentUserId }: { items: FeedItem[], currentUser
 
     const handleDislike = (id: string) => markAsSeen(id)
 
+    // Manual Search Handler
+    const searchManualLocation = async (e?: React.FormEvent) => {
+        e?.preventDefault()
+        if (!locationInput.trim()) return
+        const result = await searchCity(locationInput)
+        if (result) {
+            setManualLocation(result) // Global Context Update
+            setTierIndex(0) // Reset radius logic locally
+            setSeenIds(new Set()) // Reset seen stack
+            setShowLocationModal(false)
+        }
+    }
+
     const isLoading = locationLoading || isInternalLoading
 
     return (
         <div className="flex flex-col min-h-screen bg-background text-text-primary">
             <Header />
             <main className="flex-1 max-w-4xl mx-auto w-full px-4 pt-10 pb-20 flex flex-col items-center justify-center">
-                <div className="mb-6 px-4 py-2 bg-black/50 text-white text-xs rounded-full backdrop-blur-sm border border-white/10 shadow-sm flex flex-col items-center gap-1">
-                    <span className="font-bold text-primary-300">📍 Radio: 0 - {currentRadius} km | {location?.city || 'Buscando...'}</span>
-                </div>
+
+                {/* 📍 Location Indicator (Clickable) */}
+                <button
+                    onClick={() => setShowLocationModal(true)}
+                    className="mb-6 px-4 py-2 bg-black/50 hover:bg-black/70 active:scale-95 transition-all text-white text-xs rounded-full backdrop-blur-sm border border-white/10 shadow-sm flex flex-col items-center gap-1 cursor-pointer group"
+                >
+                    <span className="font-bold text-primary-300 flex items-center gap-2">
+                        <MapPin className="w-3 h-3" />
+                        Radio: 0 - {currentRadius} km | {location?.city || 'Buscando...'}
+                        <Search className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </span>
+                </button>
 
                 {isLoading ? (
                     <div className="flex flex-col items-center">
@@ -247,6 +261,58 @@ function SwipeContent({ items, currentUserId }: { items: FeedItem[], currentUser
                     </div>
                 )}
             </main>
+
+            {/* 🌍 LOCATION MODAL */}
+            {showLocationModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4">
+                    <div className="bg-surface border border-surface-highlight rounded-xl w-full max-w-md p-6 relative animate-in zoom-in duration-200">
+                        <button
+                            onClick={() => setShowLocationModal(false)}
+                            className="absolute top-4 right-4 text-text-secondary hover:text-white"
+                        >
+                            ✕
+                        </button>
+
+                        <h3 className="text-xl font-bold text-text-primary mb-4">Cambiar Ubicación</h3>
+                        <p className="text-text-secondary text-sm mb-6">
+                            Ingresa una ciudad para explorar vehículos en esa zona en modo Swipe.
+                        </p>
+
+                        <form onSubmit={searchManualLocation} className="space-y-4">
+                            <input
+                                type="text"
+                                value={locationInput}
+                                onChange={(e) => setLocationInput(e.target.value)}
+                                placeholder="Ciudad o Código Postal..."
+                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-500 outline-none"
+                                autoFocus
+                            />
+
+                            <div className="flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setManualLocation(null) // Reset to GPS
+                                        setTierIndex(0)
+                                        setSeenIds(new Set())
+                                        setShowLocationModal(false)
+                                        setLocationInput('')
+                                    }}
+                                    className="flex-1 px-4 py-3 bg-surface-highlight text-text-primary rounded-lg font-medium hover:bg-surface-highlight/80"
+                                >
+                                    Usar mi GPS
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg font-bold hover:bg-primary-700"
+                                >
+                                    Buscar Zona
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

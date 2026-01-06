@@ -4,9 +4,9 @@ import { useState, useMemo, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
 import Header from '@/components/Header'
-import { useLanguage, LanguageProvider } from '@/contexts/LanguageContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { BUSINESS_CATEGORIES as CATEGORIES } from '@/lib/businessCategories'
-import { LocationProvider, useLocation } from '@/contexts/LocationContext'
+import { useLocation } from '@/contexts/LocationContext'
 // ...
 
 // Dynamic Imports (Moved outside to prevent re-rendering)
@@ -20,14 +20,6 @@ const BusinessDetailsModal = dynamic(() => import('@/components/BusinessDetailsM
 interface MapClientProps {
     businesses: any[]
     user: any
-}
-
-export default function MapClient({ businesses, user }: MapClientProps) {
-    return (
-        <LocationProvider>
-            <MapContent businesses={businesses} user={user} />
-        </LocationProvider>
-    )
 }
 
 async function searchCity(query: string) {
@@ -50,8 +42,9 @@ async function searchCity(query: string) {
     }
 }
 
-function MapContent({ businesses, user }: MapClientProps) {
+export default function MapClient({ businesses, user }: MapClientProps) {
     const { t } = useLanguage()
+    // 🔥 USANDO CONTEXTO GLOBAL
     const { location, loading, error, refreshLocation, setManualLocation } = useLocation()
     const searchParams = useSearchParams()
     const [selectedCategories, setSelectedCategories] = useState<string[]>([])

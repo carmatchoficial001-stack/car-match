@@ -2,6 +2,7 @@
 
 import { SessionProvider } from "next-auth/react"
 import { LanguageProvider } from "@/contexts/LanguageContext"
+import { LocationProvider } from "@/contexts/LocationContext"
 import dynamic from "next/dynamic"
 
 const AIChatbot = dynamic(() => import("@/components/AIChatbot"), { ssr: false });
@@ -12,10 +13,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     return (
         <SessionProvider>
             <LanguageProvider>
-                <RegisterSW />
-                <PushNotificationRequest />
-                {children}
-                <AIChatbot />
+                <LocationProvider>
+                    <RegisterSW />
+                    <PushNotificationRequest />
+                    {children}
+                    <AIChatbot />
+                </LocationProvider>
             </LanguageProvider>
         </SessionProvider>
     )
