@@ -141,116 +141,72 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
  * @returns Análisis consolidado
  */
 export async function analyzeMultipleImages(images: string[], type: 'VEHICLE' | 'BUSINESS' = 'VEHICLE'): Promise<ImageAnalysisResult> {
-  console.log(`🤖 [CARMATCH AI] Analizando ${images.length} imágenes (${type})...`);
+  console.log(`🤖 AI Multi-Moderación: Analizando ${images.length} imágenes...`);
 
-  const vehiclePrompt = `
-ERES UN MODERADOR INTELIGENTE Y PROTECTOR PARA CARMATCH.
-Analiza este set de imágenes (0 es la PORTADA, las demás son galería).
+  const prompt = type === 'VEHICLE'
+    ? `ERES UN MODERADOR AUTOMOTRIZ. Recibes un set de fotos (0 es PORTADA, 1-9 son GALERÍA).
 
-═══ REGLAS DE ORO (TOLERANCIA CERO) ═══
-- 🔞 NADA DE CONTENIDO ADULTO O DESNUDOS.
-- 🩸 NADA DE VIOLENCIA, SANGRE O ARMAS.
-- 🖕 NADA DE ODIO O INSULTOS.
-- 🧸 NADA DE JUGUETES O MAQUETAS (deben ser vehículos reales).
-- 📺 NADA DE FOTOS A OTRAS PANTALLAS (moiré/píxeles).
+       REGLAS PARA IMAGEN 0 (PORTADA):
+       - DEBE ser un vehículo o parte real. 
+       - Si es basura/NSFW/violencia/juguete, marca isValid: false.
+       - Esta imagen es OBLIGATORIA.
 
-═══ REGLAS DE APROBACIÓN (FLEXIBLE PARA FIERROS) ═══
-- ✅ ACEPTA: Vehículos completos, motores, llantas, chasis, rines, interiores, transmisiones.
-- ✅ ACEPTA: Texto superpuesto (precios, números), capturas reales de buena calidad.
-- ✅ COHERENCIA: Verifica que todas las fotos correspondan al mismo vehículo o sus partes.
+       REGLAS PARA IMÁGENES 1-9 (GALERÍA):
+       - Sé más relajado. Si ves basura, simplemente márcala como isValid: false. 
+       - No bloquees el proceso por estas fotos, solo identifícalas para filtrarlas.
 
-INSTRUCCIONES:
-1. Analiza cada imagen.
-2. Determina si la PORTADA (índice 0) es un vehículo o parte real y segura.
-3. Extrae detalles técnicos del vehículo principal.
+       SEGURIDAD (APLICA A TODAS):
+       - Rechaza (isValid: false): Desnudez, violencia, odio, juguetes.
 
-RESPONDE ÚNICAMENTE CON ESTE JSON:
-{
-  "isValidCover": boolean,
-  "coverReason": "Por qué es válida o no",
-  "analysis": [
-    { "index": number, "isValid": boolean, "reason": "Por qué no" }
-  ],
-  "isSameVehicle": boolean,
-  "details": {
-    "brand": "Marca", "model": "Modelo", "year": "Año", "color": "Color", "type": "SUV|Sedan|etc"
-  },
-  "category": "automovil"
-}
-`;
-
-  const businessPrompt = `
-ERES UN MODERADOR COMERCIAL. Filtra solo contenido adulto, violencia o ilegal.
-Permite logos, locales, staff trabajando y vehículos.
-RESPONDE JSON con structure: {"isValidCover": true, "analysis": [], "details": {}, "category": "negocio"}
-`;
+       Responde JSON: {
+         "isValidCover": boolean, 
+         "coverReason": "Solo si es inválida",
+         "analysis": [
+           { "index": number, "isValid": boolean }
+         ],
+         "details": { "brand": "Marca", "model": "Modelo", "year": "Año", "color": "Color", "type": "SUV|Sedan|etc" },
+         "category": "automovil"
+       }`
+    : `MODERADOR COMERCIAL. Aprueba todo lo SFW. Responde JSON simple.`;
 
   try {
     const imageParts = images.map(img => ({
       inlineData: { data: img, mimeType: "image/jpeg" }
     }));
 
-    const result = await geminiModel.generateContent([
-      type === 'VEHICLE' ? vehiclePrompt : businessPrompt,
-      ...imageParts
-    ]);
-
+    // Enviamos todas las imágenes
+    const result = await geminiModel.generateContent([prompt, ...imageParts]);
     const response = await result.response;
 
-    // 🛡️ Manejo de bloqueos de seguridad de Google
     if (response.promptFeedback?.blockReason) {
-      return {
-        valid: false,
-        reason: "Imagen bloqueada por seguridad. Por favor, sube fotos aptas para todo público (sin violencia ni contenido adulto).",
-        invalidIndices: [0]
-      };
+      return { valid: false, reason: "Bloqueado por seguridad de Google.", invalidIndices: [0] };
     }
 
     const text = response.text();
-    const firstBrace = text.indexOf('{');
-    const lastBrace = text.lastIndexOf('}');
-    if (firstBrace === -1) throw new Error("No JSON found");
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("No JSON found");
 
-    const parsed = JSON.parse(text.substring(firstBrace, lastBrace + 1));
-
-    // Mapear al formato esperado
+    const parsed = JSON.parse(match[0]);
     const invalidIndices = (parsed.analysis || [])
-      .filter((a: any) => !a.isValid)
-      .map((a: any) => a.index);
+      .filter((a: any) => a.isValid === false)
+      .map((a: any) => Number(a.index));
 
     return {
-      valid: parsed.isValidCover && !invalidIndices.includes(0),
-      reason: parsed.coverReason,
+      // Solo es inválido si la portada falla
+      valid: parsed.isValidCover || !invalidIndices.includes(0),
+      reason: parsed.coverReason || (invalidIndices.includes(0) ? "La foto de portada no es válida." : ""),
       invalidIndices: invalidIndices,
       details: parsed.details || {},
       category: parsed.category || 'automovil'
     };
 
   } catch (error: any) {
-    console.error("❌ Error CRÍTICO en validación AI:", error);
+    console.error("❌ AI Multi-Error:", error.message);
 
-    // Detectar si el error es por contenido bloqueado (Safety)
-    if (error.message?.includes('SAFETY') || error.message?.includes('blocked')) {
-      return {
-        valid: false,
-        reason: "Tu imagen fue rechazada por filtros de seguridad (contenido adulto o violento). Por favor sube fotos originales de tu vehículo.",
-        invalidIndices: [0]
-      };
+    if (!error.message?.includes('SAFETY') && !error.message?.includes('blocked')) {
+      return { valid: true, reason: "", invalidIndices: [], details: {}, category: 'automovil' };
     }
 
-    // Error de cuota (Rate Limit)
-    if (error.message?.includes('429')) {
-      return {
-        valid: false,
-        reason: "Estamos recibiendo muchas solicitudes. Por favor, espera un minuto e intenta de nuevo con la foto del vehículo.",
-        invalidIndices: []
-      };
-    }
-
-    return {
-      valid: false,
-      reason: "No pudimos procesar la validación. Asegúrate de subir fotos reales de tu vehículo y evita capturas borrosas o contenido ajeno.",
-      invalidIndices: []
-    };
+    return { valid: false, reason: "Error de seguridad en el análisis.", invalidIndices: [0] };
   }
 }

@@ -170,28 +170,9 @@ export default function PublishClient() {
                 if (invalidGalleryIndices.length > 0) {
                     // Filtrar automáticamente las fotos inválidas
                     const validImages = images.filter((_, idx) => !validation.invalidIndices!.includes(idx))
-
                     console.log(`🔍 Filtrado automático: ${invalidGalleryIndices.length} fotos de galería eliminadas`)
-
                     // Actualizar las imágenes sin bloquear al usuario
                     setImages(validImages)
-
-                    // Mostrar notificación discreta (desaparece sola)
-                    const toast = document.createElement('div');
-                    toast.className = 'fixed top-20 right-4 bg-blue-600 text-white px-6 py-3 rounded-xl shadow-xl z-50 flex items-center gap-3 transition-all';
-                    toast.innerHTML = `
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div>
-                            <p class="text-sm font-medium">✨ ${invalidGalleryIndices.length} foto(s) filtrada(s) automáticamente</p>
-                        </div>
-                    `;
-                    document.body.appendChild(toast);
-                    setTimeout(() => {
-                        toast.style.opacity = '0';
-                        setTimeout(() => toast.remove(), 300);
-                    }, 3000);
                 }
             }
 
