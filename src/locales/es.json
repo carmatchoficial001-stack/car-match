@@ -640,7 +640,7 @@
             "refacciones": "Refacciones",
             "audio": "Audio",
             "cristales": "Cristales",
-            "tapiceria": "Tapicería",
+            "tapiceria": "Tapicerías",
             "transmisiones": "Transmisiones",
             "gruas": "Grúas",
             "motos": "Motos",
@@ -656,7 +656,8 @@
             "yonke": "Yonke",
             "estacionamiento": "Estacionamiento",
             "suspension": "Suspensión",
-            "aire_acondicionado": "Aire Acondicionado"
+            "aire_acondicionado": "Aire Acondicionado",
+            "importadoras": "Importadoras de Vehículos"
         }
     },
     "business_details": {

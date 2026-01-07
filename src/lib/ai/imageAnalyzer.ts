@@ -76,22 +76,23 @@ Esta plataforma SOLO acepta vehículos terrestres con motor y sus partes legíti
 CUALQUIER OTRA COSA debe ser RECHAZADA inmediatamente.
 
 ═══ LISTA DE RECHAZO ABSOLUTO (TOLERANCIA CERO) ═══
-🚫 RECHAZA DE INMEDIATO Y SIN EXCEPCIÓN:
+🚫 RECHAZA DE INMEDIATO Y SIN EXCEPCIÓN (TOLERANCIA CERO):
   
-  🔞 CONTENIDO SEXUAL O DESNUDOS (Cualquier rastro de pornografía o lascivia)
-  🩸 VIOLENCIA O SANGRE (Accidentes fatales, armas, gore, tortura)
-  🪴 PLANTAS (Flores, árboles, jardines, vegetación predominate)
-  👥 PERSONAS (Rostros, cuerpos, selfies, multitudes)
-  🐾 ANIMALES (Perros, gatos, ganado, cualquier ser vivo)
-  🍔 COMIDA (Platillos, bebidas, supermercado)
-  🏞️ PAISAJES (Montañas, playas, edificios sin vehículos)
-  🤡 MEMES O TEXTO (Capturas de pantalla, dibujos, humor)
-  🏠 OBJETOS DOMÉSTICOS (Muebles, electrónicos, ropa)
-  ✈️ VEHÍCULOS NO TERRESTRES (Aviones, barcos, drones, lanchas)
-  🧸 JUGUETES (Modelos a escala, carritos de juguete)
-  🌀 IMÁGENES MUY BORROSAS o ilegibles
+  🔞 CONTENIDO SEXUAL O DESNUDOS (Cualquier rastro de pornografía, personas en ropa interior, o poses lascivas).
+  🩸 VIOLENCIA, SANGRE O ARMAS (Accidentes fatales, armas de fuego, cuchillos, gore, tortura). 🛡️ SEGURIDAD EXTREMA AQUÍ.
+  🪴 PLANTAS (Flores, árboles, jardines, vegetación predominate).
+  👥 PERSONAS (Rostros, cuerpos, selfies, multitudes).
+  🐾 ANIMALES (Perros, gatos, ganado, cualquier ser vivo).
+  🍔 COMIDA (Platillos, bebidas, supermercado).
+  🏞️ PAISAJES (Montañas, playas, edificios sin vehículos).
+  🤡 MEMES, TEXTO O CAPTURAS (Screenshots de otras apps, Instagram, Facebook, IPTV, dibujos, humor).
+  🏠 OBJETOS DOMÉSTICOS (Televisores, muebles, estatuas, íconos religiosos, cuadros, electrónicos, ropa, interiores de casas).
+  ✈️ VEHÍCULOS NO TERRESTRES (Aviones, barcos, drones, lanchas).
+  🧸 JUGUETES (Modelos a escala, carritos de juguete).
+  🌀 IMÁGENES MUY BORROSAS, oscuras o ilegibles.
 
-⚠️ SI LA FOTO ES DE PORTADA (IMAGEN 0), SÉ EL DOBLE DE ESTRICTO.
+⚠️ REGLA DE ORO: Si no se puede vender como un vehículo motorizado terrestre real, es RECHAZADO.
+⚠️ SI LA FOTO ES DE PORTADA (IMAGEN 0), SÉ UN JUEZ IMPLACABLE.
 
 ═══ SOLO ACEPTA (ONTOLOGÍA OMNIBUS DE VEHÍCULOS TERRESTRES) ═══
 ✅ AUTOMÓVILES (Pasajeros Privado):
@@ -193,12 +194,12 @@ RESPONDE ÚNICAMENTE CON ESTE JSON (SIN MARKDOWN NI EXPLICACIONES):
       return JSON.parse(jsonString);
     } catch (parseError) {
       console.error("❌ Error parseando JSON de Gemini:", parseError, "Texto recibido:", text);
-      return { valid: true };
+      return { valid: false, reason: "Error de validación técnica. Intenta con otra foto." };
     }
 
   } catch (error) {
     console.error("❌ Error CRÍTICO en análisis de imagen:", error);
-    return { valid: true };
+    return { valid: false, reason: "El servicio de seguridad no está disponible. Reintenta en un momento." };
   }
 }
 
@@ -228,12 +229,15 @@ Esta es la PRIMERA FOTO que verán los compradores. Debe ser ATRACTIVA y mostrar
 - Vehículo terrestre motorizado (auto, moto, camión, maquinaria)
 
 ❌ RECHAZAR (Foto de portada NO válida):
-- SOLO un DETALLE: llanta, espejo retrovisor, volante, logo, puerta
-- Motor de cerca (a menos que sea la publicación de un motor como repuesto)
-- Interior sin mostrar exterior
-- Vehículo muy pequeño (menos del 50% del encuadre)
-- Foto muy borrosa o con poca luz
-- NO es un vehículo terrestre motorizado
+- CONTENIDO ADULTO, VIOLENCIA O ARMAS (RECHAZO ABSOLUTO).
+- SOLO un DETALLE: llanta, espejo retrovisor, volante, logo, puerta.
+- Capturas de pantalla (Instagram, Marketplace, Facebook, IPTV).
+- Televisores, monitores o pantallas mostrando contenido.
+- Motor de cerca (a menos que sea la publicación de un motor como repuesto).
+- Interior sin mostrar exterior.
+- Vehículo muy pequeño (menos del 50% del encuadre).
+- Foto muy borrosa o con poca luz.
+- NO es un vehículo terrestre motorizado.
 
 RESPONDE ÚNICAMENTE ESTE JSON:
 {
@@ -449,6 +453,6 @@ EJEMPLOS:
 
   } catch (error) {
     console.error("❌ Error CRÍTICO en análisis multi-foto:", error);
-    return { valid: true, invalidIndices: [] };
+    return { valid: false, reason: "Error de seguridad en el análisis de galería.", invalidIndices: [] };
   }
 }

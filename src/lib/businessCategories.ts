@@ -29,6 +29,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
     'estacionamiento': '#475569', // BlueGray
     'suspension': '#65a30d', // Lime
     'aire_acondicionado': '#14b8a6', // Teal
+    'importadoras': '#3b82f6', // Blue (Similar to aesthetics, but distinct in use)
 }
 
 export const CATEGORY_EMOJIS: Record<string, string> = {
@@ -59,6 +60,7 @@ export const CATEGORY_EMOJIS: Record<string, string> = {
     'estacionamiento': '🅿️',
     'suspension': '🔩',
     'aire_acondicionado': '❄️',
+    'importadoras': '🚢',
 }
 
 export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
@@ -88,7 +90,8 @@ export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
     frenos: ['Balatas', 'Discos', 'Rectificado', 'ABS', 'Líquido de Frenos'],
     suspension: ['Amortiguadores', 'Rotulas', 'Bujes', 'Cajas de Dirección', 'Ejes'],
     aire_acondicionado: ['Carga de Gas', 'Compresores', 'Fugas', 'Mangueras', 'Filtros de Cabina'],
-    detallado: ['Pulido', 'Encerado', 'Lavado de Motor', 'Limpieza de Vestiduras', 'Restauración de Faros']
+    detallado: ['Pulido', 'Encerado', 'Lavado de Motor', 'Limpieza de Vestiduras', 'Restauración de Faros'],
+    importadoras: ['Importación de Vehículos', 'Trámites de Aduana', 'Regularización', 'Venta de Autos Importados', 'Logística de Transporte']
 }
 
 // Helper for Map & Search

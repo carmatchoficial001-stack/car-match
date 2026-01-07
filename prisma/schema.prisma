@@ -141,9 +141,7 @@ model Vehicle {
   displacement      Int?
   cargoCapacity     Float?
   operatingHours    Int?
-  hasInvoice        Boolean?
-  hasTenencia       Boolean?
-  hasVerification   Boolean?
+
   latitude          Float?
   longitude         Float?
   chats             Chat[]
