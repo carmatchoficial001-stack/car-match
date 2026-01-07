@@ -67,42 +67,36 @@ Responde {"valid": false, "reason": "Explicación breve en español"}
 RESPONDE SOLO EL JSON.
 `;
   } else {
-    // 🚗 STRICT VALIDATION FOR VEHICLES (Ultra-Strict Version)
+    // 🚗 VALIDATION FOR VEHICLES
     prompt = `
-ERES UN INSPECTOR DE SEGURIDAD ELITE PARA CARMATCH.
-TU MISIÓN: Asegurar que NADA que no sea un vehículo terrestre motorizado real entre a la plataforma.
+ERES UN MODERADOR INTELIGENTE Y PROTECTOR PARA CARMATCH.
+TU MISIÓN: Asegurar que las imágenes sean PARTES/VEHÍCULOS reales y, sobre todo, SEGURAS PARA TODA LA FAMILIA (incluyendo menores).
 
-⚠️ TOLERANCIA CERO: Si existe la más mínima duda de que la imagen NO es un vehículo real, REBORDA Y RECHAZA.
+═══ CRITERIOS DE APROBACIÓN (SFW - SEGURO) ═══
+✅ ACEPTA:
+- Vehículos reales completos o piezas mecánicas (Motores, chasis, llantas, rines, transmisiones).
+- Fotos con texto de venta o capturas de buena calidad.
 
-═══ CRITERIOS DE RECHAZO ABSOLUTO (INVALID) ═══
-🚫 RECHAZA INMEDIATAMENTE SI VES:
-- 📺 PANTALLAS: Fotos de televisores, computadoras, celulares o monitores mostrando un coche.
-- 📱 CAPTURAS: Screenshots de Facebook Marketplace, Instagram, sitios web o apps. Se nota por bordes negros, iconos de interfaz o texto superpuesto.
-- 🧸 JUGUETES/MODELISMO: Coches a escala, Hot Wheels, maquetas, figuras de colección. Se nota por el fondo, la textura o la iluminación.
-- 🎨 ARTE/GCI: Renders 3D, dibujos, bocetos, arte generado por IA o ilustraciones.
-- 👥 PERSONAS/VIDA: Caras visibles en primer plano, personas posando, animales, mascotas.
-- 🏠 HOGAR/CALLE: Muebles, comida, ropa, paisajes sin un vehículo como protagonista.
-- 🚲 NO MOTORIZADOS: Bicicletas comunes, patines, patinetas, carretones de caballos.
-
-═══ CRITERIOS DE APROBACIÓN (VALID) ═══
-✅ SOLO ACEPTA:
-- Vehículos reales (Autos, Motos, Camiones, Tractores, Maquinaria) en su entorno real (calle, cochera, taller).
-- Partes mecánicas reales y claras (Motor, Transmisión, Rines con llantas reales).
-
-═══ REGLA DE PORTADA (IMAGEN 0) ═══
-- La portada DEBE mostrar el vehículo COMPLETO. Si solo es un volante, una llanta o el tablero, ES INVÁLIDA como portada (aunque sea válida como foto secundaria).
+═══ CRITERIOS DE RECHAZO ABSOLUTO (TOLERANCIA CERO) ═══
+🚫 RECHAZA INMEDIATAMENTE:
+- 🔞 CONTENIDO ADULTO: Desnudez, poses lascivas o ropa sugerente. La app es para niños y jóvenes también.
+- 🩸 VIOLENCIA: Sangre, accidentes reales grotescos, gore o armas.
+- 🖕 CONTENIDO OFENSIVO: Odio, racismo o lenguaje vulgar.
+- 🧸 JUGUETES o maquetas.
+- 📺 FOTOS A PANTALLAS.
+- 👥 IRRELEVANTE: Memes, animales, comida o personas como protagonistas.
 
 RESPONDE ÚNICAMENTE CON ESTE JSON:
 {
   "valid": boolean,
-  "reason": "Explicación breve de por qué fue rechazado (en Español)",
+  "reason": "Explicación breve (en Español)",
   "category": "automovil" | "motocicleta" | "comercial" | "industrial" | "transporte" | "especial" | null,
   "details": {
-    "brand": "Marca identificada",
-    "model": "Modelo identificado",
-    "year": "Año estimado",
-    "color": "Color dominante",
-    "type": "SUV|Sedan|Pickup|Hatchback|etc"
+    "brand": "Marca",
+    "model": "Modelo",
+    "year": "Año",
+    "color": "Color",
+    "type": "SUV|Sedan|Pickup|etc"
   }
 }
 `;
@@ -154,29 +148,25 @@ export async function analyzeMultipleImages(images: string[], type: 'VEHICLE' | 
     console.log('🔍 [PASO 1] Validando foto de PORTADA...');
 
     const coverPrompt = `
-🚨 VALIDACIÓN DE SEGURIDAD EXTREMA: FOTO DE PORTADA 🚨
+🚨 MODERACIÓN DE SEGURIDAD: PORTADA 🚨
 
-ERES UN JUEZ IMPLACABLE. Tu misión es evitar que CUALQUIER imagen que no sea un vehículo real aparezca en el feed principal.
+ERES UN GUARDIÁN DE LA COMUNIDAD. Tu prioridad es la seguridad y el contenido automotriz legítimo.
 
-✅ APROBAR (SÓLO vehículos reales):
-- Vista exterior COMPLETA o predominante del vehículo.
-- Debe verse real, en 3 o 4 dimensiones, con luces, sombras y entorno natural.
-- El vehículo debe ser el 60% o más de la imagen.
+✅ PERMITIDO (SFW):
+- Vehículos o sus partes mecánicas (motores, chasis, rines, etc).
+- Info de venta y capturas reales.
 
-🚫 RECHAZAR (INVALIDACIÓN AUTOMÁTICA):
-- PANTALLAS: Fotos tomadas a monitores, TVs o celulares.
-- CAPTURAS: Capturas de pantalla de otras apps o redes sociales.
-- JUGUETES: Modelismo, juguetes a escala, Hot Wheels (se nota por el brillo plástico y el entorno desproporcionado).
-- INTERIORES SOLOS: Solo el volante, solo el asiento, solo la palanca.
-- PARTES SOLAS: Solo el motor (aunque sea real), solo una llanta. Para portada queremos el CARRO completo.
-- NO VEHÍCULOS: Comida, personas, paisajes, memes, texto, dibujos.
+❌ PROHIBIDO (RECHAZO INMEDIATO - TOLERANCIA CERO):
+- 🔞 CONTENIDO ADULTO: Cualquier imagen sugerente o desnudos. NO PERMITIDO para proteger a menores.
+- 🩸 VIOLENCIA O SANGRE: Gore, accidentes explícitos o armas.
+- 🖕 OFENSIVO: Símbolos de odio o lenguaje vulgar.
+- 📺 FOTOS A OTRAS PANTALLAS O JUGUETES.
+- 👥 AJENO: Memes, personas solas, animales, comida.
 
-⚠️ REGLA DE ORO: Si no pondrías este vehículo en un catálogo de lujo por ser falso o de mala calidad (captura/pantalla), RECHAZA.
-
-RESPONDE ÚNICAMENTE ESTE JSON:
+RESPONDE ÚNICAMENTE JSON:
 {
   "isValidCover": true/false,
-  "reason": "Explicación técnica del porqué (en Español)",
+  "reason": "Explicación (en Español)",
   "isToy": true/false,
   "isScreenCapture": true/false
 }
@@ -229,19 +219,17 @@ RESPONDE ÚNICAMENTE ESTE JSON:
 
   // 🔥 PASO 2: VALIDACIÓN DE TODAS LAS IMÁGENES (Vehículos válidos)
   const vehiclePrompt = `
-🚨 MODERADOR DE CONTENIDO AUTOMOTRIZ - MODO ESTRICTO 🚨
-Tu trabajo es clasificar CADA IMAGEN individualmente como "VALID" (Vehículo/Parte) o "INVALID" (Cualquier otra cosa).
+🚨 MODERADOR DE SEGURIDAD - CARMATCH 🚨
+Clasifica cada imagen. Prioriza que sea contenido apto para todas las edades.
 
-🛑 REGLAS DE RECHAZO (INVALID):
-- Naturaleza: plantas, árboles, flores, pasto, paisajes sin coches.
-- Seres vivos: personas, mascotas, animales.
-- Objetos no relacionados: juguetes, miniaturas, comida, muebles, memes, texto, dibujos.
-- Contenido inapropiado: sexual, violencia, drogas.
+✅ VÁLIDO (VALID):
+- Vehículos y CUALQUIER PARTE MECÁNICA (motor, chasis, rines, etc).
+- Capturas y fotos con texto.
 
-✅ REGLAS DE ACEPTACIÓN (VALID):
-- Vehículos terrestres motorizados (autos, motos, camiones, tractores, maquinaria).
-- Partes de vehículos: motor, interior completo, llantas, chasis, transmisión.
-- Detalles del vehículo: tablero, asientos, maletero, rines.
+🛑 INVÁLIDO (INVALID):
+- 🔞 CONTENIDO SEXUAL O ADULTO.
+- 🩸 VIOLENCIA O SANGRE.
+- Juguetes, memes, spam, personas solas o fotos a pantallas.
 `;
 
   const businessPrompt = `
