@@ -42,9 +42,6 @@ interface VehicleDetailProps {
         traction?: string | null
         passengers?: number | null
         features: string[]
-        hasInvoice: boolean | null
-        hasTenencia: boolean | null
-        hasVerification: boolean | null
         images: string[]
         isFavorited: boolean
         user: {

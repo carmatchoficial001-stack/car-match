@@ -186,7 +186,6 @@ export default function MarketFiltersAdvanced({
         if (doors) params.set('doors', doors)
         if (passengers) params.set('passengers', passengers)
         if (hours) params.set('hours', hours)
-        if (hours) params.set('hours', hours)
         if (minEngine) params.set('minDisplacement', minEngine)
         if (maxEngine) params.set('maxDisplacement', maxEngine)
 
@@ -218,7 +217,6 @@ export default function MarketFiltersAdvanced({
         setHours('')
         setMinEngine('')
         setMaxEngine('')
-        setHasInvoice(false)
         setFeatures([])
         router.push('/market')
     }
