@@ -141,248 +141,115 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
  * @returns Análisis consolidado
  */
 export async function analyzeMultipleImages(images: string[], type: 'VEHICLE' | 'BUSINESS' = 'VEHICLE'): Promise<ImageAnalysisResult> {
-  console.log(`🤖 [GEMINI 1.5 FLASH] Analizando ${images.length} imágenes (${type}) - MODO INTELIGENTE ACTIVADO`);
+  console.log(`🤖 [CARMATCH AI] Analizando ${images.length} imágenes (${type})...`);
 
-  // 🔥 PASO 1: VALIDACIÓN ESPECIAL DE PORTADA (Solo para VEHÍCULOS)
-  if (type === 'VEHICLE' && images.length > 0) {
-    console.log('🔍 [PASO 1] Validando foto de PORTADA...');
-
-    const coverPrompt = `
-🚨 MODERACIÓN DE SEGURIDAD: PORTADA 🚨
-
-ERES UN GUARDIÁN DE LA COMUNIDAD. Tu prioridad es la seguridad y el contenido automotriz legítimo.
-
-✅ PERMITIDO (SFW):
-- Vehículos o sus partes mecánicas (motores, chasis, rines, etc).
-- Info de venta y capturas reales.
-
-❌ PROHIBIDO (RECHAZO INMEDIATO - TOLERANCIA CERO):
-- 🔞 CONTENIDO ADULTO: Cualquier imagen sugerente o desnudos. NO PERMITIDO para proteger a menores.
-- 🩸 VIOLENCIA O SANGRE: Gore, accidentes explícitos o armas.
-- 🖕 OFENSIVO: Símbolos de odio o lenguaje vulgar.
-- 📺 FOTOS A OTRAS PANTALLAS O JUGUETES.
-- 👥 AJENO: Memes, personas solas, animales, comida.
-
-RESPONDE ÚNICAMENTE JSON:
-{
-  "isValidCover": true/false,
-  "reason": "Explicación (en Español)",
-  "isToy": true/false,
-  "isScreenCapture": true/false
-}
-`;
-
-    try {
-      const coverImagePart = {
-        inlineData: {
-          data: images[0],
-          mimeType: "image/jpeg",
-        },
-      };
-
-      const coverResult = await geminiModel.generateContent([coverPrompt, coverImagePart]);
-      const coverResponse = await coverResult.response;
-      const coverText = coverResponse.text();
-
-      console.log("🖼️ Respuesta Validación Portada:", coverText);
-
-      const firstBrace = coverText.indexOf('{');
-      const lastBrace = coverText.lastIndexOf('}');
-
-      if (firstBrace !== -1 && lastBrace !== -1) {
-        const jsonString = coverText.substring(firstBrace, lastBrace + 1);
-        const coverAnalysis = JSON.parse(jsonString);
-
-        // Si la portada no es válida, rechazar inmediatamente
-        if (coverAnalysis.isValidCover === false) {
-          console.log('❌ PORTADA RECHAZADA:', coverAnalysis.reason);
-
-          let specificReason = coverAnalysis.reason;
-          if (coverAnalysis.isToy) {
-            specificReason = "Esta imagen parece un juguete. En la foto de portada debes poner el vehículo real que vas a vender.";
-          } else if (coverAnalysis.isScreenCapture) {
-            specificReason = "Las capturas de pantalla no están permitidas. Por favor, sube una foto original de tu vehículo.";
-          }
-
-          return {
-            valid: false,
-            reason: specificReason || 'La foto de portada debe mostrar el vehículo real por seguridad.',
-            invalidIndices: [0]
-          };
-        }
-        console.log('✅ Portada aprobada, continuando con el resto...');
-      }
-    } catch (error) {
-      console.error('⚠️ Error validando portada, continuando...', error);
-    }
-  }
-
-  // 🔥 PASO 2: VALIDACIÓN DE TODAS LAS IMÁGENES (Vehículos válidos)
   const vehiclePrompt = `
-🚨 MODERADOR DE SEGURIDAD - CARMATCH 🚨
-Clasifica cada imagen. Prioriza que sea contenido apto para todas las edades.
+ERES UN MODERADOR INTELIGENTE Y PROTECTOR PARA CARMATCH.
+Analiza este set de imágenes (0 es la PORTADA, las demás son galería).
 
-✅ VÁLIDO (VALID):
-- Vehículos y CUALQUIER PARTE MECÁNICA (motor, chasis, rines, etc).
-- Capturas y fotos con texto.
+═══ REGLAS DE ORO (TOLERANCIA CERO) ═══
+- 🔞 NADA DE CONTENIDO ADULTO O DESNUDOS.
+- 🩸 NADA DE VIOLENCIA, SANGRE O ARMAS.
+- 🖕 NADA DE ODIO O INSULTOS.
+- 🧸 NADA DE JUGUETES O MAQUETAS (deben ser vehículos reales).
+- 📺 NADA DE FOTOS A OTRAS PANTALLAS (moiré/píxeles).
 
-🛑 INVÁLIDO (INVALID):
-- 🔞 CONTENIDO SEXUAL O ADULTO.
-- 🩸 VIOLENCIA O SANGRE.
-- Juguetes, memes, spam, personas solas o fotos a pantallas.
+═══ REGLAS DE APROBACIÓN (FLEXIBLE PARA FIERROS) ═══
+- ✅ ACEPTA: Vehículos completos, motores, llantas, chasis, rines, interiores, transmisiones.
+- ✅ ACEPTA: Texto superpuesto (precios, números), capturas reales de buena calidad.
+- ✅ COHERENCIA: Verifica que todas las fotos correspondan al mismo vehículo o sus partes.
+
+INSTRUCCIONES:
+1. Analiza cada imagen.
+2. Determina si la PORTADA (índice 0) es un vehículo o parte real y segura.
+3. Extrae detalles técnicos del vehículo principal.
+
+RESPONDE ÚNICAMENTE CON ESTE JSON:
+{
+  "isValidCover": boolean,
+  "coverReason": "Por qué es válida o no",
+  "analysis": [
+    { "index": number, "isValid": boolean, "reason": "Por qué no" }
+  ],
+  "isSameVehicle": boolean,
+  "details": {
+    "brand": "Marca", "model": "Modelo", "year": "Año", "color": "Color", "type": "SUV|Sedan|etc"
+  },
+  "category": "automovil"
+}
 `;
 
   const businessPrompt = `
-🚨 MODERADOR DE CONTENIDO COMERCIAL - MODO FLEXIBLE 🚨
-Tu trabajo es clasificar CADA IMAGEN individualmente como "VALID" o "INVALID".
-
-✅ PERMITIDO (VALID):
-- Logos, Fachadas, Tarjetas de presentación, Flyers publicitarios.
-- Personas trabajando (mecánicos, staff), Clientes.
-- Herramientas, Talleres, Instalaciones.
-- Memes de marketing o humor apto para todo público.
-- Vehículos.
-
-🛑 PROHIBIDO (INVALID):
-- Contenido sexual explícito o poses lascivas.
-- Violencia extrema, sangre o armas en contexto violento.
-- Drogas ilegales o parafernalia.
-- Discurso de odio o símbolos prohibidos.
-`;
-
-  const prompt = `
-${type === 'BUSINESS' ? businessPrompt : vehiclePrompt}
-
-INSTRUCCIONES:
-1. Analiza cada imagen recibida (orden 0, 1, 2...).
-2. Genera un JSON con un array "analysis" que contenga el resultado para CADA imagen.
-3. Si la imagen es válida, extrae sus detalles.
-
-FORMATO DE RESPUESTA REQUERIDO:
-{
-  "analysis": [
-    { "index": 0, "isValid": true, "category": "automovil" },
-    { "index": 1, "isValid": false, "reason": "La foto de portada debe mostrar el vehículo real que deseas vender" }
-  ],
-  "globalDetails": {
-    "brand": "Toyota",
-    "model": "Corolla", 
-    "year": "2020",
-    "color": "Rojo",
-    "transmission": "Automática",
-    "fuel": "Gasolina",
-    "features": ["Quemacocos", "Rines"]
-  }
-}
+ERES UN MODERADOR COMERCIAL. Filtra solo contenido adulto, violencia o ilegal.
+Permite logos, locales, staff trabajando y vehículos.
+RESPONDE JSON con structure: {"isValidCover": true, "analysis": [], "details": {}, "category": "negocio"}
 `;
 
   try {
     const imageParts = images.map(img => ({
-      inlineData: {
-        data: img,
-        mimeType: "image/jpeg",
-      },
+      inlineData: { data: img, mimeType: "image/jpeg" }
     }));
 
-    const result = await geminiModel.generateContent([prompt, ...imageParts]);
+    const result = await geminiModel.generateContent([
+      type === 'VEHICLE' ? vehiclePrompt : businessPrompt,
+      ...imageParts
+    ]);
+
     const response = await result.response;
+
+    // 🛡️ Manejo de bloqueos de seguridad de Google
+    if (response.promptFeedback?.blockReason) {
+      return {
+        valid: false,
+        reason: "Imagen bloqueada por seguridad. Por favor, sube fotos aptas para todo público (sin violencia ni contenido adulto).",
+        invalidIndices: [0]
+      };
+    }
+
     const text = response.text();
-
-    console.log("🤖 Respuesta Raw Gemini (Clasificación):", text);
-
-    // 🛡️ ROBUST JSON EXTRACTION
     const firstBrace = text.indexOf('{');
     const lastBrace = text.lastIndexOf('}');
+    if (firstBrace === -1) throw new Error("No JSON found");
 
-    if (firstBrace === -1 || lastBrace === -1) {
-      throw new Error("No JSON found in response");
-    }
+    const parsed = JSON.parse(text.substring(firstBrace, lastBrace + 1));
 
-    const jsonString = text.substring(firstBrace, lastBrace + 1);
-    const parsed = JSON.parse(jsonString);
-
-    // Mapear al formato que espera el frontend
-    const analysis = Array.isArray(parsed.analysis) ? parsed.analysis : [];
-
-    // 🛡️ TYPE SAFETY: Asegurar que invalidIndices son números
-    let invalidIndices = analysis
-      .filter((item: any) => item.isValid === false || item.isValid === "false")
-      .map((item: any) => Number(item.index))
-      .filter((idx: number) => !isNaN(idx));
-
-    // Verificar si queda alguna válida
-    const validCount = analysis.filter((item: any) => item.isValid === true || item.isValid === "true").length;
-
-    // 🔥 PASO 3: VALIDACIÓN DE COHERENCIA (Solo para VEHÍCULOS con 2+ fotos válidas)
-    if (type === 'VEHICLE' && validCount >= 2) {
-      console.log('🔍 [PASO 3] Validando COHERENCIA entre fotos...');
-
-      const coherencePrompt = `
-🔍 VERIFICACIÓN DE COHERENCIA - MISMO VEHÍCULO
-
-Has recibido varias fotos de una publicación. La Imagen 0 es la portada.
-Tu trabajo es identificar cuáles de las siguientes fotos (1 en adelante) NO corresponden al MISMO VEHÍCULO que aparece en la Imagen 0.
-
-✅ VÁLIDO:
-- El mismo vehículo desde otro ángulo.
-- Detalles del mismo vehículo (motor, interior, rines, logo).
-- El mismo color, modelo y características.
-
-❌ INVÁLIDO (MARCAR ÍNDICE):
-- Un vehículo de diferente marca, modelo o color.
-- Un vehículo con placas o detalles que indiquen claramente que es otro ejemplar.
-
-RESPONDE ÚNICAMENTE ESTE JSON:
-{
-  "isSameVehicle": true/false (solo false si hay intrusos),
-  "differentVehicleIndices": [índices de fotos que NO son el mismo vehículo],
-  "reason": "Explicación breve"
-}
-`;
-
-      try {
-        const coherenceResult = await geminiModel.generateContent([coherencePrompt, ...imageParts]);
-        const coherenceResponse = await coherenceResult.response;
-        const coherenceText = coherenceResponse.text();
-
-        console.log("🔍 Respuesta Coherencia:", coherenceText);
-
-        const cohFirstBrace = coherenceText.indexOf('{');
-        const cohLastBrace = coherenceText.lastIndexOf('}');
-
-        if (cohFirstBrace !== -1 && cohLastBrace !== -1) {
-          const cohJsonString = coherenceText.substring(cohFirstBrace, cohLastBrace + 1);
-          const coherenceAnalysis = JSON.parse(cohJsonString);
-
-          // Si hay vehículos diferentes, agregamos esos índices a invalidIndices
-          if (coherenceAnalysis.isSameVehicle === false && Array.isArray(coherenceAnalysis.differentVehicleIndices)) {
-            console.log('⚠️ Fotos de diferentes vehículos detectadas en índices:', coherenceAnalysis.differentVehicleIndices);
-
-            // Añadir los índices detectados a la lista de inválidos
-            coherenceAnalysis.differentVehicleIndices.forEach((idx: number) => {
-              if (!invalidIndices.includes(idx)) {
-                invalidIndices.push(idx);
-              }
-            });
-          }
-        }
-      } catch (error) {
-        console.error('⚠️ Error validando coherencia, continuando...', error);
-      }
-    }
+    // Mapear al formato esperado
+    const invalidIndices = (parsed.analysis || [])
+      .filter((a: any) => !a.isValid)
+      .map((a: any) => a.index);
 
     return {
-      valid: validCount > 0 && !invalidIndices.includes(0), // Válido si hay alguna y la portada es válida
-      invalidIndices: invalidIndices.sort((a: number, b: number) => a - b),
-      details: parsed.globalDetails || {},
-      category: analysis.find((a: any) => a.isValid)?.category || 'automovil'
+      valid: parsed.isValidCover && !invalidIndices.includes(0),
+      reason: parsed.coverReason,
+      invalidIndices: invalidIndices,
+      details: parsed.details || {},
+      category: parsed.category || 'automovil'
     };
 
-  } catch (error) {
-    console.error("❌ Error CRÍTICO en análisis multi-foto:", error);
+  } catch (error: any) {
+    console.error("❌ Error CRÍTICO en validación AI:", error);
+
+    // Detectar si el error es por contenido bloqueado (Safety)
+    if (error.message?.includes('SAFETY') || error.message?.includes('blocked')) {
+      return {
+        valid: false,
+        reason: "Tu imagen fue rechazada por filtros de seguridad (contenido adulto o violento). Por favor sube fotos originales de tu vehículo.",
+        invalidIndices: [0]
+      };
+    }
+
+    // Error de cuota (Rate Limit)
+    if (error.message?.includes('429')) {
+      return {
+        valid: false,
+        reason: "Estamos recibiendo muchas solicitudes. Por favor, espera un minuto e intenta de nuevo con la foto del vehículo.",
+        invalidIndices: []
+      };
+    }
+
     return {
       valid: false,
-      reason: "No pudimos validar la galería. Asegúrate de que la foto de portada sea del vehículo real que deseas vender y no una captura de pantalla o juguete.",
+      reason: "No pudimos procesar la validación. Asegúrate de subir fotos reales de tu vehículo y evita capturas borrosas o contenido ajeno.",
       invalidIndices: []
     };
   }
