@@ -244,7 +244,7 @@ export default function MarketClient({
                         {/* Botón para mostrar/ocultar filtros */}
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className="px-3 md:px-6 py-3 bg-surface border border-surface-highlight rounded-xl text-text-primary font-medium hover:border-primary-700 transition flex items-center gap-2 whitespace-nowrap"
+                            className="w-full md:w-auto px-6 py-3 bg-surface border border-surface-highlight rounded-xl text-text-primary font-medium hover:border-primary-700 transition flex items-center justify-center md:justify-start gap-2 whitespace-nowrap"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -252,8 +252,8 @@ export default function MarketClient({
                             <span>{showFilters ? t('market.hide_filters') : t('market.show_filters')}</span>
                         </button>
 
-                        {/* Barra de búsqueda con IA */}
-                        <form onSubmit={handleSmartSearch} className="flex-1 w-full relative group">
+                        {/* Barra de búsqueda con IA - Oculta en móvil porque ya existe en Filtros */}
+                        <form onSubmit={handleSmartSearch} className="hidden md:block flex-1 w-full relative group">
                             {/*  Hint Tooltip */}
                             <div className="absolute -top-8 left-0 text-xs text-primary-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 {t('smart_search.tooltip_hint')}
