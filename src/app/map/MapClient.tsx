@@ -359,7 +359,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                     onClick={() => setShowSidebar(true)}
                     className="md:hidden absolute top-4 left-4 z-30 px-4 py-2 bg-primary-700 text-white rounded-lg shadow-lg font-bold"
                 >
-                    Filtros
+                    Mostrar filtros
                 </button>
 
                 {/* 🗂️ Sidebar (Desktop & Mobile Drawer) */}

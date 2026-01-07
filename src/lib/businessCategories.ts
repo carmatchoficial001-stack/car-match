@@ -95,10 +95,15 @@ export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
 }
 
 // Helper for Map & Search
-export const BUSINESS_CATEGORIES = Object.keys(CATEGORY_COLORS).map(id => ({
-    id,
-    label: id.charAt(0).toUpperCase() + id.slice(1).replace('_', ' '), // Simple label gen, can be improved
-    color: CATEGORY_COLORS[id],
-    icon: CATEGORY_EMOJIS[id] || '🔧',
-    keywords: [id, ...SERVICES_BY_CATEGORY[id]?.map(s => s.toLowerCase()) || []]
-}))
+export const BUSINESS_CATEGORIES = Object.keys(CATEGORY_COLORS)
+    .map(id => {
+        const label = id.charAt(0).toUpperCase() + id.slice(1).replace('_', ' ');
+        return {
+            id,
+            label,
+            color: CATEGORY_COLORS[id],
+            icon: CATEGORY_EMOJIS[id] || '🔧',
+            keywords: [id, ...SERVICES_BY_CATEGORY[id]?.map(s => s.toLowerCase()) || []]
+        };
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));

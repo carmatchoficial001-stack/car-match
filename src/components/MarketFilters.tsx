@@ -255,7 +255,7 @@ export default function MarketFiltersAdvanced({
     return (
         <div className="bg-surface border border-surface-highlight rounded-xl p-6 space-y-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-bold text-text-primary">Filtros Inteligentes</h2>
+                <h2 className="text-lg font-bold text-text-primary">Busca tu vehículo ideal</h2>
                 <button onClick={clearFilters} className="text-sm text-primary-400 hover:underline">Limpiar todo</button>
             </div>
 
@@ -270,16 +270,15 @@ export default function MarketFiltersAdvanced({
 
                 <div className="relative z-10">
                     <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xl bg-primary-500/20 p-1 rounded-lg">👨‍🔧</span>
                         <label className="text-sm font-bold text-primary-300 uppercase tracking-wider">
-                            Tu Asesor Personal CarMatch
+                            ¿EN QUÉ PODEMOS AYUDARTE HOY?
                         </label>
                     </div>
                     <div className="space-y-2">
                         <textarea
                             value={aiQuery}
                             onChange={(e) => setAiQuery(e.target.value)}
-                            placeholder="Ej. 'Hola, busco una camioneta segura para viajar con mi familia y que no gaste mucha gasolina'..."
+                            placeholder="Ej. Busco un auto familiar y económico..."
                             className="w-full bg-black/40 border border-primary-900/50 rounded-xl p-3 text-base md:text-sm text-gray-200 placeholder-gray-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all resize-none h-24 shadow-inner"
                             disabled={isAnalyzing}
                         />
@@ -297,7 +296,7 @@ export default function MarketFiltersAdvanced({
                                     <span>Consultando experto...</span>
                                 </>
                             ) : (
-                                'Preguntar a mi Asesor'
+                                'Preguntar a un asesor'
                             )}
                         </button>
                         {aiExplanation && (
