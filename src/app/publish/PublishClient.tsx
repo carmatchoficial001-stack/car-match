@@ -160,8 +160,6 @@ export default function PublishClient() {
 
                 // Si la portada es inválida, NO continuar (ya manejado arriba)
                 if (hasInvalidCover) {
-                    setAiError('La foto de portada no es válida. Por favor elige una foto que muestre el vehículo completo.')
-                    setInvalidImageUrls(new Set([images[0]]))
                     setIsAnalyzing(false)
                     return
                 }

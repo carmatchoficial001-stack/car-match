@@ -206,9 +206,17 @@ RESPONDE ÚNICAMENTE ESTE JSON:
         // Si la portada no es válida, rechazar inmediatamente
         if (coverAnalysis.isValidCover === false) {
           console.log('❌ PORTADA RECHAZADA:', coverAnalysis.reason);
+
+          let specificReason = coverAnalysis.reason;
+          if (coverAnalysis.isToy) {
+            specificReason = "Esta imagen parece un juguete. En la foto de portada debes poner el vehículo real que vas a vender.";
+          } else if (coverAnalysis.isScreenCapture) {
+            specificReason = "Las capturas de pantalla no están permitidas. Por favor, sube una foto original de tu vehículo.";
+          }
+
           return {
             valid: false,
-            reason: `Foto de portada inválida: ${coverAnalysis.reason}. ${coverAnalysis.suggestions || 'Usa una foto que muestre el vehículo completo.'}`,
+            reason: specificReason || 'La foto de portada debe mostrar el vehículo real por seguridad.',
             invalidIndices: [0]
           };
         }
@@ -227,7 +235,7 @@ Tu trabajo es clasificar CADA IMAGEN individualmente como "VALID" (Vehículo/Par
 🛑 REGLAS DE RECHAZO (INVALID):
 - Naturaleza: plantas, árboles, flores, pasto, paisajes sin coches.
 - Seres vivos: personas, mascotas, animales.
-- Objetos no relacionados: comida, muebles, memes, texto, dibujos.
+- Objetos no relacionados: juguetes, miniaturas, comida, muebles, memes, texto, dibujos.
 - Contenido inapropiado: sexual, violencia, drogas.
 
 ✅ REGLAS DE ACEPTACIÓN (VALID):
@@ -266,7 +274,7 @@ FORMATO DE RESPUESTA REQUERIDO:
 {
   "analysis": [
     { "index": 0, "isValid": true, "category": "automovil" },
-    { "index": 1, "isValid": false, "reason": "Razón breve" }
+    { "index": 1, "isValid": false, "reason": "La foto de portada debe mostrar el vehículo real que deseas vender" }
   ],
   "globalDetails": {
     "brand": "Toyota",
@@ -384,6 +392,10 @@ RESPONDE ÚNICAMENTE ESTE JSON:
 
   } catch (error) {
     console.error("❌ Error CRÍTICO en análisis multi-foto:", error);
-    return { valid: false, reason: "Error de seguridad en el análisis de galería.", invalidIndices: [] };
+    return {
+      valid: false,
+      reason: "No pudimos validar la galería. Asegúrate de que la foto de portada sea del vehículo real que deseas vender y no una captura de pantalla o juguete.",
+      invalidIndices: []
+    };
   }
 }

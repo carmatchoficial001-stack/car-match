@@ -29,7 +29,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
     'estacionamiento': '#475569', // BlueGray
     'suspension': '#65a30d', // Lime
     'aire_acondicionado': '#14b8a6', // Teal
-    'importadoras': '#3b82f6', // Blue (Similar to aesthetics, but distinct in use)
+    'importadoras': '#1e3a8a', // Navy Blue (Distinct from aesthetics)
 }
 
 export const CATEGORY_EMOJIS: Record<string, string> = {

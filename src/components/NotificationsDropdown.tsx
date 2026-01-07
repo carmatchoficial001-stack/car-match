@@ -112,7 +112,7 @@ export default function NotificationsDropdown({ isOpen, onClose }: Notifications
             />
 
             {/* Dropdown */}
-            <div className="absolute right-0 mt-2 w-96 bg-surface rounded-xl shadow-2xl border border-surface-highlight overflow-hidden z-50 max-h-[600px] flex flex-col">
+            <div className="fixed top-20 sm:top-auto sm:absolute left-4 right-4 sm:left-auto sm:right-0 mt-2 sm:w-96 bg-surface rounded-xl shadow-2xl border border-surface-highlight overflow-hidden z-50 max-h-[calc(100vh-120px)] sm:max-h-[600px] flex flex-col">
                 {/* Header */}
                 <div className="sticky top-0 bg-surface border-b border-surface-highlight px-4 py-3 flex items-center justify-between">
                     <h3 className="text-lg font-bold text-text-primary">Notificaciones</h3>
