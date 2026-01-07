@@ -209,10 +209,6 @@ export async function POST(request: NextRequest) {
                 traction: body.traction || null,
                 condition: body.condition || null,
                 currency: body.currency || 'MXN',
-                // Documentación
-                hasInvoice: body.hasInvoice !== undefined ? body.hasInvoice : null,
-                hasTenencia: body.hasTenencia !== undefined ? body.hasTenencia : null,
-                hasVerification: body.hasVerification !== undefined ? body.hasVerification : null,
                 features: body.features || [],
                 displacement: body.displacement ? parseInt(body.displacement) : null,
                 cargoCapacity: body.cargoCapacity ? parseFloat(body.cargoCapacity) : null,
