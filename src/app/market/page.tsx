@@ -28,6 +28,9 @@ interface SearchParams {
     sort?: string
     features?: string
     category?: string
+    traction?: string
+    passengers?: string
+    hours?: string
 }
 
 export default async function MarketPage({
