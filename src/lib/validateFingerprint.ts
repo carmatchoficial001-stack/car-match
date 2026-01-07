@@ -10,8 +10,22 @@ export function generateVehicleHash(data: {
     model: string
     year: number
     color?: string | null
+    vehicleType?: string | null
+    engine?: string | null
+    transmission?: string | null
 }) {
-    const str = `${data.brand}-${data.model}-${data.year}-${data.color || ''}`.toLowerCase().replace(/\s/g, '')
+    // Hash técnico robusto: combina marca, modelo, año, color, tipo, motor y transmisión
+    // Si el usuario cambia el título, el hash técnico lo sigue reconociendo como el mismo objeto físico.
+    const str = [
+        data.brand,
+        data.model,
+        data.year,
+        data.color,
+        data.vehicleType,
+        data.engine,
+        data.transmission
+    ].map(v => String(v || '').toLowerCase().replace(/\s/g, '')).join('-')
+
     return crypto.createHash('sha256').update(str).digest('hex')
 }
 
@@ -32,25 +46,30 @@ export async function validatePublicationFingerprint(params: {
     description?: string
     price?: number
 }) {
-    // 1. Buscar publicaciones similares del mismo usuario
-    const recentPublications = await prisma.publicationFingerprint.findMany({
+    // ⚔️ SEGURIDAD GLOBAL: Buscamos si el DISPOSITIVO ya se usó recientemente
+    // Esto detecta fraude multi-cuenta (usuarios distintos en el mismo teléfono)
+    const deviceHistory = await prisma.publicationFingerprint.findMany({
         where: {
-            userId: params.userId,
+            deviceHash: params.deviceHash,
             publicationType: params.publicationType,
             createdAt: {
-                gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Últimos 30 días
+                gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) // Últimos 60 días
             }
         },
         orderBy: { createdAt: 'desc' }
     })
 
-    if (recentPublications.length === 0) {
-        return { isFraud: false, reason: 'Primera publicación' }
+    if (deviceHistory.length === 0) {
+        return { isFraud: false, reason: 'Dispositivo limpio' }
     }
 
-    // 2. Para NEGOCIOS: GPS cerca es fraude directo
+    // Identificar si hay otras cuentas vinculadas a este dispositivo
+    const otherUsers = Array.from(new Set(deviceHistory.map(h => h.userId).filter(id => id !== params.userId)))
+    const isMultiAccount = otherUsers.length > 0
+
+    // 1. Para NEGOCIOS: GPS cerca es fraude directo
     if (params.publicationType === 'BUSINESS') {
-        for (const pub of recentPublications) {
+        for (const pub of deviceHistory) {
             const distance = calculateGPSDistance(
                 params.latitude,
                 params.longitude,
@@ -58,19 +77,21 @@ export async function validatePublicationFingerprint(params: {
                 pub.longitude
             )
 
-            if (distance < 50) {
+            if (distance < 100) { // Radio de 100m para negocios
                 return {
                     isFraud: true,
-                    reason: 'Negocio duplicado en misma ubicación',
+                    reason: isMultiAccount
+                        ? 'Detección de múltiples cuentas intentando publicar el mismo negocio'
+                        : 'Este negocio ya fue registrado desde este dispositivo en esta zona.',
                     distance
                 }
             }
         }
     }
 
-    // 3. Para VEHÍCULOS: Validación inteligente (mismo vehículo físico)
-    if (params.publicationType === 'VEHICLE' && params.images && params.description) {
-        for (const pub of recentPublications) {
+    // 2. Para VEHÍCULOS: Validación por proximidad y dispositivo
+    if (params.publicationType === 'VEHICLE') {
+        for (const pub of deviceHistory) {
             const distance = calculateGPSDistance(
                 params.latitude,
                 params.longitude,
@@ -78,15 +99,21 @@ export async function validatePublicationFingerprint(params: {
                 pub.longitude
             )
 
-            // Solo validar si está en zona cercana (< 100m)
-            if (distance < 100) {
-                // Aquí conectarías con la publicación original para comparar
-                // Por ahora, validamos solo GPS + IP + Device
-                if (pub.ipAddress === params.ipAddress && pub.deviceHash === params.deviceHash) {
+            // Si es el mismo dispositivo en una zona cercana (< 1km) y ha publicado mucho
+            if (distance < 1000) {
+                if (deviceHistory.length >= 3 && !isMultiAccount) {
                     return {
                         isFraud: true,
-                        reason: 'Mismo dispositivo e IP en ubicación cercana',
-                        distance,
+                        reason: 'Límite de publicaciones gratuitas excedido para este dispositivo en esta zona.',
+                        suspicionLevel: 'medium'
+                    }
+                }
+
+                if (isMultiAccount) {
+                    // Si hay varias cuentas en el mismo celular publicando en el mismo radio
+                    return {
+                        isFraud: true,
+                        reason: '🛡️ Seguridad: Actividad sospechosa de múltiples cuentas. Por favor contacta a soporte.',
                         suspicionLevel: 'high'
                     }
                 }
@@ -94,22 +121,17 @@ export async function validatePublicationFingerprint(params: {
         }
     }
 
-    // 4. Validar IP/Device duplicados en corto tiempo
-    const sameDeviceRecent = recentPublications.find(pub =>
-        pub.deviceHash === params.deviceHash &&
-        pub.ipAddress === params.ipAddress &&
-        new Date(pub.createdAt).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000 // 7 días
-    )
-
-    if (sameDeviceRecent) {
+    // 3. Validar IP duplicada masivamente
+    const ipHistoryCount = deviceHistory.filter(pub => pub.ipAddress === params.ipAddress).length
+    if (ipHistoryCount > 5) {
         return {
             isFraud: true,
-            reason: 'Múltiples publicaciones desde mismo dispositivo en 7 días',
+            reason: 'Demasiadas publicaciones detectadas desde esta conexión de red.',
             suspicionLevel: 'medium'
         }
     }
 
-    return { isFraud: false, reason: 'Publicación legítima' }
+    return { isFraud: false, reason: 'Huella validada' }
 }
 
 /**

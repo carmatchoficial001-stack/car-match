@@ -79,7 +79,10 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                     brand: aiBrand,
                     model: aiModel,
                     year: aiYear,
-                    color: aiDetails.color || vehicle.color
+                    color: aiDetails.color || vehicle.color,
+                    vehicleType: aiDetails.type || (vehicle as any).vehicleType,
+                    transmission: aiDetails.transmission || (vehicle as any).transmission,
+                    engine: aiDetails.engine || (vehicle as any).engine
                 })
 
                 // Buscar si este mismo usuario ya publicó este carmóvil recientemente

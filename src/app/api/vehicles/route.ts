@@ -84,7 +84,10 @@ export async function POST(request: NextRequest) {
             brand,
             model,
             year: parseInt(year),
-            color: body.color
+            color: body.color,
+            vehicleType: body.vehicleType,
+            transmission: body.transmission,
+            engine: body.engine
         })
 
         // Verificar si ya publicó este mismo vehículo recientemente para abusar de días gratis
@@ -100,14 +103,35 @@ export async function POST(request: NextRequest) {
 
         const isAdmin = user.isAdmin || session.user.email === process.env.ADMIN_EMAIL
 
-        if (!isFirstVehicle && !isAdmin) {
-            // Buscar duplicados recientes (mismo carro físico)
+        // 🛡️ VALIDAR HUELLA DIGITAL GLOBAL (Detecta fraude de varios correos en mismo cel)
+        if (deviceHash !== 'unknown' && !isAdmin) {
+            const globalFraudCheck = await validatePublicationFingerprint({
+                userId: user.id,
+                publicationType: 'VEHICLE',
+                latitude: body.latitude || 0,
+                longitude: body.longitude || 0,
+                deviceHash: deviceHash,
+                ipAddress: clientIp
+            })
+
+            if (globalFraudCheck.isFraud) {
+                console.log(`🛡️ Seguridad: Fraude Global detectado. Razón: ${globalFraudCheck.reason}`)
+                isFraudulentRetry = true
+
+                // Si es fraude de múltiples cuentas, aplicar strike inmediatamente
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: { fraudStrikes: { increment: 2 } } // Doble penalización por engaño multi-cuenta
+                })
+            }
+        }
+
+        if (!isFirstVehicle && !isAdmin && !isFraudulentRetry) {
+            // Buscar duplicados recientes (mismo carro físico) del MISMO usuario
             const recentDuplicates = await prisma.vehicle.findFirst({
                 where: {
                     userId: user.id,
-                    brand,
-                    model,
-                    year: parseInt(year),
+                    searchIndex: contentHash,
                     status: { in: ['SOLD', 'INACTIVE'] },
                     createdAt: {
                         gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
@@ -119,7 +143,6 @@ export async function POST(request: NextRequest) {
                 console.log(`🛡️ Fraude detectado: Usuario republicando vehículo ${brand} ${model}. Strike +1`)
                 isFraudulentRetry = true
 
-                // 🚨 APLICAR STRIKE (Incrementar contador de abusos)
                 await prisma.user.update({
                     where: { id: user.id },
                     data: { fraudStrikes: { increment: 1 } }

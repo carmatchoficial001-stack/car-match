@@ -75,79 +75,28 @@ ERES UN INSPECTOR DE CONTENIDO PARA CARMATCH - RED SOCIAL EXCLUSIVA DE VEHÍCULO
 Esta plataforma SOLO acepta vehículos terrestres con motor y sus partes legítimas.
 CUALQUIER OTRA COSA debe ser RECHAZADA inmediatamente.
 
-═══ LISTA DE RECHAZO ABSOLUTO (TOLERANCIA CERO) ═══
-🚫 RECHAZA DE INMEDIATO Y SIN EXCEPCIÓN (TOLERANCIA CERO):
-  
-  🔞 CONTENIDO SEXUAL O DESNUDOS (Cualquier rastro de pornografía, personas en ropa interior, o poses lascivas).
-  🩸 VIOLENCIA, SANGRE O ARMAS (Accidentes fatales, armas de fuego, cuchillos, gore, tortura). 🛡️ SEGURIDAD EXTREMA AQUÍ.
-  🪴 PLANTAS (Flores, árboles, jardines, vegetación predominate).
-  👥 PERSONAS (Rostros, cuerpos, selfies, multitudes).
-  🐾 ANIMALES (Perros, gatos, ganado, cualquier ser vivo).
-  🍔 COMIDA (Platillos, bebidas, supermercado).
-  🏞️ PAISAJES (Montañas, playas, edificios sin vehículos).
-  🤡 MEMES, TEXTO O CAPTURAS (Screenshots de otras apps, Instagram, Facebook, IPTV, dibujos, humor).
-  🏠 OBJETOS DOMÉSTICOS (Televisores, muebles, estatuas, íconos religiosos, cuadros, electrónicos, ropa, interiores de casas).
-  ✈️ VEHÍCULOS NO TERRESTRES (Aviones, barcos, drones, lanchas).
-  🧸 JUGUETES (Modelos a escala, carritos de juguete).
-  🌀 IMÁGENES MUY BORROSAS, oscuras o ilegibles.
-
 ⚠️ REGLA DE ORO: Si no se puede vender como un vehículo motorizado terrestre real, es RECHAZADO.
-⚠️ SI LA FOTO ES DE PORTADA (IMAGEN 0), SÉ UN JUEZ IMPLACABLE.
+⚠️ SI LA FOTO ES DE PORTADA (IMAGEN 0), SÉ UN JUEZ IMPLACABLE. NO aceptes fotos donde el vehículo esté tapado, fotos de interiores sin exterior, o fotos de baja resolución.
 
-═══ SOLO ACEPTA (ONTOLOGÍA OMNIBUS DE VEHÍCULOS TERRESTRES) ═══
-✅ AUTOMÓVILES (Pasajeros Privado):
-  - Sedán, Hatchback, SUV, Crossover, Coupe, Convertible, Roadster, Station Wagon
-  - Limusinas, Microcoches (Smart, Isetta), Kei Cars
-  - Pickups Ligeras (Ranger, Hilux) y Personales (Maverick)
+═══ LISTA DE RECHAZO ABSOLUTO (TOLERANCIA CERO) ═══
+🚫 RECHAZA DE INMEDIATO (Si ves esto, isValid=false):
+  - 🔞 DESNUDOS O POSES SUGERENTES.
+  - 🩸 VIOLENCIA, SANGRE O ARMAS.
+  - 👥 PERSONAS (Si hay personas posando o caras visibles en primer plano).
+  - 🐾 ANIMALES (Perros, gatos, etc. No se aceptan "mascotas del taller").
+  - 🪴 PLANTAS O PAISAJES (Si el vehículo NO es el protagonista absoluto).
+  - 🏠 OBJETOS DOMÉSTICOS (Muebles, ropa, electrónicos).
+  - 🤡 MEMES, TEXTO O CAPTURAS (Screenshots de Facebook, Instagram, etc.).
+  - 🧸 JUGUETES (Coleccionables a escala).
 
-✅ MOTOCICLETAS Y AFINES (Manillar/Triciclos):
-  - Motos: Deportiva, Chopper, Cafe Racer, Touring, Enduro, Motocross, Scooter
-  - Triciclos: Spyder, Ryker, Tuk-tuks (Mototaxis), Trimotos de carga
-  - Cuatrimotos: ATV (All-Terrain Vehicle), Quads
-
-✅ COMERCIALES Y DE CARGA (Trabajo Pesado):
-  - Pickups Heavy Duty (F-350, Ram 2500, Dual-Rear Wheels)
-  - Furetes/Vans de Carga: Transit, Sprinter, Ducato, Kangoo
-  - Camiones Rígidos: Torton, Rabón, Caja Seca, Refrigerada, Mudancero
-  - Tractocamiones: Cabina chata (COE), Convencional (con trompa), 5ta Rueda
-  - Especiales Carga: Grúas de plataforma, Cisternas (Pipas), Portacoches (Nodrizas/Madrinas)
-  - Volteos (Dompes), Camiones de Basura, Hormigoneras (Ollas)
-
-✅ TRANSPORTE DE PASAJEROS (Colectivo):
-  - Autobuses Urbanos, Interurbanos, Articulados (Oruga), Trolebuses
-  - Microbuses, Vans de Pasajeros (Combis/Colectivos)
-  - Autobuses Turísticos, Escolares, Dos Pisos (Double Decker)
-
-✅ INDUSTRIAL Y MAQUINARIA (Fuera de Carretera/Construcción):
-  - Movimiento de Tierra: Excavadoras, Retroexcavadoras, Bulldozers, Motoconformadoras
-  - Carga: Montacargas (Forklifts), Cargadores Frontales (Payloader), Minicargadores (Bobcat)
-  - Agrícola: Tractores Agrícolas, Cosechadoras, Sembradoras
-  - Construcción: Aplanadoras, Pavimentadoras, Grúas Industriales Móviles
-  - Minería: Camiones Gigantes (Dump Trucks Mineros)
-
-✅ VEHÍCULOS ESPECIALES Y RECREATIVOS (Nicho):
-  - Recreativo: UTV (Side-by-Side/RZR/Maverick), Buggies, Areneros (Sand Rails), Motonieves
-  - Emergencia: Ambulancias, Patrullas, Camiones de Bomberos, Rescate
-  - Servicio: Carros de Golf, Barredoras Viales, Vehículos Funerarios (Carrozas)
-  - Militar/Blindado (Civil): Vehículos blindados de transporte valores, Unimog
-  - Camping: Casas Rodantes (Motorhomes/RVs), Campers montados
-
-✅ PARTES DE VEHÍCULOS (si la foto es CLARA):
-  - Motores, Transmisiones, Chasis
-  - Llantas, Rines, Suspensión
-  - Interiores (Asientos, Tablero, Volante)
-  - Carrocería (Puertas, Cofre, Cajuela)
+═══ SOLO ACEPTA (VEHÍCULOS MOTORIZADOS TERRESTRES) ═══
+✅ Autos, Motos, Camiones, Tractores, Maquinaria de Construcción, Cuatrimotos, Autobuses. 
+✅ Partes mecánicas claras (Motor, Transmisión, Rines).
 
 ═══ INSTRUCCIONES DE ANÁLISIS ═══
-1. PRIMERO: Verifica si la imagen es un vehículo terrestre motorizado o sus partes.
-2. SI NO LO ES: Responde con valid=false y una razón CLARA.
-3. SI SÍ LO ES: Extrae toda la información posible:
-   - Marca (Brand): Toyota, Ford, Honda, etc. (null si no estás 90% seguro)
-   - Modelo (Model): Corolla, F-150, Civic, etc. (null si no estás 90% seguro)
-   - Año (Year): Estimado o exacto si es visible (ej: "2020" o "2018-2022")
-   - Color: Color predominante del vehículo
-   - Tipo: Sedan, SUV, Pickup, Motocicleta, Camión, etc.
-   - Categoría: "automovil", "motocicleta", "comercial", "industrial", "transporte", "especial"
+1. PRIMERO: ¿Es un vehículo motorizado real?
+2. SEGUNDO: ¿Es apto para todo público (SFW)?
+3. TERCERO: Extrae detalles técnicos precisos.
 
 ═══ EJEMPLOS DE RECHAZO ═══
 - Imagen de una planta → "Esta imagen muestra una planta, no un vehículo."
@@ -237,7 +186,8 @@ Esta es la PRIMERA FOTO que verán los compradores. Debe ser ATRACTIVA y mostrar
 - Interior sin mostrar exterior.
 - Vehículo muy pequeño (menos del 50% del encuadre).
 - Foto muy borrosa o con poca luz.
-- NO es un vehículo terrestre motorizado.
+- NO es un vehículo terrestre motorizado real (ej: juguetes, dibujos, renders).
+- ⚠️ SI TIENES DUDAS de si es un juguete a escala o un vehículo real, RECHAZA por seguridad.
 
 RESPONDE ÚNICAMENTE ESTE JSON:
 {
@@ -374,7 +324,7 @@ FORMATO DE RESPUESTA REQUERIDO:
     const analysis = Array.isArray(parsed.analysis) ? parsed.analysis : [];
 
     // 🛡️ TYPE SAFETY: Asegurar que invalidIndices son números
-    const invalidIndices = analysis
+    let invalidIndices = analysis
       .filter((item: any) => item.isValid === false || item.isValid === "false")
       .map((item: any) => Number(item.index))
       .filter((idx: number) => !isNaN(idx));
@@ -389,29 +339,24 @@ FORMATO DE RESPUESTA REQUERIDO:
       const coherencePrompt = `
 🔍 VERIFICACIÓN DE COHERENCIA - MISMO VEHÍCULO
 
-Has recibido ${images.length} fotos de una publicación de vehículo.
-Tu trabajo es verificar si TODAS las fotos válidas son del MISMO vehículo.
+Has recibido varias fotos de una publicación. La Imagen 0 es la portada.
+Tu trabajo es identificar cuáles de las siguientes fotos (1 en adelante) NO corresponden al MISMO VEHÍCULO que aparece en la Imagen 0.
 
-⚠️ IMPORTANTE:
-- PERMITIR fotos de detalles (motor, interior, llantas) si son del mismo vehículo
-- RECHAZAR si hay fotos de vehículos DIFERENTES
+✅ VÁLIDO:
+- El mismo vehículo desde otro ángulo.
+- Detalles del mismo vehículo (motor, interior, rines, logo).
+- El mismo color, modelo y características.
 
-COMPARA:
-- Color predominante del vehículo
-- Marca y modelo visible
-- Características distintivas: rines, accesorios, pegatinas, daños
-- Año aproximado
+❌ INVÁLIDO (MARCAR ÍNDICE):
+- Un vehículo de diferente marca, modelo o color.
+- Un vehículo con placas o detalles que indiquen claramente que es otro ejemplar.
 
 RESPONDE ÚNICAMENTE ESTE JSON:
 {
-  "isSameVehicle": true/false,
-  "confidence": 0-100,
-  "reason": "Explicación breve si isSameVehicle = false"
+  "isSameVehicle": true/false (solo false si hay intrusos),
+  "differentVehicleIndices": [índices de fotos que NO son el mismo vehículo],
+  "reason": "Explicación breve"
 }
-
-EJEMPLOS:
-✅ 5 fotos exteriores + 3 fotos del interior + 2 fotos del motor del mismo Honda Civic = isSameVehicle: true
-❌ 5 fotos de un Toyota Corolla + 5 fotos de un Nissan Sentra = isSameVehicle: false
 `;
 
       try {
@@ -428,16 +373,17 @@ EJEMPLOS:
           const cohJsonString = coherenceText.substring(cohFirstBrace, cohLastBrace + 1);
           const coherenceAnalysis = JSON.parse(cohJsonString);
 
-          // Si NO son del mismo vehículo, rechazar
-          if (coherenceAnalysis.isSameVehicle === false || coherenceAnalysis.confidence < 50) {
-            console.log('❌ COHERENCIA RECHAZADA:', coherenceAnalysis.reason);
-            return {
-              valid: false,
-              reason: `Las fotos no parecen ser del mismo vehículo. ${coherenceAnalysis.reason || 'Asegúrate de subir solo fotos de UN vehículo.'}`,
-              invalidIndices: []
-            };
+          // Si hay vehículos diferentes, agregamos esos índices a invalidIndices
+          if (coherenceAnalysis.isSameVehicle === false && Array.isArray(coherenceAnalysis.differentVehicleIndices)) {
+            console.log('⚠️ Fotos de diferentes vehículos detectadas en índices:', coherenceAnalysis.differentVehicleIndices);
+
+            // Añadir los índices detectados a la lista de inválidos
+            coherenceAnalysis.differentVehicleIndices.forEach((idx: number) => {
+              if (!invalidIndices.includes(idx)) {
+                invalidIndices.push(idx);
+              }
+            });
           }
-          console.log(`✅ Coherencia aprobada (${coherenceAnalysis.confidence}% confianza)`);
         }
       } catch (error) {
         console.error('⚠️ Error validando coherencia, continuando...', error);
@@ -445,8 +391,8 @@ EJEMPLOS:
     }
 
     return {
-      valid: validCount > 0,
-      invalidIndices: invalidIndices,
+      valid: validCount > 0 && !invalidIndices.includes(0), // Válido si hay alguna y la portada es válida
+      invalidIndices: invalidIndices.sort((a: number, b: number) => a - b),
       details: parsed.globalDetails || {},
       category: analysis.find((a: any) => a.isValid)?.category || 'automovil'
     };

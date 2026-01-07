@@ -74,28 +74,58 @@ export async function POST(request: NextRequest) {
 
         // 💰 MONETIZACIÓN DE NEGOCIOS
         // Primer negocio: 3 MESES GRATIS
-        // Negocios 2+: REQUIEREN 1 CRÉDITO desde el inicio (NO hay período gratuito)
+        // Negocios 2+: REQUIEREN 1 CRÉDITO para estar activos. Si no hay, se crean como INACTIVOS (Borrador).
 
         const isAdmin = userExists.isAdmin || session.user.email === process.env.ADMIN_EMAIL
 
-        if (!isFirstBusiness && !isAdmin) {
-            // Verificar si tiene créditos
-            const user = await prisma.user.findUnique({
-                where: { id: session.user.id },
-                select: { credits: true }
-            })
+        // Obtener créditos actuales
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { credits: true }
+        })
+        const hasCredits = (user?.credits || 0) >= 1
 
-            if (!user || user.credits < 1) {
-                return NextResponse.json({
-                    error: 'REQUIRES_CREDIT',
-                    message: 'Necesitas 1 crédito para publicar negocios adicionales. El primer negocio es gratis por 3 meses, los siguientes requieren 1 crédito/mes.',
-                    redirectTo: '/credits?reason=business'
-                }, { status: 402 }) // 402 Payment Required
-            }
+        let expiresAt: Date | null = null
+        let isFreePublication = false
+        let isActive = false
+        let creditCharged = false
+
+        if (isAdmin) {
+            // ⭐ ADMIN PERKS: 10 años gratis
+            isActive = true
+            expiresAt = new Date()
+            expiresAt.setFullYear(expiresAt.getFullYear() + 10)
+            isFreePublication = true
+        } else if (isFirstBusiness) {
+            // PRIMER NEGOCIO: 3 MESES GRATIS
+            isActive = true
+            expiresAt = new Date()
+            expiresAt.setMonth(expiresAt.getMonth() + 3)
+            isFreePublication = true
+        } else if (hasCredits) {
+            // SIGUIENTES NEGOCIOS CON CRÉDITO: 1 mes y se activa
+            isActive = true
+            expiresAt = new Date()
+            expiresAt.setMonth(expiresAt.getMonth() + 1)
+            isFreePublication = false
+            creditCharged = true
+
+            // Descontar el crédito inmediatamente
+            await prisma.user.update({
+                where: { id: session.user.id },
+                data: { credits: { decrement: 1 } }
+            })
+        } else {
+            // SIGUIENTES NEGOCIOS SIN CRÉDITO: Se crea como INACTIVO (Borrador)
+            isActive = false
+            expiresAt = null
+            isFreePublication = false
+            creditCharged = false
         }
 
         // 🛡️ VALIDAR HUELLA DIGITAL para detectar duplicados
         const { fingerprint } = body
+        // ... (resto de validaciones de huella)
         if (!fingerprint?.deviceHash && !isAdmin) {
             return NextResponse.json(
                 { error: 'Huella digital requerida' },
@@ -124,33 +154,6 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        let expiresAt: Date | null = null
-        let isFreePublication = false
-
-        if (isAdmin) {
-            // ⭐ ADMIN PERKS: 10 años gratis
-            expiresAt = new Date()
-            expiresAt.setFullYear(expiresAt.getFullYear() + 10)
-            isFreePublication = true
-        } else if (isFirstBusiness) {
-            // PRIMER NEGOCIO: 3 MESES GRATIS
-            expiresAt = new Date()
-            expiresAt.setMonth(expiresAt.getMonth() + 3)
-            isFreePublication = true
-
-        } else {
-            // SIGUIENTES NEGOCIOS: 1 mes desde el inicio (ya cobramos crédito arriba)
-            expiresAt = new Date()
-            expiresAt.setMonth(expiresAt.getMonth() + 1)
-            isFreePublication = false // NO es gratis, requirió crédito
-
-            // Descontar el crédito inmediatamente
-            await prisma.user.update({
-                where: { id: session.user.id },
-                data: { credits: { decrement: 1 } }
-            })
-        }
-
         // Crear negocio
         const business = await prisma.business.create({
             data: {
@@ -174,33 +177,20 @@ export async function POST(request: NextRequest) {
                 instagram: instagram?.trim() || null,
                 tiktok: tiktok?.trim() || null,
                 hours: hours?.trim() || null,
-                // Ensure numbers are numbers
                 latitude: typeof latitude === 'string' ? parseFloat(latitude) : Number(latitude),
                 longitude: typeof longitude === 'string' ? parseFloat(longitude) : Number(longitude),
                 images: Array.isArray(images) ? images : [],
-
-                // Nuevos Atributos
                 is24Hours: body.is24Hours || false,
                 hasEmergencyService: body.hasEmergencyService || false,
                 hasHomeService: body.hasHomeService || false,
-
-
-                // 🔥 FIX: Todos los negocios inician ACTIVOS con período gratuito
-                // El cron job se encargará de desactivarlos cuando expiren
-                isActive: true,
-
+                isActive, // Dinámico según créditos
                 isFreePublication,
                 publishedAt: new Date(),
                 expiresAt,
                 services: Array.isArray(services) ? services : []
             },
             include: {
-                user: {
-                    select: {
-                        name: true,
-                        image: true
-                    }
-                }
+                user: { select: { name: true, image: true } }
             }
         })
 
@@ -216,19 +206,24 @@ export async function POST(request: NextRequest) {
             userAgent: request.headers.get('user-agent') || undefined
         })
 
-        // 🚀 SEGURIDAD: Iniciar revisión por el Equipo de Seguridad en segundo plano
-        import('@/lib/ai-moderation').then(mod => {
-            mod.moderateBusinessListing(business.id, business.images)
-                .catch(err => console.error('Error en revisión de seguridad de negocio:', err))
-        })
+        // 🚀 SEGURIDAD: Iniciar revisión en segundo plano (solo si tiene fotos)
+        if (business.images.length > 0) {
+            import('@/lib/ai-moderation').then(mod => {
+                mod.moderateBusinessListing(business.id, business.images)
+                    .catch(err => console.error('Error en revisión de seguridad de negocio:', err))
+            })
+        }
 
         return NextResponse.json({
             business,
             message: isFirstBusiness
                 ? '¡Negocio creado con éxito! Disfruta de 3 MESES GRATIS 🎉'
-                : '✅ Negocio creado. Se descontó 1 crédito de tu cuenta. Activo por 30 días.',
+                : creditCharged
+                    ? '✅ Negocio creado y activado. Se descontó 1 crédito.'
+                    : '📝 Negocio guardado como BORRADOR. Adquiere créditos para activarlo en el mapa.',
             isFirstBusiness,
-            creditCharged: !isFirstBusiness
+            creditCharged,
+            status: isActive ? 'ACTIVE' : 'DRAFT'
         }, { status: 201 })
 
     } catch (error) {
