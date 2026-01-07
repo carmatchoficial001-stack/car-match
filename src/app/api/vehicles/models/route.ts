@@ -43,6 +43,20 @@ export async function GET(request: NextRequest) {
             orderBy: { name: 'asc' }
         })
 
+        // 🔥 SISTEMA VIVO: Si no hay modelos en DB, consultar a la IA
+        if (models.length === 0 && brandName) {
+            const { suggestModelsForBrand } = await import('@/lib/ai/vehicleScanner');
+            const suggestions = await suggestModelsForBrand(brandName);
+
+            if (suggestions.length > 0) {
+                return NextResponse.json(suggestions.map((name, index) => ({
+                    id: `ai-${index}`,
+                    name: name,
+                    isAiGenerated: true
+                })));
+            }
+        }
+
         return NextResponse.json(models)
     } catch (error) {
         console.error('Error fetching models:', error)
