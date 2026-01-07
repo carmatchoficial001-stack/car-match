@@ -390,7 +390,7 @@ export default function PublishClient() {
                 passengers: passengers ? parseInt(passengers) : null,
                 displacement: displacement ? parseInt(displacement) : null,
                 cargoCapacity: cargoCapacity ? parseFloat(cargoCapacity) : null,
-                cargoCapacity: cargoCapacity ? parseFloat(cargoCapacity) : null,
+                operatingHours: operatingHours ? parseInt(operatingHours) : null,
             }
 
             if (deviceFP) {
@@ -768,6 +768,19 @@ export default function PublishClient() {
                                                 value={cargoCapacity}
                                                 onChange={(e) => setCargoCapacity(e.target.value)}
                                                 placeholder="Ej: 3.5 ton"
+                                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all"
+                                            />
+                                        </div>
+                                    )}
+                                    {(vehicleCategory.toLowerCase().includes('industrial') || vehicleCategory.toLowerCase().includes('maquinaria')) && (
+                                        <div className="space-y-2">
+                                            <label className="block text-text-primary font-medium">Horas de uso <span className="text-text-secondary text-xs font-normal">(Opcional)</span></label>
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                value={operatingHours}
+                                                onChange={(e) => setOperatingHours(e.target.value.replace(/[^0-9]/g, ''))}
+                                                placeholder="Ej: 1200 hrs"
                                                 className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all"
                                             />
                                         </div>
