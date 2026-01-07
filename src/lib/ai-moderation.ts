@@ -1,23 +1,7 @@
 import { prisma } from '@/lib/db'
 import { analyzeMultipleImages } from './ai/imageAnalyzer'
 import { generateVehicleHash } from './validateFingerprint'
-
-/**
- * Helper para convertir URLs de imágenes (Cloudinary) a Base64
- * para que Gemini las pueda procesar.
- */
-async function fetchImageAsBase64(url: string): Promise<string | null> {
-    try {
-        const response = await fetch(url)
-        if (!response.ok) throw new Error(`Falló descarga: ${response.statusText}`)
-        const arrayBuffer = await response.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-        return buffer.toString('base64')
-    } catch (error) {
-        console.error(`❌ Error convirtiendo imagen a base64 (${url}):`, error)
-        return null
-    }
-}
+import { fetchImageAsBase64 } from './ai-moderation-helper'
 
 /**
  * Servicio de Moderación Automática (AI) Real con Gemini
@@ -130,7 +114,8 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
         where: { id: vehicleId },
         data: {
             moderationStatus: status,
-            images: finalImages, // Guardamos solo las fotos que pasaron la prueba
+            images: finalImages,
+            // BLINDAJE: Solo activar si fue aprobado y NO es marcado como vendido
             status: status === 'REJECTED' ? 'INACTIVE' : 'ACTIVE'
         }
     })

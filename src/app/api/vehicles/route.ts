@@ -49,6 +49,41 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        // ═══ VALIDACIÓN SÍNCRONA DE IMAGEN DE PORTADA ═══
+        // Implementamos un "Filtro de Aire" inmediato: Si la portada no es un carro real, NO entra.
+        const images = body.images || []
+        if (images.length === 0) {
+            return NextResponse.json(
+                { error: 'La foto de portada es obligatoria' },
+                { status: 400 }
+            )
+        }
+
+        console.log(`🔍 Validando portada síncronamente para nuevo vehículo de ${user.id}...`)
+        const { analyzeMultipleImages } = await import('@/lib/ai/imageAnalyzer')
+        const { fetchImageAsBase64 } = await import('@/lib/ai-moderation-helper') // Necesitamos extraer este helper o uno similar
+
+        // Obtener base64 de la portada (images[0])
+        const coverBase64 = await fetchImageAsBase64(images[0])
+        if (!coverBase64) {
+            return NextResponse.json(
+                { error: 'No se pudo procesar la imagen de portada. Intenta con otra.' },
+                { status: 400 }
+            )
+        }
+
+        // Llamar a Gemini (Modo Especial Portada ya implementado en analyzeMultipleImages)
+        const coverAnalysis = await analyzeMultipleImages([coverBase64], 'VEHICLE')
+
+        if (!coverAnalysis.valid) {
+            console.log(`❌ Portada rechazada por IA: ${coverAnalysis.reason}`)
+            return NextResponse.json({
+                error: 'Imagen de portada no válida',
+                message: coverAnalysis.reason || 'La imagen no parece ser un vehículo real.',
+                code: 'INVALID_VEHICLE_IMAGE'
+            }, { status: 422 })
+        }
+
         // 🛡️ ANTI-FRAUDE & MONETIZACIÓN
         // Verificar historial de vehículos para definir beneficios (6 meses / 7 días / cobro)
         const vehicleCount = await prisma.vehicle.count({
@@ -62,7 +97,6 @@ export async function POST(request: NextRequest) {
         const { savePublicationFingerprint, validatePublicationFingerprint, generateVehicleHash } = await import('@/lib/validateFingerprint')
 
         // Huella Backend: IP + DeviceHash (si viene) + GPS
-        // Nota: Si el frontend no envía deviceFingerprint (porque no se puede tocar), usamos 'unknown' pero validamos IP y Contenido
         const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
 
         let deviceHash = 'unknown'
@@ -72,38 +106,13 @@ export async function POST(request: NextRequest) {
                 deviceHash = rawFingerprint
             } else if (typeof rawFingerprint === 'object' && rawFingerprint.visitorId) {
                 deviceHash = rawFingerprint.visitorId
-            } else {
-                // Fallback for unexpected objects
-                deviceHash = JSON.stringify(rawFingerprint).slice(0, 100)
             }
         }
-
-        // 🔍 Validar duplicados de contenido (Mismo carro republicado?)
-        // Generamos un hash del contenido del vehículo
-        const contentHash = generateVehicleHash({
-            brand,
-            model,
-            year: parseInt(year),
-            color: body.color,
-            vehicleType: body.vehicleType,
-            transmission: body.transmission,
-            engine: body.engine
-        })
-
-        // Verificar si ya publicó este mismo vehículo recientemente para abusar de días gratis
-        // Lógica de LOTE: Permitimos muchos vehículos, pero no el MISMO vehículo físico para ganar tiempo gratis
-        // Si detectamos fraude, NO damos días gratis.
-        let isFraudulentRetry = false
-
-        // SISTEMA DE STRIKES (Protección contra abuso recurrente)
-        // 1. Un usuario legal (Lote) tiene muchos carros distintos -> OK
-        // 2. Un abusador borra y resube el MISMO carro muchas veces -> FRAUDE
-
-        const isPermanentlyRestricted = (user.fraudStrikes || 0) >= 10
 
         const isAdmin = user.isAdmin || session.user.email === process.env.ADMIN_EMAIL
 
         // 🛡️ VALIDAR HUELLA DIGITAL GLOBAL (Detecta fraude de varios correos en mismo cel)
+        let isFraudulentRetry = false
         if (deviceHash !== 'unknown' && !isAdmin) {
             const globalFraudCheck = await validatePublicationFingerprint({
                 userId: user.id,
@@ -126,23 +135,27 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // 🔍 Validar duplicados de contenido (Mismo carro republicado?)
+        const contentHash = generateVehicleHash({
+            brand: coverAnalysis.details?.brand || brand,
+            model: coverAnalysis.details?.model || model,
+            year: coverAnalysis.details?.year ? parseInt(coverAnalysis.details.year) : parseInt(year),
+            color: coverAnalysis.details?.color || body.color,
+            vehicleType: coverAnalysis.details?.type || body.vehicleType
+        })
+
         if (!isFirstVehicle && !isAdmin && !isFraudulentRetry) {
-            // Buscar duplicados recientes (mismo carro físico) del MISMO usuario
             const recentDuplicates = await prisma.vehicle.findFirst({
                 where: {
                     userId: user.id,
                     searchIndex: contentHash,
-                    status: { in: ['SOLD', 'INACTIVE'] },
-                    createdAt: {
-                        gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-                    }
+                    createdAt: { gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) }
                 }
             })
 
             if (recentDuplicates) {
-                console.log(`🛡️ Fraude detectado: Usuario republicando vehículo ${brand} ${model}. Strike +1`)
+                console.log(`🛡️ Fraude detectado: Republicación de ${brand} ${model}. Strike +1`)
                 isFraudulentRetry = true
-
                 await prisma.user.update({
                     where: { id: user.id },
                     data: { fraudStrikes: { increment: 1 } }
@@ -155,43 +168,35 @@ export async function POST(request: NextRequest) {
         let expiresAt = new Date()
         let isFreePublication = true
 
+        const isPermanentlyRestricted = (user.fraudStrikes || 0) >= 10
+
         if (isAdmin) {
-            // ⭐ ADMIN PERKS: 10 años gratis
             expiresAt.setFullYear(now.getFullYear() + 10)
             isFreePublication = true
         }
-        else if (isPermanentlyRestricted) {
-            // 🚫 VETADO: Usuario con historial de abuso (>10 strikes).
-            // Siempre paga desde el día 1, sin excepciones.
-            expiresAt = new Date()
-            isFreePublication = false
-        }
-        else if (isFraudulentRetry) {
-            // ⚠️ CASTIGO PUNTUAL: Intento de fraude actual.
-            // Paga por este vehículo.
+        else if (isPermanentlyRestricted || isFraudulentRetry) {
+            // Usuarios marcados o fraude detectado NO tienen días gratis
             expiresAt = new Date()
             isFreePublication = false
         }
         else if (isFirstVehicle) {
-            // ✅ BENEFICIO DE ENGANCHE: 6 Meses Gratis
             expiresAt.setMonth(now.getMonth() + 6)
             isFreePublication = true
         }
         else {
-            // ✅ BENEFICIO ESTÁNDAR: 7 Días Gratis (Estrategia de gancho para vendedores)
             expiresAt.setDate(now.getDate() + 7)
             isFreePublication = true
         }
 
-        // Crear vehículo
+        // Crear vehículo (Estado inicial: INACTIVE hasta que termine moderación de galería)
         const vehicle = await prisma.vehicle.create({
             data: {
                 userId: user.id,
                 title,
                 description,
-                brand,
-                model,
-                year: parseInt(year),
+                brand: coverAnalysis.details?.brand || brand,
+                model: coverAnalysis.details?.model || model,
+                year: coverAnalysis.details?.year ? parseInt(coverAnalysis.details.year) : parseInt(year),
                 price: parseFloat(price),
                 city,
                 latitude: latitude ? parseFloat(latitude) : null,
@@ -202,23 +207,12 @@ export async function POST(request: NextRequest) {
                 transmission: body.transmission || null,
                 fuel: body.fuel || null,
                 engine: body.engine || null,
-                color: body.color || null,
-                vehicleType: body.vehicleType || null,
-                doors: body.doors ? parseInt(body.doors) : null,
-                passengers: body.passengers ? parseInt(body.passengers) : null,
-                traction: body.traction || null,
-                condition: body.condition || null,
+                color: coverAnalysis.details?.color || body.color,
+                vehicleType: coverAnalysis.details?.type || body.vehicleType,
                 currency: body.currency || 'MXN',
-                features: body.features || [],
-                displacement: body.displacement ? parseInt(body.displacement) : null,
-                cargoCapacity: body.cargoCapacity ? parseFloat(body.cargoCapacity) : null,
-                operatingHours: body.operatingHours ? parseInt(body.operatingHours) : null,
-
                 // ESTADO INICIAL
-                // Si es fraude -> INACTIVO. Si es legítimo -> ACTIVO.
-                status: (isFraudulentRetry || isPermanentlyRestricted) ? 'INACTIVE' : 'ACTIVE',
-                moderationStatus: 'APPROVED',
-
+                status: 'INACTIVE', // BLINDAJE: Empieza inactivo
+                moderationStatus: 'PENDING_AI',
                 isFreePublication: isFreePublication,
                 publishedAt: now,
                 expiresAt: expiresAt,

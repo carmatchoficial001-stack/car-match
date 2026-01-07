@@ -46,30 +46,35 @@ export async function validatePublicationFingerprint(params: {
     description?: string
     price?: number
 }) {
-    // ⚔️ SEGURIDAD GLOBAL: Buscamos si el DISPOSITIVO ya se usó recientemente
-    // Esto detecta fraude multi-cuenta (usuarios distintos en el mismo teléfono)
+    // ⚔️ SEGURIDAD RADICAL: Buscamos si el DISPOSITIVO ya se usó con OTRA cuenta
+    // Si un mismo celular/navegador tiene 2+ cuentas, BLOQUER beneficios gratis.
     const deviceHistory = await prisma.publicationFingerprint.findMany({
         where: {
             deviceHash: params.deviceHash,
-            publicationType: params.publicationType,
             createdAt: {
-                gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) // Últimos 60 días
+                gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) // 90 días de historial
             }
         },
-        orderBy: { createdAt: 'desc' }
+        select: { userId: true, publicationType: true, latitude: true, longitude: true, ipAddress: true }
     })
 
-    if (deviceHistory.length === 0) {
-        return { isFraud: false, reason: 'Dispositivo limpio' }
+    if (deviceHistory.length > 0) {
+        // Identificar si hay otras cuentas vinculadas a este dispositivo
+        const otherUsers = Array.from(new Set(deviceHistory.map(h => h.userId).filter(id => id !== params.userId)))
+
+        if (otherUsers.length > 0) {
+            console.log(`🛡️ SEGURIDAD: Multicuenta detectada en dispositivo ${params.deviceHash}. Cuentas: [${params.userId}, ${otherUsers.join(', ')}]`)
+            return {
+                isFraud: true,
+                reason: '🛡️ SEGURIDAD: Se han detectado múltiples cuentas vinculadas a este dispositivo. Para proteger nuestra comunidad, esta cuenta requiere verificación y activación manual por créditos.'
+            }
+        }
     }
 
-    // Identificar si hay otras cuentas vinculadas a este dispositivo
-    const otherUsers = Array.from(new Set(deviceHistory.map(h => h.userId).filter(id => id !== params.userId)))
-    const isMultiAccount = otherUsers.length > 0
-
-    // 1. Para NEGOCIOS: GPS cerca es fraude directo
+    // 1. Para NEGOCIOS: GPS cerca es sospechoso
     if (params.publicationType === 'BUSINESS') {
-        for (const pub of deviceHistory) {
+        const nearBusinesses = deviceHistory.filter(h => h.publicationType === 'BUSINESS')
+        for (const pub of nearBusinesses) {
             const distance = calculateGPSDistance(
                 params.latitude,
                 params.longitude,
@@ -77,21 +82,31 @@ export async function validatePublicationFingerprint(params: {
                 pub.longitude
             )
 
-            if (distance < 100) { // Radio de 100m para negocios
+            if (distance < 300) { // Radio de 300m
                 return {
                     isFraud: true,
-                    reason: isMultiAccount
-                        ? 'Detección de múltiples cuentas intentando publicar el mismo negocio'
-                        : 'Este negocio ya fue registrado desde este dispositivo en esta zona.',
+                    reason: 'Este negocio o uno muy similar ya fue registrado desde este dispositivo en esta zona.',
                     distance
                 }
             }
         }
     }
 
-    // 2. Para VEHÍCULOS: Validación por proximidad y dispositivo
+    // 2. Para VEHÍCULOS: Límite por dispositivo
     if (params.publicationType === 'VEHICLE') {
-        for (const pub of deviceHistory) {
+        const deviceVehicleCount = deviceHistory.filter(h => h.publicationType === 'VEHICLE').length
+
+        // Si el usuario ha publicado más de 5 vehículos desde este mismo dispositivo
+        // es un lote o un revendedor, ya no es "usuario casual", debe pagar.
+        if (deviceVehicleCount >= 5) {
+            return {
+                isFraud: true, // Lo tratamos como "fraude de beneficios" (querer todo gratis)
+                reason: 'Has alcanzado el límite de publicaciones gratuitas permitidas para este dispositivo. Las siguientes requieren activación.'
+            }
+        }
+
+        // Validación por proximidad para evitar SPAM del mismo carro
+        for (const pub of deviceHistory.filter(h => h.publicationType === 'VEHICLE')) {
             const distance = calculateGPSDistance(
                 params.latitude,
                 params.longitude,
@@ -99,35 +114,19 @@ export async function validatePublicationFingerprint(params: {
                 pub.longitude
             )
 
-            // Si es el mismo dispositivo en una zona cercana (< 1km) y ha publicado mucho
-            if (distance < 1000) {
-                if (deviceHistory.length >= 3 && !isMultiAccount) {
-                    return {
-                        isFraud: true,
-                        reason: 'Límite de publicaciones gratuitas excedido para este dispositivo en esta zona.',
-                        suspicionLevel: 'medium'
-                    }
-                }
-
-                if (isMultiAccount) {
-                    // Si hay varias cuentas en el mismo celular publicando en el mismo radio
-                    return {
-                        isFraud: true,
-                        reason: '🛡️ Seguridad: Actividad sospechosa de múltiples cuentas. Por favor contacta a soporte.',
-                        suspicionLevel: 'high'
-                    }
-                }
+            if (distance < 100) { // Misma ubicación física exacta
+                // Podría ser el mismo carro resubido
+                // check global history for this user too (already done in route.ts)
             }
         }
     }
 
     // 3. Validar IP duplicada masivamente
     const ipHistoryCount = deviceHistory.filter(pub => pub.ipAddress === params.ipAddress).length
-    if (ipHistoryCount > 5) {
+    if (ipHistoryCount > 10) {
         return {
             isFraud: true,
-            reason: 'Demasiadas publicaciones detectadas desde esta conexión de red.',
-            suspicionLevel: 'medium'
+            reason: 'Actividad excesiva detectada desde esta conexión de red.'
         }
     }
 
