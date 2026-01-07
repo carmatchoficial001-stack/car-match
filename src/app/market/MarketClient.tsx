@@ -2,13 +2,12 @@
 // v1.4 Refactor: Global LocationContext Usage
 
 import { useEffect, useState } from 'react'
-import { MapPin } from 'lucide-react'
+import { MapPin, Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useLocation } from '@/contexts/LocationContext'
 import { searchCity, calculateDistance, normalizeCountryCode } from '@/lib/geolocation'
-import DistanceBadge from '@/components/DistanceBadge'
 import Header from '@/components/Header'
 import MarketFilters from '@/components/MarketFilters'
 import FavoriteButton from '@/components/FavoriteButton'
@@ -290,24 +289,11 @@ export default function MarketClient({
                             </div>
                         </form>
 
-                        {/* Indicador de Distancia */}
-                        <div className="hidden md:block">
-                            <DistanceBadge
-                                distance={searchRadius}
-                                locationName={displayCity}
-                                onClick={() => setShowLocationModal(true)}
-                            />
-                        </div>
+                        {/* El indicador de radio se movió dentro de los estados específicos */}
                     </div>
 
                     {/* Mobile Distance Indicator */}
-                    <div className="md:hidden mt-4 flex justify-center">
-                        <DistanceBadge
-                            distance={searchRadius}
-                            locationName={displayCity}
-                            onClick={() => setShowLocationModal(true)}
-                        />
-                    </div>
+                    {/* El indicador de radio se movió dentro de los estados específicos */}
                 </header>
 
                 {/* Área de Filtros (Full Width) */}
@@ -483,8 +469,21 @@ export default function MarketClient({
                                     )}
                                 </div>
                             ) : (
-                                <div className="mt-12 p-8 bg-surface-highlight/20 border border-surface-highlight rounded-2xl text-center md:flex md:items-center md:justify-between mb-8">
-                                    <div className="mb-4 md:mb-0 text-left">
+                                <div className="mt-12 p-8 bg-surface border border-surface-highlight rounded-2xl text-center flex flex-col items-center mb-8 shadow-xl animate-in zoom-in duration-300">
+
+                                    {/* 📍 Radio Badge movido aquí por petición del usuario */}
+                                    <button
+                                        onClick={() => setShowLocationModal(true)}
+                                        className="mb-8 px-4 py-2 bg-primary-700/10 hover:bg-primary-700/20 active:scale-95 transition-all text-white text-xs rounded-full border border-primary-500/20 shadow-sm flex items-center gap-2 cursor-pointer group"
+                                    >
+                                        <MapPin className="w-3 h-3 text-primary-400" />
+                                        <span className="font-bold text-primary-300">
+                                            Radio: 0 - {searchRadius} km | {displayCity}
+                                        </span>
+                                        <Search className="w-3 h-3 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </button>
+
+                                    <div className="mb-6">
                                         <h3 className="text-xl font-bold text-text-primary">
                                             {searchRadius >= 5000 ? t('market.no_results') : t('market.cant_find_title')}
                                         </h3>

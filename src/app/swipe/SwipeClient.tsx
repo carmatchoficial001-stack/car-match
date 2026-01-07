@@ -210,17 +210,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
             <Header />
             <main className="flex-1 max-w-4xl mx-auto w-full px-4 pt-10 pb-20 flex flex-col items-center justify-center">
 
-                {/* 📍 Location Indicator (Clickable) */}
-                <button
-                    onClick={() => setShowLocationModal(true)}
-                    className="mb-6 px-4 py-2 bg-black/50 hover:bg-black/70 active:scale-95 transition-all text-white text-xs rounded-full backdrop-blur-sm border border-white/10 shadow-sm flex flex-col items-center gap-1 cursor-pointer group"
-                >
-                    <span className="font-bold text-primary-300 flex items-center gap-2">
-                        <MapPin className="w-3 h-3" />
-                        Radio: 0 - {currentRadius} km | {location?.city || 'Buscando...'}
-                        <Search className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </span>
-                </button>
+                {/* El indicador de radio se movió dentro de los estados específicos */}
 
                 {isLoading ? (
                     <div className="flex flex-col items-center">
@@ -228,7 +218,19 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                         <p className="text-text-secondary animate-pulse">{t('common.loading')}</p>
                     </div>
                 ) : nearbyItems.length === 0 ? (
-                    <div className="bg-surface rounded-3xl shadow-2xl p-10 text-center border border-white/5 max-w-sm w-full animate-in zoom-in duration-300">
+                    <div className="bg-surface rounded-3xl shadow-2xl p-10 text-center border border-white/5 max-w-sm w-full animate-in zoom-in duration-300 flex flex-col items-center">
+
+                        {/* 📍 Radio Badge movido aquí por petición del usuario */}
+                        <button
+                            onClick={() => setShowLocationModal(true)}
+                            className="mb-8 px-4 py-2 bg-primary-700/10 hover:bg-primary-700/20 active:scale-95 transition-all text-white text-xs rounded-full border border-primary-500/20 shadow-sm flex items-center gap-2 cursor-pointer group"
+                        >
+                            <MapPin className="w-3 h-3 text-primary-400" />
+                            <span className="font-bold text-primary-300">
+                                Radio: 0 - {currentRadius} km | {location?.city || 'Buscando...'}
+                            </span>
+                            <Search className="w-3 h-3 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </button>
                         <div className="w-20 h-20 bg-primary-700/10 rounded-full flex items-center justify-center mx-auto mb-8">
                             <MapPin className="text-primary-400" size={40} />
                         </div>
