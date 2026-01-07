@@ -140,32 +140,44 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
  * @param type Tipo de publicación ('VEHICLE' | 'BUSINESS')
  * @returns Análisis consolidado
  */
-export async function analyzeMultipleImages(images: string[], type: 'VEHICLE' | 'BUSINESS' = 'VEHICLE'): Promise<ImageAnalysisResult> {
-  console.log(`🤖 AI Multi-Moderación: Analizando ${images.length} imágenes...`);
+export async function analyzeMultipleImages(
+  images: string[],
+  type: 'VEHICLE' | 'BUSINESS' = 'VEHICLE',
+  context?: { brand?: string, model?: string, year?: string }
+): Promise<ImageAnalysisResult> {
+  console.log(`🤖 AI Contextual: Analizando ${images.length} imágenes...`);
+
+  const vehicleContextPrompt = context?.brand
+    ? `\nGUÍA DE CONTEXTO: El usuario dice tener un ${context.brand} ${context.model || ''} ${context.year || ''}.
+       Usa esto para ayudarte a identificar si es un vehículo real, pero sé FLEXIBLE.
+       Si el usuario se equivoca de año o modelo pero sube un carro real, ¡APRUÉBALO! (Puede ser error humano).`
+    : '';
 
   const prompt = type === 'VEHICLE'
-    ? `ERES UN MODERADOR AUTOMOTRIZ. Recibes un set de fotos (0 es PORTADA, 1-9 son GALERÍA).
+    ? `ERES UN MODERADOR INTELIGENTE DE CARMATCH.
+       Tu misión es validar que la IMAGEN 0 (portada) sea un vehículo real o parte mecánica.
+       ${vehicleContextPrompt}
 
-       REGLAS PARA IMAGEN 0 (PORTADA):
-       - DEBE ser un vehículo o parte real. 
-       - Si es basura/NSFW/violencia/juguete, marca isValid: false.
-       - Esta imagen es OBLIGATORIA.
+       ✅ APROBAR (isValid: true):
+       - Vehículos reales o piezas mecánicas (motores, rines, motores, etc).
+       - Aunque no coincida exactamente con el año/modelo del contexto (sé flexible con errores de datos).
+       - Capturas de Marketplace reales de buena calidad.
 
-       REGLAS PARA IMÁGENES 1-9 (GALERÍA):
-       - Sé más relajado. Si ves basura, simplemente márcala como isValid: false. 
-       - No bloquees el proceso por estas fotos, solo identifícalas para filtrarlas.
+       ❌ RECHAZAR (isValid: false):
+       - Juguetes, maquetas, memes, comida, personas solas, basura.
+       - Contenido que de plano NO sea automotriz.
+       - Desnudez o violencia.
 
-       SEGURIDAD (APLICA A TODAS):
-       - Rechaza (isValid: false): Desnudez, violencia, odio, juguetes.
-
-       Responde JSON: {
-         "isValidCover": boolean, 
-         "coverReason": "Solo si es inválida",
+       Responde ÚNICAMENTE JSON:
+       {
+         "isValidCover": boolean,
+         "coverReason": "motivo si es inválida (ej: 'Es un juguete')",
          "analysis": [
            { "index": number, "isValid": boolean }
          ],
-         "details": { "brand": "Marca", "model": "Modelo", "year": "Año", "color": "Color", "type": "SUV|Sedan|etc" },
-         "category": "automovil"
+         "details": {
+           "brand": "Marca", "model": "Modelo", "year": "Año", "color": "Color", "type": "SUV|Sedan|etc"
+         }
        }`
     : `MODERADOR COMERCIAL. Aprueba todo lo SFW. Responde JSON simple.`;
 
@@ -174,12 +186,17 @@ export async function analyzeMultipleImages(images: string[], type: 'VEHICLE' | 
       inlineData: { data: img, mimeType: "image/jpeg" }
     }));
 
-    // Enviamos todas las imágenes
-    const result = await geminiModel.generateContent([prompt, ...imageParts]);
+    const imagesToAnalyze = imageParts.slice(0, 5);
+
+    const result = await geminiModel.generateContent([prompt, ...imagesToAnalyze]);
     const response = await result.response;
 
     if (response.promptFeedback?.blockReason) {
-      return { valid: false, reason: "Bloqueado por seguridad de Google.", invalidIndices: [0] };
+      return {
+        valid: false,
+        reason: "Bloqueado por seguridad.",
+        invalidIndices: [0]
+      };
     }
 
     const text = response.text();
@@ -187,26 +204,26 @@ export async function analyzeMultipleImages(images: string[], type: 'VEHICLE' | 
     if (!match) throw new Error("No JSON found");
 
     const parsed = JSON.parse(match[0]);
+
     const invalidIndices = (parsed.analysis || [])
       .filter((a: any) => a.isValid === false)
       .map((a: any) => Number(a.index));
 
     return {
-      // Solo es inválido si la portada falla
-      valid: parsed.isValidCover || !invalidIndices.includes(0),
-      reason: parsed.coverReason || (invalidIndices.includes(0) ? "La foto de portada no es válida." : ""),
+      valid: parsed.isValidCover === true,
+      reason: parsed.coverReason,
       invalidIndices: invalidIndices,
       details: parsed.details || {},
-      category: parsed.category || 'automovil'
+      category: 'automovil'
     };
 
   } catch (error: any) {
-    console.error("❌ AI Multi-Error:", error.message);
+    console.error("❌ Error AI:", error.message);
 
-    if (!error.message?.includes('SAFETY') && !error.message?.includes('blocked')) {
-      return { valid: true, reason: "", invalidIndices: [], details: {}, category: 'automovil' };
+    if (error.message?.includes('SAFETY') || error.message?.includes('blocked')) {
+      return { valid: false, reason: "Rechazado por seguridad.", invalidIndices: [0] };
     }
 
-    return { valid: false, reason: "Error de seguridad en el análisis.", invalidIndices: [0] };
+    return { valid: true, reason: "", invalidIndices: [], details: {}, category: 'automovil' };
   }
 }

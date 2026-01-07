@@ -1,7 +1,7 @@
 // 🧠 CarMatch Intelligent Vehicle Taxonomy
 // Single Source of Truth for Global Vehicle Data
 
-export type VehicleCategory = 'Automóvil' | 'Motocicleta' | 'Camión' | 'Autobús' | 'Maquinaria' | 'Especial' | 'Drones'
+export type VehicleCategory = 'Automóvil' | 'Motocicleta' | 'Camión' | 'Autobús' | 'Maquinaria' | 'Especial'
 
 // 📅 Dynamic Year Generator (Current + 1)
 export const getYears = () => {
@@ -20,8 +20,7 @@ export const VEHICLE_CATEGORIES: Record<VehicleCategory, string[]> = {
     'Camión': ['Tractocamión (Trailer)', 'Torton', 'Rabon', 'Pickup Heavy Duty', 'Volteo', 'Cisterna (Pipa)', 'Refrigerado', 'Plataforma', 'Caja Seca', 'Grúa', 'Hormigonera (Olla)', 'Portacoches (Madrina)', 'Basurero', 'Chasis Cabina'],
     'Autobús': ['Urbano', 'Interurbano', 'Turismo', 'Escolar', 'Microbús', 'Van Pasajeros', 'Articulado', 'Dos Pisos', 'Trolebús'],
     'Maquinaria': ['Excavadora', 'Retroexcavadora', 'Bulldozer', 'Montacargas', 'Tractor Agrícola', 'Cosechadora', 'Rodillo Compactador', 'Pavimentadora', 'Grúa Industrial', 'Cargador Frontal', 'Minicargador', 'Sembradora', 'Motoconformadora'],
-    'Especial': ['UTV (RZR / Maverick / Side-by-Side)', 'Buggy / Arenero', 'Golf Cart', 'Go-kart', 'Motonieve', 'Ambulancia', 'Patrulla', 'Bomberos', 'Blindado', 'Food Truck', 'Casa Rodante (RV)', 'Remolque'],
-    'Drones': ['Recreativo', 'Profesional', 'Agrícola', 'Industrial', 'Carreras']
+    'Especial': ['UTV (RZR / Maverick / Side-by-Side)', 'Buggy / Arenero', 'Golf Cart', 'Go-kart', 'Motonieve', 'Ambulancia', 'Patrulla', 'Bomberos', 'Blindado', 'Food Truck', 'Casa Rodante (RV)', 'Remolque']
 }
 
 // 🌍 Global Brands Database (Structured for Scalability)
@@ -44,9 +43,6 @@ export const BRANDS: Record<VehicleCategory, string[]> = {
     ].sort(),
     'Especial': [
         'Arctic Cat', 'BRP (Can-Am)', 'CFMoto', 'Club Car', 'E-Z-GO', 'Honda', 'John Deere Gator', 'Kawasaki', 'Kubota', 'Polaris', 'Segway Powersports', 'Talon', 'Textron', 'Yamaha', 'Winnebago', 'Airstream', 'Jayco', 'Forest River', 'Thor Motor Coach'
-    ].sort(),
-    'Drones': [
-        'DJI', 'Autel Robotics', 'Parrot', 'Skydio', 'Yuneec', 'Hubsan', 'Syma', 'Holy Stone', 'BetaFPV', 'iFlight'
     ].sort()
 }
 

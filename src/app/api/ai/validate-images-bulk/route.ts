@@ -47,8 +47,12 @@ export async function POST(request: NextRequest) {
         )
         console.log('✅ Conversión completada, analizando con Gemini...')
 
-        // Analizar todas las imágenes juntas
-        const result = await analyzeMultipleImages(base64Images, body.type || 'VEHICLE')
+        // Analizar todas las imágenes juntas con el contexto opcional
+        const result = await analyzeMultipleImages(
+            base64Images,
+            body.type || 'VEHICLE',
+            body.context
+        )
 
         return NextResponse.json(result)
 

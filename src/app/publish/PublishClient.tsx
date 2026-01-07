@@ -47,8 +47,8 @@ export default function PublishClient() {
     const getStepName = (step: number) => {
         switch (step) {
             case 1: return t('publish.steps.vehicle_type') || 'Tipo de Vehículo'
-            case 2: return t('publish.steps.images') || 'Imágenes'
-            case 3: return t('publish.steps.basic_info') || 'Información Básica'
+            case 2: return t('publish.steps.basic_info') || 'Información Básica'
+            case 3: return t('publish.steps.images') || 'Imágenes'
             case 4: return t('publish.steps.technical_details') || 'Detalles Técnicos'
             case 5: return t('publish.steps.features') || 'Equipamiento'
             case 6: return t('publish.steps.location') || 'Ubicación'
@@ -133,7 +133,11 @@ export default function PublishClient() {
             const res = await fetch('/api/ai/validate-images-bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ images, type: 'VEHICLE' })
+                body: JSON.stringify({
+                    images,
+                    type: 'VEHICLE',
+                    context: { brand, model, year }
+                })
             })
 
             if (!res.ok) throw new Error('Error en validación bulk')
@@ -272,14 +276,7 @@ export default function PublishClient() {
         }
 
         if (!description) {
-            let desc = `¡Increíble oportunidad! Vendo ${details.brand || brand} ${details.model || model} ${details.year || year}.`
-            if (details.condition === 'Nuevo') desc += ' Totalmente nuevo de agencia.'
-            else if (details.condition === 'Seminuevo') desc += ' En condiciones impecables, seminuevo.'
-            else desc += ' En muy buen estado.'
-            if (details.mileage) desc += `\n\nSolo tiene ${formatNumber(parseInt(details.mileage), locale)} km recorridos.`
-            if (feats.length > 0) desc += '\n\nEquipamiento destacado:\n' + feats.map((f: string) => `✅ ${f}`).join('\n')
-            desc += '\n\n¡Contáctame para más información o agendar una prueba de manejo!'
-            setDescription(desc)
+            // No generar descripción automática para no molestar al usuario tras mover los pasos
         }
     }
 
@@ -291,7 +288,7 @@ export default function PublishClient() {
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
-    const handleNext = () => currentStep === 2 ? validateImagesAndProceed() : handleNextStep()
+    const handleNext = () => currentStep === 3 ? validateImagesAndProceed() : handleNextStep()
     const handleBack = () => {
         setCurrentStep(prev => {
             if (prev > 1) return (prev - 1) as FormStep
@@ -517,12 +514,6 @@ export default function PublishClient() {
 
                     {currentStep === 2 && (
                         <div className="space-y-6">
-                            <ImageUploadStep images={images} onImagesChange={handleImagesChange} invalidImageUrls={invalidImageUrls} />
-                        </div>
-                    )}
-
-                    {currentStep === 3 && (
-                        <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <SearchableSelect
                                     label={t('publish.labels.brand')}
@@ -594,6 +585,17 @@ export default function PublishClient() {
                                     />
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {currentStep === 3 && (
+                        <div className="space-y-6">
+                            <ImageUploadStep images={images} onImagesChange={handleImagesChange} invalidImageUrls={invalidImageUrls} />
+                        </div>
+                    )}
+
+                    {currentStep === 4 && (
+                        <div className="space-y-6">
                             <div className="space-y-2">
                                 <label className="block text-text-primary font-medium">
                                     {t('publish.labels.description')} <span className="text-xs font-normal text-text-secondary">({t('common.optional')})</span>
@@ -606,11 +608,7 @@ export default function PublishClient() {
                                     className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg resize-none focus:ring-2 focus:ring-primary-700 outline-none transition-all"
                                 />
                             </div>
-                        </div>
-                    )}
 
-                    {currentStep === 4 && (
-                        <div className="space-y-6">
                             <h3 className="text-xl font-bold text-text-primary mb-4">
                                 {t('publish.steps.technical_details')} <span className="text-sm font-normal text-text-secondary">({t('common.optional')})</span>
                             </h3>
