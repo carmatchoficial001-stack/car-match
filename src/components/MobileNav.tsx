@@ -27,12 +27,6 @@ export default function MobileNav() {
         { href: "/swipe", icon: Flame, label: t('nav.carmatch'), color: "text-orange-500" },
         { href: "/market", icon: Car, label: t('nav.marketcar'), color: "text-blue-500" },
         { href: "/map", icon: MapIcon, label: t('nav.mapstore'), color: "text-green-500" },
-        {
-            label: 'Soporte',
-            icon: Headset,
-            onClick: () => window.dispatchEvent(new CustomEvent('open-chatbot')),
-            color: "text-primary-500"
-        },
         { href: "/profile", icon: User, label: t('nav.profile'), color: "text-purple-500" },
     ]
 
