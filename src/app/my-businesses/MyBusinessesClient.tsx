@@ -573,7 +573,7 @@ export default function MyBusinessesClient() {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <p className="text-xs text-text-secondary flex items-center gap-2">
+                                    <p className="text-xs text-text-secondary hidden md:flex items-center gap-2">
                                         <span>💡</span>
                                         Usa <strong>"Mi Ubicación"</strong> o busca la ciudad/calle. <span className="text-primary-400">El mapa es lo más preciso.</span>
                                     </p>
