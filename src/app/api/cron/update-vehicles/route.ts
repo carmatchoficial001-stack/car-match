@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { prisma } from '@/lib/db'
-
-const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || ''
-const genAI = new GoogleGenerativeAI(apiKey)
+import { safeGenerateContent, safeExtractJSON } from '@/lib/ai/geminiClient'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // 5 minutes max
@@ -25,19 +22,12 @@ export async function GET(request: NextRequest) {
     const errors: string[] = []
 
     try {
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-2.0-flash-exp',
-            generationConfig: {
-                temperature: 0.3, // Más conservador para datos factuales
-                topP: 0.8,
-                topK: 40
-            }
-        })
+        // El modelo se maneja automáticamente a través de safeGenerateContent
 
         // PASO 1: Descubrir nuevas marcas
         console.log('📡 Paso 1/3: Buscando nuevas marcas...')
         try {
-            brandsAdded = await discoverNewBrands(model)
+            brandsAdded = await discoverNewBrands()
         } catch (error: any) {
             console.error('❌ Error descubriendo marcas:', error)
             errors.push(`Brands: ${error.message}`)
@@ -46,7 +36,7 @@ export async function GET(request: NextRequest) {
         // PASO 2: Descubrir nuevos modelos
         console.log('📡 Paso 2/3: Buscando nuevos modelos...')
         try {
-            modelsAdded = await discoverNewModels(model)
+            modelsAdded = await discoverNewModels()
         } catch (error: any) {
             console.error('❌ Error descubriendo modelos:', error)
             errors.push(`Models: ${error.message}`)
@@ -55,7 +45,7 @@ export async function GET(request: NextRequest) {
         // PASO 3: Descubrir nuevos tipos
         console.log('📡 Paso 3/3: Buscando nuevos tipos de vehículos...')
         try {
-            typesAdded = await discoverNewVehicleTypes(model)
+            typesAdded = await discoverNewVehicleTypes()
         } catch (error: any) {
             console.error('❌ Error descubriendo tipos:', error)
             errors.push(`Types: ${error.message}`)
@@ -75,7 +65,7 @@ export async function GET(request: NextRequest) {
                 executionTime,
                 metadata: {
                     timestamp: new Date().toISOString(),
-                    model: 'gemini-2.0-flash-exp'
+                    model: 'gemini-flash-latest'
                 }
             }
         })
@@ -122,7 +112,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-async function discoverNewBrands(model: any): Promise<number> {
+async function discoverNewBrands(): Promise<number> {
     const existingBrands = await getExistingBrandNames()
 
     const prompt = `
@@ -160,18 +150,16 @@ async function discoverNewBrands(model: any): Promise<number> {
   Responde ÚNICAMENTE con el JSON, sin texto adicional ni markdown.
   `
 
-    const result = await model.generateContent(prompt)
-    const response = result.response.text().trim()
+    const response = await safeGenerateContent(prompt)
+    const responseText = response.text().trim()
 
-    // Limpiar respuesta
-    const cleaned = response.replace(/```json\n?|\n?```/g, '').trim()
+    const brands = safeExtractJSON<any[]>(responseText)
 
-    if (!cleaned || cleaned === '[]') {
+    if (!brands || brands.length === 0) {
         console.log('  ℹ️  No se encontraron nuevas marcas')
         return 0
     }
 
-    const brands = JSON.parse(cleaned)
     let addedCount = 0
 
     for (const brandData of brands) {
@@ -204,7 +192,7 @@ async function discoverNewBrands(model: any): Promise<number> {
     return addedCount
 }
 
-async function discoverNewModels(model: any): Promise<number> {
+async function discoverNewModels(): Promise<number> {
     // Obtener top 30 marcas más populares para optimizar
     const topBrands = await prisma.brand.findMany({
         where: { isActive: true },
@@ -247,12 +235,11 @@ async function discoverNewModels(model: any): Promise<number> {
     Responde SOLO JSON, sin markdown.
     `
 
-        const result = await model.generateContent(prompt)
-        const response = result.response.text().trim().replace(/```json\n?|\n?```/g, '').trim()
+        const response = await safeGenerateContent(prompt)
+        const responseText = response.text().trim()
 
-        if (!response || response === '[]') continue
-
-        const models = JSON.parse(response)
+        const models = safeExtractJSON<any[]>(responseText)
+        if (!models || models.length === 0) continue
 
         for (const modelData of models) {
             const brand = batch.find(b => b.name === modelData.brandName)
@@ -292,7 +279,7 @@ async function discoverNewModels(model: any): Promise<number> {
     return totalAdded
 }
 
-async function discoverNewVehicleTypes(model: any): Promise<number> {
+async function discoverNewVehicleTypes(): Promise<number> {
     const existingTypes = await prisma.vehicleType.findMany({
         select: { name: true }
     })
@@ -322,15 +309,15 @@ async function discoverNewVehicleTypes(model: any): Promise<number> {
   Solo JSON, sin markdown.
   `
 
-    const result = await model.generateContent(prompt)
-    const response = result.response.text().trim().replace(/```json\n?|\n?```/g, '').trim()
+    const response = await safeGenerateContent(prompt)
+    const responseText = response.text().trim()
 
-    if (!response || response === '[]') {
+    const types = safeExtractJSON<any[]>(responseText)
+
+    if (!types || types.length === 0) {
         console.log('  ℹ️  No se encontraron nuevos tipos')
         return 0
     }
-
-    const types = JSON.parse(response)
     let addedCount = 0
 
     for (const typeData of types) {

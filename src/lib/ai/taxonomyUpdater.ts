@@ -1,11 +1,12 @@
 
-import { geminiModel } from "./geminiClient";
+import { safeGenerateContent, safeExtractJSON } from "./geminiClient";
 import { VEHICLE_CATEGORIES, BRANDS } from "../vehicleTaxonomy";
 import { prisma } from "@/lib/db";
 
 // Define the structure for the AI response
 interface TaxonomyUpdate {
   newBrands: Record<string, string[]>; // Category -> [New Brands]
+  newModels: Record<string, string[]>; // Brand -> [New Models]
   newCategories: Record<string, string[]>; // Category -> [New Subtypes]
 }
 
@@ -16,8 +17,9 @@ export async function updateTaxonomyDatabase() {
   const updates = await fetchTaxonomyUpdates();
   if (!updates) return { success: false, error: "Failed to fetch from AI" };
 
-  const { newBrands, newCategories } = updates;
+  const { newBrands, newModels, newCategories } = updates;
   let addedBrands = 0;
+  let addedModels = 0;
   let addedTypes = 0;
 
   // 2. Save New Brands
@@ -26,7 +28,7 @@ export async function updateTaxonomyDatabase() {
       try {
         await prisma.brand.upsert({
           where: { name: brandName },
-          update: {}, // Already exists, do nothing
+          update: {},
           create: {
             name: brandName,
             category: category,
@@ -34,10 +36,36 @@ export async function updateTaxonomyDatabase() {
           }
         });
         addedBrands++;
-      } catch (e) {
-        // Ignore duplicates or errors
-      }
+      } catch (e) { }
     }
+  }
+
+  // 2.5 Save New Models (Linking to Brand)
+  for (const [brandName, models] of Object.entries(newModels)) {
+    try {
+      const brand = await prisma.brand.findUnique({ where: { name: brandName } });
+      if (brand) {
+        for (const modelName of models) {
+          try {
+            await prisma.model.upsert({
+              where: {
+                brandId_name: {
+                  brandId: brand.id,
+                  name: modelName
+                }
+              },
+              update: {},
+              create: {
+                name: modelName,
+                brandId: brand.id,
+                source: 'AI'
+              }
+            });
+            addedModels++;
+          } catch (e) { }
+        }
+      }
+    } catch (e) { }
   }
 
   // 3. Save New Types (Subtypes/Categories)
@@ -54,57 +82,41 @@ export async function updateTaxonomyDatabase() {
           }
         });
         addedTypes++;
-      } catch (e) {
-        // Ignore
-      }
+      } catch (e) { }
     }
   }
 
-  console.log(`✅ Taxonomía actualizada: ${addedBrands} marcas, ${addedTypes} tipos nuevos.`);
-  return { success: true, addedBrands, addedTypes };
+  console.log(`✅ Taxonomía actualizada: ${addedBrands} marcas, ${addedModels} modelos y ${addedTypes} tipos nuevos.`);
+  return { success: true, addedBrands, addedModels, addedTypes };
 }
 
 export async function fetchTaxonomyUpdates() {
   console.log("🤖 Consultando a Gemini sobre novedades automotrices...");
 
-  const prompt = `
-    Actúa como un experto global en la industria automotriz y de transporte.
-    Tu tarea es identificar NUEVAS marcas o tipos de vehículos que hayan ganado relevancia mundial recientemente y que falten en nuestra base de datos.
+  const prompt = `[SISTEMA: RESPUESTA ÚNICAMENTE EN JSON. PROHIBIDO TEXTO EXPLICATIVO]
+    Eres el ANALISTA MAESTRO de CarMatch. Tu base de datos debe ser actualizada con marcas y modelos REALES de 2024-2026.
     
-    Analiza las siguientes categorías existentes:
-    ${JSON.stringify(Object.keys(VEHICLE_CATEGORIES))}
+    CATEGORÍAS ACTUALES: ${JSON.stringify(Object.keys(VEHICLE_CATEGORIES))}
     
-    Y las marcas existentes actuales (Muestra parcial):
-    ${JSON.stringify(BRANDS['Automóvil']?.slice(0, 10))}... (y muchas más).
-
-    Genera un JSON con el siguiente formato estricto:
+    FORMATO OBLIGATORIO:
     {
-      "newBrands": {
-        "Automóvil": ["MarcaNueva1", "MarcaNueva2"],
-        "Motocicleta": [],
-        "Especial": ["MarcaUTVNueva"]
-      },
-      "newCategories": {
-        "Automóvil": ["NuevoTipoDeCarroceriaSiExiste"],
-        "Especial": ["NuevoTipoDeVehiculo"]
-      }
+      "newBrands": { "Automóvil": ["Nombre"], "Motocicleta": [] },
+      "newModels": { "MarcaExistente": ["Modelo1", "Modelo2"] },
+      "newCategories": { "Automóvil": ["Subtipo"] }
     }
 
-    REGLAS:
-    1. Solo incluye marcas REALES y relevantes globalmente que NO suelen estar en listas antiguas.
-    2. Usa nombres estandarizados (Sin jerga).
-    3. Si no hay nada nuevo relevante, devuelve listas vacías. No inventes.
-    4. Céntrate en vehículos eléctricos chinos emergentes o nuevas divisiones de marcas de lujo.
+    REGLAS DE ORO:
+    1. Si no hay nada nuevo, devuelve el objeto con listas vacías.
+    2. NUNCA inventes marcas.
+    3. NO incluyas markdown, NO digas "Aquí tienes", NO expliques nada. Solo el JSON.
   `;
 
   try {
-    const result = await geminiModel.generateContent(prompt);
-    const response = await result.response;
+    const response = await safeGenerateContent(prompt);
     const text = response.text();
 
-    // Clean the text to ensure it's valid JSON (remove markdown code blocks if any)
-    const jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();
-    const data: TaxonomyUpdate = JSON.parse(jsonString);
+    const data = safeExtractJSON<TaxonomyUpdate>(text);
+    if (!data) throw new Error("Could not parse AI response as JSON");
 
     return data;
   } catch (error) {

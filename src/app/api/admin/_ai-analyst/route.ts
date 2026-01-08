@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { GoogleGenerativeAI } from '@google/generative-ai'
-
-const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null
+import { safeGenerateContent, safeExtractJSON } from '@/lib/ai/geminiClient'
 
 export async function POST(req: NextRequest) {
     try {
@@ -25,10 +22,6 @@ export async function POST(req: NextRequest) {
             if (!user?.isAdmin) {
                 return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
             }
-        }
-
-        if (!genAI) {
-            return NextResponse.json({ error: 'AI not configured' }, { status: 503 })
         }
 
         // Obtener datos agregados para detectar oportunidades reales
@@ -52,8 +45,6 @@ export async function POST(req: NextRequest) {
                 }
             })
         ])
-
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
         const prompt = `Actúa como un CONSULTOR ESTRATÉGICO DE NEGOCIOS AUTOMOTRICES DE ÉLITE y experto en GEOMARKETING. Tu misión es analizar los datos de CarMatch para detectar OPPORTUNIDADES DE ORO y OCÉANOS AZULES con un 90%+ de probabilidad de éxito.
 
@@ -94,10 +85,13 @@ CarMatch es una red social automotriz que rastrea lo que los usuarios buscan (De
 
 Responde SOLO con el JSON válido, sin explicaciones adicionales fuera del JSON.`
 
-        const result = await model.generateContent(prompt)
-        const responseText = result.response.text()
-        const cleanedResponse = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-        const aiResponse = JSON.parse(cleanedResponse)
+        const response = await safeGenerateContent(prompt)
+        const responseText = response.text()
+        const aiResponse = safeExtractJSON<any>(responseText)
+
+        if (!aiResponse) {
+            return NextResponse.json({ error: 'AI Error: Invalid JSON response' }, { status: 500 })
+        }
 
         return NextResponse.json(aiResponse)
 

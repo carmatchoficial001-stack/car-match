@@ -7,6 +7,10 @@
         {
             "path": "/api/cron/business-renewals",
             "schedule": "0 0 * * *"
+        },
+        {
+            "path": "/api/cron/update-vehicles",
+            "schedule": "0 0 * * 0"
         }
     ]
 }

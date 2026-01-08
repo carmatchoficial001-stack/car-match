@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { safeGenerateContent, safeExtractJSON } from '@/lib/ai/geminiClient'
 import { VEHICLE_CATEGORIES, BRANDS, COLORS, TRANSMISSIONS, FUELS } from '@/lib/vehicleTaxonomy'
-
-const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null
 
 export async function POST(req: NextRequest) {
     try {
@@ -12,12 +9,6 @@ export async function POST(req: NextRequest) {
         if (!query) {
             return NextResponse.json({ error: 'Query is required' }, { status: 400 })
         }
-
-        if (!genAI) {
-            return NextResponse.json({ error: 'AI not configured' }, { status: 503 })
-        }
-
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
         const prompt = `Actúa como un ASISTENTE DE COMPRAS AUTOMOTRIZ SUPER-INTELIGENTE. Tu misión es traducir el lenguaje natural del usuario a filtros técnicos para una base de datos de vehículos TERRÉSTRES MOTORIZADOS.
 
@@ -64,11 +55,14 @@ export async function POST(req: NextRequest) {
 
 Responde SOLO con el JSON válido.`
 
-        const result = await model.generateContent(prompt)
-        const responseText = result.response.text()
+        const response = await safeGenerateContent(prompt)
+        const responseText = response.text()
 
-        const cleanedResponse = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-        const aiResponse = JSON.parse(cleanedResponse)
+        const aiResponse = safeExtractJSON<any>(responseText)
+
+        if (!aiResponse) {
+            return NextResponse.json({ error: 'AI Error: Invalid filters' }, { status: 500 })
+        }
 
         return NextResponse.json(aiResponse)
 

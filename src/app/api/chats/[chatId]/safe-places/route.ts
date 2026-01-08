@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { safeGenerateContent } from '@/lib/ai/geminiClient'
 
 // Función para calcular punto medio entre dos coordenadas GPS
 function getMidpoint(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -88,33 +89,26 @@ export async function GET(
 
         // 🤖 IA: ANALISTA DE DATOS (SUPER INTELIGENTE)
         // Usamos Gemini para generar un Tip de Analista y descripciones basadas en el contexto del vehículo
-        const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
         let aiTip = isMidpoint
             ? '💡 Hemos calculado un punto medio justo para ambos. Siempre reúnanse de día.'
             : '💡 Te sugerimos lugares cerca del vehículo. Siempre reúnete en un lugar público.'
 
-        if (apiKey) {
-            try {
-                const { GoogleGenerativeAI } = await import('@google/generative-ai')
-                const genAI = new GoogleGenerativeAI(apiKey)
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+        try {
+            const prompt = `
+                Actúa como el "SUPER ANALISTA DE DATOS" de CarMatch.
+                Contexto: Se planea una reunión para ver un ${chat.vehicle.brand} ${chat.vehicle.model}.
+                Ubicación central: ${chat.vehicle.city}.
+                ¿Es punto medio?: ${isMidpoint ? 'SÍ' : 'NO'}.
 
-                const prompt = `
-                    Actúa como el "SUPER ANALISTA DE DATOS" de CarMatch.
-                    Contexto: Se planea una reunión para ver un ${chat.vehicle.brand} ${chat.vehicle.model}.
-                    Ubicación central: ${chat.vehicle.city}.
-                    ¿Es punto medio?: ${isMidpoint ? 'SÍ' : 'NO'}.
+                Genera un "TIP DE ANALISTA" (máx 150 caracteres) que sea técnico y de seguridad.
+                Ejemplo: "🚨 ANALISTA: El punto medio detectado es ideal. Recomiendo revisar el número de serie con luz natural y verificar que el motor no esté caliente al llegar."
 
-                    Genera un "TIP DE ANALISTA" (máx 150 caracteres) que sea técnico y de seguridad.
-                    Ejemplo: "🚨 ANALISTA: El punto medio detectado es ideal. Recomiendo revisar el número de serie con luz natural y verificar que el motor no esté caliente al llegar."
-
-                    Responde SOLO con el texto del tip.
-                `
-                const result = await model.generateContent(prompt)
-                aiTip = result.response.text().trim()
-            } catch (err) {
-                console.error('Error in Safe Places AI:', err)
-            }
+                Responde SOLO con el texto del tip.
+            `
+            const response = await safeGenerateContent(prompt)
+            aiTip = response.text().trim()
+        } catch (err) {
+            console.error('Error in Safe Places AI:', err)
         }
 
         // Lugares seguros sugeridos (estratégicos cerca del centro calculado)

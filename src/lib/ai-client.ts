@@ -10,8 +10,8 @@ if (!apiKey) {
 const genAI = new GoogleGenerativeAI(apiKey)
 
 // Usar modelo Flash para velocidad/costo
-export const model = genAI.getGenerativeModel({ 
-    model: "gemini-1.5-flash",
+export const model = genAI.getGenerativeModel({
+    model: "gemini-flash-latest",
     generationConfig: {
         maxOutputTokens: 250,
         temperature: 0.7,

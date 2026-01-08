@@ -1,7 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+import { safeGenerateContent, safeExtractJSON } from "./ai/geminiClient";
 
 export async function interpretMapQuery(query: string): Promise<string[]> {
     try {
@@ -23,18 +20,11 @@ export async function interpretMapQuery(query: string): Promise<string[]> {
             Respuesta (JSON Array puro):
         `;
 
-        const result = await model.generateContent(prompt);
-        const response = result.response.text();
+        const response = await safeGenerateContent(prompt);
+        const responseText = response.text();
 
-        // Limpiar markdown
-        const cleanJson = response.replace(/```json|```/g, '').trim();
-
-        try {
-            const categories = JSON.parse(cleanJson);
-            return Array.isArray(categories) ? categories : [];
-        } catch (e) {
-            return []; // Fallback a búsqueda normal
-        }
+        const categories = safeExtractJSON<string[]>(responseText);
+        return Array.isArray(categories) ? categories : [];
     } catch (error) {
         console.error("AI Map Interpretation Error:", error);
         return [];

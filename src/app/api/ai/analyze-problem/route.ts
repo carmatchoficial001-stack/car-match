@@ -1,13 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
-
-// Verificar si existe la API key (intentar GEMINI_API_KEY primero, luego GOOGLE_API_KEY)
-const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
-if (!apiKey) {
-    console.warn('⚠️ No se encontró GEMINI_API_KEY ni GOOGLE_API_KEY. La búsqueda inteligente usará fallback.')
-}
-
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null
+import { safeGenerateContent, safeExtractJSON } from '@/lib/ai/geminiClient'
 
 export async function POST(req: NextRequest) {
     try {
@@ -19,17 +11,6 @@ export async function POST(req: NextRequest) {
                 { status: 400 }
             )
         }
-
-        // Si no hay API key, retornar error para que use fallback
-        if (!genAI) {
-            console.log('📋 Usando fallback (no hay GEMINI_API_KEY)')
-            return NextResponse.json(
-                { error: 'API key no configurada', categories: [], explanation: '' },
-                { status: 503 }
-            )
-        }
-
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
         // Prompt de análisis automático (backend - no visible para usuario)
         // Prompt mejorado para diagnóstico experto (Persona: Veterano de 100 años)
@@ -69,13 +50,15 @@ ${categories.map((cat: any) => `- [${cat.id}] "${cat.label}": Enfocado a ${cat.k
 Responde UNICAMENTE con el JSON solicitado.`
 
         console.log('🤖 Analizando query:', query)
-        const result = await model.generateContent(prompt)
-        const responseText = result.response.text()
+        const response = await safeGenerateContent(prompt)
+        const responseText = response.text()
         console.log('✅ Respuesta de IA:', responseText)
 
-        // Limpiar y parsear respuesta
-        const cleanedResponse = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-        const aiResponse = JSON.parse(cleanedResponse)
+        const aiResponse = safeExtractJSON<any>(responseText)
+
+        if (!aiResponse) {
+            throw new Error('Invalid AI response format')
+        }
 
         return NextResponse.json(aiResponse)
 

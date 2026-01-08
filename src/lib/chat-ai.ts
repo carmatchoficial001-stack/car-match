@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db'
-import { model } from '@/lib/ai-client'
+import { safeGenerateContent, safeExtractJSON } from './ai/geminiClient'
 
 /**
  * Asistente IA para el Chat de CarMatch (Powered by Gemini)
@@ -55,14 +55,12 @@ export async function processChatMessage(chatId: string, messageContent: string,
     `
 
     try {
-        const result = await model.generateContent(prompt)
-        const responseText = result.response.text()
+        const response = await safeGenerateContent(prompt)
+        const responseText = response.text()
 
-        // Limpieza básica de JSON (por si la IA añade markdown)
-        const jsonStr = responseText.replace(/```json|```/g, '').trim()
-        const aiResponse = JSON.parse(jsonStr)
+        const aiResponse = safeExtractJSON<{ detectado: boolean, sugerencia: string }>(responseText)
 
-        if (aiResponse.detectado) {
+        if (aiResponse?.detectado) {
             // 4. Inyectar mensaje del sistema
             let systemUser = await prisma.user.findFirst({ where: { email: 'ai-bot@carmatch.App' } })
 
