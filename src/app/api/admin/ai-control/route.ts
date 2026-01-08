@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { discoverNewBrands, discoverNewModels, discoverNewVehicleTypes } from '@/lib/ai/vehicleDiscovery'
+
 
 export async function GET(request: NextRequest) {
     try {
@@ -27,8 +29,6 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // Importar la lógica de actualización (reutilizando la del cron)
-        const { discoverNewBrands, discoverNewModels, discoverNewVehicleTypes } = await import('@/app/api/cron/update-vehicles/route')
 
         const startTime = Date.now()
         console.log('🤖 [ADMIN-UPDATE] Iniciando escaneo manual de IA...')
@@ -38,9 +38,9 @@ export async function POST(request: NextRequest) {
         let typesAdded = 0
 
         // Ejecutar pasos
-        brandsAdded = await (discoverNewBrands as any)()
-        modelsAdded = await (discoverNewModels as any)()
-        typesAdded = await (discoverNewVehicleTypes as any)()
+        brandsAdded = await discoverNewBrands()
+        modelsAdded = await discoverNewModels()
+        typesAdded = await discoverNewVehicleTypes()
 
         const executionTime = Math.round((Date.now() - startTime) / 1000)
 
