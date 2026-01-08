@@ -8,6 +8,7 @@ interface TaxonomyUpdate {
   newBrands: Record<string, string[]>; // Category -> [New Brands]
   newModels: Record<string, string[]>; // Brand -> [New Models]
   newCategories: Record<string, string[]>; // Category -> [New Subtypes]
+  confidence: number;
 }
 
 export async function updateTaxonomyDatabase() {
