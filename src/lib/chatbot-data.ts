@@ -30,7 +30,7 @@ export const KNOWLEDGE_BASE: ChatResponse[] = [
     {
         keywords: ['precio', 'costo', 'pagar', 'creditos', 'créditos', 'dinero', 'gratis'],
         intent: 'PAYMENTS',
-        response: 'Manejamos un sistema híbrido accesible:\n\n- **1er Auto:** Gratis (6 meses).\n- **2do en adelante:** 15 días gratis, luego requieres créditos.\n- **Negocios:** Primer mes gratis.\n\nPuedes adquirir créditos de forma segura para mayor visibilidad.',
+        response: 'Manejamos un sistema híbrido accesible:\n\n- **1er Auto:** Gratis (6 meses).\n- **2do en adelante:** 7 días gratis, luego requieres créditos.\n- **Negocios:** Primer mes gratis.\n\nPuedes adquirir créditos de forma segura para mayor visibilidad.',
         actionLink: '/credits',
         actionText: 'Ver Paquetes'
     },
