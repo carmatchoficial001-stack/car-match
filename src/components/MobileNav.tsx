@@ -5,13 +5,10 @@ import { usePathname } from "next/navigation"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { useSession } from "next-auth/react"
 import {
-    Home,
     Flame,
     Car,
     Map as MapIcon,
-    User,
-    PlusCircle,
-    Headset
+    User
 } from "lucide-react"
 
 export default function MobileNav() {
@@ -35,36 +32,19 @@ export default function MobileNav() {
             <div className="flex items-center justify-around h-16 px-2">
                 {navItems.map((item, index) => {
                     const Icon = item.icon
-                    const active = item.href ? isActive(item.href) : false
-                    const content = (
-                        <>
-                            <Icon className={`w-6 h-6 ${active ? item.color : ''}`} />
-                            <span className="text-[10px] font-medium truncate max-w-[60px]">
-                                {item.label}
-                            </span>
-                        </>
-                    )
-
-                    if (item.onClick) {
-                        return (
-                            <button
-                                key={`nav-btn-${index}`}
-                                onClick={item.onClick}
-                                className="flex flex-col items-center justify-center w-full gap-1 transition text-text-secondary hover:text-primary-500"
-                            >
-                                {content}
-                            </button>
-                        )
-                    }
+                    const active = isActive(item.href)
 
                     return (
                         <Link
                             key={item.href || index}
-                            href={item.href!}
+                            href={item.href}
                             className={`flex flex-col items-center justify-center w-full gap-1 transition ${active ? 'text-primary-500 scale-110' : 'text-text-secondary'
                                 }`}
                         >
-                            {content}
+                            <Icon className={`w-6 h-6 ${active ? item.color : ''}`} />
+                            <span className="text-[10px] font-medium truncate max-w-[60px]">
+                                {item.label}
+                            </span>
                         </Link>
                     )
                 })}
