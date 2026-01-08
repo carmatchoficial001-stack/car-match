@@ -10,7 +10,8 @@ import {
     Car,
     Map as MapIcon,
     User,
-    PlusCircle
+    PlusCircle,
+    Headset
 } from "lucide-react"
 
 export default function MobileNav() {
@@ -25,31 +26,51 @@ export default function MobileNav() {
     const navItems = [
         { href: "/swipe", icon: Flame, label: t('nav.carmatch'), color: "text-orange-500" },
         { href: "/market", icon: Car, label: t('nav.marketcar'), color: "text-blue-500" },
-        // Boton de publicar eliminado por solicitud del usuario
         { href: "/map", icon: MapIcon, label: t('nav.mapstore'), color: "text-green-500" },
+        {
+            label: 'Soporte',
+            icon: Headset,
+            onClick: () => window.dispatchEvent(new CustomEvent('open-chatbot')),
+            color: "text-primary-500"
+        },
         { href: "/profile", icon: User, label: t('nav.profile'), color: "text-purple-500" },
     ]
 
     return (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass-effect pb-safe">
             <div className="flex items-center justify-around h-16 px-2">
-                {navItems.map((item) => {
+                {navItems.map((item, index) => {
                     const Icon = item.icon
-                    const active = isActive(item.href)
-
-
-
-                    return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={`flex flex-col items-center justify-center w-full gap-1 transition ${active ? 'text-primary-500 scale-110' : 'text-text-secondary'
-                                }`}
-                        >
+                    const active = item.href ? isActive(item.href) : false
+                    const content = (
+                        <>
                             <Icon className={`w-6 h-6 ${active ? item.color : ''}`} />
                             <span className="text-[10px] font-medium truncate max-w-[60px]">
                                 {item.label}
                             </span>
+                        </>
+                    )
+
+                    if (item.onClick) {
+                        return (
+                            <button
+                                key={`nav-btn-${index}`}
+                                onClick={item.onClick}
+                                className="flex flex-col items-center justify-center w-full gap-1 transition text-text-secondary hover:text-primary-500"
+                            >
+                                {content}
+                            </button>
+                        )
+                    }
+
+                    return (
+                        <Link
+                            key={item.href || index}
+                            href={item.href!}
+                            className={`flex flex-col items-center justify-center w-full gap-1 transition ${active ? 'text-primary-500 scale-110' : 'text-text-secondary'
+                                }`}
+                        >
+                            {content}
                         </Link>
                     )
                 })}

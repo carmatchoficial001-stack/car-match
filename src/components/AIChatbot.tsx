@@ -70,17 +70,16 @@ export default function AIChatbot() {
         if (e.key === 'Enter') handleSend()
     }
 
+    useEffect(() => {
+        const handleOpen = () => setIsOpen(true)
+        window.addEventListener('open-chatbot', handleOpen)
+        return () => window.removeEventListener('open-chatbot', handleOpen)
+    }, [])
+
     return (
         <>
-            {/* Botón Flotante */}
-            {!isOpen && (
-                <button
-                    onClick={() => setIsOpen(true)}
-                    className="fixed bottom-24 md:bottom-6 right-6 z-50 bg-primary-700 hover:bg-primary-600 text-text-primary p-4 rounded-full shadow-lg transition-all transform hover:scale-110 active:scale-95"
-                >
-                    <Headset size={28} />
-                </button>
-            )}
+            {/* El botón flotante ha sido removido por solicitud del usuario */}
+            {/* para integrarse en el menú desplegable */}
 
             {/* Ventana de Chat */}
             {isOpen && (

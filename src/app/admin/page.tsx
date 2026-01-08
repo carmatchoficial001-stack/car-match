@@ -17,6 +17,7 @@ import {
     LogOut,
     Menu,
     X,
+    Headset,
     ChevronRight,
     Search,
     Filter,
@@ -186,10 +187,18 @@ export default function AdminDashboard() {
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-white/5">
+                <div className="p-4 border-t border-white/5 space-y-1">
+                    <button
+                        onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot'))}
+                        className="w-full flex items-center gap-3 px-3 py-3 text-primary-400 hover:text-primary-300 hover:bg-white/5 transition-all rounded-xl"
+                    >
+                        <Headset className="w-5 h-5" />
+                        {isSidebarOpen && <span className="font-bold text-sm">Soporte CarMatch</span>}
+                    </button>
+
                     <button
                         onClick={() => router.push('/')}
-                        className="w-full flex items-center gap-3 px-3 py-3 text-text-secondary hover:text-white transition-colors"
+                        className="w-full flex items-center gap-3 px-3 py-3 text-text-secondary hover:text-white hover:bg-white/5 transition-all rounded-xl"
                     >
                         <LogOut className="w-5 h-5" />
                         {isSidebarOpen && <span className="text-sm">Salir al Portal</span>}

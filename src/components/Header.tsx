@@ -10,7 +10,7 @@ import PWAInstallModal from "@/components/PWAInstallModal"
 import NotificationsDropdown from "@/components/NotificationsDropdown"
 import { usePWAInstall } from '@/hooks/usePWAInstall'
 import { getWeightedHomePath } from "@/lib/navigation"
-import { ThumbsUp } from "lucide-react"
+import { ThumbsUp, Headset } from "lucide-react"
 
 export default function Header() {
     const pathname = usePathname()
@@ -149,7 +149,6 @@ export default function Header() {
                     <div className="flex items-center gap-2 md:gap-4">
                         {/* Navegación - Oculta en móvil para usar MobileNav */}
                         <nav className="hidden md:flex items-center gap-1 md:gap-2">
-                            {/* ... links ... */}
                             <Link
                                 href="/swipe"
                                 className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-medium transition flex items-center gap-2 ${isActive("/swipe")
@@ -448,6 +447,19 @@ export default function Header() {
                                                         <span className="font-medium">{t('nav.credits')}</span>
                                                     </Link>
 
+                                                    <button
+                                                        onClick={() => {
+                                                            window.dispatchEvent(new CustomEvent('open-chatbot'));
+                                                            setShowMenu(false);
+                                                        }}
+                                                        className="flex items-center gap-3 px-4 py-3 text-text-primary hover:bg-surface-highlight transition w-full"
+                                                    >
+                                                        <Headset size={20} className="text-primary-700" />
+                                                        <span className="font-medium text-left">Soporte CarMatch</span>
+                                                    </button>
+
+                                                    <div className="border-t border-surface-highlight my-2"></div>
+
                                                     {!isStandalone && (
                                                         <button
                                                             onClick={() => {
@@ -500,6 +512,6 @@ export default function Header() {
                 onClose={() => setShowInstallModal(false)}
                 platform={selectedPlatform}
             />
-        </header >
+        </header>
     )
 }
