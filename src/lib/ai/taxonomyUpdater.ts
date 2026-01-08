@@ -17,10 +17,11 @@ export async function updateTaxonomyDatabase() {
   const updates = await fetchTaxonomyUpdates();
   if (!updates) return { success: false, error: "Failed to fetch from AI" };
 
-  const { newBrands, newModels, newCategories } = updates;
+  const { newBrands, newModels, newCategories, confidence } = updates;
   let addedBrands = 0;
   let addedModels = 0;
   let addedTypes = 0;
+  let totalProcessed = 0;
 
   // 2. Save New Brands
   for (const [category, brands] of Object.entries(newBrands)) {
@@ -86,6 +87,29 @@ export async function updateTaxonomyDatabase() {
     }
   }
 
+  // 4. Log the update with audit fields
+  try {
+    await prisma.autoUpdateLog.create({
+      data: {
+        status: 'COMPLETED',
+        brandsAdded: addedBrands,
+        modelsAdded: addedModels,
+        typesAdded: addedTypes,
+        totalProcessed: totalProcessed,
+        source: 'Gemini-1.5-Flash',
+        confidenceThreshold: confidence || 1.0,
+        region: 'MX-JUAREZ',
+        triggeredBy: 'SYSTEM_AUTOMATIC',
+        metadata: {
+          timestamp: new Date().toISOString(),
+          version: '2.0-wikipedia-vehicular'
+        }
+      }
+    });
+  } catch (e) {
+    console.error("❌ Error creando log de auditoría:", e);
+  }
+
   console.log(`✅ Taxonomía actualizada: ${addedBrands} marcas, ${addedModels} modelos y ${addedTypes} tipos nuevos.`);
   return { success: true, addedBrands, addedModels, addedTypes };
 }
@@ -102,7 +126,8 @@ export async function fetchTaxonomyUpdates() {
     {
       "newBrands": { "Automóvil": ["Nombre"], "Motocicleta": [] },
       "newModels": { "MarcaExistente": ["Modelo1", "Modelo2"] },
-      "newCategories": { "Automóvil": ["Subtipo"] }
+      "newCategories": { "Automóvil": ["Subtipo"] },
+      "confidence": 0.95
     }
 
     REGLAS DE ORO:

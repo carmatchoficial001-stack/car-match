@@ -30,7 +30,10 @@ import {
     Map as MapIcon,
     BarChart2,
     Target,
-    QrCode
+    QrCode,
+    Cpu,
+    Sparkles,
+    RefreshCw
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 const AdminHeatMap = dynamic(() => import('@/components/AdminHeatMap'), { ssr: false })
@@ -65,7 +68,7 @@ interface SystemStats {
     }>
 }
 
-type AdminView = 'overview' | 'users' | 'inventory' | 'mapstore' | 'intelligence' | 'reports' | 'logs'
+type AdminView = 'overview' | 'users' | 'inventory' | 'mapstore' | 'intelligence' | 'reports' | 'logs' | 'ai-hub'
 
 export default function AdminDashboard() {
     const { data: session, status } = useSession()
@@ -145,6 +148,7 @@ export default function AdminDashboard() {
         { id: 'users', icon: Users, label: 'Usuarios' },
         { id: 'inventory', icon: Car, label: 'Inventario' },
         { id: 'mapstore', icon: Store, label: 'MapStore' },
+        { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
         { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports.filter(r => r.status === 'PENDING').length },
         { id: 'logs', icon: Terminal, label: 'Logs del Sistema' },
     ]
@@ -833,6 +837,199 @@ function IntelligenceTab() {
                     <button className="mt-8 w-full py-4 bg-primary-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary-500 transition shadow-xl shadow-primary-900/40">
                         Exportar Mapa de Calor
                     </button>
+                </div>
+            </div>
+        </div>
+    )
+}
+function AiHubTab() {
+    const [logs, setLogs] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+    const [isUpdating, setIsUpdating] = useState(false)
+    const [lastResult, setLastResult] = useState<any>(null)
+
+    const fetchLogs = async () => {
+        try {
+            const res = await fetch('/api/admin/ai-control')
+            if (res.ok) {
+                const data = await res.json()
+                setLogs(data)
+            }
+        } catch (e) {
+            console.error(e)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchLogs()
+    }, [])
+
+    const handleManualUpdate = async () => {
+        if (!confirm('¿Deseas iniciar un escaneo global de IA ahora? Esto poblará tu base de datos con nuevos modelos y marcas de 2024-2026.')) return
+
+        setIsUpdating(true)
+        setLastResult(null)
+        try {
+            const res = await fetch('/api/admin/ai-control', { method: 'POST' })
+            const data = await res.json()
+            if (res.ok) {
+                setLastResult(data)
+                fetchLogs()
+            } else {
+                alert(`Error: ${data.error}`)
+            }
+        } catch (e) {
+            alert('Error en la comunicación con el servidor')
+        } finally {
+            setIsUpdating(false)
+        }
+    }
+
+    return (
+        <div className="space-y-8 pb-20">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <h3 className="text-3xl font-black italic tracking-tighter uppercase flex items-center gap-3">
+                        <Cpu className="w-8 h-8 text-primary-500" /> Centro de Mando IA
+                    </h3>
+                    <p className="text-text-secondary text-sm mt-1">Monitorea y dispara actualizaciones del monopolio de datos automotrices.</p>
+                </div>
+                <button
+                    onClick={handleManualUpdate}
+                    disabled={isUpdating}
+                    className="relative group overflow-hidden bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white px-8 py-4 rounded-2xl font-black text-sm transition-all shadow-2xl shadow-primary-900/40 flex items-center gap-3"
+                >
+                    {isUpdating ? (
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                    ) : (
+                        <Sparkles className="w-5 h-5 group-hover:scale-125 transition-transform" />
+                    )}
+                    <span>{isUpdating ? 'ESCANEO EN PROCESO...' : 'ESCANEAR MERCADO GLOBAL'}</span>
+                </button>
+            </div>
+
+            {lastResult && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-green-500/10 border-2 border-green-500/20 p-6 rounded-3xl"
+                >
+                    <div className="flex items-center gap-4 mb-4">
+                        <CheckCircle2 className="w-8 h-8 text-green-500" />
+                        <div>
+                            <h4 className="font-black text-green-500 uppercase tracking-widest">Escaneo Exitoso</h4>
+                            <p className="text-xs text-green-400 opacity-80">La taxonomía ha sido actualizada con éxito.</p>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-black/20 p-4 rounded-xl">
+                            <p className="text-[10px] font-black uppercase text-green-500/60 mb-1">Marcas Nuevas</p>
+                            <p className="text-2xl font-black">{lastResult.added.brandsAdded}</p>
+                        </div>
+                        <div className="bg-black/20 p-4 rounded-xl">
+                            <p className="text-[10px] font-black uppercase text-green-500/60 mb-1">Modelos Nuevos</p>
+                            <p className="text-2xl font-black">{lastResult.added.modelsAdded}</p>
+                        </div>
+                        <div className="bg-black/20 p-4 rounded-xl">
+                            <p className="text-[10px] font-black uppercase text-green-500/60 mb-1">Categorías</p>
+                            <p className="text-2xl font-black">{lastResult.added.typesAdded}</p>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                            <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-2">
+                                <Activity className="w-4 h-4 text-text-secondary" /> Historial de Sincronización
+                            </h4>
+                            <span className="text-[10px] text-text-secondary font-bold">Últimos 10 registros</span>
+                        </div>
+                        <div className="divide-y divide-white/5">
+                            {loading ? (
+                                <div className="p-10 text-center text-text-secondary animate-pulse">Cargando bitácora...</div>
+                            ) : logs.length === 0 ? (
+                                <div className="p-10 text-center text-text-secondary">No se han realizado actualizaciones todavía.</div>
+                            ) : (
+                                logs.map((log: any) => (
+                                    <div key={log.id} className="p-6 hover:bg-white/[0.02] transition-colors flex items-center justify-between group">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${log.status === 'COMPLETED' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                                                }`}>
+                                                {log.status === 'COMPLETED' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-black uppercase tracking-tight">
+                                                        {log.status === 'COMPLETED' ? 'Actualización Completada' : 'Fallo en Actualización'}
+                                                    </span>
+                                                    <span className="text-[10px] text-text-secondary font-medium">#{log.id.slice(-4)}</span>
+                                                </div>
+                                                <p className="text-[10px] text-text-secondary mt-0.5">
+                                                    {new Date(log.createdAt).toLocaleString()} • {log.executionTime || 0}s ejecución
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-6 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div>
+                                                <p className="text-[9px] font-black text-text-secondary uppercase">Modelos</p>
+                                                <p className="text-xs font-bold">+{log.modelsAdded}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] font-black text-text-secondary uppercase">Marcas</p>
+                                                <p className="text-xs font-bold">+{log.brandsAdded}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="bg-gradient-to-br from-primary-900/40 to-black border border-primary-500/20 p-8 rounded-3xl relative overflow-hidden group">
+                        <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 text-primary-500/10 group-hover:rotate-12 transition-transform duration-700" />
+                        <h4 className="text-lg font-black italic tracking-tighter uppercase mb-2">Estado del Monopolio</h4>
+                        <p className="text-xs text-text-secondary leading-relaxed mb-6">
+                            Tu sistema de IA está configurado para buscar el dominio total de datos vehiculares.
+                            La actualización automática se ejecuta los domingos a las 00:00.
+                        </p>
+                        <div className="space-y-4 relative z-10">
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="text-text-secondary">Próximo Escaneo:</span>
+                                <span className="font-bold text-primary-400">Domingo, 00:00 H</span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="text-text-secondary">Estrategia:</span>
+                                <span className="font-bold text-green-500">Global (2024-2026)</span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="text-text-secondary">IA Engine:</span>
+                                <span className="font-black">FLASH LATEST</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#111114] border border-white/5 p-8 rounded-3xl">
+                        <h4 className="text-sm font-black uppercase tracking-widest mb-4">Configuración</h4>
+                        <div className="flex items-center justify-between py-3 border-b border-white/5">
+                            <span className="text-xs">Modo Automático</span>
+                            <div className="w-10 h-5 bg-primary-600 rounded-full flex items-center justify-end px-1 scale-75">
+                                <div className="w-3 h-3 bg-white rounded-full" />
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between py-3">
+                            <span className="text-xs">Notificar cambios</span>
+                            <div className="w-10 h-5 bg-primary-600 rounded-full flex items-center justify-end px-1 scale-75">
+                                <div className="w-3 h-3 bg-white rounded-full" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
