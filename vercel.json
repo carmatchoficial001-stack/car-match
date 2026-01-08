@@ -1,11 +1,7 @@
 {
     "crons": [
         {
-            "path": "/api/cron/vehicle-renewals",
-            "schedule": "0 0 * * *"
-        },
-        {
-            "path": "/api/cron/business-renewals",
+            "path": "/api/cron/daily-maintenance",
             "schedule": "0 0 * * *"
         },
         {
