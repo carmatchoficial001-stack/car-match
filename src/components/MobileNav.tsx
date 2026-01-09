@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useLanguage } from "@/contexts/LanguageContext"
@@ -15,8 +16,36 @@ export default function MobileNav() {
     const pathname = usePathname()
     const { t } = useLanguage()
     const { data: session } = useSession()
+    const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
 
     if (!session) return null
+
+    // 📱 Detectar cuando el teclado virtual está abierto
+    useEffect(() => {
+        const isInputElement = (element: Element | null): boolean => {
+            if (!element) return false
+            const tagName = element.tagName.toLowerCase()
+            return tagName === 'input' || tagName === 'textarea' || tagName === 'select'
+        }
+
+        const handleFocusIn = () => {
+            if (isInputElement(document.activeElement)) {
+                setIsKeyboardOpen(true)
+            }
+        }
+
+        const handleFocusOut = () => {
+            setIsKeyboardOpen(false)
+        }
+
+        document.addEventListener('focusin', handleFocusIn)
+        document.addEventListener('focusout', handleFocusOut)
+
+        return () => {
+            document.removeEventListener('focusin', handleFocusIn)
+            document.removeEventListener('focusout', handleFocusOut)
+        }
+    }, [])
 
     const isActive = (path: string) => pathname === path
 
@@ -28,7 +57,8 @@ export default function MobileNav() {
     ]
 
     return (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass-effect pb-safe">
+        <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-50 glass-effect pb-safe transition-transform duration-300 ease-in-out ${isKeyboardOpen ? 'translate-y-full' : 'translate-y-0'
+            }`}>
             <div className="flex items-center justify-around h-16 px-2">
                 {navItems.map((item, index) => {
                     const Icon = item.icon
