@@ -224,12 +224,22 @@ export async function analyzeMultipleImages(
     };
 
   } catch (error: any) {
-    console.error("❌ Error AI:", error.message);
+    console.error("❌ Error crítico en validación de imagen:", {
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
 
     if (error.message?.includes('SAFETY') || error.message?.includes('blocked')) {
-      return { valid: false, reason: "Rechazado por seguridad.", invalidIndices: [0] };
+      return { valid: false, reason: "Contenido bloqueado por seguridad.", invalidIndices: [0] };
     }
 
-    return { valid: true, reason: "", invalidIndices: [], details: {}, category: 'automovil' };
+    // 🛡️ FAIL-SAFE: Rechazar por defecto si hay error
+    // Esto previene que imágenes inválidas pasen cuando la IA falla
+    return {
+      valid: false,
+      reason: "No pudimos verificar tu imagen. Por favor, intenta nuevamente.",
+      invalidIndices: [0]
+    };
   }
 }
