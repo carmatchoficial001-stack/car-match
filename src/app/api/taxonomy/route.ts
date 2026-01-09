@@ -117,9 +117,13 @@ export async function GET() {
     } catch (error) {
         console.error('Error fetching taxonomy:', error)
         // Fallback to static if DB fails
+        // Fallback to static if DB fails
+        const allBrandsFallback = Object.values(BRANDS).flat().sort()
+
         return NextResponse.json({
             brands: BRANDS,
-            allBrands: [],
+            types: VEHICLE_CATEGORIES,
+            allBrands: allBrandsFallback,
             models: []
         })
     }
