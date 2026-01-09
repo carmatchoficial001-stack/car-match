@@ -145,39 +145,23 @@ export default function PublishClient() {
             const validation = await res.json()
             setAiConfidence(100)
 
-            // 🚨 PORTADA RECHAZADA: Mostrar error con recomendaciones
-            if (!validation.valid && validation.reason) {
-                setAiError(validation.reason)
+            // 🚨 PORTADA RECHAZADA: Bloquear estrictamente
+            if (validation.invalidIndices?.includes(0)) {
+                setAiError(validation.reason || 'La foto de portada no parece ser un vehículo válido.')
                 setIsAnalyzing(false)
-
-                // Si la portada es inválida, marcarla visualmente
-                if (validation.invalidIndices?.includes(0)) {
-                    setInvalidImageUrls(new Set([images[0]]))
-                }
+                setInvalidImageUrls(new Set([images[0]]))
                 return
             }
 
-            // 🔥 GALERÍA: Filtrar automáticamente fotos inválidas (sin molestar al usuario)
+            // 🔥 GALERÍA: Filtrar silenciosamente fotos inválidas (memes, paisajes, etc.)
+            let validImages = images
             if (validation.invalidIndices && validation.invalidIndices.length > 0) {
-                const invalidCount = validation.invalidIndices.length
-                const hasInvalidCover = validation.invalidIndices.includes(0)
+                // Filtrar cualquier índice inválido (ya sabemos que el 0 no está aquí)
+                validImages = images.filter((_, idx) => !validation.invalidIndices!.includes(idx))
+                console.log(`🔍 Filtrado silencioso: ${images.length - validImages.length} fotos eliminadas por no ser vehículos`)
 
-                // Si la portada es inválida, NO continuar (ya manejado arriba)
-                if (hasInvalidCover) {
-                    setIsAnalyzing(false)
-                    return
-                }
-
-                // Filtrar solo las fotos de GALERÍA (índices 1-9) que sean inválidas
-                const invalidGalleryIndices = validation.invalidIndices.filter((idx: number) => idx > 0)
-
-                if (invalidGalleryIndices.length > 0) {
-                    // Filtrar automáticamente las fotos inválidas
-                    const validImages = images.filter((_, idx) => !validation.invalidIndices!.includes(idx))
-                    console.log(`🔍 Filtrado automático: ${invalidGalleryIndices.length} fotos de galería eliminadas`)
-                    // Actualizar las imágenes sin bloquear al usuario
-                    setImages(validImages)
-                }
+                // Actualizar las imágenes para el siguiente paso
+                setImages(validImages)
             }
 
             // Siempre limpiar marcas visuales de errores previos
