@@ -6,9 +6,33 @@ interface PricingConfig {
     region: 'developed' | 'developing'
 }
 
+// Lista completa de países de alto ingreso según Banco Mundial, OCDE y FMI
+// Estos países cobran $40 MXN por crédito
 const DEVELOPED_COUNTRIES = [
-    'US', 'CA', 'GB', 'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'NO', 'DK', 'FI',
-    'AU', 'NZ', 'JP', 'KR', 'SG', 'CH', 'AT', 'BE', 'IE'
+    // América del Norte
+    'US', 'CA',
+    
+    // Europa Occidental
+    'GB', 'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'NO', 'DK', 'FI',
+    'CH', 'AT', 'BE', 'IE', 'PT', 'LU', 'IS', 'GR', 'CY', 'MT',
+    
+    // Europa Central y del Este (Alto Ingreso)
+    'CZ', 'SI', 'EE', 'SK', 'LT', 'LV', 'PL', 'HU', 'HR',
+    
+    // Oceanía
+    'AU', 'NZ',
+    
+    // Asia Oriental y Sudeste Asiático (Desarrollados)
+    'JP', 'KR', 'SG', 'HK', 'TW', 'BN', 'MO',
+    
+    // Medio Oriente (Alto Ingreso)
+    'AE', 'QA', 'SA', 'KW', 'BH', 'OM', 'IL',
+    
+    // Caribe y Territorios (Alto Ingreso)
+    'BS', 'BB', 'TC', 'KY', 'BM', 'VI', 'PR',
+    
+    // Otros territorios de alto ingreso
+    'GU', 'MP', 'AS', 'AW', 'CW', 'SX'
 ]
 
 export function getPricingForCountry(countryCode: string): PricingConfig {
