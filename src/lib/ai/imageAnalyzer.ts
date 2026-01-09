@@ -155,16 +155,21 @@ export async function analyzeMultipleImages(
 
   const prompt = type === 'VEHICLE'
     ? `ERES UN MODERADOR INTELIGENTE DE CARMATCH.
-       Tu misión es validar que la IMAGEN 0 (portada) sea un vehículo real o parte mecánica.
+       Tu misión es validar TODAS las imágenes:
+       1. La IMAGEN 0 (portada) debe ser un vehículo real o parte mecánica.
+       2. LAS IMÁGENES 1-9 (galería) TAMBIÉN deben ser del vehículo o partes relacionadas.
+
        ${vehicleContextPrompt}
 
        ✅ APROBAR (isValid: true):
-       - Vehículos reales o piezas mecánicas (motores, rines, motores, etc).
+       - Vehículos reales o piezas mecánicas (motores, rines, interiores).
        - Aunque no coincida exactamente con el año/modelo del contexto (sé flexible con errores de datos).
-       - Capturas de Marketplace reales de buena calidad.
+       - Capturas de Marketplace reales de buena calidad (donde se vea el auto).
 
        ❌ RECHAZAR (isValid: false):
        - Juguetes, maquetas, memes, comida, personas solas, basura.
+       - Capturas de pantalla de celulares (Facebook UI, WhatsApp, etc) donde NO se ve claro el auto.
+       - Fotos de televisores o monitores.
        - Contenido que de plano NO sea automotriz.
        - Desnudez o violencia.
 
