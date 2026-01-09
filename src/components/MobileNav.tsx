@@ -22,15 +22,33 @@ export default function MobileNav() {
 
     // 📱 Detectar cuando el teclado virtual está abierto
     useEffect(() => {
+        // Safety check para SSR y entornos sin ventana
+        if (typeof window === 'undefined' || !window.document) return
+
         const isInputElement = (element: Element | null): boolean => {
-            if (!element) return false
-            const tagName = element.tagName.toLowerCase()
-            return tagName === 'input' || tagName === 'textarea' || tagName === 'select'
+            try {
+                if (!element || !element.tagName) return false
+                const tagName = element.tagName.toLowerCase()
+                const type = element.getAttribute('type')?.toLowerCase() || ''
+
+                // Excluir checkboxes y radios que no abren teclado
+                if (tagName === 'input' && (type === 'checkbox' || type === 'radio' || type === 'range' || type === 'color')) {
+                    return false
+                }
+
+                return tagName === 'input' || tagName === 'textarea' || tagName === 'select'
+            } catch (e) {
+                return false
+            }
         }
 
         const handleFocusIn = () => {
-            if (isInputElement(document.activeElement)) {
-                setIsKeyboardOpen(true)
+            try {
+                if (isInputElement(document.activeElement)) {
+                    setIsKeyboardOpen(true)
+                }
+            } catch (e) {
+                // Ignore DOM errors
             }
         }
 
@@ -38,12 +56,20 @@ export default function MobileNav() {
             setIsKeyboardOpen(false)
         }
 
-        document.addEventListener('focusin', handleFocusIn)
-        document.addEventListener('focusout', handleFocusOut)
+        try {
+            document.addEventListener('focusin', handleFocusIn)
+            document.addEventListener('focusout', handleFocusOut)
+        } catch (e) {
+            console.warn('Error adding focus listeners:', e)
+        }
 
         return () => {
-            document.removeEventListener('focusin', handleFocusIn)
-            document.removeEventListener('focusout', handleFocusOut)
+            try {
+                document.removeEventListener('focusin', handleFocusIn)
+                document.removeEventListener('focusout', handleFocusOut)
+            } catch (e) {
+                // Ignore cleanup errors
+            }
         }
     }, [])
 
