@@ -83,9 +83,13 @@ export async function POST(request: NextRequest) {
         }
 
         // 🛡️ ANTI-FRAUDE & MONETIZACIÓN
-        // Verificar historial de vehículos para definir beneficios (6 meses / 7 días / cobro)
+        // Verificar historial de vehículos VALIDOS para definir beneficios
+        // EXCLUIMOS: Rejected (IA/Fraude) e Inactive antiguos que nunca se pagaron
         const vehicleCount = await prisma.vehicle.count({
-            where: { userId: user.id }
+            where: {
+                userId: user.id,
+                status: { not: 'REJECTED' } // No contar intentos fallidos como "publicación consumida"
+            }
         })
 
         // El primero es GRATIS DE VERDAD (6 Meses)
