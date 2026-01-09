@@ -181,6 +181,15 @@ export async function POST(request: NextRequest) {
             userAgent: request.headers.get('user-agent') || undefined
         })
 
+        // 📈 INCREMENTAR CONTADOR HISTÓRICO DE NEGOCIOS
+        // Solo si no fue marcado como fraude
+        if (!isFraudulentRetry) {
+            await prisma.user.update({
+                where: { id: session.user.id },
+                data: { lifetimeBusinessCount: { increment: 1 } }
+            })
+        }
+
         // 🚀 SEGURIDAD: Iniciar revisión en segundo plano (solo si tiene fotos)
         if (business.images.length > 0) {
             import('@/lib/ai-moderation').then(mod => {
