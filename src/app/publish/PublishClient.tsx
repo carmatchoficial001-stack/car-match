@@ -129,54 +129,46 @@ export default function PublishClient() {
         setAiError('')
         setAiConfidence(50)
 
+        // 🎯 En este paso, SOLO validamos la portada (images[0])
+        // Las demás fotos se validarán al final en silencio.
         try {
             const res = await fetch('/api/ai/validate-images-bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    images,
+                    images: [images[0]], // Solo enviamos la portada para validación de paso
                     type: 'VEHICLE',
                     context: { brand, model, year }
                 })
             })
 
-            if (!res.ok) throw new Error('Error en validación bulk')
+            if (!res.ok) throw new Error('Error en validación de portada')
 
             const validation = await res.json()
             setAiConfidence(100)
 
             // 🚨 PORTADA RECHAZADA: Bloquear estrictamente
-            if (validation.invalidIndices?.includes(0)) {
+            if (!validation.valid || validation.invalidIndices?.includes(0)) {
                 setAiError(validation.reason || 'La foto de portada no parece ser un vehículo válido.')
                 setIsAnalyzing(false)
                 setInvalidImageUrls(new Set([images[0]]))
                 return
             }
 
-            // 🔥 GALERÍA: Filtrar silenciosamente fotos inválidas (memes, paisajes, etc.)
-            let validImages = images
-            if (validation.invalidIndices && validation.invalidIndices.length > 0) {
-                // Filtrar cualquier índice inválido (ya sabemos que el 0 no está aquí)
-                validImages = images.filter((_, idx) => !validation.invalidIndices!.includes(idx))
-                console.log(`🔍 Filtrado silencioso: ${images.length - validImages.length} fotos eliminadas por no ser vehículos`)
-
-                // Actualizar las imágenes para el siguiente paso
-                setImages(validImages)
-            }
-
-            // Siempre limpiar marcas visuales de errores previos
+            // Siempre limpiar marcas visuales de errores previos si la portada es buena
             setInvalidImageUrls(new Set())
 
-            if (validation.valid) {
-                applyAiDetails(validation.details || {}, validation.category)
+            // Aplicar detalles si la IA detectó algo útil de la portada
+            if (validation.valid && validation.details) {
+                applyAiDetails(validation.details, validation.category)
             }
 
             setIsAnalyzing(false)
             handleNextStep()
 
         } catch (error) {
-            console.error('Error en validación multi-foto:', error)
-            setAiError('Error al analizar imágenes. Intenta de nuevo.')
+            console.error('Error en validación de portada:', error)
+            setAiError('Error al analizar la foto de portada. Intenta de nuevo.')
             setIsAnalyzing(false)
         }
     }
@@ -316,21 +308,55 @@ export default function PublishClient() {
 
     const handlePublish = async () => {
         setLoading(true)
-        const remainingBadImages = images.filter(url => invalidImageUrls.has(url))
-        if (remainingBadImages.length > 0) {
-            setLoading(false)
-            setAiError(`Hay ${remainingBadImages.length} imagen(es) detectada(s) como NO válidas. Por favor elimínalas en el paso 1.`)
-            setCurrentStep(1)
-            return
+        setAiError('')
+
+        // 🛡️ FILTRADO SILENCIOSO DE GALERÍA ANTES DE PUBLICAR
+        // Analizamos todas las fotos para quitar las que no sean vehículos (sin avisar al usuario)
+        let finalImages = [...images]
+        try {
+            const bulkRes = await fetch('/api/ai/validate-images-bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    images,
+                    type: 'VEHICLE',
+                    context: { brand, model, year }
+                })
+            })
+
+            if (bulkRes.ok) {
+                const bulkValidation = await bulkRes.json()
+                if (bulkValidation.invalidIndices && bulkValidation.invalidIndices.length > 0) {
+                    // Solo filtramos los índices > 0 (la galería). La portada (0) ya se validó antes.
+                    finalImages = images.filter((_, idx) => !bulkValidation.invalidIndices.includes(idx) || idx === 0)
+                    console.log(`🧹 Limpieza silenciosa: ${images.length - finalImages.length} fotos extras eliminadas por no ser válidas.`)
+                }
+            }
+        } catch (err) {
+            console.warn('Error en validación silenciosa, procediendo con fotos originales:', err)
         }
 
         try {
+            // 🛡️ VALIDACIÓN ANTES DE ENVIAR
+            const parsedYear = parseInt(year);
+            if (isNaN(parsedYear) || parsedYear < 1900 || parsedYear > new Date().getFullYear() + 2) {
+                alert("Por favor, ingresa un año válido.");
+                setLoading(false);
+                return;
+            }
+
+            if (!model || model === 'N/A' || model.trim() === '') {
+                alert("Por favor, selecciona un modelo válido.");
+                setLoading(false);
+                return;
+            }
+
             const deviceFP = await generateDeviceFingerprint()
             const vehicleData = {
                 title: `${brand} ${model} ${year}`,
                 description, brand, model,
-                year: parseInt(year),
-                price: parseFloat(price),
+                year: parsedYear,
+                price: parseFloat(price) || 0,
                 currency,
                 city,
                 state: stateLocation,
