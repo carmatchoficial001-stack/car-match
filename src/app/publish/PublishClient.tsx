@@ -708,7 +708,7 @@ export default function PublishClient() {
                                                 value={engine}
                                                 onChange={(e) => setEngine(e.target.value)}
                                                 placeholder="Ej: 2.0L Turbo, V6"
-                                                className="flex-1 px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all"
+                                                className="flex-1 min-w-0 px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all"
                                             />
                                             <input
                                                 type="text"
@@ -716,7 +716,7 @@ export default function PublishClient() {
                                                 value={displacement}
                                                 onChange={(e) => setDisplacement(e.target.value.replace(/[^0-9]/g, ''))}
                                                 placeholder="cc"
-                                                className="w-24 px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all"
+                                                className="w-20 px-3 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all text-center"
                                             />
                                         </div>
                                     </div>

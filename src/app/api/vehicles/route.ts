@@ -210,6 +210,16 @@ export async function POST(request: NextRequest) {
                 color: coverAnalysis.details?.color || body.color,
                 vehicleType: coverAnalysis.details?.type || body.vehicleType,
                 currency: body.currency || 'MXN',
+
+                // Campos adicionales restaurados
+                features: body.features || [],
+                traction: body.traction || null,
+                condition: body.condition || null,
+                doors: body.doors ? parseInt(body.doors) : null,
+                passengers: body.passengers ? parseInt(body.passengers) : null,
+                displacement: body.displacement ? parseInt(body.displacement) : null,
+                cargoCapacity: body.cargoCapacity ? parseFloat(body.cargoCapacity) : null,
+                operatingHours: body.operatingHours ? parseInt(body.operatingHours) : null,
                 // ESTADO INICIAL
                 status: 'INACTIVE', // BLINDAJE: Empieza inactivo
                 moderationStatus: 'PENDING_AI',
