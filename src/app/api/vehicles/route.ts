@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
         const user = await prisma.user.findUnique({
             where: { email: session.user.email! },
-            select: { id: true, fraudStrikes: true, isAdmin: true }
+            select: { id: true, fraudStrikes: true, isAdmin: true, lifetimeVehicleCount: true }
         })
 
         if (!user) {
@@ -83,17 +83,9 @@ export async function POST(request: NextRequest) {
         }
 
         // 🛡️ ANTI-FRAUDE & MONETIZACIÓN
-        // Verificar historial de vehículos VALIDOS para definir beneficios
-        // EXCLUIMOS: Rejected (IA/Fraude) e Inactive antiguos que nunca se pagaron
-        const vehicleCount = await prisma.vehicle.count({
-            where: {
-                userId: user.id,
-                status: { not: 'REJECTED' } // No contar intentos fallidos como "publicación consumida"
-            }
-        })
-
+        // Usamos lifetimeVehicleCount para determinar beneficios (BLINDAJE DE POR VIDA)
         // El primero es GRATIS DE VERDAD (6 Meses)
-        let isFirstVehicle = vehicleCount === 0
+        let isFirstVehicle = (user.lifetimeVehicleCount || 0) === 0
 
         // Importar utilidades de huella digital
         const { savePublicationFingerprint, validatePublicationFingerprint, generateVehicleHash } = await import('@/lib/validateFingerprint')
@@ -168,13 +160,14 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // ═══ REGLAS FINALES DE MONETIZACIÓN ═══
+        // ═══ REGLAS FINALES DE MONETIZACIÓN (HISTÓRICA) ═══
         const now = new Date()
         let expiresAt = new Date()
         let isFreePublication = true
         let initialStatus: 'ACTIVE' | 'INACTIVE' = 'ACTIVE' // Por defecto activo si pasa filtros
 
         const isPermanentlyRestricted = (user.fraudStrikes || 0) >= 10
+        const lifetimeCount = user.lifetimeVehicleCount || 0
 
         if (isAdmin) {
             expiresAt.setFullYear(now.getFullYear() + 10)
@@ -186,18 +179,18 @@ export async function POST(request: NextRequest) {
             isFreePublication = false
             initialStatus = 'INACTIVE'
         }
-        else if (vehicleCount === 0) {
-            // 1er Vehículo: 6 Meses Gratis
+        else if (lifetimeCount === 0) {
+            // 1er Vehículo HISTÓRICO: 6 Meses Gratis
             expiresAt.setMonth(now.getMonth() + 6)
             isFreePublication = true
         }
-        else if (vehicleCount < 25) {
-            // Vehículos 2 al 25: 7 Días Gratis
+        else if (lifetimeCount < 25) {
+            // Vehículos 2 al 25 HISTÓRICOS: 7 Días Gratis
             expiresAt.setDate(now.getDate() + 7)
             isFreePublication = true
         }
         else {
-            // Vehículo 26 en adelante: COBRO OBLIGATORIO
+            // Vehículo 26 en adelante HISTÓRICO: COBRO OBLIGATORIO
             expiresAt = new Date()
             isFreePublication = false
             initialStatus = 'INACTIVE' // Requiere pago para activarse
@@ -245,6 +238,16 @@ export async function POST(request: NextRequest) {
                 searchIndex: contentHash
             }
         })
+
+        // 📈 INCREMENTAR CONTADOR HISTÓRICO
+        // Solo si no fue rechazado por IA y no es un fraude flagrante.
+        // Así los intentos fallidos no queman "vidas", pero las publicaciones reales sí.
+        if (!isAiRejected && !isFraudulentRetry) {
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { lifetimeVehicleCount: { increment: 1 } }
+            })
+        }
 
         // 🛡️ GUARDAR HUELLA DIGITAL (Backend only)
         // Guardamos el registro para análisis futuro
