@@ -103,8 +103,8 @@ export default function PublishClient() {
 
     // Validation for the new flow
     const canProceedFromStep1 = vehicleCategory && vehicleType
-    const canProceedFromStep2 = images.length > 0
-    const canProceedFromStep3 = brand && model && year && price
+    const canProceedFromStep2 = brand && model && year && price
+    const canProceedFromStep3 = images.length > 0
     const canProceedFromStep4 = true
     const canProceedFromStep5 = true // Features are optional
     const canProceedFromStep6 = latitude !== null && longitude !== null && city
