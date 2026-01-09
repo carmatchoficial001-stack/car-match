@@ -154,24 +154,24 @@ export async function analyzeMultipleImages(
     : '';
 
   const prompt = type === 'VEHICLE'
-    ? `ERES UN MODERADOR INTELIGENTE DE CARMATCH.
-       Tu misión es validar TODAS las imágenes:
-       1. La IMAGEN 0 (portada) debe ser un vehículo real o parte mecánica.
-       2. LAS IMÁGENES 1-9 (galería) TAMBIÉN deben ser del vehículo o partes relacionadas.
+    ? `ERES UN MODERADOR ESTRICTO DE CARMATCH.
+       TU ÚNICA MISIÓN: Validar que las imágenes sean EXCLUSIVAMENTE de:
+       1. VEHÍCULOS MOTORIZADOS TERRESTRES (Autos, Motos, Camiones, Autobuses, Maquinaria, Cuatrimotos, etc).
+       2. PARTES O REFACCIONES de los anteriores (Motores, Llantas, Interiores, Carrocería).
 
        ${vehicleContextPrompt}
 
-       ✅ APROBAR (isValid: true):
-       - Vehículos reales o piezas mecánicas (motores, rines, interiores).
-       - Aunque no coincida exactamente con el año/modelo del contexto (sé flexible con errores de datos).
-       - Capturas de Marketplace reales de buena calidad (donde se vea el auto).
+       ✅ APROBAR (isValid: true) SI Y SOLO SI ES:
+       - Un vehículo real funcional (no importa el año/modelo exacto).
+       - Una pieza mecánica o estética de vehículo real.
+       - Una captura de pantalla CLARA donde se vea un vehículo real en venta.
 
-       ❌ RECHAZAR (isValid: false):
-       - Juguetes, maquetas, memes, comida, personas solas, basura.
-       - Capturas de pantalla de celulares (Facebook UI, WhatsApp, etc) donde NO se ve claro el auto.
-       - Fotos de televisores o monitores.
-       - Contenido que de plano NO sea automotriz.
-       - Desnudez o violencia.
+       ❌ RECHAZAR (isValid: false) SI DETECTAS:
+       - JUGUETES, VEHÍCULOS A ESCALA, HOT WHEELS, JUGUETES EN ARENA o PLÁSTICO.
+       - Bicicletas (no son motorizadas), Patinetas, Animales, Personas solas.
+       - Capturas de pantalla de selectores de archivos, menús de celular o chats.
+       - Fotos de monitores/televisores.
+       - Cualquier cosa que NO sea un vehículo motorizado terrestre o sus partes.
 
        Responde ÚNICAMENTE JSON:
        {

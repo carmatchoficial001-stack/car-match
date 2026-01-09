@@ -129,36 +129,52 @@ export default function PublishClient() {
         setAiError('')
         setAiConfidence(50)
 
-        // 🎯 En este paso, SOLO validamos la portada (images[0])
-        // Las demás fotos se validarán al final en silencio.
+        // 🎯 Validamos TODAS las imágenes (Portada + Galería)
         try {
             const res = await fetch('/api/ai/validate-images-bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    images: [images[0]], // Solo enviamos la portada para validación de paso
+                    images: images, // Enviamos TODAS
                     type: 'VEHICLE',
                     context: { brand, model, year }
                 })
             })
 
-            if (!res.ok) throw new Error('Error en validación de portada')
+            if (!res.ok) throw new Error('Error en validación de imágenes')
 
             const validation = await res.json()
             setAiConfidence(100)
 
-            // 🚨 PORTADA RECHAZADA: Bloquear estrictamente
+            // 1. 🚨 VALIDAR PORTADA (Index 0)
+            // Si la portada es inválida o la validación global falló, bloqueamos.
             if (!validation.valid || validation.invalidIndices?.includes(0)) {
-                setAiError(validation.reason || 'La foto de portada no parece ser un vehículo válido.')
+                setAiError(validation.reason || 'La foto de portada debe ser un vehículo motorizado terrestre real o sus partes.')
                 setIsAnalyzing(false)
                 setInvalidImageUrls(new Set([images[0]]))
                 return
             }
 
-            // Siempre limpiar marcas visuales de errores previos si la portada es buena
+            // 2. 🧹 FILTRAR GALERÍA (Index > 0)
+            // Si hay fotos malas en la galería, las quitamos y avisamos
+            let cleanImages = images
+            const badGalleryIndices = (validation.invalidIndices || []).filter((i: number) => i > 0)
+
+            if (badGalleryIndices.length > 0) {
+                // Crear nuevo array solo con las válidas (y la portada que ya sabemos es válida)
+                cleanImages = images.filter((_, idx) => !validation.invalidIndices.includes(idx))
+
+                // Actualizar estado con las imágenes limpias
+                setImages(cleanImages)
+
+                // Avisar al usuario
+                alert(`⚠️ Se eliminaron ${badGalleryIndices.length} imagen(es) de la galería que no eran vehículos válidos.`)
+            }
+
+            // Limpiar errores visuales
             setInvalidImageUrls(new Set())
 
-            // Aplicar detalles si la IA detectó algo útil de la portada
+            // Aplicar detalles si la IA detectó algo útil
             if (validation.valid && validation.details) {
                 applyAiDetails(validation.details, validation.category)
             }
@@ -167,8 +183,8 @@ export default function PublishClient() {
             handleNextStep()
 
         } catch (error) {
-            console.error('Error en validación de portada:', error)
-            setAiError('Error al analizar la foto de portada. Intenta de nuevo.')
+            console.error('Error en validación de imágenes:', error)
+            setAiError('No pudimos verificar tus imágenes. Intenta de nuevo.')
             setIsAnalyzing(false)
         }
     }
