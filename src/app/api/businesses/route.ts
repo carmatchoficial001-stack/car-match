@@ -76,6 +76,8 @@ export async function POST(request: NextRequest) {
         // Primer negocio: 3 MESES GRATIS
         // Negocios 2+: REQUIEREN 1 CRÉDITO para estar activos. Si no hay, se crean como INACTIVOS (Borrador).
 
+        const isAdmin = userExists.isAdmin || session.user.email === process.env.ADMIN_EMAIL
+
         // 🛡️ VALIDAR HUELLA DIGITAL (Detectar duplicados/fraude ANTES de cobrar)
         const { fingerprint } = body
         if (!fingerprint?.deviceHash && !isAdmin) {
@@ -105,12 +107,6 @@ export async function POST(request: NextRequest) {
                 fraudReason = fraudCheck.reason || 'Actividad inusual detectada'
             }
         }
-
-        // 💰 MONETIZACIÓN DE NEGOCIOS
-        // Primer negocio: 3 MESES GRATIS
-        // Negocios 2+: REQUIEREN 1 CRÉDITO para estar activos. Si no hay, se crean como INACTIVOS (Borrador).
-
-        const isAdmin = userExists.isAdmin || session.user.email === process.env.ADMIN_EMAIL
 
         // Obtener créditos actuales
         const user = await prisma.user.findUnique({
