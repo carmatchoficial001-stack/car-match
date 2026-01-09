@@ -64,7 +64,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 x: exitX || (x.get() < 0 ? -1000 : 1000),
                 opacity: 0,
                 rotate: x.get() < 0 ? -45 : 45,
-                transition: { duration: 0.4 }
+                transition: { duration: 0.8 }
             }}
             style={{
                 x,
@@ -209,7 +209,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
 
             setExitX(undefined)
             setIsSwiping(false)
-        }, 400)
+        }, 800)
     }
 
     const currentItem = items[0]
