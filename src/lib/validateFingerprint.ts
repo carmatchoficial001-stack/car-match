@@ -62,11 +62,13 @@ export async function validatePublicationFingerprint(params: {
         // Identificar si hay otras cuentas vinculadas a este dispositivo
         const otherUsers = Array.from(new Set(deviceHistory.map(h => h.userId).filter(id => id !== params.userId)))
 
-        if (otherUsers.length > 0) {
-            console.log(`🛡️ SEGURIDAD: Multicuenta detectada en dispositivo ${params.deviceHash}. Cuentas: [${params.userId}, ${otherUsers.join(', ')}]`)
+        // LÍMITE DE MULTICUENTA: 3 Cuentas por dispositivo.
+        // Si hay 2 o más usuarios DIFERENTES previos, este sería el 3ro (o más), así que se bloquea.
+        if (otherUsers.length >= 2) {
+            console.log(`🛡️ SEGURIDAD: Límite de cuentas excedido en disposito ${params.deviceHash}. Cuentas previas: [${otherUsers.join(', ')}]`)
             return {
                 isFraud: true,
-                reason: '🛡️ SEGURIDAD: Se han detectado múltiples cuentas vinculadas a este dispositivo. Para proteger nuestra comunidad, esta cuenta requiere verificación y activación manual por créditos.'
+                reason: `🛡️ LÍMITE DISPOSITIVO: Se han detectado demasiadas cuentas (${otherUsers.length + 1}) en este dispositivo. El límite son 3 cuentas con beneficios gratuitos.`
             }
         }
     }
