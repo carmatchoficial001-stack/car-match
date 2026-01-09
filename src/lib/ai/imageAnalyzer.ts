@@ -186,7 +186,8 @@ export async function analyzeMultipleImages(
       inlineData: { data: img, mimeType: "image/jpeg" }
     }));
 
-    const imagesToAnalyze = imageParts.slice(0, 5);
+    // Fix: Analizar hasta 10 imágenes (Portada + 9 Galería)
+    const imagesToAnalyze = imageParts.slice(0, 10);
 
     const result = await geminiModel.generateContent([prompt, ...imagesToAnalyze]);
     const response = await result.response;

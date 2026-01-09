@@ -167,6 +167,7 @@ export async function POST(request: NextRequest) {
         const now = new Date()
         let expiresAt = new Date()
         let isFreePublication = true
+        let initialStatus: 'ACTIVE' | 'INACTIVE' = 'ACTIVE' // Por defecto activo si pasa filtros
 
         const isPermanentlyRestricted = (user.fraudStrikes || 0) >= 10
 
@@ -178,14 +179,23 @@ export async function POST(request: NextRequest) {
             // Usuarios marcados o fraude detectado NO tienen días gratis
             expiresAt = new Date()
             isFreePublication = false
+            initialStatus = 'INACTIVE'
         }
-        else if (isFirstVehicle) {
+        else if (vehicleCount === 0) {
+            // 1er Vehículo: 6 Meses Gratis
             expiresAt.setMonth(now.getMonth() + 6)
             isFreePublication = true
         }
-        else {
+        else if (vehicleCount < 25) {
+            // Vehículos 2 al 25: 7 Días Gratis
             expiresAt.setDate(now.getDate() + 7)
             isFreePublication = true
+        }
+        else {
+            // Vehículo 26 en adelante: COBRO OBLIGATORIO
+            expiresAt = new Date()
+            isFreePublication = false
+            initialStatus = 'INACTIVE' // Requiere pago para activarse
         }
 
         // Crear vehículo (Estado inicial: INACTIVE hasta que termine moderación de galería)
@@ -221,7 +231,7 @@ export async function POST(request: NextRequest) {
                 cargoCapacity: body.cargoCapacity ? parseFloat(body.cargoCapacity) : null,
                 operatingHours: body.operatingHours ? parseInt(body.operatingHours) : null,
                 // ESTADO INICIAL
-                status: 'INACTIVE', // BLINDAJE: Empieza inactivo
+                status: initialStatus, // BLINDAJE: Empieza inactivo
                 moderationStatus: 'PENDING_AI',
                 isFreePublication: isFreePublication,
                 publishedAt: now,
