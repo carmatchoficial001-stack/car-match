@@ -117,6 +117,23 @@ export default function ImageUploadStep({ images, onImagesChange, invalidImageUr
                     </div>
                 </div>
 
+                {/* Fix: Inputs moved outside conditional so they exist for "Change Photo" button */}
+                <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleCoverUpload(e.target.files)}
+                    className="hidden"
+                />
+                <input
+                    ref={coverCameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(e) => handleCoverUpload(e.target.files)}
+                    className="hidden"
+                />
+
                 {!coverImage ? (
                     // Drop zone para portada (UNCHANGED)
                     <div
@@ -125,21 +142,7 @@ export default function ImageUploadStep({ images, onImagesChange, invalidImageUr
                             ${uploading ? 'opacity-50 pointer-events-none border-surface-highlight' : 'border-primary-700'}
                         `}
                     >
-                        <input
-                            ref={coverInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleCoverUpload(e.target.files)}
-                            className="hidden"
-                        />
-                        <input
-                            ref={coverCameraInputRef}
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            onChange={(e) => handleCoverUpload(e.target.files)}
-                            className="hidden"
-                        />
+
 
                         <div className="flex flex-col items-center text-center">
                             {uploading ? (
