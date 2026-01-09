@@ -75,13 +75,11 @@ export async function POST(request: NextRequest) {
         // Llamar a Gemini (Modo Especial Portada ya implementado en analyzeMultipleImages)
         const coverAnalysis = await analyzeMultipleImages([coverBase64], 'VEHICLE')
 
+        let isAiRejected = false
         if (!coverAnalysis.valid) {
             console.log(`❌ Portada rechazada por IA: ${coverAnalysis.reason}`)
-            return NextResponse.json({
-                error: 'Imagen de portada no válida',
-                message: coverAnalysis.reason || 'La imagen no parece ser un vehículo real.',
-                code: 'INVALID_VEHICLE_IMAGE'
-            }, { status: 422 })
+            isAiRejected = true
+            // YA NO BLOQUEAMOS: Se guardará como Borrador (Inactive) para revisión manual
         }
 
         // 🛡️ ANTI-FRAUDE & MONETIZACIÓN
@@ -113,6 +111,8 @@ export async function POST(request: NextRequest) {
 
         // 🛡️ VALIDAR HUELLA DIGITAL GLOBAL (Detecta fraude de varios correos en mismo cel)
         let isFraudulentRetry = false
+        let fraudReason = ''
+
         if (deviceHash !== 'unknown' && !isAdmin) {
             const globalFraudCheck = await validatePublicationFingerprint({
                 userId: user.id,
@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
             if (globalFraudCheck.isFraud) {
                 console.log(`🛡️ Seguridad: Fraude Global detectado. Razón: ${globalFraudCheck.reason}`)
                 isFraudulentRetry = true
+                fraudReason = globalFraudCheck.reason
 
                 // Si es fraude de múltiples cuentas, aplicar strike inmediatamente
                 await prisma.user.update({
@@ -175,8 +176,8 @@ export async function POST(request: NextRequest) {
             expiresAt.setFullYear(now.getFullYear() + 10)
             isFreePublication = true
         }
-        else if (isPermanentlyRestricted || isFraudulentRetry) {
-            // Usuarios marcados o fraude detectado NO tienen días gratis
+        else if (isPermanentlyRestricted || isFraudulentRetry || isAiRejected) {
+            // Usuarios marcados, fraude detectado o RECHAZADO POR IA -> INACTIVO (Borrador)
             expiresAt = new Date()
             isFreePublication = false
             initialStatus = 'INACTIVE'
@@ -232,7 +233,7 @@ export async function POST(request: NextRequest) {
                 operatingHours: body.operatingHours ? parseInt(body.operatingHours) : null,
                 // ESTADO INICIAL
                 status: initialStatus, // BLINDAJE: Empieza inactivo
-                moderationStatus: 'PENDING_AI',
+                moderationStatus: isAiRejected ? 'REJECTED' : 'PENDING_AI',
                 isFreePublication: isFreePublication,
                 publishedAt: now,
                 expiresAt: expiresAt,
@@ -324,19 +325,24 @@ export async function POST(request: NextRequest) {
             }
         })
 
+        let successMessage = '¡Publicación enviada a nuestro equipo de seguridad! En breve será verificado.'
+        if (isPermanentlyRestricted) {
+            successMessage = 'Cuenta restringida. El anuncio se guardó como BORRADOR (Requiere activación).'
+        } else if (isFraudulentRetry) {
+            successMessage = 'Anuncio guardado con precauciones de seguridad (Múltiples cuentas detectadas).'
+        } else if (isAiRejected) {
+            successMessage = `Anuncio guardado como BORRADOR. La IA detectó problemas con la imagen: ${coverAnalysis.reason || 'Imagen inusual'}. Puedes editarlo.`
+        }
+
         return NextResponse.json({
             success: true,
             vehicle: {
                 id: vehicle.id,
                 title: vehicle.title,
-                moderationStatus: 'APPROVED',
+                moderationStatus: isAiRejected ? 'REJECTED' : 'APPROVED',
                 // Indicar al frontend si se publicó activo o requiere pago
-                status: (isFraudulentRetry || isPermanentlyRestricted) ? 'INACTIVE' : 'ACTIVE',
-                message: isPermanentlyRestricted
-                    ? 'Nuestro equipo de seguridad ha restringido los beneficios gratuitos en esta cuenta por intentos de abuso. Se requiere activación por créditos.'
-                    : isFraudulentRetry
-                        ? 'Se detectó una publicación duplicada. Para mantener la calidad del mercado, este vehículo requiere activación por seguridad.'
-                        : '¡Publicación enviada a nuestro equipo de seguridad! En breve será verificado.'
+                status: (isFraudulentRetry || isPermanentlyRestricted || isAiRejected) ? 'INACTIVE' : 'ACTIVE',
+                message: successMessage
             }
         }, { status: 201 })
     } catch (error) {

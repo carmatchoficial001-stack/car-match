@@ -76,6 +76,40 @@ export async function POST(request: NextRequest) {
         // Primer negocio: 3 MESES GRATIS
         // Negocios 2+: REQUIEREN 1 CRÉDITO para estar activos. Si no hay, se crean como INACTIVOS (Borrador).
 
+        // 🛡️ VALIDAR HUELLA DIGITAL (Detectar duplicados/fraude ANTES de cobrar)
+        const { fingerprint } = body
+        if (!fingerprint?.deviceHash && !isAdmin) {
+            return NextResponse.json(
+                { error: 'Huella digital requerida' },
+                { status: 400 }
+            )
+        }
+
+        let isFraudulentRetry = false
+        let fraudReason = ''
+
+        if (!isAdmin) {
+            const { validatePublicationFingerprint } = await import('@/lib/validateFingerprint')
+            const fraudCheck = await validatePublicationFingerprint({
+                userId: session.user.id,
+                publicationType: 'BUSINESS',
+                latitude,
+                longitude,
+                deviceHash: fingerprint.deviceHash,
+                ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+            })
+
+            if (fraudCheck.isFraud) {
+                console.warn(`⚠️ Fraude detectado en negocio (usuario ${session.user.id}): ${fraudCheck.reason}`)
+                isFraudulentRetry = true
+                fraudReason = fraudCheck.reason || 'Actividad inusual detectada'
+            }
+        }
+
+        // 💰 MONETIZACIÓN DE NEGOCIOS
+        // Primer negocio: 3 MESES GRATIS
+        // Negocios 2+: REQUIEREN 1 CRÉDITO para estar activos. Si no hay, se crean como INACTIVOS (Borrador).
+
         const isAdmin = userExists.isAdmin || session.user.email === process.env.ADMIN_EMAIL
 
         // Obtener créditos actuales
@@ -96,6 +130,12 @@ export async function POST(request: NextRequest) {
             expiresAt = new Date()
             expiresAt.setFullYear(expiresAt.getFullYear() + 10)
             isFreePublication = true
+        } else if (isFraudulentRetry) {
+            // 🚫 FRAUDE DETECTADO: Se fuerza a BORRADOR (Inactivo)
+            isActive = false
+            expiresAt = null
+            isFreePublication = false
+            creditCharged = false
         } else if (isFirstBusiness) {
             // PRIMER NEGOCIO: 3 MESES GRATIS
             isActive = true
@@ -123,36 +163,8 @@ export async function POST(request: NextRequest) {
             creditCharged = false
         }
 
-        // 🛡️ VALIDAR HUELLA DIGITAL para detectar duplicados
-        const { fingerprint } = body
-        // ... (resto de validaciones de huella)
-        if (!fingerprint?.deviceHash && !isAdmin) {
-            return NextResponse.json(
-                { error: 'Huella digital requerida' },
-                { status: 400 }
-            )
-        }
-
-        // Importar validateFingerprint
-        const { validatePublicationFingerprint, savePublicationFingerprint } = await import('@/lib/validateFingerprint')
-
-        if (!isAdmin) {
-            const fraudCheck = await validatePublicationFingerprint({
-                userId: session.user.id,
-                publicationType: 'BUSINESS',
-                latitude,
-                longitude,
-                deviceHash: fingerprint.deviceHash,
-                ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
-            })
-
-            if (fraudCheck.isFraud) {
-                return NextResponse.json(
-                    { error: `No puedes publicar: ${fraudCheck.reason}` },
-                    { status: 400 }
-                )
-            }
-        }
+        // Import save function locally if needed or rely on previous import logic structure being removed
+        const { savePublicationFingerprint } = await import('@/lib/validateFingerprint')
 
         // Crear negocio
         const business = await prisma.business.create({
@@ -214,13 +226,20 @@ export async function POST(request: NextRequest) {
             })
         }
 
+        let successMessage = ''
+        if (isFraudulentRetry) {
+            successMessage = '⚠️ Negocio guardado como BORRADOR. Se detectaron múltiples cuentas. Requiere activación manual.'
+        } else if (isFirstBusiness) {
+            successMessage = '¡Negocio creado con éxito! Disfruta de 3 MESES GRATIS 🎉'
+        } else if (creditCharged) {
+            successMessage = '✅ Negocio creado y activado. Se descontó 1 crédito.'
+        } else {
+            successMessage = '📝 Negocio guardado como BORRADOR. Adquiere créditos para activarlo en el mapa.'
+        }
+
         return NextResponse.json({
             business,
-            message: isFirstBusiness
-                ? '¡Negocio creado con éxito! Disfruta de 3 MESES GRATIS 🎉'
-                : creditCharged
-                    ? '✅ Negocio creado y activado. Se descontó 1 crédito.'
-                    : '📝 Negocio guardado como BORRADOR. Adquiere créditos para activarlo en el mapa.',
+            message: successMessage,
             isFirstBusiness,
             creditCharged,
             status: isActive ? 'ACTIVE' : 'DRAFT'
