@@ -37,6 +37,7 @@ interface BusinessDetailProps {
 export default function BusinessDetailClient({ business, currentUserId }: BusinessDetailProps) {
     const { data: session } = useSession()
     const router = useRouter()
+    const [loading, setLoading] = useState(false)
     const [modal, setModal] = useState<{
         isOpen: boolean;
         title: string;
@@ -50,6 +51,9 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
         message: '',
         variant: 'info'
     })
+
+    // Verificar si el usuario actual es el dueño del negocio
+    const isOwner = currentUserId === business.userId
 
     // Lógica para acciones de gestión
     const executeToggleStatus = async (useCredit: boolean) => {
