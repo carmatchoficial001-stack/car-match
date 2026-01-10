@@ -13,6 +13,7 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { formatPrice, formatNumber } from '@/lib/vehicleTaxonomy'
 import { useRouter } from 'next/navigation'
 import { Edit3, Sparkles, CreditCard, Play, Pause, BadgeCheck, AlertTriangle, Share2 } from 'lucide-react'
+import ConfirmationModal from '@/components/ConfirmationModal'
 
 interface VehicleDetailProps {
     vehicle: {
@@ -438,18 +439,26 @@ function OwnerActionButton({ action, vehicleId, icon, label, variant }: {
     variant: 'ia' | 'credit' | 'success' | 'neutral' | 'sold'
 }) {
     const [loading, setLoading] = useState(false)
+    const [modal, setModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        variant: 'info' | 'danger' | 'success' | 'credit';
+        confirmLabel?: string;
+        onConfirm?: () => void;
+        secondaryAction?: { label: string; onClick: () => void };
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        variant: 'info'
+    })
     const router = useRouter()
 
-    const handleClick = async () => {
-        if (action === 'edit') return // Handled by Link
-
-        let confirmMsg = `¿Deseas ${label.toLowerCase()} esta publicación?`
-        if (action === 'ai-fix') confirmMsg = '¿Deseas corregir los datos de tu vehículo automáticamente según las fotos y activarlo ahora?'
-        if (action === 'activate-credit') confirmMsg = '¿Deseas activar esta publicación usando 1 crédito? (Extiende vigencia 30 días)'
-
-        if (!confirm(confirmMsg)) return
-
+    const handleAction = async () => {
         setLoading(true)
+        setModal(prev => ({ ...prev, isOpen: false }))
+
         try {
             let res;
             if (action === 'ai-fix') {
@@ -467,18 +476,73 @@ function OwnerActionButton({ action, vehicleId, icon, label, variant }: {
 
             const data = await res.json()
             if (res.ok) {
-                alert(`✅ Acción realizada con éxito: ${label}`)
-                window.location.reload()
-                // router.refresh() // Better but reload ensures everything is fresh
+                setModal({
+                    isOpen: true,
+                    title: '¡Éxito!',
+                    message: `La acción "${label}" se ha realizado correctamente.`,
+                    variant: 'success',
+                    confirmLabel: 'Aceptar',
+                    onConfirm: () => window.location.reload()
+                })
             } else {
-                alert(`❌ Error: ${data.error || 'No se pudo completar la acción'}`)
+                const isInsufficientCredits = data.error?.toLowerCase().includes('créditos insuficiente') || res.status === 402;
+
+                setModal({
+                    isOpen: true,
+                    title: isInsufficientCredits ? 'Saldo Insuficiente' : 'Error',
+                    message: data.error || 'No se pudo completar la acción. Inténtalo de nuevo más tarde.',
+                    variant: isInsufficientCredits ? 'credit' : 'danger',
+                    confirmLabel: isInsufficientCredits ? 'Comprar Créditos' : 'Entendido',
+                    onConfirm: isInsufficientCredits ? () => router.push('/credits') : () => setModal(prev => ({ ...prev, isOpen: false })),
+                })
             }
         } catch (e) {
             console.error(e)
-            alert('❌ Error técnico al procesar la solicitud.')
+            setModal({
+                isOpen: true,
+                title: 'Error de Conexión',
+                message: 'Ocurrió un error técnico al procesar tu solicitud. Revisa tu conexión de internet.',
+                variant: 'danger',
+                confirmLabel: 'Aceptar',
+                onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
+            })
         } finally {
             setLoading(false)
         }
+    }
+
+    const handleClick = () => {
+        if (action === 'edit') return // Handled by Link
+
+        let title = '¿Estás seguro?'
+        let message = `¿Deseas ${label.toLowerCase()} esta publicación?`
+        let variant: 'info' | 'danger' | 'success' | 'credit' = 'info'
+        let confirmLabel = 'Confirmar'
+
+        if (action === 'ai-fix') {
+            title = 'Corrección Automática'
+            message = '¿Deseas corregir los datos de tu vehículo automáticamente según las fotos y activarlo ahora?'
+            variant = 'info'
+        }
+        if (action === 'activate-credit') {
+            title = 'Activar con Crédito'
+            message = '¿Deseas activar esta publicación usando 1 crédito? Esto extenderá la vigencia por 30 días.'
+            variant = 'credit'
+            confirmLabel = 'Usar 1 Crédito'
+        }
+        if (action === 'sold') {
+            variant = 'success'
+            confirmLabel = 'Marcar como Vendido'
+        }
+
+        setModal({
+            isOpen: true,
+            title,
+            message,
+            variant,
+            confirmLabel,
+            onConfirm: handleAction
+        })
     }
 
     const variants = {
@@ -490,18 +554,31 @@ function OwnerActionButton({ action, vehicleId, icon, label, variant }: {
     }
 
     return (
-        <button
-            onClick={handleClick}
-            disabled={loading}
-            className={`flex flex-col items-center justify-center p-3 rounded-2xl transition gap-1 group w-full ${variants[variant]}`}
-        >
-            {loading ? (
-                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            ) : (
-                <div className="group-hover:scale-110 transition">{icon}</div>
-            )}
-            <span className="text-[10px] font-bold uppercase tracking-tighter line-clamp-1">{label}</span>
-        </button>
+        <>
+            <button
+                onClick={handleClick}
+                disabled={loading}
+                className={`flex flex-col items-center justify-center p-3 rounded-2xl transition gap-1 group w-full ${variants[variant]}`}
+            >
+                {loading ? (
+                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                    <div className="group-hover:scale-110 transition">{icon}</div>
+                )}
+                <span className="text-[10px] font-bold uppercase tracking-tighter line-clamp-1">{label}</span>
+            </button>
+
+            <ConfirmationModal
+                isOpen={modal.isOpen}
+                onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={modal.onConfirm}
+                title={modal.title}
+                message={modal.message}
+                variant={modal.variant}
+                confirmLabel={modal.confirmLabel}
+                isLoading={loading}
+            />
+        </>
     )
 }
 

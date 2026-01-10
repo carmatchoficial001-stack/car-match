@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react'
 import Header from '@/components/Header'
 import ShareButton from '@/components/ShareButton'
 import { MapPin, Clock, Phone, Navigation, ArrowLeft, Star, ShieldCheck, Edit3, CreditCard, Play, Pause, Calendar, BadgeCheck } from 'lucide-react'
+import ConfirmationModal from '@/components/ConfirmationModal'
 
 interface BusinessDetailProps {
     business: {
@@ -36,18 +37,25 @@ interface BusinessDetailProps {
 export default function BusinessDetailClient({ business, currentUserId }: BusinessDetailProps) {
     const { data: session } = useSession()
     const router = useRouter()
-    const [loading, setLoading] = useState(false)
-    const isOwner = currentUserId === business.userId
+    const [modal, setModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        variant: 'info' | 'danger' | 'success' | 'credit';
+        confirmLabel?: string;
+        onConfirm?: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        variant: 'info'
+    })
 
     // Lógica para acciones de gestión
-    const handleToggleStatus = async (useCredit: boolean = false) => {
-        const confirmMsg = useCredit
-            ? '¿Deseas activar este negocio usando 1 crédito? (Vigencia 30 días)'
-            : `¿Deseas ${business.isActive ? 'pausar' : 'activar'} este negocio?`
-
-        if (!confirm(confirmMsg)) return
-
+    const executeToggleStatus = async (useCredit: boolean) => {
         setLoading(true)
+        setModal(prev => ({ ...prev, isOpen: false }))
+
         try {
             const res = await fetch('/api/businesses/toggle-status', {
                 method: 'POST',
@@ -56,17 +64,62 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
             })
             const data = await res.json()
             if (res.ok) {
-                alert('✅ Estado actualizado con éxito')
-                window.location.reload()
+                setModal({
+                    isOpen: true,
+                    title: '¡Éxito!',
+                    message: 'El estado del negocio se ha actualizado correctamente.',
+                    variant: 'success',
+                    confirmLabel: 'Aceptar',
+                    onConfirm: () => window.location.reload()
+                })
             } else {
-                alert(`❌ Error: ${data.error || 'No se pudo actualizar el estado'}`)
+                const isInsufficientCredits = data.error?.toLowerCase().includes('créditos insuficiente') || res.status === 402;
+
+                setModal({
+                    isOpen: true,
+                    title: isInsufficientCredits ? 'Saldo Insuficiente' : 'Error',
+                    message: data.error || 'No se pudo actualizar el estado.',
+                    variant: isInsufficientCredits ? 'credit' : 'danger',
+                    confirmLabel: isInsufficientCredits ? 'Comprar Créditos' : 'Entendido',
+                    onConfirm: isInsufficientCredits ? () => router.push('/credits') : () => setModal(prev => ({ ...prev, isOpen: false })),
+                })
             }
         } catch (error) {
             console.error(error)
-            alert('❌ Error técnico al procesar la solicitud')
+            setModal({
+                isOpen: true,
+                title: 'Error técnico',
+                message: 'No se pudo procesar la solicitud. Revisa tu conexión.',
+                variant: 'danger',
+                confirmLabel: 'Aceptar',
+                onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
+            })
         } finally {
             setLoading(false)
         }
+    }
+
+    const handleToggleStatus = (useCredit: boolean = false) => {
+        let title = '¿Estás seguro?'
+        let message = `¿Deseas ${business.isActive ? 'pausar' : 'activar'} este negocio?`
+        let variant: 'info' | 'danger' | 'success' | 'credit' = 'info'
+        let confirmLabel = 'Confirmar'
+
+        if (useCredit) {
+            title = 'Activar con Crédito'
+            message = '¿Deseas activar este negocio usando 1 crédito? Esto extenderá la vigencia por 30 días.'
+            variant = 'credit'
+            confirmLabel = 'Usar 1 Crédito'
+        }
+
+        setModal({
+            isOpen: true,
+            title,
+            message,
+            variant,
+            confirmLabel,
+            onConfirm: () => executeToggleStatus(useCredit)
+        })
     }
 
     const managementPanel = () => {
@@ -323,6 +376,17 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
                     </div>
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={modal.isOpen}
+                onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={modal.onConfirm}
+                title={modal.title}
+                message={modal.message}
+                variant={modal.variant}
+                confirmLabel={modal.confirmLabel}
+                isLoading={loading}
+            />
         </div>
     )
 }
