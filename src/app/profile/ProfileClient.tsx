@@ -162,6 +162,11 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                 const isInactive = vehicle.status !== "ACTIVE"
                                 const statusKey = vehicle.status.toLowerCase() as 'active' | 'sold' | 'inactive'
 
+                                // 💡 Lógica de Condición para botones
+                                const isExpired = vehicle.expiresAt && new Date(vehicle.expiresAt) < new Date()
+                                const needsCreditToActivate = !vehicle.isFreePublication || isExpired || vehicle.moderationStatus === 'REJECTED'
+                                const canActivateFree = vehicle.isFreePublication && !isExpired && (vehicle.moderationStatus === 'APPROVED' || vehicle.moderationStatus === 'PENDING_AI')
+
                                 return (
                                     <div
                                         key={vehicle.id}
@@ -208,14 +213,21 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                         }`} suppressHydrationWarning>
                                                         {formatPrice(vehicle.price, vehicle.currency || 'MXN', locale)}
                                                     </p>
-                                                    {isOwner && vehicle.expiresAt && (
-                                                        <p className="text-xs font-medium text-text-secondary bg-surface-highlight/30 px-2 py-1 rounded inline-block mt-2">
-                                                            📅 Vence: {new Date(vehicle.expiresAt).toLocaleDateString(locale === 'es' ? 'es-MX' : 'en-US', {
-                                                                day: 'numeric',
-                                                                month: 'long',
-                                                                year: 'numeric'
-                                                            })}
-                                                        </p>
+                                                    {isOwner && (
+                                                        <div className="flex flex-col gap-1 mt-2">
+                                                            {vehicle.expiresAt && (
+                                                                <p className={`text-xs font-medium px-2 py-1 rounded inline-block ${isExpired ? "bg-red-900/20 text-red-400" : "bg-surface-highlight/30 text-text-secondary"}`}>
+                                                                    {isExpired ? '❌ Expirado: ' : '📅 Vence: '} {new Date(vehicle.expiresAt).toLocaleDateString(locale === 'es' ? 'es-MX' : 'en-US', {
+                                                                        day: 'numeric',
+                                                                        month: 'long',
+                                                                        year: 'numeric'
+                                                                    })}
+                                                                </p>
+                                                            )}
+                                                            {vehicle.moderationStatus === 'REJECTED' && (
+                                                                <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider">⚠️ Rechazado por IA - Requiere corrección o activar con crédito</p>
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </div>
 
@@ -233,8 +245,36 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                         </span>
 
                                                         {/* Botones de Acción Rápida */}
-                                                        <div className="flex gap-1 z-10">
-                                                            {vehicle.status !== 'ACTIVE' && (
+                                                        <div className="flex gap-1 z-10 flex-wrap justify-end">
+                                                            {/* EDITAR - Siempre visible para el dueño */}
+                                                            <Link
+                                                                href={`/publish?edit=${vehicle.id}`}
+                                                                className="p-1.5 rounded-lg bg-surface border border-surface-highlight hover:bg-surface-highlight hover:text-primary-400 text-text-secondary transition"
+                                                                title="Editar vehículo"
+                                                            >
+                                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                </svg>
+                                                            </Link>
+
+                                                            {/* ASESOR REAL (IA FIX) - Solo si está inactivo y rechazado */}
+                                                            {vehicle.status !== 'ACTIVE' && vehicle.moderationStatus === 'REJECTED' && (
+                                                                <AIFixButton vehicleId={vehicle.id} />
+                                                            )}
+
+                                                            {/* ACTIVAR CON CRÉDITO - Solo si es necesario */}
+                                                            {vehicle.status !== 'ACTIVE' && needsCreditToActivate && (
+                                                                <UpdateStatusButton
+                                                                    vehicleId={vehicle.id}
+                                                                    newStatus="ACTIVE"
+                                                                    useCredit={true}
+                                                                    label="Activar con 1 Crédito"
+                                                                    icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.406 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.406-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                                                                />
+                                                            )}
+
+                                                            {/* ACTIVAR GRATIS - Solo si es posible */}
+                                                            {vehicle.status !== 'ACTIVE' && canActivateFree && (
                                                                 <UpdateStatusButton
                                                                     vehicleId={vehicle.id}
                                                                     newStatus="ACTIVE"
@@ -297,7 +337,52 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
     )
 }
 
-function UpdateStatusButton({ vehicleId, newStatus, icon, label }: { vehicleId: string, newStatus: string, icon: any, label: string }) {
+
+function AIFixButton({ vehicleId }: { vehicleId: string }) {
+    const [loading, setLoading] = useState(false)
+
+    const handleAIFix = async () => {
+        if (!confirm('¿Deseas que nuestro "Asesor Real" (IA) corrija los datos de tu vehículo según las fotos y lo active automáticamente?')) return
+        setLoading(true)
+        try {
+            const res = await fetch(`/api/vehicles/${vehicleId}/ai-fix`, {
+                method: 'POST'
+            })
+            const data = await res.json()
+            if (data.success) {
+                alert('✅ ¡Tu vehículo ha sido corregido y activado por el Asesor Real!')
+                window.location.reload()
+            } else {
+                alert('❌ Error: ' + (data.error || 'No se pudo realizar la corrección'))
+            }
+        } catch (e) {
+            console.error(e)
+            alert('❌ Error técnico al contactar al asesor.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    return (
+        <button
+            onClick={handleAIFix}
+            disabled={loading}
+            className="p-1.5 rounded-lg bg-primary-900/20 border border-primary-500/30 hover:bg-primary-700/40 text-primary-400 transition flex items-center gap-1"
+            title="Asesor Real (IA) - Corregir y Activar"
+        >
+            {loading ? (
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            )}
+            <span className="text-[10px] font-bold uppercase px-1">Asesor</span>
+        </button>
+    )
+}
+
+function UpdateStatusButton({ vehicleId, newStatus, icon, label, useCredit = false }: { vehicleId: string, newStatus: string, icon: any, label: string, useCredit?: boolean }) {
     const [loading, setLoading] = useState(false)
     const router = useRouter() // Importar useRouter arriba si no existe
 
@@ -307,8 +392,12 @@ function UpdateStatusButton({ vehicleId, newStatus, icon, label }: { vehicleId: 
         try {
             await fetch(`/api/vehicles/${vehicleId}`, {
                 method: 'PATCH',
-                body: JSON.stringify({ status: newStatus })
+                body: JSON.stringify({
+                    status: newStatus,
+                    useCredit: useCredit
+                })
             })
+            if (useCredit) alert('✅ Vehículo activado con 1 crédito exitosamente.')
             window.location.reload() // Simple reload to refresh data
         } catch (e) {
             console.error(e)
@@ -321,7 +410,10 @@ function UpdateStatusButton({ vehicleId, newStatus, icon, label }: { vehicleId: 
         <button
             onClick={handleClick}
             disabled={loading}
-            className="p-1.5 rounded-lg bg-surface border border-surface-highlight hover:bg-surface-highlight hover:text-primary-400 text-text-secondary transition"
+            className={`p-1.5 rounded-lg border transition ${useCredit
+                ? "bg-amber-900/20 border-amber-500/30 hover:bg-amber-700/40 text-amber-500 shadow-sm"
+                : "bg-surface border-surface-highlight hover:bg-surface-highlight hover:text-primary-400 text-text-secondary"
+                }`}
             title={label}
         >
             {loading ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : icon}

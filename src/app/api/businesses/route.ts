@@ -149,11 +149,21 @@ export async function POST(request: NextRequest) {
             isFreePublication = false
             creditCharged = true
 
-            // Descontar el crédito inmediatamente
-            await prisma.user.update({
-                where: { id: session.user.id },
-                data: { credits: { decrement: 1 } }
-            })
+            // Descontar el crédito inmediatamente + registrar transacción 
+            await prisma.$transaction([
+                prisma.user.update({
+                    where: { id: session.user.id },
+                    data: { credits: { decrement: 1 } }
+                }),
+                prisma.creditTransaction.create({
+                    data: {
+                        userId: session.user.id,
+                        amount: -1,
+                        description: `Publicación de nuevo negocio: ${name.trim()}`,
+                        details: { action: 'CREATE_BUSINESS', businessName: name.trim() }
+                    }
+                })
+            ])
         } else {
             // SIGUIENTES NEGOCIOS SIN CRÉDITO: Se crea como INACTIVO (Borrador)
             isActive = false

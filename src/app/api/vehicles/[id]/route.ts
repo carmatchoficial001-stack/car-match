@@ -2,6 +2,27 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
+export async function GET(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { id } = await params
+        const vehicle = await prisma.vehicle.findUnique({
+            where: { id },
+            include: { user: { select: { name: true, image: true, id: true } } }
+        })
+
+        if (!vehicle) {
+            return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
+        }
+
+        return NextResponse.json({ vehicle })
+    } catch (error) {
+        return NextResponse.json({ error: 'Error' }, { status: 500 })
+    }
+}
+
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -23,7 +44,7 @@ export async function PATCH(
 
         const { id } = await params
         const body = await request.json()
-        const { status } = body
+        const { status, ...updateData } = body
 
         // Verificar propiedad del vehículo
         const vehicle = await prisma.vehicle.findUnique({
@@ -39,23 +60,71 @@ export async function PATCH(
             return NextResponse.json({ error: 'No tienes permiso para editar este vehículo' }, { status: 403 })
         }
 
-        // Actualizar estado
-        if (status) {
-            const updatedVehicle = await prisma.vehicle.update({
-                where: { id },
-                data: { status }
+        // Si se está editando, reseteamos la moderación si cambian datos clave
+        const keyFieldsChanged = updateData.brand || updateData.model || updateData.year || updateData.images
+        const finalUpdateData: any = { ...updateData }
+
+        let creditDeducted = false
+
+        // 💳 LÓGICA DE CRÉDITOS PARA ACTIVACIÓN
+        if (body.useCredit === true && (status === 'ACTIVE' || vehicle.status !== 'ACTIVE')) {
+            const userWithCredits = await prisma.user.findUnique({
+                where: { id: user.id },
+                select: { credits: true }
             })
 
-            // 🔔 NOTIFICACIÓN: Si cambia a ACTIVO desde un estado inactivo
-            if (status === 'ACTIVE' && vehicle.status !== 'ACTIVE') {
-                // Enviar notificaciones en segundo plano
-                notifyFavoriters(id, vehicle.title, vehicle.brand, vehicle.model)
+            if ((userWithCredits?.credits || 0) < 1) {
+                return NextResponse.json({ error: 'Saldo de créditos insuficiente' }, { status: 402 })
             }
 
-            return NextResponse.json({ success: true, vehicle: updatedVehicle })
+            // Deducción de crédito y actualización de vencimiento
+            await prisma.$transaction([
+                prisma.user.update({
+                    where: { id: user.id },
+                    data: { credits: { decrement: 1 } }
+                }),
+                prisma.creditTransaction.create({
+                    data: {
+                        userId: user.id,
+                        amount: -1,
+                        description: `Activación de anuncio: ${vehicle.title}`,
+                        relatedId: id,
+                        details: { action: 'ACTIVATE_VEHICLE', vehicleId: id }
+                    }
+                })
+            ])
+
+            // Extender vencimiento 30 días
+            const newExpiry = new Date()
+            newExpiry.setDate(newExpiry.getDate() + 30)
+            finalUpdateData.expiresAt = newExpiry
+            finalUpdateData.status = 'ACTIVE'
+            finalUpdateData.moderationStatus = 'APPROVED' // Forzamos aprobación si pagó
+            creditDeducted = true
+        } else if (status) {
+            finalUpdateData.status = status
         }
 
-        return NextResponse.json({ error: 'Nada para actualizar' }, { status: 400 })
+        if (keyFieldsChanged) {
+            finalUpdateData.moderationStatus = 'PENDING_AI'
+            // Podríamos disparar la moderación de nuevo aquí, o dejar que el cron lo haga
+        }
+
+        const updatedVehicle = await prisma.vehicle.update({
+            where: { id },
+            data: finalUpdateData
+        })
+
+        // 🔔 NOTIFICACIÓN: Si cambia a ACTIVO desde un estado inactivo
+        if (updatedVehicle.status === 'ACTIVE' && vehicle.status !== 'ACTIVE') {
+            notifyFavoriters(id, vehicle.title, vehicle.brand, vehicle.model)
+        }
+
+        return NextResponse.json({
+            success: true,
+            vehicle: updatedVehicle,
+            creditDeducted
+        })
 
     } catch (error) {
         console.error('Error actualizando vehículo:', error)

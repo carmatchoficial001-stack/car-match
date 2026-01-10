@@ -222,6 +222,84 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
 }
 
 /**
+ * 🤖 ASESOR REAL: Función para corregir y aprobar automáticamente un vehículo
+ * Basado en el análisis previo de la IA.
+ */
+export async function fixAndApproveVehicle(vehicleId: string) {
+    console.log(`✨ Asesor Real: Iniciando corrección asistida para vehículo ${vehicleId}`)
+
+    const vehicle = await prisma.vehicle.findUnique({
+        where: { id: vehicleId }
+    })
+
+    if (!vehicle) return { success: false, error: 'Vehículo no encontrado' }
+
+    if (!vehicle.images || vehicle.images.length === 0) {
+        return { success: false, error: 'El vehículo no tiene imágenes para analizar' }
+    }
+
+    try {
+        // 1. Re-analizar imágenes para obtener los mejores datos posibles
+        const base64Images = (await Promise.all(
+            vehicle.images.slice(0, 3).map(url => fetchImageAsBase64(url))
+        )).filter((img): img is string => img !== null)
+
+        if (base64Images.length === 0) {
+            return { success: false, error: 'No se pudieron procesar las imágenes actuales.' }
+        }
+
+        const analysis = await analyzeMultipleImages(base64Images, 'VEHICLE')
+
+        if (!analysis.valid) {
+            return { success: false, error: analysis.reason || 'Las imágenes no son válidas para un vehículo.' }
+        }
+
+        const details = analysis.details
+        if (!details) {
+            return { success: false, error: 'La IA no pudo extraer detalles suficientes.' }
+        }
+
+        // 2. Aplicar correcciones
+        const updateData: any = {
+            moderationStatus: 'APPROVED',
+            status: 'ACTIVE'
+        }
+
+        if (details.brand) updateData.brand = details.brand
+        if (details.model) updateData.model = details.model
+        if (details.year) updateData.year = parseInt(details.year)
+        if (details.color) updateData.color = details.color
+        if (details.type) updateData.vehicleType = details.type
+        
+        // Generar nuevo título basado en la corrección
+        updateData.title = `${updateData.brand || vehicle.brand} ${updateData.model || vehicle.model} ${updateData.year || vehicle.year}`
+
+        await prisma.vehicle.update({
+            where: { id: vehicleId },
+            data: updateData
+        })
+
+        // 3. Notificación "Asesor Real"
+        await prisma.notification.create({
+            data: {
+                userId: vehicle.userId,
+                type: 'SYSTEM',
+                title: '✅ Asesor Real: Publicación Activada',
+                message: `¡Hola! He revisado tu anuncio personalmente. He corregido los datos para que coincidan exactamente con tus fotos y ya está activo en CarMatch y MarketCar. ¡Mucha suerte con tu venta!`,
+                link: `/profile?tab=vehicles`,
+                metadata: JSON.stringify({ vehicleId, status: 'APPROVED' })
+            }
+        })
+
+        return { success: true }
+
+    } catch (error) {
+        console.error('❌ Error en Asesor Real IA:', error)
+        return { success: false, error: 'Fallo técnico al procesar el Asesor Real' }
+    }
+}
+
+/**
  * Moderación de Negocios (Sigue el mismo patrón Real)
  */
 export async function moderateBusinessListing(businessId: string, imageUrls: string[]) {

@@ -974,12 +974,22 @@ export default function MyBusinessesClient() {
                                     <div className="px-4 pb-4 pt-0 flex gap-2">
                                         <button
                                             onClick={() => toggleStatus(business.id, business.status)}
-                                            className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${business.status === 'ACTIVE'
-                                                ? 'bg-amber-900/20 text-amber-400 hover:bg-amber-900/30'
-                                                : 'bg-green-900/20 text-green-400 hover:bg-green-900/30'
+                                            className={`flex-1 py-2 rounded-lg text-sm font-bold transition flex items-center justify-center gap-1 ${business.status === 'ACTIVE'
+                                                ? 'bg-amber-900/20 text-amber-500 hover:bg-amber-900/30 border border-amber-500/20'
+                                                : (business.expiresAt && new Date(business.expiresAt) < new Date()) || !business.expiresAt
+                                                    ? 'bg-amber-600 text-white hover:bg-amber-700 shadow-lg shadow-amber-900/20'
+                                                    : 'bg-green-600 text-white hover:bg-green-700 shadow-lg shadow-green-900/20'
                                                 }`}
                                         >
-                                            {business.status === 'ACTIVE' ? t('business.deactivate') : t('business.activate')}
+                                            {business.status === 'ACTIVE' ? (
+                                                <><span>⏸️</span> {t('business.deactivate')}</>
+                                            ) : (
+                                                (business.expiresAt && new Date(business.expiresAt) < new Date()) || !business.expiresAt ? (
+                                                    <><span>💳</span> Activar con 1 Crédito</>
+                                                ) : (
+                                                    <><span>▶️</span> {t('business.activate')}</>
+                                                )
+                                            )}
                                         </button>
                                         <button
                                             onClick={() => handleEdit(business)}

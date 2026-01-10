@@ -1,7 +1,7 @@
 ﻿"use client"
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Header from '@/components/Header'
 import GPSCaptureStep from '@/components/GPSCaptureStep'
 import ImageUploadStep from '@/components/ImageUploadStep'
@@ -34,6 +34,9 @@ type FormStep = 1 | 2 | 3 | 4 | 5 | 6 | 7
 
 export default function PublishClient() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const editId = searchParams.get('edit')
+
     const { t, locale } = useLanguage()
     const [currentStep, setCurrentStep] = useState<FormStep>(1)
     const [loading, setLoading] = useState(false)
@@ -319,6 +322,58 @@ export default function PublishClient() {
         detectRegionalSettings()
     }, [])
 
+    // ✏️ Edit Mode: Load vehicle data
+    useEffect(() => {
+        if (editId) {
+            const fetchVehicle = async () => {
+                setLoading(true)
+                try {
+                    const res = await fetch(`/api/vehicles/${editId}`)
+                    if (!res.ok) throw new Error('No se pudo cargar el vehículo')
+                    const data = await res.json()
+                    const v = data.vehicle
+
+                    // Populate form
+                    setVehicleCategory(v.vehicleType?.toLowerCase() || 'automovil')
+                    setVehicleType(v.vehicleType || '')
+                    setImages(v.images || [])
+                    setDescription(v.description || '')
+                    setBrand(v.brand || '')
+                    setModel(v.model || '')
+                    setYear(v.year?.toString() || '')
+                    setPrice(v.price?.toString() || '')
+                    setCurrency(v.currency || 'MXN')
+                    setMileage(v.mileage?.toString() || '')
+                    setMileageUnit(v.mileageUnit as 'km' | 'mi' || 'km')
+                    setTransmission(v.transmission || '')
+                    setFuel(v.fuel || '')
+                    setEngine(v.engine || '')
+                    setDoors(v.doors?.toString() || '')
+                    setColor(v.color || '')
+                    setCondition(v.condition || '')
+                    setTraction(v.traction || '')
+                    setPassengers(v.passengers?.toString() || '')
+                    setDisplacement(v.displacement?.toString() || '')
+                    setCargoCapacity(v.cargoCapacity?.toString() || '')
+                    setOperatingHours(v.operatingHours?.toString() || '')
+                    setLatitude(v.latitude)
+                    setLongitude(v.longitude)
+                    setCity(v.city)
+                    setStateLocation(v.state || '')
+                    setCountryLocation(v.country || 'MX')
+                    setSelectedFeatures(v.features || [])
+
+                } catch (err) {
+                    console.error(err)
+                    alert('Error cargando vehículo para editar')
+                } finally {
+                    setLoading(false)
+                }
+            }
+            fetchVehicle()
+        }
+    }, [editId])
+
     const handlePublish = async () => {
         setLoading(true)
         setAiError('')
@@ -424,8 +479,8 @@ export default function PublishClient() {
                 }
             }
 
-            const response = await fetch('/api/vehicles', {
-                method: 'POST',
+            const response = await fetch(editId ? `/api/vehicles/${editId}` : '/api/vehicles', {
+                method: editId ? 'PATCH' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...vehicleData, deviceFingerprint: deviceFP }),
             })

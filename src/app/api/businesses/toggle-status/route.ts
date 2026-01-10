@@ -47,11 +47,20 @@ export async function POST(request: NextRequest) {
                 // Calcular nueva fecha de expiración (30 días)
                 const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
 
-                // Descontar crédito + activar + setear expiración
+                // Descontar crédito + activar + setear expiración + registrar transacción
                 await prisma.$transaction([
                     prisma.user.update({
                         where: { id: user.id },
                         data: { credits: { decrement: 1 } }
+                    }),
+                    prisma.creditTransaction.create({
+                        data: {
+                            userId: user.id,
+                            amount: -1,
+                            description: `Activación de negocio: ${business.name}`,
+                            relatedId: id,
+                            details: { action: 'ACTIVATE_BUSINESS', businessId: id }
+                        }
                     }),
                     prisma.business.update({
                         where: { id },

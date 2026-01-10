@@ -77,6 +77,15 @@ export async function GET(request: NextRequest) {
                             where: { id: user.id },
                             data: { credits: { decrement: 1 } }
                         }),
+                        prisma.creditTransaction.create({
+                            data: {
+                                userId: user.id,
+                                amount: -1,
+                                description: `Auto-renovación de negocio: ${business.name}`,
+                                relatedId: business.id,
+                                details: { action: 'AUTO_RENEW_BUSINESS', businessId: business.id }
+                            }
+                        }),
                         prisma.business.update({
                             where: { id: business.id },
                             data: {
