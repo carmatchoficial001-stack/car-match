@@ -32,6 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 }
 
+import { auth } from '@/lib/auth'
+
 export default async function BusinessDetailPage({ params }: Props) {
     const { id } = await params
 
@@ -53,7 +55,6 @@ export default async function BusinessDetailPage({ params }: Props) {
     }
 
     // Obtener sesión para saber si es el dueño
-    const { auth } = await import('@/auth')
     const session = await auth()
 
     const safeBusiness = {
