@@ -75,9 +75,45 @@ export async function POST(request: NextRequest) {
         const isAdmin = userExists.isAdmin || session.user.email === process.env.ADMIN_EMAIL
 
         // 🛡️ VALIDAR HUELLA DIGITAL (Detectar duplicados/fraude ANTES de cobrar)
-        // ... (resto igual) ...
+        const { validatePublicationFingerprint, savePublicationFingerprint } = await import('@/lib/validateFingerprint')
 
-        // ... (validación de fraude etc) ...
+        const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+        let deviceHash = 'unknown'
+        const rawFingerprint = body.deviceFingerprint
+
+        if (rawFingerprint) {
+            if (typeof rawFingerprint === 'string') {
+                deviceHash = rawFingerprint
+            } else if (typeof rawFingerprint === 'object' && rawFingerprint.visitorId) {
+                deviceHash = rawFingerprint.visitorId
+            }
+        }
+
+        let isFraudulentRetry = false
+        let fraudReason = ''
+
+        if (deviceHash !== 'unknown' && !isAdmin) {
+            const globalFraudCheck = await validatePublicationFingerprint({
+                userId: session.user.id,
+                publicationType: 'BUSINESS',
+                latitude: typeof latitude === 'string' ? parseFloat(latitude) : Number(latitude),
+                longitude: typeof longitude === 'string' ? parseFloat(longitude) : Number(longitude),
+                deviceHash: deviceHash,
+                ipAddress: clientIp
+            })
+
+            if (globalFraudCheck.isFraud) {
+                console.log(`🛡️ Seguridad: Fraude Global detectado en Negocio. Razón: ${globalFraudCheck.reason}`)
+                isFraudulentRetry = true
+                fraudReason = globalFraudCheck.reason
+
+                // Aplicar strike por intento de duplicar beneficios de negocio
+                await prisma.user.update({
+                    where: { id: session.user.id },
+                    data: { fraudStrikes: { increment: 1 } }
+                })
+            }
+        }
 
         // Obtener créditos desde el objeto user cargado previamente
         const hasCredits = (userExists.credits || 0) >= 1
@@ -126,8 +162,7 @@ export async function POST(request: NextRequest) {
             creditCharged = false
         }
 
-        // Import save function locally if needed or rely on previous import logic structure being removed
-        const { savePublicationFingerprint } = await import('@/lib/validateFingerprint')
+        // Guardar huella después de crear
 
         // Crear negocio
         const business = await prisma.business.create({
@@ -177,7 +212,7 @@ export async function POST(request: NextRequest) {
             latitude: business.latitude,
             longitude: business.longitude,
             ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-            deviceHash: fingerprint.deviceHash,
+            deviceHash: deviceHash,
             userAgent: request.headers.get('user-agent') || undefined
         })
 
