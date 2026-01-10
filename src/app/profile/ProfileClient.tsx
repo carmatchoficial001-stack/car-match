@@ -225,7 +225,7 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                                 </p>
                                                             )}
                                                             {vehicle.moderationStatus === 'REJECTED' && (
-                                                                <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider">⚠️ Rechazado por IA - Requiere corrección o activar con crédito</p>
+                                                                <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider">⚠️ Rechazado por un Asesor - Entra para corregir con el Asesor Real</p>
                                                             )}
                                                         </div>
                                                     )}

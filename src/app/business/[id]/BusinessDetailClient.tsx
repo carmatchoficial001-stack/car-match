@@ -117,7 +117,7 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
                                 className="bg-amber-500 hover:bg-amber-600 text-white p-3 rounded-2xl flex flex-col items-center gap-1 min-w-[80px] shadow-lg shadow-amber-900/40 transition"
                             >
                                 <CreditCard size={20} />
-                                <span className="text-[10px] font-bold uppercase">Activar (1C)</span>
+                                <span className="text-[10px] font-bold uppercase text-center px-1">Activar con 1 crédito</span>
                             </button>
                         ) : (
                             <button

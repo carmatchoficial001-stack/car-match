@@ -116,9 +116,9 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                             <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-4 flex gap-3 items-start">
                                 <AlertTriangle className="text-red-400 flex-shrink-0" size={20} />
                                 <div>
-                                    <p className="text-red-400 font-black text-xs uppercase tracking-wider mb-1">Rechazado por IA</p>
+                                    <p className="text-red-400 font-black text-xs uppercase tracking-wider mb-1">Rechazado por un Asesor</p>
                                     <p className="text-gray-300 text-sm leading-relaxed">
-                                        {vehicle.moderationFeedback || 'Tu anuncio requiere corrección técnica o activación con crédito para ser visible.'}
+                                        {vehicle.moderationFeedback || 'Tu anuncio requiere corrección. Dale click en el botón para corregir los datos con nuestro Asesor Real y activar tu publicación.'}
                                     </p>
                                 </div>
                             </div>
@@ -161,7 +161,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 action="activate-credit"
                                 vehicleId={vehicle.id}
                                 icon={<CreditCard size={20} />}
-                                label="Pagar Activar"
+                                label="Activar con 1 crédito"
                                 variant="credit"
                             />
                         )}
@@ -191,7 +191,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 action="sold"
                                 vehicleId={vehicle.id}
                                 icon={<BadgeCheck size={20} />}
-                                label="Vendido"
+                                label="Marcado como vendido"
                                 variant="sold"
                             />
                         )}
@@ -444,7 +444,7 @@ function OwnerActionButton({ action, vehicleId, icon, label, variant }: {
         if (action === 'edit') return // Handled by Link
 
         let confirmMsg = `¿Deseas ${label.toLowerCase()} esta publicación?`
-        if (action === 'ai-fix') confirmMsg = '¿Deseas que nuestro "Asesor Real" (IA) corrija los datos de tu vehículo según las fotos y lo active automáticamente?'
+        if (action === 'ai-fix') confirmMsg = '¿Deseas que nuestro "Asesor Real" corrija los datos de tu vehículo según las fotos y lo active automáticamente?'
         if (action === 'activate-credit') confirmMsg = '¿Deseas activar esta publicación usando 1 crédito? (Extiende vigencia 30 días)'
 
         if (!confirm(confirmMsg)) return
