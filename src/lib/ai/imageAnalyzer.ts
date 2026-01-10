@@ -163,18 +163,10 @@ export async function analyzeMultipleImages(
        - Modelo: "${context?.model || 'No especificado'}"
        - Año: "${context?.year || 'No especificado'}"
 
-       🔍 REGLAS DE VALIDACIÓN (Contexto vs Imagen):
-       1. SI LA IMAGEN ES CLARAMENTE DE OTRA MARCA: 
-          - Ejemplo: Vendedor dice "Ferrari" pero la foto es un "Vocho" (Volkswagen).
-          - ACCIÓN: Marcar como INVALIDA (isValid: false).
-          - RAZÓN: "La marca visible no coincide con ${context?.brand}".
-       
-       2. SI LA IMAGEN ES DEL MODELO CORRECTO (O muy similar):
-          - Acepta variaciones de año o versiones (Facelifts).
-          - ACCIÓN: APROBAR (isValid: true).
-
-       3. SI NO PUEDES DETERMINAR LA MARCA EXACTA PERO PARECE CORRECTO:
-          - ACCIÓN: APROBAR (isValid: true).
+       🔍 REGLAS DE VALIDACIÓN:
+       1. TU PRIORIDAD ES FILTRAR "NO VEHÍCULOS".
+          - Si es un vehículo real, APRUÉBALO (isValid: true), incluso si la marca no coincide con el texto.
+          - Si es claramente otra marca, simplemente REPORTA la marca correcta en "details.brand".
 
        🚫 RECHAZOS GENERALES (Independiente del contexto):
        - No es un vehículo motorizado real (Juguetes, Bicis, Animales).

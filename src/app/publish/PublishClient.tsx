@@ -120,6 +120,7 @@ export default function PublishClient() {
     const [bestAiDetailsCache, setBestAiDetailsCache] = useState<any>(null)
     const [bestCategoryCache, setBestCategoryCache] = useState<string>('')
     const [invalidImageUrls, setInvalidImageUrls] = useState<Set<string>>(new Set())
+    const [invalidReasons, setInvalidReasons] = useState<Record<string, string>>({})
 
     const handleImagesChange = (newImages: string[]) => {
         setImages(newImages)
@@ -152,9 +153,14 @@ export default function PublishClient() {
             // 1. 🚨 VALIDAR PORTADA (Index 0)
             // Si la portada es inválida o la validación global falló, bloqueamos.
             if (!validation.valid || validation.invalidIndices?.includes(0)) {
-                setAiError(validation.reason || 'La foto de portada debe ser un vehículo motorizado terrestre real o sus partes.')
+                // Si hay una razón específica de la IA, úsala. Si no, usa el mensaje por defecto.
+                // Priorizamos validation.reason para el caso de "Mismatch de contexto"
+                const reason = validation.reason || 'La foto de portada debe ser un vehículo real y coincidir con la marca.'
+
+                setAiError(reason)
                 setIsAnalyzing(false)
                 setInvalidImageUrls(new Set([images[0]]))
+                setInvalidReasons({ [images[0]]: reason }) // 🆕 Mapear URL -> Razón
                 return
             }
 
@@ -218,16 +224,18 @@ export default function PublishClient() {
             return 'Automóvil'
         }
 
-        if (!brand && details.brand) {
+        if (details.brand) {
             const taxCat = mapCategoryToTaxonomy(category)
             if (taxCat && BRANDS[taxCat]) {
                 const match = findInList(details.brand, BRANDS[taxCat])
-                setBrand(match)
+                // ⚠️ CAMBIO SOLICITADO: Auto-corregir marca siempre (la foto manda)
+                if (match) setBrand(match)
             } else {
                 setBrand(details.brand)
             }
         }
 
+        // ⚠️ Respetar Modelo y Año si el usuario ya los puso ("nomas la marca")
         if (!model && details.model) setModel(details.model)
         if (!year && details.year) setYear(details.year)
         if (!color && details.color) setColor(details.color)
@@ -668,7 +676,12 @@ export default function PublishClient() {
 
                     {currentStep === 3 && (
                         <div className="space-y-6">
-                            <ImageUploadStep images={images} onImagesChange={handleImagesChange} invalidImageUrls={invalidImageUrls} />
+                            <ImageUploadStep
+                                images={images}
+                                onImagesChange={handleImagesChange}
+                                invalidImageUrls={invalidImageUrls}
+                                invalidReasons={invalidReasons}
+                            />
                         </div>
                     )}
 
