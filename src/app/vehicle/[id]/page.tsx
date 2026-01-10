@@ -88,7 +88,7 @@ export default async function VehicleDetailPage({ params }: Props) {
         notFound()
     }
 
-    // Transformar para el cliente
+    // Calcular isAdmin correctamente (campo BD O verificar contra ADMIN_EMAIL)
     const vehicleData = {
         ...vehicle,
         price: vehicle.price.toNumber(),
@@ -99,7 +99,12 @@ export default async function VehicleDetailPage({ params }: Props) {
         moderationStatus: vehicle.moderationStatus,
         moderationFeedback: vehicle.moderationFeedback,
         expiresAt: vehicle.expiresAt,
-        isFreePublication: vehicle.isFreePublication
+        isFreePublication: vehicle.isFreePublication,
+        // IMPORTANTE: Calcular isAdmin correctamente
+        user: {
+            ...vehicle.user,
+            isAdmin: vehicle.user.isAdmin || vehicle.user.email === process.env.ADMIN_EMAIL
+        }
     }
 
     return (
