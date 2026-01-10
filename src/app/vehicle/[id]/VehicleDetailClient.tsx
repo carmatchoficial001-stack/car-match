@@ -118,7 +118,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 <div>
                                     <p className="text-red-400 font-black text-xs uppercase tracking-wider mb-1">Rechazado por un Asesor</p>
                                     <p className="text-gray-300 text-sm leading-relaxed">
-                                        {vehicle.moderationFeedback || 'Tu anuncio requiere corrección. Dale click en el botón para corregir los datos con nuestro Asesor Real y activar tu publicación.'}
+                                        {vehicle.moderationFeedback || 'Tu anuncio requiere corrección. Haz clic en el botón "Corregir datos automáticamente" para que nuestro sistema ajuste los datos según tus fotos y active tu publicación.'}
                                     </p>
                                 </div>
                             </div>
@@ -151,7 +151,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 action="ai-fix"
                                 vehicleId={vehicle.id}
                                 icon={<Sparkles size={20} />}
-                                label="Asesor Real"
+                                label="Corregir datos automáticamente"
                                 variant="ia"
                             />
                         )}
@@ -444,7 +444,7 @@ function OwnerActionButton({ action, vehicleId, icon, label, variant }: {
         if (action === 'edit') return // Handled by Link
 
         let confirmMsg = `¿Deseas ${label.toLowerCase()} esta publicación?`
-        if (action === 'ai-fix') confirmMsg = '¿Deseas que nuestro "Asesor Real" corrija los datos de tu vehículo según las fotos y lo active automáticamente?'
+        if (action === 'ai-fix') confirmMsg = '¿Deseas corregir los datos de tu vehículo automáticamente según las fotos y activarlo ahora?'
         if (action === 'activate-credit') confirmMsg = '¿Deseas activar esta publicación usando 1 crédito? (Extiende vigencia 30 días)'
 
         if (!confirm(confirmMsg)) return
