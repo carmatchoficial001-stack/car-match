@@ -17,7 +17,9 @@ export default auth((req) => {
         "/swipe",       // Feed CarMatch - solo autenticados
         "/map",         // Map Store - solo autenticados
         "/my-businesses",
-        "/messages"
+        "/messages",
+        "/vehicle",     // Detalle Vehículo - Forzar registro (Viral loop)
+        "/business"     // Detalle Negocio - Forzar registro (Viral loop)
     ]
 
     // Rutas de autenticación (no permitidas si ya está logueado)
