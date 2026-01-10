@@ -165,7 +165,7 @@ export default function LandingPageContent() {
                                 <FacebookIcon className="w-6 h-6" />
                             </a>
                             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
-                                <InstagramIcon className="w-8 h-6" />
+                                <InstagramIcon className="w-6 h-6" />
                             </a>
                             <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
                                 <TikTokIcon className="w-6 h-6" />
@@ -218,7 +218,7 @@ const InstagramIcon = ({ className }: { className?: string }) => (
 
 const TikTokIcon = ({ className }: { className?: string }) => (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12.53.02C13.84 5.11 18.11 9.01 23.36 9.39V14.29C21.84 14.12 20.41 12.52 19.49 11.11V18.52C19.49 23.01 15.86 26.65 11.37 26.65C6.88 26.65 3.25 23.01 3.25 18.52C3.25 14.03 6.88 10.39 11.37 10.39C12.16 10.39 12.92 10.51 13.62 10.72V15.6C12.94 15.26 12.18 15.07 11.37 15.07C9.46 15.07 7.93 16.6 7.93 18.51C7.93 20.42 9.46 21.95 11.37 21.95C13.28 21.95 14.81 20.42 14.81 18.51V0L12.53.02Z" />
+        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z" />
     </svg>
 )
 
