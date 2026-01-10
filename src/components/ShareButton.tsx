@@ -5,11 +5,12 @@ interface ShareButtonProps {
     title: string
     text: string
     url: string
-    variant?: 'full' | 'minimal'
+    variant?: 'full' | 'minimal' | 'icon'
     className?: string
+    children?: React.ReactNode
 }
 
-export default function ShareButton({ title, text, url, variant = 'full', className = '' }: ShareButtonProps) {
+export default function ShareButton({ title, text, url, variant = 'full', className = '', children }: ShareButtonProps) {
     const [copied, setCopied] = useState(false)
     const [showTooltip, setShowTooltip] = useState(false)
 
@@ -62,6 +63,31 @@ export default function ShareButton({ title, text, url, variant = 'full', classN
                     {copied ? <Check size={20} className="text-green-500" /> : <Share2 size={20} />}
                 </button>
                 {/* Tooltip simple */}
+                {showTooltip && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded whitespace-nowrap z-50">
+                        ¡Link copiado!
+                    </div>
+                )}
+            </div>
+        )
+    }
+
+    if (variant === 'icon') {
+        return (
+            <div className={`relative ${className}`}>
+                <button
+                    onClick={handleShare}
+                    className="w-full h-full"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    title="Compartir"
+                >
+                    {copied ? (
+                        <div className="flex flex-col items-center justify-center gap-1">
+                            <Check size={20} className="text-green-500" />
+                            <span className="text-[10px] font-bold uppercase">Copiado</span>
+                        </div>
+                    ) : (children || <Share2 size={20} />)}
+                </button>
                 {showTooltip && (
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded whitespace-nowrap z-50">
                         ¡Link copiado!
