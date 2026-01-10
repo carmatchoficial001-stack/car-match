@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Header from '@/components/Header'
 import ShareButton from '@/components/ShareButton'
-import { MapPin, Clock, Phone, Navigation, ArrowLeft, Star, ShieldCheck } from 'lucide-react'
+import { MapPin, Clock, Phone, Navigation, ArrowLeft, Star, ShieldCheck, Edit3, CreditCard, Play, Pause, Calendar, BadgeCheck } from 'lucide-react'
 
 interface BusinessDetailProps {
     business: {
@@ -25,13 +25,118 @@ interface BusinessDetailProps {
             name: string
             image: string | null
         }
+        userId: string
+        isActive: boolean
+        expiresAt: string | Date | null
+        isFreePublication: boolean
     }
+    currentUserId?: string | null
 }
 
-export default function BusinessDetailClient({ business }: BusinessDetailProps) {
+export default function BusinessDetailClient({ business, currentUserId }: BusinessDetailProps) {
     const { data: session } = useSession()
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const isOwner = currentUserId === business.userId
+
+    // Lógica para acciones de gestión
+    const handleToggleStatus = async (useCredit: boolean = false) => {
+        const confirmMsg = useCredit
+            ? '¿Deseas activar este negocio usando 1 crédito? (Vigencia 30 días)'
+            : `¿Deseas ${business.isActive ? 'pausar' : 'activar'} este negocio?`
+
+        if (!confirm(confirmMsg)) return
+
+        setLoading(true)
+        try {
+            const res = await fetch('/api/businesses/toggle-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ businessId: business.id, useCredit })
+            })
+            const data = await res.json()
+            if (res.ok) {
+                alert('✅ Estado actualizado con éxito')
+                window.location.reload()
+            } else {
+                alert(`❌ Error: ${data.error || 'No se pudo actualizar el estado'}`)
+            }
+        } catch (error) {
+            console.error(error)
+            alert('❌ Error técnico al procesar la solicitud')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const managementPanel = () => {
+        const isExpired = business.expiresAt && new Date(business.expiresAt) < new Date()
+        const needsCreditToActivate = !business.isActive && (!business.isFreePublication || isExpired)
+
+        return (
+            <div className="bg-surface-highlight/20 border border-primary-500/20 rounded-3xl p-6 mb-8 shadow-2xl backdrop-blur-sm">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex-1 space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2 ${business.isActive ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'
+                                }`}>
+                                <div className={`w-2 h-2 rounded-full ${business.isActive ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
+                                {business.isActive ? 'Activo' : 'Inactivo'}
+                            </div>
+
+                            {business.expiresAt && (
+                                <div className={`flex items-center gap-1.5 text-xs font-bold ${isExpired ? 'text-red-400' : 'text-text-secondary'}`}>
+                                    <Calendar size={14} />
+                                    {isExpired ? 'Expirado el: ' : 'Vence el: '}
+                                    {new Date(business.expiresAt).toLocaleDateString()}
+                                </div>
+                            )}
+                        </div>
+
+                        {!business.isActive && isExpired && (
+                            <p className="text-amber-400 text-xs font-bold flex items-center gap-1.5">
+                                <CreditCard size={14} />
+                                Requiere 1 crédito para renovar y activar.
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                        <Link
+                            href={`/my-businesses?edit=${business.id}`}
+                            className="bg-surface-highlight hover:bg-surface-highlight/80 text-text-primary p-3 rounded-2xl border border-white/5 flex flex-col items-center gap-1 min-w-[80px] transition"
+                        >
+                            <Edit3 size={20} className="text-primary-400" />
+                            <span className="text-[10px] font-bold uppercase">Editar</span>
+                        </Link>
+
+                        {needsCreditToActivate ? (
+                            <button
+                                onClick={() => handleToggleStatus(true)}
+                                disabled={loading}
+                                className="bg-amber-500 hover:bg-amber-600 text-white p-3 rounded-2xl flex flex-col items-center gap-1 min-w-[80px] shadow-lg shadow-amber-900/40 transition"
+                            >
+                                <CreditCard size={20} />
+                                <span className="text-[10px] font-bold uppercase">Activar (1C)</span>
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => handleToggleStatus(false)}
+                                disabled={loading}
+                                className={`p-3 rounded-2xl flex flex-col items-center gap-1 min-w-[80px] transition ${business.isActive
+                                    ? 'bg-surface-highlight text-text-secondary border border-white/5'
+                                    : 'bg-green-500 text-white shadow-lg shadow-green-900/40'
+                                    }`}
+                            >
+                                {business.isActive ? <Pause size={20} /> : <Play size={20} />}
+                                <span className="text-[10px] font-bold uppercase">{business.isActive ? 'Pausar' : 'Activar'}</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     // Lógica principal: Ver en Mapa
     const handleViewOnMap = () => {
@@ -115,6 +220,7 @@ export default function BusinessDetailClient({ business }: BusinessDetailProps) 
 
                     {/* Right Column: Info & Details */}
                     <div className="flex flex-col space-y-6">
+                        {isOwner && managementPanel()}
 
                         {/* Status Card */}
                         <div className="bg-surface border border-surface-highlight rounded-3xl p-6 shadow-xl">

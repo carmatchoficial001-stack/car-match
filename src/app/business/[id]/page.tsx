@@ -52,14 +52,28 @@ export default async function BusinessDetailPage({ params }: Props) {
         notFound()
     }
 
+    // Obtener sesión para saber si es el dueño
+    const { auth } = await import('@/auth')
+    const session = await auth()
+
     const safeBusiness = {
         ...business,
         user: {
             ...business.user,
             name: business.user.name || 'Usuario CarMatch',
             image: business.user.image || ''
-        }
+        },
+        // Campos para gestión
+        isActive: business.isActive,
+        expiresAt: business.expiresAt,
+        userId: business.userId,
+        isFreePublication: business.isFreePublication
     }
 
-    return <BusinessDetailClient business={safeBusiness} />
+    return (
+        <BusinessDetailClient
+            business={safeBusiness as any}
+            currentUserId={session?.user?.id}
+        />
+    )
 }

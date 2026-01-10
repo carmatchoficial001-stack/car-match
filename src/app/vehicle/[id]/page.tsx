@@ -93,13 +93,19 @@ export default async function VehicleDetailPage({ params }: Props) {
         price: vehicle.price.toNumber(),
         isFavorited: vehicle.favorites && vehicle.favorites.length > 0,
         features: vehicle.features || [],
-        favorites: undefined
+        favorites: undefined,
+        // Campos adicionales para gestión
+        moderationStatus: vehicle.moderationStatus,
+        moderationFeedback: vehicle.moderationFeedback,
+        expiresAt: vehicle.expiresAt,
+        isFreePublication: vehicle.isFreePublication
     }
 
     return (
         <VehicleDetailClient
             vehicle={vehicleData as any}
             currentUserEmail={session?.user?.email}
+            currentUserId={session?.user?.id}
         />
     )
 }

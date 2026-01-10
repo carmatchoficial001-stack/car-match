@@ -162,6 +162,7 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
         where: { id: vehicleId },
         data: {
             moderationStatus: status,
+            moderationFeedback: reason || (autoCorrected ? `Auto-corregido: ${correctedFields.join(', ')}` : null),
             images: finalImages,
             // BLINDAJE: Solo activar si fue aprobado y NO es marcado como vendido
             status: status === 'REJECTED' ? 'INACTIVE' : 'ACTIVE'
@@ -270,13 +271,16 @@ export async function fixAndApproveVehicle(vehicleId: string) {
         if (details.year) updateData.year = parseInt(details.year)
         if (details.color) updateData.color = details.color
         if (details.type) updateData.vehicleType = details.type
-        
+
         // Generar nuevo título basado en la corrección
         updateData.title = `${updateData.brand || vehicle.brand} ${updateData.model || vehicle.model} ${updateData.year || vehicle.year}`
 
         await prisma.vehicle.update({
             where: { id: vehicleId },
-            data: updateData
+            data: {
+                ...updateData,
+                moderationFeedback: '✅ Corregido y activado por el Asesor Real.'
+            }
         })
 
         // 3. Notificación "Asesor Real"

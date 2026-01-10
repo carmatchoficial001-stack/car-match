@@ -11,6 +11,8 @@ import ShareButton from '@/components/ShareButton'
 import ReportImageButton from '@/components/ReportImageButton'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { formatPrice, formatNumber } from '@/lib/vehicleTaxonomy'
+import { useRouter } from 'next/navigation'
+import { Edit3, Sparkles, CreditCard, Play, Pause, BadgeCheck, AlertTriangle, Share2 } from 'lucide-react'
 
 interface VehicleDetailProps {
     vehicle: {
@@ -56,13 +58,19 @@ interface VehicleDetailProps {
         }
         userId: string
         status: string
+        moderationStatus?: string
+        moderationFeedback?: string | null
+        expiresAt?: string | Date | null
+        isFreePublication?: boolean
     }
     currentUserEmail?: string | null
+    currentUserId?: string | null
 }
 
-export default function VehicleDetailClient({ vehicle, currentUserEmail }: VehicleDetailProps) {
+export default function VehicleDetailClient({ vehicle, currentUserEmail, currentUserId }: VehicleDetailProps) {
     const { t, locale } = useLanguage()
     const [activeImage, setActiveImage] = useState(0)
+    const isOwner = currentUserId === vehicle.userId
 
     useEffect(() => {
         // Registrar vista real al entrar
@@ -73,16 +81,158 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail }: Vehic
         .filter(b => b && b !== 'null' && b !== 'undefined')
         .join(', ')
 
+    // Componentes de Gestión Internos (Solo Dueño)
+    const ManagementPanel = () => {
+        const isExpired = vehicle.expiresAt && new Date(vehicle.expiresAt) < new Date()
+        const needsCreditToActivate = !vehicle.isFreePublication || isExpired || vehicle.moderationStatus === 'REJECTED'
+        const canActivateFree = vehicle.isFreePublication && !isExpired && (vehicle.moderationStatus === 'APPROVED' || vehicle.moderationStatus === 'PENDING_AI')
+        const statusKey = vehicle.status.toLowerCase()
+
+        return (
+            <div className="bg-surface-highlight/20 border border-primary-500/20 rounded-3xl p-6 mb-8 shadow-2xl backdrop-blur-sm">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex-1 space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2 ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                                vehicle.status === 'SOLD' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+                                    'bg-gray-500/10 text-gray-400 border border-gray-500/20'
+                                }`}>
+                                <div className={`w-2 h-2 rounded-full animate-pulse ${vehicle.status === 'ACTIVE' ? 'bg-green-400' :
+                                    vehicle.status === 'SOLD' ? 'bg-blue-400' : 'bg-gray-400'
+                                    }`} />
+                                {t(`profile.status.${statusKey}`) || vehicle.status}
+                            </div>
+
+                            {vehicle.expiresAt && (
+                                <div className={`flex items-center gap-1.5 text-xs font-bold ${isExpired ? 'text-red-400' : 'text-text-secondary'}`}>
+                                    <Calendar size={14} />
+                                    {isExpired ? 'Expirado el: ' : 'Vence el: '}
+                                    {new Date(vehicle.expiresAt).toLocaleDateString(locale === 'es' ? 'es-MX' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                </div>
+                            )}
+                        </div>
+
+                        {vehicle.moderationStatus === 'REJECTED' && (
+                            <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-4 flex gap-3 items-start">
+                                <AlertTriangle className="text-red-400 flex-shrink-0" size={20} />
+                                <div>
+                                    <p className="text-red-400 font-black text-xs uppercase tracking-wider mb-1">Rechazado por IA</p>
+                                    <p className="text-gray-300 text-sm leading-relaxed">
+                                        {vehicle.moderationFeedback || 'Tu anuncio requiere corrección técnica o activación con crédito para ser visible.'}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {vehicle.moderationStatus === 'APPROVED' && vehicle.moderationFeedback?.includes('Auto-corregido') && (
+                            <div className="bg-primary-500/5 border border-primary-500/20 rounded-2xl p-4 flex gap-3 items-start">
+                                <Sparkles className="text-primary-400 flex-shrink-0" size={20} />
+                                <div>
+                                    <p className="text-primary-400 font-black text-xs uppercase tracking-wider mb-1">Optimizado por CarMatch</p>
+                                    <p className="text-gray-300 text-sm leading-relaxed">
+                                        {vehicle.moderationFeedback}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full md:w-auto">
+                        <Link
+                            href={`/publish?edit=${vehicle.id}`}
+                            className="flex flex-col items-center justify-center p-3 rounded-2xl bg-surface-highlight hover:bg-surface-highlight/80 text-text-primary transition border border-white/5 gap-1 group"
+                        >
+                            <Edit3 size={20} className="text-primary-400 group-hover:scale-110 transition" />
+                            <span className="text-[10px] font-bold uppercase tracking-tighter">Editar</span>
+                        </Link>
+
+                        {vehicle.status !== 'ACTIVE' && vehicle.moderationStatus === 'REJECTED' && (
+                            <OwnerActionButton
+                                action="ai-fix"
+                                vehicleId={vehicle.id}
+                                icon={<Sparkles size={20} />}
+                                label="Asesor Real"
+                                variant="ia"
+                            />
+                        )}
+
+                        {vehicle.status !== 'ACTIVE' && needsCreditToActivate && (
+                            <OwnerActionButton
+                                action="activate-credit"
+                                vehicleId={vehicle.id}
+                                icon={<CreditCard size={20} />}
+                                label="Pagar Activar"
+                                variant="credit"
+                            />
+                        )}
+
+                        {vehicle.status !== 'ACTIVE' && canActivateFree && (
+                            <OwnerActionButton
+                                action="activate"
+                                vehicleId={vehicle.id}
+                                icon={<Play size={20} />}
+                                label="Activar"
+                                variant="success"
+                            />
+                        )}
+
+                        {vehicle.status === 'ACTIVE' && (
+                            <OwnerActionButton
+                                action="pause"
+                                vehicleId={vehicle.id}
+                                icon={<Pause size={20} />}
+                                label="Pausar"
+                                variant="neutral"
+                            />
+                        )}
+
+                        {vehicle.status !== 'SOLD' && (
+                            <OwnerActionButton
+                                action="sold"
+                                vehicleId={vehicle.id}
+                                icon={<BadgeCheck size={20} />}
+                                label="Vendido"
+                                variant="sold"
+                            />
+                        )}
+
+                        <div className="col-span-2 sm:col-span-1 md:col-span-1">
+                            <ShareButton
+                                title={vehicle.title}
+                                text={t('vehicle.share_text').replace('{title}', vehicle.title)}
+                                url={typeof window !== 'undefined' ? window.location.href : `https://carmatch.app/vehicle/${vehicle.id}`}
+                                variant="icon"
+                                className="w-full h-full flex flex-col items-center justify-center p-3 rounded-2xl bg-surface-highlight hover:bg-surface-highlight/80 text-text-primary transition border border-white/5 gap-1"
+                            >
+                                <Share2 size={20} className="text-primary-400" />
+                                <span className="text-[10px] font-bold uppercase tracking-tighter">Compartir</span>
+                            </ShareButton>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="min-h-screen bg-background pb-20">
             <Header />
 
             <div className="container mx-auto px-4 pt-6">
                 {/* Back Button */}
-                <Link href="/market" className="inline-flex items-center text-text-secondary hover:text-primary-400 mb-6 transition">
-                    <ArrowLeft className="mr-2" size={20} />
-                    {t('vehicle.back_market')}
-                </Link>
+                <div className="flex justify-between items-center mb-6">
+                    <Link href="/market" className="inline-flex items-center text-text-secondary hover:text-primary-400 transition">
+                        <ArrowLeft className="mr-2" size={20} />
+                        {t('vehicle.back_market')}
+                    </Link>
+
+                    {isOwner && (
+                        <div className="bg-primary-700/10 text-primary-400 px-4 py-1.5 rounded-xl border border-primary-700/30 flex items-center gap-2 lg:hidden">
+                            <BadgeCheck size={16} />
+                            <span className="text-xs font-black uppercase tracking-widest">Mi Publicación</span>
+                        </div>
+                    )}
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Column: Images */}
@@ -136,6 +286,8 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail }: Vehic
 
                     {/* Right Column: Details */}
                     <div className="flex flex-col">
+                        {isOwner && <ManagementPanel />}
+
                         <div className="bg-surface border border-surface-highlight rounded-3xl p-6 shadow-xl mb-6">
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
                                 <div>
@@ -275,6 +427,81 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail }: Vehic
                 </div>
             </div>
         </div>
+    )
+}
+
+function OwnerActionButton({ action, vehicleId, icon, label, variant }: {
+    action: 'edit' | 'ai-fix' | 'activate' | 'activate-credit' | 'pause' | 'sold',
+    vehicleId: string,
+    icon: any,
+    label: string,
+    variant: 'ia' | 'credit' | 'success' | 'neutral' | 'sold'
+}) {
+    const [loading, setLoading] = useState(false)
+    const router = useRouter()
+
+    const handleClick = async () => {
+        if (action === 'edit') return // Handled by Link
+
+        let confirmMsg = `¿Deseas ${label.toLowerCase()} esta publicación?`
+        if (action === 'ai-fix') confirmMsg = '¿Deseas que nuestro "Asesor Real" (IA) corrija los datos de tu vehículo según las fotos y lo active automáticamente?'
+        if (action === 'activate-credit') confirmMsg = '¿Deseas activar esta publicación usando 1 crédito? (Extiende vigencia 30 días)'
+
+        if (!confirm(confirmMsg)) return
+
+        setLoading(true)
+        try {
+            let res;
+            if (action === 'ai-fix') {
+                res = await fetch(`/api/vehicles/${vehicleId}/ai-fix`, { method: 'POST' })
+            } else {
+                const newStatus = action === 'sold' ? 'SOLD' : action === 'pause' ? 'INACTIVE' : 'ACTIVE'
+                res = await fetch(`/api/vehicles/${vehicleId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({
+                        status: newStatus,
+                        useCredit: action === 'activate-credit'
+                    })
+                })
+            }
+
+            const data = await res.json()
+            if (res.ok) {
+                alert(`✅ Acción realizada con éxito: ${label}`)
+                window.location.reload()
+                // router.refresh() // Better but reload ensures everything is fresh
+            } else {
+                alert(`❌ Error: ${data.error || 'No se pudo completar la acción'}`)
+            }
+        } catch (e) {
+            console.error(e)
+            alert('❌ Error técnico al procesar la solicitud.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const variants = {
+        ia: 'bg-primary-500 text-white hover:bg-primary-600 shadow-lg shadow-primary-900/40',
+        credit: 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-900/40',
+        success: 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-900/40',
+        neutral: 'bg-surface-highlight text-text-primary hover:bg-surface border border-white/5',
+        sold: 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-900/40'
+    }
+
+    return (
+        <button
+            onClick={handleClick}
+            disabled={loading}
+            className={`flex flex-col items-center justify-center p-3 rounded-2xl transition gap-1 group w-full ${variants[variant]}`}
+        >
+            {loading ? (
+                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : (
+                <div className="group-hover:scale-110 transition">{icon}</div>
+            )}
+            <span className="text-[10px] font-bold uppercase tracking-tighter line-clamp-1">{label}</span>
+        </button>
     )
 }
 

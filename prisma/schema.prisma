@@ -143,6 +143,7 @@ model Vehicle {
   displacement      Int?
   cargoCapacity     Float?
   operatingHours    Int?
+  moderationFeedback String?   @db.Text
 
   latitude          Float?
   longitude         Float?

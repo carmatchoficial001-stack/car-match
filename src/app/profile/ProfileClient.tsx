@@ -244,61 +244,16 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                             {t(`profile.status.${statusKey}`) || vehicle.status}
                                                         </span>
 
-                                                        {/* Botones de Acción Rápida */}
-                                                        <div className="flex gap-1 z-10 flex-wrap justify-end">
-                                                            {/* EDITAR - Siempre visible para el dueño */}
-                                                            <Link
-                                                                href={`/publish?edit=${vehicle.id}`}
-                                                                className="p-1.5 rounded-lg bg-surface border border-surface-highlight hover:bg-surface-highlight hover:text-primary-400 text-text-secondary transition"
-                                                                title="Editar vehículo"
-                                                            >
-                                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                                </svg>
-                                                            </Link>
-
-                                                            {/* ASESOR REAL (IA FIX) - Solo si está inactivo y rechazado */}
-                                                            {vehicle.status !== 'ACTIVE' && vehicle.moderationStatus === 'REJECTED' && (
-                                                                <AIFixButton vehicleId={vehicle.id} />
-                                                            )}
-
-                                                            {/* ACTIVAR CON CRÉDITO - Solo si es necesario */}
-                                                            {vehicle.status !== 'ACTIVE' && needsCreditToActivate && (
-                                                                <UpdateStatusButton
-                                                                    vehicleId={vehicle.id}
-                                                                    newStatus="ACTIVE"
-                                                                    useCredit={true}
-                                                                    label="Activar con 1 Crédito"
-                                                                    icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.406 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.406-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                                                />
-                                                            )}
-
-                                                            {/* ACTIVAR GRATIS - Solo si es posible */}
-                                                            {vehicle.status !== 'ACTIVE' && canActivateFree && (
-                                                                <UpdateStatusButton
-                                                                    vehicleId={vehicle.id}
-                                                                    newStatus="ACTIVE"
-                                                                    label="Activar"
-                                                                    icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                                                />
-                                                            )}
-                                                            {vehicle.status === 'ACTIVE' && (
-                                                                <UpdateStatusButton
-                                                                    vehicleId={vehicle.id}
-                                                                    newStatus="INACTIVE"
-                                                                    label="Pausar"
-                                                                    icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                                                />
-                                                            )}
-                                                            {vehicle.status !== 'SOLD' && (
-                                                                <UpdateStatusButton
-                                                                    vehicleId={vehicle.id}
-                                                                    newStatus="SOLD"
-                                                                    label="Vendido"
-                                                                    icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                                                />
-                                                            )}
-                                                        </div>
+                                                        <Link
+                                                            href={`/vehicle/${vehicle.id}`}
+                                                            className="flex items-center justify-center gap-2 px-4 py-2 bg-surface border border-surface-highlight rounded-xl text-primary-400 font-bold text-sm hover:bg-surface-highlight transition shadow-sm"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            </svg>
+                                                            Gestionar
+                                                        </Link>
                                                     </div>
                                                 ) : (
                                                     <span
@@ -334,89 +289,5 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                 userVehicles={vehiclesToShow}
             />
         </div>
-    )
-}
-
-
-function AIFixButton({ vehicleId }: { vehicleId: string }) {
-    const [loading, setLoading] = useState(false)
-
-    const handleAIFix = async () => {
-        if (!confirm('¿Deseas que nuestro "Asesor Real" (IA) corrija los datos de tu vehículo según las fotos y lo active automáticamente?')) return
-        setLoading(true)
-        try {
-            const res = await fetch(`/api/vehicles/${vehicleId}/ai-fix`, {
-                method: 'POST'
-            })
-            const data = await res.json()
-            if (data.success) {
-                alert('✅ ¡Tu vehículo ha sido corregido y activado por el Asesor Real!')
-                window.location.reload()
-            } else {
-                alert('❌ Error: ' + (data.error || 'No se pudo realizar la corrección'))
-            }
-        } catch (e) {
-            console.error(e)
-            alert('❌ Error técnico al contactar al asesor.')
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    return (
-        <button
-            onClick={handleAIFix}
-            disabled={loading}
-            className="p-1.5 rounded-lg bg-primary-900/20 border border-primary-500/30 hover:bg-primary-700/40 text-primary-400 transition flex items-center gap-1"
-            title="Asesor Real (IA) - Corregir y Activar"
-        >
-            {loading ? (
-                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            ) : (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-            )}
-            <span className="text-[10px] font-bold uppercase px-1">Asesor</span>
-        </button>
-    )
-}
-
-function UpdateStatusButton({ vehicleId, newStatus, icon, label, useCredit = false }: { vehicleId: string, newStatus: string, icon: any, label: string, useCredit?: boolean }) {
-    const [loading, setLoading] = useState(false)
-    const router = useRouter() // Importar useRouter arriba si no existe
-
-    const handleClick = async () => {
-        if (!confirm(`¿Cambiar estado a ${label}?`)) return
-        setLoading(true)
-        try {
-            await fetch(`/api/vehicles/${vehicleId}`, {
-                method: 'PATCH',
-                body: JSON.stringify({
-                    status: newStatus,
-                    useCredit: useCredit
-                })
-            })
-            if (useCredit) alert('✅ Vehículo activado con 1 crédito exitosamente.')
-            window.location.reload() // Simple reload to refresh data
-        } catch (e) {
-            console.error(e)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    return (
-        <button
-            onClick={handleClick}
-            disabled={loading}
-            className={`p-1.5 rounded-lg border transition ${useCredit
-                ? "bg-amber-900/20 border-amber-500/30 hover:bg-amber-700/40 text-amber-500 shadow-sm"
-                : "bg-surface border-surface-highlight hover:bg-surface-highlight hover:text-primary-400 text-text-secondary"
-                }`}
-            title={label}
-        >
-            {loading ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : icon}
-        </button>
     )
 }
