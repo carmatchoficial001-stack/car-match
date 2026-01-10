@@ -42,7 +42,15 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
             }
 
             // 2. Llamar a la IA Real (Gemini 1.5 Flash)
-            const analysis = await analyzeMultipleImages(base64Images, 'VEHICLE')
+            const analysis = await analyzeMultipleImages(
+                base64Images,
+                'VEHICLE',
+                {
+                    brand: vehicle.brand,
+                    model: vehicle.model,
+                    year: vehicle.year.toString()
+                }
+            )
             const invalidIndices = analysis.invalidIndices || []
 
             // ═══ REGLAS DE NEGOCIO SOLICITADAS ═══

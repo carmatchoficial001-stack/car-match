@@ -156,40 +156,45 @@ export async function analyzeMultipleImages(
 
   const prompt = type === 'VEHICLE'
     ? `ERES UN MODERADOR ESTRICTO DE CARMATCH.
-       TU ÚNICA MISIÓN: Validar que las imágenes sean EXCLUSIVAMENTE de:
-       1. VEHÍCULOS MOTORIZADOS TERRESTRES (Autos, Motos, Camiones, Autobuses, Maquinaria, Cuatrimotos, etc).
-       2. PARTES O REFACCIONES de los anteriores (Motores, Llantas, Interiores, Carrocería).
+       TU MISIÓN: Validar la imagen contra los datos proporcionados y asegurar que sea un vehículo real.
 
-       ${vehicleContextPrompt}
+       📋 DATOS DEL VENDEDOR:
+       - Marca: "${context?.brand || 'No especificada'}"
+       - Modelo: "${context?.model || 'No especificado'}"
+       - Año: "${context?.year || 'No especificado'}"
 
-       🎯 IMPORTANTE - REGLA DE FLEXIBILIDAD GENERACIONAL:
-       - Los ciclos de diseño (generaciones) duran muchos años. Un vehículo puede ser igual desde 2010 hasta 2018.
-       - Ignora discrepancias de años siempre que la CARROCERÍA y MARCA sean correctas.
-       - No intentes ser un experto en años exactos; si parece el modelo correcto, ¡APRUÉBALO! (isResultValid: true).
-       - Solo rechaza si hay un salto de diseño evidente (ej: un Jeep antiguo vs un Jeep moderno con luces LED), pero aun así, sé lo más permisivo posible con el año.
+       🔍 REGLAS DE VALIDACIÓN (Contexto vs Imagen):
+       1. SI LA IMAGEN ES CLARAMENTE DE OTRA MARCA: 
+          - Ejemplo: Vendedor dice "Ferrari" pero la foto es un "Vocho" (Volkswagen).
+          - ACCIÓN: Marcar como INVALIDA (isValid: false).
+          - RAZÓN: "La marca visible no coincide con ${context?.brand}".
+       
+       2. SI LA IMAGEN ES DEL MODELO CORRECTO (O muy similar):
+          - Acepta variaciones de año o versiones (Facelifts).
+          - ACCIÓN: APROBAR (isValid: true).
 
-       ✅ APROBAR (isValid: true) SI Y SOLO SI ES:
-       - Un vehículo real funcional (no importa el año/modelo exacto).
-       - Una pieza mecánica o estética de vehículo real.
-       - Una captura de pantalla CLARA donde se vea un vehículo real en venta.
+       3. SI NO PUEDES DETERMINAR LA MARCA EXACTA PERO PARECE CORRECTO:
+          - ACCIÓN: APROBAR (isValid: true).
 
-       ❌ RECHAZAR (isValid: false) SI DETECTAS:
-       - JUGUETES, VEHÍCULOS A ESCALA, HOT WHEELS, JUGUETES EN ARENA o PLÁSTICO.
-       - Bicicletas (no son motorizadas), Patinetas, Animales, Personas solas.
-       - Capturas de pantalla de selectores de archivos, menús de celular o chats.
-       - Fotos de monitores/televisores.
-       - 🚗 VEHÍCULOS DIFERENTES: Si una imagen muestra un vehículo que NO es el mismo de la foto de portada (ej: portada es un Sedan blanco y la foto es una Pickup roja), márcala como INVÁLIDA. Queremos anuncios individuales.
-       - Cualquier cosa que NO sea un vehículo motorizado terrestre o sus partes.
+       🚫 RECHAZOS GENERALES (Independiente del contexto):
+       - No es un vehículo motorizado real (Juguetes, Bicis, Animales).
+       - Contenido ofensivo, NSFW, Gore.
+       - Capturas de pantalla de celulares/apps.
+       - Fotos a monitores.
 
        Responde ÚNICAMENTE JSON:
        {
          "isValidCover": boolean,
-         "coverReason": "motivo si es inválida (ej: 'Es un juguete')",
+         "coverReason": "Explicación breve si es false",
          "analysis": [
            { "index": number, "isValid": boolean }
          ],
          "details": {
-           "brand": "Marca", "model": "Modelo", "year": "Año estimado", "color": "Color", "type": "SUV|Sedan|Pickup|etc"
+           "brand": "Marca que ves en la foto", 
+           "model": "Modelo que ves en la foto", 
+           "year": "Año estimado", 
+           "color": "Color", 
+           "type": "SUV|Sedan|Pickup|etc"
          }
        }`
     : `MODERADOR COMERCIAL. Aprueba todo lo SFW. Responde JSON simple.`;
