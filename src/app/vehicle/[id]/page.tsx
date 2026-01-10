@@ -62,7 +62,8 @@ export default async function VehicleDetailPage({ params }: Props) {
                     name: true,
                     image: true,
                     email: true,
-                    phone: true
+                    phone: true,
+                    isAdmin: true
                 }
             },
             _count: {

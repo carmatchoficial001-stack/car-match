@@ -53,6 +53,7 @@ interface VehicleDetailProps {
             image: string | null
             email: string | null
             phone: string | null
+            isAdmin: boolean
         }
         _count: {
             favorites: number
@@ -403,26 +404,29 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 </p>
                             </div>
 
-                            <div className="border-t border-surface-highlight pt-6">
-                                <h3 className="text-lg font-bold text-text-primary mb-4 font-outfit">{t('vehicle.seller')}</h3>
-                                <div className="flex items-center justify-between">
-                                    <Link href={`/profile/${vehicle.user.id}`} className="flex items-center gap-3 group/seller transition-all hover:opacity-80">
-                                        <div className="w-12 h-12 bg-primary-700/20 rounded-full flex items-center justify-center text-primary-400 font-bold text-xl uppercase shadow-glow group-hover/seller:bg-primary-700/30 transition-colors">
-                                            {vehicle.user.name.substring(0, 2)}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-text-primary group-hover/seller:text-primary-400 transition-colors">{vehicle.user.name}</p>
-                                            <p className="text-xs text-text-secondary">{t('vehicle.verified_seller')}</p>
-                                        </div>
-                                    </Link>
-                                    <ContactButton
-                                        sellerId={vehicle.userId}
-                                        vehicleId={vehicle.id}
-                                        vehicleTitle={vehicle.title}
-                                        status={vehicle.status as any}
-                                    />
+                            {/* Sección de Vendedor - Solo visible para usuarios NO admin */}
+                            {!vehicle.user.isAdmin && (
+                                <div className="border-t border-surface-highlight pt-6">
+                                    <h3 className="text-lg font-bold text-text-primary mb-4 font-outfit">{t('vehicle.seller')}</h3>
+                                    <div className="flex items-center justify-between">
+                                        <Link href={`/profile/${vehicle.user.id}`} className="flex items-center gap-3 group/seller transition-all hover:opacity-80">
+                                            <div className="w-12 h-12 bg-primary-700/20 rounded-full flex items-center justify-center text-primary-400 font-bold text-xl uppercase shadow-glow group-hover/seller:bg-primary-700/30 transition-colors">
+                                                {vehicle.user.name.substring(0, 2)}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-text-primary group-hover/seller:text-primary-400 transition-colors">{vehicle.user.name}</p>
+                                                <p className="text-xs text-text-secondary">{t('vehicle.verified_seller')}</p>
+                                            </div>
+                                        </Link>
+                                        <ContactButton
+                                            sellerId={vehicle.userId}
+                                            vehicleId={vehicle.id}
+                                            vehicleTitle={vehicle.title}
+                                            status={vehicle.status as any}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
