@@ -20,12 +20,13 @@ export default function MobileNav() {
 
     useEffect(() => {
         const visualViewport = window.visualViewport;
+        const initialHeight = window.innerHeight;
 
         const handleResize = () => {
             if (visualViewport) {
-                // Si la altura del viewport visual es significativamente menor que la altura de la ventana,
-                // asumimos que el teclado está visible.
-                const isKeyboardVisible = visualViewport.height < window.innerHeight * 0.85;
+                // Si la altura del viewport visual es significativamente menor que la altura inicial de la ventana,
+                // asumimos que el teclado está visible. Usamos un umbral del 90% para mayor seguridad.
+                const isKeyboardVisible = visualViewport.height < initialHeight * 0.9;
                 setIsVisible(!isKeyboardVisible);
             }
         };
@@ -37,40 +38,19 @@ export default function MobileNav() {
             }
         };
 
-        const handleFocusOut = () => {
-            // Usamos un pequeño delay porque al saltar de un input a otro, focusout se dispara antes que focusin
-            setTimeout(() => {
-                const activeElement = document.activeElement;
-                const isInputFocused = activeElement && (
-                    activeElement.tagName === 'INPUT' ||
-                    activeElement.tagName === 'TEXTAREA' ||
-                    (activeElement as HTMLElement).isContentEditable
-                );
-
-                if (!isInputFocused) {
-                    if (visualViewport) {
-                        const isKeyboardVisible = visualViewport.height < window.innerHeight * 0.85;
-                        setIsVisible(!isKeyboardVisible);
-                    } else {
-                        setIsVisible(true);
-                    }
-                }
-            }, 100);
-        };
-
+        // Escuchamos el resize del visualViewport (el teclado lo dispara en móviles modernos)
         if (visualViewport) {
             visualViewport.addEventListener('resize', handleResize);
         }
 
+        // El focusin nos da el gatillo instantáneo
         document.addEventListener('focusin', handleFocusIn);
-        document.addEventListener('focusout', handleFocusOut);
 
         return () => {
             if (visualViewport) {
                 visualViewport.removeEventListener('resize', handleResize);
             }
             document.removeEventListener('focusin', handleFocusIn);
-            document.removeEventListener('focusout', handleFocusOut);
         };
     }, []);
 
