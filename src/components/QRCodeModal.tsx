@@ -205,7 +205,7 @@ export default function QRCodeModal({ isOpen, onClose }: QRCodeModalProps) {
                                     Escribe el número y envía el link directamente sin tener que copiarlo
                                 </p>
 
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 items-center">
                                     <input
                                         type="tel"
                                         value={phoneNumber}
