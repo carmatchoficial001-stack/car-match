@@ -268,7 +268,7 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
                             <ShareButton
                                 title={business.name}
                                 text={`¡Mira este negocio en CarMatch! ${business.name}`}
-                                url={typeof window !== 'undefined' ? window.location.href : ''}
+                                url={typeof window !== 'undefined' ? `${window.location.origin}/business/${business.id}` : `/business/${business.id}`}
                                 variant="minimal"
                                 className="bg-surface border border-surface-highlight rounded-xl w-14 flex items-center justify-center"
                             />
@@ -290,7 +290,7 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
                                     <ShareButton
                                         title={business.name}
                                         text={`¡Mira este negocio en CarMatch! ${business.name}`}
-                                        url={typeof window !== 'undefined' ? window.location.href : ''}
+                                        url={typeof window !== 'undefined' ? `${window.location.origin}/business/${business.id}` : `/business/${business.id}`}
                                         variant="minimal"
                                     />
                                 </div>

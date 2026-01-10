@@ -420,7 +420,7 @@ export default function MarketClient({
                                                                 <ShareButton
                                                                     title={item.title}
                                                                     text={`¡Mira este ${item.title} en CarMatch!`}
-                                                                    url={isBusiness ? `https://carmatch.app/map-store?id=${item.id}` : `https://carmatch.app/vehicle/${item.id}`}
+                                                                    url={typeof window !== 'undefined' ? `${window.location.origin}${isBusiness ? `/business/${item.id}` : `/vehicle/${item.id}`}` : (isBusiness ? `/business/${item.id}` : `/vehicle/${item.id}`)}
                                                                     variant="minimal"
                                                                 />
                                                             </div>
