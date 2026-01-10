@@ -166,9 +166,6 @@ export default function PublishClient() {
 
                 // Actualizar estado con las imágenes limpias
                 setImages(cleanImages)
-
-                // Avisar al usuario
-                alert(`⚠️ Se eliminaron ${badGalleryIndices.length} imagen(es) de la galería que no eran vehículos válidos.`)
             }
 
             // Limpiar errores visuales
