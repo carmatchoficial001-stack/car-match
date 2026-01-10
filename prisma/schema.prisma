@@ -27,6 +27,8 @@ model User {
   lastLocationUpdate      DateTime?
   isAdmin                 Boolean                   @default(false)
   fraudStrikes            Int                       @default(0)
+  lifetimeVehicleCount    Int                       @default(0)
+  lifetimeBusinessCount   Int                       @default(0)
   accounts                Account[]
   analyticsEvents         AnalyticsEvent[]
   businesses              Business[]
