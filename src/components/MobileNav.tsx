@@ -20,21 +20,57 @@ export default function MobileNav() {
 
     useEffect(() => {
         const visualViewport = window.visualViewport;
-        if (!visualViewport) return;
 
         const handleResize = () => {
-            // Si la altura del viewport visual es significativamente menor que la altura de la ventana,
-            // asumimos que el teclado está visible.
-            const isKeyboardVisible = visualViewport.height < window.innerHeight * 0.85;
-            setIsVisible(!isKeyboardVisible);
+            if (visualViewport) {
+                // Si la altura del viewport visual es significativamente menor que la altura de la ventana,
+                // asumimos que el teclado está visible.
+                const isKeyboardVisible = visualViewport.height < window.innerHeight * 0.85;
+                setIsVisible(!isKeyboardVisible);
+            }
         };
 
-        visualViewport.addEventListener('resize', handleResize);
-        visualViewport.addEventListener('scroll', handleResize);
+        const handleFocusIn = (e: FocusEvent) => {
+            const target = e.target as HTMLElement;
+            if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+                setIsVisible(false);
+            }
+        };
+
+        const handleFocusOut = () => {
+            // Usamos un pequeño delay porque al saltar de un input a otro, focusout se dispara antes que focusin
+            setTimeout(() => {
+                const activeElement = document.activeElement;
+                const isInputFocused = activeElement && (
+                    activeElement.tagName === 'INPUT' ||
+                    activeElement.tagName === 'TEXTAREA' ||
+                    (activeElement as HTMLElement).isContentEditable
+                );
+
+                if (!isInputFocused) {
+                    if (visualViewport) {
+                        const isKeyboardVisible = visualViewport.height < window.innerHeight * 0.85;
+                        setIsVisible(!isKeyboardVisible);
+                    } else {
+                        setIsVisible(true);
+                    }
+                }
+            }, 100);
+        };
+
+        if (visualViewport) {
+            visualViewport.addEventListener('resize', handleResize);
+        }
+
+        document.addEventListener('focusin', handleFocusIn);
+        document.addEventListener('focusout', handleFocusOut);
 
         return () => {
-            visualViewport.removeEventListener('resize', handleResize);
-            visualViewport.removeEventListener('scroll', handleResize);
+            if (visualViewport) {
+                visualViewport.removeEventListener('resize', handleResize);
+            }
+            document.removeEventListener('focusin', handleFocusIn);
+            document.removeEventListener('focusout', handleFocusOut);
         };
     }, []);
 
