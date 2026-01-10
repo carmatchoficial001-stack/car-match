@@ -22,35 +22,40 @@ export default function MobileNav() {
         const visualViewport = window.visualViewport;
         const initialHeight = window.innerHeight;
 
-        const handleResize = () => {
-            if (visualViewport) {
-                // Si la altura del viewport visual es significativamente menor que la altura inicial de la ventana,
-                // asumimos que el teclado está visible. Usamos un umbral del 90% para mayor seguridad.
-                const isKeyboardVisible = visualViewport.height < initialHeight * 0.9;
-                setIsVisible(!isKeyboardVisible);
-            }
+        const detectKeyboard = () => {
+            const activeElement = document.activeElement;
+            const isInputFocused = activeElement && (
+                ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeElement.tagName) ||
+                (activeElement as HTMLElement).isContentEditable
+            );
+
+            // Si el viewport visual se reduce significativamente respecto a la altura inicial
+            const isViewportResized = visualViewport ? visualViewport.height < initialHeight * 0.85 : false;
+
+            // También checar el innerHeight tradicional por si acaso
+            const isWindowResized = window.innerHeight < initialHeight * 0.85;
+
+            // Si hay foco en un input O alguna de las medidas bajó, ocultamos
+            setIsVisible(!(isInputFocused || isViewportResized || isWindowResized));
         };
 
-        const handleFocusIn = (e: FocusEvent) => {
-            const target = e.target as HTMLElement;
-            if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
-                setIsVisible(false);
-            }
-        };
-
-        // Escuchamos el resize del visualViewport (el teclado lo dispara en móviles modernos)
         if (visualViewport) {
-            visualViewport.addEventListener('resize', handleResize);
+            visualViewport.addEventListener('resize', detectKeyboard);
         }
 
-        // El focusin nos da el gatillo instantáneo
-        document.addEventListener('focusin', handleFocusIn);
+        window.addEventListener('resize', detectKeyboard);
+        document.addEventListener('focusin', detectKeyboard);
+        document.addEventListener('focusout', () => setTimeout(detectKeyboard, 200));
+
+        // Ejecutar una vez al inicio
+        detectKeyboard();
 
         return () => {
             if (visualViewport) {
-                visualViewport.removeEventListener('resize', handleResize);
+                visualViewport.removeEventListener('resize', detectKeyboard);
             }
-            document.removeEventListener('focusin', handleFocusIn);
+            window.removeEventListener('resize', detectKeyboard);
+            document.removeEventListener('focusin', detectKeyboard);
         };
     }, []);
 
@@ -66,9 +71,9 @@ export default function MobileNav() {
     ]
 
     return (
-        <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-50 glass-effect pb-safe transition-all duration-300 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
+        <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-50 glass-effect pb-safe transition-all duration-300 ${isVisible ? 'flex opacity-100 translate-y-0' : 'hidden opacity-0 translate-y-full pointer-events-none'
             }`}>
-            <div className="flex items-center justify-around h-16 px-2">
+            <div className="flex items-center justify-around h-16 px-2 w-full">
                 {navItems.map((item, index) => {
                     const Icon = item.icon
                     const active = isActive(item.href)
