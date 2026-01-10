@@ -332,13 +332,13 @@ export async function POST(request: NextRequest) {
             }
         })
 
-        let successMessage = '¡Publicación enviada a nuestro equipo de seguridad! En breve será verificado.'
+        let successMessage = '¡Publicación enviada! Nuestro equipo la verificará pronto. Recuerda que los datos reales atraen a más compradores.'
         if (isPermanentlyRestricted) {
-            successMessage = 'Cuenta restringida. El anuncio se guardó como BORRADOR (Requiere activación).'
+            successMessage = 'Cuenta restringida. El anuncio se guardó como BORRADOR. Puedes activarlo con un crédito o contactar a soporte.'
         } else if (isFraudulentRetry) {
-            successMessage = 'Anuncio guardado con precauciones de seguridad (Múltiples cuentas detectadas).'
+            successMessage = 'Se detectaron múltiples cuentas. Para mantener la confianza en la red, puedes activar este anuncio usando 1 crédito.'
         } else if (isAiRejected) {
-            successMessage = `Anuncio guardado como BORRADOR. La IA detectó problemas con la imagen: ${coverAnalysis.reason || 'Imagen inusual'}. Puedes editarlo.`
+            successMessage = `La IA detectó que los datos o fotos podrían no coincidir (${coverAnalysis.reason || 'Imagen inusual'}). Entre más reales sean tus datos, más rápido venderás. Puedes corregirlo o activarlo con 1 crédito.`
         }
 
         return NextResponse.json({

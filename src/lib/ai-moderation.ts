@@ -13,6 +13,8 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
     let reason = ''
     let finalImages = [...imageUrls]
     let isDuplicate = false
+    let autoCorrected = false
+    let correctedFields: string[] = []
 
     const vehicle = await prisma.vehicle.findUnique({
         where: { id: vehicleId }
@@ -98,7 +100,53 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                         status = 'REJECTED'
                         reason = 'Ninguna de las fotos subidas cumple con las políticas de vehículos.'
                     } else {
-                        status = 'APPROVED'
+                        // 🚀 LÓGICA DE DISCRIMINACIÓN:
+                        // SI se filtraron algunas fotos -> Es una galería mezclada o con fotos inválidas. RECHAZAR.
+                        if (finalImages.length < imageUrls.length) {
+                            status = 'REJECTED'
+                            reason = 'Se detectaron fotos de vehículos diferentes o imágenes que no cumplen las reglas. Para una Wikipedia limpia, cada anuncio debe ser individual.'
+                            console.log(`⚠️ RECHAZO por inconsistencia/mezcla en ${vehicleId}: ${imageUrls.length - finalImages.length} fotos eliminadas.`);
+                        } else {
+                            // SI todas las fotos son consistentes entre sí pero diferentes al texto -> AUTO-CORREGIR.
+                            status = 'APPROVED'
+
+                            // 🚀 AUTO-CORRECCIÓN: Si la IA detectó datos más precisos, los aplicamos
+                            if (analysis.details) {
+                                const details = analysis.details;
+                                const updateData: any = {};
+
+                                // Comparar y corregir (solo si son diferentes y tenemos el dato)
+                                if (details.brand && details.brand !== vehicle.brand) {
+                                    updateData.brand = details.brand;
+                                    correctedFields.push('marca');
+                                }
+                                if (details.model && details.model !== vehicle.model) {
+                                    updateData.model = details.model;
+                                    correctedFields.push('modelo');
+                                }
+                                if (details.year && parseInt(details.year) !== vehicle.year) {
+                                    updateData.year = parseInt(details.year);
+                                    correctedFields.push('año');
+                                }
+                                if (details.color && details.color !== vehicle.color) {
+                                    updateData.color = details.color;
+                                    correctedFields.push('color');
+                                }
+                                if (details.type && details.type !== (vehicle as any).vehicleType) {
+                                    updateData.vehicleType = details.type;
+                                    correctedFields.push('tipo');
+                                }
+
+                                if (Object.keys(updateData).length > 0) {
+                                    autoCorrected = true;
+                                    await prisma.vehicle.update({
+                                        where: { id: vehicleId },
+                                        data: updateData
+                                    });
+                                    console.log(`✨ AUTO-CORRECCIÓN disparada para ${vehicleId}: ${correctedFields.join(', ')}`);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -128,20 +176,41 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
         })
 
         if (fullVehicle) {
-            // Solo notificamos si fue rechazado. 
+            // Notificar al usuario con un mensaje educativo y la opción de pago
             if (status === 'REJECTED') {
+                const eduMessage = isDuplicate
+                    ? 'Se detectó que este vehículo ya está en la red. Mantener datos únicos ayuda a los compradores a encontrarte más rápido. Puedes activarlo con 1 crédito.'
+                    : `${reason} Recuerda que entre más reales sean tus datos, más confianza generarás en tus compradores. Puedes corregirlo o activarlo con 1 crédito.`;
+
                 await prisma.notification.create({
                     data: {
                         userId: fullVehicle.userId,
                         type: 'SYSTEM',
-                        title: isDuplicate ? '🛡️ Seguridad: Vehículo Duplicado' : '⚠️ Acción Requerida: Publicidación Bloqueada',
-                        message: reason,
+                        title: isDuplicate ? '🛡️ CarMatch: Aviso de Duplicado' : '⚠️ CarMatch: Revisión de Calidad',
+                        message: eduMessage,
                         link: `/profile?tab=vehicles`,
                         metadata: JSON.stringify({ vehicleId, reason, status, isDuplicate })
                     }
                 })
-            } else if (finalImages.length < imageUrls.length) {
-                console.log(`ℹ️ Filtrado silencioso: Se eliminaron ${imageUrls.length - finalImages.length} fotos inválidas de ${vehicleId}`)
+            } else if (autoCorrected) {
+                // Notificación de éxito con auto-corrección
+                await prisma.notification.create({
+                    data: {
+                        userId: fullVehicle.userId,
+                        type: 'SYSTEM',
+                        title: '✨ CarMatch: Publicación Optimizada',
+                        message: `¡Buenas noticias! Hemos ajustado automáticamente la ${correctedFields.join(', ')} de tu anuncio para que coincida con tus fotos. Esto ayudará a que más compradores reales te encuentren fácilmente.`,
+                        link: `/profile?tab=vehicles`,
+                        metadata: JSON.stringify({ vehicleId, status, autoCorrected, correctedFields })
+                    }
+                })
+            }
+
+            // 🚗 LIMPIEZA SILENCIOSA: Si se eliminaron fotos por ser de un vehículo DIFERENTE, no avisamos al usuario.
+            // Se darán cuenta solos de que la plataforma es seria y solo acepta anuncios individuales.
+            if (status === 'APPROVED' && finalImages.length < imageUrls.length) {
+                const removedCount = imageUrls.length - finalImages.length;
+                console.log(`ℹ️ Filtrado SILENCIOSO de vehículos mezclados: Se eliminaron ${removedCount} fotos de ${vehicleId}`);
             }
         }
     } catch (notifError) {

@@ -85,6 +85,7 @@ TU MISIÓN: Asegurar que las imágenes sean PARTES/VEHÍCULOS reales y, sobre to
 - 🧸 JUGUETES o maquetas.
 - 📺 FOTOS A PANTALLAS.
 - 👥 IRRELEVANTE: Memes, animales, comida o personas como protagonistas.
+- 📅 FLEXIBILIDAD TOTAL EN AÑOS: Muchos vehículos permanecen visualmente IDÉNTICOS por periodos de 5 a 10 años (mismas generaciones). No rechaces por error de año si la marca, modelo y generación visual coinciden. Sé muy flexible: el año es informativo, no un criterio de exclusión a menos que sea físicamente imposible (ej: un carro moderno marcado como 1950).
 
 RESPONDE ÚNICAMENTE CON ESTE JSON:
 {
@@ -94,7 +95,7 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
   "details": {
     "brand": "Marca",
     "model": "Modelo",
-    "year": "Año",
+    "year": "Año estimado",
     "color": "Color",
     "type": "SUV|Sedan|Pickup|etc"
   }
@@ -161,6 +162,12 @@ export async function analyzeMultipleImages(
 
        ${vehicleContextPrompt}
 
+       🎯 IMPORTANTE - REGLA DE FLEXIBILIDAD GENERACIONAL:
+       - Los ciclos de diseño (generaciones) duran muchos años. Un vehículo puede ser igual desde 2010 hasta 2018.
+       - Ignora discrepancias de años siempre que la CARROCERÍA y MARCA sean correctas.
+       - No intentes ser un experto en años exactos; si parece el modelo correcto, ¡APRUÉBALO! (isResultValid: true).
+       - Solo rechaza si hay un salto de diseño evidente (ej: un Jeep antiguo vs un Jeep moderno con luces LED), pero aun así, sé lo más permisivo posible con el año.
+
        ✅ APROBAR (isValid: true) SI Y SOLO SI ES:
        - Un vehículo real funcional (no importa el año/modelo exacto).
        - Una pieza mecánica o estética de vehículo real.
@@ -171,6 +178,7 @@ export async function analyzeMultipleImages(
        - Bicicletas (no son motorizadas), Patinetas, Animales, Personas solas.
        - Capturas de pantalla de selectores de archivos, menús de celular o chats.
        - Fotos de monitores/televisores.
+       - 🚗 VEHÍCULOS DIFERENTES: Si una imagen muestra un vehículo que NO es el mismo de la foto de portada (ej: portada es un Sedan blanco y la foto es una Pickup roja), márcala como INVÁLIDA. Queremos anuncios individuales.
        - Cualquier cosa que NO sea un vehículo motorizado terrestre o sus partes.
 
        Responde ÚNICAMENTE JSON:
@@ -181,7 +189,7 @@ export async function analyzeMultipleImages(
            { "index": number, "isValid": boolean }
          ],
          "details": {
-           "brand": "Marca", "model": "Modelo", "year": "Año", "color": "Color", "type": "SUV|Sedan|etc"
+           "brand": "Marca", "model": "Modelo", "year": "Año estimado", "color": "Color", "type": "SUV|Sedan|Pickup|etc"
          }
        }`
     : `MODERADOR COMERCIAL. Aprueba todo lo SFW. Responde JSON simple.`;
