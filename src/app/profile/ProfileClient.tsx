@@ -32,8 +32,8 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                         <div className="flex items-center gap-4 w-full md:w-auto">
                             <div className="relative group">
                                 {user.image ? (
-                                    <div className="w-full max-w-md aspect-video rounded-xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface group relative">
-                                        <img src={user.image} alt={user.name} className="w-full h-full object-contain bg-black/50" />
+                                    <div className="w-full max-w-md rounded-xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface group relative flex justify-center bg-black/50">
+                                        <img src={user.image} alt={user.name} className="max-w-full h-auto max-h-[60vh] object-contain" />
                                         {isOwner && (
                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                                                 <button

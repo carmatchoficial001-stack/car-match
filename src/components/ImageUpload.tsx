@@ -158,11 +158,11 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
             {images.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {images.map((url, index) => (
-                        <div key={index} className="relative aspect-video bg-surface-highlight rounded-lg overflow-hidden group">
+                        <div key={index} className={`relative bg-surface-highlight rounded-lg overflow-hidden group ${maxImages === 1 ? 'w-full max-w-sm mx-auto flex justify-center bg-black/50' : 'aspect-video'}`}>
                             <img
                                 src={url}
                                 alt={`Foto ${index + 1}`}
-                                className="w-full h-full object-contain bg-black/50"
+                                className={maxImages === 1 ? "max-w-full h-auto max-h-96 object-contain" : "w-full h-full object-contain bg-black/50"}
                             />
 
                             {/* Badge de foto principal */}
