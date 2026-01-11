@@ -235,7 +235,7 @@ export default function MarketClient({
     return (
         <div className="min-h-screen bg-background">
             <Header />
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-4 pt-8 pb-24">
                 {/* Header */}
                 <header className="mb-8">
                     {/* Controles en una sola línea */}

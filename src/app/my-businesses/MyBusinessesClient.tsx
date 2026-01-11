@@ -488,7 +488,7 @@ export default function MyBusinessesClient() {
     return (
         <div className="min-h-screen bg-background" >
             <Header />
-            <div className="container mx-auto px-4 py-8 max-w-5xl">
+            <div className="container mx-auto px-4 pt-8 pb-24 max-w-5xl">
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-text-primary">{t('business.title')}</h1>

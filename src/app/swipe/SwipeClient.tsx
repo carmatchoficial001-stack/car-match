@@ -208,7 +208,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     return (
         <div className="flex flex-col min-h-screen bg-background text-text-primary">
             <Header />
-            <main className="flex-1 max-w-4xl mx-auto w-full px-4 pt-10 pb-20 flex flex-col items-center justify-center">
+            <main className="flex-1 max-w-4xl mx-auto w-full px-4 pt-10 pb-24 flex flex-col items-center justify-center">
 
                 {/* El indicador de radio se movió dentro de los estados específicos */}
 

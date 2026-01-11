@@ -214,7 +214,7 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
     }
 
     return (
-        <div className="min-h-screen bg-background pb-20">
+        <div className="min-h-screen bg-background pb-32">
             <Header />
 
             <div className="container mx-auto px-4 pt-6">

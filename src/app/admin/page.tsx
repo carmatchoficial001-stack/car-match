@@ -254,7 +254,7 @@ export default function AdminDashboard() {
                 </header>
 
                 {/* View Content */}
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-8 pb-32 custom-scrollbar">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={activeView}

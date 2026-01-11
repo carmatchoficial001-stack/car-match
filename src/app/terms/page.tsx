@@ -6,7 +6,7 @@ export default function TermsPage() {
     const { t } = useLanguage()
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="container mx-auto px-4 pt-8 pb-32 max-w-4xl">
             <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">{t('terms.title')}</h1>
             <p className="mb-4 text-gray-600 dark:text-gray-400">{t('terms.last_updated')}: {new Date().toLocaleDateString()}</p>
 
