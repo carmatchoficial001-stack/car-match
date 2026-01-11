@@ -237,7 +237,8 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 <img
                                     src={vehicle.images[activeImage]}
                                     alt={vehicle.title}
-                                    className="w-auto h-auto max-w-full max-h-[75vh] object-contain mx-auto"
+                                    className="w-full h-full object-contain mx-auto cursor-zoom-in"
+                                    onClick={() => setShowFullImage(true)}
                                 />
                             ) : (
                                 <div className="flex items-center justify-center h-full text-text-secondary">
@@ -251,6 +252,30 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 className="absolute top-4 left-4 z-10"
                             />
                         </div>
+
+                        {/* Modal de Imagen Completa (Zoom) */}
+                        {showFullImage && (
+                            <div
+                                className="fixed inset-0 z-[2000] bg-black/95 flex items-center justify-center animate-fade-in touch-none"
+                                onClick={() => setShowFullImage(false)}
+                            >
+                                <button
+                                    onClick={() => setShowFullImage(false)}
+                                    className="absolute top-4 right-4 text-white hover:text-gray-300 z-50 p-2 bg-black/50 rounded-full"
+                                >
+                                    <X size={32} />
+                                </button>
+
+                                <div className="w-full h-full overflow-auto flex items-center justify-center p-2">
+                                    <img
+                                        src={vehicle.images?.[activeImage]}
+                                        alt={vehicle.title}
+                                        className="max-w-none md:max-w-full md:max-h-full object-contain min-w-full md:min-w-0"
+                                        style={{ touchAction: 'pinch-zoom' }}
+                                    />
+                                </div>
+                            </div>
+                        )}
 
                         {/* Thumbnails */}
                         {vehicle.images && vehicle.images.length > 1 && (
