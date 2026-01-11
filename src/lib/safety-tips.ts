@@ -83,6 +83,26 @@ export const SAFETY_TIPS = [
         category: "COMPRADORES",
         tip: "Si el precio parece demasiado bueno, probablemente haya un problema."
     },
+    {
+        category: "COMPRADORES",
+        tip: "Pide una videollamada para ver el auto funcionando antes de ir en persona."
+    },
+    {
+        category: "COMPRADORES",
+        tip: "Verifica el número de dueños anteriores en la factura original."
+    },
+    {
+        category: "COMPRADORES",
+        tip: "Revisa que el motor no tenga fugas de aceite o sonidos extraños."
+    },
+    {
+        category: "COMPRADORES",
+        tip: "No compartas tu ubicación exacta hasta que confíes en el vendedor."
+    },
+    {
+        category: "COMPRADORES",
+        tip: "Prefiere pagos mediante transferencia bancaria rastreable."
+    },
 
     // PARA VENDEDORES
     {
@@ -144,6 +164,22 @@ export const SAFETY_TIPS = [
     {
         category: "VENDEDORES",
         tip: "Proporciona un recibo oficial de la transacción."
+    },
+    {
+        category: "VENDEDORES",
+        tip: "Informa a un conocido cuando vayas a mostrar el vehículo."
+    },
+    {
+        category: "VENDEDORES",
+        tip: "No aceptes pagos con cheques de caja, pueden ser falsos."
+    },
+    {
+        category: "VENDEDORES",
+        tip: "Asegúrate de dar de baja las placas tras concretar la venta."
+    },
+    {
+        category: "VENDEDORES",
+        tip: "Evita mostrar el vehículo en tu domicilio personal si es posible."
     },
 
     // CONSEJOS GENERALES DE SEGURIDAD

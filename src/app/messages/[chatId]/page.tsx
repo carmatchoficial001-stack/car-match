@@ -351,14 +351,14 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                     </div>
 
                     {/* Input Area */}
-                    <div className="bg-surface border-t border-surface-highlight p-4 shrink-0">
+                    <div className="bg-surface border-t border-surface-highlight p-2 sm:p-4 shrink-0">
                         <div className="max-w-4xl mx-auto">
                             {chat?.vehicle.status && chat.vehicle.status !== 'ACTIVE' && (
                                 <div className="mb-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-xs text-center font-bold">
                                     ⚠️ Vehículo no disponible. No puedes enviar mensajes.
                                 </div>
                             )}
-                            <form onSubmit={handleSendMessage} className="flex items-end gap-2">
+                            <form onSubmit={handleSendMessage} className="flex items-end gap-1 sm:gap-2">
                                 {/* Actions Button Group */}
                                 <div className="flex gap-1">
                                     <button
@@ -384,7 +384,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                     </button>
                                 </div>
 
-                                <div className="flex-1 bg-background border border-surface-highlight rounded-xl flex items-center px-4 relative">
+                                <div className="flex-1 min-w-0 bg-background border border-surface-highlight rounded-xl flex items-center px-2 sm:px-4 relative">
                                     <input
                                         type="text"
                                         value={newMessage}
@@ -397,7 +397,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                 <button
                                     type="submit"
                                     disabled={!newMessage.trim() || sending || (chat?.vehicle.status && chat.vehicle.status !== 'ACTIVE')}
-                                    className="p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-primary-900/20"
+                                    className="p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-primary-900/20 shrink-0"
                                 >
                                     <svg className="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -408,51 +408,72 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                     </div>
                 </div>
 
-                {/* Safety Tips Sidebar - Fixed right side */}
-                <div className={`fixed inset-y-0 right-0 w-80 bg-surface border-l border-surface-highlight shadow-2xl transform transition-transform duration-300 z-30 lg:relative lg:shadow-none lg:translate-x-0 flex-shrink-0 ${showSafetyTips ? 'translate-x-0' : 'translate-x-full lg:hidden'}`}>
-                    <div className="h-full flex flex-col">
-                        <div className="p-4 border-b border-surface-highlight flex justify-between items-center bg-accent-500/10">
-                            <h3 className="font-bold text-lg text-accent-500 flex items-center gap-2">
-                                <span>🛡️</span>
-                                {t('messages.safety_shield')}
+                {/* Safety Tips Sidebar / Bottom Sheet */}
+                <div
+                    className={`fixed inset-0 z-[100] transition-opacity duration-300 bg-black/50 lg:hidden ${showSafetyTips ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                    onClick={() => setShowSafetyTips(false)}
+                />
+
+                <div className={`fixed bottom-0 left-0 right-0 lg:inset-y-0 lg:right-0 lg:left-auto lg:w-96 bg-surface border-t lg:border-t-0 lg:border-l border-surface-highlight shadow-2xl transform transition-transform duration-300 z-[101] rounded-t-[2.5rem] lg:rounded-none h-[80vh] lg:h-full ${showSafetyTips ? 'translate-y-0 lg:translate-x-0' : 'translate-y-full lg:translate-x-full'}`}>
+                    <div className="h-full flex flex-col relative">
+                        {/* Drag Handle (Mobile Only) */}
+                        <div className="w-12 h-1.5 bg-surface-highlight rounded-full mx-auto mt-4 mb-2 lg:hidden" />
+
+                        <div className="p-6 flex justify-between items-center">
+                            <h3 className="font-bold text-2xl text-text-primary flex items-center gap-2 font-outfit">
+                                <span className="text-primary-500">🛡️</span>
+                                {isSeller ? t('messages.tips.seller.title') : t('messages.tips.buyer.title')}
                             </h3>
-                            <button onClick={() => setShowSafetyTips(false)} className="lg:hidden text-text-secondary">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            <button
+                                onClick={() => setShowSafetyTips(false)}
+                                className="p-2 hover:bg-surface-highlight rounded-full transition-colors text-text-secondary"
+                            >
+                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
                             </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                            {/* Role Specific Tips */}
-                            <div className="bg-primary-900/10 rounded-xl p-4 border border-primary-900/20">
-                                <h4 className="font-bold text-primary-700 mb-3 text-sm uppercase tracking-wider">
-                                    {isSeller ? t('messages.tips.seller.title') : t('messages.tips.buyer.title')}
-                                </h4>
-                                <ul className="space-y-3">
-                                    {[1, 2, 3, 4, 5].map(i => (
-                                        <li key={i} className="text-sm text-text-secondary flex gap-2 items-start">
-                                            <span className="text-primary-500 font-bold text-lg leading-none">•</span>
-                                            <span className="leading-snug">{t(`messages.tips.${isSeller ? 'seller' : 'buyer'}.t${i}`)}</span>
-                                        </li>
-                                    ))}
-                                    {!isSeller && (
-                                        <li className="text-sm text-text-secondary flex gap-2 items-start">
-                                            <span className="text-primary-500 font-bold text-lg leading-none">•</span>
-                                            <span className="leading-snug">{t(`messages.tips.buyer.t6`)}</span>
-                                        </li>
-                                    )}
-                                </ul>
+                        <div className="flex-1 overflow-y-auto px-6 pb-32 space-y-6 custom-scrollbar">
+                            {/* Tips List */}
+                            <div className="space-y-4">
+                                {(isSeller ? [1, 2, 3, 4, 5] : [1, 2, 3, 4, 5, 6]).map(i => (
+                                    <div key={i} className="bg-surface-highlight/40 p-5 rounded-2xl border border-white/5 flex gap-4 items-start shadow-sm">
+                                        <div className="w-8 h-8 rounded-full bg-primary-500/20 text-primary-400 flex items-center justify-center shrink-0 font-bold">
+                                            {i}
+                                        </div>
+                                        <p className="text-text-primary text-base leading-relaxed">
+                                            {t(`messages.tips.${isSeller ? 'seller' : 'buyer'}.t${i}`)}
+                                        </p>
+                                    </div>
+                                ))}
                             </div>
 
-                            {/* General Warning */}
-                            <div className="bg-yellow-900/10 rounded-xl p-4 border border-yellow-900/20">
-                                <h4 className="font-bold text-yellow-700 mb-2 text-sm uppercase tracking-wider">⚠️ {t('messages.tips.general.title')}</h4>
-                                <p className="text-sm text-text-secondary leading-relaxed">
-                                    {t('messages.tips.general.desc')}
+                            {/* CTA: Safe Places - Puntos para encuentros seguros */}
+                            <div className="bg-gradient-to-br from-primary-600/20 to-blue-600/20 p-6 rounded-[2rem] border border-primary-500/30 space-y-4 mt-4 shadow-lg">
+                                <h4 className="font-bold text-lg text-primary-400 flex items-center gap-2">
+                                    📍 Lugares de Encuentro Seguros
+                                </h4>
+                                <p className="text-sm text-text-secondary">
+                                    Para mayor seguridad de ambos, recomendamos reunirse en puntos públicos y monitoreados.
                                 </p>
+                                <button
+                                    onClick={() => {
+                                        setShowSafetyTips(false);
+                                        loadSafePlaces();
+                                    }}
+                                    className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-2xl font-bold transition-all shadow-xl shadow-primary-900/40 flex items-center justify-center gap-2"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Buscar Puntos Seguros
+                                </button>
                             </div>
                         </div>
                     </div>
-                </div >
+                </div>
 
 
 
