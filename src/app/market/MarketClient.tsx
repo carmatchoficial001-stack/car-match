@@ -353,7 +353,7 @@ export default function MarketClient({
                                                         </div>
                                                     )}
 
-                                                    {!isBusiness && (
+                                                    {/* {!isBusiness && (
                                                         <div className="absolute top-3 left-3 z-10">
                                                             <FavoriteButton
                                                                 vehicleId={item.id}
@@ -361,7 +361,7 @@ export default function MarketClient({
                                                                 size="sm"
                                                             />
                                                         </div>
-                                                    )}
+                                                    )} */}
 
                                                     <ReportImageButton
                                                         imageUrl={item.images?.[0] || ''}
