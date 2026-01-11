@@ -241,14 +241,6 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 </div>
                             )}
 
-                            <div className="absolute top-4 right-4 z-10">
-                                <FavoriteButton
-                                    vehicleId={vehicle.id}
-                                    initialIsFavorited={vehicle.isFavorited}
-                                    size="lg"
-                                />
-                            </div>
-
                             <ReportImageButton
                                 imageUrl={vehicle.images?.[activeImage] || ''}
                                 vehicleId={vehicle.id}
