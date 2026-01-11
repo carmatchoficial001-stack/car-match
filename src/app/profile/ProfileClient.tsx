@@ -185,7 +185,7 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                     <img
                                                         src={vehicle.images[0]}
                                                         alt={vehicle.title}
-                                                        className="w-full h-full object-cover transition duration-300 group-hover:scale-110"
+                                                        className="w-full h-full object-contain bg-black/50 transition duration-300 group-hover:scale-105"
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-text-secondary/20">
