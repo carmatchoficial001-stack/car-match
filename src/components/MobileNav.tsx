@@ -19,43 +19,51 @@ export default function MobileNav() {
     const [isVisible, setIsVisible] = useState(true)
 
     useEffect(() => {
-        const visualViewport = window.visualViewport;
-        const initialHeight = window.innerHeight;
+        // Función simplificada y robusta para detectar teclado
+        const handleResize = () => {
+            // Si el viewport es mucho más chico que la pantalla, es probable que esté el teclado
+            // Usamos window.screen.height como referencia absoluta que no cambia (usualmente)
+            const isKeyboardOpen = window.visualViewport
+                ? window.visualViewport.height < window.screen.height * 0.6 // 60% de la pantalla
+                : window.innerHeight < window.screen.height * 0.75;
 
-        const detectKeyboard = () => {
-            const activeElement = document.activeElement;
-            const isInputFocused = activeElement && (
-                ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeElement.tagName) ||
-                (activeElement as HTMLElement).isContentEditable
-            );
+            // Verificación adicional por foco (la más confiable para inputs)
+            const activeTag = document.activeElement?.tagName;
+            const isInputFocused = activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT';
 
-            // Si el viewport visual se reduce significativamente respecto a la altura inicial
-            const isViewportResized = visualViewport ? visualViewport.height < initialHeight * 0.85 : false;
-
-            // También checar el innerHeight tradicional por si acaso
-            const isWindowResized = window.innerHeight < initialHeight * 0.85;
-
-            // Si hay foco en un input O alguna de las medidas bajó, ocultamos
-            setIsVisible(!(isInputFocused || isViewportResized || isWindowResized));
+            if (isKeyboardOpen || isInputFocused) {
+                setIsVisible(false);
+            } else {
+                setIsVisible(true);
+            }
         };
 
-        if (visualViewport) {
-            visualViewport.addEventListener('resize', detectKeyboard);
+        // Listeners
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleResize);
         }
+        window.addEventListener('resize', handleResize);
 
-        window.addEventListener('resize', detectKeyboard);
-        document.addEventListener('focusin', detectKeyboard);
-        document.addEventListener('focusout', () => setTimeout(detectKeyboard, 200));
+        // Focus listeners con capture para asegurar que los atrapamos
+        const handleFocus = () => setIsVisible(false);
+        const handleBlur = () => {
+            // Pequeño delay para verificar si el foco pasó a otro input o se cerró el teclado
+            setTimeout(handleResize, 100);
+        };
 
-        // Ejecutar una vez al inicio
-        detectKeyboard();
+        document.addEventListener('focusin', handleFocus);
+        document.addEventListener('focusout', handleBlur);
+
+        // Chequeo inicial
+        handleResize();
 
         return () => {
-            if (visualViewport) {
-                visualViewport.removeEventListener('resize', detectKeyboard);
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', handleResize);
             }
-            window.removeEventListener('resize', detectKeyboard);
-            document.removeEventListener('focusin', detectKeyboard);
+            window.removeEventListener('resize', handleResize);
+            document.removeEventListener('focusin', handleFocus);
+            document.removeEventListener('focusout', handleBlur);
         };
     }, []);
 
