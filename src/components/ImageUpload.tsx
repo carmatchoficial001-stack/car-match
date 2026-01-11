@@ -162,7 +162,7 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
                             <img
                                 src={url}
                                 alt={`Foto ${index + 1}`}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain bg-black/50"
                             />
 
                             {/* Badge de foto principal */}
