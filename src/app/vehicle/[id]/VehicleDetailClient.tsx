@@ -338,6 +338,14 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                     url={typeof window !== 'undefined' ? `${window.location.origin}/vehicle/${vehicle.id}` : `/vehicle/${vehicle.id}`}
                                     variant="full"
                                 />
+                                {!isOwner && !vehicle.user.isAdmin && (
+                                    <ContactButton
+                                        sellerId={vehicle.userId}
+                                        vehicleId={vehicle.id}
+                                        vehicleTitle={vehicle.title}
+                                        status={vehicle.status as any}
+                                    />
+                                )}
                             </div>
 
                             {/* Main Specs Grid */}
@@ -436,12 +444,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                                 <p className="text-xs text-text-secondary">{t('vehicle.verified_seller')}</p>
                                             </div>
                                         </Link>
-                                        <ContactButton
-                                            sellerId={vehicle.userId}
-                                            vehicleId={vehicle.id}
-                                            vehicleTitle={vehicle.title}
-                                            status={vehicle.status as any}
-                                        />
+                                        {/* Botón de contacto movido arriba por petición del usuario */}
                                     </div>
                                 </div>
                             )}
