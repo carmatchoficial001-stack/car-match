@@ -7,9 +7,10 @@ interface ImageUploadStepProps {
     images: string[]
     onImagesChange: (images: string[]) => void
     invalidImageUrls?: Set<string>
+    invalidReasons?: Record<string, string>
 }
 
-export default function ImageUploadStep({ images, onImagesChange, invalidImageUrls }: ImageUploadStepProps) {
+export default function ImageUploadStep({ images, onImagesChange, invalidImageUrls, invalidReasons }: ImageUploadStepProps) {
     const [uploading, setUploading] = useState(false)
     const [uploadingGallery, setUploadingGallery] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -199,11 +200,16 @@ export default function ImageUploadStep({ images, onImagesChange, invalidImageUr
 
                         {/* 🚨 Warning Overlay para imagen inválida */}
                         {invalidImageUrls?.has(coverImage) && (
-                            <div className="absolute inset-0 bg-red-900/40 backdrop-blur-[2px] flex flex-col items-center justify-center text-white z-10 pointer-events-none">
-                                <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="absolute inset-0 bg-red-900/40 backdrop-blur-[2px] flex flex-col items-center justify-center text-white z-10 pointer-events-none p-4 text-center">
+                                <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <span className="font-bold text-sm bg-red-600 px-2 py-1 rounded">IMAGEN INVÁLIDA</span>
+                                <span className="font-bold text-sm bg-red-600 px-2 py-1 rounded mb-1">IMAGEN INVÁLIDA</span>
+                                {invalidReasons?.[coverImage] && (
+                                    <p className="text-xs font-medium text-white shadow-sm mt-1 bg-black/50 px-2 py-1 rounded">
+                                        {invalidReasons[coverImage]}
+                                    </p>
+                                )}
                             </div>
                         )}
 
