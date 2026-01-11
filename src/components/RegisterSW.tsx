@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { RefreshCw } from 'lucide-react'
 
 export default function RegisterSW() {
     const [showUpdatePrompt, setShowUpdatePrompt] = useState(false)
@@ -59,7 +60,9 @@ export default function RegisterSW() {
     return (
         <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-md z-[9999] bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-lg shadow-2xl">
             <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 text-2xl">🔄</div>
+                <div className="flex-shrink-0">
+                    <RefreshCw className="w-6 h-6 animate-spin-slow" />
+                </div>
                 <div className="flex-1">
                     <h4 className="font-bold text-sm mb-1">Nueva versión disponible</h4>
                     <p className="text-xs text-white/90 mb-3">

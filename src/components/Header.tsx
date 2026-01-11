@@ -10,7 +10,7 @@ import PWAInstallModal from "@/components/PWAInstallModal"
 import NotificationsDropdown from "@/components/NotificationsDropdown"
 import { usePWAInstall } from '@/hooks/usePWAInstall'
 import { getWeightedHomePath } from "@/lib/navigation"
-import { ThumbsUp, Headset } from "lucide-react"
+import { ThumbsUp, Headset, Flame, CarFront, Map } from "lucide-react"
 
 export default function Header() {
     const pathname = usePathname()
@@ -156,7 +156,7 @@ export default function Header() {
                                     : "text-text-secondary hover:text-text-primary hover:bg-surface-highlight"
                                     }`}
                             >
-                                <span className="text-lg md:hidden">🔥</span>
+                                <Flame className="w-5 h-5 md:hidden" />
                                 <span className="hidden md:block">{t('nav.carmatch')}</span>
                             </Link>
                             <Link
@@ -166,7 +166,7 @@ export default function Header() {
                                     : "text-text-secondary hover:text-text-primary hover:bg-surface-highlight"
                                     }`}
                             >
-                                <span className="text-xl md:hidden">🚘</span>
+                                <CarFront className="w-5 h-5 md:hidden" />
                                 <span className="hidden md:block">{t('nav.marketcar')}</span>
                             </Link>
                             <Link
@@ -176,7 +176,7 @@ export default function Header() {
                                     : "text-text-secondary hover:text-text-primary hover:bg-surface-highlight"
                                     }`}
                             >
-                                <span className="text-xl md:hidden">🗺️</span>
+                                <Map className="w-5 h-5 md:hidden" />
                                 <span className="hidden md:block">{t('nav.mapstore')}</span>
                             </Link>
                         </nav>

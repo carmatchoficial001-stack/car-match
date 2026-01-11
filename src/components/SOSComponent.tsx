@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import dynamic from 'next/dynamic'
+import { ShieldAlert, Siren } from 'lucide-react'
 
 // Dynamically import Mapbox to ensure client-side only
 import mapboxgl from 'mapbox-gl'
@@ -103,7 +104,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SO
             {/* Persistent Top Banner */}
             <div className="sticky top-0 left-0 right-0 bg-red-600 text-white px-4 py-2 flex items-center justify-between z-40 shadow-lg animate-pulse-slow">
                 <div className="flex items-center gap-2">
-                    <span className="text-xl">🛡️</span>
+                    <ShieldAlert className="w-6 h-6" />
                     <div>
                         <p className="font-bold text-sm md:text-base">{t('safety_mode.active')}</p>
                         <p className="text-xs opacity-90 hidden md:block">{t('safety_mode.active_desc')}</p>
@@ -134,7 +135,9 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SO
             {checkInVisible && (
                 <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-surface p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl border border-surface-highlight">
-                        <div className="text-4xl mb-4">👮❓</div>
+                        <div className="flex justify-center mb-4 text-primary-500">
+                            <Siren className="w-16 h-16 animate-bounce" />
+                        </div>
                         <h3 className="text-xl font-bold text-text-primary mb-2">{t('safety_mode.check_in_title')}</h3>
                         <p className="text-text-secondary mb-6">{t('safety_mode.check_in_body')}</p>
                         <div className="space-y-3">
@@ -252,7 +255,8 @@ function SOSMap({ lat, lng, name, lastUpdate, locale }: { lat: number, lng: numb
         // Add user marker
         const el = document.createElement('div')
         el.className = 'sos-marker'
-        el.innerHTML = '<div style="font-size: 24px;">🚨</div>'
+        // SVG Icon de Alerta
+        el.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" class="text-red-600 animate-pulse"><circle cx="12" cy="12" r="10" fill="currentColor" fill-opacity="0.3"/><circle cx="12" cy="12" r="6" fill="currentColor" stroke="white" stroke-width="2"/></svg>'
 
         const popup = new mapboxgl.Popup({ offset: 25 })
             .setHTML(`
