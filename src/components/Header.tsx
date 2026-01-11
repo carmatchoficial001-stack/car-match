@@ -320,7 +320,7 @@ export default function Header() {
                                                 <img
                                                     src={session.user.image}
                                                     alt={session.user.name || "Usuario"}
-                                                    className="w-8 h-8 rounded-lg object-cover"
+                                                    className="w-8 h-8 rounded-lg object-contain bg-black/50"
                                                 />
                                             ) : (
                                                 <div className="w-8 h-8 bg-primary-700 rounded-lg flex items-center justify-center text-sm font-bold text-text-primary">
