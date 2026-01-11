@@ -282,25 +282,15 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
 
                                     {/* Navigation Buttons */}
                                     {business.latitude && business.longitude && (
-                                        <div className="grid grid-cols-2 gap-2 mt-3">
-                                            {/* Ver en Mapa de CarMatch */}
-                                            <a
-                                                href={`/map?lat=${business.latitude}&lng=${business.longitude}&category=${business.category}&highlight=${business.id}`}
-                                                className="px-3 py-2 bg-primary-700/20 hover:bg-primary-700/30 text-primary-400 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition border border-primary-700/30"
-                                                onClick={onClose}
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
-                                                {t('business_details.view_map')}
-                                            </a>
-
+                                        <div className="mt-3">
                                             {/* Navegar en Google Maps */}
                                             <a
                                                 href={`https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition border border-blue-500/30"
+                                                className="w-full px-3 py-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition border border-blue-500/30 shadow-lg shadow-blue-900/10"
                                             >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
                                                 {t('business_details.navigate_gps')}
                                             </a>
                                         </div>
