@@ -461,7 +461,12 @@ export default function MarketClient({
                                                 <span className="font-bold text-lg text-white">
                                                     {tierIndex === RADIUS_TIERS.length - 1 ? "Volver a empezar" : "Expandir búsqueda"}
                                                 </span>
-                                                <span className="text-sm text-primary-200 mt-1">
+                                                <div className="mt-2 px-3 py-1 bg-white/10 rounded-full border border-white/20">
+                                                    <span className="text-[10px] md:text-xs text-primary-200 font-bold uppercase tracking-wider">
+                                                        Radio: 0 - {searchRadius} km | {displayCity}
+                                                    </span>
+                                                </div>
+                                                <span className="text-sm text-primary-200 mt-2">
                                                     {tierIndex === RADIUS_TIERS.length - 1 ? "Reiniciar búsqueda desde tu zona" : "Busca el siguiente auto disponible"}
                                                 </span>
                                             </button>

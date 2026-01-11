@@ -241,10 +241,15 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                         <div className="flex flex-col gap-3 w-full">
                             <button
                                 onClick={expandSearch}
-                                className="w-full py-4 bg-primary-700 hover:bg-primary-600 text-white rounded-2xl font-bold transition shadow-xl active:scale-95 flex items-center justify-center gap-3 text-lg"
+                                className="w-full py-4 bg-primary-700 hover:bg-primary-600 text-white rounded-2xl font-bold transition shadow-xl active:scale-95 flex flex-col items-center justify-center gap-1 group"
                             >
-                                <RefreshCw size={20} />
-                                {tierIndex === RADIUS_TIERS.length - 1 ? 'Reiniciar' : 'Expandir radio'}
+                                <div className="flex items-center gap-3 text-lg">
+                                    <RefreshCw size={20} className="group-hover:rotate-180 transition-transform duration-500" />
+                                    {tierIndex === RADIUS_TIERS.length - 1 ? 'Reiniciar' : 'Expandir radio'}
+                                </div>
+                                <span className="text-[10px] text-primary-200 uppercase tracking-widest opacity-80 decoration-primary-500/30">
+                                    Radio actual: 0 - {currentRadius} km | {location?.city}
+                                </span>
                             </button>
 
                             <button
