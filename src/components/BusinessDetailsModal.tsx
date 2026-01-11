@@ -73,7 +73,7 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
     ].filter(Boolean).join(', ') || business.address
 
     return (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
             <div
                 className="bg-surface border border-surface-highlight rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative shadow-2xl animate-scale-up"
                 onClick={(e) => e.stopPropagation()}

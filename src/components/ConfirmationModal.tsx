@@ -75,7 +75,7 @@ export default function ConfirmationModal({
     const config = variants[variant]
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 min-h-screen">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
             {/* Backdrop con Blur */}
             <div
                 className="absolute inset-0 bg-background/80 backdrop-blur-md animate-in fade-in duration-300"

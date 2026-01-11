@@ -35,7 +35,7 @@ export default function PWAInstallModal({ isOpen, onClose, platform = 'auto' }: 
     if (!isOpen) return null
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
             <div className="bg-surface rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-surface-highlight shadow-2xl">
                 {/* Header */}
                 <div className="sticky top-0 bg-surface border-b border-surface-highlight p-6 flex items-center justify-between">

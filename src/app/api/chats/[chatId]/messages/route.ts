@@ -76,9 +76,6 @@ export async function POST(
             data: { updatedAt: new Date() }
         })
 
-        // 🤖 IA: Analizar intención de reunión (Fire & Forget)
-        processChatMessage(chatId, content, user.id).catch(err => console.error('Error en Chat AI:', err))
-
         // TODO: Crear notificación para el otro usuario
         const receiverId = chat.buyerId === user.id ? chat.sellerId : chat.buyerId
         await prisma.notification.create({
@@ -138,9 +135,14 @@ export async function GET(
             return NextResponse.json({ error: 'No tienes acceso a este chat' }, { status: 403 })
         }
 
-        // Obtener mensajes
+        // Obtener mensajes (filtrando mensajes del sistema del asistente)
         const messages = await prisma.message.findMany({
-            where: { chatId },
+            where: {
+                chatId,
+                sender: {
+                    email: { not: 'ai-bot@carmatch.App' }
+                }
+            },
             include: {
                 sender: {
                     select: {
@@ -162,30 +164,6 @@ export async function GET(
             ...messages.map(m => ({ ...m, type: 'MESSAGE' })),
             ...appointments.map(a => ({ ...a, type: 'APPOINTMENT', content: 'Cita Propuesta', senderId: a.proposerId }))
         ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-
-        // 🤖 IA ANALISTA: Alertas Proactivas de Citas
-        const upcomingAppointment = appointments.find(a =>
-            a.status === 'ACCEPTED' &&
-            new Date(a.date!) > new Date() &&
-            new Date(a.date!).getTime() - new Date().getTime() < 1000 * 60 * 60 * 2 // Próximas 2 horas
-        )
-
-        if (upcomingAppointment) {
-            timeline.push({
-                id: 'ai-alert-upcoming',
-                chatId,
-                senderId: 'SYSTEM_AI',
-                content: `🚨 RECORDATORIO ANALISTA: Tu cita para ver el vehículo está próxima (${new Date(upcomingAppointment.date!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}). Recuerda llegar con 10 min de anticipación y en un lugar público.`,
-                createdAt: new Date().toISOString(),
-                type: 'MESSAGE',
-                isRead: true,
-                sender: {
-                    id: 'SYSTEM_AI',
-                    name: 'Analista CarMatch 🤖',
-                    image: 'https://cdn-icons-png.flaticon.com/512/4712/4712035.png'
-                }
-            } as any)
-        }
 
         // Marcar mensajes como leídos
         await prisma.message.updateMany({

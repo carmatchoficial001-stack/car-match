@@ -118,8 +118,8 @@ export default function QRCodeModal({ isOpen, onClose }: QRCodeModalProps) {
             />
 
             {/* Modal */}
-            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] w-full max-w-md px-4 animate-in zoom-in-95 duration-200">
-                <div className="bg-surface border border-surface-highlight rounded-3xl shadow-2xl overflow-hidden">
+            <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 animate-in zoom-in-95 duration-200 pointer-events-none">
+                <div className="bg-surface border border-surface-highlight rounded-3xl shadow-2xl overflow-hidden w-full max-w-md pointer-events-auto">
                     {/* Header */}
                     <div className="relative bg-gradient-to-r from-primary-900/30 to-transparent p-6 border-b border-surface-highlight">
                         <button
