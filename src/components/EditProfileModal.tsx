@@ -107,28 +107,36 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
 
                         {/* Subir Foto Personalizada */}
                         <div className="mb-6">
-                            {/* Si no hay imagen seleccionada (o es inválida), mostramos la inicial */}
-                            {!hasValidImage && (
-                                <div className="mb-4 flex flex-col items-center justify-center p-6 border-2 border-dashed border-surface-highlight rounded-xl bg-surface-highlight/50">
-                                    <div className="w-full max-w-md aspect-video rounded-xl bg-gradient-to-br from-primary-600 to-primary-900 flex items-center justify-center text-6xl font-bold text-white shadow-xl mb-3">
-                                        {initial}
+                            {/* Preview del avatar actual */}
+                            <div className="mb-4">
+                                {hasValidImage ? (
+                                    <div className="w-full max-w-md aspect-video rounded-xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface mx-auto">
+                                        <img
+                                            src={selectedImage}
+                                            alt="Foto de perfil"
+                                            className="w-full h-full object-cover"
+                                            onError={() => setImageError(true)}
+                                            onLoad={() => setImageError(false)}
+                                        />
                                     </div>
-                                    <p className="text-sm text-text-secondary text-center">
-                                        {imageError ? 'Tu foto actual no se puede cargar.' : 'Así se ve tu perfil actualmente (sin foto).'}
-                                    </p>
-                                </div>
-                            )}
-
-                            {/* Guardamos el img original oculto para detectar errores */}
-                            {selectedImage && (selectedImage.startsWith('http') || selectedImage.startsWith('/')) && (
-                                <img
-                                    src={selectedImage}
-                                    className="hidden"
-                                    onError={() => setImageError(true)}
-                                    onLoad={() => setImageError(false)}
-                                    alt=""
-                                />
-                            )}
+                                ) : (
+                                    <div className="w-full max-w-sm aspect-video rounded-xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface relative mx-auto">
+                                        <img
+                                            src={`/defaults/avatars/car_${((currentUser.name?.charCodeAt(0) || 0) % 6) + 1}.png`}
+                                            alt="Portada por defecto"
+                                            className="w-full h-full object-cover opacity-90"
+                                        />
+                                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/80 via-transparent to-transparent">
+                                            <span className="mt-8 text-6xl font-bold text-white drop-shadow-lg tracking-wider">
+                                                {initial}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                                <p className="text-sm text-text-secondary text-center mt-3">
+                                    {hasValidImage ? 'Tu foto de perfil actual' : 'Así se ve tu perfil actualmente (sin foto personalizada)'}
+                                </p>
+                            </div>
 
                             <ImageUpload
                                 label={(!selectedImage || (!selectedImage.startsWith('http') && !selectedImage.startsWith('/'))) ? "¡Sube tu primera foto!" : "Cambiar Foto"}
@@ -202,7 +210,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     )
 }
