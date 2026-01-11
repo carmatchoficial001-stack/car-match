@@ -168,8 +168,16 @@ export async function analyzeMultipleImages(
           - Si es un vehículo real, APRUÉBALO (isValid: true), incluso si la marca no coincide con el texto.
           - Si es claramente otra marca, simplemente REPORTA la marca correcta en "details.brand".
 
+       2. 🚨 CONSISTENCIA DE GALERÍA (NUEVA REGLA ESTRICTA):
+          - La IMAGEN 0 (Primera imagen) es la referencia de "LA VERDAD".
+          - Todas las demás imágenes (1, 2, 3...) DEBEN ser del MISMO VEHÍCULO que la Imagen 0.
+          - Deben coincidir en COLOR, MARCA y MODELO (Generación).
+          - Si la Imagen N es de un carro diferente (ej: Portada es Roja y foto 3 es Gris): MARCAR COMO INVÁLIDA (`isValid: false` para ese índice).
+          - Esto es para evitar publicaciones de lotes o múltiples venta en un solo post.
+
        🚫 RECHAZOS GENERALES (Independiente del contexto):
        - No es un vehículo motorizado real (Juguetes, Bicis, Animales).
+       - Vehículo diferente al de la portada.
        - Contenido ofensivo, NSFW, Gore.
        - Capturas de pantalla de celulares/apps.
        - Fotos a monitores.
@@ -179,7 +187,7 @@ export async function analyzeMultipleImages(
          "isValidCover": boolean,
          "coverReason": "Explicación breve si es false",
          "analysis": [
-           { "index": number, "isValid": boolean }
+           { "index": number, "isValid": boolean, "reason": "Razón si es false (ej: Vehículo diferente a portada)" }
          ],
          "details": {
            "brand": "Marca que ves en la foto", 
