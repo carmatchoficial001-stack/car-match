@@ -511,7 +511,7 @@ export default function PublishClient() {
             <Header />
             <PortalAnimation show={showPortal} />
 
-            <div className="container mx-auto px-4 py-8 max-w-4xl">
+            <div className="container mx-auto px-4 py-8 pb-32 max-w-4xl">
                 {/* Progress Bar */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
