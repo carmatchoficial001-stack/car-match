@@ -12,7 +12,7 @@ import ReportImageButton from '@/components/ReportImageButton'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { formatPrice, formatNumber } from '@/lib/vehicleTaxonomy'
 import { useRouter } from 'next/navigation'
-import { Edit3, Sparkles, CreditCard, Play, Pause, BadgeCheck, AlertTriangle, Share2 } from 'lucide-react'
+import { Edit3, Sparkles, CreditCard, Play, Pause, BadgeCheck, AlertTriangle, Share2, X } from 'lucide-react'
 import ConfirmationModal from '@/components/ConfirmationModal'
 
 interface VehicleDetailProps {
@@ -72,6 +72,7 @@ interface VehicleDetailProps {
 export default function VehicleDetailClient({ vehicle, currentUserEmail, currentUserId }: VehicleDetailProps) {
     const { t, locale } = useLanguage()
     const [activeImage, setActiveImage] = useState(0)
+    const [showFullImage, setShowFullImage] = useState(false)
     const isOwner = currentUserId === vehicle.userId
 
     useEffect(() => {
