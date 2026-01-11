@@ -93,7 +93,7 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                             <img
                                 src={business.images[currentImageIndex]}
                                 alt={business.name}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain bg-black/50"
                             />
                             {/* Navigation Arrows */}
                             {business.images.length > 1 && (
