@@ -121,7 +121,10 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                             <ImageUpload
                                 label={(!hasValidImage) ? "¡Sube tu primera foto!" : "Cambiar Foto"}
                                 images={hasValidImage ? [selectedImage] : []}
-                                onImagesChange={(imgs) => setSelectedImage(imgs[0] || '')}
+                                onImagesChange={(imgs) => {
+                                    setSelectedImage(imgs[0] || '')
+                                    setImageError(false)
+                                }}
                                 maxImages={1}
                                 required={false}
                                 fallbackContent={

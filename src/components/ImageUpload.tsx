@@ -159,21 +159,15 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {images.map((url, index) => (
                         <div key={index} className="relative aspect-video bg-surface-highlight rounded-lg overflow-hidden group">
-                            <Image
+                            <img
                                 src={url}
                                 alt={`Foto ${index + 1}`}
-                                fill
-                                className="object-cover"
-                                onError={(e) => {
-                                    // Si falla la imagen, podemos ocultar el contenedor o mostrar un placeholder
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                }}
+                                className="w-full h-full object-cover"
                             />
 
                             {/* Badge de foto principal */}
                             {index === 0 && (
-                                <div className="absolute top-2 left-2 px-2 py-1 bg-primary-700 text-white text-xs font-medium rounded">
+                                <div className="absolute top-2 left-2 px-2 py-1 bg-primary-700 text-white text-xs font-medium rounded shadow-sm">
                                     Principal
                                 </div>
                             )}
