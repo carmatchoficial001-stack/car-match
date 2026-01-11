@@ -155,46 +155,42 @@ export async function analyzeMultipleImages(
     : '';
 
   const prompt = type === 'VEHICLE'
-    ? `ERES UN MODERADOR ESTRICTO DE CARMATCH.
-       TU MISIÓN: Validar la imagen contra los datos proporcionados y asegurar que sea un vehículo real.
+    ? `ERES UN EXPERTO ANALISTA DE VEHÍCULOS PARA CARMATCH.
+       TU ÚNICO OBJETIVO: Confirmar que las fotos sean de vehículos reales y seguros.
 
-       📋 DATOS DEL VENDEDOR:
-       - Marca: "${context?.brand || 'No especificada'}"
-       - Modelo: "${context?.model || 'No especificado'}"
-       - Año: "${context?.year || 'No especificado'}"
+       📋 DATOS PROPORCIONADOS POR USUARIO (SOLO REFERENCIA):
+       - Marca: "${context?.brand || '?'}"
+       - Modelo: "${context?.model || '?'}"
+       - Año: "${context?.year || '?'}"
+       
+       ⚠️ REGLA DE ORO: LA IMAGEN ES LA VERDAD ABSOLUTA.
+       - Si la foto muestra un vehículo real, APRUÉBALO (isValid: true).
+       - IGNORA si la marca/modelo del texto no coinciden con la foto. (Ej: Texto dice "Abarth" pero foto es "Hyundai" -> APROBAR y corregir en "details").
+       - SOLO RECHAZA si NO es un vehículo o es contenido inseguro.
 
-       🔍 REGLAS DE VALIDACIÓN:
-       1. TU PRIORIDAD ES FILTRAR "NO VEHÍCULOS".
-          - Si es un vehículo real, APRUÉBALO (isValid: true), incluso si la marca no coincide con el texto.
-          - Si es claramente otra marca, simplemente REPORTA la marca correcta en "details.brand".
+       🔍 VALIDACIÓN DE GALERÍA (COHERENCIA):
+       - Imagen 0 (Portada) define el vehículo.
+       - Imágenes 1..N deben ser del MISMO vehículo (mismo color/modelo).
+       - Si una imagen de galería es de OTRO carro diferente al de la portada -> MARCAR COMO INVÁLIDA (isValid: false).
 
-       2. 🚨 CONSISTENCIA DE GALERÍA (NUEVA REGLA ESTRICTA):
-          - La IMAGEN 0 (Primera imagen) es la referencia de "LA VERDAD".
-          - Todas las demás imágenes (1, 2, 3...) DEBEN ser del MISMO VEHÍCULO que la Imagen 0.
-          - Deben coincidir en COLOR, MARCA y MODELO (Generación).
-          - Si la Imagen N es de un carro diferente (ej: Portada es Roja y foto 3 es Gris): MARCAR COMO INVÁLIDA (isValid: false para ese índice).
-          - Esto es para evitar publicaciones de lotes o múltiples venta en un solo post.
+       🚫 MOTIVOS DE RECHAZO:
+       - No es un vehículo (Paisajes vacíos, comida, selfies, mascotas).
+       - Juguetes, maquetas, capturas de pantalla, fotos a monitores.
+       - NSFW, Gore, Violencia.
 
-       🚫 RECHAZOS GENERALES (Independiente del contexto):
-       - No es un vehículo motorizado real (Juguetes, Bicis, Animales).
-       - Vehículo diferente al de la portada.
-       - Contenido ofensivo, NSFW, Gore.
-       - Capturas de pantalla de celulares/apps.
-       - Fotos a monitores.
-
-       Responde ÚNICAMENTE JSON:
+       Responde ÚNICAMENTE este JSON (sin markdown):
        {
          "isValidCover": boolean,
-         "coverReason": "Explicación breve si es false",
+         "coverReason": "Razón breve si es false",
          "analysis": [
-           { "index": number, "isValid": boolean, "reason": "Razón si es false (ej: Vehículo diferente a portada)" }
+           { "index": number, "isValid": boolean, "reason": "Razón si es false" }
          ],
          "details": {
-           "brand": "Marca que ves en la foto", 
-           "model": "Modelo que ves en la foto", 
+           "brand": "Marca EXACTA que ves", 
+           "model": "Modelo EXACTO que ves", 
            "year": "Año estimado", 
            "color": "Color", 
-           "type": "SUV|Sedan|Pickup|etc"
+           "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion"
          }
        }`
     : `MODERADOR COMERCIAL. Aprueba todo lo SFW. Responde JSON simple.`;
