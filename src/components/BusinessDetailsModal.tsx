@@ -141,7 +141,7 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                 </div>
 
                 {/* 📝 Content */}
-                <div className="p-6 md:p-8 space-y-8">
+                <div className="p-6 md:p-8 space-y-8 pb-32">
                     {/* Header Info */}
                     <div>
                         <h2 className="text-3xl font-bold text-text-primary mb-2 leading-tight">{business.name}</h2>
