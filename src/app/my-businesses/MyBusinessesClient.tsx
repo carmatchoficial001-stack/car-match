@@ -5,10 +5,11 @@ import Header from '@/components/Header'
 import ImageUpload from '@/components/ImageUpload'
 import { getUserLocation } from '@/lib/geolocation'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { useSearchParams } from 'next/navigation'
 import { CATEGORY_COLORS, CATEGORY_EMOJIS, SERVICES_BY_CATEGORY } from '@/lib/businessCategories'
 import { generateDeviceFingerprint } from '@/lib/fingerprint'
+import ConfirmationModal from '@/components/ConfirmationModal'
 
 // Modified: MapBox Component replacement
 const MapBoxAddressPicker = dynamic(() => import('@/components/MapBoxAddressPicker'), {
@@ -83,7 +84,13 @@ export default function MyBusinessesClient() {
     const [hasEmergencyService, setHasEmergencyService] = useState(false)
     const [hasHomeService, setHasHomeService] = useState(false)
 
+    // [NEW] Modals State
+    const [showNoCreditsModal, setShowNoCreditsModal] = useState(false)
+    const [showSuccessModal, setShowSuccessModal] = useState(false)
+    const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null)
+
     const { t } = useLanguage()
+    const router = useRouter()
 
     const fetchBusinesses = async () => {
         try {
@@ -453,17 +460,18 @@ export default function MyBusinessesClient() {
             const data = await res.json()
 
             if (res.status === 402) {
-                alert('⚠️ Necesitas 1 crédito para activar este negocio.\n\n💳 Compra créditos en tu perfil.')
+                setShowNoCreditsModal(true)
                 return
             }
 
             if (res.ok) {
                 fetchBusinesses()
                 if (data.creditsRemaining !== undefined) {
-                    alert(`✅ Negocio activado!\n\n💰 Créditos restantes: ${data.creditsRemaining}`)
+                    setCreditsRemaining(data.creditsRemaining)
+                    setShowSuccessModal(true)
                 }
             } else {
-                alert('Error al cambiar estado')
+                alert(data.error || 'Error al cambiar estado')
             }
         } catch (error) {
             console.error('Error toggling status:', error)
@@ -1020,6 +1028,32 @@ export default function MyBusinessesClient() {
                 )
                 }
             </div >
+
+            {/* Modal de Sin Créditos */}
+            <ConfirmationModal
+                isOpen={showNoCreditsModal}
+                onClose={() => setShowNoCreditsModal(false)}
+                title="¡Ups! Necesitas Créditos"
+                message="Tu primer negocio es gratis, pero para activar más necesitas créditos. ¡Impulsa tu negocio en CarMatch y llega a miles de clientes!"
+                variant="credit"
+                confirmLabel="Comprar Créditos"
+                onConfirm={() => router.push('/credits')}
+            />
+
+            {/* Modal de Éxito */}
+            <ConfirmationModal
+                isOpen={showSuccessModal}
+                onClose={() => setShowSuccessModal(false)}
+                title="¡Negocio Activo!"
+                message={creditsRemaining !== null
+                    ? `Tu negocio ya está visible para todos. Te quedan ${creditsRemaining} créditos disponibles.`
+                    : "Tu negocio ya está visible para todos en el mapa y la red."
+                }
+                variant="success"
+                confirmLabel="Excelente"
+                showCancel={false}
+                onConfirm={() => setShowSuccessModal(false)}
+            />
         </div >
     )
 }
