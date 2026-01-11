@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Business, Vehicle } from '@prisma/client'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { Instagram } from 'lucide-react'
 
 // Extended interface to handle optional relations if needed, 
 // though we'll primarily use the Prisma Business type for consistency
