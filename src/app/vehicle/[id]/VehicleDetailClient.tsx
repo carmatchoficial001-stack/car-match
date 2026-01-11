@@ -14,6 +14,7 @@ import { formatPrice, formatNumber } from '@/lib/vehicleTaxonomy'
 import { useRouter } from 'next/navigation'
 import { Edit3, Sparkles, CreditCard, Play, Pause, BadgeCheck, AlertTriangle, Share2, X } from 'lucide-react'
 import ConfirmationModal from '@/components/ConfirmationModal'
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 
 interface VehicleDetailProps {
     vehicle: {
@@ -267,13 +268,21 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                     <X size={32} />
                                 </button>
 
-                                <div className="w-full h-full overflow-auto flex items-center justify-center p-2">
-                                    <img
-                                        src={vehicle.images?.[activeImage]}
-                                        alt={vehicle.title}
-                                        className="max-w-none md:max-w-full md:max-h-full object-contain min-w-full md:min-w-0"
-                                        style={{ touchAction: 'pinch-zoom' }}
-                                    />
+                                <div className="w-full h-full flex items-center justify-center overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                                    <TransformWrapper
+                                        initialScale={1}
+                                        minScale={0.5}
+                                        maxScale={4}
+                                        centerOnInit
+                                    >
+                                        <TransformComponent wrapperClass="!w-full !h-full flex items-center justify-center" contentClass="!w-full !h-full flex items-center justify-center">
+                                            <img
+                                                src={vehicle.images?.[activeImage]}
+                                                alt={vehicle.title}
+                                                className="max-w-full max-h-[90vh] object-contain"
+                                            />
+                                        </TransformComponent>
+                                    </TransformWrapper>
                                 </div>
                             </div>
                         )}
