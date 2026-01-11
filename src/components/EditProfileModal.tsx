@@ -107,9 +107,20 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
 
                         {/* Subir Foto Personalizada */}
                         <div className="mb-6">
+                            {/* Validator de imagen oculto */}
+                            {selectedImage && (selectedImage.startsWith('http') || selectedImage.startsWith('/')) && (
+                                <img
+                                    src={selectedImage}
+                                    className="hidden"
+                                    onError={() => setImageError(true)}
+                                    onLoad={() => setImageError(false)}
+                                    alt=""
+                                />
+                            )}
+
                             <ImageUpload
-                                label={(!selectedImage || (!selectedImage.startsWith('http') && !selectedImage.startsWith('/'))) ? "¡Sube tu primera foto!" : "Cambiar Foto"}
-                                images={(selectedImage && (selectedImage.startsWith('http') || selectedImage.startsWith('/'))) ? [selectedImage] : []}
+                                label={(!hasValidImage) ? "¡Sube tu primera foto!" : "Cambiar Foto"}
+                                images={hasValidImage ? [selectedImage] : []}
                                 onImagesChange={(imgs) => setSelectedImage(imgs[0] || '')}
                                 maxImages={1}
                                 required={false}
