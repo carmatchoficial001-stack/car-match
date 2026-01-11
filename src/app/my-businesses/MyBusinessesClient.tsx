@@ -939,10 +939,19 @@ export default function MyBusinessesClient() {
                                     ? 'bg-surface border-surface-highlight hover:border-primary-700/50'
                                     : 'bg-surface/50 border-surface-highlight/50 opacity-60'
                                     }`}>
-                                    <div className="aspect-video bg-surface-highlight relative">
+                                    <div className="aspect-video bg-surface-highlight relative overflow-hidden">
                                         {business.images[0] ? (
-                                            <img src={business.images[0]} alt={business.name} className={`w-full h-full object-contain bg-black/50 ${business.status !== 'ACTIVE' ? 'grayscale' : ''
-                                                }`} />
+                                            <>
+                                                <div
+                                                    className={`absolute inset-0 bg-cover bg-center blur-md opacity-50 ${business.status !== 'ACTIVE' ? 'grayscale' : ''}`}
+                                                    style={{ backgroundImage: `url(${business.images[0]})` }}
+                                                />
+                                                <img
+                                                    src={business.images[0]}
+                                                    alt={business.name}
+                                                    className={`relative w-full h-full object-contain z-10 ${business.status !== 'ACTIVE' ? 'grayscale' : ''}`}
+                                                />
+                                            </>
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-text-secondary">
                                                 Sin foto

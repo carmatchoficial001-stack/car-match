@@ -87,31 +87,40 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                 </button>
 
                 {/* 🖼️ Image Gallery */}
-                <div className="relative w-full h-72 sm:h-96 bg-gray-900 group">
+                <div className="relative w-full h-72 sm:h-96 group bg-gray-900 overflow-hidden">
                     {business.images && business.images.length > 0 ? (
                         <>
+                            {/* Blurred Background Layer for "Fill" effect */}
+                            <div
+                                className="absolute inset-0 bg-cover bg-center blur-xl opacity-50 scale-110"
+                                style={{
+                                    backgroundImage: `url(${business.images[currentImageIndex]})`,
+                                }}
+                            />
+
+                            {/* Main Contain Image */}
                             <img
                                 src={business.images[currentImageIndex]}
                                 alt={business.name}
-                                className="w-full h-full object-contain bg-black/50"
+                                className="absolute inset-0 w-full h-full object-contain z-10"
                             />
                             {/* Navigation Arrows */}
                             {business.images.length > 1 && (
                                 <>
                                     <button
                                         onClick={prevImage}
-                                        className="absolute left-2 top-1/2 -translate-y-1/2 p-3 bg-black/50 text-white rounded-full hover:bg-black/70 opacity-0 group-hover:opacity-100 transition backdrop-blur-sm"
+                                        className="absolute left-2 top-1/2 -translate-y-1/2 p-3 bg-black/50 text-white rounded-full hover:bg-black/70 opacity-0 group-hover:opacity-100 transition backdrop-blur-sm z-20"
                                     >
                                         ◀
                                     </button>
                                     <button
                                         onClick={nextImage}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-black/50 text-white rounded-full hover:bg-black/70 opacity-0 group-hover:opacity-100 transition backdrop-blur-sm"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-black/50 text-white rounded-full hover:bg-black/70 opacity-0 group-hover:opacity-100 transition backdrop-blur-sm z-20"
                                     >
                                         ▶
                                     </button>
                                     {/* Dots */}
-                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
                                         {business.images.map((_, idx) => (
                                             <div
                                                 key={idx}
@@ -129,7 +138,7 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                     )}
 
                     {/* Category Badge overlay */}
-                    <div className="absolute bottom-4 left-4">
+                    <div className="absolute bottom-4 left-4 z-20">
                         <span
                             className="px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-lg flex items-center gap-2 backdrop-blur-md bg-black/30 border border-white/20"
                             style={{ borderColor: categoryColor }}
