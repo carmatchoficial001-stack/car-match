@@ -198,18 +198,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                             />
                         )}
 
-                        <div className="col-span-2 sm:col-span-1 md:col-span-1">
-                            <ShareButton
-                                title={vehicle.title}
-                                text={t('vehicle.share_text').replace('{title}', vehicle.title)}
-                                url={typeof window !== 'undefined' ? `${window.location.origin}/vehicle/${vehicle.id}` : `/vehicle/${vehicle.id}`}
-                                variant="icon"
-                                className="w-full h-full flex flex-col items-center justify-center p-3 rounded-2xl bg-surface-highlight hover:bg-surface-highlight/80 text-text-primary transition border border-white/5 gap-1"
-                            >
-                                <Share2 size={20} className="text-primary-400" />
-                                <span className="text-[10px] font-bold uppercase tracking-tighter">Compartir</span>
-                            </ShareButton>
-                        </div>
+
                     </div>
                 </div>
             </div>
