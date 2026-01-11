@@ -402,8 +402,8 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 </p>
                             </div>
 
-                            {/* Sección de Vendedor - Solo visible para usuarios NO admin */}
-                            {!vehicle.user.isAdmin && (
+                            {/* Sección de Vendedor - Oculta para el dueño y si el vendedor es admin */}
+                            {!isOwner && !vehicle.user.isAdmin && (
                                 <div className="border-t border-surface-highlight pt-6">
                                     <h3 className="text-lg font-bold text-text-primary mb-4 font-outfit">{t('vehicle.seller')}</h3>
                                     <div className="flex items-center justify-between">
