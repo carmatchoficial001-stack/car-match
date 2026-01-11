@@ -117,7 +117,12 @@ export async function PATCH(
 
         // 🔔 NOTIFICACIÓN: Si cambia a ACTIVO desde un estado inactivo
         if (updatedVehicle.status === 'ACTIVE' && vehicle.status !== 'ACTIVE') {
-            notifyFavoriters(id, vehicle.title, vehicle.brand, vehicle.model)
+            try {
+                await notifyFavoriters(id, vehicle.title, vehicle.brand, vehicle.model)
+            } catch (notificationError) {
+                console.error('Error enviando notificaciones (non-blocking):', notificationError)
+                // No bloqueamos la respuesta si falla el envío de notificaciones
+            }
         }
 
         return NextResponse.json({
