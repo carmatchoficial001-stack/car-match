@@ -98,27 +98,13 @@ export default function ShareButton({ title, text, url, variant = 'full', classN
     }
 
     return (
-        <div className="flex gap-2 mt-4">
+        <div className={`mt-4 ${className}`}>
             <button
                 onClick={handleShare}
-                className="flex-1 bg-primary-700 hover:bg-primary-600 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-primary-900/20"
+                className="w-full bg-primary-700 hover:bg-primary-600 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-primary-900/20"
             >
-                <Share2 size={20} />
-                Compartir
-            </button>
-
-            <button
-                onClick={(e) => {
-                    handleShare(e)
-                }}
-                className="bg-gray-800/50 hover:bg-gray-700/50 text-white p-3 rounded-xl border border-white/10 transition-colors backdrop-blur-sm"
-                title="Copiar enlace"
-            >
-                {copied ? (
-                    <Check size={20} className="text-green-500" />
-                ) : (
-                    <LinkIcon size={20} />
-                )}
+                {copied ? <Check size={20} /> : <Share2 size={20} />}
+                {copied ? 'Link Copiado' : 'Compartir'}
             </button>
         </div>
     )
