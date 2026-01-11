@@ -941,7 +941,7 @@ export default function MyBusinessesClient() {
                                     }`}>
                                     <div className="aspect-video bg-surface-highlight relative">
                                         {business.images[0] ? (
-                                            <img src={business.images[0]} alt={business.name} className={`w-full h-full object-cover ${business.status !== 'ACTIVE' ? 'grayscale' : ''
+                                            <img src={business.images[0]} alt={business.name} className={`w-full h-full object-contain bg-black/50 ${business.status !== 'ACTIVE' ? 'grayscale' : ''
                                                 }`} />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-text-secondary">
