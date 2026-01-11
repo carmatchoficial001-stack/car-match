@@ -45,7 +45,12 @@ export default function MobileNav() {
         window.addEventListener('resize', handleResize);
 
         // Focus listeners con capture para asegurar que los atrapamos
-        const handleFocus = () => setIsVisible(false);
+        const handleFocus = (e: Event) => {
+            const target = e.target as HTMLElement;
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
+                setIsVisible(false);
+            }
+        };
         const handleBlur = () => {
             // Pequeño delay para verificar si el foco pasó a otro input o se cerró el teclado
             setTimeout(handleResize, 100);
@@ -79,7 +84,7 @@ export default function MobileNav() {
     ]
 
     return (
-        <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-50 glass-effect pb-safe transition-all duration-300 ${isVisible ? 'flex opacity-100 translate-y-0' : 'hidden opacity-0 translate-y-full pointer-events-none'
+        <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-[9999] glass-effect pb-safe transition-all duration-300 ${isVisible ? 'flex opacity-100 translate-y-0' : 'flex opacity-0 translate-y-full pointer-events-none'
             }`}>
             <div className="flex items-center justify-around h-16 px-2 w-full">
                 {navItems.map((item, index) => {
