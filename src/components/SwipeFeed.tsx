@@ -64,7 +64,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 x: exitX || (x.get() < 0 ? -1000 : 1000),
                 opacity: 0,
                 rotate: x.get() < 0 ? -45 : 45,
-                transition: { duration: 1.5, ease: "easeInOut" }
+                transition: { duration: 0.8, ease: "easeInOut" }
             }}
             style={{
                 x,
@@ -79,8 +79,8 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
             className={`touch-none flex flex-col h-full ${!isTop && 'pointer-events-none'}`}
         >
             <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-full">
-                {/* Imagen */}
-                <div className="relative flex-1 min-h-0 bg-gradient-to-br from-surface-highlight to-surface overflow-hidden">
+                {/* Imagen Principal (Flex Grow para ocupar espacio disponible) */}
+                <div className="relative flex-1 min-h-[40%] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden">
                     {item.images && item.images[0] ? (
                         <img
                             src={item.images[0]}
@@ -110,71 +110,97 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                         className="absolute top-4 right-4 z-30"
                     />
 
-                    {/* Indicadores de swipe */}
+                    {/* Indicadores de swipe (Overlay en la imagen) */}
                     <motion.div
-                        className="absolute top-8 left-8"
-                        style={{
-                            opacity: useTransform(x, [0, 100], [0, 1]),
-                        }}
+                        className="absolute top-8 left-8 z-40"
+                        style={{ opacity: useTransform(x, [0, 100], [0, 1]) }}
                     >
                         <div className="px-6 py-3 bg-green-500 text-white rounded-2xl font-bold text-2xl rotate-12 border-4 border-white shadow-xl">
-                            {isBusiness ? 'INTERESADO' : 'ME GUSTA'}
+                            LIKE
                         </div>
                     </motion.div>
 
                     <motion.div
-                        className="absolute top-8 right-8"
-                        style={{
-                            opacity: useTransform(x, [-100, 0], [1, 0]),
-                        }}
+                        className="absolute top-8 right-8 z-40"
+                        style={{ opacity: useTransform(x, [-100, 0], [1, 0]) }}
                     >
                         <div className="px-6 py-3 bg-red-500 text-white rounded-2xl font-bold text-2xl -rotate-12 border-4 border-white shadow-xl">
-                            {isBusiness ? 'PASAR' : 'NOPE'}
+                            NOPE
                         </div>
                     </motion.div>
                 </div>
 
-                {/* Info */}
-                <div className="p-6 space-y-4">
-                    <div className="flex justify-between items-start">
+                {/* Contenido Inferior: Info + Galería + Botones */}
+                <div className="flex flex-col bg-surface">
+                    {/* Info Header */}
+                    <div className="px-6 pt-5 pb-2 flex justify-between items-start">
                         <div className="flex-1">
                             <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} onPointerDown={(e) => e.stopPropagation()}>
-                                <h2 className="text-2xl font-bold text-text-primary mb-2 hover:text-primary-400 transition cursor-pointer leading-tight">
+                                <h2 className="text-2xl font-bold text-text-primary mb-1 hover:text-primary-400 transition cursor-pointer leading-tight line-clamp-2">
                                     {item.title}
                                 </h2>
                             </Link>
-                            <div className="flex items-center gap-2">
-                                <ShareButton
-                                    title={item.title}
-                                    text={`¡Mira este ${item.title} en CarMatch!`}
-                                    url={typeof window !== 'undefined' ? `${window.location.origin}${isBusiness ? `/business/${item.id}` : `/vehicle/${item.id}`}` : (isBusiness ? `/business/${item.id}` : `/vehicle/${item.id}`)}
-                                    variant="minimal"
-                                    className="z-20 opacity-70 hover:opacity-100 transition"
-                                />
-                                <div className="flex items-center gap-1 text-xs text-text-secondary opacity-60">
-                                    <MapPin size={12} />
-                                    <span>{item.city}</span>
-                                </div>
+                            <div className="flex items-center gap-2 text-text-secondary text-sm">
+                                <MapPin size={14} className="text-primary-500" />
+                                <span className="font-medium">{item.city}</span>
                             </div>
                         </div>
-                        <div className="text-right ml-4">
+                        <div className="text-right ml-3">
                             {!isBusiness ? (
-                                <div className="text-2xl font-bold text-primary-700">
+                                <div className="text-2xl font-bold text-primary-500">
                                     {formatPrice(item.price || 0, item.currency || 'MXN')}
                                 </div>
                             ) : (
-                                <div className="text-sm font-bold text-primary-400 uppercase tracking-tighter">
+                                <div className="text-sm font-bold text-primary-400 uppercase tracking-tighter bg-primary-900/20 px-2 py-1 rounded">
                                     {item.category || 'Negocio'}
                                 </div>
                             )}
                             <Link
                                 href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
                                 onPointerDown={(e) => e.stopPropagation()}
-                                className="text-sm text-primary-400 hover:underline font-medium"
+                                className="text-xs text-text-secondary hover:text-primary-400 font-medium mt-1 block"
                             >
-                                {isBusiness ? 'Ver en mapa' : 'Ver más'}
+                                Ver detalles completas
                             </Link>
                         </div>
+                    </div>
+
+                    {/* Galería de Fotos Extra (Si existen) */}
+                    {item.images && item.images.length > 1 && (
+                        <div className="px-6 pb-4">
+                            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mask-linear-fade">
+                                {item.images.slice(1, 5).map((img, idx) => (
+                                    <div key={idx} className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border border-surface-highlight">
+                                        <img src={img} className="w-full h-full object-cover" alt={`Gallery ${idx}`} draggable={false} />
+                                    </div>
+                                ))}
+                                {item.images.length > 5 && (
+                                    <div className="w-16 h-16 flex-shrink-0 rounded-lg bg-surface-highlight flex items-center justify-center text-xs font-bold text-text-secondary border border-surface-highlight">
+                                        +{item.images.length - 5}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Botones de Acción (Dentro de la tarjeta) */}
+                    <div className="grid grid-cols-2 gap-4 px-6 pb-6 pt-2">
+                        <button
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={() => onSwipe('left')}
+                            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-surface-highlight border-2 border-surface-highlight text-red-400 font-bold text-lg hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 shadow-sm"
+                        >
+                            <X size={24} />
+                            <span>Pasar</span>
+                        </button>
+                        <button
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={() => onSwipe('right')}
+                            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-primary-600 text-white font-bold text-lg hover:bg-primary-500 transition-all active:scale-95 shadow-lg shadow-primary-900/20"
+                        >
+                            <ThumbsUp size={24} />
+                            <span>Me Gusta</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -209,7 +235,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
 
             setExitX(undefined)
             setIsSwiping(false)
-        }, 1500)
+        }, 800)
     }
 
     const currentItem = items[0]
@@ -217,8 +243,8 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
 
     if (items.length === 0 && !isSwiping) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-                <div className="w-24 h-24 bg-surface-highlight rounded-full flex items-center justify-center mb-6">
+            <div className="flex flex-col items-center justify-center py-20 px-6 text-center h-[70vh]">
+                <div className="w-24 h-24 bg-surface-highlight rounded-full flex items-center justify-center mb-6 animate-pulse">
                     <svg className="w-12 h-12 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -231,7 +257,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
                 </p>
                 <button
                     onClick={onNeedMore}
-                    className="px-8 py-4 bg-primary-700 text-text-primary rounded-xl font-bold text-lg hover:bg-primary-600 transition flex items-center gap-2"
+                    className="px-8 py-4 bg-primary-700 text-text-primary rounded-xl font-bold text-lg hover:bg-primary-600 transition flex items-center gap-2 shadow-xl hover:shadow-2xl hover:scale-105 transform"
                 >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -243,8 +269,8 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
     }
 
     return (
-        <div className="relative w-full max-w-[420px] mx-auto flex flex-col h-full min-h-[500px]">
-            <div className="relative flex-1 mb-4 h-[500px] md:h-[600px] flex justify-center">
+        <div className="relative w-full max-w-[480px] mx-auto flex flex-col h-full min-h-[75vh]">
+            <div className="relative flex-1 h-full flex justify-center perspective-1000">
                 <AnimatePresence mode="popLayout">
                     {currentItem && (
                         <SwipeCard
@@ -258,7 +284,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
                 </AnimatePresence>
 
                 {nextItem && (
-                    <div className="absolute w-full h-full max-w-[420px] pointer-events-none -z-10">
+                    <div className="absolute w-full h-full max-w-[480px] pointer-events-none -z-10 scale-[0.98] translate-y-4 opacity-70">
                         <SwipeCard
                             key={nextItem.id}
                             item={nextItem}
@@ -267,22 +293,6 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
                         />
                     </div>
                 )}
-            </div>
-
-            <div className="flex justify-center gap-6 mt-8">
-                <button
-                    onClick={() => handleSwipe('left')}
-                    className="w-16 h-16 bg-red-500/20 hover:bg-red-500/30 border-2 border-red-500 rounded-full flex items-center justify-center transition"
-                >
-                    <X size={32} className="text-red-500" />
-                </button>
-
-                <button
-                    onClick={() => handleSwipe('right')}
-                    className="w-16 h-16 bg-green-500/20 hover:bg-green-500/30 border-2 border-green-500 rounded-full flex items-center justify-center transition"
-                >
-                    <ThumbsUp size={28} className="text-green-500" />
-                </button>
             </div>
         </div>
     )
