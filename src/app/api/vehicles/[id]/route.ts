@@ -60,6 +60,11 @@ export async function PATCH(
             return NextResponse.json({ error: 'No tienes permiso para editar este vehículo' }, { status: 403 })
         }
 
+        // Validar que el status sea un valor válido del enum
+        if (status && !['ACTIVE', 'INACTIVE', 'SOLD'].includes(status)) {
+            return NextResponse.json({ error: 'Estado inválido' }, { status: 400 })
+        }
+
         // Si se está editando, reseteamos la moderación si cambian datos clave
         const keyFieldsChanged = updateData.brand || updateData.model || updateData.year || updateData.images
         const finalUpdateData: any = { ...updateData }
@@ -133,6 +138,11 @@ export async function PATCH(
 
     } catch (error) {
         console.error('Error actualizando vehículo:', error)
+        console.error('Error details:', {
+            vehicleId: await params.then(p => p.id),
+            error: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined
+        })
         return NextResponse.json({ error: 'Error interno' }, { status: 500 })
     }
 }

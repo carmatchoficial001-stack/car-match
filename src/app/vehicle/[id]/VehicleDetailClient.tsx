@@ -458,6 +458,9 @@ function OwnerActionButton({ action, vehicleId, icon, label, variant }: {
                 const newStatus = action === 'sold' ? 'SOLD' : action === 'pause' ? 'INACTIVE' : 'ACTIVE'
                 res = await fetch(`/api/vehicles/${vehicleId}`, {
                     method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify({
                         status: newStatus,
                         useCredit: action === 'activate-credit'
