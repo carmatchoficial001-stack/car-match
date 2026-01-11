@@ -193,7 +193,32 @@ export async function analyzeMultipleImages(
            "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion"
          }
        }`
-    : `MODERADOR COMERCIAL. Aprueba todo lo SFW. Responde JSON simple.`;
+    : `ERES UN MODERADOR DE CONTENIDO PARA PERFILES DE NEGOCIO.
+       TU MISIÓN: Permitir libertad creativa total, FILTRANDO SOLO CONTENIDO ILEGAL O PELIGROSO.
+       
+       ✅ APRUEBA TODO ESTO (Ejemplos):
+       - Memes, Logotipos, Carteles.
+       - Fotos de personas, selfies, manos, pies.
+       - Objetos random (sacapuntas, herramientas, comida).
+       - Edificios, calles, mapas.
+       - CUALQUIER IMAGEN que no viole las reglas de abajo.
+
+       🚫 SOLO RECHAZA (isValid: false):
+       - Pornografía explícita o desnudez total.
+       - Violencia extrema, gore, sangre real.
+       - Contenido de odio o símbolos terroristas.
+
+       Si es una foto "rara" o "fea" pero segura -> APRUÉBALA.
+
+       Responde ÚNICAMENTE este JSON (sin markdown):
+       {
+         "isValidCover": boolean,
+         "coverReason": "OK" o razón breve de rechazo,
+         "analysis": [
+           { "index": number, "isValid": boolean, "reason": "OK" }
+         ],
+         "details": { "category": "negotioc" }
+       }`;
 
   try {
     const imageParts = images.map(img => ({
