@@ -172,7 +172,7 @@ export async function analyzeMultipleImages(
           - La IMAGEN 0 (Primera imagen) es la referencia de "LA VERDAD".
           - Todas las demás imágenes (1, 2, 3...) DEBEN ser del MISMO VEHÍCULO que la Imagen 0.
           - Deben coincidir en COLOR, MARCA y MODELO (Generación).
-          - Si la Imagen N es de un carro diferente (ej: Portada es Roja y foto 3 es Gris): MARCAR COMO INVÁLIDA (`isValid: false` para ese índice).
+          - Si la Imagen N es de un carro diferente (ej: Portada es Roja y foto 3 es Gris): MARCAR COMO INVÁLIDA (isValid: false para ese índice).
           - Esto es para evitar publicaciones de lotes o múltiples venta en un solo post.
 
        🚫 RECHAZOS GENERALES (Independiente del contexto):
