@@ -536,7 +536,17 @@
                 "t3": "Reúnete siempre en lugares públicos y concurridos (Plazas, Bancos).",
                 "t4": "Verifica que el número de serie (VIN) coincida en chasis y papeles.",
                 "t5": "No lleves grandes sumas de efectivo. Prefiere transferencia en el banco.",
-                "t6": "Si el precio es demasiado bueno para ser verdad, sospecha."
+                "t6": "Si el precio es demasiado bueno para ser verdad, sospecha.",
+                "t7": "Verifica que el vendedor coincida con el nombre en la factura original.",
+                "t8": "Pide una videollamada antes para confirmar que el vehículo existe y funciona.",
+                "t9": "No compartas datos personales sensibles como tu domicilio exacto por el chat.",
+                "t10": "Revisa que el motor no tenga fugas de aceite o sonidos extraños al encender en frío.",
+                "t11": "Pregunta si el auto tiene reporte de accidentes o reparaciones mayores.",
+                "t12": "Verifica que los documentos no tengan tachaduras o enmendaduras.",
+                "t13": "Si el pago es por transferencia, realízala dentro de una sucursal bancaria.",
+                "t14": "Revisa el estado de las llantas y la suspensión; son gastos fuertes si están mal.",
+                "t15": "Desconfía de vendedores que dicen estar en otra ciudad y piden depósito para 'traslado'.",
+                "t16": "Lleva a un mecánico profesional para que escanee la computadora del auto."
             },
             "seller": {
                 "title": "Consejos para Vendedores",
@@ -544,7 +554,17 @@
                 "t2": "Muestra el auto en lugares seguros, nunca en tu domicilio particular.",
                 "t3": "Ve acompañado a la cita de muestra.",
                 "t4": "No entregues documentos originales hasta cerrar la venta.",
-                "t5": "Solicita identificación del comprador antes de la prueba de manejo."
+                "t5": "Solicita identificación del comprador antes de la prueba de manejo.",
+                "t6": "Si el pago es en efectivo, verifícalo en un banco para evitar billetes falsos.",
+                "t7": "No permitas que el comprador se lleve el auto solo con una 'foto de la transferencia'; verifica tu saldo.",
+                "t8": "Realiza una carta responsiva o contrato de compra-venta para deslindarte de multas posteriores.",
+                "t9": "Entrega el auto en un lugar con cámaras de seguridad o vigilancia.",
+                "t10": "No aceptes pagos en 'abonos' o cheques de caja que no puedas cobrar al momento.",
+                "t11": "Cancela tu seguro inmediatamente después de que el nuevo dueño se lleve el auto.",
+                "t12": "Conservar una copia de la identificación y comprobante de domicilio del comprador.",
+                "t13": "Asegúrate de que el comprador firme de recibido por los documentos y llaves.",
+                "t14": "Desconfía de compradores que no hacen preguntas técnicas y quieren cerrar el trato muy rápido.",
+                "t15": "Si el comprador viene de otra ciudad, acuerda la cita en un punto intermedio de fácil acceso y seguro."
             },
             "general": {
                 "title": "Seguridad General",
