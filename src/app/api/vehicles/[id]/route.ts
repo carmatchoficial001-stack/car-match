@@ -137,13 +137,19 @@ export async function PATCH(
         })
 
     } catch (error) {
-        console.error('Error actualizando vehículo:', error)
-        console.error('Error details:', {
-            vehicleId: await params.then(p => p.id),
-            error: error instanceof Error ? error.message : 'Unknown error',
-            stack: error instanceof Error ? error.stack : undefined
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        const errorStack = error instanceof Error ? error.stack : undefined
+
+        console.error('❌ Error actualizando vehículo:', {
+            error: errorMessage,
+            stack: errorStack,
+            timestamp: new Date().toISOString()
         })
-        return NextResponse.json({ error: 'Error interno' }, { status: 500 })
+
+        return NextResponse.json({
+            error: 'Error interno',
+            details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+        }, { status: 500 })
     }
 }
 
