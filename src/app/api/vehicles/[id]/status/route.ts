@@ -37,7 +37,7 @@ export async function POST(
         // Verificar propiedad
         const vehicle = await prisma.vehicle.findUnique({
             where: { id },
-            select: { userId: true }
+            select: { userId: true, status: true }
         })
 
         if (!vehicle) {
@@ -46,6 +46,14 @@ export async function POST(
 
         if (vehicle.userId !== user.id) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+        }
+
+        // 🔒 REGLA DE NEGOCIO: No se puede reactivar un vehículo VENDIDO sin crédito
+        if (vehicle.status === 'SOLD' && status === 'ACTIVE') {
+            return NextResponse.json({
+                error: 'Para reactivar un vehículo vendido necesitas usar 1 crédito',
+                needsCredit: true
+            }, { status: 402 })
         }
 
         // Actualizar SOLO el status

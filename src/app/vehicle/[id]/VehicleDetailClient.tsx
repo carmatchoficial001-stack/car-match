@@ -85,9 +85,13 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
 
     // Componentes de Gestión Internos (Solo Dueño)
     const ManagementPanel = () => {
+        // 💡 Lógica de Condición para botones
         const isExpired = vehicle.expiresAt && new Date(vehicle.expiresAt) < new Date()
-        const needsCreditToActivate = !vehicle.isFreePublication || isExpired || vehicle.moderationStatus === 'REJECTED'
-        const canActivateFree = vehicle.isFreePublication && !isExpired && (vehicle.moderationStatus === 'APPROVED' || vehicle.moderationStatus === 'PENDING_AI')
+        const isSold = vehicle.status === 'SOLD'
+
+        // Si está vendido, siempre necesita crédito para reactivar
+        const needsCreditToActivate = isSold || !vehicle.isFreePublication || isExpired || vehicle.moderationStatus === 'REJECTED'
+        const canActivateFree = !isSold && vehicle.isFreePublication && !isExpired && (vehicle.moderationStatus === 'APPROVED' || vehicle.moderationStatus === 'PENDING_AI')
         const statusKey = vehicle.status.toLowerCase()
 
         return (
