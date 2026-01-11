@@ -85,7 +85,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
     // ANILLOS PROGRESIVOS
     const RADIUS_TIERS = [12, 100, 250, 500, 1000, 2500, 5000]
-    const STORAGE_KEY = 'carmatch_swipe_seen_v1'
+    const STORAGE_KEY = `carmatch_swipe_seen_v1_${currentUserId}`
 
     const [tierIndex, setTierIndex] = useState(0)
     const [seenIds, setSeenIds] = useState<Set<string>>(new Set())
