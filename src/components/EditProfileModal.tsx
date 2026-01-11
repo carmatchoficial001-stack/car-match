@@ -113,6 +113,25 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                 onImagesChange={(imgs) => setSelectedImage(imgs[0] || '')}
                                 maxImages={1}
                                 required={false}
+                                fallbackContent={
+                                    <div className="border-2 border-dashed border-surface-highlight rounded-lg p-4">
+                                        <p className="text-xs text-text-secondary text-center mb-3">
+                                            Así se ve tu perfil actualmente (sin foto personalizada)
+                                        </p>
+                                        <div className="relative w-full max-w-xs aspect-video rounded-xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface mx-auto">
+                                            <img
+                                                src={`/defaults/avatars/car_${((currentUser.name?.charCodeAt(0) || 0) % 6) + 1}.png`}
+                                                alt="Avatar temporal"
+                                                className="w-full h-full object-cover opacity-90"
+                                            />
+                                            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/80 via-transparent to-transparent">
+                                                <span className="mt-8 text-5xl font-bold text-white drop-shadow-lg tracking-wider">
+                                                    {initial}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
                             />
                             <div className="mt-2 text-xs text-blue-300 bg-blue-900/20 border border-blue-900/30 p-2 rounded-lg flex items-start gap-2">
                                 <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

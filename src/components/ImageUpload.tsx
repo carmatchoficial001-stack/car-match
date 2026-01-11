@@ -10,9 +10,10 @@ interface ImageUploadProps {
     maxImages?: number
     label?: string
     required?: boolean
+    fallbackContent?: React.ReactNode  // Contenido a mostrar cuando no hay imágenes
 }
 
-export default function ImageUpload({ images, onImagesChange, maxImages = 5, label, required = true }: ImageUploadProps) {
+export default function ImageUpload({ images, onImagesChange, maxImages = 5, label, required = true, fallbackContent }: ImageUploadProps) {
     const { t } = useLanguage()
     const [uploading, setUploading] = useState(false)
     const [uploadError, setUploadError] = useState<string | null>(null)
@@ -193,14 +194,18 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
             )}
 
             {images.length === 0 && (
-                <div className="border-2 border-dashed border-surface-highlight rounded-lg p-8 text-center">
-                    <svg className="w-12 h-12 text-text-secondary mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p className="text-text-secondary text-sm">
-                        {t('publish.no_photos_yet')}
-                    </p>
-                </div>
+                fallbackContent ? (
+                    fallbackContent
+                ) : (
+                    <div className="border-2 border-dashed border-surface-highlight rounded-lg p-8 text-center">
+                        <svg className="w-12 h-12 text-text-secondary mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p className="text-text-secondary text-sm">
+                            {t('publish.no_photos_yet')}
+                        </p>
+                    </div>
+                )
             )}
         </div>
     )
