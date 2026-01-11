@@ -239,14 +239,12 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Column: Images */}
                     <div className="space-y-4">
-                        <div className="relative aspect-video bg-surface rounded-2xl overflow-hidden border border-surface-highlight shadow-2xl">
+                        <div className="relative w-full bg-black/95 rounded-2xl overflow-hidden border border-surface-highlight shadow-2xl flex items-center justify-center min-h-[300px]">
                             {vehicle.images && vehicle.images.length > 0 ? (
-                                <Image
+                                <img
                                     src={vehicle.images[activeImage]}
                                     alt={vehicle.title}
-                                    fill
-                                    className="object-cover"
-                                    priority
+                                    className="w-auto h-auto max-w-full max-h-[75vh] object-contain mx-auto"
                                 />
                             ) : (
                                 <div className="flex items-center justify-center h-full text-text-secondary">
