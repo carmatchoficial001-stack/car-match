@@ -355,20 +355,20 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                 <button
                                     type="button"
                                     onClick={() => setShowSafetyTips(!showSafetyTips)}
-                                    className={`p-3 rounded-xl transition-colors ${showSafetyTips ? 'bg-primary-100 text-primary-700' : 'text-primary-600 hover:bg-primary-50'}`}
+                                    className={`p-2 sm:p-3 rounded-xl transition-colors ${showSafetyTips ? 'bg-primary-100 text-primary-700' : 'text-primary-600 hover:bg-primary-50'}`}
                                     title={t('messages.safety_shield')}
                                 >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                     </svg>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setShowAppointmentModal(true)}
-                                    className="p-3 text-primary-600 hover:bg-primary-50 rounded-xl transition-colors"
+                                    className="p-2 sm:p-3 text-primary-600 hover:bg-primary-50 rounded-xl transition-colors"
                                     title="Agendar Cita"
                                 >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </button>
@@ -380,14 +380,14 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     placeholder={t('messages.write_message')}
-                                    className="flex-1 bg-transparent py-3 focus:outline-none text-text-primary"
+                                    className="flex-1 bg-transparent py-2.5 sm:py-3 focus:outline-none text-text-primary text-sm sm:text-base"
                                     disabled={sending || (chat?.vehicle.status && chat.vehicle.status !== 'ACTIVE')}
                                 />
                             </div>
                             <button
                                 type="submit"
                                 disabled={!newMessage.trim() || sending || (chat?.vehicle.status && chat.vehicle.status !== 'ACTIVE')}
-                                className="p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-primary-900/20 shrink-0"
+                                className="p-2.5 sm:p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-primary-900/20 shrink-0"
                             >
                                 <svg className="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
