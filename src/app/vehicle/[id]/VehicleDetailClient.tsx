@@ -446,9 +446,9 @@ function OwnerActionButton({ action, vehicleId, icon, label, variant }: {
             let res;
             if (action === 'ai-fix') {
                 res = await fetch(`/api/vehicles/${vehicleId}/ai-fix`, { method: 'POST' })
-            } else if (action === 'pause' || action === 'sold') {
+            } else if (action === 'pause' || action === 'sold' || action === 'activate') {
                 // Usar endpoint simplificado para cambios de status
-                const newStatus = action === 'sold' ? 'SOLD' : 'INACTIVE'
+                const newStatus = action === 'sold' ? 'SOLD' : action === 'pause' ? 'INACTIVE' : 'ACTIVE'
                 res = await fetch(`/api/vehicles/${vehicleId}/status`, {
                     method: 'POST',
                     headers: {
@@ -457,7 +457,7 @@ function OwnerActionButton({ action, vehicleId, icon, label, variant }: {
                     body: JSON.stringify({ status: newStatus })
                 })
             } else {
-                // Para activate y activate-credit seguir usando PATCH
+                // Solo para activate-credit usar PATCH (requiere lógica de créditos)
                 const newStatus = 'ACTIVE'
                 res = await fetch(`/api/vehicles/${vehicleId}`, {
                     method: 'PATCH',

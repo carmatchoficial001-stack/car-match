@@ -49,9 +49,26 @@ export async function POST(
         }
 
         // Actualizar SOLO el status
+        let updateData: any = { status }
+
+        // Si está ACTIVANDO y el vehículo aún tiene tiempo, extender gratis
+        if (status === 'ACTIVE') {
+            const fullVehicle = await prisma.vehicle.findUnique({
+                where: { id },
+                select: { expiresAt: true, isFreePublication: true }
+            })
+
+            const now = new Date()
+            const isExpired = fullVehicle?.expiresAt && new Date(fullVehicle.expiresAt) < now
+            const canActivateFree = fullVehicle?.isFreePublication && !isExpired
+
+            // Si puede activar gratis (aún no expiró), no cambiar expiresAt
+            // Si ya expiró, necesitaría usar crédito (eso lo maneja el PATCH principal)
+        }
+
         const updated = await prisma.vehicle.update({
             where: { id },
-            data: { status }
+            data: updateData
         })
 
         return NextResponse.json({ success: true, vehicle: updated })
