@@ -14,6 +14,7 @@ export const {
 } = NextAuth({
     ...authConfig,
     adapter: PrismaAdapter(prisma),
+    debug: true, // 🔍 Debug habilitado para ver errores en Vercel logs
     // 🔥 EVENTOS COMENTADOS TEMPORALMENTE PARA FIX CRÍTICO DE PRODUCCIÓN
     // events: {
     //     async createUser({ user }) {
