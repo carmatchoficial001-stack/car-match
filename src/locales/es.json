@@ -646,6 +646,7 @@
         "btn_search": "Preguntar al Asesor"
     },
     "map_store": {
+        "search_placeholder": "🔍 Buscar calle, colonia o lugar...",
         "loading": "Cargando Mapa...",
         "loading_location": "Obteniendo tu ubicación...",
         "location_required": "Ubicación Requerida",

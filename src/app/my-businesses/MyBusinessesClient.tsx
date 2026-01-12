@@ -534,7 +534,7 @@ export default function MyBusinessesClient() {
                                 {/* Category Selection (Define el color) */}
                                 <div className="bg-surface-highlight/30 p-4 rounded-xl border border-primary-700/20 mb-4">
                                     <label className="block text-sm font-bold text-primary-500 mb-2">
-                                        1. Primero selecciona el Tipo de Negocio (Define el color de tu marcador 📍)
+                                        1. Primero selecciona el Tipo de Negocio
                                     </label>
                                     <select
                                         name="category"
