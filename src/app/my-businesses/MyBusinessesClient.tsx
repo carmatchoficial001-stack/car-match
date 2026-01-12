@@ -675,43 +675,7 @@ export default function MyBusinessesClient() {
                                     </div>
 
                                     {/* Additional Phones */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-text-primary mb-2">
-                                            Teléfonos Adicionales
-                                        </label>
-                                        {additionalPhones.map((p, idx) => (
-                                            <div key={idx} className="flex gap-2 mb-2">
-                                                <div className="flex-1">
-                                                    <PhoneInput
-                                                        value={p}
-                                                        onChange={(val) => {
-                                                            const newPhones = [...additionalPhones]
-                                                            newPhones[idx] = val
-                                                            setAdditionalPhones(newPhones)
-                                                        }}
-                                                        placeholder="Otro número..."
-                                                    />
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const newPhones = additionalPhones.filter((_, i) => i !== idx)
-                                                        setAdditionalPhones(newPhones)
-                                                    }}
-                                                    className="px-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-                                        ))}
-                                        <button
-                                            type="button"
-                                            onClick={() => setAdditionalPhones([...additionalPhones, ''])}
-                                            className="text-sm text-primary-500 font-bold hover:underline flex items-center gap-1"
-                                        >
-                                            + Agregar otro teléfono
-                                        </button>
-                                    </div>
+
 
                                     {/* WhatsApp & Telegram */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
