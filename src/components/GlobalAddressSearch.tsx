@@ -75,8 +75,6 @@ export default function GlobalAddressSearch({ onSelect }: GlobalAddressSearchPro
             const params = new URLSearchParams({
                 access_token: token,
                 types: 'address,poi,place,locality',
-                access_token: token,
-                types: 'address,poi,place,locality',
                 language: locale === 'es' ? 'es' : 'en', // Basic mapping for now
                 limit: '5'
             })
