@@ -527,9 +527,7 @@ export default function MyBusinessesClient() {
                         <form onSubmit={handleSubmit} className="space-y-6" key={editingBusinessId || 'new'}>
                             {/* Location Map Section */}
                             <div className="space-y-4">
-                                <label className="block text-sm font-medium text-text-primary">
-                                    📍 {t('business.location_title')} *
-                                </label>
+
 
                                 {/* Category Selection (Define el color) */}
                                 <div className="bg-surface-highlight/30 p-4 rounded-xl border border-primary-700/20 mb-4">
