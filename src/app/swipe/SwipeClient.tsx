@@ -227,7 +227,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                         >
                             <MapPin className="w-3 h-3 text-primary-400" />
                             <span className="font-bold text-primary-300">
-                                Radio: 0 - {currentRadius} km | {location?.city || 'Buscando...'}
+                                {t('market.radius_label', { radius: currentRadius })} | {location?.city || t('common.searching')}
                             </span>
                             <Search className="w-3 h-3 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
@@ -235,7 +235,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                             <MapPin className="text-primary-400" size={40} />
                         </div>
                         <h2 className="text-2xl font-bold mb-4 tracking-tight">
-                            ¡Has visto todo en esta zona!
+                            {t('swipe.no_vehicles')}
                         </h2>
 
                         <div className="flex flex-col gap-3 w-full">
@@ -245,10 +245,10 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                             >
                                 <div className="flex items-center gap-3 text-lg">
                                     <RefreshCw size={20} className="group-hover:rotate-180 transition-transform duration-500" />
-                                    {tierIndex === RADIUS_TIERS.length - 1 ? 'Reiniciar' : 'Expandir radio'}
+                                    {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search') : t('market.expand_search')}
                                 </div>
                                 <span className="text-[10px] text-primary-200 uppercase tracking-widest opacity-80 decoration-primary-500/30">
-                                    Radio actual: 0 - {currentRadius} km | {location?.city}
+                                    {t('market.radius_label', { radius: currentRadius })} | {location?.city}
                                 </span>
                             </button>
 
@@ -257,7 +257,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                                 className="w-full py-4 bg-surface-highlight/30 hover:bg-surface-highlight/50 text-text-primary border border-white/10 rounded-2xl font-medium transition active:scale-95 flex items-center justify-center gap-3"
                             >
                                 <MapPin size={20} />
-                                Buscar en otra ciudad
+                                {t('market.change_location')}
                             </button>
                         </div>
                     </div>
@@ -287,7 +287,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
                         <h3 className="text-xl font-bold text-text-primary mb-4">Cambiar Ubicación</h3>
                         <p className="text-text-secondary text-sm mb-6">
-                            Ingresa una ciudad para explorar vehículos en esa zona en modo Swipe.
+                            {t('market.change_location_desc')}
                         </p>
 
                         <form onSubmit={searchManualLocation} className="space-y-4">
@@ -295,7 +295,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                                 type="text"
                                 value={locationInput}
                                 onChange={(e) => setLocationInput(e.target.value)}
-                                placeholder="Ciudad o Código Postal..."
+                                placeholder={t('market.change_location_placeholder')}
                                 className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-500 outline-none"
                                 autoFocus
                             />
@@ -312,13 +312,13 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                                     }}
                                     className="flex-1 px-4 py-3 bg-surface-highlight text-text-primary rounded-lg font-medium hover:bg-surface-highlight/80"
                                 >
-                                    Usar mi GPS
+                                    {t('market.use_gps')}
                                 </button>
                                 <button
                                     type="submit"
                                     className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg font-bold hover:bg-primary-700"
                                 >
-                                    Buscar Zona
+                                    {t('market.search_zone')}
                                 </button>
                             </div>
                         </form>

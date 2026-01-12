@@ -122,7 +122,7 @@ export default function MarketClient({
 
     // Ubicación Activa
     const activeLocation = manualLocation || location
-    const displayCity = activeLocation?.city || activeLocation?.state || (locationLoading ? 'Localizando...' : 'Ubicación desconocida')
+    const displayCity = activeLocation?.city || activeLocation?.state || (locationLoading ? t('common.loading') : t('market.radius_unknown'))
     const userCountry = normalizeCountryCode(activeLocation?.countryCode || activeLocation?.country)
 
     // Pagination
@@ -182,7 +182,7 @@ export default function MarketClient({
         }
 
         filterItems()
-    }, [items, searchRadius, activeLocation, locationLoading, userCountry])
+    }, [items, searchRadius, activeLocation, locationLoading, userCountry, t])
 
     const router = useRouter()
     const [searchText, setSearchText] = useState(searchParams.search || '')
@@ -248,7 +248,7 @@ export default function MarketClient({
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                             </svg>
-                            <span>{showFilters ? t('market.hide_filters') : t('market.show_filters')}</span>
+                            <span>{showFilters ? t('market.filters.hide_filters') : t('market.filters.show_filters')}</span>
                         </button>
 
                         {/* Barra de búsqueda con IA - Oculta en móvil porque ya existe en Filtros */}
@@ -275,7 +275,7 @@ export default function MarketClient({
                                     type="text"
                                     value={searchText}
                                     onChange={(e) => setSearchText(e.target.value)}
-                                    placeholder={isSearching ? t('smart_search.placeholder_active') : t('market.search_placeholder') || t('smart_search.placeholder_default')}
+                                    placeholder={isSearching ? t('smart_search.placeholder_active') : t('market.search_placeholder')}
                                     disabled={isSearching}
                                     className="w-full px-4 py-3 pl-12 bg-surface border border-surface-highlight rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-primary-700 transition disabled:opacity-70"
                                 />
@@ -316,7 +316,7 @@ export default function MarketClient({
                         <div className="flex items-center justify-center py-20">
                             <div className="text-center">
                                 <div className="w-12 h-12 border-4 border-primary-700 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                                <p className="text-text-secondary">{t('market.searching')}</p>
+                                <p className="text-text-secondary">{t('common.searching')}</p>
                             </div>
                         </div>
                     ) : (
@@ -349,7 +349,7 @@ export default function MarketClient({
 
                                                     {isBusiness && (
                                                         <div className="absolute top-3 right-10 z-10 px-2 py-0.5 bg-primary-600 text-[10px] text-white font-bold rounded-full">
-                                                            Negocio
+                                                            {t('market.business_badge')}
                                                         </div>
                                                     )}
 
@@ -412,14 +412,14 @@ export default function MarketClient({
                                                                 href={`/map-store?id=${item.id}`}
                                                                 className="text-xs font-bold text-primary-400 hover:underline"
                                                             >
-                                                                Ver en mapa
+                                                                {t('market.view_on_map')}
                                                             </Link>
                                                         )}
                                                         <div className="flex items-center gap-2 md:gap-3">
                                                             <div className="hidden md:block">
                                                                 <ShareButton
                                                                     title={item.title}
-                                                                    text={`¡Mira este ${item.title} en CarMatch!`}
+                                                                    text={t('market.interest_text', { title: item.title })}
                                                                     url={typeof window !== 'undefined' ? `${window.location.origin}${isBusiness ? `/business/${item.id}` : `/vehicle/${item.id}`}` : (isBusiness ? `/business/${item.id}` : `/vehicle/${item.id}`)}
                                                                     variant="minimal"
                                                                 />
@@ -443,8 +443,8 @@ export default function MarketClient({
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                                 </svg>
                                             </div>
-                                            <span className="font-bold text-lg text-text-primary">Ver más</span>
-                                            <span className="text-sm text-text-secondary mt-1">Cargar siguientes {CARS_PER_PAGE}</span>
+                                            <span className="font-bold text-lg text-text-primary">{t('market.view_more')}</span>
+                                            <span className="text-sm text-text-secondary mt-1">{t('market.load_next')} {CARS_PER_PAGE}</span>
                                         </button>
                                     ) : (
                                         // Card: Expandir
@@ -459,15 +459,15 @@ export default function MarketClient({
                                                     </svg>
                                                 </div>
                                                 <span className="font-bold text-lg text-white">
-                                                    {tierIndex === RADIUS_TIERS.length - 1 ? "Volver a empezar" : "Expandir búsqueda"}
+                                                    {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search') : t('market.expand_search')}
                                                 </span>
                                                 <div className="mt-2 px-3 py-1 bg-white/10 rounded-full border border-white/20">
                                                     <span className="text-[10px] md:text-xs text-primary-200 font-bold uppercase tracking-wider">
-                                                        Radio: 0 - {searchRadius} km | {displayCity}
+                                                        {t('market.radius_label', { radius: searchRadius })} | {displayCity}
                                                     </span>
                                                 </div>
                                                 <span className="text-sm text-primary-200 mt-2">
-                                                    {tierIndex === RADIUS_TIERS.length - 1 ? "Reiniciar búsqueda desde tu zona" : "Busca el siguiente auto disponible"}
+                                                    {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search_desc') : t('market.expand_search_desc')}
                                                 </span>
                                             </button>
                                         )
@@ -483,7 +483,7 @@ export default function MarketClient({
                                     >
                                         <MapPin className="w-3 h-3 text-primary-400" />
                                         <span className="font-bold text-primary-300">
-                                            Radio: 0 - {searchRadius} km | {displayCity}
+                                            {t('market.radius_label', { radius: searchRadius })} | {displayCity}
                                         </span>
                                         <Search className="w-3 h-3 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </button>
@@ -519,7 +519,7 @@ export default function MarketClient({
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
-                                            Buscar en otra ciudad
+                                            {t('market.change_location')}
                                         </button>
                                     </div>
                                 </div>
@@ -542,7 +542,7 @@ export default function MarketClient({
 
                                 <h3 className="text-xl font-bold text-text-primary mb-4">Cambiar Ubicación</h3>
                                 <p className="text-text-secondary text-sm mb-6">
-                                    Ingresa una ciudad para ver vehículos en esa zona (ej. "Guadalajara", "Miami").
+                                    {t('market.change_location_desc')}
                                 </p>
 
                                 <form onSubmit={searchManualLocation} className="space-y-4">
@@ -550,7 +550,7 @@ export default function MarketClient({
                                         type="text"
                                         value={locationInput}
                                         onChange={(e) => setLocationInput(e.target.value)}
-                                        placeholder="Ciudad o Código Postal..."
+                                        placeholder={t('market.change_location_placeholder')}
                                         className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-500 outline-none"
                                         autoFocus
                                     />
@@ -565,13 +565,13 @@ export default function MarketClient({
                                             }}
                                             className="flex-1 px-4 py-3 bg-surface-highlight text-text-primary rounded-lg font-medium hover:bg-surface-highlight/80"
                                         >
-                                            Usar mi GPS
+                                            {t('market.use_gps')}
                                         </button>
                                         <button
                                             type="submit"
                                             className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg font-bold hover:bg-primary-700"
                                         >
-                                            Buscar Zona
+                                            {t('market.search_zone')}
                                         </button>
                                     </div>
                                 </form>

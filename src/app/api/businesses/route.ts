@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { generateSlug } from '@/lib/slug'
 
 /**
  * POST /api/businesses
@@ -173,6 +173,24 @@ export async function POST(request: NextRequest) {
             creditCharged = false
         }
 
+        // Generar slug único
+        let baseSlug = generateSlug(name.trim())
+        let finalSlug = baseSlug
+        let counter = 1
+        let isUnique = false
+
+        while (!isUnique) {
+            const existingSlug = await prisma.business.findUnique({
+                where: { slug: finalSlug }
+            })
+            if (!existingSlug) {
+                isUnique = true
+            } else {
+                finalSlug = `${baseSlug}-${counter}`
+                counter++
+            }
+        }
+
         // Guardar huella después de crear
 
         // Crear negocio
@@ -180,6 +198,7 @@ export async function POST(request: NextRequest) {
             data: {
                 userId: session.user.id,
                 name: name.trim(),
+                slug: finalSlug,
                 category,
                 description: description?.trim() || null,
                 address: address.trim(),
@@ -377,10 +396,35 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
         }
 
+        // Si cambió el nombre, actualizar el slug
+        let finalSlug = undefined
+        if (name && name.trim() !== existing.name) {
+            let baseSlug = generateSlug(name.trim())
+            finalSlug = baseSlug
+            let counter = 1
+            let isUnique = false
+
+            while (!isUnique) {
+                const collision = await prisma.business.findFirst({
+                    where: {
+                        slug: finalSlug,
+                        NOT: { id: id }
+                    }
+                })
+                if (!collision) {
+                    isUnique = true
+                } else {
+                    finalSlug = `${baseSlug}-${counter}`
+                    counter++
+                }
+            }
+        }
+
         const updated = await prisma.business.update({
             where: { id },
             data: {
                 name: name?.trim(),
+                slug: finalSlug,
                 category,
                 description: description?.trim(),
                 address: address?.trim(),

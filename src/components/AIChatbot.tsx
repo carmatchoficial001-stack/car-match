@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Send, X, MessageCircle, Users, ChevronRight, Headset } from 'lucide-react'
 import { findBestResponse } from '@/lib/chatbot-data'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface Message {
     id: string
@@ -14,11 +15,12 @@ interface Message {
 }
 
 export default function AIChatbot() {
+    const { t } = useLanguage()
     const [isOpen, setIsOpen] = useState(false)
     const [messages, setMessages] = useState<Message[]>([
         {
             id: 'welcome',
-            text: '¡Hola! Bienvenido al Soporte de CarMatch. 👨‍💻 ¿En qué podemos ayudarte con la plataforma?',
+            text: t('chat.welcome'),
             sender: 'bot',
             timestamp: new Date()
         }
@@ -92,10 +94,10 @@ export default function AIChatbot() {
                                 <Users className="text-primary-700" size={20} />
                             </div>
                             <div>
-                                <h3 className="font-bold text-text-primary text-sm">Soporte CarMatch</h3>
+                                <h3 className="font-bold text-text-primary text-sm">{t('common.support')}</h3>
                                 <p className="text-xs text-primary-700 flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 bg-primary-700 rounded-full"></span>
-                                    Equipo en línea
+                                    {t('common.online_team')}
                                 </p>
                             </div>
                         </div>
@@ -159,7 +161,7 @@ export default function AIChatbot() {
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyPress={handleKeyPress}
-                                placeholder="Escribe tu duda..."
+                                placeholder={t('common.typing_placeholder')}
                                 className="flex-1 bg-background border border-white/10 rounded-xl px-4 py-2 text-sm text-text-primary focus:outline-none focus:border-primary-700 transition placeholder:text-gray-600"
                             />
                             <button

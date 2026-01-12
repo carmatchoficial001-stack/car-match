@@ -14,6 +14,7 @@ import {
     getFeaturesByCategory,
     VehicleCategory
 } from '@/lib/vehicleTaxonomy'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface MarketFiltersAdvancedProps {
     currentFilters: any
@@ -32,6 +33,7 @@ export default function MarketFiltersAdvanced({
     userState = '',
     userCity = ''
 }: MarketFiltersAdvancedProps) {
+    const { t } = useLanguage()
     const router = useRouter()
     const searchParams = useSearchParams()
     const availableYears = getYears()
@@ -112,7 +114,7 @@ export default function MarketFiltersAdvanced({
                     setFuel(Array.isArray(filters.fuel) ? filters.fuel : [filters.fuel])
                 }
 
-                setAiExplanation(explanation || 'Filtros aplicados correctamente.')
+                setAiExplanation(explanation || t('smart_search.explanation_success') || 'Okey!')
 
                 // Animamos la apertura de filtros avanzados si la IA configuró algo de ahí
                 if (filters.transmission || filters.fuel || filters.color) {
@@ -121,7 +123,7 @@ export default function MarketFiltersAdvanced({
             }
         } catch (error) {
             console.error('Error in AI Search:', error)
-            setAiExplanation('Lo siento, hubo un problema al procesar tu solicitud con la IA.')
+            setAiExplanation(t('smart_search.error') || 'Error')
         } finally {
             setIsAnalyzing(false)
         }
@@ -255,8 +257,8 @@ export default function MarketFiltersAdvanced({
     return (
         <div className="bg-surface border border-surface-highlight rounded-xl p-6 space-y-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-bold text-text-primary">Busca tu vehículo ideal</h2>
-                <button onClick={clearFilters} className="text-sm text-primary-400 hover:underline">Limpiar todo</button>
+                <h2 className="text-lg font-bold text-text-primary">{t('market.filters.title')}</h2>
+                <button onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
             </div>
 
             {/* 🧠 SMART SEARCH AI - REBRANDED TO ASESOR PERSONAL */}
@@ -271,14 +273,14 @@ export default function MarketFiltersAdvanced({
                 <div className="relative z-10">
                     <div className="flex items-center gap-2 mb-2">
                         <label className="text-sm font-bold text-primary-300 uppercase tracking-wider">
-                            ¿EN QUÉ PODEMOS AYUDARTE HOY?
+                            {t('smart_search.title')}
                         </label>
                     </div>
                     <div className="space-y-2">
                         <textarea
                             value={aiQuery}
                             onChange={(e) => setAiQuery(e.target.value)}
-                            placeholder="Ej. Busco un auto familiar y económico..."
+                            placeholder={t('smart_search.placeholder')}
                             className="w-full bg-black/40 border border-primary-900/50 rounded-xl p-3 text-base md:text-sm text-gray-200 placeholder-gray-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all resize-none h-24 shadow-inner"
                             disabled={isAnalyzing}
                         />
@@ -293,10 +295,10 @@ export default function MarketFiltersAdvanced({
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    <span>Consultando experto...</span>
+                                    <span>{t('smart_search.consulting')}</span>
                                 </>
                             ) : (
-                                'Preguntar a un asesor'
+                                t('smart_search.ask_advisor')
                             )}
                         </button>
                         {aiExplanation && (
@@ -314,7 +316,7 @@ export default function MarketFiltersAdvanced({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* 1. Categoría Principal */}
                 <div>
-                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Tipo de Vehículo</label>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.category')}</label>
                     <select
                         value={category}
                         onChange={(e) => setCategory(e.target.value as VehicleCategory)}
@@ -329,7 +331,7 @@ export default function MarketFiltersAdvanced({
 
                 {/* 2. Subtipo (Dinámico) */}
                 <div>
-                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Estilo / Carrocería</label>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.style')}</label>
                     <select
                         value={subType}
                         onChange={(e) => setSubType(e.target.value)}
@@ -345,12 +347,12 @@ export default function MarketFiltersAdvanced({
 
                 {/* 3. Marca (Dinámica 'Global') */}
                 <div>
-                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Marca</label>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.brand')}</label>
                     <input
                         list="brands-list"
                         value={brand}
                         onChange={(e) => setBrand(e.target.value)}
-                        placeholder="Escribe o selecciona..."
+                        placeholder={t('market.filters.brand_placeholder')}
                         className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
                     />
                     <datalist id="brands-list">
@@ -362,12 +364,12 @@ export default function MarketFiltersAdvanced({
 
                 {/* 4. Modelo */}
                 <div>
-                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Modelo</label>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.model')}</label>
                     <input
                         type="text"
                         value={model}
                         onChange={(e) => setModel(e.target.value)}
-                        placeholder="Ej. Corolla, Civic..."
+                        placeholder={t('market.filters.model_placeholder')}
                         className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
                         list="models-list"
                     />
@@ -381,7 +383,7 @@ export default function MarketFiltersAdvanced({
                 {/* 5. Precio Rango */}
                 <div className="flex gap-2">
                     <div className="flex-1">
-                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Precio Min</label>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.price_min')}</label>
                         <input
                             type="number"
                             min="0"
@@ -409,7 +411,7 @@ export default function MarketFiltersAdvanced({
                 {/* 6. Año Rango */}
                 <div className="flex gap-2">
                     <div className="flex-1">
-                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Año Min</label>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.year_min')}</label>
                         <select
                             value={minYear}
                             onChange={(e) => setMinYear(e.target.value)}
@@ -442,7 +444,7 @@ export default function MarketFiltersAdvanced({
                 onClick={() => setShowAdvanced(!showAdvanced)}
                 className="w-full py-4 md:py-2 bg-surface-highlight/50 hover:bg-surface-highlight text-text-primary rounded-xl transition text-sm font-bold flex items-center justify-center gap-2"
             >
-                {showAdvanced ? 'Menos Filtros' : 'Más Filtros Avanzados (Color, Transmisión, Motor...)'}
+                {showAdvanced ? t('market.filters.show_less') : t('market.filters.show_more')}
                 <svg className={`w-4 h-4 transform transition ${showAdvanced ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -455,7 +457,7 @@ export default function MarketFiltersAdvanced({
                     {/* Common Selects Row */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Color</label>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.color')}</label>
                             <select
                                 value={color}
                                 onChange={(e) => setColor(e.target.value)}
@@ -466,7 +468,7 @@ export default function MarketFiltersAdvanced({
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Condición</label>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.condition')}</label>
                             <select
                                 value={condition}
                                 onChange={(e) => setCondition(e.target.value)}
@@ -477,7 +479,7 @@ export default function MarketFiltersAdvanced({
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Tracción</label>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.traction')}</label>
                             <select
                                 value={traction}
                                 onChange={(e) => setTraction(e.target.value)}
@@ -488,7 +490,7 @@ export default function MarketFiltersAdvanced({
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{category === 'Maquinaria' ? 'Horas Uso Max' : 'Km Max'}</label>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{category === 'Maquinaria' ? t('common.hours') : t('common.km') + ' ' + t('common.max')}</label>
                             <input
                                 type="number"
                                 min="0"
@@ -505,7 +507,7 @@ export default function MarketFiltersAdvanced({
                         <div className="col-span-2 md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-surface-highlight pt-4 mt-2">
                             <div>
                                 <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                                    {category === 'Maquinaria' ? 'Operadores' : 'Pasajeros'}
+                                    {category === 'Maquinaria' ? 'Operadores' : t('market.filters.passengers')}
                                 </label>
                                 <input
                                     type="number"
@@ -517,7 +519,7 @@ export default function MarketFiltersAdvanced({
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Puertas</label>
+                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.doors')}</label>
                                 <input
                                     type="number"
                                     min="2"
@@ -535,9 +537,7 @@ export default function MarketFiltersAdvanced({
                         <div className="col-span-2 md:col-span-4 grid grid-cols-2 gap-4 border-t border-surface-highlight pt-4 mt-2">
                             <div>
                                 <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                                    {category === 'Motocicleta' ? 'Cilindrada Min (cc)' :
-                                        category === 'Camión' || category === 'Maquinaria' ? 'Potencia Min (HP)' :
-                                            'Motor Min (Litros)'}
+                                            t('market.filters.displacement') + ' ' + t('common.min') + ' (L)'}
                                 </label>
                                 <input
                                     type="number"
@@ -549,9 +549,9 @@ export default function MarketFiltersAdvanced({
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                                    {category === 'Motocicleta' ? 'Cilindrada Max (cc)' :
-                                        category === 'Camión' || category === 'Maquinaria' ? 'Potencia Max (HP)' :
-                                            'Motor Max (Litros)'}
+                                    {category === 'Motocicleta' ? t('market.filters.displacement') + ' ' + t('common.max') + ' (cc)' :
+                                        category === 'Camión' || category === 'Maquinaria' ? t('market.filters.power') + ' ' + t('common.max') + ' (HP)' :
+                                            t('market.filters.displacement') + ' ' + t('common.max') + ' (L)'}
                                 </label>
                                 <input
                                     type="number"
@@ -566,7 +566,7 @@ export default function MarketFiltersAdvanced({
 
                     {/* Transmisión Chips */}
                     <div>
-                        <label className="block text-xs font-bold text-text-secondary uppercase mb-2">Transmisión</label>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.transmission')}</label>
                         <div className="flex flex-wrap gap-3">
                             {TRANSMISSIONS.map(t => (
                                 <button
@@ -587,7 +587,7 @@ export default function MarketFiltersAdvanced({
                     {/* Tracción y Pasajeros */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">Tracción</label>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.traction')}</label>
                             <select
                                 value={traction}
                                 onChange={(e) => setTraction(e.target.value)}
@@ -601,7 +601,7 @@ export default function MarketFiltersAdvanced({
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">Pasajeros Min</label>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.passengers') + ' ' + t('common.min')}</label>
                             <select
                                 value={passengers}
                                 onChange={(e) => setPassengers(e.target.value)}
@@ -620,7 +620,7 @@ export default function MarketFiltersAdvanced({
                     {/* Horas (Maquinaria/Barcos) */}
                     {(category === 'Maquinaria' || category === 'Especial') && (
                         <div>
-                            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">Horas de Uso Max</label>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('common.hours') + ' ' + t('common.max')}</label>
                             <input
                                 type="number"
                                 value={hours}
@@ -633,7 +633,7 @@ export default function MarketFiltersAdvanced({
 
                     {/* Combustible Chips */}
                     <div>
-                        <label className="block text-xs font-bold text-text-secondary uppercase mb-2">Combustible</label>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.fuel')}</label>
                         <div className="flex flex-wrap gap-3">
                             {FUELS.map(f => (
                                 <button
@@ -653,7 +653,7 @@ export default function MarketFiltersAdvanced({
                     {/* Dynamic Features (Air Cond, GPS, etc) */}
                     {categoryFeatures.length > 0 && (
                         <div>
-                            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">Equipamiento</label>
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.equipment')}</label>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                 {categoryFeatures.map(feat => (
                                     <button
@@ -683,7 +683,7 @@ export default function MarketFiltersAdvanced({
                     onClick={applyFilters}
                     className="flex-1 py-4 bg-primary-700 hover:bg-primary-600 text-white rounded-xl font-bold transition shadow-lg shadow-primary-900/20 active:scale-95"
                 >
-                    Aplicar Filtros
+                    {t('market.filters.apply')}
                 </button>
             </div>
         </div>

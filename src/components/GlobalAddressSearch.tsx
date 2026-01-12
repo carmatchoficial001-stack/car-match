@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Search } from 'lucide-react'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface Suggestion {
     id: string
@@ -26,6 +27,7 @@ interface GlobalAddressSearchProps {
 }
 
 export default function GlobalAddressSearch({ onSelect }: GlobalAddressSearchProps) {
+    const { t, locale } = useLanguage()
     const [query, setQuery] = useState('')
     const [suggestions, setSuggestions] = useState<Suggestion[]>([])
     const [loading, setLoading] = useState(false)
@@ -73,7 +75,9 @@ export default function GlobalAddressSearch({ onSelect }: GlobalAddressSearchPro
             const params = new URLSearchParams({
                 access_token: token,
                 types: 'address,poi,place,locality',
-                language: 'es',
+                access_token: token,
+                types: 'address,poi,place,locality',
+                language: locale === 'es' ? 'es' : 'en', // Basic mapping for now
                 limit: '5'
             })
 
@@ -157,7 +161,7 @@ export default function GlobalAddressSearch({ onSelect }: GlobalAddressSearchPro
                         setQuery(e.target.value)
                         setIsOpen(true)
                     }}
-                    placeholder="🔍 Buscar dirección o negocio (ej. Torre Eiffel, Av Reforma)"
+                    placeholder={t('map_store.search_placeholder') || "🔍 ..."}
                     className="w-full pl-12 pr-4 py-4 bg-surface border-2 border-primary-700/50 rounded-xl text-lg text-text-primary placeholder:text-text-secondary focus:border-primary-700 focus:ring-4 focus:ring-primary-700/20 outline-none transition shadow-lg"
                     autoComplete="new-password" // Hack: Chrome ignores 'off', but respects 'new-password' for non-password fields often.
                     list="autocompleteOff"

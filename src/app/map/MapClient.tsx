@@ -12,7 +12,7 @@ import { useLocation } from '@/contexts/LocationContext'
 // Dynamic Imports (Moved outside to prevent re-rendering)
 const MapBoxStoreLocator = dynamic(() => import('@/components/MapBoxStoreLocator'), {
     ssr: false,
-    loading: () => <div className="w-full h-full bg-slate-900 animate-pulse flex items-center justify-center text-white/20">Cargando Mapa...</div>
+    loading: () => <div className="w-full h-full bg-slate-900 animate-pulse flex items-center justify-center text-white/20">{t('common.loading')}</div>
 })
 
 const BusinessDetailsModal = dynamic(() => import('@/components/BusinessDetailsModal'), { ssr: false })
@@ -154,7 +154,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
             setSelectedCategories(detectedCats)
             if (detectedCats.length > 0) {
                 setSearchSuccess(true)
-                setExplanation('No pudimos conectar con el especialista, pero encontramos estas categorías por palabras clave.')
+                setExplanation(t('map_store.fallback_explanation'))
             }
         } finally {
             setIsAnalyzing(false)
@@ -199,7 +199,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                 setManualLocation({
                     latitude: lat,
                     longitude: lng,
-                    city: 'Ubicación Compartida',
+                    city: t('market.shared_location'),
                     country: ''
                 })
                 // No forzamos re-render con key, dejamos que MapController maneje el cambio
@@ -228,11 +228,11 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                 setStateInput('')
                 setCountryInput('')
             } else {
-                alert('No encontramos esa ubicación exacta. Revisa si hay algún error de dedo o intenta con campos más simples.')
+                alert(t('map_store.location_not_found'))
             }
         } catch (error) {
             console.error('Error buscando ciudad:', error)
-            alert('Error al buscar la ciudad. Intenta nuevamente.')
+            alert(t('map_store.location_search_error'))
         }
     }
 
@@ -359,7 +359,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                     onClick={() => setShowSidebar(true)}
                     className="md:hidden absolute top-4 left-4 z-30 px-4 py-2 bg-primary-700 text-white rounded-lg shadow-lg font-bold"
                 >
-                    Mostrar filtros
+                    {t('market.filters.show_filters')}
                 </button>
 
                 {/* 🗂️ Sidebar (Desktop & Mobile Drawer) */}

@@ -143,14 +143,14 @@ export default function AdminDashboard() {
     if (!stats) return null
 
     const menuItems = [
-        { id: 'overview', icon: LayoutDashboard, label: 'Dashboard' },
-        { id: 'intelligence', icon: Activity, label: 'Inteligencia' },
-        { id: 'users', icon: Users, label: 'Usuarios' },
-        { id: 'inventory', icon: Car, label: 'Inventario' },
-        { id: 'mapstore', icon: Store, label: 'MapStore' },
-        { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
-        { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports.filter(r => r.status === 'PENDING').length },
-        { id: 'logs', icon: Terminal, label: 'Logs del Sistema' },
+        { id: 'overview', icon: LayoutDashboard, label: t('admin.dashboard') },
+        { id: 'intelligence', icon: Activity, label: t('admin.intelligence') },
+        { id: 'users', icon: Users, label: t('admin.users') },
+        { id: 'inventory', icon: Car, label: t('admin.inventory') },
+        { id: 'mapstore', icon: Store, label: t('admin.mapstore') },
+        { id: 'ai-hub', icon: Cpu, label: t('admin.ai_hub') },
+        { id: 'reports', icon: Flag, label: t('admin.reports'), badge: stats.reports.filter(r => r.status === 'PENDING').length },
+        { id: 'logs', icon: Terminal, label: t('admin.logs') },
     ]
 
     return (
@@ -197,7 +197,7 @@ export default function AdminDashboard() {
                         className="w-full flex items-center gap-3 px-3 py-3 text-primary-400 hover:text-primary-300 hover:bg-white/5 transition-all rounded-xl"
                     >
                         <Headset className="w-5 h-5" />
-                        {isSidebarOpen && <span className="font-bold text-sm">Soporte CarMatch</span>}
+                        {isSidebarOpen && <span className="font-bold text-sm">{t('common.support')}</span>}
                     </button>
 
                     <button
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
                         className="w-full flex items-center gap-3 px-3 py-3 text-text-secondary hover:text-white hover:bg-white/5 transition-all rounded-xl"
                     >
                         <LogOut className="w-5 h-5" />
-                        {isSidebarOpen && <span className="text-sm">Salir al Portal</span>}
+                        {isSidebarOpen && <span className="text-sm">{t('nav.exit_portal')}</span>}
                     </button>
                 </div>
             </aside>
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
                         >
                             <QrCode className="w-4 h-4 text-primary-400 group-hover:text-primary-300" />
                             <span className="text-xs font-bold text-primary-400 group-hover:text-primary-300 uppercase tracking-wider hidden sm:block">
-                                Compartir App
+                                {t('admin.share_app')}
                             </span>
                         </button>
 
@@ -289,10 +289,10 @@ function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) 
         <div className="space-y-8">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard2 icon={Users} label="Usuarios Totales" value={stats.users.total} trend="+12%" color="blue" />
-                <StatCard2 icon={Car} label="Vehículos Activos" value={stats.vehicles.active} trend="+5%" color="purple" />
-                <StatCard2 icon={Activity} label="Citas Programadas" value={stats.appointments.total} trend="+8%" color="green" />
-                <StatCard2 icon={AlertCircle} label="Reportes Pendientes" value={stats.reports.filter((r: any) => r.status === 'PENDING').length} trend="Urgente" color="red" />
+                <StatCard2 icon={Users} label={t('admin.users')} value={stats.users.total} trend="+12%" color="blue" />
+                <StatCard2 icon={Car} label={t('admin.inventory')} value={stats.vehicles.active} trend="+5%" color="purple" />
+                <StatCard2 icon={Activity} label={t('messages.safety_mode.active')} value={stats.appointments.total} trend="+8%" color="green" />
+                <StatCard2 icon={AlertCircle} label={t('admin.reports')} value={stats.reports.filter((r: any) => r.status === 'PENDING').length} trend="Urgente" color="red" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -815,7 +815,7 @@ function IntelligenceTab() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                                <span className="text-xs font-bold">Alta Demanda</span>
+                                <span className="text-xs font-bold">{t('admin.high_demand')}</span>
                             </div>
                             <p className="text-[10px] text-text-secondary leading-relaxed pl-5">Zonas donde los usuarios están buscando vehículos o servicios específicos activamente.</p>
                         </div>
@@ -823,19 +823,19 @@ function IntelligenceTab() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded-full bg-white border border-black"></div>
-                                <span className="text-xs font-bold">Competencia</span>
+                                <span className="text-xs font-bold">{t('admin.competition')}</span>
                             </div>
                             <p className="text-[10px] text-text-secondary leading-relaxed pl-5">Negocios físicos registrados actualmente en el MapStore.</p>
                         </div>
 
                         <div className="pt-6 border-t border-white/5">
-                            <p className="text-[10px] font-black text-primary-500 uppercase mb-2">Consejo de ROI</p>
-                            <p className="text-[10px] italic text-text-primary/70">"Busque zonas con nubes rojas intensas donde no haya puntos blancos. Esos son sus Océanos Azules."</p>
+                            <p className="text-[10px] font-black text-primary-500 uppercase mb-2">{t('admin.roi_tip')}</p>
+                            <p className="text-[10px] italic text-text-primary/70">{t('admin.roi_desc')}</p>
                         </div>
                     </div>
 
                     <button className="mt-8 w-full py-4 bg-primary-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary-500 transition shadow-xl shadow-primary-900/40">
-                        Exportar Mapa de Calor
+                        {t('admin.export_heatmap')}
                     </button>
                 </div>
             </div>
@@ -892,9 +892,9 @@ function AiHubTab() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h3 className="text-3xl font-black italic tracking-tighter uppercase flex items-center gap-3">
-                        <Cpu className="w-8 h-8 text-primary-500" /> Centro de Mando IA
+                        <Cpu className="w-8 h-8 text-primary-500" /> {t('admin.ai_hub_title')}
                     </h3>
-                    <p className="text-text-secondary text-sm mt-1">Monitorea y dispara actualizaciones del monopolio de datos automotrices.</p>
+                    <p className="text-text-secondary text-sm mt-1">{t('admin.ai_hub_desc')}</p>
                 </div>
                 <button
                     onClick={handleManualUpdate}
@@ -906,7 +906,7 @@ function AiHubTab() {
                     ) : (
                         <Sparkles className="w-5 h-5 group-hover:scale-125 transition-transform" />
                     )}
-                    <span>{isUpdating ? 'ESCANEO EN PROCESO...' : 'ESCANEAR MERCADO GLOBAL'}</span>
+                    <span>{isUpdating ? 'ESCANEO EN PROCESO...' : t('admin.scan_global')}</span>
                 </button>
             </div>
 

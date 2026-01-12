@@ -199,6 +199,8 @@ model Business {
   services            String[]
   isActive            Boolean            @default(true)
   isFreePublication   Boolean            @default(true)
+  hasMiniWeb          Boolean            @default(false)
+  slug                String?            @unique
   publishedAt         DateTime           @default(now())
   expiresAt           DateTime?
   createdAt           DateTime           @default(now())
@@ -219,6 +221,7 @@ model Business {
   @@index([latitude, longitude])
   @@index([isActive])
   @@index([expiresAt])
+  @@index([slug])
 }
 
 model Favorite {
