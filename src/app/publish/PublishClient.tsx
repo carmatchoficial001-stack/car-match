@@ -105,12 +105,13 @@ export default function PublishClient() {
     const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
 
     // Validation for the new flow
-    const canProceedFromStep1 = vehicleCategory && vehicleType
-    const canProceedFromStep2 = brand && model && year && price
+    const canProceedFromStep1 = vehicleCategory !== '' && vehicleType !== ''
+    const canProceedFromStep2 = brand !== '' && model !== '' && year !== '' && price !== '' && parseFloat(price) > 0
     const canProceedFromStep3 = images.length > 0
-    const canProceedFromStep4 = true
-    const canProceedFromStep5 = true // Features are optional
-    const canProceedFromStep6 = latitude !== null && longitude !== null && city
+    // Step 4 (Technical): Validar Kilometraje si es obligatorio, y otros campos clave si se desea
+    const canProceedFromStep4 = mileage !== '' && (parseInt(mileage) >= 0)
+    const canProceedFromStep5 = true // Features siguen siendo opcionales
+    const canProceedFromStep6 = latitude !== null && longitude !== null && city !== ''
 
     // 🤖 Dynamic vehicle data from database
     const modelNames = useModelNames(brand)
@@ -413,18 +414,24 @@ export default function PublishClient() {
         }
 
         try {
-            // 🛡️ VALIDACIÓN ANTES DE ENVIAR
-            const parsedYear = parseInt(year);
-            if (isNaN(parsedYear) || parsedYear < 1900 || parsedYear > new Date().getFullYear() + 2) {
-                alert("Por favor, ingresa un año válido.");
-                setLoading(false);
-                return;
-            }
 
-            if (!model || model === 'N/A' || model.trim() === '') {
-                alert("Por favor, selecciona un modelo válido.");
-                setLoading(false);
-                return;
+            // 🛡️ VALIDACIÓN ANTES DE ENVIAR
+            const errors: string[] = []
+            const parsedYear = parseInt(year)
+
+            if (!brand || brand.trim() === '') errors.push('Marca')
+            if (!model || model === 'N/A' || model.trim() === '') errors.push('Modelo')
+            if (isNaN(parsedYear) || parsedYear < 1900 || parsedYear > new Date().getFullYear() + 2) errors.push('Año válido')
+            if (!price || parseFloat(price) <= 0) errors.push('Precio')
+            if (!mileage) errors.push('Kilometraje')
+            if (!stateLocation) errors.push('Estado/Provincia')
+            if (!city) errors.push('Ciudad')
+            if (images.length === 0) errors.push('Al menos 1 imagen')
+
+            if (errors.length > 0) {
+                alert(`⚠️ Faltan campos requeridos para publicar:\n\n${errors.map(e => `• ${e}`).join('\n')}`)
+                setLoading(false)
+                return
             }
 
             const deviceFP = await generateDeviceFingerprint()
@@ -705,7 +712,7 @@ export default function PublishClient() {
                             </h3>
                             <div className="space-y-2">
                                 <label className="block text-text-primary font-medium">
-                                    {t('publish.labels.mileage')} <span className="text-xs font-normal text-text-secondary">({t('common.optional')})</span>
+                                    {t('publish.labels.mileage')} <span className="text-xs font-bold text-red-500">*</span>
                                 </label>
                                 <div className="relative">
                                     <input
