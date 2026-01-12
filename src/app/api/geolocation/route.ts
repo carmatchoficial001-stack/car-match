@@ -51,53 +51,60 @@ export async function GET(request: NextRequest) {
             // 🚀 PRIORIDAD 1: MAPBOX (Mayor Precisión)
             if (mapboxToken) {
                 try {
-                    let mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(finalQuery)}.json?access_token=${mapboxToken}&language=es&limit=${limit}&types=country,region,place,locality`
-
-                    if (biasLat && biasLng) {
-                        // Proximity bias
-                        mapboxUrl += `&proximity=${biasLng},${biasLat}`
+                    const searchWithMapbox = async (q: string) => {
+                        let mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${mapboxToken}&language=es&limit=${limit}&types=country,region,place,locality`
+                        if (biasLat && biasLng) mapboxUrl += `&proximity=${biasLng},${biasLat}`
+                        const mbRes = await fetch(mapboxUrl)
+                        if (!mbRes.ok) return null
+                        const mbData = await mbRes.json()
+                        return (mbData.features && mbData.features.length > 0) ? mbData.features : null
                     }
 
-                    const mbRes = await fetch(mapboxUrl)
-                    if (mbRes.ok) {
-                        const mbData = await mbRes.json()
-                        if (mbData.features && mbData.features.length > 0) {
-                            if (limit > 1) {
-                                return NextResponse.json(mbData.features.map((f: any) => {
-                                    const context = f.context || []
-                                    const city = context.find((c: any) => c.id.startsWith('place'))?.text || f.text
-                                    const state = context.find((c: any) => c.id.startsWith('region'))?.text || ''
-                                    const country = context.find((c: any) => c.id.startsWith('country'))?.text || ''
-                                    const countryCode = context.find((c: any) => c.id.startsWith('country'))?.short_code?.toUpperCase() || ''
+                    // Intentar con AI
+                    let features = await searchWithMapbox(finalQuery)
 
-                                    return {
-                                        latitude: f.center[1], // Mapbox is [lng, lat]
-                                        longitude: f.center[0],
-                                        address: f.place_name,
-                                        city,
-                                        state,
-                                        country,
-                                        countryCode
-                                    }
-                                }))
-                            }
+                    // FALLBACK: Si falló AI, intentar con RAW previo
+                    if (!features && finalQuery !== query) {
+                        console.log(`🔄 Mapbox Fallback: AI failed, trying raw query "${query}"`);
+                        features = await searchWithMapbox(query)
+                    }
 
-                            const f = mbData.features[0]
-                            const context = f.context || []
-                            const city = context.find((c: any) => c.id.startsWith('place'))?.text || f.text
-                            const state = context.find((c: any) => c.id.startsWith('region'))?.text || ''
-                            const country = context.find((c: any) => c.id.startsWith('country'))?.text || ''
-                            const countryCode = context.find((c: any) => c.id.startsWith('country'))?.short_code?.toUpperCase() || ''
+                    if (features) {
+                        if (limit > 1) {
+                            return NextResponse.json(features.map((f: any) => {
+                                const context = f.context || []
+                                const city = context.find((c: any) => c.id.startsWith('place'))?.text || f.text
+                                const state = context.find((c: any) => c.id.startsWith('region'))?.text || ''
+                                const country = context.find((c: any) => c.id.startsWith('country'))?.text || ''
+                                const countryCode = context.find((c: any) => c.id.startsWith('country'))?.short_code?.toUpperCase() || ''
 
-                            return NextResponse.json({
-                                latitude: f.center[1],
-                                longitude: f.center[0],
-                                city,
-                                state,
-                                country,
-                                countryCode
-                            })
+                                return {
+                                    latitude: f.center[1], // Mapbox is [lng, lat]
+                                    longitude: f.center[0],
+                                    address: f.place_name,
+                                    city,
+                                    state,
+                                    country,
+                                    countryCode
+                                }
+                            }))
                         }
+
+                        const f = features[0]
+                        const context = f.context || []
+                        const city = context.find((c: any) => c.id.startsWith('place'))?.text || f.text
+                        const state = context.find((c: any) => c.id.startsWith('region'))?.text || ''
+                        const country = context.find((c: any) => c.id.startsWith('country'))?.text || ''
+                        const countryCode = context.find((c: any) => c.id.startsWith('country'))?.short_code?.toUpperCase() || ''
+
+                        return NextResponse.json({
+                            latitude: f.center[1],
+                            longitude: f.center[0],
+                            city,
+                            state,
+                            country,
+                            countryCode
+                        })
                     }
                 } catch (e) {
                     console.error("Mapbox search error, falling back to Nominatim", e)
@@ -105,38 +112,46 @@ export async function GET(request: NextRequest) {
             }
 
             // 🐢 PRIORIDAD 2: NOMINATIM (Fallback Gratuito)
-            // Nominatim Search con Query Refinado
-            let nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(finalQuery)}&limit=${limit}&addressdetails=1`
-
             try {
-                const nomRes = await fetch(nominatimUrl, {
-                    headers: { 'User-Agent': 'CarMatchApp/1.0' }
-                })
-                if (nomRes.ok) {
+                const searchWithNominatim = async (q: string) => {
+                    let nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=${limit}&addressdetails=1`
+                    const nomRes = await fetch(nominatimUrl, { headers: { 'User-Agent': 'CarMatchApp/1.0' } })
+                    if (!nomRes.ok) return null
                     const nomData = await nomRes.json()
-                    if (nomData && nomData.length > 0) {
-                        if (limit > 1) {
-                            return NextResponse.json(nomData.map((f: any) => ({
-                                latitude: parseFloat(f.lat),
-                                longitude: parseFloat(f.lon),
-                                address: f.display_name,
-                                city: f.address?.city || f.address?.town || f.address?.village || f.address?.municipality || '',
-                                state: f.address?.state || '',
-                                country: f.address?.country || '',
-                                countryCode: f.address?.country_code?.toUpperCase() || ''
-                            })))
-                        }
+                    return (nomData && nomData.length > 0) ? nomData : null
+                }
 
-                        const f = nomData[0]
-                        return NextResponse.json({
+                // Intentar con AI
+                let nomData = await searchWithNominatim(finalQuery)
+
+                // FALLBACK: Si falló AI, intentar con RAW previo
+                if (!nomData && finalQuery !== query) {
+                    console.log(`🔄 Nominatim Fallback: AI failed, trying raw query "${query}"`);
+                    nomData = await searchWithNominatim(query)
+                }
+
+                if (nomData) {
+                    if (limit > 1) {
+                        return NextResponse.json(nomData.map((f: any) => ({
                             latitude: parseFloat(f.lat),
                             longitude: parseFloat(f.lon),
-                            city: f.address?.city || f.address?.town || f.address?.village || f.address?.municipality || 'Ubicación encontrada',
+                            address: f.display_name,
+                            city: f.address?.city || f.address?.town || f.address?.village || f.address?.municipality || '',
                             state: f.address?.state || '',
                             country: f.address?.country || '',
                             countryCode: f.address?.country_code?.toUpperCase() || ''
-                        })
+                        })))
                     }
+
+                    const f = nomData[0]
+                    return NextResponse.json({
+                        latitude: parseFloat(f.lat),
+                        longitude: parseFloat(f.lon),
+                        city: f.address?.city || f.address?.town || f.address?.village || f.address?.municipality || 'Ubicación encontrada',
+                        state: f.address?.state || '',
+                        country: f.address?.country || '',
+                        countryCode: f.address?.country_code?.toUpperCase() || ''
+                    })
                 }
             } catch (e) {
                 console.error("Nominatim search error:", e)

@@ -190,16 +190,32 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
     const handleDislike = (id: string) => markAsSeen(id)
 
+    const [isSearchingLocation, setIsSearchingLocation] = useState(false)
+    const [locationError, setLocationError] = useState<string | null>(null)
+
     // Manual Search Handler
     const searchManualLocation = async (e?: React.FormEvent) => {
         e?.preventDefault()
-        if (!locationInput.trim()) return
-        const result = await searchCity(locationInput)
-        if (result) {
-            setManualLocation(result) // Global Context Update
-            setTierIndex(0) // Reset radius logic locally
-            setSeenIds(new Set()) // Reset seen stack
-            setShowLocationModal(false)
+        if (!locationInput.trim() || isSearchingLocation) return
+
+        setIsSearchingLocation(true)
+        setLocationError(null)
+
+        try {
+            const result = await searchCity(locationInput)
+            if (result) {
+                setManualLocation(result) // Global Context Update
+                setTierIndex(0) // Reset radius logic locally
+                setSeenIds(new Set()) // Reset seen stack
+                setShowLocationModal(false)
+                setLocationInput('')
+            } else {
+                setLocationError('No pudimos encontrar esa ubicación. Intenta ser más específico.')
+            }
+        } catch (error) {
+            setLocationError('Error al buscar la ciudad. Intenta nuevamente.')
+        } finally {
+            setIsSearchingLocation(false)
         }
     }
 
@@ -294,11 +310,21 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                             <input
                                 type="text"
                                 value={locationInput}
-                                onChange={(e) => setLocationInput(e.target.value)}
+                                onChange={(e) => {
+                                    setLocationInput(e.target.value)
+                                    if (locationError) setLocationError(null)
+                                }}
                                 placeholder={t('market.change_location_placeholder')}
-                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-500 outline-none"
+                                className={`w-full px-4 py-3 bg-background border rounded-lg text-text-primary focus:border-primary-500 outline-none transition ${locationError ? 'border-red-500/50' : 'border-surface-highlight'}`}
                                 autoFocus
+                                disabled={isSearchingLocation}
                             />
+
+                            {locationError && (
+                                <p className="text-xs text-red-500 animate-in fade-in slide-in-from-top-1">
+                                    ⚠️ {locationError}
+                                </p>
+                            )}
 
                             <div className="flex gap-3">
                                 <button
@@ -309,16 +335,26 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                                         setSeenIds(new Set())
                                         setShowLocationModal(false)
                                         setLocationInput('')
+                                        setLocationError(null)
                                     }}
-                                    className="flex-1 px-4 py-3 bg-surface-highlight text-text-primary rounded-lg font-medium hover:bg-surface-highlight/80"
+                                    disabled={isSearchingLocation}
+                                    className="flex-1 px-4 py-3 bg-surface-highlight text-text-primary rounded-lg font-medium hover:bg-surface-highlight/80 disabled:opacity-50"
                                 >
                                     {t('market.use_gps')}
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg font-bold hover:bg-primary-700"
+                                    disabled={!locationInput.trim() || isSearchingLocation}
+                                    className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg font-bold hover:bg-primary-700 disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
-                                    {t('market.search_zone')}
+                                    {isSearchingLocation ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            <span>Buscando...</span>
+                                        </>
+                                    ) : (
+                                        t('market.search_zone')
+                                    )}
                                 </button>
                             </div>
                         </form>
