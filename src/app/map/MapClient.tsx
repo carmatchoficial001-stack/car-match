@@ -12,7 +12,7 @@ import { useLocation } from '@/contexts/LocationContext'
 // Dynamic Imports (Moved outside to prevent re-rendering)
 const MapBoxStoreLocator = dynamic(() => import('@/components/MapBoxStoreLocator'), {
     ssr: false,
-    loading: () => <div className="w-full h-full bg-slate-900 animate-pulse flex items-center justify-center text-white/20">{t('common.loading')}</div>
+    loading: () => <div className="w-full h-full bg-slate-900 animate-pulse flex items-center justify-center text-white/20">Cargando Mapa...</div>
 })
 
 const BusinessDetailsModal = dynamic(() => import('@/components/BusinessDetailsModal'), { ssr: false })
