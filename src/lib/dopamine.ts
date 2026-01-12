@@ -12,6 +12,25 @@ export async function processDopamineLogic(targetId: string, type: 'VEHICLE' | '
     const today = new Date()
     const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
 
+    // 0. Verificar que el item esté activo y aprobado antes de generar dopamina
+    if (type === 'VEHICLE') {
+        const vehicle = await prisma.vehicle.findUnique({
+            where: { id: targetId },
+            select: { status: true, moderationStatus: true }
+        })
+        if (!vehicle || vehicle.status !== 'ACTIVE' || vehicle.moderationStatus !== 'APPROVED') {
+            return null
+        }
+    } else {
+        const business = await prisma.business.findUnique({
+            where: { id: targetId },
+            select: { isActive: true }
+        })
+        if (!business || !business.isActive) {
+            return null
+        }
+    }
+
     // 1. Obtener o Crear registro de métricas simuladas para este mes
     let metric = await prisma.simulatedMetric.findUnique({
         where: {

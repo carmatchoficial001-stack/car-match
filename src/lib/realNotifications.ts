@@ -9,10 +9,25 @@ export async function notifyRealFavorite(userId: string, targetId: string, type:
 
     // Obtener detalles del item y el dueño
     const item = isVehicle
-        ? await prisma.vehicle.findUnique({ where: { id: targetId }, select: { userId: true, title: true } })
-        : await prisma.business.findUnique({ where: { id: targetId }, select: { userId: true, name: true } })
+        ? await prisma.vehicle.findUnique({
+            where: { id: targetId },
+            select: { userId: true, title: true, status: true, moderationStatus: true }
+        })
+        : await prisma.business.findUnique({
+            where: { id: targetId },
+            select: { userId: true, name: true, isActive: true }
+        })
 
     if (!item || item.userId === userId) return // No notificarse a sí mismo
+
+    // Verificar estado
+    if (isVehicle) {
+        const v = item as any
+        if (v.status !== 'ACTIVE' || v.moderationStatus !== 'APPROVED') return
+    } else {
+        const b = item as any
+        if (!b.isActive) return
+    }
 
     if (isVehicle) {
         await prisma.notification.create({
@@ -64,10 +79,25 @@ export async function trackRealView(userId: string | null, targetId: string, typ
 
     // 2. Notificar al dueño si es una vista "significativa" (ej. no del mismo dueño)
     const item = isVehicle
-        ? await prisma.vehicle.findUnique({ where: { id: targetId }, select: { userId: true, title: true } })
-        : await prisma.business.findUnique({ where: { id: targetId }, select: { userId: true, name: true } })
+        ? await prisma.vehicle.findUnique({
+            where: { id: targetId },
+            select: { userId: true, title: true, status: true, moderationStatus: true }
+        })
+        : await prisma.business.findUnique({
+            where: { id: targetId },
+            select: { userId: true, name: true, isActive: true }
+        })
 
     if (!item || (userId && item.userId === userId)) return
+
+    // Verificar estado
+    if (isVehicle) {
+        const v = item as any
+        if (v.status !== 'ACTIVE' || v.moderationStatus !== 'APPROVED') return
+    } else {
+        const b = item as any
+        if (!b.isActive) return
+    }
 
     // Verificar si ya notificamos por este item hoy para este usuario (para no spamear al dueño)
     // En un sistema real usaríamos Redis, aquí consultamos la tabla de notificaciones recientes

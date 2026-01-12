@@ -97,10 +97,10 @@ export async function createFakeVehicleLike(userId: string, vehicleId: string) {
 
     const vehicle = await prisma.vehicle.findUnique({
         where: { id: vehicleId },
-        select: { brand: true, model: true }
+        select: { brand: true, model: true, status: true, moderationStatus: true }
     })
 
-    if (!vehicle) return null
+    if (!vehicle || vehicle.status !== 'ACTIVE' || vehicle.moderationStatus !== 'APPROVED') return null
 
     const notification = await prisma.notification.create({
         data: {
@@ -136,6 +136,13 @@ export async function createFakeVehicleLike(userId: string, vehicleId: string) {
 export async function createFakeVehicleView(userId: string, vehicleId: string) {
     const canCreate = await canGenerateFakeNotification(userId)
     if (!canCreate) return null
+
+    const vehicle = await prisma.vehicle.findUnique({
+        where: { id: vehicleId },
+        select: { status: true, moderationStatus: true }
+    })
+
+    if (!vehicle || vehicle.status !== 'ACTIVE' || vehicle.moderationStatus !== 'APPROVED') return null
 
     const viewCount = Math.floor(Math.random() * 8) + 3 // 3-10 vistas
 
@@ -174,6 +181,13 @@ export async function createFakeBusinessSearch(userId: string, businessId: strin
     const canCreate = await canGenerateFakeNotification(userId)
     if (!canCreate) return null
 
+    const business = await prisma.business.findUnique({
+        where: { id: businessId },
+        select: { isActive: true }
+    })
+
+    if (!business || !business.isActive) return null
+
     const searchCount = Math.floor(Math.random() * 8) + 2 // 2-9 búsquedas
 
     const notification = await prisma.notification.create({
@@ -210,6 +224,13 @@ export async function createFakeBusinessSearch(userId: string, businessId: strin
 export async function createFakeBusinessView(userId: string, businessId: string) {
     const canCreate = await canGenerateFakeNotification(userId)
     if (!canCreate) return null
+
+    const business = await prisma.business.findUnique({
+        where: { id: businessId },
+        select: { isActive: true }
+    })
+
+    if (!business || !business.isActive) return null
 
     const viewCount = Math.floor(Math.random() * 5) + 1 // 1-5 vistas
     const message = viewCount === 1
