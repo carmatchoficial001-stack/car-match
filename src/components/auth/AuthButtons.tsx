@@ -9,7 +9,7 @@ export default function AuthButtons() {
     const handleGoogleSignIn = async () => {
         try {
             console.log("🔵 Iniciando proceso de Google Sign-In...");
-            const result = await signIn("google", { callbackUrl: "/auth/callback" });
+            const result: any = await signIn("google", { callbackUrl: "/auth/callback" });
             console.log("🟢 Resultado de signIn:", result);
             if (result?.error) {
                 alert("Error de Auth: " + result.error);
