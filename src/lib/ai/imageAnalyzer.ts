@@ -19,6 +19,7 @@ interface ImageAnalysisResult {
     transmission?: string; // Manual, Automática, CVT
     fuel?: string; // Gasolina, Diésel, Eléctrico, Híbrido
     engine?: string; // Ej: "2.0L Turbo", "V6 3.5L"
+    traction?: string; // FWD, RWD, 4x4, AWD
     doors?: number; // 2, 4, 5
     mileage?: number; // Kilometraje estimado si es visible
     condition?: string; // Nuevo, Seminuevo, Usado
