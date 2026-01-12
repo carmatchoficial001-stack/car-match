@@ -762,6 +762,7 @@ function MapStoreTab({ businesses }: { businesses: any[] }) {
 }
 
 function IntelligenceTab() {
+    const { t } = useLanguage()
     const [intelligenceData, setIntelligenceData] = useState<any>(null)
     const [loading, setLoading] = useState(true)
 
