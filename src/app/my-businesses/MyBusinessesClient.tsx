@@ -83,6 +83,7 @@ export default function MyBusinessesClient() {
     const [is24Hours, setIs24Hours] = useState(false)
     const [hasEmergencyService, setHasEmergencyService] = useState(false)
     const [hasHomeService, setHasHomeService] = useState(false)
+    const [isSafeMeetingPoint, setIsSafeMeetingPoint] = useState(false)
 
     // [NEW] Modals State
     const [showNoCreditsModal, setShowNoCreditsModal] = useState(false)
@@ -284,6 +285,7 @@ export default function MyBusinessesClient() {
         setIs24Hours(b.is24Hours || false)
         setHasEmergencyService(b.hasEmergencyService || false)
         setHasHomeService(b.hasHomeService || false)
+        setIsSafeMeetingPoint(b.isSafeMeetingPoint || false)
 
         setShowForm(true)
     }
@@ -319,7 +321,7 @@ export default function MyBusinessesClient() {
         setIs24Hours(false)
         setHasEmergencyService(false)
         setHasHomeService(false)
-
+        setIsSafeMeetingPoint(false)
         setShowForm(false)
     }
 
@@ -402,6 +404,7 @@ export default function MyBusinessesClient() {
                 is24Hours,
                 hasEmergencyService,
                 hasHomeService,
+                isSafeMeetingPoint,
                 fingerprint // 🛡️ Enviar huella
             }
 
@@ -786,7 +789,56 @@ export default function MyBusinessesClient() {
                                     />
                                 </div>
 
-                                {/* Selección de Servicios */}
+                                {/* Atributos Especiales Checkboxes */}
+                                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-primary-900/10 p-4 rounded-xl border border-primary-500/20">
+                                    <div className="sm:col-span-2">
+                                        <h4 className="text-sm font-bold text-primary-400 mb-2 uppercase tracking-wider">Opciones de Disponibilidad</h4>
+                                    </div>
+
+                                    <label className="flex items-center gap-3 p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background transition">
+                                        <input
+                                            type="checkbox"
+                                            checked={isSafeMeetingPoint}
+                                            onChange={(e) => setIsSafeMeetingPoint(e.target.checked)}
+                                            className="w-5 h-5 rounded border-surface-highlight text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <div>
+                                            <span className="text-sm font-bold text-text-primary block">🤝 Punto de Encuentro Seguro</span>
+                                            <span className="text-[10px] text-text-secondary">Ofrece tu negocio para que compradores y vendedores se reúnan aquí.</span>
+                                        </div>
+                                    </label>
+
+                                    <label className="flex items-center gap-3 p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background transition">
+                                        <input
+                                            type="checkbox"
+                                            checked={is24Hours}
+                                            onChange={(e) => setIs24Hours(e.target.checked)}
+                                            className="w-5 h-5 rounded border-surface-highlight text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-text-primary">🕒 Abierto 24 Horas</span>
+                                    </label>
+
+                                    <label className="flex items-center gap-3 p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background transition">
+                                        <input
+                                            type="checkbox"
+                                            checked={hasEmergencyService}
+                                            onChange={(e) => setHasEmergencyService(e.target.checked)}
+                                            className="w-5 h-5 rounded border-surface-highlight text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-text-primary">🚨 Servicio de Emergencia</span>
+                                    </label>
+
+                                    <label className="flex items-center gap-3 p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background transition">
+                                        <input
+                                            type="checkbox"
+                                            checked={hasHomeService}
+                                            onChange={(e) => setHasHomeService(e.target.checked)}
+                                            className="w-5 h-5 rounded border-surface-highlight text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm text-text-primary">🏠 Servicio a Domicilio</span>
+                                    </label>
+                                </div>
+
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-text-primary mb-3">{t('business.services_label')} (Opcional)</label>
 

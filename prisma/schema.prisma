@@ -49,6 +49,11 @@ model User {
   sessions                Session[]
   vehicles                Vehicle[]
   
+  // Seguridad Avanzada
+  trustedContactId        String?
+  trustedContact          User?                     @relation("TrustedContact", fields: [trustedContactId], references: [id])
+  trustedBy               User[]                    @relation("TrustedContact")
+  
   // Relations for Reporting System
   reportsMade             Report[]                  @relation("Reporter")
   reportsReceived         Report[]                  @relation("ReportedUser")
@@ -204,6 +209,7 @@ model Business {
   hasEmergencyService Boolean            @default(false)
   hasHomeService      Boolean            @default(false)
   is24Hours           Boolean            @default(false)
+  isSafeMeetingPoint  Boolean            @default(false)
   user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   favorites           BusinessFavorite[]
   views               BusinessView[]
@@ -419,9 +425,11 @@ model Appointment {
   address    String?
   latitude   Float?
   longitude  Float?
-  status     String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  status             String
+  monitoringActive   Boolean  @default(false)
+  lastSafetyCheck    DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
   chat       Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId])

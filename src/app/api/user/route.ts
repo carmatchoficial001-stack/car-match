@@ -11,7 +11,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         const data = await request.json()
-        const { name, image } = data
+        const { name, image, trustedContactId } = data
 
         if (!name && !image) {
             return NextResponse.json({ error: 'No se proporcionaron datos para actualizar' }, { status: 400 })
@@ -31,7 +31,8 @@ export async function PATCH(request: NextRequest) {
             where: { email: session.user.email },
             data: {
                 ...(name && { name }),
-                ...(image && { image })
+                ...(image && { image }),
+                trustedContactId: trustedContactId === "" ? null : (trustedContactId || undefined)
             }
         })
 

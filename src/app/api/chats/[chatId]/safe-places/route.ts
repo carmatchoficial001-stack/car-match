@@ -87,8 +87,7 @@ export async function GET(
             }
         }
 
-        // 🤖 IA: ANALISTA DE DATOS (SUPER INTELIGENTE)
-        // Usamos Gemini para generar un Tip de Analista y descripciones basadas en el contexto del vehículo
+        // IA Tip Lógica básica si falla Gemini
         let aiTip = isMidpoint
             ? '💡 Hemos calculado un punto medio justo para ambos. Siempre reúnanse de día.'
             : '💡 Te sugerimos lugares cerca del vehículo. Siempre reúnete en un lugar público.'
@@ -106,15 +105,17 @@ export async function GET(
                 Responde SOLO con el texto del tip.
             `
             const response = await safeGenerateContent(prompt)
-            aiTip = response.text().trim()
+            if (response.text()) {
+                aiTip = response.text().trim()
+            }
         } catch (err) {
             console.error('Error in Safe Places AI:', err)
         }
 
-        // Lugares seguros sugeridos (estratégicos cerca del centro calculado)
+        // Lugares públicos genéricos
         const suggestedPlaces = [
             {
-                id: 1,
+                id: 'gen-1',
                 name: isMidpoint ? `Punto Medio - Plaza Comercial` : `Plaza Comercial - ${chat.vehicle.city}`,
                 type: 'shopping_mall',
                 description: 'Centro comercial con estacionamiento amplio y cámaras de seguridad. Ideal para inspecciones visuales.',
@@ -126,7 +127,7 @@ export async function GET(
                 safetyFeatures: ['Cámaras de seguridad', 'Mucha afluencia', 'Iluminación alta']
             },
             {
-                id: 2,
+                id: 'gen-2',
                 name: `Módulo de Seguridad / Ministerio Público`,
                 type: 'police',
                 description: 'Zona de intercambio segura oficial. El mejor lugar para verificar documentos y números de serie.',
@@ -138,7 +139,7 @@ export async function GET(
                 safetyFeatures: ['Vigilancia policiaca', 'Zona oficial', 'Grabación 24/7']
             },
             {
-                id: 3,
+                id: 'gen-3',
                 name: `Taller / Gasolinera Autorizada`,
                 type: 'gas_station',
                 description: 'Punto concurrido. Recomendado si necesitas levantar el auto para revisar fugas menores.',
@@ -151,8 +152,35 @@ export async function GET(
             }
         ]
 
+        // 🛍️ CARGAR NEGOCIOS REGISTRADOS QUE SON PUNTOS SEGUROS
+        const nearbySafeBusinesses = await prisma.business.findMany({
+            where: {
+                isSafeMeetingPoint: true,
+                isActive: true,
+                city: chat.vehicle.city
+            },
+            take: 10
+        })
+
+        const businessSugerences = nearbySafeBusinesses.map(b => ({
+            id: `business-${b.id}`,
+            name: b.name,
+            type: 'business',
+            description: b.description || 'Negocio verificado en CarMatch.',
+            address: b.address,
+            distance: Number(getDistance(centerLat, centerLon, b.latitude, b.longitude).toFixed(1)),
+            latitude: b.latitude,
+            longitude: b.longitude,
+            icon: '🏪',
+            isOfficialBusiness: true,
+            safetyFeatures: ['Negocio verificado', 'Cámaras del local', 'Personal presente']
+        }))
+
+        // Combinar y ordenar por distancia
+        const allSuggestions = [...suggestedPlaces, ...businessSugerences].sort((a, b) => Number(a.distance) - Number(b.distance))
+
         return NextResponse.json({
-            suggestions: suggestedPlaces,
+            suggestions: allSuggestions,
             vehicleLocation: {
                 city: chat.vehicle.city,
                 latitude: chat.vehicle.latitude,

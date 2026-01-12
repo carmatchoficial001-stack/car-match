@@ -588,15 +588,16 @@
         }
     },
     "appointment": {
-        "modal_title": "📅 Nueva Cita Segura",
+        "modal_title": "📅 Agendar Cita de Reunión",
         "date_label": "Fecha",
         "time_label": "Hora",
         "location_label": "Lugar de encuentro",
-        "loading_places": "Cargando lugares seguros...",
-        "custom_location_check": "Otro lugar personalizado",
-        "custom_location_placeholder": "Escribe la dirección o nombre del lugar...",
+        "safe_places_title": "🛡️ Lugares de Encuentro Seguros",
+        "loading_places": "Buscando lugares seguros cerca...",
+        "custom_location_check": "Elegir ubicación personalizada o manual en mapa",
+        "custom_location_placeholder": "Ej. Estacionamiento de Plaza Principal...",
         "cancel": "Cancelar",
-        "submit": "Proponer Cita"
+        "submit": "Confirmar Cita"
     },
     "radius": {
         "no_more_nearby": "No hay más cercas",

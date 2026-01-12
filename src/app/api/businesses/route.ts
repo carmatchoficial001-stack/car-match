@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
             latitude,
             longitude,
             images = [],
-            services = []
+            services = [],
+            isSafeMeetingPoint = false
         } = body
 
         // Validaciones básicas
@@ -205,6 +206,7 @@ export async function POST(request: NextRequest) {
                 hasHomeService: body.hasHomeService || false,
                 isActive, // Dinámico según créditos
                 isFreePublication,
+                isSafeMeetingPoint: Boolean(isSafeMeetingPoint),
                 publishedAt: new Date(),
                 expiresAt,
                 services: Array.isArray(services) ? services : []
@@ -363,7 +365,8 @@ export async function PATCH(request: NextRequest) {
             latitude,
             longitude,
             images,
-            services
+            services,
+            isSafeMeetingPoint
         } = body
 
         if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 })
@@ -398,7 +401,8 @@ export async function PATCH(request: NextRequest) {
                 latitude: latitude ? parseFloat(latitude) : undefined,
                 longitude: longitude ? parseFloat(longitude) : undefined,
                 images,
-                services: Array.isArray(services) ? services : undefined
+                services: Array.isArray(services) ? services : undefined,
+                isSafeMeetingPoint: typeof isSafeMeetingPoint === 'boolean' ? isSafeMeetingPoint : undefined
             }
         })
 

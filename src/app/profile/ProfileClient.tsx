@@ -284,7 +284,9 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                 currentUser={{
                     name: user.name,
                     image: user.image,
-                    email: user.email
+                    email: user.email,
+                    trustedContactId: user.trustedContactId,
+                    trustedContact: user.trustedContact
                 }}
                 userVehicles={vehiclesToShow}
             />

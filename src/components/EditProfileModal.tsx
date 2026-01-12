@@ -11,6 +11,8 @@ interface EditProfileModalProps {
         name: string | null
         image: string | null
         email?: string | null
+        trustedContactId?: string | null
+        trustedContact?: { id: string, name: string } | null
     }
     userVehicles: any[] // Lista de vehículos del usuario para usar como foto
 }
@@ -21,6 +23,11 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
     const router = useRouter()
     const [name, setName] = useState(currentUser.name || '')
     const [selectedImage, setSelectedImage] = useState(currentUser.image || '')
+    const [trustedContactId, setTrustedContactId] = useState(currentUser.trustedContactId || '')
+    const [trustedContactName, setTrustedContactName] = useState(currentUser.trustedContact?.name || '')
+    const [searchQuery, setSearchQuery] = useState('')
+    const [searchResults, setSearchResults] = useState<any[]>([])
+    const [searching, setSearching] = useState(false)
     const [loading, setLoading] = useState(false)
 
     const [imageError, setImageError] = useState(false)
@@ -36,7 +43,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
             const res = await fetch('/api/user', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, image: selectedImage })
+                body: JSON.stringify({ name, image: selectedImage, trustedContactId })
             })
 
             if (res.ok) {
@@ -182,6 +189,106 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                 </div>
                             </div>
                         )}
+                    </div>
+
+                    {/* SECCIÓN SOS: Contacto de Confianza */}
+                    <div className="bg-red-900/10 border border-red-500/20 p-5 rounded-2xl space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-500">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H10m11-3V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-3zM12 9l-.01.01" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 className="text-red-400 font-bold">Seguridad SOS</h3>
+                                <p className="text-[10px] text-text-secondary">Selecciona a un usuario de CarMatch para que sea tu contacto de emergencia.</p>
+                            </div>
+                        </div>
+
+                        {trustedContactName ? (
+                            <div className="bg-surface/50 p-3 rounded-xl border border-red-500/30 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-full bg-primary-500/20 flex items-center justify-center text-xs font-bold text-primary-400">
+                                        {trustedContactName[0].toUpperCase()}
+                                    </div>
+                                    <span className="text-sm font-bold text-text-primary">{trustedContactName}</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setTrustedContactId('');
+                                        setTrustedContactName('');
+                                    }}
+                                    className="text-xs text-red-400 hover:text-red-300 font-bold"
+                                >
+                                    Quitar
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar usuario por nombre..."
+                                        className="w-full bg-background border border-surface-highlight rounded-xl px-4 py-2.5 text-sm text-text-primary outline-none focus:border-red-500/50 transition"
+                                        value={searchQuery}
+                                        onChange={async (e) => {
+                                            const val = e.target.value;
+                                            setSearchQuery(val);
+                                            if (val.length >= 3) {
+                                                setSearching(true);
+                                                try {
+                                                    const res = await fetch(`/api/user/search?q=${val}`);
+                                                    const data = await res.json();
+                                                    setSearchResults(data.users || []);
+                                                } catch (err) {
+                                                    console.error(err);
+                                                } finally {
+                                                    setSearching(false);
+                                                }
+                                            } else {
+                                                setSearchResults([]);
+                                            }
+                                        }}
+                                    />
+                                    {searching && (
+                                        <div className="absolute right-3 top-3">
+                                            <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {searchResults.length > 0 && (
+                                    <div className="bg-background border border-surface-highlight rounded-xl overflow-hidden shadow-xl max-h-40 overflow-y-auto custom-scrollbar">
+                                        {searchResults.map((user: any) => (
+                                            <button
+                                                key={user.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setTrustedContactId(user.id);
+                                                    setTrustedContactName(user.name);
+                                                    setSearchResults([]);
+                                                    setSearchQuery('');
+                                                }}
+                                                className="w-full p-3 flex items-center gap-3 hover:bg-surface-highlight transition text-left"
+                                            >
+                                                {user.image ? (
+                                                    <img src={user.image} className="w-8 h-8 rounded-full object-cover" alt="" />
+                                                ) : (
+                                                    <div className="w-8 h-8 rounded-full bg-primary-500/20 flex items-center justify-center text-xs font-bold text-primary-400">
+                                                        {user.name[0].toUpperCase()}
+                                                    </div>
+                                                )}
+                                                <span className="text-sm font-medium text-text-primary">{user.name}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        <p className="text-[9px] text-text-secondary italic">
+                            💡 Si activas un SOS durante una cita, este contacto recibirá tu ubicación y la de la otra persona.
+                        </p>
                     </div>
 
                     {/* Botones */}
