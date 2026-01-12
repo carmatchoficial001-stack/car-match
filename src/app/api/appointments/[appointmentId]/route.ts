@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
-// PATCH /api/chats/[chatId]/appointments/[appointmentId] - Editar cita existente
+// PATCH /api/appointments/[appointmentId] - Editar cita existente
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: Promise<{ chatId: string, appointmentId: string }> }
+    { params }: { params: Promise<{ appointmentId: string }> }
 ) {
     try {
         const session = await auth()
