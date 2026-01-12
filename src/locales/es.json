@@ -734,5 +734,17 @@
     "map_locator": {
         "view_details": "Ver Detalles",
         "loading_3d": "Cargando mapa 3D..."
+    },
+    "share_modal": {
+        "title": "Compartir Perfil",
+        "subtitle": "Escanea o comparte el link directo",
+        "direct_link": "Enlace directo",
+        "copy_link": "Copiar Link",
+        "copied": "¡Copiado!",
+        "download_qr": "Descargar QR",
+        "send_whatsapp": "Enviar por WhatsApp",
+        "write_number": "Escribe el número (10 dígitos)",
+        "send": "Enviar",
+        "tip": "Al compartir desde la web, el enlace abrirá directamente la versión optimizada para cualquier dispositivo."
     }
 }
