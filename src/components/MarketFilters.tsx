@@ -537,6 +537,8 @@ export default function MarketFiltersAdvanced({
                         <div className="col-span-2 md:col-span-4 grid grid-cols-2 gap-4 border-t border-surface-highlight pt-4 mt-2">
                             <div>
                                 <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
+                                    {category === 'Motocicleta' ? t('market.filters.displacement') + ' ' + t('common.min') + ' (cc)' :
+                                        category === 'Camión' || category === 'Maquinaria' ? t('market.filters.power') + ' ' + t('common.min') + ' (HP)' :
                                             t('market.filters.displacement') + ' ' + t('common.min') + ' (L)'}
                                 </label>
                                 <input
