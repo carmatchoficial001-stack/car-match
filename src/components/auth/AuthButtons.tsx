@@ -6,34 +6,12 @@ import { useLanguage } from "@/contexts/LanguageContext"
 export default function AuthButtons() {
     const { t } = useLanguage()
 
-    const handleGoogleSignIn = async () => {
-        try {
-            console.log("🔵 Iniciando proceso de Google Sign-In...");
-            const result: any = await signIn("google", { callbackUrl: "/auth/callback" });
-            console.log("🟢 Resultado de signIn:", result);
-            if (result?.error) {
-                alert("Error de Auth: " + result.error);
-            }
-        } catch (error) {
-            console.error("🔴 Error crítico en handleGoogleSignIn:", error);
-            alert("Error al intentar iniciar sesión. Revisa la consola.");
-        }
-    }
-
-    const handleFacebookSignIn = () => {
-        signIn("facebook", { callbackUrl: "/auth/callback" })
-    }
-
-    const handleTwitterSignIn = () => {
-        signIn("twitter", { callbackUrl: "/auth/callback" })
-    }
-
     return (
         <div className="space-y-4">
             {/* Google */}
             <button
                 type="button"
-                onClick={handleGoogleSignIn}
+                onClick={() => signIn("google", { callbackUrl: "/auth/callback" })}
                 className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-surface-highlight hover:bg-surface transition-all rounded-xl shadow-lg hover:shadow-xl group border border-surface-highlight"
             >
                 <svg className="w-6 h-6" viewBox="0 0 24 24">
@@ -50,7 +28,7 @@ export default function AuthButtons() {
             {/* Facebook */}
             <button
                 type="button"
-                onClick={handleFacebookSignIn}
+                onClick={() => signIn("facebook", { callbackUrl: "/auth/callback" })}
                 className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#1877F2] hover:bg-[#166fe5] transition-all rounded-xl shadow-lg hover:shadow-xl group"
             >
                 <div className="bg-white rounded-full p-0.5 w-6 h-6 flex items-center justify-center">
@@ -66,7 +44,7 @@ export default function AuthButtons() {
             {/* X */}
             <button
                 type="button"
-                onClick={handleTwitterSignIn}
+                onClick={() => signIn("twitter", { callbackUrl: "/auth/callback" })}
                 className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black hover:bg-gray-900 transition-all rounded-xl shadow-lg hover:shadow-xl group border border-gray-800"
             >
                 <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -76,7 +54,6 @@ export default function AuthButtons() {
                     {t('auth.continue_with')} X
                 </span>
             </button>
-
         </div>
     )
 }
