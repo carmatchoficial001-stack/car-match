@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Send, X, MessageCircle, Users, ChevronRight, Headset } from 'lucide-react'
 import { findBestResponse } from '@/lib/chatbot-data'
-import { useLanguage } from '@/context/LanguageContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface Message {
     id: string
