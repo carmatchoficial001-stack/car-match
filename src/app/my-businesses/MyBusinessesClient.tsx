@@ -757,7 +757,7 @@ export default function MyBusinessesClient() {
                                         <h4 className="text-sm font-bold text-primary-400 mb-2 uppercase tracking-wider">Opciones de Disponibilidad</h4>
                                     </div>
 
-                                    <label className="flex items-center gap-3 p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background transition">
+                                    <label className="flex items-center gap-3 p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background transition sm:col-span-2">
                                         <input
                                             type="checkbox"
                                             checked={isSafeMeetingPoint}
@@ -766,38 +766,11 @@ export default function MyBusinessesClient() {
                                         />
                                         <div>
                                             <span className="text-sm font-bold text-text-primary block">🤝 Punto de Encuentro Seguro</span>
-                                            <span className="text-[10px] text-text-secondary">Ofrece tu negocio para que compradores y vendedores se reúnan aquí.</span>
+                                            <span className="text-[10px] text-text-secondary">
+                                                Permite que compradores y vendedores usen tu negocio como punto de reunión seguro.
+                                                Esto atraerá visitas y potenciales clientes a tu local.
+                                            </span>
                                         </div>
-                                    </label>
-
-                                    <label className="flex items-center gap-3 p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background transition">
-                                        <input
-                                            type="checkbox"
-                                            checked={is24Hours}
-                                            onChange={(e) => setIs24Hours(e.target.checked)}
-                                            className="w-5 h-5 rounded border-surface-highlight text-primary-600 focus:ring-primary-500"
-                                        />
-                                        <span className="text-sm text-text-primary">🕒 Abierto 24 Horas</span>
-                                    </label>
-
-                                    <label className="flex items-center gap-3 p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background transition">
-                                        <input
-                                            type="checkbox"
-                                            checked={hasEmergencyService}
-                                            onChange={(e) => setHasEmergencyService(e.target.checked)}
-                                            className="w-5 h-5 rounded border-surface-highlight text-primary-600 focus:ring-primary-500"
-                                        />
-                                        <span className="text-sm text-text-primary">🚨 Servicio de Emergencia</span>
-                                    </label>
-
-                                    <label className="flex items-center gap-3 p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background transition">
-                                        <input
-                                            type="checkbox"
-                                            checked={hasHomeService}
-                                            onChange={(e) => setHasHomeService(e.target.checked)}
-                                            className="w-5 h-5 rounded border-surface-highlight text-primary-600 focus:ring-primary-500"
-                                        />
-                                        <span className="text-sm text-text-primary">🏠 Servicio a Domicilio</span>
                                     </label>
                                 </div>
 
