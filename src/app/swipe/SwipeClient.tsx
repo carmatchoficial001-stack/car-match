@@ -227,7 +227,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                         >
                             <MapPin className="w-3 h-3 text-primary-400" />
                             <span className="font-bold text-primary-300">
-                                {t('market.radius_label', { radius: currentRadius })} | {location?.city || t('common.searching')}
+                                {t('market.radius_label').replace('{radius}', currentRadius.toString())} | {location?.city || t('common.searching')}
                             </span>
                             <Search className="w-3 h-3 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
@@ -248,7 +248,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                                     {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search') : t('market.expand_search')}
                                 </div>
                                 <span className="text-[10px] text-primary-200 uppercase tracking-widest opacity-80 decoration-primary-500/30">
-                                    {t('market.radius_label', { radius: currentRadius })} | {location?.city}
+                                    {t('market.radius_label').replace('{radius}', currentRadius.toString())} | {location?.city}
                                 </span>
                             </button>
 

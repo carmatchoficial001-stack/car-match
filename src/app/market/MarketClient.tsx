@@ -419,7 +419,7 @@ export default function MarketClient({
                                                             <div className="hidden md:block">
                                                                 <ShareButton
                                                                     title={item.title}
-                                                                    text={t('market.interest_text', { title: item.title })}
+                                                                    text={t('market.interest_text').replace('{title}', item.title)}
                                                                     url={typeof window !== 'undefined' ? `${window.location.origin}${isBusiness ? `/business/${item.id}` : `/vehicle/${item.id}`}` : (isBusiness ? `/business/${item.id}` : `/vehicle/${item.id}`)}
                                                                     variant="minimal"
                                                                 />
@@ -463,7 +463,7 @@ export default function MarketClient({
                                                 </span>
                                                 <div className="mt-2 px-3 py-1 bg-white/10 rounded-full border border-white/20">
                                                     <span className="text-[10px] md:text-xs text-primary-200 font-bold uppercase tracking-wider">
-                                                        {t('market.radius_label', { radius: searchRadius })} | {displayCity}
+                                                        {t('market.radius_label').replace('{radius}', searchRadius.toString())} | {displayCity}
                                                     </span>
                                                 </div>
                                                 <span className="text-sm text-primary-200 mt-2">
@@ -483,7 +483,7 @@ export default function MarketClient({
                                     >
                                         <MapPin className="w-3 h-3 text-primary-400" />
                                         <span className="font-bold text-primary-300">
-                                            {t('market.radius_label', { radius: searchRadius })} | {displayCity}
+                                            {t('market.radius_label').replace('{radius}', searchRadius.toString())} | {displayCity}
                                         </span>
                                         <Search className="w-3 h-3 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </button>
