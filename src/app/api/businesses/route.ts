@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { generateSlug } from '@/lib/slug'
+import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * POST /api/businesses
