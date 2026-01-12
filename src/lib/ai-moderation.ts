@@ -145,6 +145,31 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                                     correctedFields.push('tipo');
                                 }
 
+                                // 🧠 ENRIQUECIMIENTO: Auto-completar datos técnicos si faltan
+                                // Solo llenamos si el vehículo NO tiene el dato (para respetar lo que puso el usuario si ya especificó algo)
+                                // O si queremos forzar la verdad de la IA, pero por seguridad, mejor solo llenar vacíos o diferencias obvias.
+                                // En este caso, como es moderación inicial, vamos a enriquecer agresivamente si la IA está segura.
+
+                                const v = vehicle as any;
+                                if (details.transmission && (!v.transmission || v.transmission === 'N/A')) {
+                                    updateData.transmission = details.transmission;
+                                    correctedFields.push('transmisión');
+                                }
+                                if (details.fuel && (!v.fuel || v.fuel === 'N/A')) {
+                                    updateData.fuel = details.fuel;
+                                    correctedFields.push('combustible');
+                                }
+                                if (details.engine && (!v.engine || v.engine === 'N/A')) {
+                                    updateData.engine = details.engine;
+                                    correctedFields.push('motor');
+                                }
+                                if (details.traction && (!v.traction || v.traction === 'N/A')) {
+                                    updateData.traction = details.traction;
+                                }
+                                if (details.doors && (!v.doors || v.doors === 0)) {
+                                    updateData.doors = details.doors;
+                                }
+
                                 if (Object.keys(updateData).length > 0) {
                                     autoCorrected = true;
                                     await prisma.vehicle.update({
@@ -279,6 +304,18 @@ export async function fixAndApproveVehicle(vehicleId: string) {
         if (details.year) updateData.year = parseInt(details.year)
         if (details.color) updateData.color = details.color
         if (details.type) updateData.vehicleType = details.type
+
+        // 🧠 ENRIQUECIMIENTO DE FICHA TÉCNICA (Asesor Real)
+        if (details.transmission && details.transmission !== 'N/A') updateData.transmission = details.transmission
+        if (details.fuel && details.fuel !== 'N/A') updateData.fuel = details.fuel
+        if (details.engine && details.engine !== 'N/A') updateData.engine = details.engine
+        if (details.traction && details.traction !== 'N/A') updateData.traction = details.traction
+        if (details.doors) updateData.doors = details.doors
+        if (details.mileage) updateData.mileage = details.mileage // Si la IA logró leer el odómetro
+        if (details.condition) updateData.condition = details.condition
+        if (details.displacement) updateData.displacement = details.displacement
+        if (details.cargoCapacity) updateData.cargoCapacity = details.cargoCapacity
+        if (details.operatingHours) updateData.operatingHours = details.operatingHours
 
         // Generar nuevo título basado en la corrección
         updateData.title = `${updateData.brand || vehicle.brand} ${updateData.model || vehicle.model} ${updateData.year || vehicle.year}`

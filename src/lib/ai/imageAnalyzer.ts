@@ -168,6 +168,13 @@ export async function analyzeMultipleImages(
        - IGNORA si la marca/modelo del texto no coinciden con la foto. (Ej: Texto dice "Abarth" pero foto es "Hyundai" -> APROBAR y corregir en "details").
        - SOLO RECHAZA si NO es un vehículo o es contenido inseguro.
 
+       🧠 FICHA TÉCNICA INTELIGENTE (PROACTIVA):
+       - Una vez identifiques el carro (ej: "Jeep Wrangler 2018 Sahara"), USA TU CONOCIMIENTO INTERNO para completar la ficha técnica.
+       - DEDUCE Motor, Transmisión, Tracción, etc. estándar para ese modelo.
+       - NO DEJES CAMPOS VACÍOS si puedes deducirlos con alta probabilidad.
+       - Ejemplo: Si ves un "Tesla Model 3", sabes que es Combustible: "Eléctrico".
+       - Ejemplo: Si ves un "Jeep Wrangler", es muy probable que sea Tracción: "4x4".
+
        🔍 VALIDACIÓN DE GALERÍA (COHERENCIA):
        - Imagen 0 (Portada) define el vehículo.
        - Imágenes 1..N deben ser del MISMO vehículo (mismo color/modelo).
