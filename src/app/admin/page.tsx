@@ -156,7 +156,7 @@ export default function AdminDashboard() {
     return (
         <div className="min-h-screen bg-[#0c0c0e] text-text-primary flex">
             {/* Sidebar */}
-            <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-[#111114] border-r border-white/5 transition-all duration-300 flex flex-col z-50`}>
+            <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-[#111114] border-r border-white/5 transition-all duration-300 flex flex-col z-50 flex-shrink-0`}>
                 <div className="p-6 flex items-center gap-3">
                     <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary-900/40">
                         <ShieldCheck className="w-5 h-5 text-white" />
