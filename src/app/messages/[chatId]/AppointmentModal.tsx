@@ -28,7 +28,7 @@ const MapBoxAddressPicker = dynamic(() => import('@/components/MapBoxAddressPick
     loading: () => <div className="w-full h-[300px] bg-surface-highlight animate-pulse rounded-xl" />
 })
 
-export default function AppointmentModal({ onClose, onSubmit, chatId }: AppointmentModalProps) {
+export default function AppointmentModal({ onClose, onSubmit, chatId, initialAppointment }: AppointmentModalProps) {
     const { t } = useLanguage()
     const [step, setStep] = useState(1)
     const [safePlaces, setSafePlaces] = useState<SafePlace[]>([])
