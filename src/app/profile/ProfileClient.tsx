@@ -203,12 +203,9 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                             ? "text-text-secondary"
                                                             : "text-text-primary group-hover:text-primary-400"
                                                             }`}>
-                                                            {vehicle.title}
+                                                            {vehicle.brand} {vehicle.model} {vehicle.year}
                                                         </h3>
                                                     </Link>
-                                                    <p className="text-text-secondary mt-1">
-                                                        {vehicle.brand} {vehicle.model} • {vehicle.year}
-                                                    </p>
                                                     <p className={`font-bold mt-1 text-xl ${isInactive ? "text-text-secondary" : "text-primary-400"
                                                         }`} suppressHydrationWarning>
                                                         {formatPrice(vehicle.price, vehicle.currency || 'MXN', locale)}

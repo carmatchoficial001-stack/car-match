@@ -375,7 +375,7 @@ export default function MarketClient({
                                                 <div className="p-3 md:p-4">
                                                     <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} className="block mb-1 group-hover:text-primary-400 transition">
                                                         <h3 className="font-bold text-sm md:text-lg text-text-primary line-clamp-1">
-                                                            {item.title}
+                                                            {item.brand ? `${item.brand} ${item.model} ${item.year}` : item.title}
                                                         </h3>
                                                     </Link>
 
