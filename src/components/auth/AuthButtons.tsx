@@ -6,8 +6,18 @@ import { useLanguage } from "@/contexts/LanguageContext"
 export default function AuthButtons() {
     const { t } = useLanguage()
 
-    const handleGoogleSignIn = () => {
-        signIn("google", { callbackUrl: "/auth/callback" })
+    const handleGoogleSignIn = async () => {
+        try {
+            console.log("🔵 Iniciando proceso de Google Sign-In...");
+            const result = await signIn("google", { callbackUrl: "/auth/callback" });
+            console.log("🟢 Resultado de signIn:", result);
+            if (result?.error) {
+                alert("Error de Auth: " + result.error);
+            }
+        } catch (error) {
+            console.error("🔴 Error crítico en handleGoogleSignIn:", error);
+            alert("Error al intentar iniciar sesión. Revisa la consola.");
+        }
     }
 
     const handleFacebookSignIn = () => {
@@ -67,24 +77,6 @@ export default function AuthButtons() {
                 </span>
             </button>
 
-            {/* Apple */}
-            <div className="relative group opacity-70 cursor-not-allowed">
-                <button
-                    type="button"
-                    disabled
-                    className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black text-white rounded-xl shadow-lg border border-gray-800 opacity-50 cursor-not-allowed"
-                >
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.74 1.18 0 2.21-.93 3.39-.74 2.17.16 3.93 1.31 4.54 2.63l-.04.05c-1.74.83-2.6 3.01-1.28 4.96.64 1.12 1.62 1.76 2.06 1.94-.97 2.09-2.3 4.21-3.75 3.39zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-                    </svg>
-                    <span className="font-bold text-lg">
-                        {t('auth.continue_with')} Apple
-                    </span>
-                </button>
-                <div className="absolute top-0 right-0 -mt-2 -mr-2 bg-primary-600 text-white text-[10px] uppercase font-bold px-2 py-1 rounded-full shadow-md z-10">
-                    {t('auth.coming_soon')}
-                </div>
-            </div>
         </div>
     )
 }
