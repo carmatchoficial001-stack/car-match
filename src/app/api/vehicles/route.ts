@@ -32,11 +32,23 @@ export async function POST(request: NextRequest) {
         const body = await request.json()
 
         // Validar campos requeridos
-        const { title, description, brand, model, year, price, city, latitude, longitude } = body
+        const { title, brand, model, year, price, city, latitude, longitude, description } = body
 
-        if (!title || !description || !brand || !model || !year || !price || !city) {
+        const missingFields = []
+        if (!title) missingFields.push('Título')
+        if (!brand) missingFields.push('Marca')
+        if (!model || model === 'N/A') missingFields.push('Modelo')
+        if (!year) missingFields.push('Año')
+        if (!price) missingFields.push('Precio')
+        if (!city) missingFields.push('Ciudad')
+        if (!body.images || body.images.length === 0) missingFields.push('Imágenes')
+
+        if (missingFields.length > 0) {
             return NextResponse.json(
-                { error: 'Faltan campos requeridos' },
+                {
+                    error: 'Faltan campos requeridos',
+                    missingFields
+                },
                 { status: 400 }
             )
         }

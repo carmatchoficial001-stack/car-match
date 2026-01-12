@@ -257,6 +257,8 @@ export default function PublishClient() {
         if (!condition && details.condition) setCondition(details.condition)
         if (!displacement && details.displacement) setDisplacement(details.displacement.toString())
         if (!cargoCapacity && details.cargoCapacity) setCargoCapacity(details.cargoCapacity.toString())
+        if (!traction && details.traction) setTraction(details.traction)
+        if (!passengers && details.passengers) setPassengers(details.passengers.toString())
 
         if (category) {
             const lowerCat = category.toLowerCase()
@@ -423,14 +425,15 @@ export default function PublishClient() {
             if (!model || model === 'N/A' || model.trim() === '') errors.push('Modelo')
             if (isNaN(parsedYear) || parsedYear < 1900 || parsedYear > new Date().getFullYear() + 2) errors.push('Año válido')
             if (!price || parseFloat(price) <= 0) errors.push('Precio')
-            if (!mileage) errors.push('Kilometraje')
-            if (!stateLocation) errors.push('Estado/Provincia')
-            if (!city) errors.push('Ciudad')
             if (images.length === 0) errors.push('Al menos 1 imagen')
+            if (!mileage) errors.push('Kilometraje')
+            if (!city) errors.push('Ciudad')
+            // Removida la validación de stateLocation si el backend no la requiere estrictamente o si queremos que falle allá
 
             if (errors.length > 0) {
-                alert(`⚠️ Faltan campos requeridos para publicar:\n\n${errors.map(e => `• ${e}`).join('\n')}`)
+                setAiError(`Precaución: Faltan campos requeridos:\n${errors.join(', ')}`)
                 setLoading(false)
+                // Opcional: mover al paso que falta (ej: info básica)
                 return
             }
 
@@ -502,12 +505,15 @@ export default function PublishClient() {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}))
+                if (errorData.missingFields) {
+                    throw new Error(`Faltan campos: ${errorData.missingFields.join(', ')}`)
+                }
                 throw new Error(errorData.error || 'Error al publicar vehículo')
             }
             router.push('/profile?published=true')
         } catch (error) {
             console.error('Error:', error)
-            alert(error instanceof Error ? error.message : 'Error al publicar.')
+            setAiError(error instanceof Error ? error.message : 'Error al publicar.')
         } finally {
             setLoading(false)
         }
@@ -978,8 +984,24 @@ export default function PublishClient() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                <span className="text-sm font-medium text-text-primary">{city}</span>
+                                <span className={`text-sm font-medium ${!city ? 'text-red-500' : 'text-text-primary'}`}>
+                                    {city || 'Ubicación no seleccionada'}
+                                </span>
                             </div>
+
+                            {(!brand || !model || !year || !price || images.length === 0 || !city) && (
+                                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl space-y-2">
+                                    <p className="text-red-500 font-bold text-sm">⚠️ Revisión requerida:</p>
+                                    <ul className="text-xs text-red-400 space-y-1">
+                                        {!brand && <li>• Marca faltante</li>}
+                                        {!model && <li>• Modelo faltante</li>}
+                                        {!year && <li>• Año faltante</li>}
+                                        {(!price || parseFloat(price) <= 0) && <li>• Precio no válido</li>}
+                                        {images.length === 0 && <li>• Se requiere al menos una imagen</li>}
+                                        {!city && <li>• Ciudad no seleccionada</li>}
+                                    </ul>
+                                </div>
+                            )}
                         </div>
                     )}
 

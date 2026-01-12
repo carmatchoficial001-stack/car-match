@@ -48,9 +48,19 @@ export async function POST(request: NextRequest) {
         } = body
 
         // Validaciones básicas
-        if (!name || !category || !address || !city || !latitude || !longitude) {
+        const missingFields = []
+        if (!name) missingFields.push('Nombre del Negocio')
+        if (!category) missingFields.push('Categoría')
+        if (!address) missingFields.push('Dirección')
+        if (!city) missingFields.push('Ciudad')
+        if (!latitude || !longitude) missingFields.push('Ubicación (GPS)')
+
+        if (missingFields.length > 0) {
             return NextResponse.json(
-                { error: 'Faltan campos requeridos: name, category, address, city, latitude, longitude' },
+                {
+                    error: 'Faltan campos requeridos',
+                    missingFields
+                },
                 { status: 400 }
             )
         }

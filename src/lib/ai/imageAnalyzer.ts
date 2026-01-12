@@ -21,6 +21,7 @@ interface ImageAnalysisResult {
     engine?: string; // Ej: "2.0L Turbo", "V6 3.5L"
     traction?: string; // FWD, RWD, 4x4, AWD
     doors?: number; // 2, 4, 5
+    passengers?: number; // 2, 5, 7, etc.
     mileage?: number; // Kilometraje estimado si es visible
     condition?: string; // Nuevo, Seminuevo, Usado
 
@@ -194,11 +195,19 @@ export async function analyzeMultipleImages(
            { "index": number, "isValid": boolean, "reason": "Razón si es false" }
          ],
          "details": {
-           "brand": "Marca EXACTA que ves", 
-           "model": "Modelo EXACTO que ves", 
-           "year": "Año estimado", 
-           "color": "Color", 
-           "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion"
+            "brand": "Marca EXACTA que ves",
+            "model": "Modelo EXACTO que ves",
+            "year": "Año estimado",
+            "color": "Color",
+            "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
+            "transmission": "Específica (Manual|Automática)",
+            "fuel": "Específico (Gasolina|Diésel|Eléctrico|Híbrido)",
+            "engine": "Especificación (ej: V6 3.5L)",
+            "traction": "FWD|RWD|4x4|AWD",
+            "doors": 5,
+            "passengers": 5,
+            "displacement": 2000,
+            "cargoCapacity": 0.5
          }
        }`
     : `ERES UN MODERADOR DE CONTENIDO PARA PERFILES DE NEGOCIO.
