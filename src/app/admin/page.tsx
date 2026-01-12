@@ -285,6 +285,7 @@ export default function AdminDashboard() {
 }
 
 function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) {
+    const { t } = useLanguage()
     return (
         <div className="space-y-8">
             {/* Stats Cards */}
