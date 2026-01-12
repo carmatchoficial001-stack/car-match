@@ -276,124 +276,124 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                         </div>
 
                     </div>
-                </div>
 
-                {/* Messages Container */}
-                <div className="flex-1 overflow-y-auto px-4 py-6 bg-background scroll-smooth">
-                    <div className="max-w-4xl mx-auto space-y-4">
-                        {messages.map((message) => {
-                            const isOwnMessage = message.senderId === session?.user?.id
+                    {/* Messages Container */}
+                    <div className="flex-1 overflow-y-auto px-4 py-6 bg-background scroll-smooth">
+                        <div className="max-w-4xl mx-auto space-y-4">
+                            {messages.map((message) => {
+                                const isOwnMessage = message.senderId === session?.user?.id
 
-                            return (
-                                <div key={message.id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[85%] flex items-end gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
-                                        {/* Avatar */}
-                                        {!isOwnMessage && (
-                                            <div className="flex-shrink-0">
-                                                {message.sender?.image ? (
-                                                    <img src={message.sender.image} alt={message.sender.name || '?'} className="w-8 h-8 rounded-full" />
-                                                ) : (
-                                                    <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-xs text-white">
-                                                        {(message.sender?.name || '?')[0]}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
+                                return (
+                                    <div key={message.id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                                        <div className={`max-w-[85%] flex items-end gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+                                            {/* Avatar */}
+                                            {!isOwnMessage && (
+                                                <div className="flex-shrink-0">
+                                                    {message.sender?.image ? (
+                                                        <img src={message.sender.image} alt={message.sender.name || '?'} className="w-8 h-8 rounded-full" />
+                                                    ) : (
+                                                        <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-xs text-white">
+                                                            {(message.sender?.name || '?')[0]}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
 
-                                        {message.type === 'APPOINTMENT' ? (
-                                            <AppointmentCard
-                                                appointment={message as any}
-                                                isOwn={isOwnMessage}
-                                                onUpdateStatus={handleUpdateAppointment}
-                                            />
-                                        ) : (
-                                            <div className={`rounded-2xl px-4 py-2 ${isOwnMessage
-                                                ? 'bg-primary-600 text-white rounded-tr-sm'
-                                                : 'bg-surface border border-surface-highlight text-text-primary rounded-tl-sm'
-                                                }`}>
-                                                {!isOwnMessage && (
-                                                    <div className="text-xs font-bold mb-1 opacity-70">
-                                                        {message.sender?.name}
-                                                    </div>
-                                                )}
-                                                <p className="whitespace-pre-wrap text-sm">{message.content.replace('[ACTION:SCHEDULE]', '').trim()}</p>
-
-                                                {message.content.includes('[ACTION:SCHEDULE]') && !isOwnMessage && (
-                                                    <button
-                                                        onClick={() => loadSafePlaces()}
-                                                        className="mt-3 w-full text-xs bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition flex items-center justify-center gap-2 shadow-sm font-bold animate-pulse"
-                                                    >
-                                                        📅 {t('messages.suggest_safe_places')}
-                                                    </button>
-                                                )}
-
-                                                <span className={`text-[10px] block text-right mt-1 ${isOwnMessage ? 'text-primary-200' : 'text-text-secondary'
+                                            {message.type === 'APPOINTMENT' ? (
+                                                <AppointmentCard
+                                                    appointment={message as any}
+                                                    isOwn={isOwnMessage}
+                                                    onUpdateStatus={handleUpdateAppointment}
+                                                />
+                                            ) : (
+                                                <div className={`rounded-2xl px-4 py-2 ${isOwnMessage
+                                                    ? 'bg-primary-600 text-white rounded-tr-sm'
+                                                    : 'bg-surface border border-surface-highlight text-text-primary rounded-tl-sm'
                                                     }`}>
-                                                    {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </span>
-                                            </div>
-                                        )}
+                                                    {!isOwnMessage && (
+                                                        <div className="text-xs font-bold mb-1 opacity-70">
+                                                            {message.sender?.name}
+                                                        </div>
+                                                    )}
+                                                    <p className="whitespace-pre-wrap text-sm">{message.content.replace('[ACTION:SCHEDULE]', '').trim()}</p>
+
+                                                    {message.content.includes('[ACTION:SCHEDULE]') && !isOwnMessage && (
+                                                        <button
+                                                            onClick={() => loadSafePlaces()}
+                                                            className="mt-3 w-full text-xs bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition flex items-center justify-center gap-2 shadow-sm font-bold animate-pulse"
+                                                        >
+                                                            📅 {t('messages.suggest_safe_places')}
+                                                        </button>
+                                                    )}
+
+                                                    <span className={`text-[10px] block text-right mt-1 ${isOwnMessage ? 'text-primary-200' : 'text-text-secondary'
+                                                        }`}>
+                                                        {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            )
-                        })}
-                        <div ref={messagesEndRef} />
+                                )
+                            })}
+                            <div ref={messagesEndRef} />
+                        </div>
                     </div>
-                </div>
 
-                {/* Input Area */}
-                <div className="bg-surface border-t border-surface-highlight p-2 sm:p-4 shrink-0">
-                    <div className="max-w-4xl mx-auto">
-                        {chat?.vehicle.status && chat.vehicle.status !== 'ACTIVE' && (
-                            <div className="mb-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-xs text-center font-bold">
-                                ⚠️ Vehículo no disponible. No puedes enviar mensajes.
-                            </div>
-                        )}
-                        <form onSubmit={handleSendMessage} className="flex items-end gap-1 sm:gap-2">
-                            {/* Actions Button Group */}
-                            <div className="flex gap-1">
+                    {/* Input Area */}
+                    <div className="bg-surface border-t border-surface-highlight p-2 sm:p-4 shrink-0">
+                        <div className="max-w-4xl mx-auto">
+                            {chat?.vehicle.status && chat.vehicle.status !== 'ACTIVE' && (
+                                <div className="mb-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-xs text-center font-bold">
+                                    ⚠️ Vehículo no disponible. No puedes enviar mensajes.
+                                </div>
+                            )}
+                            <form onSubmit={handleSendMessage} className="flex items-end gap-1 sm:gap-2">
+                                {/* Actions Button Group */}
+                                <div className="flex gap-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowSafetyTips(!showSafetyTips)}
+                                        className={`p-2 sm:p-3 rounded-xl transition-colors ${showSafetyTips ? 'bg-primary-100 text-primary-700' : 'text-primary-600 hover:bg-primary-50'}`}
+                                        title={t('messages.safety_shield')}
+                                    >
+                                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAppointmentModal(true)}
+                                        className="p-2 sm:p-3 text-primary-600 hover:bg-primary-50 rounded-xl transition-colors"
+                                        title="Agendar Cita"
+                                    >
+                                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 min-w-0 bg-background border border-surface-highlight rounded-xl flex items-center px-2 sm:px-4 relative">
+                                    <input
+                                        type="text"
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        placeholder={t('messages.write_message')}
+                                        className="flex-1 bg-transparent py-2.5 sm:py-3 focus:outline-none text-text-primary text-sm sm:text-base"
+                                        disabled={sending || (chat?.vehicle.status && chat.vehicle.status !== 'ACTIVE')}
+                                    />
+                                </div>
                                 <button
-                                    type="button"
-                                    onClick={() => setShowSafetyTips(!showSafetyTips)}
-                                    className={`p-2 sm:p-3 rounded-xl transition-colors ${showSafetyTips ? 'bg-primary-100 text-primary-700' : 'text-primary-600 hover:bg-primary-50'}`}
-                                    title={t('messages.safety_shield')}
+                                    type="submit"
+                                    disabled={!newMessage.trim() || sending || (chat?.vehicle.status && chat.vehicle.status !== 'ACTIVE')}
+                                    className="p-2.5 sm:p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-primary-900/20 shrink-0"
                                 >
-                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    <svg className="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                                     </svg>
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowAppointmentModal(true)}
-                                    className="p-2 sm:p-3 text-primary-600 hover:bg-primary-50 rounded-xl transition-colors"
-                                    title="Agendar Cita"
-                                >
-                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <div className="flex-1 min-w-0 bg-background border border-surface-highlight rounded-xl flex items-center px-2 sm:px-4 relative">
-                                <input
-                                    type="text"
-                                    value={newMessage}
-                                    onChange={(e) => setNewMessage(e.target.value)}
-                                    placeholder={t('messages.write_message')}
-                                    className="flex-1 bg-transparent py-2.5 sm:py-3 focus:outline-none text-text-primary text-sm sm:text-base"
-                                    disabled={sending || (chat?.vehicle.status && chat.vehicle.status !== 'ACTIVE')}
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={!newMessage.trim() || sending || (chat?.vehicle.status && chat.vehicle.status !== 'ACTIVE')}
-                                className="p-2.5 sm:p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-primary-900/20 shrink-0"
-                            >
-                                <svg className="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                                </svg>
-                            </button>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
