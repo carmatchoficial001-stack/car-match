@@ -845,6 +845,7 @@ function IntelligenceTab() {
     )
 }
 function AiHubTab() {
+    const { t } = useLanguage()
     const [logs, setLogs] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [isUpdating, setIsUpdating] = useState(false)
