@@ -27,8 +27,8 @@ model User {
   lastLocationUpdate      DateTime?
   isAdmin                 Boolean                   @default(false)
   fraudStrikes            Int                       @default(0)
-  lifetimeVehicleCount    Int                       @default(0)
   lifetimeBusinessCount   Int                       @default(0)
+  lifetimeVehicleCount    Int                       @default(0)
   accounts                Account[]
   analyticsEvents         AnalyticsEvent[]
   businesses              Business[]
@@ -46,17 +46,10 @@ model User {
   paymentMethods          PaymentMethod[]
   publicationFingerprints PublicationFingerprint[]
   pushSubscriptions       PushSubscription[]
-  sessions                Session[]
-  vehicles                Vehicle[]
-  
-  // Seguridad Avanzada
-  trustedContactId        String?
-  trustedContact          User?                     @relation("TrustedContact", fields: [trustedContactId], references: [id])
-  trustedBy               User[]                    @relation("TrustedContact")
-  
-  // Relations for Reporting System
   reportsMade             Report[]                  @relation("Reporter")
   reportsReceived         Report[]                  @relation("ReportedUser")
+  sessions                Session[]
+  vehicles                Vehicle[]
 
   @@index([email])
   @@index([city])
@@ -109,55 +102,54 @@ model VerificationToken {
 }
 
 model Vehicle {
-  id                String           @id @default(cuid())
-  userId            String
-  title             String
-  description       String
-  brand             String
-  model             String
-  year              Int
-  price             Decimal          @db.Decimal(10, 2)
-  city              String
-  colony            String?
-  state             String?
-  country           String?          @default("MX")
-  currency          String           @default("MXN")
-  images            String[]
-  status            VehicleStatus    @default(ACTIVE)
-  moderationStatus  ModerationStatus @default(PENDING_AI)
-  isFreePublication Boolean          @default(true)
-  publishedAt       DateTime         @default(now())
-  expiresAt         DateTime?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  mileage           Int?
-  mileageUnit       String           @default("km")
-  transmission      String?
-  traction          String?
-  fuel              String?
-  engine            String?
-  doors             Int?
-  passengers        Int?
-  color             String?
-  vehicleType       String?
-  condition         String?
-  accidents         Boolean?
-  owners            Int?
-  features          String[]
-  searchIndex       String?
-  displacement      Int?
-  cargoCapacity     Float?
-  operatingHours    Int?
-  moderationFeedback String?   @db.Text
-
-  latitude          Float?
-  longitude         Float?
-  chats             Chat[]
-  dislikes          Dislike[]
-  favorites         Favorite[]
-  notifications     Notification[]
-  reports           Report[]
-  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String           @id @default(cuid())
+  userId             String
+  title              String
+  description        String
+  brand              String
+  model              String
+  year               Int
+  price              Decimal          @db.Decimal(10, 2)
+  city               String
+  colony             String?
+  state              String?
+  country            String?          @default("MX")
+  images             String[]
+  status             VehicleStatus    @default(ACTIVE)
+  moderationStatus   ModerationStatus @default(PENDING_AI)
+  isFreePublication  Boolean          @default(true)
+  publishedAt        DateTime         @default(now())
+  expiresAt          DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  mileage            Int?
+  transmission       String?
+  fuel               String?
+  engine             String?
+  doors              Int?
+  color              String?
+  vehicleType        String?
+  condition          String?
+  accidents          Boolean?
+  owners             Int?
+  features           String[]
+  searchIndex        String?
+  displacement       Int?
+  cargoCapacity      Float?
+  operatingHours     Int?
+  latitude           Float?
+  longitude          Float?
+  currency           String           @default("MXN")
+  mileageUnit        String           @default("km")
+  passengers         Int?
+  traction           String?
+  moderationFeedback String?
+  chats              Chat[]
+  dislikes           Dislike[]
+  favorites          Favorite[]
+  notifications      Notification[]
+  reports            Report[]
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([city])
@@ -209,7 +201,6 @@ model Business {
   hasEmergencyService Boolean            @default(false)
   hasHomeService      Boolean            @default(false)
   is24Hours           Boolean            @default(false)
-  isSafeMeetingPoint  Boolean            @default(false)
   user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   favorites           BusinessFavorite[]
   views               BusinessView[]
@@ -425,11 +416,9 @@ model Appointment {
   address    String?
   latitude   Float?
   longitude  Float?
-  status             String
-  monitoringActive   Boolean  @default(false)
-  lastSafetyCheck    DateTime?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  status     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   chat       Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId])
@@ -546,22 +535,20 @@ model VehicleType {
 }
 
 model AutoUpdateLog {
-  id            String   @id @default(cuid())
-  status        String
-  brandsAdded   Int      @default(0)
-  modelsAdded   Int      @default(0)
-  typesAdded    Int      @default(0)
-  errors        String?
-  executionTime Int?
-  metadata      Json?
-  createdAt     DateTime @default(now())
-
-  // Audit and Wikipedia-like fields
-  source              String?
-  triggeredBy         String?
-  totalProcessed      Int      @default(0)
-  region              String?
+  id                  String   @id @default(cuid())
+  status              String
+  brandsAdded         Int      @default(0)
+  modelsAdded         Int      @default(0)
+  typesAdded          Int      @default(0)
+  errors              String?
+  executionTime       Int?
+  metadata            Json?
+  createdAt           DateTime @default(now())
   confidenceThreshold Float?
+  region              String?
+  source              String?
+  totalProcessed      Int      @default(0)
+  triggeredBy         String?
 
   @@index([status])
   @@index([createdAt])
@@ -574,6 +561,53 @@ model spatial_ref_sys {
   auth_srid Int?
   srtext    String? @db.VarChar(2048)
   proj4text String? @db.VarChar(2048)
+}
+
+model SearchMetric {
+  id        String   @id @default(cuid())
+  query     String?
+  category  String?
+  latitude  Float
+  longitude Float
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@index([latitude, longitude])
+  @@index([createdAt])
+}
+
+model OpportunityLog {
+  id           String   @id @default(cuid())
+  businessType String
+  latitude     Float
+  longitude    Float
+  reason       String?
+  createdAt    DateTime @default(now())
+
+  @@index([latitude, longitude])
+  @@index([createdAt])
+}
+
+model Report {
+  id           String       @id @default(cuid())
+  reporterId   String
+  reason       String
+  description  String?
+  status       ReportStatus @default(PENDING)
+  vehicleId    String?
+  businessId   String?
+  targetUserId String?
+  imageUrl     String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  business     Business?    @relation(fields: [businessId], references: [id])
+  reporter     User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetUser   User?        @relation("ReportedUser", fields: [targetUserId], references: [id])
+  vehicle      Vehicle?     @relation(fields: [vehicleId], references: [id])
+
+  @@index([reporterId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 enum VehicleStatus {
@@ -617,57 +651,6 @@ enum NotificationType {
   PROFILE_VIEWED
   MESSAGE_RECEIVED
   APPOINTMENT_SCHEDULED
-}
-
-model SearchMetric {
-  id        String   @id @default(cuid())
-  query     String?
-  category  String?
-  latitude  Float
-  longitude Float
-  userId    String?
-  createdAt DateTime @default(now())
-
-  @@index([latitude, longitude])
-  @@index([createdAt])
-}
-
-model OpportunityLog {
-  id           String   @id @default(cuid())
-  businessType String
-  latitude     Float
-  longitude    Float
-  reason       String?
-  createdAt    DateTime @default(now())
-
-  @@index([latitude, longitude])
-  @@index([createdAt])
-}
-
-model Report {
-  id           String       @id @default(cuid())
-  reporterId   String
-  reason       String
-  description  String?
-  status       ReportStatus @default(PENDING)
-  
-  // Polymorphic targets
-  vehicleId    String?
-  businessId   String?
-  targetUserId String?
-  imageUrl     String?      // The specific image URL being flagged
-  
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-
-  reporter     User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  vehicle      Vehicle?     @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
-  business     Business?    @relation(fields: [businessId], references: [id], onDelete: SetNull)
-  targetUser   User?        @relation("ReportedUser", fields: [targetUserId], references: [id], onDelete: SetNull)
-
-  @@index([reporterId])
-  @@index([status])
-  @@index([createdAt])
 }
 
 enum ReportStatus {
