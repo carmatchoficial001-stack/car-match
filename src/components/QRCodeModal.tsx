@@ -213,7 +213,7 @@ export default function QRCodeModal({ isOpen, onClose }: QRCodeModalProps) {
                                         value={phoneNumber}
                                         onChange={(e) => setPhoneNumber(e.target.value)}
                                         placeholder="Ej: 8123456789"
-                                        className="flex-1 px-4 py-3 bg-surface border border-white/10 rounded-xl text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-green-500/50 focus:ring-2 focus:ring-green-500/20 transition"
+                                        className="flex-1 min-w-0 px-4 py-3 bg-surface border border-white/10 rounded-xl text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-green-500/50 focus:ring-2 focus:ring-green-500/20 transition"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && phoneNumber.trim()) {
                                                 handleSendWhatsApp()
@@ -223,7 +223,7 @@ export default function QRCodeModal({ isOpen, onClose }: QRCodeModalProps) {
                                     <button
                                         onClick={handleSendWhatsApp}
                                         disabled={!phoneNumber.trim() || sendingWhatsApp}
-                                        className="px-5 py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-xl font-bold text-sm text-white transition flex items-center justify-center gap-2 shadow-lg shadow-green-900/20 disabled:shadow-none"
+                                        className="px-3 sm:px-5 py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-xl font-bold text-sm text-white transition flex items-center justify-center gap-2 shadow-lg shadow-green-900/20 disabled:shadow-none shrink-0"
                                     >
                                         {sendingWhatsApp ? (
                                             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
