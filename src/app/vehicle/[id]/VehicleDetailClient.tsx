@@ -133,13 +133,44 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                         )}
 
                         {vehicle.moderationStatus === 'APPROVED' && vehicle.moderationFeedback?.includes('Auto-corregido') && (
-                            <div className="bg-primary-500/5 border border-primary-500/20 rounded-2xl p-4 flex gap-3 items-start">
-                                <Sparkles className="text-primary-400 flex-shrink-0" size={20} />
-                                <div>
-                                    <p className="text-primary-400 font-black text-xs uppercase tracking-wider mb-1">Optimizado por CarMatch</p>
-                                    <p className="text-gray-300 text-sm leading-relaxed">
-                                        {vehicle.moderationFeedback}
-                                    </p>
+                            <div className="bg-primary-500/5 border border-primary-500/20 rounded-2xl p-4 flex flex-col gap-3">
+                                <div className="flex gap-3 items-start">
+                                    <Sparkles className="text-primary-400 flex-shrink-0" size={20} />
+                                    <div>
+                                        <p className="text-primary-400 font-black text-xs uppercase tracking-wider mb-1">Optimizado por un Asesor</p>
+                                        <p className="text-gray-300 text-sm leading-relaxed">
+                                            {vehicle.moderationFeedback.replace('Auto-corregido:', 'Corrigiendo datos reales:')}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2 pl-8">
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                const res = await fetch(`/api/vehicles/${vehicle.id}`, {
+                                                    method: 'PATCH',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ moderationFeedback: null })
+                                                })
+                                                if (res.ok) {
+                                                    window.location.reload()
+                                                }
+                                            } catch (e) {
+                                                console.error(e)
+                                            }
+                                        }}
+                                        className="px-3 py-1.5 bg-green-500/20 text-green-400 text-xs font-bold rounded-lg border border-green-500/30 hover:bg-green-500/30 transition flex items-center gap-1"
+                                    >
+                                        <CheckCircle2 size={12} />
+                                        Aceptar
+                                    </button>
+                                    <Link
+                                        href={`/publish?edit=${vehicle.id}`}
+                                        className="px-3 py-1.5 bg-white/5 text-gray-300 text-xs font-bold rounded-lg border border-white/10 hover:bg-white/10 transition flex items-center gap-1"
+                                    >
+                                        <Edit3 size={12} />
+                                        Editar
+                                    </Link>
                                 </div>
                             </div>
                         )}
