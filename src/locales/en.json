@@ -23,8 +23,9 @@
         "all_rights_reserved": "All rights reserved.",
         "support": "CarMatch Support",
         "install_app": "Install CarMatch App",
-        "online_team": "Team online",
-        "typing_placeholder": "Type your question...",
+        "online_team": "Online Support",
+        "typing_placeholder": "Ask your question...",
+        "copy": "Copy",
         "copied": "Copied!"
     },
     "nav": {
