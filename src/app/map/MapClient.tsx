@@ -375,7 +375,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                             <button onClick={() => setShowSidebar(false)} className="text-text-secondary">✕</button>
                         </div>
 
-                        <div className="p-4 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
+                        <div className="p-4 pb-24 md:pb-8 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
 
                             {/* ➕ Add Business Button (Small) */}
                             <a
