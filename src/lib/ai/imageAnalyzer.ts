@@ -171,17 +171,19 @@ export async function analyzeMultipleImages(
        - Marca: "${context?.brand || '?'}", Modelo: "${context?.model || '?'}", Año: "${context?.year || '?'}"
        
        🚀 REGLAS MAESTRAS DE CARMATCH:
-       1. PORTADA (Índice 0) ES EL LÍDER: Identifica si es un VEHÍCULO MOTORIZADO TERRESTRE real. Su marca/modelo/año/color definen el anuncio.
-       2. GALERÍA PARA ENRIQUECER: Usa las fotos 1 al 9 para BUSCAR DETALLES que la portada no muestra (ej: emblemas traseros, tablero, motor, rines) para CONFIRMAR marca/modelo y autollenar datos técnicos.
-       3. PRIORIDAD VISUAL: Si la foto es un vehículo real pero no coincide con el texto del usuario, ¡ES VÁLIDO! (Dinos la verdad que ves en las fotos).
-       4. RECHAZA SOLO SI: No es un vehículo motorizado real, es inseguro (NSFW/Gore), o es un objeto irrelevante.
+       1. PORTADA @Index 0 ES EL LÍDER: Identifica si es un VEHÍCULO MOTORIZADO TERRESTRE real. Su marca/modelo/año/color definen el anuncio.
+       2. CONSISTENCIA OBLIGATORIA: Compara todas las fotos 1 al 9 con la Portada (0). 
+          - SI una foto es de un vehículo DIFERENTE al de la portada, ¡MÁRCALA COMO INVALIDA! (isValid: false).
+          - SI la foto es del MISMO vehículo (aunque sea de otro ángulo, motor o interior), ¡ES VÁLIDA!.
+       3. ENRIQUECER FICHA TÉCNICA: Usa las fotos válidas para extraer datos técnicos.
+       4. PRIORIDAD VISUAL: Si la portada es un vehículo real pero no coincide con el texto del usuario, ¡ES VÁLIDO! (la imagen manda).
 
        Responde ÚNICAMENTE este JSON (sin markdown):
        {
          "isValidCover": boolean,
          "coverReason": "Razón si no es vehículo motorizado terrestre",
          "analysis": [
-           { "index": number, "isValid": boolean, "reason": "OK" }
+           { "index": number, "isValid": boolean, "reason": "OK o 'Vehículo diferente al de portada'" }
          ],
          "details": {
             "brand": "Marca",
@@ -229,14 +231,14 @@ export async function analyzeMultipleImages(
        }`;
 
   try {
-    const imageParts = images.map(img => ({
+    // 🚀 OPTIMIZACIÓN CARMATCH: Solo enviamos la portada y el resto de la galería 
+    // pero limitamos a 6 fotos para no saturar memoria de Vercel (Payload too large)
+    const imagesToAnalyze = images.slice(0, 6);
+    const imageParts = imagesToAnalyze.map(img => ({
       inlineData: { data: img, mimeType: "image/jpeg" }
     }));
 
-    // Fix: Analizar hasta 10 imágenes (Portada + 9 Galería)
-    const imagesToAnalyze = imageParts.slice(0, 10);
-
-    const result = await geminiModel.generateContent([prompt, ...imagesToAnalyze]);
+    const result = await geminiModel.generateContent([prompt, ...imageParts]);
     const response = await result.response;
 
     if (response.promptFeedback?.blockReason) {
@@ -291,7 +293,7 @@ export async function analyzeMultipleImages(
     // Esto previene que imágenes inválidas pasen cuando la IA falla
     return {
       valid: false,
-      reason: "No pudimos verificar tu imagen. Por favor, intenta nuevamente.",
+      reason: `Error del Asesor Real: ${error.message || 'El servidor está saturado. Intenta subir menos fotos o fotos menos pesadas.'}`,
       invalidIndices: [0]
     };
   }

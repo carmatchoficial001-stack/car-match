@@ -197,9 +197,9 @@ export default function PublishClient() {
             setIsAnalyzing(false)
             handleNextStep()
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error en validación de imágenes:', error)
-            setAiError('No pudimos verificar tus imágenes. Intenta de nuevo.')
+            setAiError(error.message || 'No pudimos verificar tus imágenes. Intenta de nuevo.')
             setIsAnalyzing(false)
         }
     }
