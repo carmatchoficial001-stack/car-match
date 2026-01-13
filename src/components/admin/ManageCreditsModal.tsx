@@ -32,6 +32,14 @@ export default function ManageCreditsModal({ isOpen, onClose, user, onSuccess }:
         setLoading(true)
         try {
             const finalAmount = parseInt(amount)
+
+            if (isNaN(finalAmount)) {
+                alert('Por favor, ingresa una cantidad válida')
+                setLoading(false)
+                setShowConfirm(false)
+                return
+            }
+
             const res = await fetch(`/api/admin/users/${user.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },

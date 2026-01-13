@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
             prisma.user.findMany({
                 take: 50,
                 orderBy: { createdAt: 'desc' },
-                select: { id: true, name: true, email: true, image: true, isAdmin: true, isActive: true, createdAt: true }
+                select: { id: true, name: true, email: true, image: true, isAdmin: true, isActive: true, createdAt: true, credits: true }
             }),
             prisma.vehicle.findMany({
                 take: 50,
