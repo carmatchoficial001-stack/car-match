@@ -369,6 +369,7 @@ export async function fixAndApproveVehicle(vehicleId: string) {
 
         if (!vehicle.doors && details.doors) updateData.doors = parseInt(sanitizeAIValue(details.doors) as string)
         if (!vehicle.condition && aiCondition) updateData.condition = aiCondition
+        const v = vehicle as any;
         if (!v.passengers && details.passengers) updateData.passengers = parseInt(sanitizeAIValue(details.passengers) as string)
 
         const aiHp = sanitizeAIValue(details.hp);
