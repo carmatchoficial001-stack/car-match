@@ -514,7 +514,7 @@
         "welcome_security_middle": "and scheduling",
         "welcome_security_appointments": "Safe Meetings",
         "welcome_security_suffix": "📅 using the buttons below.",
-        "propose_safe_appointment": "Propose Safe Appointment"
+        "propose_safe_appointment": "Propose Safe Meeting"
     },
     "map_store": {
         "loading": "Loading Map...",

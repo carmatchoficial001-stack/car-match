@@ -49,17 +49,35 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
     const [isManualSelection, setIsManualSelection] = useState(!!initialAppointment?.latitude)
 
     useEffect(() => {
-        setLoadingPlaces(true)
-        fetch(`/api/chats/${chatId}/safe-places`)
-            .then(res => res.json())
-            .then(data => {
+        const fetchPlaces = async () => {
+            setLoadingPlaces(true)
+            let queryParams = ''
+
+            try {
+                // Intentar obtener ubicación rápida (3s timeout)
+                const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 })
+                })
+                queryParams = `?lat=${position.coords.latitude}&lon=${position.coords.longitude}`
+            } catch (e) {
+                console.log("Continuando sin GPS para lugares seguros")
+            }
+
+            try {
+                const res = await fetch(`/api/chats/${chatId}/safe-places${queryParams}`)
+                const data = await res.json()
                 setSafePlaces(data.suggestions || [])
                 if (data.centerLocation) {
                     setViewCenter({ lat: data.centerLocation.latitude, lng: data.centerLocation.longitude })
                 }
-            })
-            .catch(err => console.error(err))
-            .finally(() => setLoadingPlaces(false))
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setLoadingPlaces(false)
+            }
+        }
+
+        fetchPlaces()
     }, [chatId])
 
     const handleLocationSelect = (lat: number, lng: number) => {
@@ -95,7 +113,7 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
             <div className="bg-surface border border-surface-highlight rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 <div className="p-4 border-b border-surface-highlight flex justify-between items-center bg-surface-highlight/30 rounded-t-2xl">
                     <h3 className="font-bold text-lg text-text-primary">
-                        {initialAppointment ? '🔄 Editar Cita de Reunión' : t('appointment.modal_title')}
+                        {initialAppointment ? '🔄 Editar Reunión Segura' : t('appointment.modal_title')}
                     </h3>
                     <button onClick={onClose} className="text-text-secondary hover:text-text-primary text-xl">&times;</button>
                 </div>
@@ -238,7 +256,7 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
                         disabled={!date || !time || (!selectedPlace && !customLocation)}
                         className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-bold shadow-lg shadow-primary-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
-                        {initialAppointment ? 'Actualizar Cita' : t('appointment.submit')}
+                        {initialAppointment ? 'Actualizar Reunión Segura' : t('appointment.submit')}
                     </button>
                 </div>
             </div>

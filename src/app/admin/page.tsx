@@ -619,7 +619,7 @@ function ReportsTab({ reports }: { reports: any[] }) {
                                 </div>
                                 <div className="flex gap-2">
                                     <AdminReportAction2 reportId={report.id} action="DISMISS" label="Ignorar" />
-                                    <AdminReportAction2 reportId={report.id} action="RESOLVE" label="Resolver" primary />
+                                    <AdminReportAction2 reportId={report.id} action="RESOLVE" label="BORRAR" danger />
                                 </div>
                             </div>
                         </div>
@@ -653,9 +653,21 @@ function LogsTab({ logs }: { logs: any[] }) {
     )
 }
 
-function AdminReportAction2({ reportId, action, label, primary }: any) {
+function AdminReportAction2({ reportId, action, label, primary, danger }: any) {
     const [loading, setLoading] = useState(false)
     const handleAction = async () => {
+        // Mostrar confirmación fuerte para acciones peligrosas
+        if (danger) {
+            const confirmed = confirm(
+                '⚠️ ¿Eliminar esta publicación PERMANENTEMENTE?\n\n' +
+                '• Esta acción NO se puede deshacer\n' +
+                '• El usuario NO será notificado\n' +
+                '• Perderá su slot de publicación gratuita\n\n' +
+                '¿Continuar con el borrado silencioso?'
+            )
+            if (!confirmed) return
+        }
+
         setLoading(true)
         try {
             await fetch(`/api/admin/reports/${reportId}`, {
@@ -674,9 +686,11 @@ function AdminReportAction2({ reportId, action, label, primary }: any) {
         <button
             onClick={handleAction}
             disabled={loading}
-            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${primary
-                ? 'bg-primary-600 text-white hover:bg-primary-500 shadow-lg shadow-primary-900/20'
-                : 'bg-white/5 text-text-secondary hover:bg-white/10'
+            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${danger
+                    ? 'bg-red-600 text-white hover:bg-red-500 shadow-lg shadow-red-900/20'
+                    : primary
+                        ? 'bg-primary-600 text-white hover:bg-primary-500 shadow-lg shadow-primary-900/20'
+                        : 'bg-white/5 text-text-secondary hover:bg-white/10'
                 } disabled:opacity-50`}
         >
             {loading ? '...' : label}

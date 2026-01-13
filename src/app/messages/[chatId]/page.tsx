@@ -143,25 +143,8 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
     }
 
     const loadSafePlaces = async () => {
-        try {
-            let queryParams = ''
-            try {
-                const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
-                })
-                queryParams = `?lat=${position.coords.latitude}&lon=${position.coords.longitude}`
-            } catch (e) { }
-
-            const res = await fetch(`/api/chats/${chatId}/safe-places${queryParams}`)
-            if (res.ok) {
-                const data = await res.json()
-                setSafePlaces(data.suggestions)
-                if (data.tip) setApiTip(data.tip)
-                setShowAppointmentModal(true) // Abrir directamente el modal para proponer
-            }
-        } catch (error) {
-            console.error('Error al cargar lugares seguros:', error)
-        }
+        // El modal ahora maneja internamente la carga de lugares y geolocalización
+        setShowAppointmentModal(true)
     }
 
     const handleAppointmentSubmit = async (data: any) => {
