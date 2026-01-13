@@ -167,62 +167,38 @@ export async function analyzeMultipleImages(
     ? `ERES UN EXPERTO ANALISTA DE VEHÍCULOS PARA CARMATCH.
        TU ÚNICO OBJETIVO: Confirmar que las fotos sean de vehículos reales y seguros.
 
-       📋 DATOS PROPORCIONADOS POR USUARIO (SOLO REFERENCIA):
-       - Marca: "${context?.brand || '?'}"
-       - Modelo: "${context?.model || '?'}"
-       - Año: "${context?.year || '?'}"
+       📋 DATOS DEL USUARIO (REFERENCIA):
+       - Marca: "${context?.brand || '?'}", Modelo: "${context?.model || '?'}", Año: "${context?.year || '?'}"
        
-       ⚠️ REGLA DE ORO: LA IMAGEN ES LA VERDAD ABSOLUTA.
-       - Si la foto muestra un vehículo real, APRUÉBALO (isValid: true).
-       - IGNORA si la marca/modelo del texto no coinciden con la foto. (Ej: Texto dice "Abarth" pero foto es "Hyundai" -> APROBAR y corregir en "details").
-       - SOLO RECHAZA si NO es un vehículo o es contenido inseguro.
-
-       🧠 FICHA TÉCNICA INTELIGENTE (PROACTIVA):
-       - Una vez identifiques el carro (ej: "Jeep Wrangler 2018 Sahara"), USA TU CONOCIMIENTO INTERNO para completar la ficha técnica.
-       - DEDUCE Motor, Transmisión, Tracción, etc. estándar para ese modelo.
-       - NO DEJES CAMPOS VACÍOS si puedes deducirlos con alta probabilidad.
-       - Ejemplo: Si ves un "Tesla Model 3", sabes que es Combustible: "Eléctrico".
-       - Ejemplo: Si ves un "Jeep Wrangler", es muy probable que sea Tracción: "4x4".
-
-       🔍 VALIDACIÓN DE GALERÍA (COHERENCIA):
-       - Imagen 0 (Portada) define el vehículo.
-       - Imágenes 1..N deben ser del MISMO vehículo (mismo color/modelo).
-       - Si una imagen de galería es de OTRO carro diferente al de la portada -> MARCAR COMO INVÁLIDA (isValid: false).
-
-       🚫 MOTIVOS DE RECHAZO:
-       - No es un vehículo (Paisajes vacíos, comida, selfies, mascotas).
-       - Juguetes, maquetas, capturas de pantalla, fotos a monitores.
-       - NSFW, Gore, Violencia.
+       🚀 REGLAS MAESTRAS DE CARMATCH:
+       1. PORTADA (Índice 0) ES EL LÍDER: Identifica si es un VEHÍCULO MOTORIZADO TERRESTRE real. Su marca/modelo/año/color definen el anuncio.
+       2. GALERÍA PARA ENRIQUECER: Usa las fotos 1 al 9 para BUSCAR DETALLES que la portada no muestra (ej: emblemas traseros, tablero, motor, rines) para CONFIRMAR marca/modelo y autollenar datos técnicos.
+       3. PRIORIDAD VISUAL: Si la foto es un vehículo real pero no coincide con el texto del usuario, ¡ES VÁLIDO! (Dinos la verdad que ves en las fotos).
+       4. RECHAZA SOLO SI: No es un vehículo motorizado real, es inseguro (NSFW/Gore), o es un objeto irrelevante.
 
        Responde ÚNICAMENTE este JSON (sin markdown):
        {
          "isValidCover": boolean,
-         "coverReason": "Razón breve si es false",
+         "coverReason": "Razón si no es vehículo motorizado terrestre",
          "analysis": [
-           { "index": number, "isValid": boolean, "reason": "Razón si es false" }
+           { "index": number, "isValid": boolean, "reason": "OK" }
          ],
          "details": {
-            "brand": "Marca EXACTA que ves",
-            "model": "Modelo EXACTO que ves",
-            "year": "Año estimado",
+            "brand": "Marca",
+            "model": "Modelo",
+            "year": "Año",
             "color": "Color",
             "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
-            "transmission": "Específica (Manual|Automática)",
-            "fuel": "Específico (Gasolina|Diésel|Eléctrico|Híbrido)",
-            "engine": "Especificación (ej: V6 3.5L)",
-            "hp": 300,
-            "torque": "350 lb-ft",
-            "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged|Electric",
-            "cylinders": 6,
+            "transmission": "Manual|Automática",
+            "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
+            "engine": "Especificación (ej: 2.5L 4cil)",
+            "hp": 180,
+            "torque": "190 lb-ft",
+            "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged",
+            "cylinders": 4,
             "traction": "FWD|RWD|4x4|AWD",
             "doors": 5,
-            "passengers": 5,
-            "batteryCapacity": 75,
-            "range": 450,
-            "weight": 1800,
-            "axles": 2,
-            "displacement": 2000,
-            "cargoCapacity": 0.5
+            "passengers": 5
          }
        }`
     : `ERES UN MODERADOR DE CONTENIDO PARA PERFILES DE NEGOCIO.
@@ -272,21 +248,32 @@ export async function analyzeMultipleImages(
     }
 
     const text = response.text();
+    console.log("🤖 Respuesta Gemini (Bulk):", text);
+
     const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("No JSON found");
+    if (!match) {
+      console.warn("⚠️ No se encontró JSON en respuesta de Gemini:", text);
+      throw new Error("No JSON found");
+    }
 
     const parsed = JSON.parse(match[0]);
+
+    // 🛡️ REGLA RUBEN: La portada manda. Si no es válida o no hay datos, fallamos portada.
+    const isValidCover = parsed.isValidCover === true;
 
     const invalidIndices = (parsed.analysis || [])
       .filter((a: any) => a.isValid === false)
       .map((a: any) => Number(a.index));
 
+    // Si la IA dice que la portada es inválida pero no da razón, ponemos una genérica
+    const coverReason = parsed.coverReason || "La foto de portada debe ser un vehículo motorizado terrestre claro.";
+
     return {
-      valid: parsed.isValidCover === true,
-      reason: parsed.coverReason,
+      valid: isValidCover,
+      reason: coverReason,
       invalidIndices: invalidIndices,
       details: parsed.details || {},
-      category: 'automovil'
+      category: parsed.details?.type || 'Automóvil'
     };
 
   } catch (error: any) {

@@ -55,11 +55,12 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
 
             // ═══ REGLAS DE NEGOCIO SOLICITADAS ═══
 
-            // A) LA PORTADA ES SAGRADA (Índice 0)
-            if (invalidIndices.includes(0)) {
+            // A) LA PORTADA ES EL LÍDER (REGLA RUBEN)
+            // Si la portada no es válida o no es un vehículo motorizado terrestre, se rechaza todo.
+            if (!analysis.valid || invalidIndices.includes(0)) {
                 status = 'REJECTED'
-                reason = `La foto de portada no es válida: ${analysis.reason || 'Debe ser una foto clara de un vehículo motorizado.'}`
-                console.log(`🚨 RECHAZO: Foto de portada inválida en ${vehicleId}`)
+                reason = analysis.reason || 'La foto de portada no es válida. Debe ser una foto clara de un vehículo motorizado terrestre.'
+                console.log(`🚨 RECHAZO: Portada inválida en ${vehicleId}: ${reason}`)
             }
             // B) DETECCIÓN DE DUPLICADOS POR IA (Anti-Fraude)
             else {
