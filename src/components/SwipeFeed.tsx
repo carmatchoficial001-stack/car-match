@@ -137,7 +137,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                         <div className="flex-1">
                             <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} onPointerDown={(e) => e.stopPropagation()}>
                                 <h2 className="text-2xl font-bold text-text-primary mb-1 hover:text-primary-400 transition cursor-pointer leading-tight line-clamp-2">
-                                    {item.title}
+                                    {item.title} {item.year && <span className="font-light opacity-80 text-lg ml-1">{item.year}</span>}
                                 </h2>
                             </Link>
                             <div className="flex items-center gap-2 text-text-secondary text-sm">
@@ -155,13 +155,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                                     {item.category || 'Negocio'}
                                 </div>
                             )}
-                            <Link
-                                href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
-                                onPointerDown={(e) => e.stopPropagation()}
-                                className="text-xs text-text-secondary hover:text-primary-400 font-medium mt-1 block"
-                            >
-                                Ver detalles completas
-                            </Link>
+                            {/* Link movido abajo */}
                         </div>
                     </div>
 
@@ -184,7 +178,16 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     )}
 
                     {/* Botones de Acción (Dentro de la tarjeta) */}
-                    <div className="grid grid-cols-2 gap-4 px-6 pb-6 pt-2">
+                    <div className="flex justify-end px-6 pt-1 pb-1">
+                        <Link
+                            href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            className="text-lg font-bold text-primary-500 hover:text-primary-400 transition flex items-center gap-1"
+                        >
+                            Ver más &rarr;
+                        </Link>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 px-6 pb-6 pt-1">
                         <button
                             onPointerDown={(e) => e.stopPropagation()}
                             onClick={() => onSwipe('left')}

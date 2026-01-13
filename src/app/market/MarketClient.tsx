@@ -346,23 +346,11 @@ export default function MarketClient({
                                                 {/* Imagen y Badge */}
                                                 <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} className="block relative aspect-[4/3] bg-gray-800 group-hover:opacity-95 transition-opacity">
                                                     {item.images && item.images[0] ? (
-                                                        <>
-                                                            <img
-                                                                src={item.images[0]}
-                                                                alt={item.title}
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                            {/* Overlay "Ver más" */}
-                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
-                                                                <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-xs font-bold text-white uppercase tracking-wider">
-                                                                    {t('common.view_more') || 'Ver más'}
-                                                                </span>
-                                                            </div>
-                                                            {/* Etiqueta visible móvil (Bottom gradient) */}
-                                                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent md:hidden">
-                                                                <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest pl-1">Ver más</span>
-                                                            </div>
-                                                        </>
+                                                        <img
+                                                            src={item.images[0]}
+                                                            alt={item.title}
+                                                            className="w-full h-full object-cover"
+                                                        />
                                                     ) : (
                                                         <div className="absolute inset-0 flex items-center justify-center text-text-secondary opacity-20">
                                                             {isBusiness ? (
@@ -422,9 +410,14 @@ export default function MarketClient({
 
                                                     <div className="flex items-center justify-between mt-2 md:mt-4">
                                                         {!isBusiness ? (
-                                                            <p className="font-bold text-lg md:text-xl text-primary-400 mt-auto" suppressHydrationWarning>
-                                                                {formatPrice(item.price || 0, item.currency || 'MXN', locale)}
-                                                            </p>
+                                                            <div className="flex flex-col">
+                                                                <p className="font-bold text-lg md:text-xl text-primary-400" suppressHydrationWarning>
+                                                                    {formatPrice(item.price || 0, item.currency || 'MXN', locale)}
+                                                                </p>
+                                                                <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mt-1 group-hover:text-primary-400 transition-colors">
+                                                                    {t('common.view_more') || 'Ver más'} &rarr;
+                                                                </span>
+                                                            </div>
                                                         ) : (
                                                             <Link
                                                                 href={`/map-store?id=${item.id}`}
