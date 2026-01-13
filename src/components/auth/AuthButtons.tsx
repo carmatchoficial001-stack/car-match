@@ -5,11 +5,23 @@ import { getWeightedHomePath } from "@/lib/navigation"
 export default function AuthButtons() {
     const { t } = useLanguage()
 
-    const handleSignIn = (provider: string) => {
-        signIn(provider, {
-            callbackUrl: getWeightedHomePath(),
-            redirect: true
-        })
+    const handleSignIn = async (provider: string) => {
+        try {
+            // Usamos redirect: false para obtener la URL de Google/FB/X 
+            // y luego usar window.location.replace() para que /auth NO quede en el historial
+            const result = await signIn(provider, {
+                callbackUrl: "/",
+                redirect: false
+            })
+
+            if (result?.url) {
+                window.location.replace(result.url)
+            }
+        } catch (error) {
+            console.error("Error signing in:", error)
+            // Fallback
+            signIn(provider, { callbackUrl: "/" })
+        }
     }
 
     return (

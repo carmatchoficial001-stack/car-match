@@ -9,23 +9,14 @@ export const authConfig: NextAuthConfig = {
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID || process.env.AUTH_GOOGLE_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.AUTH_GOOGLE_SECRET,
-            authorization: {
-                params: {
-                    access_type: "offline",
-                    response_type: "code"
-                }
-            },
-            // allowDangerousEmailAccountLinking: true, // 🔥 COMENTADO PARA FIX CRÍTICO
         }),
         Facebook({
             clientId: process.env.FACEBOOK_CLIENT_ID || process.env.AUTH_FACEBOOK_ID,
             clientSecret: process.env.FACEBOOK_CLIENT_SECRET || process.env.AUTH_FACEBOOK_SECRET,
-            // allowDangerousEmailAccountLinking: true, // 🔥 COMENTADO PARA FIX CRÍTICO
         }),
         Twitter({
             clientId: process.env.TWITTER_CLIENT_ID || process.env.AUTH_TWITTER_ID,
             clientSecret: process.env.TWITTER_CLIENT_SECRET || process.env.AUTH_TWITTER_SECRET,
-            // allowDangerousEmailAccountLinking: true, // 🔥 COMENTADO PARA FIX CRÍTICO
         }),
     ],
     pages: {
@@ -40,16 +31,13 @@ export const authConfig: NextAuthConfig = {
         async authorized({ auth }) {
             return !!auth
         },
-        async signIn({ user, account }) {
-            // ✅ Login exitoso, redirigir automáticamente
+        async signIn() {
             return true
         },
         async session({ session, token }) {
             if (session.user && token) {
                 // @ts-ignore
                 session.user.id = (token.id as string) || (token.sub as string)
-
-                // 🔑 Admin Maestro via Environment Variable
                 if (session.user.email === process.env.ADMIN_EMAIL) {
                     // @ts-ignore
                     session.user.isAdmin = true
@@ -58,22 +46,23 @@ export const authConfig: NextAuthConfig = {
             return session
         },
         async jwt({ token, user }) {
-            if (user) {
-                token.id = user.id
-            }
+            if (user) token.id = user.id
             return token
         },
         async redirect({ url, baseUrl }) {
-            // Si viene de login, redirigir al feed con distribución 70/30
-            if (url.includes('/api/auth/callback')) {
-                const randomValue = Math.random()
-                return randomValue < 0.7 ? `${baseUrl}/swipe` : `${baseUrl}/market`
+            // Allows relative callback URLs
+            if (url.startsWith("/")) return `${baseUrl}${url}`
+
+            // If already on a feed, don't redirect away
+            if (url.includes('/swipe') || url.includes('/market') || url.includes('/map')) {
+                return url
             }
-            // Si es relativa, usar baseUrl
-            if (url.startsWith('/')) return `${baseUrl}${url}`
-            // Si es del mismo dominio, permitir
-            if (new URL(url).origin === baseUrl) return url
-            // Por defecto, ir a home
+
+            // Always redirect to a deterministic path if possible, 
+            // or let the middleware handle the weight from the root.
+            const urlObj = new URL(url, baseUrl)
+            if (urlObj.origin === baseUrl) return url
+
             return baseUrl
         },
     },
