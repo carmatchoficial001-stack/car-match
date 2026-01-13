@@ -165,30 +165,30 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                         });
 
                         // Nuevos campos técnicos CarMatch
-                        const aiHp = sanitizeAIValue(details.hp);
-                        if (aiHp && !v.hp) updateData.hp = parseInt(aiHp as string);
-                        const aiTorque = sanitizeAIValue(details.torque);
-                        if (aiTorque && !v.torque) updateData.torque = aiTorque;
-                        const aiAspiration = sanitizeAIValue(details.aspiration);
-                        if (aiAspiration && !v.aspiration) updateData.aspiration = aiAspiration;
-                        const aiCylinders = sanitizeAIValue(details.cylinders);
-                        if (aiCylinders && !v.cylinders) updateData.cylinders = parseInt(aiCylinders as string);
-                        const aiBatteryCapacity = sanitizeAIValue(details.batteryCapacity);
-                        if (aiBatteryCapacity && !v.batteryCapacity) updateData.batteryCapacity = parseFloat(aiBatteryCapacity as string);
-                        const aiRange = sanitizeAIValue(details.range);
-                        if (aiRange && !v.range) updateData.range = parseInt(aiRange as string);
-                        const aiWeight = sanitizeAIValue(details.weight);
-                        if (aiWeight && !v.weight) updateData.weight = parseInt(aiWeight as string);
-                        const aiAxles = sanitizeAIValue(details.axles);
-                        if (aiAxles && !v.axles) updateData.axles = parseInt(aiAxles as string);
-                        const aiPassengers = sanitizeAIValue(details.passengers);
-                        if (aiPassengers && !v.passengers) updateData.passengers = parseInt(aiPassengers as string);
-                        const aiDisplacement = sanitizeAIValue(details.displacement);
-                        if (aiDisplacement && !v.displacement) updateData.displacement = aiDisplacement;
-                        const aiCargoCapacity = sanitizeAIValue(details.cargoCapacity);
-                        if (aiCargoCapacity && !v.cargoCapacity) updateData.cargoCapacity = aiCargoCapacity;
-                        const aiOperatingHours = sanitizeAIValue(details.operatingHours);
-                        if (aiOperatingHours && !v.operatingHours) updateData.operatingHours = aiOperatingHours;
+                        const parseAIInt = (val: any) => {
+                            const san = sanitizeAIValue(val);
+                            if (!san) return null;
+                            const num = parseInt(san.toString().replace(/[^0-9]/g, ''));
+                            return isNaN(num) ? null : num;
+                        };
+                        const parseAIFloat = (val: any) => {
+                            const san = sanitizeAIValue(val);
+                            if (!san) return null;
+                            const num = parseFloat(san.toString().replace(/[^0-9.]/g, ''));
+                            return isNaN(num) ? null : num;
+                        };
+
+                        if (!v.hp && details.hp) updateData.hp = parseAIInt(details.hp);
+                        if (!v.torque && details.torque) updateData.torque = sanitizeAIValue(details.torque);
+                        if (!v.aspiration && details.aspiration) updateData.aspiration = sanitizeAIValue(details.aspiration);
+                        if (!v.cylinders && details.cylinders) updateData.cylinders = parseAIInt(details.cylinders);
+                        if (!v.batteryCapacity && details.batteryCapacity) updateData.batteryCapacity = parseAIFloat(details.batteryCapacity);
+                        if (!v.range && details.range) updateData.range = parseAIInt(details.range);
+                        if (!v.weight && details.weight) updateData.weight = parseAIInt(details.weight);
+                        if (!v.axles && details.axles) updateData.axles = parseAIInt(details.axles);
+                        if (!v.displacement && details.displacement) updateData.displacement = parseAIInt(details.displacement);
+                        if (!v.cargoCapacity && details.cargoCapacity) updateData.cargoCapacity = parseAIFloat(details.cargoCapacity);
+                        if (!v.operatingHours && details.operatingHours) updateData.operatingHours = parseAIInt(details.operatingHours);
 
                         if (Object.keys(updateData).length > 0) {
                             autoCorrected = true;
@@ -372,25 +372,30 @@ export async function fixAndApproveVehicle(vehicleId: string) {
         const v = vehicle as any;
         if (!v.passengers && details.passengers) updateData.passengers = parseInt(sanitizeAIValue(details.passengers) as string)
 
-        const aiHp = sanitizeAIValue(details.hp);
-        const aiCyl = sanitizeAIValue(details.cylinders);
-        const aiBatt = sanitizeAIValue(details.batteryCapacity);
-        const aiRang = sanitizeAIValue(details.range);
-        const aiWeig = sanitizeAIValue(details.weight);
-        const aiAxles = sanitizeAIValue(details.axles);
+        const parseAIInt = (val: any) => {
+            const san = sanitizeAIValue(val);
+            if (!san) return null;
+            const num = parseInt(san.toString().replace(/[^0-9]/g, ''));
+            return isNaN(num) ? null : num;
+        };
+        const parseAIFloat = (val: any) => {
+            const san = sanitizeAIValue(val);
+            if (!san) return null;
+            const num = parseFloat(san.toString().replace(/[^0-9.]/g, ''));
+            return isNaN(num) ? null : num;
+        };
 
-        if (!v.hp && aiHp) updateData.hp = parseInt(aiHp as string)
+        if (!v.hp && details.hp) updateData.hp = parseAIInt(details.hp)
         if (!v.torque && details.torque) updateData.torque = sanitizeAIValue(details.torque)
         if (!v.aspiration && details.aspiration) updateData.aspiration = sanitizeAIValue(details.aspiration)
-        if (!v.cylinders && aiCyl) updateData.cylinders = parseInt(aiCyl as string)
-        if (!v.batteryCapacity && aiBatt) updateData.batteryCapacity = parseFloat(aiBatt as string)
-        if (!v.range && aiRang) updateData.range = parseInt(aiRang as string)
-        if (!v.weight && aiWeig) updateData.weight = parseInt(aiWeig as string)
-        if (!v.axles && aiAxles) updateData.axles = parseInt(aiAxles as string)
-        if (!v.displacement && details.displacement) updateData.displacement = sanitizeAIValue(details.displacement)
-        if (!v.cargoCapacity && details.cargoCapacity) updateData.cargoCapacity = sanitizeAIValue(details.cargoCapacity)
-        if (!v.operatingHours && details.operatingHours) updateData.operatingHours = sanitizeAIValue(details.operatingHours)
-        if (!v.operatingHours && details.operatingHours) updateData.operatingHours = parseInt(details.operatingHours as any)
+        if (!v.cylinders && details.cylinders) updateData.cylinders = parseAIInt(details.cylinders)
+        if (!v.batteryCapacity && details.batteryCapacity) updateData.batteryCapacity = parseAIFloat(details.batteryCapacity)
+        if (!v.range && details.range) updateData.range = parseAIInt(details.range)
+        if (!v.weight && details.weight) updateData.weight = parseAIInt(details.weight)
+        if (!v.axles && details.axles) updateData.axles = parseAIInt(details.axles)
+        if (!v.displacement && details.displacement) updateData.displacement = parseAIInt(details.displacement)
+        if (!v.cargoCapacity && details.cargoCapacity) updateData.cargoCapacity = parseAIFloat(details.cargoCapacity)
+        if (!v.operatingHours && details.operatingHours) updateData.operatingHours = parseAIInt(details.operatingHours)
 
         // Generar nuevo título basado en la corrección
         updateData.title = `${updateData.brand || vehicle.brand} ${updateData.model || vehicle.model} ${updateData.year || vehicle.year}`
