@@ -230,71 +230,79 @@ export async function analyzeMultipleImages(
          "details": { "category": "negotioc" }
        }`;
 
-  try {
-    // 🚀 OPTIMIZACIÓN CARMATCH: Solo enviamos la portada y el resto de la galería 
-    // pero limitamos a 6 fotos para no saturar memoria de Vercel (Payload too large)
-    const imagesToAnalyze = images.slice(0, 6);
-    const imageParts = imagesToAnalyze.map(img => ({
-      inlineData: { data: img, mimeType: "image/jpeg" }
-    }));
+  let lastError: any;
+  const maxRetries = 2;
 
-    const result = await geminiModel.generateContent([prompt, ...imageParts]);
-    const response = await result.response;
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      // 🚀 OPTIMIZACIÓN CARMATCH: Solo enviamos la portada y el resto de la galería 
+      // pero limitamos a 6 fotos para no saturar memoria de Vercel (Payload too large)
+      const imagesToAnalyze = images.slice(0, 6);
+      const imageParts = imagesToAnalyze.map(img => ({
+        inlineData: { data: img, mimeType: "image/jpeg" }
+      }));
 
-    if (response.promptFeedback?.blockReason) {
-      return {
-        valid: false,
-        reason: "Bloqueado por seguridad.",
-        invalidIndices: [0]
-      };
+      const result = await geminiModel.generateContent([prompt, ...imageParts]);
+      const response = await result.response;
+
+      return await processGeminiResponse(response); // Moviendo lógica a una función auxiliar para limpieza
+    } catch (error: any) {
+      lastError = error;
+      const isRateLimit = error.message?.includes("429") || error.message?.includes("quota");
+
+      if (isRateLimit && i < maxRetries - 1) {
+        const waitTime = 2000 * (i + 1); // Esperar 2 o 4 segundos
+        console.warn(`⚠️ Cuota de IA excedida. Reintentando en ${waitTime}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        continue;
+      }
+      break;
     }
-
-    const text = response.text();
-    console.log("🤖 Respuesta Gemini (Bulk):", text);
-
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) {
-      console.warn("⚠️ No se encontró JSON en respuesta de Gemini:", text);
-      throw new Error("No JSON found");
-    }
-
-    const parsed = JSON.parse(match[0]);
-
-    // 🛡️ REGLA RUBEN: La portada manda. Si no es válida o no hay datos, fallamos portada.
-    const isValidCover = parsed.isValidCover === true;
-
-    const invalidIndices = (parsed.analysis || [])
-      .filter((a: any) => a.isValid === false)
-      .map((a: any) => Number(a.index));
-
-    // Si la IA dice que la portada es inválida pero no da razón, ponemos una genérica
-    const coverReason = parsed.coverReason || "La foto de portada debe ser un vehículo motorizado terrestre claro.";
-
-    return {
-      valid: isValidCover,
-      reason: coverReason,
-      invalidIndices: invalidIndices,
-      details: parsed.details || {},
-      category: parsed.details?.type || 'Automóvil'
-    };
-
-  } catch (error: any) {
-    console.error("❌ Error crítico en validación de imagen:", {
-      message: error.message,
-      stack: error.stack,
-      timestamp: new Date().toISOString()
-    });
-
-    if (error.message?.includes('SAFETY') || error.message?.includes('blocked')) {
-      return { valid: false, reason: "Contenido bloqueado por seguridad.", invalidIndices: [0] };
-    }
-
-    // 🛡️ FAIL-SAFE: Rechazar por defecto si hay error
-    // Esto previene que imágenes inválidas pasen cuando la IA falla
-    return {
-      valid: false,
-      reason: `Error del Asesor Real: ${error.message || 'El servidor está saturado. Intenta subir menos fotos o fotos menos pesadas.'}`,
-      invalidIndices: [0]
-    };
   }
+
+  // Si llegamos aquí es porque fallaron los reintentos
+  console.error("❌ Error definitivo tras reintentos en analyzeMultipleImages:", lastError);
+
+  const isQuota = lastError.message?.includes("429") || lastError.message?.includes("quota");
+  return {
+    valid: false,
+    reason: isQuota
+      ? "El sistema de IA está recibiendo muchas solicitudes. Por favor, espera un minuto e intenta subir las fotos de nuevo."
+      : `Error del Asesor Real: ${lastError.message || 'El servidor está saturado.'}`,
+    invalidIndices: [0]
+  };
+}
+
+/**
+ * Procesa la respuesta de Gemini para extraer el análisis consolidado
+ */
+async function processGeminiResponse(response: any): Promise<ImageAnalysisResult> {
+  if (response.promptFeedback?.blockReason) {
+    return { valid: false, reason: "Bloqueado por seguridad.", invalidIndices: [0] };
+  }
+
+  const text = response.text();
+  console.log("🤖 Respuesta Gemini (Bulk):", text);
+
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) {
+    console.warn("⚠️ No se encontró JSON en respuesta de Gemini:", text);
+    throw new Error("No JSON found in AI response");
+  }
+
+  const parsed = JSON.parse(match[0]);
+  const isValidCover = parsed.isValidCover === true;
+  const invalidIndices = (parsed.analysis || [])
+    .filter((a: any) => a.isValid === false)
+    .map((a: any) => Number(a.index));
+
+  const coverReason = parsed.coverReason || "La foto de portada debe ser un vehículo motorizado terrestre claro.";
+
+  return {
+    valid: isValidCover,
+    reason: coverReason,
+    invalidIndices: invalidIndices,
+    details: parsed.details || {},
+    category: parsed.details?.type || 'Automóvil'
+  };
 }
