@@ -28,36 +28,28 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
             <div className="container mx-auto px-4 pt-8 pb-24 max-w-5xl">
                 {/* Header del Perfil */}
                 <div className="bg-surface rounded-2xl shadow-xl p-8 mb-8 border border-surface-highlight">
-                    <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-6">
-                        <div className="flex items-center gap-4 w-full md:w-auto">
-                            <div className="w-full md:w-72 lg:w-80 flex-shrink-0">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-8">
+                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 w-full">
+                            <div className="w-48 sm:w-64 md:w-72 lg:w-80 flex-shrink-0">
                                 <div className="relative rounded-2xl overflow-hidden shadow-xl border-2 border-surface-highlight bg-surface group">
                                     {user.image ? (
                                         <>
                                             <img
                                                 src={user.image}
                                                 alt={user.name}
-                                                className="w-full h-auto min-h-[200px] max-h-[400px] object-cover"
+                                                className="w-full h-auto min-h-[150px] md:min-h-[200px] max-h-[400px] object-cover"
                                             />
                                             {isOwner && (
                                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                                                     <button
                                                         onClick={() => setShowEditModal(true)}
-                                                        className="bg-primary-700 hover:bg-primary-600 text-white px-4 py-2 rounded-xl font-bold shadow-lg transform translate-y-2 group-hover:translate-y-0 transition flex items-center gap-2"
+                                                        className="bg-primary-700 hover:bg-primary-600 text-white px-4 py-2 rounded-xl font-bold shadow-lg transform translate-y-2 group-hover:translate-y-0 transition flex items-center gap-2 text-sm"
                                                     >
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                                         </svg>
                                                         {t('profile.edit_profile' as any) || 'Editar Perfil'}
                                                     </button>
-                                                </div>
-                                            )}
-                                            {!isOwner && (
-                                                <div className="absolute top-2 right-2">
-                                                    <ReportImageButton
-                                                        imageUrl={user.image}
-                                                        targetUserId={user.id}
-                                                    />
                                                 </div>
                                             )}
                                         </>
@@ -69,7 +61,7 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                 className="w-full h-full object-cover opacity-30"
                                             />
                                             <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-                                                <span className="text-6xl font-black text-primary-400/50 mb-2">
+                                                <span className="text-5xl md:text-6xl font-black text-primary-400/50 mb-2">
                                                     {user.name?.[0]?.toUpperCase()}
                                                 </span>
                                             </div>
@@ -79,7 +71,7 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                     onClick={() => setShowEditModal(true)}
                                                     className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
                                                 >
-                                                    <div className="bg-primary-700 text-white px-4 py-2 rounded-xl font-bold shadow-lg">
+                                                    <div className="bg-primary-700 text-white px-4 py-2 rounded-xl font-bold shadow-lg text-sm">
                                                         {t('profile.edit_profile' as any) || 'Editar Perfil'}
                                                     </div>
                                                 </button>
@@ -88,8 +80,8 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                     )}
                                 </div>
                             </div>
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
+                            <div className="flex-1 text-center sm:text-left">
+                                <div className="flex flex-col sm:flex-row items-center gap-2 mb-1">
                                     <h1 className="text-3xl font-bold text-text-primary">
                                         {user.name}
                                     </h1>
@@ -109,10 +101,10 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                     {t('profile.member_since')} {formattedDate}
                                 </p>
                                 {isOwner && (
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <div className="bg-surface-highlight/30 px-3 py-1.5 rounded-lg border border-surface-highlight flex items-center gap-2">
-                                            <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">{t('profile.user_id')}:</span>
-                                            <code className="text-xs text-primary-400 font-mono select-all">
+                                    <div className="flex items-center justify-center sm:justify-start gap-2 mt-3">
+                                        <div className="bg-surface-highlight/30 px-3 py-1.5 rounded-lg border border-surface-highlight flex items-center gap-2 overflow-hidden max-w-[200px] sm:max-w-none">
+                                            <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider flex-shrink-0">{t('profile.user_id')}:</span>
+                                            <code className="text-xs text-primary-400 font-mono truncate max-w-[80px] sm:max-w-[120px]">
                                                 {user.id}
                                             </code>
                                         </div>
@@ -127,7 +119,7 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                     btn.innerHTML = originalHtml
                                                 }, 2000)
                                             }}
-                                            className="p-1.5 hover:bg-surface-highlight rounded-lg transition text-text-secondary hover:text-primary-400"
+                                            className="p-1.5 hover:bg-surface-highlight rounded-lg transition text-text-secondary hover:text-primary-400 flex-shrink-0"
                                             title="Copiar ID"
                                         >
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
