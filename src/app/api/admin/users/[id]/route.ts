@@ -23,8 +23,43 @@ export async function PATCH(
 
         const { id } = await context.params
         const data = await request.json()
-        const { isActive, isAdmin } = data
+        const { isActive, isAdmin, creditsModification } = data
 
+        // Si hay modificación de créditos, usamos transacción compleja
+        if (creditsModification) {
+            const { amount, reason } = creditsModification
+
+            // Validaciones básicas
+            if (typeof amount !== 'number') {
+                return NextResponse.json({ error: 'Cantidad inválida' }, { status: 400 })
+            }
+
+            const result = await prisma.$transaction(async (tx) => {
+                const user = await tx.user.update({
+                    where: { id },
+                    data: {
+                        credits: { increment: amount },
+                        ...(typeof isActive === 'boolean' && { isActive }),
+                        ...(typeof isAdmin === 'boolean' && { isAdmin })
+                    }
+                })
+
+                await tx.creditTransaction.create({
+                    data: {
+                        userId: id,
+                        amount: amount,
+                        description: reason || 'Ajuste de Administrador',
+                        details: { action: 'ADMIN_ADJUSTMENT', adminEmail: session.user?.email }
+                    }
+                })
+
+                return user
+            })
+
+            return NextResponse.json(result)
+        }
+
+        // Update simple si no hay créditos
         const updatedUser = await prisma.user.update({
             where: { id },
             data: {

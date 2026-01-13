@@ -33,7 +33,8 @@ import {
     QrCode,
     Cpu,
     Sparkles,
-    RefreshCw
+    RefreshCw,
+    Coins
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 const AdminHeatMap = dynamic(() => import('@/components/AdminHeatMap'), { ssr: false })
@@ -411,7 +412,14 @@ function StatCard2({ icon: Icon, label, value, trend, color }: any) {
     )
 }
 
+import ManageCreditsModal from '@/components/admin/ManageCreditsModal'
+// ... imports previos
+
 function UsersTab({ users }: { users: any[] }) {
+    const [selectedUser, setSelectedUser] = useState<any>(null)
+    const [showCreditModal, setShowCreditModal] = useState(false)
+    const router = useRouter()
+
     return (
         <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
             <div className="p-6 border-b border-white/5 flex items-center justify-between">
@@ -421,61 +429,92 @@ function UsersTab({ users }: { users: any[] }) {
                     <input type="text" placeholder="Buscar usuario..." className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary-500" />
                 </div>
             </div>
-            <table className="w-full">
-                <thead className="bg-white/5">
-                    <tr>
-                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Usuario</th>
-                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Email</th>
-                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Rol</th>
-                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Estado</th>
-                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Registro</th>
-                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                    {users.map(user => (
-                        <tr key={user.id} className="hover:bg-white/5 transition-colors">
-                            <td className="px-6 py-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-surface-highlight overflow-hidden">
-                                        <img src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} className="w-full h-full object-cover" />
-                                    </div>
-                                    <span className="text-sm font-bold">{user.name}</span>
-                                </div>
-                            </td>
-                            <td className="px-6 py-4 text-sm text-text-secondary">{user.email}</td>
-                            <td className="px-6 py-4">
-                                <span className={`text-[10px] font-black px-2 py-0.5 rounded ${user.isAdmin ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                                    {user.isAdmin ? 'ADMIN' : 'USER'}
-                                </span>
-                            </td>
-                            <td className="px-6 py-4">
-                                <span className={`text-[10px] font-black flex items-center gap-1.5 ${user.isActive ? 'text-green-500' : 'text-red-500'}`}>
-                                    <div className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
-                                    {user.isActive ? 'ACTIVO' : 'INACTIVO'}
-                                </span>
-                            </td>
-                            <td className="px-6 py-4 text-sm text-text-secondary">{new Date(user.createdAt).toLocaleDateString()}</td>
-                            <td className="px-6 py-4">
-                                <div className="flex gap-2">
-                                    <AdminGenericAction
-                                        apiPath={`/api/admin/users/${user.id}`}
-                                        method="PATCH"
-                                        body={{ isActive: !user.isActive }}
-                                        label={user.isActive ? 'Desactivar' : 'Activar'}
-                                    />
-                                    <AdminGenericAction
-                                        apiPath={`/api/admin/users/${user.id}`}
-                                        method="DELETE"
-                                        label="Eliminar"
-                                        danger
-                                    />
-                                </div>
-                            </td>
+            <div className="overflow-x-auto">
+                <table className="w-full">
+                    <thead className="bg-white/5">
+                        <tr>
+                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Usuario</th>
+                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Créditos</th>
+                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Email</th>
+                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Rol</th>
+                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Estado</th>
+                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Registro</th>
+                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Acciones</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                        {users.map(user => (
+                            <tr key={user.id} className="hover:bg-white/5 transition-colors">
+                                <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-surface-highlight overflow-hidden">
+                                            <img src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} className="w-full h-full object-cover" />
+                                        </div>
+                                        <span className="text-sm font-bold">{user.name}</span>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-sm font-bold ${user.credits > 0 ? 'text-amber-400' : 'text-gray-500'}`}>
+                                            {user.credits}
+                                        </span>
+                                        <button
+                                            onClick={() => {
+                                                setSelectedUser(user)
+                                                setShowCreditModal(true)
+                                            }}
+                                            className="p-1 hover:bg-white/10 rounded-lg text-amber-500/80 hover:text-amber-400 transition"
+                                            title="Gestionar Créditos"
+                                        >
+                                            <Coins size={14} />
+                                        </button>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-text-secondary">{user.email}</td>
+                                <td className="px-6 py-4">
+                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded ${user.isAdmin ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                                        {user.isAdmin ? 'ADMIN' : 'USER'}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <span className={`text-[10px] font-black flex items-center gap-1.5 ${user.isActive ? 'text-green-500' : 'text-red-500'}`}>
+                                        <div className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                                        {user.isActive ? 'ACTIVO' : 'INACTIVO'}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-text-secondary">{new Date(user.createdAt).toLocaleDateString()}</td>
+                                <td className="px-6 py-4">
+                                    <div className="flex gap-2">
+                                        <AdminGenericAction
+                                            apiPath={`/api/admin/users/${user.id}`}
+                                            method="PATCH"
+                                            body={{ isActive: !user.isActive }}
+                                            label={user.isActive ? 'Desactivar' : 'Activar'}
+                                        />
+                                        <AdminGenericAction
+                                            apiPath={`/api/admin/users/${user.id}`}
+                                            method="DELETE"
+                                            label="Eliminar"
+                                            danger
+                                        />
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {selectedUser && (
+                <ManageCreditsModal
+                    isOpen={showCreditModal}
+                    onClose={() => setShowCreditModal(false)}
+                    user={selectedUser}
+                    onSuccess={() => {
+                        window.location.reload()
+                    }}
+                />
+            )}
         </div>
     )
 }

@@ -86,24 +86,28 @@ export async function PATCH(
 
         let creditDeducted = false
 
-        // 💳 LÓGICA DE CRÉDITOS PARA ACTIVACIÓN
-        if (body.useCredit === true && (status === 'ACTIVE' || vehicle.status !== 'ACTIVE')) {
-            const userWithCredits = await prisma.user.findUnique({
-                where: { id: user.id },
-                select: { credits: true }
-            })
+        // 💳 LÓGICA DE ACTUALIZACIÓN CON TRANSACCIÓN ATÓMICA
+        // Envolvemos todo en una transacción interactiva para asegurar consistencia
+        const updatedVehicle = await prisma.$transaction(async (tx) => {
+            // 1. Si requiere crédito, procesar cobro PRIMERO dentro de la transacción
+            if (body.useCredit === true && (status === 'ACTIVE' || vehicle.status !== 'ACTIVE')) {
+                const userWithCredits = await tx.user.findUnique({
+                    where: { id: user.id },
+                    select: { credits: true }
+                })
 
-            if ((userWithCredits?.credits || 0) < 1) {
-                return NextResponse.json({ error: 'Saldo de créditos insuficiente' }, { status: 402 })
-            }
+                if ((userWithCredits?.credits || 0) < 1) {
+                    throw new Error('Saldo de créditos insuficiente')
+                }
 
-            // Deducción de crédito y actualización de vencimiento
-            await prisma.$transaction([
-                prisma.user.update({
+                // Deducción de crédito
+                await tx.user.update({
                     where: { id: user.id },
                     data: { credits: { decrement: 1 } }
-                }),
-                prisma.creditTransaction.create({
+                })
+
+                // Registro de transacción
+                await tx.creditTransaction.create({
                     data: {
                         userId: user.id,
                         amount: -1,
@@ -112,56 +116,57 @@ export async function PATCH(
                         details: { action: 'ACTIVATE_VEHICLE', vehicleId: id }
                     }
                 })
-            ])
 
-            // Extender vencimiento 30 días
-            const newExpiry = new Date()
-            newExpiry.setDate(newExpiry.getDate() + 30)
-            finalUpdateData.expiresAt = newExpiry
-            finalUpdateData.status = 'ACTIVE'
-            finalUpdateData.moderationStatus = 'APPROVED' // Forzamos aprobación si pagó
-            creditDeducted = true
-        }
+                // Configurar datos de activación
+                const newExpiry = new Date()
+                newExpiry.setDate(newExpiry.getDate() + 30)
+                finalUpdateData.expiresAt = newExpiry
+                finalUpdateData.status = 'ACTIVE'
+                finalUpdateData.moderationStatus = 'APPROVED'
+                creditDeducted = true
+            }
 
-        if (updateData.operatingHours !== undefined) finalUpdateData.operatingHours = safeInt(updateData.operatingHours)
-        if (updateData.mileage !== undefined) finalUpdateData.mileage = safeInt(updateData.mileage)
-        if (updateData.year !== undefined) finalUpdateData.year = safeInt(updateData.year)
-        if (updateData.price !== undefined) finalUpdateData.price = safeFloat(updateData.price)
-        if (updateData.doors !== undefined) finalUpdateData.doors = safeInt(updateData.doors)
-        if (updateData.passengers !== undefined) finalUpdateData.passengers = safeInt(updateData.passengers)
-        if (updateData.displacement !== undefined) finalUpdateData.displacement = safeInt(updateData.displacement)
-        if (updateData.cargoCapacity !== undefined) finalUpdateData.cargoCapacity = safeFloat(updateData.cargoCapacity)
+            // 2. Procesar campos dinámicos
+            if (updateData.operatingHours !== undefined) finalUpdateData.operatingHours = safeInt(updateData.operatingHours)
+            if (updateData.mileage !== undefined) finalUpdateData.mileage = safeInt(updateData.mileage)
+            if (updateData.year !== undefined) finalUpdateData.year = safeInt(updateData.year)
+            if (updateData.price !== undefined) finalUpdateData.price = safeFloat(updateData.price)
+            if (updateData.doors !== undefined) finalUpdateData.doors = safeInt(updateData.doors)
+            if (updateData.passengers !== undefined) finalUpdateData.passengers = safeInt(updateData.passengers)
+            if (updateData.displacement !== undefined) finalUpdateData.displacement = safeInt(updateData.displacement)
+            if (updateData.cargoCapacity !== undefined) finalUpdateData.cargoCapacity = safeFloat(updateData.cargoCapacity)
 
-        // Nuevos campos técnicos para la Autoridad de Datos CarMatch
-        if (updateData.hp !== undefined) finalUpdateData.hp = safeInt(updateData.hp)
-        if (updateData.torque !== undefined) finalUpdateData.torque = updateData.torque || null
-        if (updateData.aspiration !== undefined) finalUpdateData.aspiration = updateData.aspiration || null
-        if (updateData.cylinders !== undefined) finalUpdateData.cylinders = safeInt(updateData.cylinders)
-        if (updateData.batteryCapacity !== undefined) finalUpdateData.batteryCapacity = safeFloat(updateData.batteryCapacity)
-        if (updateData.range !== undefined) finalUpdateData.range = safeInt(updateData.range)
-        if (updateData.weight !== undefined) finalUpdateData.weight = safeInt(updateData.weight)
-        if (updateData.axles !== undefined) finalUpdateData.axles = safeInt(updateData.axles)
+            // Nuevos campos técnicos
+            if (updateData.hp !== undefined) finalUpdateData.hp = safeInt(updateData.hp)
+            if (updateData.torque !== undefined) finalUpdateData.torque = updateData.torque || null
+            if (updateData.aspiration !== undefined) finalUpdateData.aspiration = updateData.aspiration || null
+            if (updateData.cylinders !== undefined) finalUpdateData.cylinders = safeInt(updateData.cylinders)
+            if (updateData.batteryCapacity !== undefined) finalUpdateData.batteryCapacity = safeFloat(updateData.batteryCapacity)
+            if (updateData.range !== undefined) finalUpdateData.range = safeInt(updateData.range)
+            if (updateData.weight !== undefined) finalUpdateData.weight = safeInt(updateData.weight)
+            if (updateData.axles !== undefined) finalUpdateData.axles = safeInt(updateData.axles)
 
-        if (status) {
-            finalUpdateData.status = status
-        }
+            if (status) {
+                finalUpdateData.status = status
+            }
 
-        // 🔄 SINCRONIZAR TÍTULO: Si cambió marca, modelo o año, O si se está aprobando, actualizar el título
-        if (updateData.brand || updateData.model || updateData.year || finalUpdateData.moderationStatus === 'APPROVED') {
-            const nextBrand = updateData.brand || vehicle.brand
-            const nextModel = updateData.model || vehicle.model
-            const nextYear = updateData.year !== undefined ? updateData.year : (vehicle as any).year
-            finalUpdateData.title = `${nextBrand} ${nextModel} ${nextYear}`
-        }
+            // Sincronizar título
+            if (updateData.brand || updateData.model || updateData.year || finalUpdateData.moderationStatus === 'APPROVED') {
+                const nextBrand = updateData.brand || vehicle.brand
+                const nextModel = updateData.model || vehicle.model
+                const nextYear = updateData.year !== undefined ? updateData.year : (vehicle as any).year
+                finalUpdateData.title = `${nextBrand} ${nextModel} ${nextYear}`
+            }
 
-        if (keyFieldsChanged) {
-            finalUpdateData.moderationStatus = 'PENDING_AI'
-            // Podríamos disparar la moderación de nuevo aquí, o dejar que el cron lo haga
-        }
+            if (keyFieldsChanged) {
+                finalUpdateData.moderationStatus = 'PENDING_AI'
+            }
 
-        const updatedVehicle = await prisma.vehicle.update({
-            where: { id },
-            data: finalUpdateData
+            // 3. Ejecutar la actualización del vehículo dentro de la misma transacción
+            return await tx.vehicle.update({
+                where: { id },
+                data: finalUpdateData
+            })
         })
 
         // 🔔 NOTIFICACIÓN: Si cambia a ACTIVO desde un estado inactivo
