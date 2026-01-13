@@ -43,7 +43,8 @@
         "online_team": "Equipo en línea",
         "typing_placeholder": "Escribe tu duda...",
         "copy": "Copiar",
-        "copied": "¡Copiado!"
+        "copied": "¡Copiado!",
+        "view_more": "Ver más"
     },
     "nav": {
         "carmatch": "CarMatch",
