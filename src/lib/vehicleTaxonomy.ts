@@ -784,7 +784,14 @@ export const formatPrice = (price: number, currency: string = 'MXN', locale: str
             minimumFractionDigits: 0,
             maximumFractionDigits: 2
         });
-        return formatter.format(price);
+        const formattedPrice = formatter.format(price);
+
+        // Agregar el código de moneda al final para mayor claridad
+        // Ejemplo: "$98,689,895 MXN" en lugar de solo "$98,689,895"
+        if (!formattedPrice.includes(currency)) {
+            return `${formattedPrice} ${currency}`;
+        }
+        return formattedPrice;
     } catch (e) {
         return `${currency} ${formatNumber(price, locale)}`;
     }
