@@ -323,14 +323,14 @@ export async function fixAndApproveVehicle(vehicleId: string) {
         if (details.displacement) updateData.displacement = details.displacement
         if (details.cargoCapacity) updateData.cargoCapacity = details.cargoCapacity
         // Nuevos campos técnicos CarMatch
-        if (analysis.details.hp !== undefined) updateData.hp = analysis.details.hp
-        if (analysis.details.torque !== undefined) updateData.torque = analysis.details.torque
-        if (analysis.details.aspiration !== undefined) updateData.aspiration = analysis.details.aspiration
-        if (analysis.details.cylinders !== undefined) updateData.cylinders = analysis.details.cylinders
-        if (analysis.details.batteryCapacity !== undefined) updateData.batteryCapacity = analysis.details.batteryCapacity
-        if (analysis.details.range !== undefined) updateData.range = analysis.details.range
-        if (analysis.details.weight !== undefined) updateData.weight = analysis.details.weight
-        if (analysis.details.axles !== undefined) updateData.axles = analysis.details.axles
+        if (details.hp !== undefined) updateData.hp = details.hp
+        if (details.torque !== undefined) updateData.torque = details.torque
+        if (details.aspiration !== undefined) updateData.aspiration = details.aspiration
+        if (details.cylinders !== undefined) updateData.cylinders = details.cylinders
+        if (details.batteryCapacity !== undefined) updateData.batteryCapacity = details.batteryCapacity
+        if (details.range !== undefined) updateData.range = details.range
+        if (details.weight !== undefined) updateData.weight = details.weight
+        if (details.axles !== undefined) updateData.axles = details.axles
         if (details.operatingHours) updateData.operatingHours = details.operatingHours
 
         // Generar nuevo título basado en la corrección
