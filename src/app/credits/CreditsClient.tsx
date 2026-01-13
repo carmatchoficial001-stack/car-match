@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Header from '@/components/Header'
 import { useLanguage } from '@/contexts/LanguageContext'
+import ConfirmationModal from '@/components/ConfirmationModal'
 
 interface CreditsClientProps {
     user: any
@@ -26,6 +27,17 @@ export default function CreditsClient({ user, transactions }: CreditsClientProps
     const [quantity, setQuantity] = useState(1)
     const [loading, setLoading] = useState(true)
 
+    // Estado para el modal de confirmación personalizado
+    const [modalConfig, setModalConfig] = useState<{
+        isOpen: boolean
+        title: string
+        message: string
+        variant: 'success' | 'danger' | 'info' | 'credit'
+        onConfirm?: () => void
+        confirmLabel?: string
+        showCancel?: boolean
+    }>({ isOpen: false, title: '', message: '', variant: 'info' })
+
     useEffect(() => {
         fetchPricing()
 
@@ -44,18 +56,30 @@ export default function CreditsClient({ user, transactions }: CreditsClientProps
                     })
                     const data = await res.json()
                     if (res.ok && data.success) {
-                        alert(`¡Pago verificado! Se han sumado ${data.creditsAdded} créditos a tu cuenta.`)
-                        // Limpiar la URL y refrescar datos
-                        window.history.replaceState({}, document.title, window.location.pathname)
-                        window.location.reload()
+                        setModalConfig({
+                            isOpen: true,
+                            title: '¡Pago Verificado! 🎉',
+                            message: `Se han sumado ${data.creditsAdded} créditos a tu cuenta correctamente.`,
+                            variant: 'credit',
+                            confirmLabel: 'Entendido',
+                            showCancel: false,
+                            onConfirm: () => {
+                                setModalConfig(prev => ({ ...prev, isOpen: false }))
+                                window.history.replaceState({}, document.title, window.location.pathname)
+                                window.location.reload()
+                            }
+                        })
                     } else {
                         console.error('Error confirmando pago:', data.error)
-                        // Si falla por pendiente, avisar al usuario
-                        if (data.error?.includes('confirmado')) {
-                            alert(data.error)
-                        } else {
-                            alert('Hubo un problema al verificar tus créditos. Por favor, contacta a soporte si tu pago ya fue realizado.')
-                        }
+                        setModalConfig({
+                            isOpen: true,
+                            title: 'Problema con el Pago',
+                            message: data.error || 'Hubo un problema al verificar tus créditos. Por favor, contacta a soporte si tu pago ya fue realizado.',
+                            variant: 'danger',
+                            confirmLabel: 'Cerrar',
+                            showCancel: false,
+                            onConfirm: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
+                        })
                         setLoading(false)
                         // No limpiamos la URL para que el usuario pueda intentar F5 de nuevo
                     }
@@ -66,8 +90,18 @@ export default function CreditsClient({ user, transactions }: CreditsClientProps
             }
             confirmPayment()
         } else if (urlParams.get('canceled') === 'true') {
-            alert('El pago fue cancelado.')
-            window.history.replaceState({}, document.title, window.location.pathname)
+            setModalConfig({
+                isOpen: true,
+                title: 'Pago Cancelado',
+                message: 'El proceso de pago fue cancelado. No se ha realizado ningún cargo.',
+                variant: 'info',
+                confirmLabel: 'Entendido',
+                showCancel: false,
+                onConfirm: () => {
+                    setModalConfig(prev => ({ ...prev, isOpen: false }))
+                    window.history.replaceState({}, document.title, window.location.pathname)
+                }
+            })
         }
     }, [])
 
@@ -111,12 +145,26 @@ export default function CreditsClient({ user, transactions }: CreditsClientProps
                 setLoading(false)
             } else {
                 console.error('Error al iniciar pago:', data.error)
-                alert(`No se pudo iniciar el proceso de pago: ${data.error || 'Error desconocido'}`)
+                setModalConfig({
+                    isOpen: true,
+                    title: 'Error de Inicio',
+                    message: `No se pudo iniciar el proceso de pago: ${data.error || 'Error desconocido'}`,
+                    variant: 'danger',
+                    showCancel: false,
+                    onConfirm: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
+                })
                 setLoading(false)
             }
         } catch (error: any) {
             console.error('Error de conexión:', error)
-            alert(`Error de conexión: ${error.message || 'Verifica tu internet'}`)
+            setModalConfig({
+                isOpen: true,
+                title: 'Error de Conexión',
+                message: `No pudimos conectar con el servidor: ${error.message || 'Verifica tu internet'}`,
+                variant: 'danger',
+                showCancel: false,
+                onConfirm: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
+            })
             setLoading(false)
         }
     }
@@ -349,6 +397,17 @@ export default function CreditsClient({ user, transactions }: CreditsClientProps
                     </div>
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={modalConfig.isOpen}
+                onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={modalConfig.onConfirm}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                variant={modalConfig.variant}
+                confirmLabel={modalConfig.confirmLabel || 'Aceptar'}
+                showCancel={modalConfig.showCancel}
+            />
         </div>
     )
 }
