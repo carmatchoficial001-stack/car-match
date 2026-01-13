@@ -10,8 +10,21 @@ const sanitizeAIValue = (val: any) => {
     if (val === null || val === undefined) return null;
     if (typeof val !== 'string') return val;
     const clean = val.trim().toUpperCase();
-    if (clean === 'N/A' || clean === 'UNKNOWN' || clean === 'DESCONOCIDO' || clean === 'NULL' || clean === '') return null;
-    return val;
+    // Rechazar cualquier variación de N/A, Unknown, vacío, etc.
+    if (
+        clean === 'N/A' ||
+        clean === 'NA' ||
+        clean === 'UNKNOWN' ||
+        clean === 'DESCONOCIDO' ||
+        clean === 'NULL' ||
+        clean === '' ||
+        clean === '-' ||
+        clean === '--' ||
+        clean === '?' ||
+        clean === 'N.A' ||
+        clean === 'N.A.'
+    ) return null;
+    return val.trim(); // Retornar valor limpio
 }
 
 /**

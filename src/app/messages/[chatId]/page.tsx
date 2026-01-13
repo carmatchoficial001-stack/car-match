@@ -251,7 +251,9 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                         )}
                                     </div>
                                     <div className="min-w-0">
-                                        <h2 className="font-bold text-text-primary truncate">{chat.vehicle.user.name}</h2>
+                                        <Link href={`/profile/${chat.vehicle.user.id}`} className="hover:underline">
+                                            <h2 className="font-bold text-text-primary truncate">{chat.vehicle.user.name}</h2>
+                                        </Link>
                                         <p className="text-xs text-text-secondary truncate">{chat.vehicle.title}</p>
                                     </div>
                                 </div>
@@ -334,7 +336,11 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                                         ? 'bg-primary-600 text-white rounded-tr-sm'
                                                         : 'bg-surface border border-surface-highlight text-text-primary rounded-tl-sm'
                                                         }`}>
-                                                        {!isOwnMessage && <div className="text-[10px] font-bold mb-1 opacity-70 uppercase tracking-wider">{message.sender?.name}</div>}
+                                                        {!isOwnMessage && (
+                                                            <Link href={`/profile/${message.senderId}`} className="hover:underline">
+                                                                <div className="text-[10px] font-bold mb-1 opacity-70 uppercase tracking-wider">{message.sender?.name}</div>
+                                                            </Link>
+                                                        )}
                                                         <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
                                                         <span className="text-[9px] block text-right mt-1 opacity-60">
                                                             {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

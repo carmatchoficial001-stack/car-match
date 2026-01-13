@@ -122,7 +122,12 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
   }
 }
 
-IMPORTANTE: Investiga a fondo. Una vez identificado el vehículo en la portada, utiliza tu CONOCIMIENTO GENERAL TÉCNICO para llenar TODO el JSON. Si un dato es auténticamente desconocido o incierto para ese modelo específico, responde null. NO INVENTES si no hay base técnica, pero sé lo más completo posible. PROHIBIDO usar "N/A".
+REGLA CRÍTICA DE FORMATO:
+- Si un dato técnico NO es visible en las fotos o es INCIERTO para ese modelo, usa null (sin comillas).
+- NUNCA uses "N/A", "Unknown", "Desconocido", "NA", cadenas vacías "", ni similares.
+- Investiga el modelo identificado y completa TODO lo posible con tu conocimiento técnico.
+- Ejemplo CORRECTO: "hp": null, "transmission": "Automática"
+- Ejemplo INCORRECTO: "hp": "N/A", "transmission": "N/A"
 `;
   }
 
@@ -246,7 +251,10 @@ export async function analyzeMultipleImages(
          }
        }
        
-       IMPORTANTE: Si un dato técnico no es visible o es incierto, usa null. PROHIBIDO usar "N/A".`
+        REGLA CRÍTICA DE FORMATO: 
+        - Para datos técnicos NO visibles o INCIERTOS: usa null (sin comillas).
+        - NUNCA uses "N/A", "Unknown", "Desconocido", "NA", "", ni similares.
+        - Ejemplo: "hp": null, "torque": null`
     : `ERES UN MODERADOR DE CONTENIDO PARA PERFILES DE NEGOCIO.
        TU MISIÓN: Permitir libertad creativa total, FILTRANDO SOLO CONTENIDO ILEGAL O PELIGROSO.
        
