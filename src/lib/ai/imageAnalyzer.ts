@@ -283,12 +283,12 @@ export async function analyzeMultipleImages(
         - Estilo: "${IDENTIDAD_SOBERANA_DE_PORTADA.type || '?'}"
 
         📋 REGLAS DE AUDITORÍA (TOLERANCIA CERO):
-        - CUALQUIER IMAGEN QUE NO SEA EL MISMO VEHÍCULO DEBE SER MARCADA AS "isValid": false.
-        - RECHAZA CAPTURAS DE PANTALLA: Si ves menús de apps, interfaces de usuario, perfiles de cuenta (como vistas de "Cuenta" o "Configuración"), MARCA "isValid": false.
-        - SI VES ARTÍCULOS DEL HOGAR (TVs, electrodomésticos, muebles), MARCA "isValid": false y razón "No es un vehículo".
-        - SI EL VEHÍCULO ES DE OTRA MARCA (Ej: ves un Jeep y la portada es Hyundai), ES UN FRAUDE INMEDIATO: "isValid": false.
-        - No permitas que la galería cambie la identidad de la portada.
-        - Extrae datos técnicos solo si son visibles.
+        - CUALQUIER IMAGEN QUE NO SEA EL MISMO VEHÍCULO MENCIONADO EN LA PORTADA DEBE SER MARCADA AS "isValid": false.
+        - RECHAZA CONTENIDO NO FOTOGRÁFICO: Si ves dibujos (como conejos, caricaturas), bocetos, memes o arte digital, MARCA "isValid": false y razón "No es una foto real".
+        - RECHAZA CONTENIDO NO VEHICULAR: Si ves animales (perros, gatos), personas solas, paisajes sin el auto, o artículos del hogar, MARCA "isValid": false.
+        - RECHAZA CAPTURAS DE PANTALLA: Si ves interfaces de apps, menús de celular o perfiles, MARCA "isValid": false.
+        - SI EL VEHÍCULO ES OTRO TOTALMENTE DISTINTO (Marca/Modelo diferente), MARCA "isValid": false.
+        - Solo las fotos reales y consistentes del vehículo de portada deben ser "isValid": true.
 
         Responde con este JSON:
         {
