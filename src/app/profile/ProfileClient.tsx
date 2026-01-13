@@ -104,7 +104,34 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                 <p className="text-text-secondary text-sm">
                                     {t('profile.member_since')} {formattedDate}
                                 </p>
-
+                                {isOwner && (
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <div className="bg-surface-highlight/30 px-3 py-1.5 rounded-lg border border-surface-highlight flex items-center gap-2">
+                                            <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">{t('profile.user_id')}:</span>
+                                            <code className="text-xs text-primary-400 font-mono select-all">
+                                                {user.id}
+                                            </code>
+                                        </div>
+                                        <button
+                                            onClick={(e) => {
+                                                navigator.clipboard.writeText(user.id)
+                                                // @ts-ignore
+                                                const btn = e.currentTarget
+                                                const originalHtml = btn.innerHTML
+                                                btn.innerHTML = `<span class="text-[10px] text-green-400 font-bold">${t('common.copied')}</span>`
+                                                setTimeout(() => {
+                                                    btn.innerHTML = originalHtml
+                                                }, 2000)
+                                            }}
+                                            className="p-1.5 hover:bg-surface-highlight rounded-lg transition text-text-secondary hover:text-primary-400"
+                                            title="Copiar ID"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-1 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

@@ -21,7 +21,8 @@ export async function GET(request: NextRequest) {
                     {
                         OR: [
                             { name: { contains: query, mode: 'insensitive' } },
-                            { email: { contains: query, mode: 'insensitive' } }
+                            { email: { contains: query, mode: 'insensitive' } },
+                            { id: { equals: query } }
                         ]
                     },
                     { id: { not: session.user.id } } // No buscarse a sí mismo

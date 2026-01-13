@@ -24,7 +24,8 @@
         "support": "CarMatch Support",
         "install_app": "Install CarMatch App",
         "online_team": "Team online",
-        "typing_placeholder": "Type your question..."
+        "typing_placeholder": "Type your question...",
+        "copied": "Copied!"
     },
     "nav": {
         "carmatch": "CarMatch",
@@ -270,7 +271,8 @@
             "active": "Active",
             "sold": "Sold",
             "inactive": "Inactive"
-        }
+        },
+        "user_id": "User ID"
     },
     "business": {
         "title": "My Businesses",
