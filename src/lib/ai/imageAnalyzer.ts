@@ -126,36 +126,70 @@ IMPORTANTE: Investiga a fondo. Una vez identificado el vehículo en la portada, 
 `;
   }
 
-  try {
-    const imagePart = {
-      inlineData: {
-        data: imageBase64,
-        mimeType: "image/jpeg",
-      },
-    };
+  let lastError: any;
+  const maxRetries = 3;
 
-    const result = await geminiModel.generateContent([prompt, imagePart]);
-    const response = await result.response;
-    const text = response.text();
-
-    console.log("🤖 Respuesta Raw Gemini:", text);
-
-    const firstBrace = text.indexOf('{');
-    const lastBrace = text.lastIndexOf('}');
-    if (firstBrace === -1 || lastBrace === -1) throw new Error("No JSON found");
-    const jsonString = text.substring(firstBrace, lastBrace + 1);
-
+  for (let i = 0; i < maxRetries; i++) {
     try {
-      return JSON.parse(jsonString);
-    } catch (parseError) {
-      console.error("❌ Error parseando JSON de Gemini:", parseError, "Texto recibido:", text);
-      return { valid: false, reason: "Error de validación técnica. Intenta con otra foto." };
-    }
+      const imagePart = {
+        inlineData: {
+          data: imageBase64,
+          mimeType: "image/jpeg",
+        },
+      };
 
-  } catch (error) {
-    console.error("❌ Error CRÍTICO en análisis de imagen:", error);
-    return { valid: false, reason: "El servicio de seguridad no está disponible. Reintenta en un momento." };
+      const result = await geminiModel.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const text = response.text();
+
+      console.log("🤖 Respuesta Raw Gemini:", text);
+
+      const firstBrace = text.indexOf('{');
+      const lastBrace = text.lastIndexOf('}');
+      if (firstBrace === -1 || lastBrace === -1) throw new Error("No JSON found");
+      const jsonString = text.substring(firstBrace, lastBrace + 1);
+
+      try {
+        return JSON.parse(jsonString);
+      } catch (parseError) {
+        console.error("❌ Error parseando JSON de Gemini:", parseError, "Texto recibido:", text);
+        return { valid: false, reason: "La IA respondió con un formato incorrecto. Intenta con otra foto." };
+      }
+
+    } catch (error: any) {
+      lastError = error;
+      const errorMsg = error.message?.toLowerCase() || '';
+
+      // 🚀 RESILIENCIA CARMATCH: Errores reintentables
+      const isRetryable =
+        errorMsg.includes("429") ||
+        errorMsg.includes("quota") ||
+        errorMsg.includes("503") ||
+        errorMsg.includes("overloaded") ||
+        errorMsg.includes("fetch") ||
+        errorMsg.includes("network");
+
+      if (isRetryable && i < maxRetries - 1) {
+        const waitTime = Math.pow(2, i) * 1000; // 1s, 2s, 4s
+        console.warn(`⚠️ Error de red o cuota detectado. Reintentando (${i + 1}/${maxRetries}) en ${waitTime}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        continue;
+      }
+      break;
+    }
   }
+
+  console.error("❌ Error CRÍTICO definitivo en análisis de imagen:", lastError);
+
+  const msg = lastError.message?.toLowerCase() || '';
+  if (msg.includes("429") || msg.includes("quota")) {
+    return { valid: false, reason: "El Asesor Real está muy ocupado identificando otros vehículos. Reintenta en un par de segundos." };
+  }
+
+  return {
+    valid: false,
+    reason: "Lo sentimos, el servicio de identificación está saturado por el tráfico. Reintenta ahora mismo."
+  };
 }
 
 /**
@@ -385,11 +419,19 @@ export async function analyzeMultipleImages(
       return await processGeminiResponse(response); // Moviendo lógica a una función auxiliar para limpieza
     } catch (error: any) {
       lastError = error;
-      const isRateLimit = error.message?.includes("429") || error.message?.includes("quota");
+      const errorMsg = error.message?.toLowerCase() || '';
 
-      if (isRateLimit && i < maxRetries - 1) {
-        const waitTime = 2000 * (i + 1); // Esperar 2 o 4 segundos
-        console.warn(`⚠️ Cuota de IA excedida. Reintentando en ${waitTime}ms...`);
+      const isRetryable =
+        errorMsg.includes("429") ||
+        errorMsg.includes("quota") ||
+        errorMsg.includes("503") ||
+        errorMsg.includes("overloaded") ||
+        errorMsg.includes("fetch") ||
+        errorMsg.includes("network");
+
+      if (isRetryable && i < maxRetries - 1) {
+        const waitTime = Math.pow(2, i) * 1000 + 500; // 1.5s, 2.5s
+        console.warn(`⚠️ Error reintentable en Asesor Real (${i + 1}/${maxRetries}): ${errorMsg}. Reintentando en ${waitTime}ms...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
       }
