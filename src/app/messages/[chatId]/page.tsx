@@ -243,7 +243,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                             </Link>
                             {chat && (
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-surface-highlight flex items-center justify-center overflow-hidden shrink-0">
+                                    <div className="w-10 h-10 rounded-xl bg-surface-highlight flex items-center justify-center overflow-hidden shrink-0">
                                         {chat.vehicle.user.image ? (
                                             <img src={chat.vehicle.user.image} alt="" className="w-full h-full object-cover" />
                                         ) : (
@@ -314,9 +314,9 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                                 {!isOwnMessage && (
                                                     <div className="flex-shrink-0">
                                                         {message.sender?.image ? (
-                                                            <img src={message.sender.image} alt="" className="w-8 h-8 rounded-full" />
+                                                            <img src={message.sender.image} alt="" className="w-8 h-8 rounded-lg object-cover" />
                                                         ) : (
-                                                            <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-xs text-white font-bold uppercase">
+                                                            <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center text-xs text-white font-bold uppercase">
                                                                 {(message.sender?.name || '?')[0]}
                                                             </div>
                                                         )}
@@ -409,7 +409,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                     <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pb-10">
                         {Array.from({ length: isSeller ? 15 : 16 }).map((_, idx) => (
                             <div key={idx} className="bg-surface-highlight/40 p-4 rounded-2xl border border-white/5 flex gap-4">
-                                <div className="w-6 h-6 rounded-full bg-primary-500/20 text-primary-400 flex items-center justify-center shrink-0 text-xs font-bold">{idx + 1}</div>
+                                <div className="w-6 h-6 rounded-xl bg-primary-500/20 text-primary-400 flex items-center justify-center shrink-0 text-xs font-bold">{idx + 1}</div>
                                 <p className="text-text-primary text-sm">{t(`messages.tips.${isSeller ? 'seller' : 'buyer'}.t${idx + 1}`)}</p>
                             </div>
                         ))}

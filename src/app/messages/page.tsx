@@ -144,10 +144,10 @@ export default function MessagesPage() {
                                                 <img
                                                     src={chat.otherUser.image}
                                                     alt={chat.otherUser.name}
-                                                    className="w-6 h-6 rounded-full"
+                                                    className="w-6 h-6 rounded-lg object-cover"
                                                 />
                                             ) : (
-                                                <div className="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center text-xs text-white">
+                                                <div className="w-6 h-6 bg-primary-500 rounded-lg flex items-center justify-center text-xs text-white">
                                                     {chat.otherUser.name[0]}
                                                 </div>
                                             )}

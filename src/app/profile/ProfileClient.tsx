@@ -30,59 +30,63 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                 <div className="bg-surface rounded-2xl shadow-xl p-8 mb-8 border border-surface-highlight">
                     <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-6">
                         <div className="flex items-center gap-4 w-full md:w-auto">
-                            <div className="relative group">
-                                {user.image ? (
-                                    <div className="w-full max-w-md rounded-xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface group relative flex justify-center bg-black/50">
-                                        <img src={user.image} alt={user.name} className="max-w-full h-auto max-h-[60vh] object-contain" />
-                                        {isOwner && (
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                                <button
-                                                    onClick={() => setShowEditModal(true)}
-                                                    className="bg-primary-700 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium shadow-lg transform translate-y-2 group-hover:translate-y-0 transition flex items-center gap-2"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                    </svg>
-                                                    Editar Perfil
-                                                </button>
-                                            </div>
-                                        )}
-                                        {!isOwner && (
-                                            <ReportImageButton
-                                                imageUrl={user.image}
-                                                targetUserId={user.id}
+                            <div className="w-full md:w-72 lg:w-80 flex-shrink-0">
+                                <div className="relative rounded-2xl overflow-hidden shadow-xl border-2 border-surface-highlight bg-surface group">
+                                    {user.image ? (
+                                        <>
+                                            <img
+                                                src={user.image}
+                                                alt={user.name}
+                                                className="w-full h-auto min-h-[200px] max-h-[400px] object-cover"
                                             />
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="w-full max-w-sm aspect-video rounded-xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface relative group">
-                                        {/* Avatar Aleatorio (Usamos del 1 al 6 disponibles) */}
-                                        <img
-                                            src={`/defaults/avatars/car_${((user.name?.charCodeAt(0) || 0) % 6) + 1}.png`}
-                                            alt="Portada por defecto"
-                                            className="w-full h-full object-cover opacity-90"
-                                        />
-                                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/80 via-transparent to-transparent">
-                                            <span className="mt-8 text-4xl font-bold text-white drop-shadow-lg tracking-wider">
-                                                {user.name?.[0]?.toUpperCase()}
-                                            </span>
-                                        </div>
+                                            {isOwner && (
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                                    <button
+                                                        onClick={() => setShowEditModal(true)}
+                                                        className="bg-primary-700 hover:bg-primary-600 text-white px-4 py-2 rounded-xl font-bold shadow-lg transform translate-y-2 group-hover:translate-y-0 transition flex items-center gap-2"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                        </svg>
+                                                        {t('profile.edit_profile' as any) || 'Editar Perfil'}
+                                                    </button>
+                                                </div>
+                                            )}
+                                            {!isOwner && (
+                                                <div className="absolute top-2 right-2">
+                                                    <ReportImageButton
+                                                        imageUrl={user.image}
+                                                        targetUserId={user.id}
+                                                    />
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="aspect-square md:aspect-[4/5] bg-surface-highlight flex flex-col items-center justify-center relative">
+                                            <img
+                                                src={`/defaults/avatars/car_${((user.name?.charCodeAt(0) || 0) % 6) + 1}.png`}
+                                                alt="Avatar"
+                                                className="w-full h-full object-cover opacity-30"
+                                            />
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+                                                <span className="text-6xl font-black text-primary-400/50 mb-2">
+                                                    {user.name?.[0]?.toUpperCase()}
+                                                </span>
+                                            </div>
 
-                                        {isOwner && (
-                                            <div className="absolute top-2 right-2">
+                                            {isOwner && (
                                                 <button
                                                     onClick={() => setShowEditModal(true)}
-                                                    className="bg-black/50 hover:bg-primary-700 text-white p-2 rounded-full backdrop-blur-sm transition"
-                                                    title="Editar Perfil"
+                                                    className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
                                                 >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                    </svg>
+                                                    <div className="bg-primary-700 text-white px-4 py-2 rounded-xl font-bold shadow-lg">
+                                                        {t('profile.edit_profile' as any) || 'Editar Perfil'}
+                                                    </div>
                                                 </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <div className="flex items-center gap-2 mb-1">
