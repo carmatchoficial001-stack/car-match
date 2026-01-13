@@ -40,6 +40,12 @@ export default function ManageCreditsModal({ isOpen, onClose, user, onSuccess }:
                 return
             }
 
+            console.log('🚀 Enviando ajuste de créditos:', {
+                userId: user.id,
+                amount: finalAmount,
+                reason: reason || 'Ajuste manual'
+            })
+
             const res = await fetch(`/api/admin/users/${user.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
@@ -51,13 +57,16 @@ export default function ManageCreditsModal({ isOpen, onClose, user, onSuccess }:
                 })
             })
 
+            console.log('📡 Respuesta del servidor:', res.status)
+
             if (res.ok) {
                 onSuccess()
                 onClose()
                 setAmount('')
                 setReason('')
             } else {
-                alert('Error al actualizar créditos')
+                const errorData = await res.json().catch(() => ({}))
+                alert(`Error: ${errorData.error || 'No se pudo actualizar los créditos'}`)
             }
         } catch (error) {
             console.error(error)
@@ -73,7 +82,7 @@ export default function ManageCreditsModal({ isOpen, onClose, user, onSuccess }:
     const newBalance = (user.credits || 0) + amountNum
 
     return (
-        <div className="fixed inset-0 z[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
 
             <div className="relative bg-[#1a1f2e] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">

@@ -12,13 +12,19 @@ export async function PATCH(
             return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
         }
 
-        const admin = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { isAdmin: true }
-        })
+        console.log(`🔍 Admin Action: Patching user by ${session.user.email}`)
 
-        if (!admin?.isAdmin) {
-            return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+        const isAdminMaster = session.user.email === process.env.ADMIN_EMAIL
+
+        if (!isAdminMaster) {
+            const admin = await prisma.user.findUnique({
+                where: { email: session.user.email },
+                select: { isAdmin: true }
+            })
+
+            if (!admin?.isAdmin) {
+                return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+            }
         }
 
         const { id } = await context.params
@@ -35,10 +41,18 @@ export async function PATCH(
             }
 
             const result = await prisma.$transaction(async (tx) => {
+                // Obtener usuario actual para asegurar que existe y tener su saldo
+                const currentUser = await tx.user.findUnique({
+                    where: { id },
+                    select: { credits: true }
+                })
+
+                if (!currentUser) throw new Error('Usuario no encontrado')
+
                 const user = await tx.user.update({
                     where: { id },
                     data: {
-                        credits: { increment: amount },
+                        credits: (currentUser.credits || 0) + amount,
                         ...(typeof isActive === 'boolean' && { isActive }),
                         ...(typeof isAdmin === 'boolean' && { isAdmin })
                     }
@@ -69,9 +83,20 @@ export async function PATCH(
         })
 
         return NextResponse.json(updatedUser)
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error admin patching user:', error)
-        return NextResponse.json({ error: 'Error interno' }, { status: 500 })
+
+        // Registrar en SystemLog para debug remoto
+        await prisma.systemLog.create({
+            data: {
+                level: 'ERROR',
+                message: `Error patching user: ${error.message || 'Unknown'}`,
+                source: 'API/ADMIN/USERS',
+                metadata: { error: JSON.stringify(error) }
+            }
+        }).catch(() => { })
+
+        return NextResponse.json({ error: `Error interno: ${error.message || 'Desconocido'}` }, { status: 500 })
     }
 }
 
@@ -85,13 +110,17 @@ export async function DELETE(
             return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
         }
 
-        const admin = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { isAdmin: true }
-        })
+        const isAdminMaster = session.user.email === process.env.ADMIN_EMAIL
 
-        if (!admin?.isAdmin) {
-            return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+        if (!isAdminMaster) {
+            const admin = await prisma.user.findUnique({
+                where: { email: session.user.email },
+                select: { isAdmin: true }
+            })
+
+            if (!admin?.isAdmin) {
+                return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+            }
         }
 
         const { id } = await context.params

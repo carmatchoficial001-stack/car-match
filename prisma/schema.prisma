@@ -29,6 +29,7 @@ model User {
   fraudStrikes            Int                       @default(0)
   lifetimeBusinessCount   Int                       @default(0)
   lifetimeVehicleCount    Int                       @default(0)
+  trustedContactId        String?
   accounts                Account[]
   analyticsEvents         AnalyticsEvent[]
   businesses              Business[]
@@ -49,12 +50,9 @@ model User {
   reportsMade             Report[]                  @relation("Reporter")
   reportsReceived         Report[]                  @relation("ReportedUser")
   sessions                Session[]
-  vehicles                Vehicle[]
-  
-  // Seguridad Avanzada
-  trustedContactId        String?
   trustedContact          User?                     @relation("TrustedContact", fields: [trustedContactId], references: [id])
   trustedBy               User[]                    @relation("TrustedContact")
+  vehicles                Vehicle[]
 
   @@index([email])
   @@index([city])
@@ -148,15 +146,15 @@ model Vehicle {
   mileageUnit        String           @default("km")
   passengers         Int?
   traction           String?
-  hp                 Int?
-  torque             String?
   aspiration         String?
-  cylinders          Int?
-  batteryCapacity    Float?
-  range              Int?
-  weight             Int?
   axles              Int?
+  batteryCapacity    Float?
+  cylinders          Int?
+  hp                 Int?
   moderationFeedback String?
+  range              Int?
+  torque             String?
+  weight             Int?
   chats              Chat[]
   dislikes           Dislike[]
   favorites          Favorite[]
@@ -207,8 +205,6 @@ model Business {
   services            String[]
   isActive            Boolean            @default(true)
   isFreePublication   Boolean            @default(true)
-  hasMiniWeb          Boolean            @default(false)
-  slug                String?            @unique
   publishedAt         DateTime           @default(now())
   expiresAt           DateTime?
   createdAt           DateTime           @default(now())
@@ -216,7 +212,9 @@ model Business {
   hasEmergencyService Boolean            @default(false)
   hasHomeService      Boolean            @default(false)
   is24Hours           Boolean            @default(false)
+  hasMiniWeb          Boolean            @default(false)
   isSafeMeetingPoint  Boolean            @default(false)
+  slug                String?            @unique
   user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   favorites           BusinessFavorite[]
   views               BusinessView[]
@@ -425,20 +423,20 @@ model SimulatedMetric {
 }
 
 model Appointment {
-  id         String   @id @default(cuid())
-  chatId     String
-  proposerId String
-  date       DateTime
-  location   String
-  address    String?
-  latitude   Float?
-  longitude  Float?
-  status     String
-  monitoringActive   Boolean  @default(false)
-  lastSafetyCheck    DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  chat       Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  id               String    @id @default(cuid())
+  chatId           String
+  proposerId       String
+  date             DateTime
+  location         String
+  address          String?
+  latitude         Float?
+  longitude        Float?
+  status           String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  lastSafetyCheck  DateTime?
+  monitoringActive Boolean   @default(false)
+  chat             Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId])
   @@index([status])
