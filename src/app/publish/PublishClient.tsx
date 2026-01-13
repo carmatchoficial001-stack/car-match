@@ -31,6 +31,7 @@ import { getUserLocation, reverseGeocode } from '@/lib/geolocation'
 import { useModelNames } from '@/hooks/useVehicleData'
 
 type FormStep = 1 | 2 | 3 | 4 | 5 | 6 | 7
+type VehicleStatus = 'ACTIVE' | 'INACTIVE' | 'SOLD'
 
 export default function PublishClient() {
     const router = useRouter()
