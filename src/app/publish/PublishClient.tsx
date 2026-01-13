@@ -300,12 +300,15 @@ export default function PublishClient() {
         }
     }
 
+    useEffect(() => {
+        window.scrollTo(0, 0)
+    }, [currentStep])
+
     const handleNextStep = () => {
         setCurrentStep(prev => {
             if (prev < 7) return (prev + 1) as FormStep
             return prev
         })
-        window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
     const handleNext = () => currentStep === 1 ? validateImagesAndProceed() : handleNextStep()
@@ -314,7 +317,6 @@ export default function PublishClient() {
             if (prev > 1) return (prev - 1) as FormStep
             return prev
         })
-        window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
     const handleLocationChange = (lat: number, lng: number, cityName: string, stateName?: string, countryName?: string) => {
