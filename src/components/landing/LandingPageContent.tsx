@@ -182,7 +182,7 @@ export default function LandingPageContent() {
                             <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
                                 <YoutubeIcon className="w-6 h-6" />
                             </a>
-                            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
+                            <a href="https://www.facebook.com/share/1AVsMtGGrG/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
                                 <FacebookIcon className="w-6 h-6" />
                             </a>
                             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
