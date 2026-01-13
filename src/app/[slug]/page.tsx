@@ -55,7 +55,6 @@ export default async function MiniWebPage({ params }: Props) {
         notFound()
     }
 
-    // 2. Buscar negocio por slug
     const business = await prisma.business.findUnique({
         where: { slug },
         include: {
@@ -78,7 +77,36 @@ export default async function MiniWebPage({ params }: Props) {
         redirect(`/business/${business.id}`)
     }
 
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": business.category === 'TALLER' ? "AutoRepair" : "LocalBusiness",
+        "name": business.name,
+        "description": business.description || `Servicios profesionales de ${business.category} en ${business.city}.`,
+        "image": business.images.length > 0 ? business.images[0] : undefined,
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": business.address,
+            "addressLocality": business.city,
+            "addressRegion": business.state || undefined,
+            "addressCountry": business.country || "MX"
+        },
+        "url": `https://carmatch.mx/${slug}`,
+        "knowsAbout": business.services,
+        // Contact details omitted as per privacy request (Registered users only)
+        "provider": {
+            "@type": "Organization",
+            "name": "CarMatch",
+            "url": "https://carmatch.mx"
+        }
+    }
+
     return (
-        <MiniWebClient business={business as any} />
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <MiniWebClient business={business as any} />
+        </>
     )
 }

@@ -112,7 +112,7 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                         // SI se filtraron algunas fotos -> Es una galería mezclada o con fotos inválidas. RECHAZAR.
                         if (finalImages.length < imageUrls.length) {
                             status = 'REJECTED'
-                            reason = 'Se detectaron fotos de vehículos diferentes o imágenes que no cumplen las reglas. Para una Wikipedia limpia, cada anuncio debe ser individual.'
+                            reason = 'Se detectaron fotos de vehículos diferentes o imágenes que no cumplen las reglas. Para una base de datos limpia y verídica, cada anuncio debe ser individual.'
                             console.log(`⚠️ RECHAZO por inconsistencia/mezcla en ${vehicleId}: ${imageUrls.length - finalImages.length} fotos eliminadas.`);
                         } else {
                             // SI todas las fotos son consistentes entre sí pero diferentes al texto -> AUTO-CORREGIR.
@@ -323,6 +323,15 @@ export async function fixAndApproveVehicle(vehicleId: string) {
         if (details.condition) updateData.condition = details.condition
         if (details.displacement) updateData.displacement = details.displacement
         if (details.cargoCapacity) updateData.cargoCapacity = details.cargoCapacity
+        // Nuevos campos técnicos CarMatch
+        if (analysis.details.hp !== undefined) updateData.hp = analysis.details.hp
+        if (analysis.details.torque !== undefined) updateData.torque = analysis.details.torque
+        if (analysis.details.aspiration !== undefined) updateData.aspiration = analysis.details.aspiration
+        if (analysis.details.cylinders !== undefined) updateData.cylinders = analysis.details.cylinders
+        if (analysis.details.batteryCapacity !== undefined) updateData.batteryCapacity = analysis.details.batteryCapacity
+        if (analysis.details.range !== undefined) updateData.range = analysis.details.range
+        if (analysis.details.weight !== undefined) updateData.weight = analysis.details.weight
+        if (analysis.details.axles !== undefined) updateData.axles = analysis.details.axles
         if (details.operatingHours) updateData.operatingHours = details.operatingHours
 
         // Generar nuevo título basado en la corrección

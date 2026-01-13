@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     const title = `${vehicle.year} ${vehicle.brand} ${vehicle.model} - $${vehicle.price.toLocaleString()}`
 
-    // Wikipedia-style enriched description for SEO
+    // Enriched description for SEO and CarMatch Authority
     const specs = [
         vehicle.transmission,
         vehicle.fuel,
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         vehicle.color
     ].filter(Boolean).join(' · ')
 
-    const description = `Wiki CarMatch: ${vehicle.brand} ${vehicle.model} ${vehicle.year}. ${specs}. ${vehicle.description?.substring(0, 120)}...`
+    const description = `CarMatch Verificado: ${vehicle.brand} ${vehicle.model} ${vehicle.year}. ${specs}. ${vehicle.description?.substring(0, 120)}...`
 
     return {
         title: title,
@@ -122,8 +122,24 @@ export default async function VehicleDetailPage({ params }: Props) {
         "fuelType": vehicle.fuel,
         "vehicleEngine": {
             "@type": "EngineSpecification",
-            "name": vehicle.engine
+            "name": vehicle.engine,
+            "engineDisplacement": vehicle.displacement ? {
+                "@type": "QuantitativeValue",
+                "value": vehicle.displacement,
+                "unitCode": "CMQ"
+            } : undefined,
+            "enginePower": vehicle.hp ? {
+                "@type": "QuantitativeValue",
+                "value": vehicle.hp,
+                "unitText": "hp"
+            } : undefined
         },
+        "numberOfAxles": vehicle.axles || undefined,
+        "weight": vehicle.weight ? {
+            "@type": "QuantitativeValue",
+            "value": vehicle.weight,
+            "unitCode": "KGM"
+        } : undefined,
         "mileageFromOdometer": {
             "@type": "QuantitativeValue",
             "value": vehicle.mileage,

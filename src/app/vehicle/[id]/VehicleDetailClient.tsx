@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import Header from '@/components/Header'
-import { ArrowLeft, MapPin, MessageCircle, Calendar, Gauge, Fuel, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, MapPin, MessageCircle, Calendar, Gauge, Fuel, CheckCircle2, Zap, Activity, Wind, CircleDot, BatteryCharging, Route, Weight, Truck, ShieldCheck, Settings2, Pipette, Container } from 'lucide-react'
 import FavoriteButton from '@/components/FavoriteButton'
 import ContactButton from '@/components/ContactButton'
 import ShareButton from '@/components/ShareButton'
@@ -45,6 +45,14 @@ interface VehicleDetailProps {
         operatingHours?: number | null
         traction?: string | null
         passengers?: number | null
+        hp?: number | null
+        torque?: string | null
+        aspiration?: string | null
+        cylinders?: number | null
+        batteryCapacity?: number | null
+        range?: number | null
+        weight?: number | null
+        axles?: number | null
         features: string[]
         images: string[]
         isFavorited: boolean
@@ -349,10 +357,10 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                                     t('vehicle.condition_used')} · {vehicle.year}
                                         </p>
                                         {(vehicle.moderationStatus === 'APPROVED' || (vehicle.status === 'ACTIVE' && vehicle.moderationStatus !== 'REJECTED')) && (
-                                            <div className="flex items-center gap-1 bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 text-[10px] font-black uppercase tracking-tighter shadow-sm">
-                                                <BadgeCheck size={12} className="fill-emerald-400/20" />
-                                                Wiki CarMatch Verificado
-                                            </div>
+                                            <span className="flex items-center gap-1.5 px-3 py-1 bg-primary-600/10 text-primary-400 border border-primary-500/20 text-[10px] font-black uppercase tracking-wider rounded-md backdrop-blur-sm">
+                                                <BadgeCheck size={12} className="text-primary-400" />
+                                                CarMatch Verificado
+                                            </span>
                                         )}
                                     </div>
                                     <h1 className="text-3xl md:text-3xl font-black text-text-primary leading-tight mb-2">

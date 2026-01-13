@@ -103,7 +103,7 @@ export async function updateTaxonomyDatabase() {
         triggeredBy: 'SYSTEM_AUTOMATIC',
         metadata: {
           timestamp: new Date().toISOString(),
-          version: '2.0-wikipedia-vehicular'
+          version: '2.0-car-authority'
         }
       }
     });

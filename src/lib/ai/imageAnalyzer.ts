@@ -18,11 +18,14 @@ interface ImageAnalysisResult {
     // Características técnicas
     transmission?: string; // Manual, Automática, CVT
     fuel?: string; // Gasolina, Diésel, Eléctrico, Híbrido
-    engine?: string; // Ej: "2.0L Turbo", "V6 3.5L"
-    traction?: string; // FWD, RWD, 4x4, AWD
-    doors?: number; // 2, 4, 5
-    passengers?: number; // 2, 5, 7, etc.
-    mileage?: number; // Kilometraje estimado si es visible
+    hp?: number; // Caballos de fuerza
+    torque?: string; // Ej: "350 lb-ft"
+    aspiration?: string; // Turbo, Atmosférico, Eléctrico, etc.
+    cylinders?: number; // 4, 6, 8, etc.
+    batteryCapacity?: number; // kWh (eléctricos)
+    range?: number; // km (eléctricos)
+    weight?: number; // kg
+    axles?: number; // Ejes (camiones)
     condition?: string; // Nuevo, Seminuevo, Usado
 
     // Características visibles (para vender el vehículo)
@@ -203,9 +206,17 @@ export async function analyzeMultipleImages(
             "transmission": "Específica (Manual|Automática)",
             "fuel": "Específico (Gasolina|Diésel|Eléctrico|Híbrido)",
             "engine": "Especificación (ej: V6 3.5L)",
+            "hp": 300,
+            "torque": "350 lb-ft",
+            "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged|Electric",
+            "cylinders": 6,
             "traction": "FWD|RWD|4x4|AWD",
             "doors": 5,
             "passengers": 5,
+            "batteryCapacity": 75,
+            "range": 450,
+            "weight": 1800,
+            "axles": 2,
             "displacement": 2000,
             "cargoCapacity": 0.5
          }

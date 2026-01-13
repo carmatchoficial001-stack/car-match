@@ -246,6 +246,14 @@ export async function POST(request: NextRequest) {
                 displacement: body.displacement ? parseInt(body.displacement) : null,
                 cargoCapacity: body.cargoCapacity ? parseFloat(body.cargoCapacity) : null,
                 operatingHours: body.operatingHours ? parseInt(body.operatingHours) : null,
+                hp: body.hp ? parseInt(body.hp) : (coverAnalysis.details?.hp || null),
+                torque: body.torque || (coverAnalysis.details?.torque || null),
+                aspiration: body.aspiration || (coverAnalysis.details?.aspiration || null),
+                cylinders: body.cylinders ? parseInt(body.cylinders) : (coverAnalysis.details?.cylinders || null),
+                batteryCapacity: body.batteryCapacity ? parseFloat(body.batteryCapacity) : (coverAnalysis.details?.batteryCapacity || null),
+                range: body.range ? parseInt(body.range) : (coverAnalysis.details?.range || null),
+                weight: body.weight ? parseInt(body.weight) : (coverAnalysis.details?.weight || null),
+                axles: body.axles ? parseInt(body.axles) : (coverAnalysis.details?.axles || null),
                 // ESTADO INICIAL
                 status: initialStatus, // BLINDAJE: Empieza inactivo
                 moderationStatus: isAiRejected ? 'REJECTED' : 'PENDING_AI',

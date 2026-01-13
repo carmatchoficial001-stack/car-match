@@ -19,10 +19,12 @@ import {
     Zap,
     ExternalLink,
     ChevronRight,
-    ArrowLeft
+    ArrowLeft,
+    BadgeCheck
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { formatPrice } from '@/lib/vehicleTaxonomy'
+import { useSession } from 'next-auth/react'
 
 interface MiniWebProps {
     business: {
@@ -51,6 +53,7 @@ interface MiniWebProps {
 export default function MiniWebClient({ business }: MiniWebProps) {
     const mainImage = business.images[0] || null
     const gallery = business.images.slice(1)
+    const { data: session } = useSession()
 
     const handleShare = async () => {
         if (navigator.share) {
@@ -118,10 +121,14 @@ export default function MiniWebClient({ business }: MiniWebProps) {
                                     {business.category}
                                 </span>
                                 {business.is24Hours && (
-                                    <span className="px-4 py-1.5 bg-green-500/10 text-green-400 border border-green-500/30 text-xs font-bold uppercase tracking-widest rounded-full backdrop-blur-md">
+                                    <span className="px-4 py-1.5 bg-green-500/10 text-green-400 border border-green-500/30 text-xs font-bold uppercase tracking-widest rounded-full backdrop-blur-md transition-all hover:bg-green-500/20">
                                         Abierto 24 Horas
                                     </span>
                                 )}
+                                <span className="px-4 py-1.5 bg-primary-950/40 text-primary-400 border border-primary-500/30 text-xs font-black uppercase tracking-widest rounded-full backdrop-blur-md flex items-center gap-2">
+                                    <BadgeCheck size={14} />
+                                    CarMatch Verificado
+                                </span>
                             </div>
 
                             <h1 className="text-5xl md:text-8xl font-black text-white leading-[0.9] tracking-tighter mb-6 uppercase italic">
@@ -134,15 +141,25 @@ export default function MiniWebClient({ business }: MiniWebProps) {
                             </p>
 
                             <div className="flex flex-wrap gap-4">
-                                {business.whatsapp && (
-                                    <a
-                                        href={`https://wa.me/${business.whatsapp.replace(/\D/g, '')}`}
-                                        target="_blank"
-                                        className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-black uppercase tracking-widest rounded-2xl flex items-center gap-3 transition-all hover:scale-105 shadow-xl shadow-green-900/20"
+                                {session ? (
+                                    business.whatsapp && (
+                                        <a
+                                            href={`https://wa.me/${business.whatsapp.replace(/\D/g, '')}`}
+                                            target="_blank"
+                                            className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-black uppercase tracking-widest rounded-2xl flex items-center gap-3 transition-all hover:scale-105 shadow-xl shadow-green-900/20"
+                                        >
+                                            <MessageCircle size={24} />
+                                            Contactar WhatsApp
+                                        </a>
+                                    )
+                                ) : (
+                                    <Link
+                                        href="/auth/login"
+                                        className="px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white font-black uppercase tracking-widest rounded-2xl flex items-center gap-3 transition-all hover:scale-105 shadow-xl shadow-primary-900/40"
                                     >
-                                        <MessageCircle size={24} />
-                                        Contactar WhatsApp
-                                    </a>
+                                        <ShieldCheck size={24} />
+                                        Registrarse para Contactar
+                                    </Link>
                                 )}
                                 <a
                                     href="#detalles"
@@ -240,7 +257,10 @@ export default function MiniWebClient({ business }: MiniWebProps) {
                                     </div>
                                     <div>
                                         <p className="text-xs font-black uppercase text-gray-500 mb-1 tracking-widest">Teléfono</p>
-                                        <p className="text-2xl font-black text-white tracking-widest">{business.phone || "Consultar"}</p>
+                                        <p className="text-2xl font-black text-white tracking-widest">
+                                            {session ? (business.phone || "Consultar") : "•••• ••••"}
+                                        </p>
+                                        {!session && <p className="text-[10px] text-primary-400 mt-1 uppercase font-bold tracking-tight">Regístrate para ver</p>}
                                     </div>
                                 </div>
                             </div>
@@ -249,30 +269,41 @@ export default function MiniWebClient({ business }: MiniWebProps) {
                             <div className="mt-12 space-y-4">
                                 <button
                                     onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${business.address}`, '_blank')}
-                                    className="w-full py-5 bg-white text-black font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3 transition-transform hover:scale-[1.02]"
+                                    className="w-full py-5 bg-white text-black font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3 transition-transform hover:scale-[1.02] shadow-xl shadow-white/5"
                                 >
                                     <Navigation size={22} />
                                     Cómo Llegar
                                 </button>
 
-                                {/* Social Connect Tags */}
-                                <div className="flex flex-wrap justify-center gap-4 pt-4">
-                                    {business.facebook && (
-                                        <a href={business.facebook} target="_blank" className="p-3 bg-white/5 hover:bg-blue-600/20 rounded-xl transition text-blue-400">
+                                {/* Social Connect Tags - Only for logged in */}
+                                {session ? (
+                                    <div className="flex flex-wrap justify-center gap-4 pt-4">
+                                        {business.facebook && (
+                                            <a href={business.facebook} target="_blank" className="p-3 bg-white/5 hover:bg-blue-600/20 rounded-xl transition text-blue-400">
+                                                <Facebook size={24} />
+                                            </a>
+                                        )}
+                                        {business.instagram && (
+                                            <a href={business.instagram} target="_blank" className="p-3 bg-white/5 hover:bg-pink-600/20 rounded-xl transition text-pink-400">
+                                                <Instagram size={24} />
+                                            </a>
+                                        )}
+                                        {business.website && (
+                                            <a href={business.website} target="_blank" className="p-3 bg-white/5 hover:bg-primary-600/20 rounded-xl transition text-primary-400">
+                                                <Globe size={24} />
+                                            </a>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="pt-6 text-center">
+                                        <p className="text-xs text-gray-500 italic mb-4">Inicia sesión para ver links sociales</p>
+                                        <div className="flex justify-center gap-4 opacity-20 grayscale pointer-events-none">
                                             <Facebook size={24} />
-                                        </a>
-                                    )}
-                                    {business.instagram && (
-                                        <a href={business.instagram} target="_blank" className="p-3 bg-white/5 hover:bg-pink-600/20 rounded-xl transition text-pink-400">
                                             <Instagram size={24} />
-                                        </a>
-                                    )}
-                                    {business.website && (
-                                        <a href={business.website} target="_blank" className="p-3 bg-white/5 hover:bg-primary-600/20 rounded-xl transition text-primary-400">
                                             <Globe size={24} />
-                                        </a>
-                                    )}
-                                </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

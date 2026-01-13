@@ -148,6 +148,14 @@ model Vehicle {
   mileageUnit        String           @default("km")
   passengers         Int?
   traction           String?
+  hp                 Int?
+  torque             String?
+  aspiration         String?
+  cylinders          Int?
+  batteryCapacity    Float?
+  range              Int?
+  weight             Int?
+  axles              Int?
   moderationFeedback String?
   chats              Chat[]
   dislikes           Dislike[]

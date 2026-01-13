@@ -106,7 +106,21 @@ export async function PATCH(
             finalUpdateData.status = 'ACTIVE'
             finalUpdateData.moderationStatus = 'APPROVED' // Forzamos aprobación si pagó
             creditDeducted = true
-        } else if (status) {
+        }
+
+        if (updateData.operatingHours !== undefined) finalUpdateData.operatingHours = updateData.operatingHours ? parseInt(updateData.operatingHours.toString()) : null
+
+        // Nuevos campos técnicos para la Autoridad de Datos CarMatch
+        if (updateData.hp !== undefined) finalUpdateData.hp = updateData.hp ? parseInt(updateData.hp.toString()) : null
+        if (updateData.torque !== undefined) finalUpdateData.torque = updateData.torque || null
+        if (updateData.aspiration !== undefined) finalUpdateData.aspiration = updateData.aspiration || null
+        if (updateData.cylinders !== undefined) finalUpdateData.cylinders = updateData.cylinders ? parseInt(updateData.cylinders.toString()) : null
+        if (updateData.batteryCapacity !== undefined) finalUpdateData.batteryCapacity = updateData.batteryCapacity ? parseFloat(updateData.batteryCapacity.toString()) : null
+        if (updateData.range !== undefined) finalUpdateData.range = updateData.range ? parseInt(updateData.range.toString()) : null
+        if (updateData.weight !== undefined) finalUpdateData.weight = updateData.weight ? parseInt(updateData.weight.toString()) : null
+        if (updateData.axles !== undefined) finalUpdateData.axles = updateData.axles ? parseInt(updateData.axles.toString()) : null
+
+        if (status) {
             finalUpdateData.status = status
         }
 

@@ -91,8 +91,15 @@ export default function PublishClient() {
     const [displacement, setDisplacement] = useState('')
     const [cargoCapacity, setCargoCapacity] = useState('')
     const [operatingHours, setOperatingHours] = useState('')
-
-
+    const [hp, setHp] = useState('')
+    const [torque, setTorque] = useState('')
+    const [aspiration, setAspiration] = useState('')
+    const [cylinders, setCylinders] = useState('')
+    const [batteryCapacity, setBatteryCapacity] = useState('')
+    const [range, setRange] = useState('')
+    const [weight, setWeight] = useState('')
+    const [axles, setAxles] = useState('')
+    const [status, setStatus] = useState<VehicleStatus>('ACTIVE')
 
     // Step 5: Location
     const [latitude, setLatitude] = useState<number | null>(null)
@@ -229,36 +236,45 @@ export default function PublishClient() {
             const taxCat = mapCategoryToTaxonomy(category)
             if (taxCat && BRANDS[taxCat]) {
                 const match = findInList(details.brand, BRANDS[taxCat])
-                // ⚠️ CAMBIO SOLICITADO: Auto-corregir marca siempre (la foto manda)
                 if (match) setBrand(match)
             } else {
                 setBrand(details.brand)
             }
         }
 
-        // ⚠️ Respetar Modelo y Año si el usuario ya los puso ("nomas la marca")
-        if (!model && details.model) setModel(details.model)
-        if (!year && details.year) setYear(details.year)
-        if (!color && details.color) setColor(details.color)
-        if (!vehicleType && details.type) setVehicleType(details.type)
+        // 🛡️ REGLA DE AUTORIDAD CARMATCH: Sobrescribir especificaciones técnicas con la verdad de la IA
+        if (details.model) setModel(details.model)
+        if (details.year) setYear(details.year.toString())
+        if (details.color) setColor(details.color)
+        if (details.type) setVehicleType(details.type)
 
-        if (!transmission && details.transmission) {
+        if (details.transmission) {
             const match = findInList(details.transmission, TRANSMISSIONS)
             setTransmission(match)
         }
-        if (!fuel && details.fuel) {
+        if (details.fuel) {
             const match = findInList(details.fuel, FUELS)
             setFuel(match)
         }
 
-        if (!engine && details.engine) setEngine(details.engine)
-        if (!doors && details.doors) setDoors(details.doors.toString())
+        if (details.engine) setEngine(details.engine)
+        if (details.doors) setDoors(details.doors.toString())
+        if (details.displacement) setDisplacement(details.displacement.toString())
+        if (details.cargoCapacity) setCargoCapacity(details.cargoCapacity.toString())
+        if (details.traction) setTraction(details.traction)
+        if (details.passengers) setPassengers(details.passengers.toString())
+        if (details.aspiration) setAspiration(details.aspiration)
+        if (details.cylinders) setCylinders(details.cylinders.toString())
+        if (details.hp) setHp(details.hp.toString())
+        if (details.torque) setTorque(details.torque)
+        if (details.batteryCapacity) setBatteryCapacity(details.batteryCapacity.toString())
+        if (details.range) setRange(details.range.toString())
+        if (details.weight) setWeight(details.weight.toString())
+        if (details.axles) setAxles(details.axles.toString())
+
+        // 🚗 Keep respecting user input for variable/personal data
         if (!mileage && details.mileage) setMileage(details.mileage.toString())
         if (!condition && details.condition) setCondition(details.condition)
-        if (!displacement && details.displacement) setDisplacement(details.displacement.toString())
-        if (!cargoCapacity && details.cargoCapacity) setCargoCapacity(details.cargoCapacity.toString())
-        if (!traction && details.traction) setTraction(details.traction)
-        if (!passengers && details.passengers) setPassengers(details.passengers.toString())
 
         if (category) {
             const lowerCat = category.toLowerCase()
@@ -460,9 +476,17 @@ export default function PublishClient() {
                 condition: condition || null,
                 traction: traction || null,
                 passengers: passengers ? parseInt(passengers) : null,
-                displacement: displacement ? parseInt(displacement) : null,
-                cargoCapacity: cargoCapacity ? parseFloat(cargoCapacity) : null,
-                operatingHours: operatingHours ? parseInt(operatingHours) : null,
+                displacement: displacement || undefined,
+                cargoCapacity: cargoCapacity || undefined,
+                operatingHours: operatingHours || undefined,
+                hp: hp || undefined,
+                torque: torque || undefined,
+                aspiration: aspiration || undefined,
+                cylinders: cylinders || undefined,
+                batteryCapacity: batteryCapacity || undefined,
+                range: range || undefined,
+                weight: weight || undefined,
+                axles: axles || undefined,
             }
 
             if (deviceFP) {

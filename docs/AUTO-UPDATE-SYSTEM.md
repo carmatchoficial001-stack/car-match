@@ -228,7 +228,7 @@ Crear `/admin/vehicle-data` para:
 ### 3. Más Fuentes de Datos
 - Scraping de sitios oficiales de fabricantes
 -APIs de terceros (Edmunds, CarGurus)
-- Wikipedia automotive data
+- CarMatch automotive data authority
 
 ### 4. Machine Learning
 - Entrenar modelo para predecir popularidad de modelos
