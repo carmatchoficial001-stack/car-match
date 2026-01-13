@@ -114,7 +114,7 @@ model Vehicle {
   brand              String
   model              String
   year               Int
-  price              Decimal          @db.Decimal(10, 2)
+  price              Decimal          @db.Decimal(15, 2)
   city               String
   colony             String?
   state              String?

@@ -119,29 +119,30 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                             // SI todas las fotos son consistentes entre sí pero diferentes al texto -> AUTO-CORREGIR.
                             status = 'APPROVED'
 
-                            // 🚀 AUTO-CORRECCIÓN: Si la IA detectó datos más precisos, los aplicamos
+                            // 🚀 AUTO-CORRECCIÓN (SOFT-FILL: Solo si el usuario dejó campos vacíos o "N/A")
                             if (analysis.details) {
                                 const details = analysis.details;
                                 const updateData: any = {};
+                                const isVal = (v: any) => v && v !== 'N/A' && v !== 0;
 
-                                // Comparar y corregir (solo si son diferentes y tenemos el dato)
-                                if (details.brand && details.brand !== vehicle.brand) {
+                                // Solo corregimos si es para "sacar de la duda" o completar
+                                if (!isVal(vehicle.brand) && details.brand) {
                                     updateData.brand = details.brand;
                                     correctedFields.push('marca');
                                 }
-                                if (details.model && details.model !== vehicle.model) {
+                                if (!isVal(vehicle.model) && details.model) {
                                     updateData.model = details.model;
                                     correctedFields.push('modelo');
                                 }
-                                if (details.year && parseInt(details.year) !== vehicle.year) {
+                                if (!isVal(vehicle.year) && details.year) {
                                     updateData.year = parseInt(details.year);
                                     correctedFields.push('año');
                                 }
-                                if (details.color && details.color !== vehicle.color) {
+                                if (!isVal(vehicle.color) && details.color) {
                                     updateData.color = details.color;
                                     correctedFields.push('color');
                                 }
-                                if (details.type && details.type !== (vehicle as any).vehicleType) {
+                                if (!isVal((vehicle as any).vehicleType) && details.type) {
                                     updateData.vehicleType = details.type;
                                     correctedFields.push('tipo');
                                 }
@@ -302,37 +303,49 @@ export async function fixAndApproveVehicle(vehicleId: string) {
             return { success: false, error: 'La IA no pudo extraer detalles suficientes.' }
         }
 
-        // 2. Aplicar correcciones
+        // 2. Aplicar correcciones (SOFT-FILL: Solo si el campo está vacío o es N/A)
         const updateData: any = {
             moderationStatus: 'APPROVED',
             status: 'ACTIVE'
         }
 
-        if (details.brand) updateData.brand = details.brand
-        if (details.model) updateData.model = details.model
-        if (details.year) updateData.year = parseInt(details.year)
-        if (details.color) updateData.color = details.color
-        if (details.type) updateData.vehicleType = details.type
+        const isVal = (v: any) => v && v !== 'N/A' && v !== 0
 
-        // 🧠 ENRIQUECIMIENTO DE FICHA TÉCNICA (Asesor Real)
-        if (details.transmission && details.transmission !== 'N/A') updateData.transmission = details.transmission
-        if (details.fuel && details.fuel !== 'N/A') updateData.fuel = details.fuel
-        if (details.engine && details.engine !== 'N/A') updateData.engine = details.engine
-        if (details.traction && details.traction !== 'N/A') updateData.traction = details.traction
-        if (details.doors) updateData.doors = details.doors
-        if (details.condition) updateData.condition = details.condition
-        if (details.displacement) updateData.displacement = details.displacement
-        if (details.cargoCapacity) updateData.cargoCapacity = details.cargoCapacity
+        // Campos básicos
+        if (!isVal(vehicle.brand) && details.brand) updateData.brand = details.brand
+        if (!isVal(vehicle.model) && details.model) updateData.model = details.model
+        if (!isVal(vehicle.year) && details.year) updateData.year = parseInt(details.year)
+        if (!isVal(vehicle.color) && details.color) updateData.color = details.color
+        if (!isVal(vehicle.vehicleType) && details.type) updateData.vehicleType = details.type
+
+        // 🧠 ENRIQUECIMIENTO (Solo si el usuario no proporcionó el dato)
+        if (!isVal(vehicle.transmission) && details.transmission && details.transmission !== 'N/A')
+            updateData.transmission = details.transmission
+
+        if (!isVal(vehicle.fuel) && details.fuel && details.fuel !== 'N/A')
+            updateData.fuel = details.fuel
+
+        if (!isVal(vehicle.engine) && details.engine && details.engine !== 'N/A')
+            updateData.engine = details.engine
+
+        if (!isVal(vehicle.traction) && details.traction && details.traction !== 'N/A')
+            updateData.traction = details.traction
+
+        if (!vehicle.doors && details.doors) updateData.doors = details.doors
+        if (!vehicle.condition && details.condition) updateData.condition = details.condition
+        if (!vehicle.displacement && details.displacement) updateData.displacement = details.displacement
+        if (!vehicle.cargoCapacity && details.cargoCapacity) updateData.cargoCapacity = details.cargoCapacity
+
         // Nuevos campos técnicos CarMatch
-        if (details.hp !== undefined) updateData.hp = details.hp
-        if (details.torque !== undefined) updateData.torque = details.torque
-        if (details.aspiration !== undefined) updateData.aspiration = details.aspiration
-        if (details.cylinders !== undefined) updateData.cylinders = details.cylinders
-        if (details.batteryCapacity !== undefined) updateData.batteryCapacity = details.batteryCapacity
-        if (details.range !== undefined) updateData.range = details.range
-        if (details.weight !== undefined) updateData.weight = details.weight
-        if (details.axles !== undefined) updateData.axles = details.axles
-        if (details.operatingHours) updateData.operatingHours = details.operatingHours
+        if (!vehicle.hp && details.hp !== undefined) updateData.hp = details.hp
+        if (!vehicle.torque && details.torque !== undefined) updateData.torque = details.torque
+        if (!vehicle.aspiration && details.aspiration !== undefined) updateData.aspiration = details.aspiration
+        if (!vehicle.cylinders && details.cylinders !== undefined) updateData.cylinders = details.cylinders
+        if (!vehicle.batteryCapacity && details.batteryCapacity !== undefined) updateData.batteryCapacity = details.batteryCapacity
+        if (!vehicle.range && details.range !== undefined) updateData.range = details.range
+        if (!vehicle.weight && details.weight !== undefined) updateData.weight = details.weight
+        if (!vehicle.axles && details.axles !== undefined) updateData.axles = details.axles
+        if (!vehicle.operatingHours && details.operatingHours) updateData.operatingHours = details.operatingHours
 
         // Generar nuevo título basado en la corrección
         updateData.title = `${updateData.brand || vehicle.brand} ${updateData.model || vehicle.model} ${updateData.year || vehicle.year}`
