@@ -46,9 +46,9 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
         reason = 'No se detectaron imágenes del vehículo.'
     } else {
         try {
-            // 1. Convertir imágenes a base64 (Límite de 5 para no saturar análisis inteligente inicial)
+            // 1. Convertir imágenes a base64 (Límite de 10 para análisis completo CarMatch)
             const base64Images = (await Promise.all(
-                imageUrls.slice(0, 5).map(url => fetchImageAsBase64(url))
+                imageUrls.slice(0, 10).map(url => fetchImageAsBase64(url))
             )).filter((img): img is string => img !== null)
 
             if (base64Images.length === 0) {
@@ -276,9 +276,9 @@ export async function fixAndApproveVehicle(vehicleId: string) {
     }
 
     try {
-        // 1. Re-analizar imágenes para obtener los mejores datos posibles
+        // 1. Re-analizar imágenes para obtener los mejores datos posibles (Límite de 10)
         const base64Images = (await Promise.all(
-            vehicle.images.slice(0, 3).map(url => fetchImageAsBase64(url))
+            vehicle.images.slice(0, 10).map(url => fetchImageAsBase64(url))
         )).filter((img): img is string => img !== null)
 
         if (base64Images.length === 0) {
@@ -286,9 +286,10 @@ export async function fixAndApproveVehicle(vehicleId: string) {
         }
 
         const analysis = await analyzeMultipleImages(base64Images, 'VEHICLE')
+        const invalidIndices = analysis.invalidIndices || []
 
-        if (!analysis.valid) {
-            return { success: false, error: analysis.reason || 'Las imágenes no son válidas para un vehículo.' }
+        if (!analysis.valid || invalidIndices.includes(0)) {
+            return { success: false, error: analysis.reason || 'La foto de portada no es válida para un vehículo.' }
         }
 
         const details = analysis.details
@@ -296,10 +297,14 @@ export async function fixAndApproveVehicle(vehicleId: string) {
             return { success: false, error: 'La IA no pudo extraer detalles suficientes.' }
         }
 
+        // 🚀 LIMPIEZA SILENCIOSA (REGLA RUBEN)
+        const finalImages = vehicle.images.filter((_, idx) => !invalidIndices.includes(idx))
+
         // 2. Aplicar correcciones AGRESIVAS para Identidad (La Portada manda)
         const updateData: any = {
             moderationStatus: 'APPROVED',
-            status: 'ACTIVE'
+            status: 'ACTIVE',
+            images: finalImages // Guardar galería limpia
         }
 
         const isVal = (v: any) => v && v !== 'N/A' && v !== 0

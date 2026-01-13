@@ -272,7 +272,7 @@ export async function analyzeMultipleImages(
         type: coverResult.details?.type
       };
 
-      const galleryImages = images.slice(1, 6);
+      const galleryImages = images.slice(1, 11); // Analizar hasta 10 fotos en total (1 portada + 9 galería)
       const galleryPrompt = `
         ERES UN AUDITOR DE CONSISTENCIA VISUAL PARA CARMATCH.
         TU MISIÓN: Validar que cada foto de la galería sea EXACTAMENTE el mismo vehículo que la portada.
@@ -284,7 +284,8 @@ export async function analyzeMultipleImages(
 
         📋 REGLAS DE AUDITORÍA (TOLERANCIA CERO):
         - CUALQUIER IMAGEN QUE NO SEA EL MISMO VEHÍCULO DEBE SER MARCADA AS "isValid": false.
-        - SI VES ARTÍCULOS DEL HOGAR (TVs, electrodomésticos, capturas de pantalla de apps), MARCA "isValid": false y razón "No es un vehículo".
+        - RECHAZA CAPTURAS DE PANTALLA: Si ves menús de apps, interfaces de usuario, perfiles de cuenta (como vistas de "Cuenta" o "Configuración"), MARCA "isValid": false.
+        - SI VES ARTÍCULOS DEL HOGAR (TVs, electrodomésticos, muebles), MARCA "isValid": false y razón "No es un vehículo".
         - SI EL VEHÍCULO ES DE OTRA MARCA (Ej: ves un Jeep y la portada es Hyundai), ES UN FRAUDE INMEDIATO: "isValid": false.
         - No permitas que la galería cambie la identidad de la portada.
         - Extrae datos técnicos solo si son visibles.
