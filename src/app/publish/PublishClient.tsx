@@ -49,9 +49,9 @@ export default function PublishClient() {
     // Helper for Step Names
     const getStepName = (step: number) => {
         switch (step) {
-            case 1: return t('publish.steps.vehicle_type') || 'Tipo de Vehículo'
-            case 2: return t('publish.steps.basic_info') || 'Información Básica'
-            case 3: return t('publish.steps.images') || 'Imágenes'
+            case 1: return t('publish.steps.images') || 'Imágenes'
+            case 2: return t('publish.steps.vehicle_type') || 'Tipo de Vehículo'
+            case 3: return t('publish.steps.basic_info') || 'Información Básica'
             case 4: return t('publish.steps.technical_details') || 'Detalles Técnicos'
             case 5: return t('publish.steps.features') || 'Equipamiento'
             case 6: return t('publish.steps.location') || 'Ubicación'
@@ -112,12 +112,12 @@ export default function PublishClient() {
     const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
 
     // Validation for the new flow
-    const canProceedFromStep1 = vehicleCategory !== '' && vehicleType !== ''
-    const canProceedFromStep2 = brand !== '' && model !== '' && year !== '' && price !== '' && parseFloat(price) > 0
-    const canProceedFromStep3 = images.length > 0
+    const canProceedFromStep1 = images.length > 0
+    const canProceedFromStep2 = vehicleCategory !== '' && vehicleType !== ''
+    const canProceedFromStep3 = brand !== '' && model !== '' && year !== '' && price !== '' && parseFloat(price) > 0
     // Step 4 (Technical): Validar Kilometraje si es obligatorio, y otros campos clave si se desea
     const canProceedFromStep4 = mileage !== '' && (parseInt(mileage) >= 0)
-    const canProceedFromStep5 = true // Features siguen siendo opcionales
+    const canProceedFromStep5 = true // Features siguen siendo opcional
     const canProceedFromStep6 = latitude !== null && longitude !== null && city !== ''
 
     // 🤖 Dynamic vehicle data from database
@@ -307,7 +307,7 @@ export default function PublishClient() {
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
-    const handleNext = () => currentStep === 3 ? validateImagesAndProceed() : handleNextStep()
+    const handleNext = () => currentStep === 1 ? validateImagesAndProceed() : handleNextStep()
     const handleBack = () => {
         setCurrentStep(prev => {
             if (prev > 1) return (prev - 1) as FormStep
@@ -627,6 +627,17 @@ export default function PublishClient() {
                     )}
 
                     {currentStep === 1 && (
+                        <div className="space-y-6">
+                            <ImageUploadStep
+                                images={images}
+                                onImagesChange={handleImagesChange}
+                                invalidImageUrls={invalidImageUrls}
+                                invalidReasons={invalidReasons}
+                            />
+                        </div>
+                    )}
+
+                    {currentStep === 2 && (
                         <VehicleTypeSelector
                             selectedCategory={vehicleCategory}
                             selectedSubtype={vehicleType}
@@ -635,7 +646,7 @@ export default function PublishClient() {
                         />
                     )}
 
-                    {currentStep === 2 && (
+                    {currentStep === 3 && (
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <SearchableSelect
@@ -708,17 +719,6 @@ export default function PublishClient() {
                                     />
                                 </div>
                             </div>
-                        </div>
-                    )}
-
-                    {currentStep === 3 && (
-                        <div className="space-y-6">
-                            <ImageUploadStep
-                                images={images}
-                                onImagesChange={handleImagesChange}
-                                invalidImageUrls={invalidImageUrls}
-                                invalidReasons={invalidReasons}
-                            />
                         </div>
                     )}
 
