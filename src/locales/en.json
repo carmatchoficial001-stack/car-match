@@ -507,7 +507,14 @@
         "recommendation": "💡 Recommendation:",
         "suggest_safe_places": "Suggest Safe Meeting Places",
         "write_message": "Write a message...",
-        "safe_places_title": "Safe Places Suggested"
+        "safe_places_title": "Safe Places Suggested",
+        "welcome_security_message": "Hi! For your safety, we recommend checking our Tips and scheduling Safe Meetings 📅 using the buttons below.",
+        "welcome_security_prefix": "Hi! For your safety, we recommend checking our",
+        "welcome_security_tips": "Tips",
+        "welcome_security_middle": "and scheduling",
+        "welcome_security_appointments": "Safe Meetings",
+        "welcome_security_suffix": "📅 using the buttons below.",
+        "propose_safe_appointment": "Propose Safe Appointment"
     },
     "map_store": {
         "loading": "Loading Map...",

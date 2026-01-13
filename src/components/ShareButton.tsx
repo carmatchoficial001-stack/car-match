@@ -98,7 +98,7 @@ export default function ShareButton({ title, text, url, variant = 'full', classN
     }
 
     return (
-        <div className={`mt-4 ${className}`}>
+        <div className={className}>
             <button
                 onClick={handleShare}
                 className="w-full bg-primary-700 hover:bg-primary-600 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-primary-900/20"

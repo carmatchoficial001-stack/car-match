@@ -273,7 +273,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Column: Images */}
                     <div className="space-y-4">
-                        <div className="relative w-full bg-black/95 rounded-2xl overflow-hidden border border-surface-highlight shadow-2xl flex items-center justify-center min-h-[300px]">
+                        <div className="relative w-full bg-black/95 rounded-2xl overflow-hidden border border-surface-highlight shadow-2xl flex items-center justify-center min-h-[300px] group">
                             {vehicle.images && vehicle.images.length > 0 ? (
                                 <img
                                     src={vehicle.images[activeImage]}
@@ -287,11 +287,13 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 </div>
                             )}
 
-                            <ReportImageButton
-                                imageUrl={vehicle.images?.[activeImage] || ''}
-                                vehicleId={vehicle.id}
-                                className="absolute top-4 left-4 z-10"
-                            />
+                            {!isOwner && (
+                                <ReportImageButton
+                                    imageUrl={vehicle.images?.[activeImage] || ''}
+                                    vehicleId={vehicle.id}
+                                    className="absolute bottom-4 right-4 z-10"
+                                />
+                            )}
                         </div>
 
                         {/* Modal de Imagen Completa (Zoom) */}
@@ -378,28 +380,39 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 </div>
                             </div>
 
-                            <div className="flex gap-3 mb-8">
-                                <ShareButton
-                                    title={vehicle.title}
-                                    text={t('vehicle.share_text').replace('{title}', vehicle.title)}
-                                    url={typeof window !== 'undefined' ? `${window.location.origin}/vehicle/${vehicle.id}` : `/vehicle/${vehicle.id}`}
-                                    variant="full"
-                                />
-                                {!isOwner && (
-                                    <FavoriteButton
-                                        vehicleId={vehicle.id}
-                                        initialIsFavorited={vehicle.isFavorited}
-                                        size="md"
-                                        className="h-full border border-surface-highlight"
+                            <div className="flex gap-3 mb-8 items-stretch">
+                                {/* Columna Izquierda: Compartir y Favorito */}
+                                <div className="flex-1 flex flex-col gap-3">
+                                    <ShareButton
+                                        title={vehicle.title}
+                                        text={t('vehicle.share_text').replace('{title}', vehicle.title)}
+                                        url={typeof window !== 'undefined' ? `${window.location.origin}/vehicle/${vehicle.id}` : `/vehicle/${vehicle.id}`}
+                                        variant="full"
+                                        className="mt-0"
                                     />
-                                )}
+                                    {!isOwner && (
+                                        <FavoriteButton
+                                            vehicleId={vehicle.id}
+                                            initialIsFavorited={vehicle.isFavorited}
+                                            size="lg"
+                                            showText={true}
+                                            rounded="rounded-2xl"
+                                            className="w-full h-full min-h-[56px] border border-surface-highlight"
+                                        />
+                                    )}
+                                </div>
+
+                                {/* Columna Derecha: Contactar */}
                                 {!isOwner && !vehicle.user.isAdmin && (
-                                    <ContactButton
-                                        sellerId={vehicle.userId}
-                                        vehicleId={vehicle.id}
-                                        vehicleTitle={vehicle.title}
-                                        status={vehicle.status as any}
-                                    />
+                                    <div className="flex-1">
+                                        <ContactButton
+                                            sellerId={vehicle.userId}
+                                            vehicleId={vehicle.id}
+                                            vehicleTitle={vehicle.title}
+                                            status={vehicle.status as any}
+                                            className="h-full flex flex-col items-center justify-center text-center py-6"
+                                        />
+                                    </div>
                                 )}
                             </div>
 

@@ -306,11 +306,11 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                 <div className="bg-surface-highlight/30 border border-primary-500/20 px-6 py-4 rounded-3xl text-xs text-text-primary max-w-[90%] text-center shadow-sm">
                                     <p className="leading-relaxed">
                                         <span className="text-lg block mb-1">🛡️</span>
-                                        {t('messages.welcome_security_message') || '¡Hola! Por tu seguridad, te recomendamos revisar nuestros '}
-                                        <span className="text-primary-400 font-bold">Consejos</span>
-                                        {' y agendar '}
-                                        <span className="text-primary-400 font-bold">Reuniones Seguras</span>
-                                        {' 📅 usando los botones de abajo.'}
+                                        {t('messages.welcome_security_prefix')}
+                                        <span className="text-primary-400 font-bold mx-1">{t('messages.welcome_security_tips')}</span>
+                                        {t('messages.welcome_security_middle')}
+                                        <span className="text-primary-400 font-bold mx-1">{t('messages.welcome_security_appointments')}</span>
+                                        {t('messages.welcome_security_suffix')}
                                     </p>
                                 </div>
                             </div>
@@ -388,7 +388,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                         onClick={() => loadSafePlaces()}
                                         disabled={chat?.vehicle?.status !== 'ACTIVE'}
                                         className={`p-2.5 rounded-xl transition-colors ${chat?.vehicle?.status !== 'ACTIVE' ? 'opacity-30 cursor-not-allowed text-gray-400' : 'text-primary-600 hover:bg-primary-50'}`}
-                                        title="Proponer Cita Segura"
+                                        title={t('messages.propose_safe_appointment')}
                                     >
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                     </button>

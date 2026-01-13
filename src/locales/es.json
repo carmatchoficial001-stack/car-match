@@ -563,6 +563,13 @@
         "write_message": "Escribe un mensaje...",
         "safe_places_title": "Lugares Seguros Sugeridos",
         "safety_shield": "Guía de Seguridad",
+        "welcome_security_message": "¡Hola! Por tu seguridad, te recomendamos revisar nuestros Consejos y agendar Reuniones Seguras 📅 usando los botones de abajo.",
+        "welcome_security_prefix": "¡Hola! Por tu seguridad, te recomendamos revisar nuestros",
+        "welcome_security_tips": "Consejos",
+        "welcome_security_middle": "y agendar",
+        "welcome_security_appointments": "Reuniones Seguras",
+        "welcome_security_suffix": "📅 usando los botones de abajo.",
+        "propose_safe_appointment": "Proponer Cita Segura",
         "tips": {
             "buyer": {
                 "title": "Consejos para Compradores",

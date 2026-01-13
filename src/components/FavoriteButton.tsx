@@ -9,6 +9,8 @@ interface FavoriteButtonProps {
     initialIsFavorited?: boolean
     size?: 'sm' | 'md' | 'lg'
     className?: string
+    showText?: boolean,
+    rounded?: string,
     onToggle?: (newState: boolean) => void
 }
 
@@ -18,6 +20,8 @@ export default function FavoriteButton({
     initialIsFavorited = false,
     size = 'md',
     className = '',
+    showText = false,
+    rounded = 'rounded-full',
     onToggle
 }: FavoriteButtonProps) {
     const [isFavorited, setIsFavorited] = useState(initialIsFavorited)
@@ -26,9 +30,16 @@ export default function FavoriteButton({
     const router = useRouter()
 
     const sizeClasses = {
-        sm: 'w-8 h-8 p-1.5',
-        md: 'w-10 h-10 p-2',
-        lg: 'w-12 h-12 p-2.5'
+        sm: 'p-1.5',
+        md: 'p-2',
+        lg: 'p-2.5'
+    }
+
+    // Base width/height only if not showing text
+    const iconOnlyClasses = {
+        sm: 'w-8 h-8',
+        md: 'w-10 h-10',
+        lg: 'w-12 h-12'
     }
 
     const iconSizes = {
@@ -102,13 +113,16 @@ export default function FavoriteButton({
             onClick={handleToggle}
             disabled={isLoading}
             className={`
-                rounded-full flex items-center justify-center transition-all duration-200
+                flex items-center justify-center transition-all duration-200
+                gap-2
                 ${isFavorited
                     ? 'bg-white text-primary-700 shadow-md'
                     : 'bg-black/30 text-white hover:bg-black/50 backdrop-blur-sm'
                 }
                 ${animate ? 'animate-like-burst' : ''}
+                ${rounded}
                 ${sizeClasses[size]}
+                ${!showText ? iconOnlyClasses[size] : ''}
                 ${className}
             `}
             aria-label={isFavorited ? "Quitar me gusta" : "Me gusta"}
@@ -126,6 +140,11 @@ export default function FavoriteButton({
                     d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
                 />
             </svg>
+            {showText && (
+                <span className="font-bold text-sm uppercase">
+                    {isFavorited ? "Favorito" : "Me gusta"}
+                </span>
+            )}
         </button>
     )
 }
