@@ -309,7 +309,7 @@ export async function analyzeMultipleImages(
         type: coverResult.details?.type
       };
 
-      const galleryImages = images.slice(1, 11); // Analizar hasta 10 fotos en total (1 portada + 9 galería)
+      const galleryImages = images.slice(1, 10); // Analizar las 9 fotos de la galería (Total 10 con portada)
       const galleryPrompt = `
         ERES UN AUDITOR DE CONSISTENCIA VISUAL PARA CARMATCH.
         TU MISIÓN: Validar que cada foto de la galería sea EXACTAMENTE el mismo vehículo que la portada.
@@ -367,7 +367,7 @@ export async function analyzeMultipleImages(
         const galleryParsed = JSON.parse(galleryMatch[0]);
         const galleryAnalysis = (galleryParsed.analysis || []).map((a: any) => ({
           ...a,
-          index: a.index + 1
+          index: a.index // El índice que devuelve la IA debe coincidir con la posición en galleryImages
         }));
 
         const invalidIndices = galleryAnalysis
@@ -406,9 +406,8 @@ export async function analyzeMultipleImages(
   // MÉTODO TRADICIONAL (Para Business o Fallback)
   for (let i = 0; i < maxRetries; i++) {
     try {
-      // 🚀 OPTIMIZACIÓN CARMATCH: Solo enviamos la portada y el resto de la galería 
-      // pero limitamos a 6 fotos para no saturar memoria de Vercel (Payload too large)
-      const imagesToAnalyze = images.slice(0, 6);
+      // 🚀 OPTIMIZACIÓN CARMATCH: Enviamos hasta 10 fotos para revisión completa (1 portada + 9 galería)
+      const imagesToAnalyze = images.slice(0, 10);
       const imageParts = imagesToAnalyze.map(img => ({
         inlineData: { data: img, mimeType: "image/jpeg" }
       }));
