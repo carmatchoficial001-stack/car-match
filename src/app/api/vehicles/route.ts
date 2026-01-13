@@ -3,6 +3,21 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
 /**
+ * 🛠️ Helpers para parseo robusto de tipos
+ */
+const safeInt = (val: any) => {
+    if (val === null || val === undefined || val === '') return null;
+    const parsed = parseInt(val.toString().replace(/[^0-9-]/g, ''));
+    return isNaN(parsed) ? null : parsed;
+};
+
+const safeFloat = (val: any) => {
+    if (val === null || val === undefined || val === '') return null;
+    const parsed = parseFloat(val.toString().replace(/[^0-9.-]/g, ''));
+    return isNaN(parsed) ? null : parsed;
+};
+
+/**
  * API endpoint para crear un nuevo vehículo
  * POST /api/vehicles
  */
@@ -229,7 +244,7 @@ export async function POST(request: NextRequest) {
                 longitude: longitude ? parseFloat(longitude) : null,
                 images: body.images || [],
                 // Campos opcionales
-                mileage: body.mileage ? parseInt(body.mileage) : null,
+                mileage: safeInt(body.mileage),
                 transmission: body.transmission || null,
                 fuel: body.fuel || null,
                 engine: body.engine || null,
@@ -241,19 +256,19 @@ export async function POST(request: NextRequest) {
                 features: body.features || [],
                 traction: body.traction || null,
                 condition: body.condition || null,
-                doors: body.doors ? parseInt(body.doors) : null,
-                passengers: body.passengers ? parseInt(body.passengers) : null,
-                displacement: body.displacement ? parseInt(body.displacement) : null,
-                cargoCapacity: body.cargoCapacity ? parseFloat(body.cargoCapacity) : null,
-                operatingHours: body.operatingHours ? parseInt(body.operatingHours) : null,
-                hp: body.hp ? parseInt(body.hp) : (coverAnalysis.details?.hp || null),
+                doors: safeInt(body.doors),
+                passengers: safeInt(body.passengers),
+                displacement: safeInt(body.displacement) || safeInt(coverAnalysis.details?.displacement),
+                cargoCapacity: safeFloat(body.cargoCapacity) || safeFloat(coverAnalysis.details?.cargoCapacity),
+                operatingHours: safeInt(body.operatingHours) || safeInt(coverAnalysis.details?.operatingHours),
+                hp: safeInt(body.hp) || safeInt(coverAnalysis.details?.hp),
                 torque: body.torque || (coverAnalysis.details?.torque || null),
                 aspiration: body.aspiration || (coverAnalysis.details?.aspiration || null),
-                cylinders: body.cylinders ? parseInt(body.cylinders) : (coverAnalysis.details?.cylinders || null),
-                batteryCapacity: body.batteryCapacity ? parseFloat(body.batteryCapacity) : (coverAnalysis.details?.batteryCapacity || null),
-                range: body.range ? parseInt(body.range) : (coverAnalysis.details?.range || null),
-                weight: body.weight ? parseInt(body.weight) : (coverAnalysis.details?.weight || null),
-                axles: body.axles ? parseInt(body.axles) : (coverAnalysis.details?.axles || null),
+                cylinders: safeInt(body.cylinders) || safeInt(coverAnalysis.details?.cylinders),
+                batteryCapacity: safeFloat(body.batteryCapacity) || safeFloat(coverAnalysis.details?.batteryCapacity),
+                range: safeInt(body.range) || safeInt(coverAnalysis.details?.range),
+                weight: safeInt(body.weight) || safeInt(coverAnalysis.details?.weight),
+                axles: safeInt(body.axles) || safeInt(coverAnalysis.details?.axles),
                 // ESTADO INICIAL
                 status: initialStatus, // BLINDAJE: Empieza inactivo
                 moderationStatus: isAiRejected ? 'REJECTED' : 'PENDING_AI',

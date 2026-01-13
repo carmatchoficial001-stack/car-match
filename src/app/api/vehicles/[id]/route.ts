@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
+/**
+ * 🛠️ Helpers para parseo robusto de tipos
+ */
+const safeInt = (val: any) => {
+    if (val === null || val === undefined || val === '') return null;
+    const parsed = parseInt(val.toString().replace(/[^0-9-]/g, ''));
+    return isNaN(parsed) ? null : parsed;
+};
+
+const safeFloat = (val: any) => {
+    if (val === null || val === undefined || val === '') return null;
+    const parsed = parseFloat(val.toString().replace(/[^0-9.-]/g, ''));
+    return isNaN(parsed) ? null : parsed;
+};
+
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -108,17 +123,24 @@ export async function PATCH(
             creditDeducted = true
         }
 
-        if (updateData.operatingHours !== undefined) finalUpdateData.operatingHours = updateData.operatingHours ? parseInt(updateData.operatingHours.toString()) : null
+        if (updateData.operatingHours !== undefined) finalUpdateData.operatingHours = safeInt(updateData.operatingHours)
+        if (updateData.mileage !== undefined) finalUpdateData.mileage = safeInt(updateData.mileage)
+        if (updateData.year !== undefined) finalUpdateData.year = safeInt(updateData.year)
+        if (updateData.price !== undefined) finalUpdateData.price = safeFloat(updateData.price)
+        if (updateData.doors !== undefined) finalUpdateData.doors = safeInt(updateData.doors)
+        if (updateData.passengers !== undefined) finalUpdateData.passengers = safeInt(updateData.passengers)
+        if (updateData.displacement !== undefined) finalUpdateData.displacement = safeInt(updateData.displacement)
+        if (updateData.cargoCapacity !== undefined) finalUpdateData.cargoCapacity = safeFloat(updateData.cargoCapacity)
 
         // Nuevos campos técnicos para la Autoridad de Datos CarMatch
-        if (updateData.hp !== undefined) finalUpdateData.hp = updateData.hp ? parseInt(updateData.hp.toString()) : null
+        if (updateData.hp !== undefined) finalUpdateData.hp = safeInt(updateData.hp)
         if (updateData.torque !== undefined) finalUpdateData.torque = updateData.torque || null
         if (updateData.aspiration !== undefined) finalUpdateData.aspiration = updateData.aspiration || null
-        if (updateData.cylinders !== undefined) finalUpdateData.cylinders = updateData.cylinders ? parseInt(updateData.cylinders.toString()) : null
-        if (updateData.batteryCapacity !== undefined) finalUpdateData.batteryCapacity = updateData.batteryCapacity ? parseFloat(updateData.batteryCapacity.toString()) : null
-        if (updateData.range !== undefined) finalUpdateData.range = updateData.range ? parseInt(updateData.range.toString()) : null
-        if (updateData.weight !== undefined) finalUpdateData.weight = updateData.weight ? parseInt(updateData.weight.toString()) : null
-        if (updateData.axles !== undefined) finalUpdateData.axles = updateData.axles ? parseInt(updateData.axles.toString()) : null
+        if (updateData.cylinders !== undefined) finalUpdateData.cylinders = safeInt(updateData.cylinders)
+        if (updateData.batteryCapacity !== undefined) finalUpdateData.batteryCapacity = safeFloat(updateData.batteryCapacity)
+        if (updateData.range !== undefined) finalUpdateData.range = safeInt(updateData.range)
+        if (updateData.weight !== undefined) finalUpdateData.weight = safeInt(updateData.weight)
+        if (updateData.axles !== undefined) finalUpdateData.axles = safeInt(updateData.axles)
 
         if (status) {
             finalUpdateData.status = status
