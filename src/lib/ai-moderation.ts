@@ -72,18 +72,15 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
             )
             const invalidIndices = analysis.invalidIndices || []
 
-            // ═══ REGLAS DE NEGOCIO SOLICITADAS ═══
+            // ═══ REGLAS DE NEGOCIO RUBEN ═══
 
-            // A) LA PORTADA ES EL LÍDER (REGLA RUBEN)
-            // Si la portada no es válida o no es un vehículo motorizado terrestre, se rechaza todo.
+            // A) LA PORTADA ES LA SOBERANA
             if (!analysis.valid || invalidIndices.includes(0)) {
                 status = 'REJECTED'
-                reason = analysis.reason || 'La foto de portada no es válida. Debe ser una foto clara de un vehículo motorizado terrestre.'
-                console.log(`🚨 RECHAZO: Portada inválida en ${vehicleId}: ${reason}`)
-            }
-            // B) DETECCIÓN DE DUPLICADOS POR IA (Anti-Fraude)
-            else {
-                // Usamos los datos reales que vio la IA para generar una huella del carro
+                reason = analysis.reason || 'La foto de portada no es válida. Debe ser un vehículo real.'
+                console.log(`🚨 RECHAZO: Portada inválida en ${vehicleId}`)
+            } else {
+                // B) DETECCIÓN DE DUPLICADOS (Usando lo que vio la IA)
                 const aiDetails = analysis.details || {}
                 const aiBrand = aiDetails.brand || vehicle.brand
                 const aiModel = aiDetails.model || vehicle.model
@@ -99,13 +96,12 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                     engine: aiDetails.engine || (vehicle as any).engine
                 })
 
-                // Buscar si este mismo usuario ya publicó este carmóvil recientemente
                 const similarExisting = await prisma.vehicle.findFirst({
                     where: {
                         userId: vehicle.userId,
                         id: { not: vehicleId },
-                        searchIndex: canonicalHash, // El hash verificado por IA
-                        createdAt: { gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) }, // Últimos 60 días
+                        searchIndex: canonicalHash,
+                        createdAt: { gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) },
                         status: { in: ['ACTIVE', 'SOLD', 'INACTIVE'] }
                     }
                 })
@@ -113,128 +109,90 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                 if (similarExisting) {
                     isDuplicate = true
                     status = 'REJECTED'
-                    reason = 'Se detectó que este vehículo ya fue publicado anteriormente. Para evitar duplicados, no se permite republicar el mismo vehículo en un periodo corto.'
-
-                    // Sancionar al usuario
+                    reason = 'Vehículo ya publicado anteriormente.'
                     await prisma.user.update({
                         where: { id: vehicle.userId },
                         data: { fraudStrikes: { increment: 1 } }
                     })
                 } else {
-                    // Filtrado silencioso para las demás
+                    // C) LIMPIEZA SILENCIOSA Y APROBACIÓN
+                    status = 'APPROVED'
                     finalImages = imageUrls.filter((_, idx) => !invalidIndices.includes(idx))
 
-                    if (finalImages.length === 0) {
-                        status = 'REJECTED'
-                        reason = 'Ninguna de las fotos subidas cumple con las políticas de vehículos.'
-                    } else {
-                        // 🚀 LÓGICA DE DISCRIMINACIÓN:
-                        // SI se filtraron algunas fotos -> Es una galería mezclada o con fotos inválidas. RECHAZAR.
-                        if (finalImages.length < imageUrls.length) {
-                            status = 'REJECTED'
-                            reason = 'Se detectaron fotos de vehículos diferentes o imágenes que no cumplen las reglas. Para una base de datos limpia y verídica, cada anuncio debe ser individual.'
-                            console.log(`⚠️ RECHAZO por inconsistencia/mezcla en ${vehicleId}: ${imageUrls.length - finalImages.length} fotos eliminadas.`);
-                        } else {
-                            // SI todas las fotos son consistentes entre sí pero diferentes al texto -> AUTO-CORREGIR.
-                            status = 'APPROVED'
+                    // Si hubo fotos filtradas (memes, otros carros), actualizamos DB
+                    if (finalImages.length < imageUrls.length) {
+                        console.log(`✨ AI Cleanup: ${imageUrls.length - finalImages.length} fotos eliminadas en ${vehicleId}`);
+                        await prisma.vehicle.update({
+                            where: { id: vehicleId },
+                            data: { images: finalImages }
+                        });
+                    }
 
-                            // 🚀 AUTO-CORRECCIÓN AGRESIVA (REGLA RUBEN: LA AI MANDA)
-                            if (analysis.details) {
-                                const details = analysis.details;
-                                const updateData: any = {};
+                    // D) AUTO-CORRECCIÓN Y ENRIQUECIMIENTO (LA IA MANDA)
+                    if (analysis.details) {
+                        const details = analysis.details;
+                        const updateData: any = {};
+                        const v = vehicle as any;
 
-                                const aiBrand = sanitizeAIValue(details.brand);
-                                const aiModel = sanitizeAIValue(details.model);
-                                const aiColor = sanitizeAIValue(details.color);
-                                const aiType = sanitizeAIValue(details.type);
-
-                                // Comparamos lo que vio la AI con lo que hay en DB
-                                // Si hay una diferencia clara en marca, modelo o año, LA AI GANA
-                                if (aiBrand && aiBrand !== vehicle.brand) {
-                                    updateData.brand = aiBrand;
-                                    correctedFields.push('marca');
-                                }
-                                if (aiModel && aiModel !== vehicle.model) {
-                                    updateData.model = aiModel;
-                                    correctedFields.push('modelo');
-                                }
-                                const aiYearStr = sanitizeAIValue(details.year);
-                                if (aiYearStr && parseInt(aiYearStr as string) !== vehicle.year) {
-                                    // Solo corregir el año si hay una diferencia notable (>1 año) para evitar falsos positivos
-                                    const aiYear = parseInt(aiYearStr as string);
-                                    if (Math.abs(aiYear - vehicle.year) > 1) {
-                                        updateData.year = aiYear;
-                                        correctedFields.push('año');
-                                    }
-                                }
-                                if (aiColor && aiColor !== vehicle.color && (vehicle.color === 'N/A' || !vehicle.color)) {
-                                    updateData.color = aiColor;
-                                    correctedFields.push('color');
-                                }
-                                if (aiType && aiType !== (vehicle as any).vehicleType) {
-                                    updateData.vehicleType = aiType;
-                                    correctedFields.push('tipo');
-                                }
-
-                                // 🔄 RE-SINCRONIZAR TÍTULO: Si cambió marca, modelo o año, el título debe actualizarse
-                                if (updateData.brand || updateData.model || updateData.year) {
-                                    const nextBrand = updateData.brand || vehicle.brand;
-                                    const nextModel = updateData.model || vehicle.model;
-                                    const nextYear = updateData.year !== undefined ? updateData.year : vehicle.year;
-                                    updateData.title = `${nextBrand} ${nextModel} ${nextYear}`;
-                                }
-
-                                // 🧠 ENRIQUECIMIENTO: Auto-completar datos técnicos si faltan
-                                // Solo llenamos si el vehículo NO tiene el dato (para respetar lo que puso el usuario si ya especificó algo)
-                                // O si queremos forzar la verdad de la IA, pero por seguridad, mejor solo llenar vacíos o diferencias obvias.
-                                // En este caso, como es moderación inicial, vamos a enriquecer agresivamente si la IA está segura.
-
-                                const v = vehicle as any;
-                                const aiTrans = sanitizeAIValue(details.transmission);
-                                const aiFuel = sanitizeAIValue(details.fuel);
-                                const aiEngine = sanitizeAIValue(details.engine);
-                                const aiTract = sanitizeAIValue(details.traction);
-                                const aiDoors = sanitizeAIValue(details.doors);
-
-                                if (aiTrans && (!v.transmission || v.transmission === 'N/A')) {
-                                    updateData.transmission = aiTrans;
-                                    correctedFields.push('transmisión');
-                                }
-                                if (aiFuel && (!v.fuel || v.fuel === 'N/A')) {
-                                    updateData.fuel = aiFuel;
-                                    correctedFields.push('combustible');
-                                }
-                                if (aiEngine && (!v.engine || v.engine === 'N/A')) {
-                                    updateData.engine = aiEngine;
-                                    correctedFields.push('motor');
-                                }
-                                if (aiTract && (!v.traction || v.traction === 'N/A')) {
-                                    updateData.traction = aiTract;
-                                }
-                                if (aiDoors && (!v.doors || v.doors === 0)) {
-                                    updateData.doors = aiDoors;
-                                }
-
-                                if (Object.keys(updateData).length > 0) {
-                                    autoCorrected = true;
-                                    await prisma.vehicle.update({
-                                        where: { id: vehicleId },
-                                        data: updateData
-                                    });
-                                    console.log(`✨ AUTO-CORRECCIÓN disparada para ${vehicleId}: ${correctedFields.join(', ')}`);
-                                }
+                        // Corrección de Identidad
+                        const aiBrandSan = sanitizeAIValue(details.brand);
+                        if (aiBrandSan && aiBrandSan !== vehicle.brand) {
+                            updateData.brand = aiBrandSan;
+                            correctedFields.push('marca');
+                        }
+                        const aiModelSan = sanitizeAIValue(details.model);
+                        if (aiModelSan && aiModelSan !== vehicle.model) {
+                            updateData.model = aiModelSan;
+                            correctedFields.push('modelo');
+                        }
+                        const aiYearStr = sanitizeAIValue(details.year);
+                        if (aiYearStr) {
+                            const aiYearInt = parseInt(aiYearStr as string);
+                            if (Math.abs(aiYearInt - vehicle.year) > 1) {
+                                updateData.year = aiYearInt;
+                                correctedFields.push('año');
                             }
+                        }
+
+                        // Enriquecimiento Técnico
+                        const fields = ['transmission', 'fuel', 'engine', 'traction', 'color', 'condition'];
+                        fields.forEach(f => {
+                            const aiVal = sanitizeAIValue((details as any)[f]);
+                            if (aiVal && (!v[f] || v[f] === 'N/A' || v[f] === '')) {
+                                updateData[f] = aiVal;
+                                correctedFields.push(f);
+                            }
+                        });
+
+                        // Nuevos campos técnicos CarMatch
+                        if (!v.hp && details.hp) updateData.hp = parseInt(details.hp as any);
+                        if (!v.torque && details.torque) updateData.torque = sanitizeAIValue(details.torque);
+                        if (!v.aspiration && details.aspiration) updateData.aspiration = sanitizeAIValue(details.aspiration);
+                        if (!v.cylinders && details.cylinders) updateData.cylinders = parseInt(details.cylinders as any);
+                        if (!v.batteryCapacity && details.batteryCapacity) updateData.batteryCapacity = parseFloat(details.batteryCapacity as any);
+                        if (!v.range && details.range) updateData.range = parseInt(details.range as any);
+                        if (!v.weight && details.weight) updateData.weight = parseInt(details.weight as any);
+                        if (!v.axles && details.axles) updateData.axles = parseInt(details.axles as any);
+                        if (!v.passengers && details.passengers) updateData.passengers = parseInt(details.passengers as any);
+
+                        if (Object.keys(updateData).length > 0) {
+                            autoCorrected = true;
+                            // Sincronizar título si cambió identidad
+                            if (updateData.brand || updateData.model || updateData.year) {
+                                updateData.title = `${updateData.brand || vehicle.brand} ${updateData.model || vehicle.model} ${updateData.year || vehicle.year}`;
+                            }
+                            await prisma.vehicle.update({
+                                where: { id: vehicleId },
+                                data: updateData
+                            });
                         }
                     }
                 }
             }
-
         } catch (error) {
             console.error(`❌ Error en moderación Gemini (${vehicleId}):`, error)
-            status = 'APPROVED'
         }
     }
-
     // Actualizar estado en DB (con las fotos filtradas si aplica)
     await prisma.vehicle.update({
         where: { id: vehicleId },
@@ -394,16 +352,19 @@ export async function fixAndApproveVehicle(vehicleId: string) {
         if (!vehicle.displacement && details.displacement) updateData.displacement = details.displacement
         if (!vehicle.cargoCapacity && details.cargoCapacity) updateData.cargoCapacity = details.cargoCapacity
 
+        const v = vehicle as any;
+
         // Nuevos campos técnicos CarMatch
-        if (!vehicle.hp && details.hp !== undefined) updateData.hp = details.hp
-        if (!vehicle.torque && details.torque !== undefined) updateData.torque = details.torque
-        if (!vehicle.aspiration && details.aspiration !== undefined) updateData.aspiration = details.aspiration
-        if (!vehicle.cylinders && details.cylinders !== undefined) updateData.cylinders = details.cylinders
-        if (!vehicle.batteryCapacity && details.batteryCapacity !== undefined) updateData.batteryCapacity = details.batteryCapacity
-        if (!vehicle.range && details.range !== undefined) updateData.range = details.range
-        if (!vehicle.weight && details.weight !== undefined) updateData.weight = details.weight
-        if (!vehicle.axles && details.axles !== undefined) updateData.axles = details.axles
-        if (!vehicle.operatingHours && details.operatingHours) updateData.operatingHours = details.operatingHours
+        if (!v.hp && details.hp !== undefined) updateData.hp = parseInt(details.hp as any)
+        if (!v.torque && details.torque !== undefined) updateData.torque = sanitizeAIValue(details.torque)
+        if (!v.aspiration && details.aspiration !== undefined) updateData.aspiration = sanitizeAIValue(details.aspiration)
+        if (!v.cylinders && details.cylinders !== undefined) updateData.cylinders = parseInt(details.cylinders as any)
+        if (!v.batteryCapacity && details.batteryCapacity !== undefined) updateData.batteryCapacity = parseFloat(details.batteryCapacity as any)
+        if (!v.range && details.range !== undefined) updateData.range = parseInt(details.range as any)
+        if (!v.weight && details.weight !== undefined) updateData.weight = parseInt(details.weight as any)
+        if (!v.axles && details.axles !== undefined) updateData.axles = parseInt(details.axles as any)
+        if (!v.passengers && details.passengers !== undefined) updateData.passengers = parseInt(details.passengers as any)
+        if (!v.operatingHours && details.operatingHours) updateData.operatingHours = parseInt(details.operatingHours as any)
 
         // Generar nuevo título basado en la corrección
         updateData.title = `${updateData.brand || vehicle.brand} ${updateData.model || vehicle.model} ${updateData.year || vehicle.year}`

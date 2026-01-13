@@ -40,6 +40,7 @@ interface ImageAnalysisResult {
     cargoCapacity?: number; // Toneladas (camiones)
     operatingHours?: number; // Horas de uso (maquinaria)
   };
+  analysis?: { index: number; isValid: boolean; reason: string }[];
 }
 
 export async function analyzeImage(imageBase64: string, type: 'VEHICLE' | 'BUSINESS' = 'VEHICLE'): Promise<ImageAnalysisResult> {
@@ -78,23 +79,21 @@ RESPONDE SOLO EL JSON.
   } else {
     // 🚗 VALIDATION FOR VEHICLES
     prompt = `
-ERES UN ANALISTA FORENSE DE VEHÍCULOS. TU MISIÓN ES LA VERDAD VISUAL.
-EL USUARIO PUEDE INTENTAR ENGAÑARTE CON EL TEXTO, PERO LA IMAGEN NO MIENTE.
+═══ REGLAS DE RECHAZO (TOLERANCIA CERO) ═══
+- NO ES UN VEHÍCULO (Ej: TVs, muebles, pantallas, artículos del hogar, personas solas). RECHAZO INMEDIATO.
+- ES UN JUGUETE O DIBUJO. RECHAZO INMEDIATO.
+- CONTENIDO INSEGURO (Desnudez, armas, violencia). RECHAZO INMEDIATO.
 
 ═══ PROTOCOLO DE ANÁLISIS (PASO A PASO) ═══
-1. OLVIDA EL TEXTO: Ignora cualquier marca o modelo que se te haya dado en el contexto.
-2. ESCANEO VISUAL: Identifica la silueta, la forma de la parrilla, el diseño de los faros y los logotipos.
+1. OLVIDA EL TEXTO: Ignora cualquier marca o modelo dado por el usuario.
+2. ESCANEO VISUAL: Identifica silueta, parrilla, faros y logotipos.
 3. IDENTIFICACIÓN PURA: Determina qué vehículo es basándote *solo* en la imagen.
-4. COMPARACIÓN CRÍTICA: Si el contexto dice "Hyundai" pero ves un "Jeep Wrangler" (como en las versiones modificadas con parrilla enojada), TU DEBER es reportar JEEP WRANGLER.
-
-REGLAS DE RECHAZO:
-- Si no es un vehículo real (juguete, dibujo).
-- Si es inseguro (desnudez, violencia).
+4. COMPARACIÓN CRÍTICA: Si el contexto dice "Hyundai" pero ves un "Jeep Wrangler", reporte JEEP WRANGLER.
 
 RESPONDE ÚNICAMENTE CON ESTE JSON:
 {
-  "valid": boolean,
-  "reason": "OK o razón de rechazo",
+  "valid": boolean (false si es un artículo del hogar como una TV),
+  "reason": "OK o razón de rechazo (Ej: 'Contenido no es un vehículo (TV)')",
   "category": "automovil" | "motocicleta" | "comercial" | "industrial" | "transporte" | "especial",
   "details": {
     "brand": "Marca REAL identificada visualmente",
@@ -104,14 +103,23 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
     "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
     "transmission": "Manual|Automática",
     "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-    "engine": "Especificación motor",
+    "engine": "Especificación motor (ej: 2.0L Turbo)",
     "traction": "FWD|RWD|4x4|AWD",
     "doors": 2|3|4|5,
+    "passengers": 2|5|7|9,
+    "hp": "Potencia (CV/HP)",
+    "torque": "Torque (lb-ft o Nm)",
+    "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged",
+    "cylinders": 3|4|5|6|8|10|12,
+    "batteryCapacity": "Capacidad kWh (si es eléctrico)",
+    "range": "Autonomía km (si es eléctrico/híbrido)",
+    "weight": "Peso aproximado (kg)",
+    "axles": "Ejes (si es pesado)",
     "condition": "Nuevo|Usado"
   }
 }
 
-IMPORTANTE: Si no estás seguro de un dato o no es visible, responde "null" (sin comillas). NUNCA respondas "N/A" o "Desconocido".
+IMPORTANTE: Una vez identificado el vehículo con alta seguridad en la portada, utiliza tu CONOCIMIENTO GENERAL TÉCNICO para llenar los campos de detalles (hp, torque, cilindros, etc.) que corresponden a ese modelo y generación específicos, incluso si no son visibles en la foto. Si un campo es totalmente incierto, responde null. PROHIBIDO usar "N/A".
 `;
   }
 
@@ -274,10 +282,12 @@ export async function analyzeMultipleImages(
         - Modelo: "${IDENTIDAD_SOBERANA_DE_PORTADA.model || '?'}"
         - Estilo: "${IDENTIDAD_SOBERANA_DE_PORTADA.type || '?'}"
 
-        📋 REGLAS DE AUDITORÍA:
-        - Si ves un vehículo diferente (otra marca, modelo o tipo), marca "isValid": false.
-        - Sé estrictamente fiel a la identidad de la portada. No permitas que la galería cambie la marca o modelo.
-        - Extrae datos técnicos (motor, transmisión, combustible) solo si son visibles.
+        📋 REGLAS DE AUDITORÍA (TOLERANCIA CERO):
+        - CUALQUIER IMAGEN QUE NO SEA EL MISMO VEHÍCULO DEBE SER MARCADA AS "isValid": false.
+        - SI VES ARTÍCULOS DEL HOGAR (TVs, electrodomésticos, capturas de pantalla de apps), MARCA "isValid": false y razón "No es un vehículo".
+        - SI EL VEHÍCULO ES DE OTRA MARCA (Ej: ves un Jeep y la portada es Hyundai), ES UN FRAUDE INMEDIATO: "isValid": false.
+        - No permitas que la galería cambie la identidad de la portada.
+        - Extrae datos técnicos solo si son visibles.
 
         Responde con este JSON:
         {
@@ -288,9 +298,17 @@ export async function analyzeMultipleImages(
              "transmission": "Manual|Automática",
              "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
              "engine": "Ej: 2.0L Turbo",
-             "hp": 150,
              "traction": "FWD|RWD|4x4|AWD",
-             "doors": 5
+             "doors": 5,
+             "passengers": 5,
+             "hp": number,
+             "torque": "string",
+             "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged",
+             "cylinders": number,
+             "batteryCapacity": number,
+             "range": number,
+             "weight": number,
+             "axles": number
           }
         }
       `;
@@ -330,7 +348,8 @@ export async function analyzeMultipleImages(
             year: IDENTIDAD_SOBERANA_DE_PORTADA.year,
             type: IDENTIDAD_SOBERANA_DE_PORTADA.type
           },
-          category: coverResult.category
+          category: coverResult.category,
+          analysis: galleryAnalysis
         };
       }
 
