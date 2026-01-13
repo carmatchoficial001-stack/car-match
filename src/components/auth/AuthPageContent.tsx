@@ -14,14 +14,6 @@ export default function AuthPageContent() {
     const { data: session, status } = useSession()
     const router = useRouter()
 
-    // 🔥 BLINDAJE DE HISTORIAL: Si el usuario ya está autenticado y cae aquí,
-    // usamos REPLACE para que esta página sea reemplazada por el Feed en el historial.
-    useEffect(() => {
-        if (status === "authenticated") {
-            router.replace(getWeightedHomePath())
-        }
-    }, [status, router])
-
     if (status === "loading") {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center font-sans">

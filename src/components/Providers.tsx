@@ -5,6 +5,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext"
 import { LocationProvider } from "@/contexts/LocationContext"
 import dynamic from "next/dynamic"
 
+import HistoryShield from "@/components/HistoryShield";
 const AIChatbot = dynamic(() => import("@/components/AIChatbot"), { ssr: false });
 const RegisterSW = dynamic(() => import("@/components/RegisterSW"), { ssr: false });
 const PushNotificationRequest = dynamic(() => import("@/components/PushNotificationRequest"), { ssr: false });
@@ -16,6 +17,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 <LocationProvider>
                     <RegisterSW />
                     <PushNotificationRequest />
+                    <HistoryShield />
                     {children}
                     <AIChatbot />
                 </LocationProvider>
