@@ -184,11 +184,11 @@ export async function analyzeMultipleImages(
        📋 DATOS DEL USUARIO (POSIBLEMENTE FALSOS O ERRÓNEOS):
        - Marca: "${context?.brand || '?'}", Modelo: "${context?.model || '?'}", Año: "${context?.year || '?'}"
        
-       🚀 PROTOCOLO DE AUDITORÍA VISUAL:
-       1. VISIÓN SOBERANA (@Index 0): Identifica el vehículo basándote *solo* en su silueta, parrilla, faros y logos.
-       2. SI VES UN JEEP PERO EL TEXTO DICE "${context?.brand || '?'}", TU RESPUESTA DEBE SER JEEP. No alucines con el texto del usuario.
-       3. CONSISTENCIA: Todas las fotos deben ser del mismo vehículo que la portada.
-       4. CORRECCIÓN AGRESIVA: Si el usuario escribió mal el modelo, tú pones el modelo CORRECTO basado en lo que ves.
+        🚀 PROTOCOLO DE AUDITORÍA VISUAL:
+        1. VISIÓN SOBERANA (@Index 0): Esta es la FOTO MANDANTE. Identifica el vehículo ignorando el texto del usuario.
+        2. SOBERANÍA ABSOLUTA: Si la portada (@Index 0) es un vehículo, "isValidCover" DEBE SER true, sin importar si las otras fotos (@Index 1, 2...) coinciden o no.
+        3. LIMPIEZA DE GALERÍA: Si las fotos de la galería (@Index 1+) no coinciden con la portada (@Index 0), marca esas fotos de la galería como "isValid": false, pero NUNCA invalides la portada por este motivo.
+        4. CORRECCIÓN: Tu JSON "details" debe basarse ÚNICAMENTE en lo que ves en la portada (@Index 0).
 
        Responde ÚNICAMENTE este JSON:
        {
@@ -338,7 +338,8 @@ export async function analyzeMultipleImages(
 
         const invalidIndices = galleryAnalysis
           .filter((a: any) => a.isValid === false)
-          .map((a: any) => a.index);
+          .map((a: any) => a.index)
+          .filter((idx: number) => idx !== 0); // PROTECCIÓN: El índice 0 NUNCA es inválido por culpa de la galería
 
         // BLINDAJE FINAL: Los detalles de identidad (Marca/Modelo/Año/Tipo) NUNCA vienen de la galería.
         // Solo aceptamos enriquecimiento técnico (motor/transmisión).
@@ -428,15 +429,26 @@ async function processGeminiResponse(response: any): Promise<ImageAnalysisResult
 
   const parsed = JSON.parse(match[0]);
   const isValidCover = parsed.isValidCover === true;
-  const invalidIndices = (parsed.analysis || [])
+  let invalidIndices = (parsed.analysis || [])
     .filter((a: any) => a.isValid === false)
     .map((a: any) => Number(a.index));
 
-  const coverReason = parsed.coverReason || "La foto de portada debe ser un vehículo motorizado terrestre claro.";
+  // 🛡️ REGLA SOBERANA RUBEN: El índice 0 manda. 
+  // Si la IA lo marcó inválido solo por "coincidencia", lo rescatamos si es un vehículo.
+  const coverReason = parsed.coverReason || "OK";
+
+  // Si la razón de rechazo de la portada menciona que "no coincide con el resto", la forzamos a válida
+  // porque el usuario decidió que la portada es la nueva verdad.
+  let forceValidCover = isValidCover;
+  if (!isValidCover && coverReason.toLowerCase().includes("coincide")) {
+    forceValidCover = true;
+    // Si la forzamos a válida por coincidencia, nos aseguramos que el índice 0 no esté en invalidIndices
+    invalidIndices = invalidIndices.filter(i => i !== 0);
+  }
 
   return {
-    valid: isValidCover,
-    reason: coverReason,
+    valid: forceValidCover,
+    reason: forceValidCover ? "OK" : coverReason,
     invalidIndices: invalidIndices,
     details: parsed.details || {},
     category: parsed.details?.type || 'Automóvil'
