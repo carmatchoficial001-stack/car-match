@@ -443,7 +443,7 @@ async function processGeminiResponse(response: any): Promise<ImageAnalysisResult
   if (!isValidCover && coverReason.toLowerCase().includes("coincide")) {
     forceValidCover = true;
     // Si la forzamos a válida por coincidencia, nos aseguramos que el índice 0 no esté en invalidIndices
-    invalidIndices = invalidIndices.filter(i => i !== 0);
+    invalidIndices = invalidIndices.filter((i: number) => i !== 0);
   }
 
   return {
