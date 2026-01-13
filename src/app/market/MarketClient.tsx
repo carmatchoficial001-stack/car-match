@@ -410,14 +410,14 @@ export default function MarketClient({
 
                                                     <div className="flex items-center justify-between mt-2 md:mt-4">
                                                         {!isBusiness ? (
-                                                            <div className="flex flex-col">
+                                                            <Link href={`/vehicle/${item.id}`} className="flex flex-col group/more">
                                                                 <p className="font-bold text-lg md:text-xl text-primary-400" suppressHydrationWarning>
                                                                     {formatPrice(item.price || 0, item.currency || 'MXN', locale)}
                                                                 </p>
-                                                                <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mt-1 group-hover:text-primary-400 transition-colors">
+                                                                <span className="text-xs font-bold text-primary-400 uppercase tracking-widest mt-1 transition-colors group-hover/more:text-primary-300">
                                                                     {t('common.view_more') || 'Ver más'} &rarr;
                                                                 </span>
-                                                            </div>
+                                                            </Link>
                                                         ) : (
                                                             <Link
                                                                 href={`/map-store?id=${item.id}`}
