@@ -344,13 +344,25 @@ export default function MarketClient({
                                         return (
                                             <div key={item.id} className={`bg-surface border rounded-2xl overflow-hidden hover:shadow-xl transition group ${isBusiness ? 'border-primary-700/30' : 'border-surface-highlight'}`}>
                                                 {/* Imagen y Badge */}
-                                                <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} className="block relative aspect-video bg-gray-800">
+                                                <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} className="block relative aspect-[4/3] bg-gray-800 group-hover:opacity-95 transition-opacity">
                                                     {item.images && item.images[0] ? (
-                                                        <img
-                                                            src={item.images[0]}
-                                                            alt={item.title}
-                                                            className="w-full h-full object-cover"
-                                                        />
+                                                        <>
+                                                            <img
+                                                                src={item.images[0]}
+                                                                alt={item.title}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                            {/* Overlay "Ver más" */}
+                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
+                                                                <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-xs font-bold text-white uppercase tracking-wider">
+                                                                    {t('common.view_more') || 'Ver más'}
+                                                                </span>
+                                                            </div>
+                                                            {/* Etiqueta visible móvil (Bottom gradient) */}
+                                                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent md:hidden">
+                                                                <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest pl-1">Ver más</span>
+                                                            </div>
+                                                        </>
                                                     ) : (
                                                         <div className="absolute inset-0 flex items-center justify-center text-text-secondary opacity-20">
                                                             {isBusiness ? (
@@ -368,16 +380,6 @@ export default function MarketClient({
                                                             {t('market.business_badge')}
                                                         </div>
                                                     )}
-
-                                                    {/* {!isBusiness && (
-                                                        <div className="absolute top-3 left-3 z-10">
-                                                            <FavoriteButton
-                                                                vehicleId={item.id}
-                                                                initialIsFavorited={item.isFavorited}
-                                                                size="sm"
-                                                            />
-                                                        </div>
-                                                    )} */}
 
                                                     <ReportImageButton
                                                         imageUrl={item.images?.[0] || ''}
