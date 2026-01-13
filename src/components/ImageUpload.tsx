@@ -11,9 +11,10 @@ interface ImageUploadProps {
     label?: string
     required?: boolean
     fallbackContent?: React.ReactNode  // Contenido a mostrar cuando no hay imágenes
+    imageType?: 'vehicle' | 'profile' | 'business' // 🛡️ NEW: Tipo de imagen para moderación
 }
 
-export default function ImageUpload({ images, onImagesChange, maxImages = 5, label, required = true, fallbackContent }: ImageUploadProps) {
+export default function ImageUpload({ images, onImagesChange, maxImages = 5, label, required = true, fallbackContent, imageType = 'vehicle' }: ImageUploadProps) {
     const { t } = useLanguage()
     const [uploading, setUploading] = useState(false)
     const [uploadError, setUploadError] = useState<string | null>(null)
@@ -23,6 +24,7 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
     const uploadToCloudinary = async (file: File): Promise<string> => {
         const formData = new FormData()
         formData.append('file', file)
+        formData.append('imageType', imageType) // 🛡️ Enviar tipo para moderación
 
         const response = await fetch('/api/upload', {
             method: 'POST',
@@ -30,7 +32,12 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
         })
 
         if (!response.ok) {
-            throw new Error('Error al subir imagen')
+            const errorData = await response.json();
+            // Si es error de moderación, lanzar el mensaje específico
+            if (errorData.reason) {
+                throw new Error(errorData.reason);
+            }
+            throw new Error(errorData.error || 'Error al subir imagen')
         }
 
         const data = await response.json()
@@ -61,9 +68,10 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
             } else {
                 await onImagesChange([...images, ...urls])
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error subiendo imágenes:', error)
-            setUploadError('Error al subir imágenes. Intenta de nuevo.')
+            // Mostrar mensaje enviado desde el backend (moderación) o genérico
+            setUploadError(error.message || 'Error al subir imágenes. Intenta de nuevo.')
         } finally {
             setUploading(false)
             // Reset input

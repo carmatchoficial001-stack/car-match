@@ -886,6 +886,7 @@ export default function MyBusinessesClient() {
                                     maxImages={1}
                                     label="Foto de Portada (Opcional)"
                                     required={false}
+                                    imageType="business" // 🛡️ Moderación de negocio activada
                                 />
                             </div>
 

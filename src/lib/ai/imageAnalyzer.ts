@@ -506,3 +506,71 @@ async function processGeminiResponse(response: any): Promise<ImageAnalysisResult
     category: parsed.details?.type || 'Automóvil'
   };
 }
+
+export interface ContentModerationResult {
+  isAppropriate: boolean;
+  reason?: string;
+  category?: 'VIOLENCE' | 'SEXUAL' | 'DRUGS' | 'WEAPONS' | 'HATE' | 'GORE' | 'OTHER';
+}
+
+export async function moderateUserContent(imageBase64: string): Promise<ContentModerationResult> {
+  console.log('🛡️ Moderando contenido de imagen con Gemini Vision...');
+
+  const prompt = `
+    Analiza esta imagen ESTRICTAMENTE para moderación de contenido en una plataforma pública familiar (fotos de perfil de usuario y negocios).
+    
+    Busca CUALQUIERA de las siguientes categorías prohibidas:
+    1. VIOLENCIA: Sangre real, heridas, peleas físicas, cadáveres, tortura.
+    2. SEXUAL: Desnudez (total o parcial explícita), actos sexuales, juguetes sexuales, lencería provocativa sin contexto.
+    3. DROGAS: Uso de drogas, parafernalia obvia (pipas, jeringas), sustancias ilegales.
+    4. ARMAS: Armas de fuego reales apuntando o en contextos de amenaza, armas blancas ensangrentadas o agresivas. (Nota: armas en contexto deportivo/histórico claro pueden ser tolerables, pero ante la duda refierelas).
+    5. ODIO: Símbolos nazis, kkk, mensajes de odio o racismo visibles.
+    6. GORE: Mutilación, imágenes médicas perturbadoras, accidentes graves explícitos.
+
+    Responde SOLAMENTE un objeto JSON con este formato exacto:
+    {
+      "isAppropriate": boolean, // true si NO contiene nada de lo anterior. false si contiene algo prohibido.
+      "category": string, // "VIOLENCE", "SEXUAL", "DRUGS", "WEAPONS", "HATE", "GORE", u "OTHER" (solo si isAppropriate es false)
+      "reason": string // Explicación corta y amable en ESPAÑOL del por qué se rechaza (solo si isAppropriate es false). Ej: "La imagen contiene desnudez no permitida.", "Se detectaron armas reales en la imagen."
+    }
+
+    IMPORTANTE:
+    - Sé estricto con la desnudez y la violencia real.
+    - Sé tolerante con: gente en traje de baño en playa/alberca (si no es provocativo), tatuajes (si no son ofensivos), alcohol (si es social moderado).
+    - Si la imagen es un dibujo infantil inofensivo, un meme sano, o un paisaje, es APROPIADA.
+    - Ignora la calidad estética, solo juzga el contenido.
+  `;
+
+  try {
+    const result = await geminiModel.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType: "image/jpeg",
+          data: imageBase64
+        }
+      }
+    ]);
+
+    const response = await result.response;
+    const text = response.text();
+
+    // Limpiar bloques de código markdown si existen
+    const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+    const parsed = JSON.parse(cleanText) as ContentModerationResult;
+
+    if (!parsed.isAppropriate) {
+      console.warn(`❌ Imagen rechazada por moderación: ${parsed.category} - ${parsed.reason}`);
+    } else {
+      console.log('✅ Imagen aprobada por moderación');
+    }
+
+    return parsed;
+  } catch (error) {
+    console.error("Error en moderación de contenido:", error);
+    // En caso de error de la IA, por seguridad permitimos (fail open) o bloqueamos (fail closed).
+    // Para no bloquear usuarios por errores técnicos, asumiremos que es válida pero logueamos el error.
+    return { isAppropriate: true };
+  }
+}

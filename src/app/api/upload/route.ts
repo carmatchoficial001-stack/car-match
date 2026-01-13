@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
+import { moderateUserContent } from '@/lib/ai/imageAnalyzer'
 
 // Configure Cloudinary
 cloudinary.config({
@@ -13,6 +14,7 @@ export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData()
         const file = formData.get('file') as File | null
+        const imageType = formData.get('imageType') as string || 'vehicle' // 'vehicle', 'profile', 'business'
 
         if (!file) {
             console.error('❌ No se recibió archivo')
@@ -22,7 +24,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        console.log(`📁 Archivo recibido: ${file.name} (${file.size} bytes)`)
+        console.log(`📁 Archivo recibido: ${file.name} (${file.size} bytes) - Tipo: ${imageType}`)
 
         // Debug Cloud Config (Log bools only for security)
         const configCheck = {
@@ -43,6 +45,24 @@ export async function POST(request: NextRequest) {
         // Convert file to buffer
         const arrayBuffer = await file.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
+
+        // 🛡️ MODERACIÓN DE CONTENIDO (Solo para Perfil y Negocios)
+        if (imageType === 'profile' || imageType === 'business') {
+            const base64Image = buffer.toString('base64');
+            const moderationResult = await moderateUserContent(base64Image);
+
+            if (!moderationResult.isAppropriate) {
+                console.warn(`⛔ Imagen bloqueada: ${moderationResult.reason}`);
+                return NextResponse.json(
+                    {
+                        error: 'Imagen rechazada por moderación',
+                        reason: moderationResult.reason,
+                        category: moderationResult.category
+                    },
+                    { status: 400 }
+                );
+            }
+        }
 
         console.log('🚀 Iniciando subida a Cloudinary...')
 

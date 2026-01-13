@@ -134,6 +134,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                 }}
                                 maxImages={1}
                                 required={false}
+                                imageType="profile" // 🛡️ Moderación de perfil activada
                                 fallbackContent={
                                     <div className="border-2 border-dashed border-surface-highlight rounded-lg p-4">
                                         <p className="text-xs text-text-secondary text-center mb-3">
