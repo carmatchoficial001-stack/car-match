@@ -208,15 +208,21 @@ export async function POST(request: NextRequest) {
             initialStatus = 'INACTIVE' // Requiere pago para activarse
         }
 
-        // Crear vehículo (Estado inicial: INACTIVE hasta que termine moderación de galería)
+        // Regenerar título si hubo corrección por IA o para asegurar consistencia
+        const finalBrand = coverAnalysis.details?.brand || brand
+        const finalModel = coverAnalysis.details?.model || model
+        const finalYear = coverAnalysis.details?.year ? parseInt(coverAnalysis.details.year) : parseInt(year)
+        const finalTitle = `${finalBrand} ${finalModel} ${finalYear}`
+
+        // Crear vehículo
         const vehicle = await prisma.vehicle.create({
             data: {
                 userId: user.id,
-                title,
+                title: finalTitle,
                 description,
-                brand: coverAnalysis.details?.brand || brand,
-                model: coverAnalysis.details?.model || model,
-                year: coverAnalysis.details?.year ? parseInt(coverAnalysis.details.year) : parseInt(year),
+                brand: finalBrand,
+                model: finalModel,
+                year: finalYear,
                 price: parseFloat(price),
                 city,
                 latitude: latitude ? parseFloat(latitude) : null,

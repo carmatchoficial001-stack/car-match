@@ -342,11 +342,19 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                         <div className="bg-surface border border-surface-highlight rounded-3xl p-6 shadow-xl mb-6">
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
                                 <div>
-                                    <p className="text-primary-400 font-bold text-sm tracking-wider uppercase mb-1">
-                                        {vehicle.condition === 'Nuevo' || vehicle.condition === 'NEW' ? t('vehicle.condition_new') :
-                                            vehicle.condition === 'Seminuevo (Casi Nuevo)' || vehicle.condition === 'Seminuevo' ? 'Seminuevo' :
-                                                t('vehicle.condition_used')} · {vehicle.year}
-                                    </p>
+                                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                                        <p className="text-primary-400 font-bold text-sm tracking-wider uppercase">
+                                            {vehicle.condition === 'Nuevo' || vehicle.condition === 'NEW' ? t('vehicle.condition_new') :
+                                                vehicle.condition === 'Seminuevo (Casi Nuevo)' || vehicle.condition === 'Seminuevo' ? 'Seminuevo' :
+                                                    t('vehicle.condition_used')} · {vehicle.year}
+                                        </p>
+                                        {(vehicle.moderationStatus === 'APPROVED' || (vehicle.status === 'ACTIVE' && vehicle.moderationStatus !== 'REJECTED')) && (
+                                            <div className="flex items-center gap-1 bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 text-[10px] font-black uppercase tracking-tighter shadow-sm">
+                                                <BadgeCheck size={12} className="fill-emerald-400/20" />
+                                                Wiki CarMatch Verificado
+                                            </div>
+                                        )}
+                                    </div>
                                     <h1 className="text-3xl md:text-3xl font-black text-text-primary leading-tight mb-2">
                                         {vehicle.title}
                                     </h1>

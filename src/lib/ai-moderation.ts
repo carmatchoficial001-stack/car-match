@@ -145,6 +145,14 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                                     correctedFields.push('tipo');
                                 }
 
+                                // 🔄 RE-SINCRONIZAR TÍTULO: Si cambió marca, modelo o año, el título debe actualizarse
+                                if (updateData.brand || updateData.model || updateData.year) {
+                                    const nextBrand = updateData.brand || vehicle.brand;
+                                    const nextModel = updateData.model || vehicle.model;
+                                    const nextYear = updateData.year !== undefined ? updateData.year : vehicle.year;
+                                    updateData.title = `${nextBrand} ${nextModel} ${nextYear}`;
+                                }
+
                                 // 🧠 ENRIQUECIMIENTO: Auto-completar datos técnicos si faltan
                                 // Solo llenamos si el vehículo NO tiene el dato (para respetar lo que puso el usuario si ya especificó algo)
                                 // O si queremos forzar la verdad de la IA, pero por seguridad, mejor solo llenar vacíos o diferencias obvias.

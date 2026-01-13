@@ -31,7 +31,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     const title = `${vehicle.year} ${vehicle.brand} ${vehicle.model} - $${vehicle.price.toLocaleString()}`
-    const description = `Mira este ${vehicle.brand} ${vehicle.model} en CarMatch. ${vehicle.description?.substring(0, 100)}...`
+
+    // Wikipedia-style enriched description for SEO
+    const specs = [
+        vehicle.transmission,
+        vehicle.fuel,
+        vehicle.engine,
+        vehicle.color
+    ].filter(Boolean).join(' · ')
+
+    const description = `Wiki CarMatch: ${vehicle.brand} ${vehicle.model} ${vehicle.year}. ${specs}. ${vehicle.description?.substring(0, 120)}...`
 
     return {
         title: title,
@@ -40,12 +49,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             title: title,
             description: description,
             images: vehicle.images || [],
+            type: 'website',
         },
         twitter: {
             card: 'summary_large_image',
             title: title,
             description: description,
             images: vehicle.images || [],
+        },
+        other: {
+            'vehicle:brand': vehicle.brand,
+            'vehicle:model': vehicle.model,
+            'vehicle:year': vehicle.year.toString(),
+            'vehicle:price': vehicle.price.toString(),
         }
     }
 }
@@ -88,19 +104,50 @@ export default async function VehicleDetailPage({ params }: Props) {
         notFound()
     }
 
-    // Calcular isAdmin correctamente (campo BD O verificar contra ADMIN_EMAIL)
+    // JSON-LD for AI and Google (Schema.org)
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Car",
+        "name": `${vehicle.brand} ${vehicle.model} ${vehicle.year}`,
+        "description": vehicle.description,
+        "image": vehicle.images,
+        "brand": {
+            "@type": "Brand",
+            "name": vehicle.brand
+        },
+        "model": vehicle.model,
+        "modelDate": vehicle.year,
+        "color": vehicle.color,
+        "vehicleTransmission": vehicle.transmission,
+        "fuelType": vehicle.fuel,
+        "vehicleEngine": {
+            "@type": "EngineSpecification",
+            "name": vehicle.engine
+        },
+        "mileageFromOdometer": {
+            "@type": "QuantitativeValue",
+            "value": vehicle.mileage,
+            "unitCode": vehicle.mileageUnit === 'km' ? 'KMT' : 'SMI'
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": vehicle.price.toNumber(),
+            "priceCurrency": vehicle.currency || "MXN",
+            "availability": "https://schema.org/InStock"
+        }
+    }
+
+    // Calcular isAdmin correctamente corectamente
     const vehicleData = {
         ...vehicle,
         price: vehicle.price.toNumber(),
         isFavorited: vehicle.favorites && vehicle.favorites.length > 0,
         features: vehicle.features || [],
         favorites: undefined,
-        // Campos adicionales para gestión
         moderationStatus: vehicle.moderationStatus,
         moderationFeedback: vehicle.moderationFeedback,
         expiresAt: vehicle.expiresAt,
         isFreePublication: vehicle.isFreePublication,
-        // IMPORTANTE: Calcular isAdmin correctamente
         user: {
             ...vehicle.user,
             isAdmin: vehicle.user.isAdmin || vehicle.user.email === process.env.ADMIN_EMAIL
@@ -108,10 +155,16 @@ export default async function VehicleDetailPage({ params }: Props) {
     }
 
     return (
-        <VehicleDetailClient
-            vehicle={vehicleData as any}
-            currentUserEmail={session?.user?.email}
-            currentUserId={session?.user?.id}
-        />
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <VehicleDetailClient
+                vehicle={vehicleData as any}
+                currentUserEmail={session?.user?.email}
+                currentUserId={session?.user?.id}
+            />
+        </>
     )
 }

@@ -110,6 +110,14 @@ export async function PATCH(
             finalUpdateData.status = status
         }
 
+        // 🔄 SINCRONIZAR TÍTULO: Si cambió marca, modelo o año, O si se está aprobando, actualizar el título
+        if (updateData.brand || updateData.model || updateData.year || finalUpdateData.moderationStatus === 'APPROVED') {
+            const nextBrand = updateData.brand || vehicle.brand
+            const nextModel = updateData.model || vehicle.model
+            const nextYear = updateData.year !== undefined ? updateData.year : (vehicle as any).year
+            finalUpdateData.title = `${nextBrand} ${nextModel} ${nextYear}`
+        }
+
         if (keyFieldsChanged) {
             finalUpdateData.moderationStatus = 'PENDING_AI'
             // Podríamos disparar la moderación de nuevo aquí, o dejar que el cron lo haga
