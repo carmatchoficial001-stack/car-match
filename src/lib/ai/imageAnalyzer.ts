@@ -106,7 +106,13 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
     "model": "Modelo",
     "year": "Año estimado",
     "color": "Color",
-    "type": "SUV|Sedan|Pickup|etc"
+    "type": "SUV|Sedan|Pickup|etc",
+    "transmission": "Manual|Automática",
+    "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
+    "engine": "Especificación (ej: 2.7L V6)",
+    "traction": "FWD|RWD|4x4|AWD",
+    "doors": 2|3|4|5,
+    "condition": "Nuevo|Seminuevo|Usado"
   }
 }
 `;
@@ -164,40 +170,41 @@ export async function analyzeMultipleImages(
     : '';
 
   const prompt = type === 'VEHICLE'
-    ? `ERES UN EXPERTO ANALISTA DE VEHÍCULOS PARA CARMATCH.
-       TU ÚNICO OBJETIVO: Confirmar que las fotos sean de vehículos reales y seguros.
+    ? `ERES UN EXPERTO ANALISTA TÉCNICO DE VEHÍCULOS PARA CARMATCH.
+       TU ÚNICO OBJETIVO: Evitar fraudes y asegurar que todas las fotos correspondan AL MISMO vehículo.
 
-       📋 DATOS DEL USUARIO (REFERENCIA):
+       📋 DATOS DEL USUARIO (COMO REFERENCIA SOLAMENTE):
        - Marca: "${context?.brand || '?'}", Modelo: "${context?.model || '?'}", Año: "${context?.year || '?'}"
        
-       🚀 REGLAS MAESTRAS DE CARMATCH:
-       1. PORTADA @Index 0 ES EL LÍDER: Identifica si es un VEHÍCULO MOTORIZADO TERRESTRE real. Su marca/modelo/año/color definen el anuncio.
-       2. CONSISTENCIA OBLIGATORIA: Compara todas las fotos 1 al 9 con la Portada (0). 
-          - SI una foto es de un vehículo DIFERENTE al de la portada, ¡MÁRCALA COMO INVALIDA! (isValid: false).
-          - SI la foto es del MISMO vehículo (aunque sea de otro ángulo, motor o interior), ¡ES VÁLIDA!.
-       3. ENRIQUECER FICHA TÉCNICA: Usa las fotos válidas para extraer datos técnicos.
-       4. PRIORIDAD VISUAL: Si la portada es un vehículo real pero no coincide con el texto del usuario, ¡ES VÁLIDO! (la imagen manda).
+       🚀 REGLAS MAESTRAS DE CARMATCH (TOLERANCIA CERO):
+       1. LA PORTADA (@Index 0) ES LA VERDAD ABSOLUTA: Identifica Marca, Modelo, Generación, Color y Tipo basándote ÚNICAMENTE en la foto 0. 
+       2. FILTRADO POR MARCA Y ESTILO: Si la portada muestra un SUV Hyundai, y otra foto muestra un Jeep o un Sedán Toyota, ¡ESA OTRA FOTO ES UN FRAUDE!
+       3. CONSISTENCIA OBLIGATORIA (0 vs 1-6): Compara cada foto del resto de la galería con la Portada (0).
+          - SI la foto es de un vehículo DIFERENTE (otra marca, otro modelo, o estilo incompatible), DEBES poner "isValid": false y "reason": "Vehículo diferente al de la portada".
+          - SI la foto es del MISMO vehículo pero de otro ángulo, motor, rines o interior, es "isValid": true.
+       4. CONSOLIDACIÓN DE DATOS: Extrae los detalles técnicos (cilindraje, transmisión, combustible) de TODAS las fotos válidas, pero NUNCA mezcles datos de una foto que marcaste como inválida.
+       5. PRIORIDAD VISUAL: Si la foto 0 es un carro real pero no coincide con lo que el usuario escribió, la foto 0 MANDA. Tú corriges al usuario.
 
-       Responde ÚNICAMENTE este JSON (sin markdown):
+       Responde ÚNICAMENTE este JSON (sin markdown y sin texto extra):
        {
          "isValidCover": boolean,
-         "coverReason": "Razón si no es vehículo motorizado terrestre",
+         "coverReason": "OK" o razón del rechazo,
          "analysis": [
-           { "index": number, "isValid": boolean, "reason": "OK o 'Vehículo diferente al de portada'" }
+           { "index": number, "isValid": boolean, "reason": "OK" o "Vehículo diferente (Ej: es un Jeep y la portada es Hyundai)" }
          ],
          "details": {
-            "brand": "Marca",
-            "model": "Modelo",
-            "year": "Año",
-            "color": "Color",
+            "brand": "Marca (Basada en Foto 0)",
+            "model": "Modelo (Basado en Foto 0)",
+            "year": "Año estimado (Basado en Foto 0)",
+            "color": "Color predominante",
             "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
             "transmission": "Manual|Automática",
             "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-            "engine": "Especificación (ej: 2.5L 4cil)",
-            "hp": 180,
-            "torque": "190 lb-ft",
+            "engine": "Especificación (ej: 2.7L V6)",
+            "hp": 200,
+            "torque": "250 lb-ft",
             "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged",
-            "cylinders": 4,
+            "cylinders": 6,
             "traction": "FWD|RWD|4x4|AWD",
             "doors": 5,
             "passengers": 5
@@ -233,6 +240,111 @@ export async function analyzeMultipleImages(
   let lastError: any;
   const maxRetries = 2;
 
+  // 🚀 REGLA RUBEN: PARA VEHÍCULOS, LA PORTADA SE ANALIZA PRIMERO Y MANDA
+  if (type === 'VEHICLE' && images.length > 0) {
+    console.log("🛡️ Seguridad CarMatch: Aplicando análisis secuencial (Portada Primero)");
+
+    try {
+      // 1. ANALIZAR PORTADA (Index 0)
+      const coverResult = await analyzeImage(images[0], 'VEHICLE');
+
+      if (!coverResult.valid) {
+        return {
+          valid: false,
+          reason: coverResult.reason || "La foto de portada no es válida.",
+          invalidIndices: [0],
+          details: coverResult.details
+        };
+      }
+
+      // Si solo hay una imagen, terminamos aquí
+      if (images.length === 1) {
+        return coverResult;
+      }
+
+      // 2. ANALIZAR GALERÍA (Contexto de Portada)
+      const sovereignContext = {
+        brand: coverResult.details?.brand,
+        model: coverResult.details?.model,
+        year: coverResult.details?.year
+      };
+
+      const galleryImages = images.slice(1, 6); // Límite de seguridad
+      const galleryPrompt = `
+        ERES UN MODERADOR DE CONSISTENCIA PARA CARMATCH.
+        TU TRABAJO: Comparar la galería con el VEHÍCULO SOBERANO (la portada).
+
+        🚗 VEHÍCULO SOBERANO (PORTADA):
+        - Marca: "${sovereignContext.brand || '?'}", Modelo: "${sovereignContext.model || '?'}", Año: "${sovereignContext.year || '?'}"
+
+        📋 REGLAS:
+        - Cada imagen de la galería DEBE ser del MISMO vehículo.
+        - Se aceptan ángulos diferentes, rines, motor, interior.
+        - RECHAZA (isValid: false) si ves un vehículo de OTRA marca o modelo diferente.
+        - RECHAZA si la imagen es borrosa, ofensiva o no es un vehículo.
+
+        Responde con este JSON:
+        {
+          "analysis": [
+            { "index": number, "isValid": boolean, "reason": "OK" o razón }
+          ],
+          "details": {
+             "transmission": "Manual|Automática",
+             "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
+             "engine": "Ej: 2.0L Turbo",
+             "hp": 150,
+             "traction": "FWD|RWD|4x4|AWD",
+             "doors": 5
+          }
+        }
+      `;
+
+      const imageParts = galleryImages.map(img => ({
+        inlineData: { data: img, mimeType: "image/jpeg" }
+      }));
+
+      const galleryResultRaw = await geminiModel.generateContent([galleryPrompt, ...imageParts]);
+      const galleryResponse = await galleryResultRaw.response;
+      const galleryText = galleryResponse.text();
+
+      const galleryMatch = galleryText.match(/\{[\s\S]*\}/);
+      if (galleryMatch) {
+        const galleryParsed = JSON.parse(galleryMatch[0]);
+        const galleryAnalysis = (galleryParsed.analysis || []).map((a: any) => ({
+          ...a,
+          index: a.index + 1 // Ajustar índice porque slice comenzó en 1
+        }));
+
+        const invalidIndices = galleryAnalysis
+          .filter((a: any) => a.isValid === false)
+          .map((a: any) => a.index);
+
+        // Combinar detalles (Portada manda, Galería complementa técnica)
+        return {
+          valid: true,
+          reason: "OK",
+          invalidIndices: invalidIndices,
+          details: {
+            ...coverResult.details,
+            ...galleryParsed.details,
+            // Aseguramos que marca/modelo/año NO cambien por la galería
+            brand: coverResult.details?.brand,
+            model: coverResult.details?.model,
+            year: coverResult.details?.year
+          },
+          category: coverResult.category
+        };
+      }
+
+      return coverResult; // Fallback a solo portada si el resto falla
+
+    } catch (error) {
+      console.error("❌ Error en análisis secuencial:", error);
+      // Si el análisis secuencial falla por algún motivo técnico, intentamos el método tradicional
+    }
+  }
+
+  // MÉTODO TRADICIONAL (Para Business o Fallback)
   for (let i = 0; i < maxRetries; i++) {
     try {
       // 🚀 OPTIMIZACIÓN CARMATCH: Solo enviamos la portada y el resto de la galería 
