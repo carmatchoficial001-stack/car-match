@@ -4,6 +4,17 @@ import { generateVehicleHash } from './validateFingerprint'
 import { fetchImageAsBase64 } from './ai-moderation-helper'
 
 /**
+ * 🧹 Limpieza de datos IA (Evitar "N/A")
+ */
+const sanitizeAIValue = (val: any) => {
+    if (val === null || val === undefined) return null;
+    if (typeof val !== 'string') return val;
+    const clean = val.trim().toUpperCase();
+    if (clean === 'N/A' || clean === 'UNKNOWN' || clean === 'DESCONOCIDO' || clean === 'NULL' || clean === '') return null;
+    return val;
+}
+
+/**
  * Servicio de Moderación Automática (AI) Real con Gemini
  */
 export async function moderateVehicleListing(vehicleId: string, imageUrls: string[]) {
@@ -21,6 +32,14 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
     })
 
     if (!vehicle) return { status: 'ERROR', reason: 'Vehículo no encontrado' }
+
+    // 🧹 Limpieza de datos IA (Evitar "N/A")
+    const sanitizeAIValue = (val: any) => {
+        if (!val || typeof val !== 'string') return val;
+        const clean = val.trim().toUpperCase();
+        if (clean === 'N/A' || clean === 'UNKNOWN' || clean === 'DESCONOCIDO' || clean === 'NULL') return null;
+        return val;
+    }
 
     if (!imageUrls || imageUrls.length === 0) {
         status = 'REJECTED'
@@ -124,30 +143,36 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                                 const details = analysis.details;
                                 const updateData: any = {};
 
+                                const aiBrand = sanitizeAIValue(details.brand);
+                                const aiModel = sanitizeAIValue(details.model);
+                                const aiColor = sanitizeAIValue(details.color);
+                                const aiType = sanitizeAIValue(details.type);
+
                                 // Comparamos lo que vio la AI con lo que hay en DB
                                 // Si hay una diferencia clara en marca, modelo o año, LA AI GANA
-                                if (details.brand && details.brand !== vehicle.brand) {
-                                    updateData.brand = details.brand;
+                                if (aiBrand && aiBrand !== vehicle.brand) {
+                                    updateData.brand = aiBrand;
                                     correctedFields.push('marca');
                                 }
-                                if (details.model && details.model !== vehicle.model) {
-                                    updateData.model = details.model;
+                                if (aiModel && aiModel !== vehicle.model) {
+                                    updateData.model = aiModel;
                                     correctedFields.push('modelo');
                                 }
-                                if (details.year && parseInt(details.year) !== vehicle.year) {
+                                const aiYearStr = sanitizeAIValue(details.year);
+                                if (aiYearStr && parseInt(aiYearStr as string) !== vehicle.year) {
                                     // Solo corregir el año si hay una diferencia notable (>1 año) para evitar falsos positivos
-                                    const aiYear = parseInt(details.year);
+                                    const aiYear = parseInt(aiYearStr as string);
                                     if (Math.abs(aiYear - vehicle.year) > 1) {
                                         updateData.year = aiYear;
                                         correctedFields.push('año');
                                     }
                                 }
-                                if (details.color && details.color !== vehicle.color && vehicle.color === 'N/A') {
-                                    updateData.color = details.color;
+                                if (aiColor && aiColor !== vehicle.color && (vehicle.color === 'N/A' || !vehicle.color)) {
+                                    updateData.color = aiColor;
                                     correctedFields.push('color');
                                 }
-                                if (details.type && details.type !== (vehicle as any).vehicleType) {
-                                    updateData.vehicleType = details.type;
+                                if (aiType && aiType !== (vehicle as any).vehicleType) {
+                                    updateData.vehicleType = aiType;
                                     correctedFields.push('tipo');
                                 }
 
@@ -165,23 +190,29 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                                 // En este caso, como es moderación inicial, vamos a enriquecer agresivamente si la IA está segura.
 
                                 const v = vehicle as any;
-                                if (details.transmission && (!v.transmission || v.transmission === 'N/A')) {
-                                    updateData.transmission = details.transmission;
+                                const aiTrans = sanitizeAIValue(details.transmission);
+                                const aiFuel = sanitizeAIValue(details.fuel);
+                                const aiEngine = sanitizeAIValue(details.engine);
+                                const aiTract = sanitizeAIValue(details.traction);
+                                const aiDoors = sanitizeAIValue(details.doors);
+
+                                if (aiTrans && (!v.transmission || v.transmission === 'N/A')) {
+                                    updateData.transmission = aiTrans;
                                     correctedFields.push('transmisión');
                                 }
-                                if (details.fuel && (!v.fuel || v.fuel === 'N/A')) {
-                                    updateData.fuel = details.fuel;
+                                if (aiFuel && (!v.fuel || v.fuel === 'N/A')) {
+                                    updateData.fuel = aiFuel;
                                     correctedFields.push('combustible');
                                 }
-                                if (details.engine && (!v.engine || v.engine === 'N/A')) {
-                                    updateData.engine = details.engine;
+                                if (aiEngine && (!v.engine || v.engine === 'N/A')) {
+                                    updateData.engine = aiEngine;
                                     correctedFields.push('motor');
                                 }
-                                if (details.traction && (!v.traction || v.traction === 'N/A')) {
-                                    updateData.traction = details.traction;
+                                if (aiTract && (!v.traction || v.traction === 'N/A')) {
+                                    updateData.traction = aiTract;
                                 }
-                                if (details.doors && (!v.doors || v.doors === 0)) {
-                                    updateData.doors = details.doors;
+                                if (aiDoors && (!v.doors || v.doors === 0)) {
+                                    updateData.doors = aiDoors;
                                 }
 
                                 if (Object.keys(updateData).length > 0) {
@@ -315,39 +346,51 @@ export async function fixAndApproveVehicle(vehicleId: string) {
 
         const isVal = (v: any) => v && v !== 'N/A' && v !== 0
 
+        const aiBrand = sanitizeAIValue(details.brand);
+        const aiModel = sanitizeAIValue(details.model);
+        const aiYearStr = sanitizeAIValue(details.year);
+        const aiColor = sanitizeAIValue(details.color);
+        const aiType = sanitizeAIValue(details.type);
+
         // Identidad (Soberana de la Portada)
-        if (details.brand && details.brand !== vehicle.brand) {
-            updateData.brand = details.brand
+        if (aiBrand && aiBrand !== vehicle.brand) {
+            updateData.brand = aiBrand
         }
-        if (details.model && details.model !== vehicle.model) {
-            updateData.model = details.model
+        if (aiModel && aiModel !== vehicle.model) {
+            updateData.model = aiModel
         }
-        if (details.year && parseInt(details.year) !== vehicle.year) {
-            const aiYear = parseInt(details.year)
+        if (aiYearStr && parseInt(aiYearStr as string) !== vehicle.year) {
+            const aiYear = parseInt(aiYearStr as string)
             if (Math.abs(aiYear - vehicle.year) > 1) {
                 updateData.year = aiYear
             }
         }
-        if (!isVal(vehicle.color) && details.color) updateData.color = details.color
-        if (details.type && details.type !== (vehicle as any).vehicleType) {
-            updateData.vehicleType = details.type
+        if (!isVal(vehicle.color) && aiColor) updateData.color = aiColor
+        if (aiType && aiType !== (vehicle as any).vehicleType) {
+            updateData.vehicleType = aiType
         }
 
         // 🧠 ENRIQUECIMIENTO TÉCNICO (Solo si el usuario no proporcionó el dato)
-        if (!isVal(vehicle.transmission) && details.transmission && details.transmission !== 'N/A')
-            updateData.transmission = details.transmission
+        const aiTrans = sanitizeAIValue(details.transmission);
+        const aiFuel = sanitizeAIValue(details.fuel);
+        const aiEngine = sanitizeAIValue(details.engine);
+        const aiTract = sanitizeAIValue(details.traction);
+        const aiCondition = sanitizeAIValue(details.condition);
 
-        if (!isVal(vehicle.fuel) && details.fuel && details.fuel !== 'N/A')
-            updateData.fuel = details.fuel
+        if (!isVal(vehicle.transmission) && aiTrans)
+            updateData.transmission = aiTrans
 
-        if (!isVal(vehicle.engine) && details.engine && details.engine !== 'N/A')
-            updateData.engine = details.engine
+        if (!isVal(vehicle.fuel) && aiFuel)
+            updateData.fuel = aiFuel
 
-        if (!isVal(vehicle.traction) && details.traction && details.traction !== 'N/A')
-            updateData.traction = details.traction
+        if (!isVal(vehicle.engine) && aiEngine)
+            updateData.engine = aiEngine
 
-        if (!vehicle.doors && details.doors) updateData.doors = details.doors
-        if (!vehicle.condition && details.condition) updateData.condition = details.condition
+        if (!isVal(vehicle.traction) && aiTract)
+            updateData.traction = aiTract
+
+        if (!vehicle.doors && details.doors) updateData.doors = sanitizeAIValue(details.doors)
+        if (!vehicle.condition && aiCondition) updateData.condition = aiCondition
         if (!vehicle.displacement && details.displacement) updateData.displacement = details.displacement
         if (!vehicle.cargoCapacity && details.cargoCapacity) updateData.cargoCapacity = details.cargoCapacity
 

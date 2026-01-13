@@ -110,6 +110,8 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
     "condition": "Nuevo|Usado"
   }
 }
+
+IMPORTANTE: Si no estás seguro de un dato o no es visible, responde "null" (sin comillas). NUNCA respondas "N/A" o "Desconocido".
 `;
   }
 
@@ -197,7 +199,9 @@ export async function analyzeMultipleImages(
             "doors": 5,
             "passengers": 5
          }
-       }`
+       }
+       
+       IMPORTANTE: Si un dato técnico no es visible o es incierto, usa null. PROHIBIDO usar "N/A".`
     : `ERES UN MODERADOR DE CONTENIDO PARA PERFILES DE NEGOCIO.
        TU MISIÓN: Permitir libertad creativa total, FILTRANDO SOLO CONTENIDO ILEGAL O PELIGROSO.
        
