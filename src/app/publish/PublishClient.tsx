@@ -168,9 +168,9 @@ export default function PublishClient() {
             setAiConfidence(100)
 
             // 1. 🛡️ REGLA SOBERANA: Aplicar Brand/Model/Year de la portada SIEMPRE
-            // Incluso si hay problemas en la galería, la portada manda la identidad.
+            // incluso si el usuario ya escribió algo, el Asesor Real tiene la última palabra visual.
             if (validation.details && (!validation.invalidIndices || !validation.invalidIndices.includes(0))) {
-                applyAiDetails(validation.details, validation.category)
+                applyAiDetails(validation.details, validation.category, true) // Pass flag to force overwrite
             }
 
             // 2. 🚨 VALIDAR PORTADA (Index 0)
@@ -211,7 +211,7 @@ export default function PublishClient() {
 
     const cancelValidation = () => { }
 
-    const applyAiDetails = (details: any, category: string) => {
+    const applyAiDetails = (details: any, category: string, forceIdentityOverwrite: boolean = false) => {
         const findInList = (value: string, list: string[]) => {
             if (!value) return ''
             const normalized = value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -586,7 +586,12 @@ export default function PublishClient() {
                 <div className="bg-surface border border-surface-highlight rounded-2xl p-6 md:p-8 shadow-xl relative min-h-[400px]">
                     {isAnalyzing && (
                         <div className="absolute inset-0 z-40 bg-surface/90 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl">
-                            <h3 className="text-2xl font-bold text-text-primary animate-pulse">Verificando Seguridad...</h3>
+                            <h3 className="text-2xl font-bold text-text-primary animate-pulse text-center px-6">
+                                Analizando todas tus fotos (hasta 10)...
+                            </h3>
+                            <p className="text-primary-400 mt-2 text-sm font-bold uppercase tracking-widest">
+                                Estableciendo Identidad Soberana
+                            </p>
                             <div className="w-64 h-2 bg-surface-highlight rounded-full mt-6 overflow-hidden">
                                 <div className="h-full bg-green-500 transition-all" style={{ width: `${aiConfidence}%` }}></div>
                             </div>

@@ -366,7 +366,8 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                     <button
                                         type="button"
                                         onClick={() => loadSafePlaces()}
-                                        className="p-2.5 text-primary-600 hover:bg-primary-50 rounded-xl transition-colors"
+                                        disabled={chat?.vehicle?.status !== 'ACTIVE'}
+                                        className={`p-2.5 rounded-xl transition-colors ${chat?.vehicle?.status !== 'ACTIVE' ? 'opacity-30 cursor-not-allowed text-gray-400' : 'text-primary-600 hover:bg-primary-50'}`}
                                         title="Proponer Cita Segura"
                                     >
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -377,19 +378,29 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                         type="text"
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
-                                        placeholder={t('messages.write_message')}
-                                        className="flex-1 bg-transparent py-3 focus:outline-none text-text-primary text-sm shadow-inner"
-                                        disabled={sending}
+                                        placeholder={chat?.vehicle?.status === 'ACTIVE' ? t('messages.write_message') : 'Vehículo no disponible para consulta'}
+                                        className="flex-1 bg-transparent py-3 focus:outline-none text-text-primary text-sm shadow-inner disabled:opacity-50"
+                                        disabled={sending || chat?.vehicle?.status !== 'ACTIVE'}
                                     />
                                 </div>
                                 <button
                                     type="submit"
-                                    disabled={!newMessage.trim() || sending}
-                                    className="p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors shadow-lg active:scale-95 shrink-0"
+                                    disabled={!newMessage.trim() || sending || chat?.vehicle?.status !== 'ACTIVE'}
+                                    className="p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors shadow-lg active:scale-95 shrink-0 disabled:opacity-50 disabled:bg-gray-700"
                                 >
                                     <svg className="w-6 h-6 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                                 </button>
                             </form>
+                            {chat?.vehicle?.status !== 'ACTIVE' && (
+                                <div className="mt-3 p-3 bg-red-900/10 border border-red-500/20 rounded-xl text-center">
+                                    <p className="text-xs text-red-400 font-bold flex items-center justify-center gap-1">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        Este vehículo ya no está disponible para nuevas consultas.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

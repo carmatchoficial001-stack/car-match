@@ -24,6 +24,7 @@ interface Chat {
         price: number
         images: string[]
         city: string
+        status: string
     }
     lastMessage?: {
         id: string
@@ -137,6 +138,14 @@ export default function MessagesPage() {
                                             <span className="text-xs text-text-secondary">
                                                 {chat.vehicle.city}
                                             </span>
+                                            {chat.vehicle.status !== 'ACTIVE' && (
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${chat.vehicle.status === 'SOLD'
+                                                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                                    }`}>
+                                                    {chat.vehicle.status === 'SOLD' ? 'Vendido' : 'No Disponible'}
+                                                </span>
+                                            )}
                                         </div>
 
                                         <div className="flex items-center gap-2 mb-2">

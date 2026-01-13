@@ -36,7 +36,8 @@ export async function GET(request: NextRequest) {
                         year: true,
                         price: true,
                         images: true,
-                        city: true
+                        city: true,
+                        status: true
                     }
                 },
                 buyer: {
@@ -120,6 +121,14 @@ export async function POST(request: NextRequest) {
         // No puedes chatear contigo mismo
         if (vehicle.userId === user.id) {
             return NextResponse.json({ error: 'No puedes chatear contigo mismo' }, { status: 400 })
+        }
+
+        // 🛡️ REGLA CARMATCH: No se puede iniciar contacto si el vehículo no está activo
+        if (vehicle.status !== 'ACTIVE') {
+            return NextResponse.json({
+                error: 'Este vehículo ya no está disponible para contacto.',
+                status: vehicle.status
+            }, { status: 403 })
         }
 
         // Buscar chat existente o crear uno nuevo

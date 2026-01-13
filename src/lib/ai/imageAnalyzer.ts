@@ -319,6 +319,9 @@ export async function analyzeMultipleImages(
         - Modelo: "${IDENTIDAD_SOBERANA_DE_PORTADA.model || '?'}"
         - Estilo: "${IDENTIDAD_SOBERANA_DE_PORTADA.type || '?'}"
 
+        ESTÁS RECIBIENDO ${galleryImages.length} IMÁGENES DE GALERÍA. 
+        IMPORTANTE: El "index" de la primera imagen de este grupo es 0, la segunda es 1, etc.
+
         📋 REGLAS DE AUDITORÍA (TOLERANCIA CERO):
         - LA PORTADA MANDANTE: La identidad de arriba es la ÚNICA válida para este anuncio.
         - CUALQUIER IMAGEN QUE NO SEA EL MISMO VEHÍCULO MENCIONADO EN LA PORTADA DEBE SER MARCADA AS "isValid": false.
@@ -330,7 +333,7 @@ export async function analyzeMultipleImages(
         Responde con este JSON:
         {
           "analysis": [
-            { "index": number, "isValid": boolean, "reason": "OK" o razón }
+            { "index": number, "isValid": boolean, "reason": "OK" }
           ],
           "details": {
              "transmission": "Manual|Automática",
@@ -367,7 +370,7 @@ export async function analyzeMultipleImages(
         const galleryParsed = JSON.parse(galleryMatch[0]);
         const galleryAnalysis = (galleryParsed.analysis || []).map((a: any) => ({
           ...a,
-          index: a.index // El índice que devuelve la IA debe coincidir con la posición en galleryImages
+          index: Number(a.index) + 1 // 🚀 MAPEO CRÍTICO: El index 0 de galería es el index 1 global
         }));
 
         const invalidIndices = galleryAnalysis
