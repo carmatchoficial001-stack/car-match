@@ -301,6 +301,20 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                     {/* Messages Container */}
                     <div className="flex-1 overflow-y-auto px-4 py-6 bg-background scroll-smooth">
                         <div className="max-w-4xl mx-auto space-y-4">
+                            {/* Mensaje de Bienvenida y Seguridad (Visual Estático) */}
+                            <div className="flex justify-center mb-6">
+                                <div className="bg-surface-highlight/30 border border-primary-500/20 px-6 py-4 rounded-3xl text-xs text-text-primary max-w-[90%] text-center shadow-sm">
+                                    <p className="leading-relaxed">
+                                        <span className="text-lg block mb-1">🛡️</span>
+                                        {t('messages.welcome_security_message') || '¡Hola! Por tu seguridad, te recomendamos revisar nuestros '}
+                                        <span className="text-primary-400 font-bold">Consejos</span>
+                                        {' y agendar '}
+                                        <span className="text-primary-400 font-bold">Reuniones Seguras</span>
+                                        {' 📅 usando los botones de abajo.'}
+                                    </p>
+                                </div>
+                            </div>
+
                             {messages.map((message) => {
                                 const isOwnMessage = message.senderId === session?.user?.id
                                 const isSystem = message.senderId === 'SYSTEM'
