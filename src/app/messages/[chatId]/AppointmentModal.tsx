@@ -92,7 +92,7 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
 
     return (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-surface border border-surface-highlight rounded-2xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-surface border border-surface-highlight rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 <div className="p-4 border-b border-surface-highlight flex justify-between items-center bg-surface-highlight/30 rounded-t-2xl">
                     <h3 className="font-bold text-lg text-text-primary">
                         {initialAppointment ? '🔄 Editar Cita de Reunión' : t('appointment.modal_title')}
@@ -100,7 +100,7 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
                     <button onClick={onClose} className="text-text-secondary hover:text-text-primary text-xl">&times;</button>
                 </div>
 
-                <div className="p-6 space-y-6">
+                <div className="p-6 space-y-6 flex-1 overflow-y-auto custom-scrollbar">
                     {/* Fecha y Hora */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
