@@ -385,6 +385,14 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                     url={typeof window !== 'undefined' ? `${window.location.origin}/vehicle/${vehicle.id}` : `/vehicle/${vehicle.id}`}
                                     variant="full"
                                 />
+                                {!isOwner && (
+                                    <FavoriteButton
+                                        vehicleId={vehicle.id}
+                                        initialIsFavorited={vehicle.isFavorited}
+                                        size="md"
+                                        className="h-full border border-surface-highlight"
+                                    />
+                                )}
                                 {!isOwner && !vehicle.user.isAdmin && (
                                     <ContactButton
                                         sellerId={vehicle.userId}

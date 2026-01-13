@@ -427,11 +427,17 @@ export default function MarketClient({
                                                             </Link>
                                                         )}
                                                         <div className="flex items-center gap-2 md:gap-3">
+                                                            <FavoriteButton
+                                                                vehicleId={!isBusiness ? item.id : undefined}
+                                                                businessId={isBusiness ? item.id : undefined}
+                                                                initialIsFavorited={item.isFavorited}
+                                                                size="sm"
+                                                            />
                                                             <div className="hidden md:block">
                                                                 <ShareButton
                                                                     title={item.title}
                                                                     text={t('market.interest_text').replace('{title}', item.title)}
-                                                                    url={typeof window !== 'undefined' ? `${window.location.origin}${isBusiness ? `/business/${item.id}` : `/vehicle/${item.id}`}` : (isBusiness ? `/business/${item.id}` : `/vehicle/${item.id}`)}
+                                                                    url={typeof window !== 'undefined' ? `${window.location.origin}${isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}` : (isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`)}
                                                                     variant="minimal"
                                                                 />
                                                             </div>

@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface FavoriteButtonProps {
-    vehicleId: string
+    vehicleId?: string
+    businessId?: string
     initialIsFavorited?: boolean
     size?: 'sm' | 'md' | 'lg'
     className?: string
@@ -13,6 +14,7 @@ interface FavoriteButtonProps {
 
 export default function FavoriteButton({
     vehicleId,
+    businessId,
     initialIsFavorited = false,
     size = 'md',
     className = '',
@@ -53,16 +55,20 @@ export default function FavoriteButton({
 
         try {
             setIsLoading(true)
-            const response = await fetch('/api/favorites', {
+
+            const endpoint = vehicleId ? '/api/favorites' : '/api/businesses/favorites'
+            const body = vehicleId ? { vehicleId } : { businessId }
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ vehicleId })
+                body: JSON.stringify(body)
             })
 
             if (response.status === 401) {
-                // Si no estÃ¡ autorizado, redirigir a login
+                // Si no está autorizado, redirigir a login
                 // Revertir estado
                 setIsFavorited(!newState)
                 router.push('/auth')
@@ -73,9 +79,13 @@ export default function FavoriteButton({
                 throw new Error('Error al actualizar favorito')
             }
 
-            // Confirmar estado real del servidor (opcional, por ahora confiamos en optimistic)
-            // const data = await response.json()
-            // setIsFavorited(data.isFavorited)
+            // Confirmar estado real del servidor para negocios (devuelve isFavorite en vez de isFavorited)
+            const data = await response.json()
+            if (data.hasOwnProperty('isFavorite')) {
+                setIsFavorited(data.isFavorite)
+            } else if (data.hasOwnProperty('isFavorited')) {
+                setIsFavorited(data.isFavorited)
+            }
 
         } catch (error) {
             console.error('Error:', error)
