@@ -319,7 +319,6 @@ export async function fixAndApproveVehicle(vehicleId: string) {
         if (details.engine && details.engine !== 'N/A') updateData.engine = details.engine
         if (details.traction && details.traction !== 'N/A') updateData.traction = details.traction
         if (details.doors) updateData.doors = details.doors
-        if (details.mileage) updateData.mileage = details.mileage // Si la IA logró leer el odómetro
         if (details.condition) updateData.condition = details.condition
         if (details.displacement) updateData.displacement = details.displacement
         if (details.cargoCapacity) updateData.cargoCapacity = details.cargoCapacity

@@ -18,10 +18,14 @@ interface ImageAnalysisResult {
     // Características técnicas
     transmission?: string; // Manual, Automática, CVT
     fuel?: string; // Gasolina, Diésel, Eléctrico, Híbrido
+    engine?: string; // Ej: "V6 3.5L"
     hp?: number; // Caballos de fuerza
     torque?: string; // Ej: "350 lb-ft"
     aspiration?: string; // Turbo, Atmosférico, Eléctrico, etc.
     cylinders?: number; // 4, 6, 8, etc.
+    traction?: string; // FWD, RWD, 4x4, AWD
+    doors?: number;
+    passengers?: number;
     batteryCapacity?: number; // kWh (eléctricos)
     range?: number; // km (eléctricos)
     weight?: number; // kg
