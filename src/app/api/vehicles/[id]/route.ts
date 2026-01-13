@@ -64,7 +64,7 @@ export async function PATCH(
         // Verificar propiedad del vehículo
         const vehicle = await prisma.vehicle.findUnique({
             where: { id },
-            select: { userId: true, status: true, title: true, brand: true, model: true }
+            select: { userId: true, status: true, title: true, brand: true, model: true, year: true }
         })
 
         if (!vehicle) {
@@ -163,6 +163,11 @@ export async function PATCH(
             }
 
             // 3. Ejecutar la actualización del vehículo dentro de la misma transacción
+            // 🚨 CRITICAL FIX: Remover useCredit si existe en updateData/finalUpdateData ya que no es un campo de la DB
+            if ('useCredit' in finalUpdateData) {
+                delete finalUpdateData.useCredit
+            }
+
             return await tx.vehicle.update({
                 where: { id },
                 data: finalUpdateData
@@ -195,10 +200,15 @@ export async function PATCH(
             timestamp: new Date().toISOString()
         })
 
+        // Mejorar manejo de errores para el cliente
+        if (errorMessage.includes('créditos insuficiente')) {
+            return NextResponse.json({ error: 'Saldo de créditos insuficiente' }, { status: 402 })
+        }
+
         return NextResponse.json({
-            error: 'Error interno',
+            error: errorMessage === 'Saldo de créditos insuficiente' ? errorMessage : 'Error interno',
             details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
-        }, { status: 500 })
+        }, { status: errorMessage.includes('créditos insuficiente') ? 402 : 500 })
     }
 }
 
