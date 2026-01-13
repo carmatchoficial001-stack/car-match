@@ -119,30 +119,34 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                             // SI todas las fotos son consistentes entre sí pero diferentes al texto -> AUTO-CORREGIR.
                             status = 'APPROVED'
 
-                            // 🚀 AUTO-CORRECCIÓN (SOFT-FILL: Solo si el usuario dejó campos vacíos o "N/A")
+                            // 🚀 AUTO-CORRECCIÓN AGRESIVA (REGLA RUBEN: LA AI MANDA)
                             if (analysis.details) {
                                 const details = analysis.details;
                                 const updateData: any = {};
-                                const isVal = (v: any) => v && v !== 'N/A' && v !== 0;
 
-                                // Solo corregimos si es para "sacar de la duda" o completar
-                                if (!isVal(vehicle.brand) && details.brand) {
+                                // Comparamos lo que vio la AI con lo que hay en DB
+                                // Si hay una diferencia clara en marca, modelo o año, LA AI GANA
+                                if (details.brand && details.brand !== vehicle.brand) {
                                     updateData.brand = details.brand;
                                     correctedFields.push('marca');
                                 }
-                                if (!isVal(vehicle.model) && details.model) {
+                                if (details.model && details.model !== vehicle.model) {
                                     updateData.model = details.model;
                                     correctedFields.push('modelo');
                                 }
-                                if (!isVal(vehicle.year) && details.year) {
-                                    updateData.year = parseInt(details.year);
-                                    correctedFields.push('año');
+                                if (details.year && parseInt(details.year) !== vehicle.year) {
+                                    // Solo corregir el año si hay una diferencia notable (>1 año) para evitar falsos positivos
+                                    const aiYear = parseInt(details.year);
+                                    if (Math.abs(aiYear - vehicle.year) > 1) {
+                                        updateData.year = aiYear;
+                                        correctedFields.push('año');
+                                    }
                                 }
-                                if (!isVal(vehicle.color) && details.color) {
+                                if (details.color && details.color !== vehicle.color && vehicle.color === 'N/A') {
                                     updateData.color = details.color;
                                     correctedFields.push('color');
                                 }
-                                if (!isVal((vehicle as any).vehicleType) && details.type) {
+                                if (details.type && details.type !== (vehicle as any).vehicleType) {
                                     updateData.vehicleType = details.type;
                                     correctedFields.push('tipo');
                                 }
@@ -303,7 +307,7 @@ export async function fixAndApproveVehicle(vehicleId: string) {
             return { success: false, error: 'La IA no pudo extraer detalles suficientes.' }
         }
 
-        // 2. Aplicar correcciones (SOFT-FILL: Solo si el campo está vacío o es N/A)
+        // 2. Aplicar correcciones AGRESIVAS para Identidad (La Portada manda)
         const updateData: any = {
             moderationStatus: 'APPROVED',
             status: 'ACTIVE'
@@ -311,14 +315,25 @@ export async function fixAndApproveVehicle(vehicleId: string) {
 
         const isVal = (v: any) => v && v !== 'N/A' && v !== 0
 
-        // Campos básicos
-        if (!isVal(vehicle.brand) && details.brand) updateData.brand = details.brand
-        if (!isVal(vehicle.model) && details.model) updateData.model = details.model
-        if (!isVal(vehicle.year) && details.year) updateData.year = parseInt(details.year)
+        // Identidad (Soberana de la Portada)
+        if (details.brand && details.brand !== vehicle.brand) {
+            updateData.brand = details.brand
+        }
+        if (details.model && details.model !== vehicle.model) {
+            updateData.model = details.model
+        }
+        if (details.year && parseInt(details.year) !== vehicle.year) {
+            const aiYear = parseInt(details.year)
+            if (Math.abs(aiYear - vehicle.year) > 1) {
+                updateData.year = aiYear
+            }
+        }
         if (!isVal(vehicle.color) && details.color) updateData.color = details.color
-        if (!isVal(vehicle.vehicleType) && details.type) updateData.vehicleType = details.type
+        if (details.type && details.type !== (vehicle as any).vehicleType) {
+            updateData.vehicleType = details.type
+        }
 
-        // 🧠 ENRIQUECIMIENTO (Solo si el usuario no proporcionó el dato)
+        // 🧠 ENRIQUECIMIENTO TÉCNICO (Solo si el usuario no proporcionó el dato)
         if (!isVal(vehicle.transmission) && details.transmission && details.transmission !== 'N/A')
             updateData.transmission = details.transmission
 

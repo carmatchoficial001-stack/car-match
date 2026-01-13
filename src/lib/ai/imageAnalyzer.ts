@@ -78,41 +78,36 @@ RESPONDE SOLO EL JSON.
   } else {
     // 🚗 VALIDATION FOR VEHICLES
     prompt = `
-ERES UN MODERADOR INTELIGENTE Y PROTECTOR PARA CARMATCH.
-TU MISIÓN: Asegurar que las imágenes sean PARTES/VEHÍCULOS reales y, sobre todo, SEGURAS PARA TODA LA FAMILIA (incluyendo menores).
+ERES UN ANALISTA FORENSE DE VEHÍCULOS. TU MISIÓN ES LA VERDAD VISUAL.
+EL USUARIO PUEDE INTENTAR ENGAÑARTE CON EL TEXTO, PERO LA IMAGEN NO MIENTE.
 
-═══ CRITERIOS DE APROBACIÓN (SFW - SEGURO) ═══
-✅ ACEPTA:
-- Vehículos reales completos o piezas mecánicas (Motores, chasis, llantas, rines, transmisiones).
-- Fotos con texto de venta o capturas de buena calidad.
+═══ PROTOCOLO DE ANÁLISIS (PASO A PASO) ═══
+1. OLVIDA EL TEXTO: Ignora cualquier marca o modelo que se te haya dado en el contexto.
+2. ESCANEO VISUAL: Identifica la silueta, la forma de la parrilla, el diseño de los faros y los logotipos.
+3. IDENTIFICACIÓN PURA: Determina qué vehículo es basándote *solo* en la imagen.
+4. COMPARACIÓN CRÍTICA: Si el contexto dice "Hyundai" pero ves un "Jeep Wrangler" (como en las versiones modificadas con parrilla enojada), TU DEBER es reportar JEEP WRANGLER.
 
-═══ CRITERIOS DE RECHAZO ABSOLUTO (TOLERANCIA CERO) ═══
-🚫 RECHAZA INMEDIATAMENTE:
-- 🔞 CONTENIDO ADULTO: Desnudez, poses lascivas o ropa sugerente. La app es para niños y jóvenes también.
-- 🩸 VIOLENCIA: Sangre, accidentes reales grotescos, gore o armas.
-- 🖕 CONTENIDO OFENSIVO: Odio, racismo o lenguaje vulgar.
-- 🧸 JUGUETES o maquetas.
-- 📺 FOTOS A PANTALLAS.
-- 👥 IRRELEVANTE: Memes, animales, comida o personas como protagonistas.
-- 📅 FLEXIBILIDAD TOTAL EN AÑOS: Muchos vehículos permanecen visualmente IDÉNTICOS por periodos de 5 a 10 años (mismas generaciones). No rechaces por error de año si la marca, modelo y generación visual coinciden. Sé muy flexible: el año es informativo, no un criterio de exclusión a menos que sea físicamente imposible (ej: un carro moderno marcado como 1950).
+REGLAS DE RECHAZO:
+- Si no es un vehículo real (juguete, dibujo).
+- Si es inseguro (desnudez, violencia).
 
 RESPONDE ÚNICAMENTE CON ESTE JSON:
 {
   "valid": boolean,
-  "reason": "Explicación breve (en Español)",
-  "category": "automovil" | "motocicleta" | "comercial" | "industrial" | "transporte" | "especial" | null,
+  "reason": "OK o razón de rechazo",
+  "category": "automovil" | "motocicleta" | "comercial" | "industrial" | "transporte" | "especial",
   "details": {
-    "brand": "Marca",
-    "model": "Modelo",
-    "year": "Año estimado",
+    "brand": "Marca REAL identificada visualmente",
+    "model": "Modelo REAL identificado visualmente",
+    "year": "Año o generación",
     "color": "Color",
-    "type": "SUV|Sedan|Pickup|etc",
+    "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
     "transmission": "Manual|Automática",
     "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-    "engine": "Especificación (ej: 2.7L V6)",
+    "engine": "Especificación motor",
     "traction": "FWD|RWD|4x4|AWD",
     "doors": 2|3|4|5,
-    "condition": "Nuevo|Seminuevo|Usado"
+    "condition": "Nuevo|Usado"
   }
 }
 `;
@@ -170,41 +165,34 @@ export async function analyzeMultipleImages(
     : '';
 
   const prompt = type === 'VEHICLE'
-    ? `ERES UN EXPERTO ANALISTA TÉCNICO DE VEHÍCULOS PARA CARMATCH.
-       TU ÚNICO OBJETIVO: Evitar fraudes y asegurar que todas las fotos correspondan AL MISMO vehículo.
+    ? `ERES UN ANALISTA FORENSE TÉCNICO DE VEHÍCULOS.
+       TU MISIÓN: Descubrir fraudes. El usuario puede intentar engañarte con el texto, pero la imagen es la única verdad.
 
-       📋 DATOS DEL USUARIO (COMO REFERENCIA SOLAMENTE):
+       📋 DATOS DEL USUARIO (POSIBLEMENTE FALSOS O ERRÓNEOS):
        - Marca: "${context?.brand || '?'}", Modelo: "${context?.model || '?'}", Año: "${context?.year || '?'}"
        
-       🚀 REGLAS MAESTRAS DE CARMATCH (TOLERANCIA CERO):
-       1. LA PORTADA (@Index 0) ES LA VERDAD ABSOLUTA: Identifica Marca, Modelo, Generación, Color y Tipo basándote ÚNICAMENTE en la foto 0. 
-       2. FILTRADO POR MARCA Y ESTILO: Si la portada muestra un SUV Hyundai, y otra foto muestra un Jeep o un Sedán Toyota, ¡ESA OTRA FOTO ES UN FRAUDE!
-       3. CONSISTENCIA OBLIGATORIA (0 vs 1-6): Compara cada foto del resto de la galería con la Portada (0).
-          - SI la foto es de un vehículo DIFERENTE (otra marca, otro modelo, o estilo incompatible), DEBES poner "isValid": false y "reason": "Vehículo diferente al de la portada".
-          - SI la foto es del MISMO vehículo pero de otro ángulo, motor, rines o interior, es "isValid": true.
-       4. CONSOLIDACIÓN DE DATOS: Extrae los detalles técnicos (cilindraje, transmisión, combustible) de TODAS las fotos válidas, pero NUNCA mezcles datos de una foto que marcaste como inválida.
-       5. PRIORIDAD VISUAL: Si la foto 0 es un carro real pero no coincide con lo que el usuario escribió, la foto 0 MANDA. Tú corriges al usuario.
+       🚀 PROTOCOLO DE AUDITORÍA VISUAL:
+       1. VISIÓN SOBERANA (@Index 0): Identifica el vehículo basándote *solo* en su silueta, parrilla, faros y logos.
+       2. SI VES UN JEEP PERO EL TEXTO DICE "${context?.brand || '?'}", TU RESPUESTA DEBE SER JEEP. No alucines con el texto del usuario.
+       3. CONSISTENCIA: Todas las fotos deben ser del mismo vehículo que la portada.
+       4. CORRECCIÓN AGRESIVA: Si el usuario escribió mal el modelo, tú pones el modelo CORRECTO basado en lo que ves.
 
-       Responde ÚNICAMENTE este JSON (sin markdown y sin texto extra):
+       Responde ÚNICAMENTE este JSON:
        {
          "isValidCover": boolean,
          "coverReason": "OK" o razón del rechazo,
          "analysis": [
-           { "index": number, "isValid": boolean, "reason": "OK" o "Vehículo diferente (Ej: es un Jeep y la portada es Hyundai)" }
+           { "index": number, "isValid": boolean, "reason": "OK" o "Vehículo diferente" }
          ],
          "details": {
-            "brand": "Marca (Basada en Foto 0)",
-            "model": "Modelo (Basado en Foto 0)",
-            "year": "Año estimado (Basado en Foto 0)",
+            "brand": "Marca REAL identificada",
+            "model": "Modelo REAL identificado",
+            "year": "Año/Generación REAL",
             "color": "Color predominante",
             "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
             "transmission": "Manual|Automática",
             "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-            "engine": "Especificación (ej: 2.7L V6)",
-            "hp": 200,
-            "torque": "250 lb-ft",
-            "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged",
-            "cylinders": 6,
+            "engine": "Ej: 2.0L Turbo",
             "traction": "FWD|RWD|4x4|AWD",
             "doors": 5,
             "passengers": 5
@@ -263,25 +251,29 @@ export async function analyzeMultipleImages(
       }
 
       // 2. ANALIZAR GALERÍA (Contexto de Portada)
-      const sovereignContext = {
+      // La portada es la ÚNICA fuente de verdad para la identidad (Marca/Modelo/Año).
+      // La galería solo sirve para confirmar que es el mismo coche y extraer datos técnicos.
+      const IDENTIDAD_SOBERANA_DE_PORTADA = {
         brand: coverResult.details?.brand,
         model: coverResult.details?.model,
-        year: coverResult.details?.year
+        year: coverResult.details?.year,
+        type: coverResult.details?.type
       };
 
-      const galleryImages = images.slice(1, 6); // Límite de seguridad
+      const galleryImages = images.slice(1, 6);
       const galleryPrompt = `
-        ERES UN MODERADOR DE CONSISTENCIA PARA CARMATCH.
-        TU TRABAJO: Comparar la galería con el VEHÍCULO SOBERANO (la portada).
+        ERES UN AUDITOR DE CONSISTENCIA VISUAL PARA CARMATCH.
+        TU MISIÓN: Validar que cada foto de la galería sea EXACTAMENTE el mismo vehículo que la portada.
 
-        🚗 VEHÍCULO SOBERANO (PORTADA):
-        - Marca: "${sovereignContext.brand || '?'}", Modelo: "${sovereignContext.model || '?'}", Año: "${sovereignContext.year || '?'}"
+        🚗 VEHÍCULO SOBERANO (IDENTIDAD CREADA EN PORTADA):
+        - Marca: "${IDENTIDAD_SOBERANA_DE_PORTADA.brand || '?'}"
+        - Modelo: "${IDENTIDAD_SOBERANA_DE_PORTADA.model || '?'}"
+        - Estilo: "${IDENTIDAD_SOBERANA_DE_PORTADA.type || '?'}"
 
-        📋 REGLAS:
-        - Cada imagen de la galería DEBE ser del MISMO vehículo.
-        - Se aceptan ángulos diferentes, rines, motor, interior.
-        - RECHAZA (isValid: false) si ves un vehículo de OTRA marca o modelo diferente.
-        - RECHAZA si la imagen es borrosa, ofensiva o no es un vehículo.
+        📋 REGLAS DE AUDITORÍA:
+        - Si ves un vehículo diferente (otra marca, modelo o tipo), marca "isValid": false.
+        - Sé estrictamente fiel a la identidad de la portada. No permitas que la galería cambie la marca o modelo.
+        - Extrae datos técnicos (motor, transmisión, combustible) solo si son visibles.
 
         Responde con este JSON:
         {
@@ -312,25 +304,27 @@ export async function analyzeMultipleImages(
         const galleryParsed = JSON.parse(galleryMatch[0]);
         const galleryAnalysis = (galleryParsed.analysis || []).map((a: any) => ({
           ...a,
-          index: a.index + 1 // Ajustar índice porque slice comenzó en 1
+          index: a.index + 1
         }));
 
         const invalidIndices = galleryAnalysis
           .filter((a: any) => a.isValid === false)
           .map((a: any) => a.index);
 
-        // Combinar detalles (Portada manda, Galería complementa técnica)
+        // BLINDAJE FINAL: Los detalles de identidad (Marca/Modelo/Año/Tipo) NUNCA vienen de la galería.
+        // Solo aceptamos enriquecimiento técnico (motor/transmisión).
         return {
-          valid: true,
-          reason: "OK",
+          valid: coverResult.valid, // La validez general depende de la portada
+          reason: coverResult.reason || "OK",
           invalidIndices: invalidIndices,
           details: {
-            ...coverResult.details,
-            ...galleryParsed.details,
-            // Aseguramos que marca/modelo/año NO cambien por la galería
-            brand: coverResult.details?.brand,
-            model: coverResult.details?.model,
-            year: coverResult.details?.year
+            ...coverResult.details, // Identidad Soberana
+            ...galleryParsed.details, // Enriquecimiento Técnico
+            // Forzamos que la identidad sea la de la portada, sin importar qué dijo la galería
+            brand: IDENTIDAD_SOBERANA_DE_PORTADA.brand,
+            model: IDENTIDAD_SOBERANA_DE_PORTADA.model,
+            year: IDENTIDAD_SOBERANA_DE_PORTADA.year,
+            type: IDENTIDAD_SOBERANA_DE_PORTADA.type
           },
           category: coverResult.category
         };
