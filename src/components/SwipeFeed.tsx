@@ -80,7 +80,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
         >
             <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-full">
                 {/* Imagen Principal (Flex Grow para ocupar espacio disponible) */}
-                <div className="relative flex-1 min-h-[40%] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden">
+                <div className="relative flex-1 min-h-[50%] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden">
                     {item.images && item.images[0] ? (
                         <img
                             src={item.images[0]}
@@ -131,37 +131,38 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 </div>
 
                 {/* Contenido Inferior: Info + Galería + Botones */}
-                <div className="flex flex-col bg-surface">
-                    {/* Info Header */}
-                    <div className="px-6 pt-5 pb-2 flex justify-between items-start">
-                        <div className="flex-1">
-                            <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} onPointerDown={(e) => e.stopPropagation()}>
-                                <h2 className="text-2xl font-bold text-text-primary mb-1 hover:text-primary-400 transition cursor-pointer leading-tight line-clamp-2">
-                                    {item.title} {item.year && <span className="font-light opacity-80 text-lg ml-1">{item.year}</span>}
-                                </h2>
-                            </Link>
-                            <div className="flex items-center gap-2 text-text-secondary text-sm">
-                                <MapPin size={14} className="text-primary-500" />
-                                <span className="font-medium">{item.city}</span>
-                            </div>
-                        </div>
-                        <div className="text-right ml-3">
-                            {!isBusiness ? (
-                                <div className="text-2xl font-bold text-primary-500">
-                                    {formatPrice(item.price || 0, item.currency || 'MXN')}
-                                </div>
-                            ) : (
-                                <div className="text-sm font-bold text-primary-400 uppercase tracking-tighter bg-primary-900/20 px-2 py-1 rounded">
-                                    {item.category || 'Negocio'}
-                                </div>
-                            )}
-                            {/* Link movido abajo */}
-                        </div>
+                <div className="flex flex-col bg-surface pt-4">
+                    {/* 1. Nombre y Año */}
+                    <div className="px-6 mb-1">
+                        <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} onPointerDown={(e) => e.stopPropagation()}>
+                            <h2 className="text-2xl font-bold text-text-primary hover:text-primary-400 transition cursor-pointer leading-tight line-clamp-2">
+                                {item.title} {item.year && <span className="font-light opacity-80 text-lg ml-1">{item.year}</span>}
+                            </h2>
+                        </Link>
                     </div>
 
-                    {/* Galería de Fotos Extra (Si existen) */}
+                    {/* 2. Precio */}
+                    <div className="px-6 mb-1">
+                        {!isBusiness ? (
+                            <div className="text-2xl font-bold text-primary-500">
+                                {formatPrice(item.price || 0, item.currency || 'MXN')}
+                            </div>
+                        ) : (
+                            <div className="text-sm font-bold text-primary-400 uppercase tracking-tighter bg-primary-900/20 px-2 py-1 rounded inline-block">
+                                {item.category || 'Negocio'}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 3. Ubicación */}
+                    <div className="px-6 mb-3 flex items-center gap-2 text-text-secondary text-sm">
+                        <MapPin size={16} className="text-primary-500" />
+                        <span className="font-medium">{item.city}</span>
+                    </div>
+
+                    {/* 4. Galería de Fotos (Miniaturas) */}
                     {item.images && item.images.length > 1 && (
-                        <div className="px-6 pb-4">
+                        <div className="px-6 mb-2">
                             <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mask-linear-fade">
                                 {item.images.slice(1, 5).map((img, idx) => (
                                     <div key={idx} className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border border-surface-highlight">
@@ -177,8 +178,8 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                         </div>
                     )}
 
-                    {/* Botones de Acción (Dentro de la tarjeta) */}
-                    <div className="flex justify-end px-6 pt-1 pb-1">
+                    {/* 5. Ver más */}
+                    <div className="flex justify-end px-6 mb-2">
                         <Link
                             href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
                             onPointerDown={(e) => e.stopPropagation()}
@@ -187,7 +188,9 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                             Ver más &rarr;
                         </Link>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 px-6 pb-6 pt-1">
+
+                    {/* 6. Botones de Acción */}
+                    <div className="grid grid-cols-2 gap-4 px-6 pb-6">
                         <button
                             onPointerDown={(e) => e.stopPropagation()}
                             onClick={() => onSwipe('left')}
