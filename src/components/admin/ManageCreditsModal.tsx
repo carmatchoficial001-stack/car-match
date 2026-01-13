@@ -130,7 +130,7 @@ export default function ManageCreditsModal({ isOpen, onClose, user, onSuccess }:
                             disabled={!amount || loading}
                             className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
                         >
-                            {loading ? <Loader2 className="animate-spin" /> : <checkCircle2 size={18} />}
+                            {loading ? <Loader2 className="animate-spin" /> : <CheckCircle2 size={18} />}
                             Aplicar Ajuste
                         </button>
                     </form>
