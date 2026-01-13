@@ -1,17 +1,23 @@
-"use client"
-
 import { signIn } from "next-auth/react"
 import { useLanguage } from "@/contexts/LanguageContext"
+import { getWeightedHomePath } from "@/lib/navigation"
 
 export default function AuthButtons() {
     const { t } = useLanguage()
+
+    const handleSignIn = (provider: string) => {
+        signIn(provider, {
+            callbackUrl: getWeightedHomePath(),
+            redirect: true
+        })
+    }
 
     return (
         <div className="space-y-4">
             {/* Google */}
             <button
                 type="button"
-                onClick={() => signIn("google")}
+                onClick={() => handleSignIn("google")}
                 className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-surface-highlight hover:bg-surface transition-all rounded-xl shadow-lg hover:shadow-xl group border border-surface-highlight"
             >
                 <svg className="w-6 h-6" viewBox="0 0 24 24">
@@ -28,7 +34,7 @@ export default function AuthButtons() {
             {/* Facebook */}
             <button
                 type="button"
-                onClick={() => signIn("facebook")}
+                onClick={() => handleSignIn("facebook")}
                 className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#1877F2] hover:bg-[#166fe5] transition-all rounded-xl shadow-lg hover:shadow-xl group"
             >
                 <div className="bg-white rounded-full p-0.5 w-6 h-6 flex items-center justify-center">
@@ -44,7 +50,7 @@ export default function AuthButtons() {
             {/* X */}
             <button
                 type="button"
-                onClick={() => signIn("twitter")}
+                onClick={() => handleSignIn("twitter")}
                 className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black hover:bg-gray-900 transition-all rounded-xl shadow-lg hover:shadow-xl group border border-gray-800"
             >
                 <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">

@@ -1,12 +1,39 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Logo } from "@/components/Logo"
 import { useLanguage } from "@/contexts/LanguageContext"
 import AuthButtons from "./AuthButtons"
+import { getWeightedHomePath } from "@/lib/navigation"
 
 export default function AuthPageContent() {
     const { t } = useLanguage()
+    const { data: session, status } = useSession()
+    const router = useRouter()
+
+    // 🔥 BLINDAJE CLIENT-SIDE: Si el usuario ya está autenticado (y cayó aquí por el botón "atras"), 
+    // lo mandamos de regreso a la app usando REPLACE para borrar esta página del historial.
+    useEffect(() => {
+        if (status === "authenticated") {
+            router.replace(getWeightedHomePath())
+        }
+    }, [status, router])
+
+    if (status === "loading") {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center font-sans">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-primary-700 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-text-secondary animate-pulse">Cargando CarMatch...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (session) return null
 
     return (
         <div className="min-h-screen bg-background flex items-center justify-center px-4">
