@@ -1,20 +1,38 @@
-"use client"
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Logo } from '@/components/Logo'
 import LanguageSelectorPublic from '@/components/LanguageSelectorPublic'
 import { useLanguage } from '@/contexts/LanguageContext'
 import PWAInstallModal from '@/components/PWAInstallModal'
 import QRCodeModal from '@/components/QRCodeModal'
 import { usePWAInstall } from '@/hooks/usePWAInstall'
+import { getWeightedHomePath } from '@/lib/navigation'
 
 export default function LandingPageContent() {
     const { t } = useLanguage()
+    const { status } = useSession()
+    const router = useRouter()
     const { triggerInstall, isStandalone } = usePWAInstall()
     const [showInstallModal, setShowInstallModal] = useState(false)
     const [selectedPlatform, setSelectedPlatform] = useState<'ios' | 'android' | 'auto'>('auto')
     const [showQRModal, setShowQRModal] = useState(false)
+
+    // 🔥 Redirección limpia si ya está logueado
+    useEffect(() => {
+        if (status === "authenticated") {
+            router.replace(getWeightedHomePath())
+        }
+    }, [status, router])
+
+    if (status === "loading") {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-primary-700 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        )
+    }
 
     const handleIOSClick = () => {
         setSelectedPlatform('ios')
@@ -42,7 +60,7 @@ export default function LandingPageContent() {
                 <Logo showText={false} />
                 <div className="flex items-center gap-4">
                     <LanguageSelectorPublic />
-                    <Link href="/auth" className="px-6 py-2 bg-white/5 border border-white/10 rounded-full font-semibold hover:bg-white/10 transition text-sm">
+                    <Link href="/auth" replace className="px-6 py-2 bg-white/5 border border-white/10 rounded-full font-semibold hover:bg-white/10 transition text-sm">
                         {t('common.login')}
                     </Link>
                 </div>
@@ -82,6 +100,7 @@ export default function LandingPageContent() {
                 <div className="mb-24">
                     <Link
                         href="/auth"
+                        replace
                         className="group inline-flex items-center justify-center px-12 py-5 text-lg font-bold text-text-primary bg-primary-700 rounded-full hover:bg-primary-600 transition-all hover:scale-105 shadow-[0_0_50px_-10px_rgba(3,105,161,0.4)]"
                     >
                         {t('landing.cta_enter')}

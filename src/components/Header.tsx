@@ -497,6 +497,7 @@ export default function Header() {
                         ) : (
                             <Link
                                 href="/auth"
+                                replace
                                 className="px-4 py-2 bg-primary-700 text-text-primary rounded-lg font-medium hover:bg-primary-600 transition"
                             >
                                 {t('common.login')}
