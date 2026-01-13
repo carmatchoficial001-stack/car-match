@@ -14,11 +14,19 @@ export default function AuthPageContent() {
     const { data: session, status } = useSession()
     const router = useRouter()
 
-    // 🔥 BLINDAJE CLIENT-SIDE: Si el usuario ya está autenticado (y cayó aquí por el botón "atras"), 
-    // lo mandamos de regreso a la app usando REPLACE para borrar esta página del historial.
+    // 🔥 ESCAPE DE HISTORIAL: Si el usuario ya está autenticado y cae aquí, 
+    // es casi seguro que fue por presionar "atrás" desde la App o desde Google.
+    // En lugar de mandarlo adelante (creando un bucle infinito), lo mandamos ATRÁS
+    // para que salga del "agujero negro" de la autenticación de Google.
     useEffect(() => {
         if (status === "authenticated") {
-            router.replace(getWeightedHomePath())
+            // Si hay historial previo, retrocedemos para salir de la página de Google/Auth
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                // Caso borde: si entró directo logueado, lo mandamos al feed
+                router.replace(getWeightedHomePath());
+            }
         }
     }, [status, router])
 

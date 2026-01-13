@@ -33,9 +33,11 @@ export default auth((req) => {
         return Response.redirect(new URL(`/auth?callbackUrl=${callbackUrl}`, req.url))
     }
 
-    // Si está logueado y trata de acceder a login/register O LA RAÍZ (/), redirigir a la app
-    if ((authRoutes.some(route => pathname.startsWith(route)) || pathname === "/") && isLoggedIn) {
-        // Si hay un callbackUrl pendiente (ejemplo: quería ver un carro), lo mandamos ahí
+    // Si está logueado y trata de acceder a LA RAÍZ (/), redirigir a la app
+    // Nota: Las 'authRoutes' NO se redirigen aquí para dejar que el cliente 
+    // maneje el escape de historial (evitar bucle de Google).
+    if (pathname === "/" && isLoggedIn) {
+        // Si hay un callbackUrl pendiente, lo mandamos ahí
         const callbackUrl = req.nextUrl.searchParams.get('callbackUrl')
         if (callbackUrl) {
             return Response.redirect(new URL(decodeURIComponent(callbackUrl), req.url))
