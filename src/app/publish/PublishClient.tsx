@@ -159,43 +159,34 @@ export default function PublishClient() {
             const validation = await res.json()
             setAiConfidence(100)
 
-            // 1. 🚨 VALIDAR PORTADA (Index 0)
-            // Si la portada es inválida o la validación global falló, bloqueamos.
-            if (!validation.valid || validation.invalidIndices?.includes(0)) {
-                // Si hay una razón específica de la IA, úsala. Si no, usa el mensaje por defecto.
-                // Priorizamos validation.reason para el caso de "Mismatch de contexto"
-                const reason = validation.reason || 'La foto de portada debe ser un vehículo real y coincidir con la marca.'
-
-                setAiError(reason)
-                setIsAnalyzing(false)
-                setInvalidImageUrls(new Set([images[0]]))
-                setInvalidReasons({ [images[0]]: reason }) // 🆕 Mapear URL -> Razón
-                return
-            }
-
-            // 2. 🧹 FILTRAR GALERÍA (Index > 0)
-            // Si hay fotos malas en la galería, las quitamos y avisamos
-            let cleanImages = images
-            const badGalleryIndices = (validation.invalidIndices || []).filter((i: number) => i > 0)
-
-            if (badGalleryIndices.length > 0) {
-                // Crear nuevo array solo con las válidas (y la portada que ya sabemos es válida)
-                cleanImages = images.filter((_, idx) => !validation.invalidIndices.includes(idx))
-
-                // Actualizar estado con las imágenes limpias
-                setImages(cleanImages)
-            }
-
-            // Limpiar errores visuales
-            setInvalidImageUrls(new Set())
-
-            // Aplicar detalles si la IA detectó algo útil
-            if (validation.valid && validation.details) {
+            // 1. 🛡️ REGLA SOBERANA: Aplicar Brand/Model/Year de la portada SIEMPRE
+            // Incluso si hay problemas en la galería, la portada manda la identidad.
+            if (validation.details && (!validation.invalidIndices || !validation.invalidIndices.includes(0))) {
                 applyAiDetails(validation.details, validation.category)
             }
 
+            // 2. 🚨 VALIDAR PORTADA (Index 0)
+            // Solo bloqueamos si la PORTADA misma es basura o no es un vehículo.
+            if (!validation.valid || validation.invalidIndices?.includes(0)) {
+                const reason = validation.reason || 'La foto de portada debe ser un vehículo real.'
+                setAiError(reason)
+                setIsAnalyzing(false)
+                setInvalidImageUrls(new Set([images[0]]))
+                setInvalidReasons({ [images[0]]: reason })
+                return
+            }
+
+            // 3. 🧹 FILTRAR GALERÍA (Index > 0)
+            // Si hay fotos malas en la galería, las quitamos silenciosamente y continuamos.
+            if (validation.invalidIndices && validation.invalidIndices.length > 0) {
+                const cleanImages = images.filter((_, idx) => !validation.invalidIndices.includes(idx))
+                console.log(`🧹 Limpieza mágica de galería: ${images.length - cleanImages.length} fotos eliminadas por no coincidir.`);
+                setImages(cleanImages)
+            }
+
+            setInvalidImageUrls(new Set())
             setIsAnalyzing(false)
-            handleNextStep()
+            handleNextStep() // Proceder al siguiente paso automáticamente si la portada es buena
 
         } catch (error: any) {
             console.error('Error en validación de imágenes:', error)

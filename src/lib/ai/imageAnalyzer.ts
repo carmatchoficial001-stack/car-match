@@ -104,6 +104,7 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
     "transmission": "Manual|Automática",
     "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
     "engine": "Especificación motor (ej: 2.0L Turbo)",
+    "displacement": "Cilindrada (ej: 2400cc o 2.4L)",
     "traction": "FWD|RWD|4x4|AWD",
     "doors": 2|3|4|5,
     "passengers": 2|5|7|9,
@@ -115,11 +116,13 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
     "range": "Autonomía km (si es eléctrico/híbrido)",
     "weight": "Peso aproximado (kg)",
     "axles": "Ejes (si es pesado)",
+    "cargoCapacity": "Capacidad de carga kg (si es comercial)",
+    "operatingHours": "Horas de uso (si es maquinaria)",
     "condition": "Nuevo|Usado"
   }
 }
 
-IMPORTANTE: Una vez identificado el vehículo con alta seguridad en la portada, utiliza tu CONOCIMIENTO GENERAL TÉCNICO para llenar los campos de detalles (hp, torque, cilindros, etc.) que corresponden a ese modelo y generación específicos, incluso si no son visibles en la foto. Si un campo es totalmente incierto, responde null. PROHIBIDO usar "N/A".
+IMPORTANTE: Investiga a fondo. Una vez identificado el vehículo en la portada, utiliza tu CONOCIMIENTO GENERAL TÉCNICO para llenar TODO el JSON. Si un dato es auténticamente desconocido o incierto para ese modelo específico, responde null. NO INVENTES si no hay base técnica, pero sé lo más completo posible. PROHIBIDO usar "N/A".
 `;
   }
 
@@ -283,12 +286,12 @@ export async function analyzeMultipleImages(
         - Estilo: "${IDENTIDAD_SOBERANA_DE_PORTADA.type || '?'}"
 
         📋 REGLAS DE AUDITORÍA (TOLERANCIA CERO):
+        - LA PORTADA MANDANTE: La identidad de arriba es la ÚNICA válida para este anuncio.
         - CUALQUIER IMAGEN QUE NO SEA EL MISMO VEHÍCULO MENCIONADO EN LA PORTADA DEBE SER MARCADA AS "isValid": false.
-        - RECHAZA CONTENIDO NO FOTOGRÁFICO: Si ves dibujos (como conejos, caricaturas), bocetos, memes o arte digital, MARCA "isValid": false y razón "No es una foto real".
-        - RECHAZA CONTENIDO NO VEHICULAR: Si ves animales (perros, gatos), personas solas, paisajes sin el auto, o artículos del hogar, MARCA "isValid": false.
-        - RECHAZA CAPTURAS DE PANTALLA: Si ves interfaces de apps, menús de celular o perfiles, MARCA "isValid": false.
-        - SI EL VEHÍCULO ES OTRO TOTALMENTE DISTINTO (Marca/Modelo diferente), MARCA "isValid": false.
-        - Solo las fotos reales y consistentes del vehículo de portada deben ser "isValid": true.
+        - RECHAZA CONTENIDO NO FOTOGRÁFICO: Si ves dibujos, bocetos, memes o arte digital, "isValid": false.
+        - RECHAZA CONTENIDO NO VEHICULAR: Si ves animales, personas solas, o captura de menús/apps, "isValid": false.
+        - IMPORTANTE: Si la foto es un vehículo pero es DIFERENTE al de la portada (ej: la portada es Tahoe y ves un Hyundai), MARCA "isValid": false para esa foto de la galería. 
+        - LA PORTADA NUNCA ES INVÁLIDA POR CULPA DE LA GALERÍA. SIEMPRE PREVALECE LA PORTADA.
 
         Responde con este JSON:
         {
@@ -299,6 +302,7 @@ export async function analyzeMultipleImages(
              "transmission": "Manual|Automática",
              "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
              "engine": "Ej: 2.0L Turbo",
+             "displacement": "Cilindrada",
              "traction": "FWD|RWD|4x4|AWD",
              "doors": 5,
              "passengers": 5,
@@ -309,9 +313,11 @@ export async function analyzeMultipleImages(
              "batteryCapacity": number,
              "range": number,
              "weight": number,
-             "axles": number
-          }
-        }
+             "axles": number,
+             "cargoCapacity": number,
+             "operatingHours": number
+           }
+         }
       `;
 
       const imageParts = galleryImages.map(img => ({

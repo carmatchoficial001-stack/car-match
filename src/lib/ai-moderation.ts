@@ -155,25 +155,40 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                         }
 
                         // Enriquecimiento Técnico
-                        const fields = ['transmission', 'fuel', 'engine', 'traction', 'color', 'condition'];
-                        fields.forEach(f => {
+                        const technicalFields = ['transmission', 'fuel', 'engine', 'traction', 'color', 'condition', 'doors', 'passengers'];
+                        technicalFields.forEach(f => {
                             const aiVal = sanitizeAIValue((details as any)[f]);
                             if (aiVal && (!v[f] || v[f] === 'N/A' || v[f] === '')) {
-                                updateData[f] = aiVal;
+                                updateData[f] = (f === 'doors' || f === 'passengers') ? parseInt(aiVal as string) : aiVal;
                                 correctedFields.push(f);
                             }
                         });
 
                         // Nuevos campos técnicos CarMatch
-                        if (!v.hp && details.hp) updateData.hp = parseInt(details.hp as any);
-                        if (!v.torque && details.torque) updateData.torque = sanitizeAIValue(details.torque);
-                        if (!v.aspiration && details.aspiration) updateData.aspiration = sanitizeAIValue(details.aspiration);
-                        if (!v.cylinders && details.cylinders) updateData.cylinders = parseInt(details.cylinders as any);
-                        if (!v.batteryCapacity && details.batteryCapacity) updateData.batteryCapacity = parseFloat(details.batteryCapacity as any);
-                        if (!v.range && details.range) updateData.range = parseInt(details.range as any);
-                        if (!v.weight && details.weight) updateData.weight = parseInt(details.weight as any);
-                        if (!v.axles && details.axles) updateData.axles = parseInt(details.axles as any);
-                        if (!v.passengers && details.passengers) updateData.passengers = parseInt(details.passengers as any);
+                        const aiHp = sanitizeAIValue(details.hp);
+                        if (aiHp && !v.hp) updateData.hp = parseInt(aiHp as string);
+                        const aiTorque = sanitizeAIValue(details.torque);
+                        if (aiTorque && !v.torque) updateData.torque = aiTorque;
+                        const aiAspiration = sanitizeAIValue(details.aspiration);
+                        if (aiAspiration && !v.aspiration) updateData.aspiration = aiAspiration;
+                        const aiCylinders = sanitizeAIValue(details.cylinders);
+                        if (aiCylinders && !v.cylinders) updateData.cylinders = parseInt(aiCylinders as string);
+                        const aiBatteryCapacity = sanitizeAIValue(details.batteryCapacity);
+                        if (aiBatteryCapacity && !v.batteryCapacity) updateData.batteryCapacity = parseFloat(aiBatteryCapacity as string);
+                        const aiRange = sanitizeAIValue(details.range);
+                        if (aiRange && !v.range) updateData.range = parseInt(aiRange as string);
+                        const aiWeight = sanitizeAIValue(details.weight);
+                        if (aiWeight && !v.weight) updateData.weight = parseInt(aiWeight as string);
+                        const aiAxles = sanitizeAIValue(details.axles);
+                        if (aiAxles && !v.axles) updateData.axles = parseInt(aiAxles as string);
+                        const aiPassengers = sanitizeAIValue(details.passengers);
+                        if (aiPassengers && !v.passengers) updateData.passengers = parseInt(aiPassengers as string);
+                        const aiDisplacement = sanitizeAIValue(details.displacement);
+                        if (aiDisplacement && !v.displacement) updateData.displacement = aiDisplacement;
+                        const aiCargoCapacity = sanitizeAIValue(details.cargoCapacity);
+                        if (aiCargoCapacity && !v.cargoCapacity) updateData.cargoCapacity = aiCargoCapacity;
+                        const aiOperatingHours = sanitizeAIValue(details.operatingHours);
+                        if (aiOperatingHours && !v.operatingHours) updateData.operatingHours = aiOperatingHours;
 
                         if (Object.keys(updateData).length > 0) {
                             autoCorrected = true;
@@ -352,23 +367,28 @@ export async function fixAndApproveVehicle(vehicleId: string) {
         if (!isVal(vehicle.traction) && aiTract)
             updateData.traction = aiTract
 
-        if (!vehicle.doors && details.doors) updateData.doors = sanitizeAIValue(details.doors)
+        if (!vehicle.doors && details.doors) updateData.doors = parseInt(sanitizeAIValue(details.doors) as string)
         if (!vehicle.condition && aiCondition) updateData.condition = aiCondition
-        if (!vehicle.displacement && details.displacement) updateData.displacement = details.displacement
-        if (!vehicle.cargoCapacity && details.cargoCapacity) updateData.cargoCapacity = details.cargoCapacity
+        if (!v.passengers && details.passengers) updateData.passengers = parseInt(sanitizeAIValue(details.passengers) as string)
 
-        const v = vehicle as any;
+        const aiHp = sanitizeAIValue(details.hp);
+        const aiCyl = sanitizeAIValue(details.cylinders);
+        const aiBatt = sanitizeAIValue(details.batteryCapacity);
+        const aiRang = sanitizeAIValue(details.range);
+        const aiWeig = sanitizeAIValue(details.weight);
+        const aiAxles = sanitizeAIValue(details.axles);
 
-        // Nuevos campos técnicos CarMatch
-        if (!v.hp && details.hp !== undefined) updateData.hp = parseInt(details.hp as any)
-        if (!v.torque && details.torque !== undefined) updateData.torque = sanitizeAIValue(details.torque)
-        if (!v.aspiration && details.aspiration !== undefined) updateData.aspiration = sanitizeAIValue(details.aspiration)
-        if (!v.cylinders && details.cylinders !== undefined) updateData.cylinders = parseInt(details.cylinders as any)
-        if (!v.batteryCapacity && details.batteryCapacity !== undefined) updateData.batteryCapacity = parseFloat(details.batteryCapacity as any)
-        if (!v.range && details.range !== undefined) updateData.range = parseInt(details.range as any)
-        if (!v.weight && details.weight !== undefined) updateData.weight = parseInt(details.weight as any)
-        if (!v.axles && details.axles !== undefined) updateData.axles = parseInt(details.axles as any)
-        if (!v.passengers && details.passengers !== undefined) updateData.passengers = parseInt(details.passengers as any)
+        if (!v.hp && aiHp) updateData.hp = parseInt(aiHp as string)
+        if (!v.torque && details.torque) updateData.torque = sanitizeAIValue(details.torque)
+        if (!v.aspiration && details.aspiration) updateData.aspiration = sanitizeAIValue(details.aspiration)
+        if (!v.cylinders && aiCyl) updateData.cylinders = parseInt(aiCyl as string)
+        if (!v.batteryCapacity && aiBatt) updateData.batteryCapacity = parseFloat(aiBatt as string)
+        if (!v.range && aiRang) updateData.range = parseInt(aiRang as string)
+        if (!v.weight && aiWeig) updateData.weight = parseInt(aiWeig as string)
+        if (!v.axles && aiAxles) updateData.axles = parseInt(aiAxles as string)
+        if (!v.displacement && details.displacement) updateData.displacement = sanitizeAIValue(details.displacement)
+        if (!v.cargoCapacity && details.cargoCapacity) updateData.cargoCapacity = sanitizeAIValue(details.cargoCapacity)
+        if (!v.operatingHours && details.operatingHours) updateData.operatingHours = sanitizeAIValue(details.operatingHours)
         if (!v.operatingHours && details.operatingHours) updateData.operatingHours = parseInt(details.operatingHours as any)
 
         // Generar nuevo título basado en la corrección
