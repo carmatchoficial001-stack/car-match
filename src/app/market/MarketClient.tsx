@@ -376,6 +376,15 @@ export default function MarketClient({
                                                         className="absolute top-3 right-3 z-10"
                                                     />
 
+                                                    <FavoriteButton
+                                                        vehicleId={!isBusiness ? item.id : undefined}
+                                                        businessId={isBusiness ? item.id : undefined}
+                                                        initialIsFavorited={item.isFavorited}
+                                                        size="sm"
+                                                        className="absolute bottom-2 right-2 z-10"
+                                                        rounded="rounded-full"
+                                                    />
+
                                                 </Link>
 
                                                 <div className="p-3 md:p-4">
@@ -427,12 +436,7 @@ export default function MarketClient({
                                                             </Link>
                                                         )}
                                                         <div className="flex items-center gap-2 md:gap-3">
-                                                            <FavoriteButton
-                                                                vehicleId={!isBusiness ? item.id : undefined}
-                                                                businessId={isBusiness ? item.id : undefined}
-                                                                initialIsFavorited={item.isFavorited}
-                                                                size="sm"
-                                                            />
+                                                            {/* FavoriteButton moved to image overlay */}
                                                             <div className="hidden md:block">
                                                                 <ShareButton
                                                                     title={item.title}
