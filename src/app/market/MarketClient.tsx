@@ -342,7 +342,7 @@ export default function MarketClient({
                                     {filteredItems.slice(0, visibleCount).map((item) => {
                                         const isBusiness = item.feedType === 'BUSINESS'
                                         return (
-                                            <div key={item.id} className={`bg-surface border rounded-2xl overflow-hidden hover:shadow-xl transition group ${isBusiness ? 'border-primary-700/30' : 'border-surface-highlight'}`}>
+                                            <div key={item.id} className={`bg-surface border rounded-2xl overflow-hidden hover:shadow-xl transition group relative ${isBusiness ? 'border-primary-700/30' : 'border-surface-highlight'}`}>
                                                 {/* Imagen y Badge */}
                                                 <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} className="block relative aspect-[4/3] bg-gray-800 group-hover:opacity-95 transition-opacity">
                                                     {item.images && item.images[0] ? (
@@ -374,15 +374,6 @@ export default function MarketClient({
                                                         vehicleId={!isBusiness ? item.id : undefined}
                                                         businessId={isBusiness ? item.id : undefined}
                                                         className="absolute top-3 right-3 z-10"
-                                                    />
-
-                                                    <FavoriteButton
-                                                        vehicleId={!isBusiness ? item.id : undefined}
-                                                        businessId={isBusiness ? item.id : undefined}
-                                                        initialIsFavorited={item.isFavorited}
-                                                        size="sm"
-                                                        className="absolute bottom-2 right-2 z-10"
-                                                        rounded="rounded-full"
                                                     />
 
                                                 </Link>
@@ -436,7 +427,6 @@ export default function MarketClient({
                                                             </Link>
                                                         )}
                                                         <div className="flex items-center gap-2 md:gap-3">
-                                                            {/* FavoriteButton moved to image overlay */}
                                                             <div className="hidden md:block">
                                                                 <ShareButton
                                                                     title={item.title}
@@ -447,6 +437,18 @@ export default function MarketClient({
                                                             </div>
                                                         </div>
                                                     </div>
+                                                </div>
+
+                                                {/* Botón de Like Flotante en la esquina inferior */}
+                                                <div className="absolute bottom-3 right-3 z-10">
+                                                    <FavoriteButton
+                                                        vehicleId={!isBusiness ? item.id : undefined}
+                                                        businessId={isBusiness ? item.id : undefined}
+                                                        initialIsFavorited={item.isFavorited}
+                                                        size="md"
+                                                        rounded="rounded-full"
+                                                        className="shadow-lg bg-surface border border-surface-highlight"
+                                                    />
                                                 </div>
                                             </div>
                                         )
