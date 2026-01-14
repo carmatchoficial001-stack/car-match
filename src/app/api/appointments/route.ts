@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth'
+import { sendPushToUser } from '@/lib/pushService'
 
 export async function POST(request: Request) {
     try {
@@ -27,6 +28,21 @@ export async function POST(request: Request) {
 
         // Notificar en el chat (mensaje de sistema opcional o dejar que la UI lo maneje)
         // Por ahora solo creamos la cita
+
+        // 2. Notificar al otro usuario vía Push
+        const chat = await prisma.chat.findUnique({
+            where: { id: chatId },
+            select: { buyerId: true, sellerId: true }
+        })
+
+        if (chat) {
+            const receiverId = chat.buyerId === session.user.id ? chat.sellerId : chat.buyerId
+            await sendPushToUser(receiverId, {
+                title: '📅 Nueva cita propuesta',
+                body: `${session.user.name} ha propuesto una reunión en ${location}`,
+                url: `/messages/${chatId}`
+            })
+        }
 
         return NextResponse.json(appointment)
     } catch (error) {

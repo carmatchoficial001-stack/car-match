@@ -2,6 +2,7 @@ import { processChatMessage } from '@/lib/chat-ai'
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { sendPushToUser } from '@/lib/pushService'
 
 // POST /api/chats/[chatId]/messages - Enviar un mensaje
 export async function POST(
@@ -91,6 +92,14 @@ export async function POST(
                     vehicleId: chat.vehicleId
                 }
             }
+        })
+
+        // 2. Enviar notificación Push (Sistema)
+        await sendPushToUser(receiverId, {
+            title: `Mensaje de ${user.name}`,
+            body: content.length > 50 ? content.substring(0, 47) + '...' : content,
+            url: `/messages/${chatId}`,
+            icon: user.image || undefined
         })
 
         return NextResponse.json(message)

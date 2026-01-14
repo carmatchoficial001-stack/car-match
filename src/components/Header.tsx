@@ -10,7 +10,8 @@ import PWAInstallModal from "@/components/PWAInstallModal"
 import NotificationsDropdown from "@/components/NotificationsDropdown"
 import { usePWAInstall } from '@/hooks/usePWAInstall'
 import { getWeightedHomePath } from "@/lib/navigation"
-import { ThumbsUp, Headset, Flame, CarFront, Map } from "lucide-react"
+import { ThumbsUp, Headset, Flame, CarFront, Map, Bell, BellOff } from "lucide-react"
+import { usePushNotifications } from "@/hooks/usePushNotifications"
 
 export default function Header() {
     const pathname = usePathname()
@@ -24,6 +25,7 @@ export default function Header() {
     const [showInstallModal, setShowInstallModal] = useState(false)
     const [selectedPlatform, setSelectedPlatform] = useState<'ios' | 'android' | 'auto'>('auto')
     const { triggerInstall, isInstallable, isStandalone } = usePWAInstall()
+    const { isSubscribed, subscribe, permission } = usePushNotifications()
 
     const handleIOSClick = () => {
         setSelectedPlatform('ios')
@@ -456,6 +458,20 @@ export default function Header() {
                                                     >
                                                         <Headset size={20} className="text-primary-700" />
                                                         <span className="font-medium text-left">{t('common.support')}</span>
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            subscribe();
+                                                            setShowMenu(false);
+                                                        }}
+                                                        disabled={isSubscribed || permission === 'denied'}
+                                                        className={`flex items-center gap-3 px-4 py-3 transition w-full ${isSubscribed ? 'text-green-400' : 'text-text-primary hover:bg-surface-highlight'}`}
+                                                    >
+                                                        {isSubscribed ? <Bell size={20} className="text-green-500" /> : <BellOff size={20} className="text-primary-700" />}
+                                                        <span className="font-medium text-left">
+                                                            {isSubscribed ? 'Notificaciones Activas' : 'Activar Notificaciones'}
+                                                        </span>
                                                     </button>
 
                                                     <div className="border-t border-surface-highlight my-2"></div>

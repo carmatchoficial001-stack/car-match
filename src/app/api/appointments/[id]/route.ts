@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { sendPushToUser } from '@/lib/pushService'
 
 // PUT /api/appointments/[id] - Actualizar estado de la cita
 export async function PUT(
@@ -16,7 +17,21 @@ export async function PUT(
 
         const appointment = await prisma.appointment.update({
             where: { id },
-            data: { status }
+            data: { status },
+            include: { chat: true }
+        })
+
+        // Notificar al otro usuario vía Push
+        const receiverId = appointment.proposerId === session.user.id
+            ? (appointment.chat.buyerId === session.user.id ? appointment.chat.sellerId : appointment.chat.buyerId)
+            : appointment.proposerId
+
+        const statusLabel = status === 'ACCEPTED' ? 'aceptado' : status === 'REJECTED' ? 'rechazado' : 'actualizado'
+
+        await sendPushToUser(receiverId, {
+            title: `Cita ${statusLabel}`,
+            body: `${session.user.name} ha ${statusLabel} tu propuesta de reunión.`,
+            url: `/messages/${appointment.chatId}`
         })
 
         return NextResponse.json(appointment)

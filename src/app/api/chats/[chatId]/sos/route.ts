@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { sendPushToUser } from '@/lib/pushService'
 
 // POST /api/chats/[chatId]/sos - Activar alerta de emergencia
 export async function POST(
@@ -44,6 +45,13 @@ export async function POST(
                 senderId: 'SYSTEM',
                 content: `🚨 **ALERTA SOS ACTIVADA** 🚨\nEl usuario ${user.name} ha activado el protocolo de emergencia. Autoridades locales y contacto de confianza han sido notificados.`,
             }
+        })
+
+        // 2. Enviar Push urgente al otro usuario del chat
+        await sendPushToUser(otherUser.id, {
+            title: '🚨 ALERTA DE EMERGENCIA',
+            body: `${user.name} ha activado la señal SOS. Por favor mantente en comunicación.`,
+            url: `/messages/${chatId}`
         })
 
         // 2. Si hay una cita activa, marcarla como emergencia
