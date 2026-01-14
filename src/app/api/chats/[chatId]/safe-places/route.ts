@@ -112,45 +112,8 @@ export async function GET(
             console.error('Error in Safe Places AI:', err)
         }
 
-        // Lugares públicos genéricos
-        const suggestedPlaces = [
-            {
-                id: 'gen-1',
-                name: isMidpoint ? `Punto Medio - Plaza Comercial` : `Plaza Comercial - ${chat.vehicle.city}`,
-                type: 'shopping_mall',
-                description: 'Centro comercial con estacionamiento amplio y cámaras de seguridad. Ideal para inspecciones visuales.',
-                address: `Zona Segura, Cerca de ti`,
-                distance: 0.5,
-                latitude: centerLat + 0.005,
-                longitude: centerLon - 0.005,
-                icon: '🏛️',
-                safetyFeatures: ['Cámaras de seguridad', 'Mucha afluencia', 'Iluminación alta']
-            },
-            {
-                id: 'gen-2',
-                name: `Módulo de Seguridad / Ministerio Público`,
-                type: 'police',
-                description: 'Zona de intercambio segura oficial. El mejor lugar para verificar documentos y números de serie.',
-                address: `Sector de Seguridad Pública`,
-                distance: 1.2,
-                latitude: centerLat - 0.008,
-                longitude: centerLon + 0.003,
-                icon: '👮',
-                safetyFeatures: ['Vigilancia policiaca', 'Zona oficial', 'Grabación 24/7']
-            },
-            {
-                id: 'gen-3',
-                name: `Taller / Gasolinera Autorizada`,
-                type: 'gas_station',
-                description: 'Punto concurrido. Recomendado si necesitas levantar el auto para revisar fugas menores.',
-                address: `Av. Principal`,
-                distance: 2.0,
-                latitude: centerLat + 0.012,
-                longitude: centerLon + 0.012,
-                icon: '⛽',
-                safetyFeatures: ['Alto tráfico', 'Personal presente', 'Cámaras']
-            }
-        ]
+        // Lugares públicos genéricos (Desactivados por solicitud del usuario)
+        const suggestedPlaces: any[] = []
 
         // 🛍️ CARGAR NEGOCIOS REGISTRADOS QUE SON PUNTOS SEGUROS
         const nearbySafeBusinesses = await prisma.business.findMany({
