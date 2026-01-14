@@ -44,40 +44,57 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
     const [customLng, setCustomLng] = useState<number | null>(initialAppointment?.longitude || null)
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
     const [isInputFocused, setIsInputFocused] = useState(false)
+    const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<any[]>([])
+    const [showSuggestions, setShowSuggestions] = useState(false)
 
     // Obtener ubicación inicial del usuario
     useEffect(() => {
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords
-                setUserLocation({ lat: latitude, lng: longitude })
+                const loc = { lat: latitude, lng: longitude }
+                setUserLocation(loc)
 
                 if (!viewCenter) {
-                    setViewCenter({ lat: latitude, lng: longitude })
+                    setViewCenter(loc)
                     if (!customLat) setCustomLat(latitude)
                     if (!customLng) setCustomLng(longitude)
                 }
+
+                // Cargar lugares seguros al inicio para tenerlos listos para el autocompletado
+                fetchSafePlaces(loc)
             },
             () => {
-                // Fallback a una ubicación por defecto si falla
                 if (!viewCenter) {
-                    setViewCenter({ lat: 23.634501, lng: -102.552784 }) // Centro de México
+                    setViewCenter({ lat: 23.634501, lng: -102.552784 })
                 }
+                fetchSafePlaces()
             }
         )
     }, [])
 
-    const fetchSafePlaces = async () => {
+    // Efecto de autocompletado inteligente
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (customLocation.length > 2 && isInputFocused) {
+                searchAutocomplete()
+            } else {
+                setAutocompleteSuggestions([])
+                setShowSuggestions(false)
+            }
+        }, 500)
+
+        return () => clearTimeout(timer)
+    }, [customLocation, isInputFocused])
+
+    const fetchSafePlaces = async (coords?: { lat: number, lng: number }) => {
         setLoadingPlaces(true)
         let queryParams = ''
 
-        try {
-            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 })
-            })
-            queryParams = `?lat=${position.coords.latitude}&lon=${position.coords.longitude}`
-        } catch (e) {
-            console.log("Continuando sin GPS para lugares seguros")
+        if (coords) {
+            queryParams = `?lat=${coords.lat}&lon=${coords.lng}`
+        } else if (userLocation) {
+            queryParams = `?lat=${userLocation.lat}&lon=${userLocation.lng}`
         }
 
         try {
@@ -88,6 +105,45 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
             console.error(err)
         } finally {
             setLoadingPlaces(false)
+        }
+    }
+
+    const searchAutocomplete = async () => {
+        const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+        if (!token) return
+
+        try {
+            const query = encodeURIComponent(customLocation)
+            const proximityLng = userLocation?.lng || customLng || -102.552784
+            const proximityLat = userLocation?.lat || customLat || 23.634501
+
+            // 1. Obtener sugerencias de Mapbox
+            const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${token}&country=mx&language=es&limit=5&proximity=${proximityLng},${proximityLat}`
+            const res = await fetch(mapboxUrl)
+            const data = await res.json()
+
+            const mapboxResults = (data.features || []).map((f: any) => ({
+                id: f.id,
+                name: f.text,
+                address: f.place_name,
+                latitude: f.center[1],
+                longitude: f.center[0],
+                type: 'address',
+                icon: '📍'
+            }))
+
+            // 2. Filtrar lugares seguros locales que coincidan
+            const term = customLocation.toLowerCase()
+            const filteredSafe = safePlaces.filter(p =>
+                p.name.toLowerCase().includes(term) ||
+                p.address.toLowerCase().includes(term)
+            ).map(p => ({ ...p, type: 'safe_point' }))
+
+            // Combinar ambos, priorizando los puntos seguros
+            setAutocompleteSuggestions([...filteredSafe, ...mapboxResults])
+            setShowSuggestions(true)
+        } catch (error) {
+            console.error("Error in autocomplete:", error)
         }
     }
 
@@ -207,19 +263,63 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
                                             setCustomLocation(e.target.value);
                                             setSelectedPlace(null);
                                         }}
-                                        onFocus={() => setIsInputFocused(true)}
-                                        onBlur={() => setTimeout(() => setIsInputFocused(false), 200)}
+                                        onFocus={() => {
+                                            setIsInputFocused(true);
+                                            if (autocompleteSuggestions.length > 0) setShowSuggestions(true);
+                                        }}
+                                        onBlur={() => {
+                                            // Delay para permitir click en sugerencia
+                                            setTimeout(() => {
+                                                setIsInputFocused(false);
+                                                setShowSuggestions(false);
+                                            }, 200);
+                                        }}
                                         onKeyDown={(e) => e.key === 'Enter' && searchLocation()}
                                         placeholder="Ej. Plaza Principal, Calle Reforma..."
                                         className="w-full bg-background border border-surface-highlight rounded-lg p-3 pr-10 text-text-primary text-sm focus:border-primary-500 outline-none shadow-inner"
                                     />
                                     {customLocation && (
                                         <button
-                                            onClick={() => setCustomLocation('')}
+                                            onClick={() => {
+                                                setCustomLocation('');
+                                                setAutocompleteSuggestions([]);
+                                                setShowSuggestions(false);
+                                            }}
                                             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
                                         >
                                             &times;
                                         </button>
+                                    )}
+
+                                    {/* Dropdown de Sugerencias Inteligentes */}
+                                    {showSuggestions && autocompleteSuggestions.length > 0 && (
+                                        <div className="absolute top-full left-0 right-0 z-[100] mt-1 bg-surface border border-surface-highlight rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
+                                            {autocompleteSuggestions.map((s, idx) => (
+                                                <button
+                                                    key={`${s.type}-${s.id || idx}`}
+                                                    onClick={() => {
+                                                        setCustomLocation(s.name || s.address);
+                                                        setCustomLat(s.latitude);
+                                                        setCustomLng(s.longitude);
+                                                        setViewCenter({ lat: s.latitude, lng: s.longitude });
+                                                        setSelectedPlace(s.type === 'safe_point' ? s : null);
+                                                        setShowSuggestions(false);
+                                                    }}
+                                                    className="w-full p-3 text-left hover:bg-surface-highlight/50 flex items-start gap-3 border-b border-surface-highlight last:border-0 transition-colors"
+                                                >
+                                                    <span className="text-xl">{s.icon || '📍'}</span>
+                                                    <div className="min-w-0">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-bold text-sm text-text-primary truncate">{s.name}</span>
+                                                            {s.type === 'safe_point' && (
+                                                                <span className="text-[9px] bg-primary-500/20 text-primary-400 px-1.5 py-0.5 rounded-full font-bold">PUNTO SEGURO</span>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-[11px] text-text-secondary truncate">{s.address}</div>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
                                     )}
                                 </div>
                                 <button
