@@ -304,7 +304,7 @@ export default function MarketFiltersAdvanced({
                         {aiExplanation && (
                             <div className="mt-2 bg-primary-900/20 border border-primary-500/10 rounded-lg p-3 animate-fade-in-up">
                                 <p className="text-xs text-primary-200 italic">
-                                    "{t('smart_search.understood', { explanation: aiExplanation })}"
+                                    "{t('smart_search.understood')}"
                                 </p>
                             </div>
                         )}
@@ -390,7 +390,7 @@ export default function MarketFiltersAdvanced({
                             onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
                             value={minPrice}
                             onChange={(e) => setMinPrice(Math.max(0, parseFloat(e.target.value)).toString())}
-                            placeholder={t('taxonomy.units.prices.placeholder_min', { fallback: '$0' })}
+                            placeholder={t('taxonomy.units.prices.placeholder_min')}
                             className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-700"
                         />
                     </div>
@@ -402,7 +402,7 @@ export default function MarketFiltersAdvanced({
                             onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
                             value={maxPrice}
                             onChange={(e) => setMaxPrice(Math.max(0, parseFloat(e.target.value)).toString())}
-                            placeholder={t('taxonomy.units.prices.placeholder_max', { fallback: '$Max' })}
+                            placeholder={t('taxonomy.units.prices.placeholder_max')}
                             className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-700"
                         />
                     </div>
@@ -559,7 +559,7 @@ export default function MarketFiltersAdvanced({
                                     type="number"
                                     value={maxEngine}
                                     onChange={(e) => setMaxEngine(e.target.value)}
-                                    placeholder={category === 'Motocicleta' ? t('taxonomy.units.cc', { fallback: 'Ej. 1200' }) : category === 'Camión' ? t('taxonomy.units.hp', { fallback: 'Ej. 600' }) : t('taxonomy.units.l', { fallback: 'Ej. 5.0' })}
+                                    placeholder={category === 'Motocicleta' ? t('taxonomy.units.cc') : category === 'Camión' ? t('taxonomy.units.hp') : t('taxonomy.units.l')}
                                     className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
                                 />
                             </div>
@@ -627,7 +627,7 @@ export default function MarketFiltersAdvanced({
                                 type="number"
                                 value={hours}
                                 onChange={(e) => setHours(e.target.value)}
-                                placeholder={t('taxonomy.units.hours_placeholder', { fallback: 'Ej. 5000' })}
+                                placeholder={t('taxonomy.units.hours_placeholder')}
                                 className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
                             />
                         </div>
@@ -667,7 +667,7 @@ export default function MarketFiltersAdvanced({
                                             }`}
                                     >
                                         <div className={`w-3 h-3 md:w-2 md:h-2 rounded-full ${features.includes(feat) ? 'bg-primary-500' : 'bg-surface-highlight'}`} />
-                                        {t(`taxonomy.subtypes.${feat}`, { fallback: feat })}
+                                        {t(`taxonomy.subtypes.${feat}`) || feat}
                                     </button>
                                 ))}
                             </div>

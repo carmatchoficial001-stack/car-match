@@ -695,7 +695,7 @@ export default function PublishClient() {
                                 />
                                 <div className="space-y-2 col-span-1 md:col-span-1">
                                     <label className="block text-text-primary font-medium">
-                                        {t('common.currency', { fallback: 'Moneda' })}
+                                        {t('common.currency')}
                                     </label>
                                     <SearchableSelect
                                         value={currency}
@@ -817,7 +817,7 @@ export default function PublishClient() {
                                     />
                                 </div>
                                 <div className="space-y-2 col-span-1">
-                                    <label className="block text-text-primary font-medium">{t('publish.labels.passengers')} <span className="text-text-secondary text-xs font-normal">({t('common.seats', { fallback: 'Asientos' })})</span></label>
+                                    <label className="block text-text-primary font-medium">{t('publish.labels.passengers')} <span className="text-text-secondary text-xs font-normal">({t('common.seats')})</span></label>
                                     <SearchableSelect
                                         value={passengers}
                                         onChange={setPassengers}
@@ -909,7 +909,7 @@ export default function PublishClient() {
                         <div className="space-y-6">
                             <div>
                                 <h2 className="text-2xl font-bold text-text-primary mb-2">{t('publish.labels.features_title')}</h2>
-                                <p className="text-text-secondary">{t('publish.labels.features_subtitle', { brand: brand || t('common.vehicle', { fallback: 'vehículo' }) })}</p>
+                                <p className="text-text-secondary">{t('publish.labels.features_subtitle')}</p>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {getFeaturesByCategory(
@@ -953,7 +953,7 @@ export default function PublishClient() {
                                                     </svg>
                                                 )}
                                             </div>
-                                            <span className={`text-sm font-medium ${isSelected ? 'text-primary-400' : 'text-text-primary'}`}>{t(`taxonomy.subtypes.${feature}`, { fallback: feature })}</span>
+                                            <span className={`text-sm font-medium ${isSelected ? 'text-primary-400' : 'text-text-primary'}`}>{t(`taxonomy.subtypes.${feature}`) || feature}</span>
                                         </button>
                                     )
                                 })}
