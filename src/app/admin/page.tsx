@@ -39,6 +39,7 @@ import {
 import dynamic from 'next/dynamic'
 const AdminHeatMap = dynamic(() => import('@/components/AdminHeatMap'), { ssr: false })
 import QRCodeModal from '@/components/QRCodeModal'
+import ManageCreditsModal from '@/components/admin/ManageCreditsModal'
 import Link from 'next/link'
 import SimpleLineChart from '@/components/SimpleLineChart'
 
@@ -333,8 +334,9 @@ export default function AdminDashboard() {
     )
 }
 
-const { t } = useLanguage()
-return (
+function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) {
+    const { t } = useLanguage()
+    return (
     <div className="space-y-8">
         {/* Top Grid: Financials & Heatmap */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -515,8 +517,7 @@ function StatCard2({ icon: Icon, label, value, trend, color, simple }: any) {
     )
 }
 
-import ManageCreditsModal from '@/components/admin/ManageCreditsModal'
-// ... imports previos
+
 
 function UsersTab({ users }: { users: any[] }) {
     const [selectedUser, setSelectedUser] = useState<any>(null)
