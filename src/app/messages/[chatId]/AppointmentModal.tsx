@@ -98,6 +98,29 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
         setCustomLng(lng)
     }
 
+    const searchLocation = async () => {
+        if (!customLocation.trim()) return
+
+        const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+        if (!token) return
+
+        try {
+            const query = encodeURIComponent(customLocation)
+            const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${token}&country=mx&language=es&limit=1`)
+            const data = await res.json()
+
+            if (data.features && data.features.length > 0) {
+                const [lng, lat] = data.features[0].center
+                setCustomLat(lat)
+                setCustomLng(lng)
+                setViewCenter({ lat, lng })
+                setSelectedPlace(null) // Ensure we are in custom mode
+            }
+        } catch (error) {
+            console.error("Error searching location:", error)
+        }
+    }
+
     const handleSubmit = () => {
         if (!date || !time) return
 
@@ -162,24 +185,52 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
                             <label className="block text-sm font-semibold text-text-primary">
                                 Poner lugar personalizado
                             </label>
-                            <input
-                                type="text"
-                                value={customLocation}
-                                onChange={e => {
-                                    setCustomLocation(e.target.value);
-                                    setSelectedPlace(null);
-                                }}
-                                placeholder="Ej. Plaza Principal, Centro Comercial..."
-                                className="w-full bg-background border border-surface-highlight rounded-lg p-3 text-text-primary text-sm focus:border-primary-500 outline-none shadow-inner"
-                            />
+
+                            <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <input
+                                        type="text"
+                                        value={customLocation}
+                                        onChange={e => {
+                                            setCustomLocation(e.target.value);
+                                            setSelectedPlace(null);
+                                        }}
+                                        onKeyDown={(e) => e.key === 'Enter' && searchLocation()}
+                                        placeholder="Ej. Plaza Principal, Calle Reforma..."
+                                        className="w-full bg-background border border-surface-highlight rounded-lg p-3 pr-10 text-text-primary text-sm focus:border-primary-500 outline-none shadow-inner"
+                                    />
+                                    {customLocation && (
+                                        <button
+                                            onClick={() => setCustomLocation('')}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
+                                        >
+                                            &times;
+                                        </button>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={searchLocation}
+                                    className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition shadow-md flex items-center justify-center"
+                                    title="Buscar en mapa"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </button>
+                            </div>
 
                             {/* Mapa para confirmar ubicación personalizada */}
                             {customLocation && !selectedPlace && (
                                 <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <p className="text-xs text-text-secondary font-semibold">
-                                        📍 Confirma la ubicación en el mapa
-                                    </p>
-                                    <div className="rounded-xl overflow-hidden border border-surface-highlight h-[250px] relative">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-xs text-text-secondary font-semibold">
+                                            📍 Confirma la ubicación en el mapa
+                                        </p>
+                                        <span className="text-[10px] text-primary-400 bg-primary-500/10 px-2 py-0.5 rounded-full">
+                                            Modo Manual
+                                        </span>
+                                    </div>
+                                    <div className="rounded-xl overflow-hidden border border-surface-highlight h-[250px] relative shadow-inner">
                                         <MapBoxAddressPicker
                                             latitude={customLat}
                                             longitude={customLng}
@@ -189,8 +240,9 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
                                             markerEmoji="📍"
                                         />
                                     </div>
-                                    <p className="text-[10px] text-text-secondary italic">
-                                        💡 Mueve el marcador azul para ajustar la ubicación exacta
+                                    <p className="text-[10px] text-text-secondary italic flex items-center gap-1">
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        Presiona Enter o el botón buscar para encontrar la dirección, luego ajusta el pin azul.
                                     </p>
                                 </div>
                             )}
