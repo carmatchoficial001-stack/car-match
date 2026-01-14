@@ -154,29 +154,68 @@ export default function AdminDashboard() {
         { id: 'logs', icon: Terminal, label: t('admin.logs') },
     ]
 
+    // Mobile Responsive Logic
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768) setIsSidebarOpen(false)
+            else setIsSidebarOpen(true)
+        }
+        // Initial check
+        handleResize()
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
     return (
-        <div className="min-h-screen bg-[#0c0c0e] text-text-primary flex">
+        <div className="min-h-screen bg-[#0c0c0e] text-text-primary flex relative overflow-hidden">
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden"
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-[#111114] border-r border-white/5 transition-all duration-300 flex flex-col z-50 flex-shrink-0`}>
+            <aside className={`
+                fixed md:static inset-y-0 left-0 z-50
+                bg-[#111114] border-r border-white/5 
+                transition-all duration-300 ease-in-out
+                flex flex-col flex-shrink-0
+                ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-20'}
+            `}>
                 <div className="p-6 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary-900/40">
+                    <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary-900/40 shrink-0">
                         <ShieldCheck className="w-5 h-5 text-white" />
                     </div>
-                    {isSidebarOpen && <span className="font-black text-xl tracking-tighter bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent italic">ADMIN</span>}
+                    <span className={`font-black text-xl tracking-tighter bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent italic transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>
+                        ADMIN
+                    </span>
                 </div>
 
-                <nav className="flex-1 px-3 space-y-1 mt-4">
+                <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
                     {menuItems.map((item) => (
                         <button
                             key={item.id}
-                            onClick={() => setActiveView(item.id as AdminView)}
+                            onClick={() => {
+                                setActiveView(item.id as AdminView)
+                                if (window.innerWidth < 768) setIsSidebarOpen(false)
+                            }}
                             className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative ${activeView === item.id
                                 ? 'bg-primary-600/10 text-primary-400'
                                 : 'text-text-secondary hover:bg-white/5 hover:text-text-primary'
                                 }`}
                         >
-                            <item.icon className={`w-5 h-5 ${activeView === item.id ? 'text-primary-500' : 'group-hover:text-text-primary'}`} />
-                            {isSidebarOpen && <span className="font-medium text-sm">{item.label}</span>}
+                            <item.icon className={`w-5 h-5 shrink-0 ${activeView === item.id ? 'text-primary-500' : 'group-hover:text-text-primary'}`} />
+                            <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ${isSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 md:absolute md:left-14 md:bg-[#111114] md:px-2 md:py-1 md:rounded md:border md:border-white/10 md:z-50 md:group-hover:opacity-100 md:group-hover:translate-x-0 md:pointer-events-none'}`}>
+                                {isSidebarOpen ? item.label : (
+                                    // Tooltip logic for collapsed desktop sidebar
+                                    <span className="hidden md:block">{item.label}</span>
+                                )}
+                            </span>
+                            {/* Mobile Label Fix when open */}
+                            {isSidebarOpen && <span className="md:hidden">{item.label}</span>}
+
                             {item.badge ? (
                                 <span className={`absolute ${isSidebarOpen ? 'right-3' : 'top-2 right-2'} bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold`}>
                                     {item.badge}
@@ -197,55 +236,54 @@ export default function AdminDashboard() {
                         onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot'))}
                         className="w-full flex items-center gap-3 px-3 py-3 text-primary-400 hover:text-primary-300 hover:bg-white/5 transition-all rounded-xl"
                     >
-                        <Headset className="w-5 h-5" />
-                        {isSidebarOpen && <span className="font-bold text-sm">{t('common.support')}</span>}
+                        <Headset className="w-5 h-5 shrink-0" />
+                        <span className={`font-bold text-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>{t('common.support')}</span>
                     </button>
 
                     <button
                         onClick={() => router.push('/')}
                         className="w-full flex items-center gap-3 px-3 py-3 text-text-secondary hover:text-white hover:bg-white/5 transition-all rounded-xl"
                     >
-                        <LogOut className="w-5 h-5" />
-                        {isSidebarOpen && <span className="text-sm">{t('nav.exit_portal')}</span>}
+                        <LogOut className="w-5 h-5 shrink-0" />
+                        <span className={`text-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>{t('nav.exit_portal')}</span>
                     </button>
                 </div>
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col h-screen overflow-hidden">
+            <main className="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
                 {/* Top Header */}
-                <header className="h-16 bg-[#111114]/50 backdrop-blur-md border-b border-white/5 px-8 flex items-center justify-between">
+                <header className="h-16 bg-[#111114]/50 backdrop-blur-md border-b border-white/5 px-4 md:px-8 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                            className="p-2 hover:bg-white/5 rounded-lg text-text-secondary"
+                            className="p-2 hover:bg-white/5 rounded-lg text-text-secondary active:scale-95 transition"
                         >
                             {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                         </button>
-                        <h2 className="text-lg font-bold capitalize">{activeView}</h2>
+                        <h2 className="text-lg font-bold capitalize truncate max-w-[150px] md:max-w-none">{activeView}</h2>
                     </div>
 
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3 md:gap-6">
                         {/* QR Code Button */}
                         <button
                             onClick={() => setShowQRModal(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-primary-600/10 hover:bg-primary-600/20 border border-primary-600/20 rounded-xl transition group"
-                            title="Compartir CarMatch con QR"
+                            className="flex items-center gap-2 px-3 py-2 bg-primary-600/10 hover:bg-primary-600/20 border border-primary-600/20 rounded-xl transition group"
                         >
-                            <QrCode className="w-4 h-4 text-primary-400 group-hover:text-primary-300" />
-                            <span className="text-xs font-bold text-primary-400 group-hover:text-primary-300 uppercase tracking-wider hidden sm:block">
+                            <QrCode className="w-4 h-4 text-primary-400" />
+                            <span className="hidden sm:block text-xs font-bold text-primary-400 uppercase tracking-wider">
                                 {t('admin.share_app')}
                             </span>
                         </button>
 
-                        <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
+                        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
                             <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">System Healthy</span>
                         </div>
+
                         <div className="flex items-center gap-3">
                             <div className="text-right hidden sm:block">
-                                <p className="text-xs font-bold text-text-primary">{session?.user?.name || 'Admin User'}</p>
-                                <p className="text-[10px] text-text-secondary">Root Privileges</p>
+                                <p className="text-xs font-bold text-text-primary">{session?.user?.name || 'Admin'}</p>
                             </div>
                             <div className="w-8 h-8 bg-surface-highlight rounded-lg border border-white/10 overflow-hidden">
                                 <img src={session?.user?.image || 'https://ui-avatars.com/api/?name=Admin'} className="w-full h-full object-cover" />
@@ -255,7 +293,7 @@ export default function AdminDashboard() {
                 </header>
 
                 {/* View Content */}
-                <div className="flex-1 overflow-y-auto p-8 pb-32 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-32 custom-scrollbar">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={activeView}
@@ -687,10 +725,10 @@ function AdminReportAction2({ reportId, action, label, primary, danger }: any) {
             onClick={handleAction}
             disabled={loading}
             className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${danger
-                    ? 'bg-red-600 text-white hover:bg-red-500 shadow-lg shadow-red-900/20'
-                    : primary
-                        ? 'bg-primary-600 text-white hover:bg-primary-500 shadow-lg shadow-primary-900/20'
-                        : 'bg-white/5 text-text-secondary hover:bg-white/10'
+                ? 'bg-red-600 text-white hover:bg-red-500 shadow-lg shadow-red-900/20'
+                : primary
+                    ? 'bg-primary-600 text-white hover:bg-primary-500 shadow-lg shadow-primary-900/20'
+                    : 'bg-white/5 text-text-secondary hover:bg-white/10'
                 } disabled:opacity-50`}
         >
             {loading ? '...' : label}
