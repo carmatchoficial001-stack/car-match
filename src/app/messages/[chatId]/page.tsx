@@ -9,7 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import Header from '@/components/Header'
 import AppointmentCard from './AppointmentCard'
 import AppointmentModal from './AppointmentModal'
-import SOSComponent from './SOSComponent'
+import SOSComponent from '@/components/SOSComponent'
 import dynamic from 'next/dynamic'
 
 interface Message {
