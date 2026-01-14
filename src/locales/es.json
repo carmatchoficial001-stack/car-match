@@ -698,6 +698,11 @@
         "expand": "Expandir búsqueda"
     },
     "smart_search": {
+        "title": "Búsqueda Inteligente",
+        "placeholder": "Cuéntanos qué buscas: 'Necesito una camioneta familiar roja, barata, de 4 cilindros...'",
+        "ask_advisor": "Preguntar al Asesor",
+        "consulting": "Consultando experto...",
+        "understood": "¡Entendido! He ajustado los filtros según tu búsqueda.",
         "tooltip_hint": "Prueba: \"Busco camioneta para mi familia de 5 personas...\"",
         "placeholder_active": "Consultando con tu asesor personal...",
         "placeholder_default": "Cuéntale a tu asesor qué buscas: \"Necesito un auto económico...\"",
