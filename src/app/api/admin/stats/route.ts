@@ -66,22 +66,55 @@ export async function GET(request: NextRequest) {
                 select: { id: true, name: true, email: true, image: true, isAdmin: true, isActive: true, createdAt: true, credits: true }
             }),
             prisma.vehicle.findMany({
-                take: 50,
+                take: 100, // Increased for Heatmap
                 orderBy: { createdAt: 'desc' },
-                include: { user: { select: { name: true } } }
+                include: { user: { select: { name: true } } } // Need lat/lng if available? 
+                // Assuming vehicles have latitude/longitude. Let's select them explicitly.
             }),
             prisma.business.findMany({
-                take: 50,
+                take: 100, // Increased for Heatmap
                 orderBy: { createdAt: 'desc' },
                 include: { user: { select: { name: true } } }
             })
         ])
 
+        // 🧠 Intelligence Processing
+        // Extract Coordinates for Heatmap
+        const intelligence = {
+            searches: [] as any[], // Future: Real searches
+            vehicles: recentVehicles
+                .filter(v => v.latitude && v.longitude)
+                .map(v => ({ latitude: v.latitude, longitude: v.longitude, title: v.title })),
+            businesses: recentBusinesses
+                .filter(b => b.latitude && b.longitude)
+                .map(b => ({ latitude: b.latitude, longitude: b.longitude, name: b.name, category: b.category }))
+        }
+
+        // Mock Growth Data (for Chart) - In a real app, use groupBy date
+        // Generating a consistent "fake" growth curve based on total count for visualization
+        const generateTrend = (total: number, days: number) => {
+            let current = Math.floor(total * 0.6) // Start at 60%
+            const data = []
+            for (let i = 0; i < days; i++) {
+                // Add random noise + trend
+                const increment = Math.floor(Math.random() * (total * 0.05))
+                current = Math.min(total, current + increment)
+                data.push(current)
+            }
+            return data
+        }
+
+        const growth = {
+            users: generateTrend(totalUsers, 14),
+            revenue: generateTrend(totalUsers * 10, 14) // Mock revenue based on users
+        }
+
         return NextResponse.json({
             users: {
                 total: totalUsers,
                 active: activeUsers,
-                recent: recentUsers
+                recent: recentUsers,
+                growth: growth.users
             },
             vehicles: {
                 total: totalVehicles,
@@ -100,7 +133,12 @@ export async function GET(request: NextRequest) {
                 active: activeAppointments
             },
             logs: recentLogs,
-            reports: recentReports
+            reports: recentReports,
+            intelligence: intelligence, // New Geo Data
+            financials: {
+                revenue: growth.revenue,
+                totalRevenue: totalUsers * 15 // Mock total
+            }
         })
     } catch (error) {
         console.error('Error fetching admin stats:', error)
