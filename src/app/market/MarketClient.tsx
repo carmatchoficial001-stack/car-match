@@ -369,12 +369,7 @@ export default function MarketClient({
                                                         </div>
                                                     )}
 
-                                                    <ReportImageButton
-                                                        imageUrl={item.images?.[0] || ''}
-                                                        vehicleId={!isBusiness ? item.id : undefined}
-                                                        businessId={isBusiness ? item.id : undefined}
-                                                        className="absolute top-3 right-3 z-10"
-                                                    />
+
 
                                                 </Link>
 
@@ -450,6 +445,17 @@ export default function MarketClient({
                                                         className="shadow-lg bg-surface border border-surface-highlight"
                                                     />
                                                 </div>
+
+                                                {/* Botón de Reportar Flotante en la esquina inferior izquierda */}
+                                                <div className="absolute bottom-3 left-3 z-10">
+                                                    <ReportImageButton
+                                                        imageUrl={item.images?.[0] || ''}
+                                                        vehicleId={!isBusiness ? item.id : undefined}
+                                                        businessId={isBusiness ? item.id : undefined}
+                                                        className="shadow-lg bg-surface border border-surface-highlight hover:bg-red-900/20 text-text-secondary hover:text-red-500"
+                                                    />
+                                                </div>
+
                                             </div>
                                         )
                                     })}
