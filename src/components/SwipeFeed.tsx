@@ -73,7 +73,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 position: 'absolute',
                 width: '100%',
                 height: '100%',
-                maxWidth: '420px',
+                // maxWidth: '420px', // Eliminado para permitir control por CSS del padre
                 zIndex: isTop ? 10 : 0,
             }}
             className={`touch-none flex flex-col h-full ${!isTop && 'pointer-events-none'}`}
@@ -275,7 +275,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
     }
 
     return (
-        <div className="relative w-full max-w-[480px] mx-auto flex flex-col h-full min-h-[75vh]">
+        <div className="relative w-full sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto flex flex-col h-full min-h-[75vh]">
             <div className="relative flex-1 h-full flex justify-center perspective-1000">
                 <AnimatePresence mode="popLayout">
                     {currentItem && (
@@ -290,7 +290,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
                 </AnimatePresence>
 
                 {nextItem && (
-                    <div className="absolute w-full h-full max-w-[480px] pointer-events-none -z-10 scale-[0.98] translate-y-4 opacity-70">
+                    <div className="absolute w-full h-full sm:max-w-md md:max-w-xl lg:max-w-2xl pointer-events-none -z-10 scale-[0.98] translate-y-4 opacity-70">
                         <SwipeCard
                             key={nextItem.id}
                             item={nextItem}
