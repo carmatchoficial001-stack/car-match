@@ -421,7 +421,17 @@ export default function MarketClient({
                                                                 {t('market.view_on_map')}
                                                             </Link>
                                                         )}
-                                                        <div className="flex items-center gap-2 md:gap-3">
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-surface-highlight/10">
+                                                        <ReportImageButton
+                                                            imageUrl={item.images?.[0] || ''}
+                                                            vehicleId={!isBusiness ? item.id : undefined}
+                                                            businessId={isBusiness ? item.id : undefined}
+                                                            className="shadow-md bg-background border border-surface-highlight hover:bg-red-900/10 text-text-secondary hover:text-red-500"
+                                                        />
+
+                                                        <div className="flex items-center gap-2">
                                                             <div className="hidden md:block">
                                                                 <ShareButton
                                                                     title={item.title}
@@ -430,31 +440,19 @@ export default function MarketClient({
                                                                     variant="minimal"
                                                                 />
                                                             </div>
+                                                            <FavoriteButton
+                                                                vehicleId={!isBusiness ? item.id : undefined}
+                                                                businessId={isBusiness ? item.id : undefined}
+                                                                initialIsFavorited={item.isFavorited}
+                                                                size="md"
+                                                                rounded="rounded-full"
+                                                                className="shadow-md bg-background border border-surface-highlight"
+                                                            />
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                {/* Botón de Like Flotante en la esquina inferior */}
-                                                <div className="absolute bottom-3 right-3 z-10">
-                                                    <FavoriteButton
-                                                        vehicleId={!isBusiness ? item.id : undefined}
-                                                        businessId={isBusiness ? item.id : undefined}
-                                                        initialIsFavorited={item.isFavorited}
-                                                        size="md"
-                                                        rounded="rounded-full"
-                                                        className="shadow-lg bg-surface border border-surface-highlight"
-                                                    />
-                                                </div>
 
-                                                {/* Botón de Reportar Flotante en la esquina inferior izquierda */}
-                                                <div className="absolute bottom-3 left-3 z-10">
-                                                    <ReportImageButton
-                                                        imageUrl={item.images?.[0] || ''}
-                                                        vehicleId={!isBusiness ? item.id : undefined}
-                                                        businessId={isBusiness ? item.id : undefined}
-                                                        className="shadow-lg bg-surface border border-surface-highlight hover:bg-red-900/20 text-text-secondary hover:text-red-500"
-                                                    />
-                                                </div>
 
                                             </div>
                                         )
