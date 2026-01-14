@@ -42,15 +42,19 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
     const [viewCenter, setViewCenter] = useState<{ lat: number; lng: number } | null>(null)
     const [customLat, setCustomLat] = useState<number | null>(initialAppointment?.latitude || null)
     const [customLng, setCustomLng] = useState<number | null>(initialAppointment?.longitude || null)
+    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
 
     // Obtener ubicación inicial del usuario
     useEffect(() => {
         navigator.geolocation.getCurrentPosition(
             (position) => {
+                const { latitude, longitude } = position.coords
+                setUserLocation({ lat: latitude, lng: longitude })
+
                 if (!viewCenter) {
-                    setViewCenter({ lat: position.coords.latitude, lng: position.coords.longitude })
-                    if (!customLat) setCustomLat(position.coords.latitude)
-                    if (!customLng) setCustomLng(position.coords.longitude)
+                    setViewCenter({ lat: latitude, lng: longitude })
+                    if (!customLat) setCustomLat(latitude)
+                    if (!customLng) setCustomLng(longitude)
                 }
             },
             () => {
@@ -106,7 +110,14 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
 
         try {
             const query = encodeURIComponent(customLocation)
-            const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${token}&country=mx&language=es&limit=1`)
+
+            // Usar coordenadas actuales como bias de proximidad
+            // Si tenemos userLocation (detectado al inicio), lo usamos. 
+            // Si no, usamos customLng/Lat si existen, o fallback al centro de México
+            const proximityLng = userLocation?.lng || customLng || -102.552784
+            const proximityLat = userLocation?.lat || customLat || 23.634501
+
+            const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${token}&country=mx&language=es&limit=1&proximity=${proximityLng},${proximityLat}`)
             const data = await res.json()
 
             if (data.features && data.features.length > 0) {
