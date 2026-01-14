@@ -34,6 +34,7 @@ interface Chat {
     }
     isBuyer: boolean
     updatedAt: string
+    unreadCount: number
 }
 
 export default function MessagesPage() {
@@ -119,8 +120,15 @@ export default function MessagesPage() {
                             <a
                                 key={chat.id}
                                 href={`/messages/${chat.id}`}
-                                className="block bg-surface border border-surface-highlight rounded-xl p-4 hover:bg-surface-highlight transition"
+                                className={`block bg-surface border rounded-xl p-4 hover:bg-surface-highlight transition relative ${chat.unreadCount > 0 ? 'border-primary-500/50' : 'border-surface-highlight'
+                                    }`}
                             >
+                                {/* Badge de mensajes no leídos */}
+                                {chat.unreadCount > 0 && (
+                                    <div className="absolute -top-2 -right-2 z-10 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg border-2 border-background">
+                                        {chat.unreadCount}
+                                    </div>
+                                )}
                                 <div className="flex items-center gap-4">
                                     {/* Imagen del vehículo */}
                                     <img
@@ -132,7 +140,8 @@ export default function MessagesPage() {
                                     {/* Info del chat */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="font-bold text-text-primary truncate text-sm">
+                                            <h3 className={`text-text-primary truncate text-sm ${chat.unreadCount > 0 ? 'font-bold' : 'font-semibold'
+                                                }`}>
                                                 {chat.vehicle.brand} {chat.vehicle.model} {chat.vehicle.year}
                                             </h3>
                                             {chat.vehicle.status !== 'ACTIVE' && (
@@ -163,7 +172,8 @@ export default function MessagesPage() {
                                         </div>
 
                                         {chat.lastMessage && (
-                                            <p className="text-sm text-text-secondary truncate">
+                                            <p className={`text-sm text-text-secondary truncate ${chat.unreadCount > 0 ? 'font-semibold' : ''
+                                                }`}>
                                                 {chat.lastMessage.content}
                                             </p>
                                         )}

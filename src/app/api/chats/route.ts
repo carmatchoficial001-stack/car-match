@@ -55,8 +55,7 @@ export async function GET(request: NextRequest) {
                     }
                 },
                 messages: {
-                    orderBy: { createdAt: 'desc' },
-                    take: 1 // Solo el último mensaje
+                    orderBy: { createdAt: 'desc' }
                 }
             },
             orderBy: { updatedAt: 'desc' }
@@ -70,11 +69,17 @@ export async function GET(request: NextRequest) {
                 const otherUser = isBuyer ? chat.seller : chat.buyer
                 const lastMessage = chat.messages[0]
 
+                // Contar mensajes no leídos (enviados por el otro usuario)
+                const unreadCount = chat.messages.filter(msg =>
+                    !msg.isRead && msg.senderId !== user.id
+                ).length
+
                 return {
                     ...chat,
                     otherUser,
                     isBuyer,
-                    lastMessage
+                    lastMessage,
+                    unreadCount
                 }
             })
 
