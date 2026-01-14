@@ -208,7 +208,10 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
     return (
         <>
             <Header />
-            <div className="flex bg-background h-[calc(100dvh-64px-5rem)] md:h-[calc(100vh-64px)] overflow-hidden">
+            <div className={`flex bg-background overflow-hidden md:h-[calc(100vh-64px)] transition-all duration-300 ${isInputFocused
+                ? 'h-[calc(100dvh-64px)]'
+                : 'h-[calc(100dvh-64px-5rem)]'
+                }`}>
                 <div className="flex-1 flex flex-col relative w-full overflow-hidden">
                     <SOSComponent
                         chatId={chatId}
@@ -248,41 +251,26 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                     {isSafetyModeActive && activeAppointment && (
                         <div className="bg-primary-950/40 border-b border-primary-500/20 p-3 shadow-inner shrink-0">
                             <div className="flex items-center gap-4">
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-bold text-primary-400 mb-0.5 uppercase tracking-wider">🛡️ {t('messages.safety_mode.active')}</p>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm font-bold text-text-primary">
-                                            {new Date(activeAppointment.date!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
-                                        <span className="text-[10px] text-text-secondary truncate italic">📍 {activeAppointment.location}</span>
-                                    </div>
+                                <div className="relative">
+                                    <div className="w-3 h-3 bg-red-500 rounded-full animate-ping absolute top-0 left-0" />
+                                    <div className="w-3 h-3 bg-red-500 rounded-full relative" />
                                 </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => {
-                                            setEditingAppointment(activeAppointment);
-                                            setShowAppointmentModal(true);
-                                        }}
-                                        className="p-2 bg-surface-highlight/50 rounded-xl text-primary-400 hover:bg-surface transition shadow-sm"
-                                        title="Editar cita"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg>
-                                    </button>
-                                    <button
-                                        onClick={handleEndMeeting}
-                                        className="px-3 py-1.5 bg-background border border-surface-highlight rounded-xl text-[10px] font-black uppercase text-text-secondary hover:text-red-400 transition"
-                                    >
-                                        {t('messages.safety_mode.end_btn')}
-                                    </button>
+                                <div>
+                                    <p className="text-xs font-bold text-text-primary uppercase tracking-wider">{t('messages.safety_mode.active_title')}</p>
+                                    <p className="text-[10px] text-text-secondary">{t('messages.safety_mode.active_desc')}</p>
                                 </div>
+                                <button
+                                    onClick={handleEndMeeting}
+                                    className="ml-auto text-xs bg-surface-highlight hover:bg-surface-highlight/80 px-3 py-1.5 rounded-lg transition-colors border border-white/5"
+                                >
+                                    {t('messages.safety_mode.end_button')}
+                                </button>
                             </div>
                         </div>
                     )}
 
-                    {/* Messages Container */}
-                    <div className="flex-1 overflow-y-auto px-4 py-6 bg-background scroll-smooth">
+                    {/* Lista de Mensajes */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-background/50">
                         <div className="max-w-4xl mx-auto space-y-4">
                             {/* Mensaje de Bienvenida y Seguridad (Visual Estático) */}
                             <div className="flex justify-center mb-6">
@@ -299,51 +287,53 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                             </div>
 
                             {messages.map((message) => {
-                                const isOwnMessage = message.senderId === session?.user?.id
+                                const isOwn = message.senderId === session?.user?.id
                                 const isSystem = message.senderId === 'SYSTEM'
 
+                                if (message.type === 'APPOINTMENT') {
+                                    return (
+                                        <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                                            <AppointmentCard
+                                                appointment={{
+                                                    ...message,
+                                                    id: message.id,
+                                                    date: message.date!,
+                                                    location: message.location!,
+                                                    address: message.address,
+                                                    status: message.status as any,
+                                                    proposerId: message.proposerId!
+                                                }}
+                                                isOwn={message.proposerId === session?.user?.id}
+                                                onUpdateStatus={(status) => handleUpdateAppointment(message.id, status)}
+                                            />
+                                        </div>
+                                    )
+                                }
+
                                 return (
-                                    <div key={message.id} className={`flex ${isSystem ? 'justify-center' : isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                                    <div
+                                        key={message.id}
+                                        className={`flex ${isSystem ? 'justify-center' : isOwn ? 'justify-end' : 'justify-start'}`}
+                                    >
                                         {isSystem ? (
                                             <div className="bg-red-900/20 border border-red-500/30 px-4 py-2 rounded-xl text-[11px] text-red-400 font-bold max-w-[90%] text-center italic">
                                                 {message.content}
                                             </div>
                                         ) : (
-                                            <div className={`max-w-[85%] flex items-end gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
-                                                {!isOwnMessage && (
-                                                    <div className="flex-shrink-0">
-                                                        {message.sender?.image ? (
-                                                            <img src={message.sender.image} alt="" className="w-8 h-8 rounded-lg object-cover" />
-                                                        ) : (
-                                                            <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center text-xs text-white font-bold uppercase">
-                                                                {(message.sender?.name || '?')[0]}
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                            <div className={`max-w-[75%] rounded-2xl p-4 shadow-sm ${isOwn
+                                                ? 'bg-primary-600 text-white rounded-tr-none'
+                                                : 'bg-surface border border-surface-highlight text-text-primary rounded-tl-none'
+                                                }`}>
+                                                {!isOwn && (
+                                                    <Link href={`/profile/${message.senderId}`} className="hover:underline">
+                                                        <div className="text-[10px] font-bold mb-1 opacity-70 uppercase tracking-wider">{message.sender?.name}</div>
+                                                    </Link>
                                                 )}
-
-                                                {message.type === 'APPOINTMENT' ? (
-                                                    <AppointmentCard
-                                                        appointment={message as any}
-                                                        isOwn={isOwnMessage}
-                                                        onUpdateStatus={handleUpdateAppointment}
-                                                    />
-                                                ) : (
-                                                    <div className={`rounded-2xl px-4 py-2 ${isOwnMessage
-                                                        ? 'bg-primary-600 text-white rounded-tr-sm'
-                                                        : 'bg-surface border border-surface-highlight text-text-primary rounded-tl-sm'
-                                                        }`}>
-                                                        {!isOwnMessage && (
-                                                            <Link href={`/profile/${message.senderId}`} className="hover:underline">
-                                                                <div className="text-[10px] font-bold mb-1 opacity-70 uppercase tracking-wider">{message.sender?.name}</div>
-                                                            </Link>
-                                                        )}
-                                                        <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
-                                                        <span className="text-[9px] block text-right mt-1 opacity-60">
-                                                            {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        </span>
-                                                    </div>
-                                                )}
+                                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                                                <p className={`text-[10px] mt-2 text-right ${isOwn ? 'text-primary-200' : 'text-text-secondary'
+                                                    }`}>
+                                                    {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </p>
                                             </div>
                                         )}
                                     </div>
@@ -354,7 +344,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                     </div>
 
                     {/* Input Area */}
-                    <div className="bg-surface border-t border-surface-highlight p-2 sm:p-4 shrink-0">
+                    < div className="bg-surface border-t border-surface-highlight p-2 sm:p-4 shrink-0" >
                         <div className="max-w-4xl mx-auto">
                             <form onSubmit={handleSendMessage} className="flex items-end gap-1 sm:gap-2">
                                 <div className="flex gap-1">
@@ -405,13 +395,14 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                 </div>
                             )}
                         </div>
-                    </div>
-                </div>
-            </div>
+                    </div >
+                </div >
+            </div >
 
             {/* Sidebar de Tips de Seguridad */}
-            <div className={`fixed inset-0 z-[100] transition-opacity duration-300 bg-black/50 lg:hidden ${showSafetyTips ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowSafetyTips(false)} />
-            <div className={`fixed bottom-0 left-0 right-0 lg:inset-y-0 lg:right-0 lg:left-auto lg:w-96 bg-surface border-t lg:border-t-0 lg:border-l border-surface-highlight shadow-2xl transform transition-transform duration-300 z-[101] rounded-t-[2.5rem] lg:rounded-none h-[80vh] lg:h-full ${showSafetyTips ? 'translate-y-0 lg:translate-x-0' : 'translate-y-full lg:translate-x-full'}`}>
+            < div className={`fixed inset-0 z-[100] transition-opacity duration-300 bg-black/50 lg:hidden ${showSafetyTips ? 'opacity-100' : 'opacity-0 pointer-events-none'}`
+            } onClick={() => setShowSafetyTips(false)} />
+            < div className={`fixed bottom-0 left-0 right-0 lg:inset-y-0 lg:right-0 lg:left-auto lg:w-96 bg-surface border-t lg:border-t-0 lg:border-l border-surface-highlight shadow-2xl transform transition-transform duration-300 z-[101] rounded-t-[2.5rem] lg:rounded-none h-[80vh] lg:h-full ${showSafetyTips ? 'translate-y-0 lg:translate-x-0' : 'translate-y-full lg:translate-x-full'}`}>
                 <div className="h-full flex flex-col p-6">
                     <div className="w-12 h-1.5 bg-surface-highlight rounded-full mx-auto mb-4 lg:hidden" />
                     <div className="flex justify-between items-center mb-6">
@@ -429,7 +420,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                         ))}
                     </div>
                 </div>
-            </div>
+            </div >
 
             {showAppointmentModal && (
                 <AppointmentModal
