@@ -43,6 +43,7 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
     const [customLat, setCustomLat] = useState<number | null>(initialAppointment?.latitude || null)
     const [customLng, setCustomLng] = useState<number | null>(initialAppointment?.longitude || null)
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+    const [isInputFocused, setIsInputFocused] = useState(false)
 
     // Obtener ubicación inicial del usuario
     useEffect(() => {
