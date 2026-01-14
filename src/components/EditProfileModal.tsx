@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useLanguage } from '@/contexts/LanguageContext'
 import ImageUpload from './ImageUpload'
 
 interface EditProfileModalProps {
@@ -20,7 +20,7 @@ interface EditProfileModalProps {
 
 export default function EditProfileModal({ isOpen, onClose, currentUser, userVehicles }: EditProfileModalProps) {
     const router = useRouter()
-    const t = useTranslations('edit_profile')
+    const { t } = useLanguage()
     const [name, setName] = useState(currentUser.name || '')
     const [selectedImage, setSelectedImage] = useState(currentUser.image || '')
     const [trustedContactId, setTrustedContactId] = useState(currentUser.trustedContactId || '')
