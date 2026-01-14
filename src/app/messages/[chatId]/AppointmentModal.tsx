@@ -25,67 +25,77 @@ import dynamic from 'next/dynamic'
 
 const MapBoxAddressPicker = dynamic(() => import('@/components/MapBoxAddressPicker'), {
     ssr: false,
-    loading: () => <div className="w-full h-[300px] bg-surface-highlight animate-pulse rounded-xl" />
+    loading: () => <div className="w-full h-[250px] bg-surface-highlight animate-pulse rounded-xl" />
 })
 
 export default function AppointmentModal({ onClose, onSubmit, chatId, initialAppointment }: AppointmentModalProps) {
     const { t } = useLanguage()
-    const [step, setStep] = useState(1)
     const [safePlaces, setSafePlaces] = useState<SafePlace[]>([])
-    const [loadingPlaces, setLoadingPlaces] = useState(true)
+    const [loadingPlaces, setLoadingPlaces] = useState(false)
+    const [showSafePlaces, setShowSafePlaces] = useState(false)
 
     // Form State
     const [date, setDate] = useState(initialAppointment?.date ? new Date(initialAppointment.date).toISOString().split('T')[0] : '')
     const [time, setTime] = useState(initialAppointment?.date ? new Date(initialAppointment.date).toTimeString().substring(0, 5) : '')
     const [selectedPlace, setSelectedPlace] = useState<SafePlace | null>(null)
     const [customLocation, setCustomLocation] = useState(initialAppointment?.location || '')
-    const [viewCenter, setViewCenter] = useState<{ lat: number; lng: number } | null>(
-        initialAppointment?.latitude && initialAppointment?.longitude
-            ? { lat: initialAppointment.latitude, lng: initialAppointment.longitude }
-            : null
-    )
-    const [mapLat, setMapLat] = useState<number | null>(initialAppointment?.latitude || null)
-    const [mapLng, setMapLng] = useState<number | null>(initialAppointment?.longitude || null)
-    const [isManualSelection, setIsManualSelection] = useState(!!initialAppointment?.latitude)
+    const [viewCenter, setViewCenter] = useState<{ lat: number; lng: number } | null>(null)
+    const [customLat, setCustomLat] = useState<number | null>(initialAppointment?.latitude || null)
+    const [customLng, setCustomLng] = useState<number | null>(initialAppointment?.longitude || null)
 
+    // Obtener ubicación inicial del usuario
     useEffect(() => {
-        const fetchPlaces = async () => {
-            setLoadingPlaces(true)
-            let queryParams = ''
-
-            try {
-                // Intentar obtener ubicación rápida (3s timeout)
-                const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 })
-                })
-                queryParams = `?lat=${position.coords.latitude}&lon=${position.coords.longitude}`
-            } catch (e) {
-                console.log("Continuando sin GPS para lugares seguros")
-            }
-
-            try {
-                const res = await fetch(`/api/chats/${chatId}/safe-places${queryParams}`)
-                const data = await res.json()
-                setSafePlaces(data.suggestions || [])
-                if (data.centerLocation) {
-                    setViewCenter({ lat: data.centerLocation.latitude, lng: data.centerLocation.longitude })
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                if (!viewCenter) {
+                    setViewCenter({ lat: position.coords.latitude, lng: position.coords.longitude })
+                    if (!customLat) setCustomLat(position.coords.latitude)
+                    if (!customLng) setCustomLng(position.coords.longitude)
                 }
-            } catch (err) {
-                console.error(err)
-            } finally {
-                setLoadingPlaces(false)
+            },
+            () => {
+                // Fallback a una ubicación por defecto si falla
+                if (!viewCenter) {
+                    setViewCenter({ lat: 23.634501, lng: -102.552784 }) // Centro de México
+                }
             }
+        )
+    }, [])
+
+    const fetchSafePlaces = async () => {
+        setLoadingPlaces(true)
+        let queryParams = ''
+
+        try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 })
+            })
+            queryParams = `?lat=${position.coords.latitude}&lon=${position.coords.longitude}`
+        } catch (e) {
+            console.log("Continuando sin GPS para lugares seguros")
         }
 
-        fetchPlaces()
-    }, [chatId])
+        try {
+            const res = await fetch(`/api/chats/${chatId}/safe-places${queryParams}`)
+            const data = await res.json()
+            setSafePlaces(data.suggestions || [])
+        } catch (err) {
+            console.error(err)
+        } finally {
+            setLoadingPlaces(false)
+        }
+    }
 
-    const handleLocationSelect = (lat: number, lng: number) => {
-        setMapLat(lat)
-        setMapLng(lng)
-        setIsManualSelection(true)
-        setSelectedPlace(null)
-        setCustomLocation("Ubicación seleccionada en mapa")
+    const handleUseSafePlaces = () => {
+        if (safePlaces.length === 0) {
+            fetchSafePlaces()
+        }
+        setShowSafePlaces(true)
+    }
+
+    const handleCustomLocationSelect = (lat: number, lng: number) => {
+        setCustomLat(lat)
+        setCustomLng(lng)
     }
 
     const handleSubmit = () => {
@@ -102,9 +112,9 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
             date: dateTime.toISOString(),
             location: locationName,
             address: locationAddress,
-            latitude: isManualSelection ? mapLat : (selectedPlace?.latitude || 0),
-            longitude: isManualSelection ? mapLng : (selectedPlace?.longitude || 0),
-            monitoringActive: true // Activar monitoreo por defecto
+            latitude: selectedPlace ? selectedPlace.latitude : customLat || 0,
+            longitude: selectedPlace ? selectedPlace.longitude : customLng || 0,
+            monitoringActive: true
         })
     }
 
@@ -142,106 +152,136 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
                         </div>
                     </div>
 
-                    {/* Mapa y Selector de Lugar */}
-                    <div className="space-y-4">
+                    {/* Lugar Personalizado */}
+                    <div className="space-y-3">
                         <label className="block text-xs font-bold text-text-secondary mb-2 uppercase flex items-center gap-2">
-                            <span>📍</span> {t('appointment.location_label')}
+                            <span>📍</span> {t('appointment.location_label') || 'LUGAR DE ENCUENTRO'}
                         </label>
 
-                        {/* Mapa Interactivo */}
-                        <div className="rounded-xl overflow-hidden border border-surface-highlight h-[300px] relative">
-                            <MapBoxAddressPicker
-                                latitude={isManualSelection ? mapLat : selectedPlace?.latitude || null}
-                                longitude={isManualSelection ? mapLng : selectedPlace?.longitude || null}
-                                onLocationSelect={handleLocationSelect}
-                                viewCenter={viewCenter}
-                                markerColor={isManualSelection ? "#3b82f6" : "#ef4444"}
-                                markerEmoji={isManualSelection ? "📍" : selectedPlace?.icon || "🤝"}
-                            />
-                        </div>
-
-                        {/* Sugerencias de Negocios y Puntos Seguros */}
-                        <div className="space-y-3">
-                            <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest">{t('appointment.safe_places_title') || 'Sugerencias de Seguridad'}</p>
-
-                            {loadingPlaces ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 gap-2 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar">
-                                    {safePlaces.map(place => (
-                                        <button
-                                            key={place.id}
-                                            type="button"
-                                            onClick={() => {
-                                                setSelectedPlace(place);
-                                                setCustomLocation('');
-                                                setIsManualSelection(false);
-                                                setViewCenter({ lat: place.latitude, lng: place.longitude });
-                                            }}
-                                            className={`w-full p-3 rounded-xl border text-left transition-all flex items-start gap-3 ${selectedPlace?.id === place.id
-                                                ? 'bg-primary-500/10 border-primary-500 ring-1 ring-primary-500'
-                                                : 'bg-background border-surface-highlight hover:border-primary-500/50'
-                                                }`}
-                                        >
-                                            <div className="text-2xl mt-1">{place.icon}</div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-bold text-text-primary text-sm truncate">{place.name}</span>
-                                                    {place.isOfficialBusiness && (
-                                                        <span className="text-[10px] bg-primary-500/20 text-primary-400 px-1.5 py-0.5 rounded-full font-bold">VERIFICADO</span>
-                                                    )}
-                                                </div>
-                                                <div className="text-[11px] text-text-secondary truncate">{place.address}</div>
-                                                <div className="text-[10px] text-primary-400 font-bold mt-1 flex items-center gap-1">
-                                                    <span>🗺️</span> {place.distance} km de distancia
-                                                </div>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Lugar Personalizado */}
-                        <div className="bg-surface-highlight/20 p-4 rounded-xl border border-surface-highlight">
-                            <div className="flex items-center gap-2 mb-2">
-                                <input
-                                    type="checkbox"
-                                    id="custom-loc-check"
-                                    checked={isManualSelection || !!customLocation}
-                                    onChange={() => {
-                                        if (isManualSelection) {
-                                            setIsManualSelection(false);
-                                            setCustomLocation('');
-                                        } else {
-                                            setIsManualSelection(true);
-                                        }
-                                        setSelectedPlace(null);
-                                    }}
-                                    className="w-4 h-4 rounded border-surface-highlight text-primary-500 focus:ring-primary-500"
-                                />
-                                <label htmlFor="custom-loc-check" className="text-xs font-bold text-text-primary cursor-pointer">
-                                    {t('appointment.custom_location_check')}
-                                </label>
-                            </div>
+                        <div className="bg-surface-highlight/20 p-4 rounded-xl border border-surface-highlight space-y-3">
+                            <label className="block text-sm font-semibold text-text-primary">
+                                Poner lugar personalizado
+                            </label>
                             <input
                                 type="text"
                                 value={customLocation}
                                 onChange={e => {
                                     setCustomLocation(e.target.value);
                                     setSelectedPlace(null);
-                                    if (!isManualSelection) setIsManualSelection(true);
                                 }}
-                                placeholder={t('appointment.custom_location_placeholder')}
+                                placeholder="Ej. Plaza Principal, Centro Comercial..."
                                 className="w-full bg-background border border-surface-highlight rounded-lg p-3 text-text-primary text-sm focus:border-primary-500 outline-none shadow-inner"
                             />
-                            <p className="text-[10px] text-text-secondary mt-2 italic">
-                                💡 Puedes mover el marcador azul en el mapa para mayor precisión.
-                            </p>
+
+                            {/* Mapa para confirmar ubicación personalizada */}
+                            {customLocation && !selectedPlace && (
+                                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <p className="text-xs text-text-secondary font-semibold">
+                                        📍 Confirma la ubicación en el mapa
+                                    </p>
+                                    <div className="rounded-xl overflow-hidden border border-surface-highlight h-[250px] relative">
+                                        <MapBoxAddressPicker
+                                            latitude={customLat}
+                                            longitude={customLng}
+                                            onLocationSelect={handleCustomLocationSelect}
+                                            viewCenter={viewCenter}
+                                            markerColor="#3b82f6"
+                                            markerEmoji="📍"
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-text-secondary italic">
+                                        💡 Mueve el marcador azul para ajustar la ubicación exacta
+                                    </p>
+                                </div>
+                            )}
                         </div>
+
+                        {/* Botón para usar puntos seguros */}
+                        <button
+                            type="button"
+                            onClick={handleUseSafePlaces}
+                            className="w-full p-4 bg-primary-500/10 border border-primary-500/30 rounded-xl text-primary-400 font-bold hover:bg-primary-500/20 transition flex items-center justify-center gap-2"
+                        >
+                            <span className="text-xl">🛡️</span>
+                            <span>Usar un punto seguro de CarMatch</span>
+                        </button>
                     </div>
+
+                    {/* Mapa y puntos seguros - Solo se muestra cuando se hace clic */}
+                    {showSafePlaces && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                            {/* Mapa Interactivo de punto seguro seleccionado */}
+                            {selectedPlace && (
+                                <div className="space-y-2">
+                                    <p className="text-xs text-text-secondary font-semibold">
+                                        🗺️ Ubicación del punto seguro
+                                    </p>
+                                    <div className="rounded-xl overflow-hidden border border-primary-500 h-[250px] relative">
+                                        <MapBoxAddressPicker
+                                            latitude={selectedPlace.latitude}
+                                            longitude={selectedPlace.longitude}
+                                            onLocationSelect={() => { }}
+                                            viewCenter={{ lat: selectedPlace.latitude, lng: selectedPlace.longitude }}
+                                            markerColor="#ef4444"
+                                            markerEmoji={selectedPlace.icon || "🤝"}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Lista de puntos seguros */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-xs text-text-secondary font-bold uppercase tracking-widest">
+                                        🛡️ PUNTOS SEGUROS VERIFICADOS
+                                    </p>
+                                    <button
+                                        onClick={() => setShowSafePlaces(false)}
+                                        className="text-xs text-text-secondary hover:text-text-primary"
+                                    >
+                                        Ocultar
+                                    </button>
+                                </div>
+
+                                {loadingPlaces ? (
+                                    <div className="flex items-center justify-center py-8">
+                                        <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
+                                        {safePlaces.map(place => (
+                                            <button
+                                                key={place.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedPlace(place);
+                                                    setCustomLocation('');
+                                                }}
+                                                className={`w-full p-3 rounded-xl border text-left transition-all flex items-start gap-3 ${selectedPlace?.id === place.id
+                                                    ? 'bg-primary-500/10 border-primary-500 ring-1 ring-primary-500'
+                                                    : 'bg-background border-surface-highlight hover:border-primary-500/50'
+                                                    }`}
+                                            >
+                                                <div className="text-2xl mt-1">{place.icon}</div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-text-primary text-sm truncate">{place.name}</span>
+                                                        {place.isOfficialBusiness && (
+                                                            <span className="text-[10px] bg-primary-500/20 text-primary-400 px-1.5 py-0.5 rounded-full font-bold">VERIFICADO</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-[11px] text-text-secondary truncate">{place.address}</div>
+                                                    <div className="text-[10px] text-primary-400 font-bold mt-1 flex items-center gap-1">
+                                                        <span>🗺️</span> {place.distance} km de distancia
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="p-4 border-t border-surface-highlight bg-surface-highlight/30 rounded-b-2xl flex justify-end gap-3">
