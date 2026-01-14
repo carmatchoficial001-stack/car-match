@@ -339,8 +339,8 @@ export default function MarketFiltersAdvanced({
                         className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 disabled:opacity-50 text-base md:text-sm"
                     >
                         <option value="">{t('common.all')}</option>
-                        {category && VEHICLE_CATEGORIES[category]?.map(t => (
-                            <option key={t} value={t}>{t(`taxonomy.subtypes.${t}`)}</option>
+                        {category && VEHICLE_CATEGORIES[category]?.map(subtype => (
+                            <option key={subtype} value={subtype}>{t(`taxonomy.subtypes.${subtype}`)}</option>
                         ))}
                     </select>
                 </div>
