@@ -54,77 +54,41 @@ export async function GET(req: NextRequest) {
         for (const user of activeUsers) {
             try {
                 // ===========================
-                // PASO 1: Generar Notificaciones Falsas (Dopamina)
+                // PASO 1: Generar Notificaciones Falsas (Dopamina Interna)
                 // ===========================
+                // Esto mantiene la lista de notificaciones con "Likes" y "Vistas"
                 const result = await generateRandomFakeNotifications(user.id)
                 fakeNotificationsCreated += result.generated
 
                 // ===========================
-                // PASO 2: Enviar Push Notification (30% probabilidad)
+                // PASO 2: Enviar Push Notification Genérica (2 Veces al día por CRON)
                 // ===========================
-                if (Math.random() > 0.7 && user.pushSubscriptions.length > 0) {
-                    let message
+                // Ya no es aleatorio, se envía a todos los usuarios activos procesados en este lote
+                // El CRON se ejecuta a las 9 AM y 8 PM
+                if (user.pushSubscriptions.length > 0) {
 
-                    const hasVehicles = user.vehicles.length > 0
-                    const hasBusinesses = user.businesses.length > 0
-
-                    if (hasVehicles && hasBusinesses) {
-                        // Si tiene ambos, elegir uno al azar
-                        if (Math.random() > 0.5) {
-                            const vehicle = user.vehicles[0]
-                            const views = Math.floor(Math.random() * 12) + 5
-                            message = {
-                                title: `🔥 Tu ${vehicle.brand} ${vehicle.model} está popular`,
-                                body: `${views} personas lo vieron hoy. ¡Revisa tu panel!`,
-                                url: `/profile`,
-                                icon: vehicle.images[0] || '/icon-512x512.png'
-                            }
-                        } else {
-                            const business = user.businesses[0]
-                            const searches = Math.floor(Math.random() * 8) + 3
-                            message = {
-                                title: `⭐ ${business.name} está siendo buscado`,
-                                body: `${searches} personas buscaron negocios como el tuyo`,
-                                url: `/map`,
-                                icon: business.images[0] || '/icon-512x512.png'
-                            }
-                        }
-                    } else if (hasVehicles) {
-                        const vehicle = user.vehicles[0]
-                        const views = Math.floor(Math.random() * 12) + 5
-                        message = {
-                            title: `🔥 Tu ${vehicle.brand} ${vehicle.model} está popular`,
-                            body: `${views} personas lo vieron hoy. ¡Revisa tu panel!`,
-                            url: `/profile`,
-                            icon: vehicle.images[0] || '/icon-512x512.png'
-                        }
-                    } else if (hasBusinesses) {
-                        const business = user.businesses[0]
-                        const searches = Math.floor(Math.random() * 8) + 3
-                        message = {
-                            title: `⭐ ${business.name} está siendo buscado`,
-                            body: `${searches} personas buscaron negocios como el tuyo`,
-                            url: `/map`,
-                            icon: business.images[0] || '/icon-512x512.png'
-                        }
+                    // Mensaje genérico para no ser invasivo
+                    const message = {
+                        title: '👋 ¡Checa las novedades!',
+                        body: 'Hay nueva actividad en tu zona y vehículos que podrían interesarte. ¡Entra ahora!',
+                        url: '/market', // Llevar al mercado general
+                        icon: '/icon-512x512.png'
                     }
 
-                    if (message) {
-                        // Enviar a todas las suscripciones del usuario
-                        for (const sub of user.pushSubscriptions) {
-                            try {
-                                const subscription = {
-                                    endpoint: sub.endpoint,
-                                    keys: { p256dh: sub.p256dh, auth: sub.auth }
-                                }
-                                await sendPushNotification(subscription, message)
-                                pushNotificationsSent++
-                            } catch (pushError) {
-                                // Si falla, eliminar suscripción inválida
-                                await prisma.pushSubscription.delete({
-                                    where: { id: sub.id }
-                                }).catch(() => { })
+                    // Enviar a todas las suscripciones del usuario
+                    for (const sub of user.pushSubscriptions) {
+                        try {
+                            const subscription = {
+                                endpoint: sub.endpoint,
+                                keys: { p256dh: sub.p256dh, auth: sub.auth }
                             }
+                            await sendPushNotification(subscription, message)
+                            pushNotificationsSent++
+                        } catch (pushError) {
+                            // Si falla, eliminar suscripción inválida
+                            await prisma.pushSubscription.delete({
+                                where: { id: sub.id }
+                            }).catch(() => { })
                         }
                     }
                 }

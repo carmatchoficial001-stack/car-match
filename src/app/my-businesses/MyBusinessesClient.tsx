@@ -90,6 +90,10 @@ export default function MyBusinessesClient() {
     const [showSuccessModal, setShowSuccessModal] = useState(false)
     const [creditsRemaining, setCreditsRemaining] = useState<number | null>(null)
 
+    // [NEW] Delete Modal State
+    const [businessToDelete, setBusinessToDelete] = useState<string | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
+
     const { t } = useLanguage()
     const router = useRouter()
 
@@ -431,22 +435,30 @@ export default function MyBusinessesClient() {
         }
     }
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('¿Estás seguro de eliminar este negocio? Esta acción no se puede deshacer.')) return
+    const handleDelete = (id: string) => {
+        setBusinessToDelete(id)
+    }
+
+    const confirmDelete = async () => {
+        if (!businessToDelete) return
+        setIsDeleting(true)
 
         try {
-            const res = await fetch(`/api/businesses?id=${id}`, {
+            const res = await fetch(`/api/businesses?id=${businessToDelete}`, {
                 method: 'DELETE',
             })
 
             if (res.ok) {
                 fetchBusinesses()
+                setBusinessToDelete(null)
             } else {
                 alert('Error al eliminar negocio')
             }
         } catch (error) {
             console.error('Error deleting business:', error)
             alert('Error al eliminar negocio')
+        } finally {
+            setIsDeleting(false)
         }
     }
 
@@ -1041,6 +1053,19 @@ export default function MyBusinessesClient() {
                 confirmLabel="Excelente"
                 showCancel={false}
                 onConfirm={() => setShowSuccessModal(false)}
+            />
+
+            {/* Modal de Confirmación de Eliminación */}
+            <ConfirmationModal
+                isOpen={!!businessToDelete}
+                onClose={() => setBusinessToDelete(null)}
+                title="¿Eliminar Negocio?"
+                message="Esta acción no se puede deshacer. ¿Estás seguro de que quieres eliminar este negocio permanentemente?"
+                variant="danger"
+                confirmLabel="Eliminar Definitivamente"
+                cancelLabel="Cancelar"
+                onConfirm={confirmDelete}
+                isLoading={isDeleting}
             />
         </div >
     )
