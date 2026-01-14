@@ -1,7 +1,6 @@
-"use client"
-
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import ImageUpload from './ImageUpload'
 
 interface EditProfileModalProps {
@@ -21,6 +20,7 @@ interface EditProfileModalProps {
 
 export default function EditProfileModal({ isOpen, onClose, currentUser, userVehicles }: EditProfileModalProps) {
     const router = useRouter()
+    const t = useTranslations('edit_profile')
     const [name, setName] = useState(currentUser.name || '')
     const [selectedImage, setSelectedImage] = useState(currentUser.image || '')
     const [trustedContactId, setTrustedContactId] = useState(currentUser.trustedContactId || '')
@@ -78,19 +78,19 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                     </svg>
                 </button>
 
-                <h2 className="text-2xl font-bold text-text-primary mb-6">Editar Perfil</h2>
+                <h2 className="text-2xl font-bold text-text-primary mb-6">{t('title')}</h2>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Sección Nombre */}
                     <div>
                         <label className="block text-sm font-medium text-text-secondary mb-2">
-                            Nombre del Perfil
+                            {t('name_label')}
                         </label>
 
                         {/* Tip movido arriba por solicitud del usuario */}
                         <div className="mb-3 p-3 bg-primary-900/20 border border-primary-900/30 rounded-lg">
                             <p className="text-xs text-primary-300">
-                                💡 <strong>Idea Creativa:</strong> ¿Por qué no usar un nombre divertido? <br />
+                                💡 <strong>{t('creative_idea')}</strong> {t('creative_desc')} <br />
                                 Ejemplos: <em>"El Garaje de {currentUser.name?.split(' ')[0] || 'Ana'}", "Autos del Norte", "La Colección de {currentUser.name?.split(' ')[0] || 'Mike'}"</em>
                             </p>
                         </div>
@@ -126,7 +126,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                             )}
 
                             <ImageUpload
-                                label={(!hasValidImage) ? "¡Sube tu primera foto!" : "Cambiar Foto"}
+                                label={(!hasValidImage) ? t('upload_first') : t('change_photo')}
                                 images={hasValidImage ? [selectedImage] : []}
                                 onImagesChange={(imgs) => {
                                     setSelectedImage(imgs[0] || '')
@@ -138,7 +138,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                 fallbackContent={
                                     <div className="border-2 border-dashed border-surface-highlight rounded-lg p-4">
                                         <p className="text-xs text-text-secondary text-center mb-3">
-                                            Así se ve tu perfil actualmente (sin foto personalizada)
+                                            {t('current_profile_desc')}
                                         </p>
                                         <div className="relative w-full max-w-xs aspect-video rounded-xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface mx-auto">
                                             <img
@@ -160,7 +160,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 <span>
-                                    <strong>Recomendación:</strong> CarMatch es una comunidad automotriz. ¡Sube una foto de tu nave, auto favorito, o el vehículo que vendes para destacar!
+                                    <strong>{t('recommendation')}</strong> {t('recommendation_full')}
                                 </span>
                             </div>
                         </div>
@@ -170,7 +170,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                         {/* Vehículos del Usuario (si tiene) */}
                         {userVehicles.length > 0 && (
                             <div className="mt-4">
-                                <p className="text-xs text-text-secondary mb-2 uppercase tracking-wider font-bold">Tus Vehículos</p>
+                                <p className="text-xs text-text-secondary mb-2 uppercase tracking-wider font-bold">{t('your_vehicles')}</p>
                                 <div className="grid grid-cols-4 gap-3">
                                     {userVehicles.map((vehicle) => (
                                         vehicle.images?.[0] && (
@@ -201,8 +201,8 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                 </svg>
                             </div>
                             <div>
-                                <h3 className="text-red-400 font-bold">Seguridad SOS</h3>
-                                <p className="text-[10px] text-text-secondary">Selecciona a un usuario de CarMatch para que sea tu contacto de emergencia.</p>
+                                <h3 className="text-red-400 font-bold">{t('security_sos')}</h3>
+                                <p className="text-[10px] text-text-secondary">{t('sos_desc')}</p>
                             </div>
                         </div>
 
@@ -222,7 +222,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                     }}
                                     className="text-xs text-red-400 hover:text-red-300 font-bold"
                                 >
-                                    Quitar
+                                    {t('remove')}
                                 </button>
                             </div>
                         ) : (
@@ -230,7 +230,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder="Buscar usuario por nombre..."
+                                        placeholder={t('search_user')}
                                         className="w-full bg-background border border-surface-highlight rounded-xl px-4 py-2.5 text-sm text-text-primary outline-none focus:border-red-500/50 transition"
                                         value={searchQuery}
                                         onChange={async (e) => {
@@ -288,7 +288,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                             </div>
                         )}
                         <p className="text-[9px] text-text-secondary italic">
-                            💡 Si activas un SOS durante una cita, este contacto recibirá tu ubicación y la de la otra persona.
+                            💡 {t('sos_warning')}
                         </p>
                     </div>
 
@@ -299,7 +299,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                             onClick={onClose}
                             className="px-6 py-2 rounded-xl text-text-secondary hover:bg-surface-highlight transition"
                         >
-                            Cancelar
+                            {t('cancel')}
                         </button>
                         <button
                             type="submit"
@@ -312,10 +312,10 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Guardando...
+                                    {t('saving')}
                                 </>
                             ) : (
-                                'Guardar Cambios'
+                                t('save_changes')
                             )}
                         </button>
                     </div>

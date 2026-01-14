@@ -58,13 +58,13 @@ export default function PublishClient() {
     // Helper for Step Names
     const getStepName = (step: number) => {
         switch (step) {
-            case 1: return t('publish.steps.images') || 'Imágenes'
-            case 2: return t('publish.steps.vehicle_type') || 'Tipo de Vehículo'
-            case 3: return t('publish.steps.basic_info') || 'Información Básica'
-            case 4: return t('publish.steps.technical_details') || 'Detalles Técnicos'
-            case 5: return t('publish.steps.features') || 'Equipamiento'
-            case 6: return t('publish.steps.location') || 'Ubicación'
-            case 7: return t('publish.steps.review') || 'Revisión y Publicar'
+            case 1: return t('publish.steps.images') || 'Images'
+            case 2: return t('publish.steps.vehicle_type') || 'Vehicle Type'
+            case 3: return t('publish.steps.basic_info') || 'Basic Info'
+            case 4: return t('publish.steps.technical_details') || 'Technical Details'
+            case 5: return t('publish.steps.features') || 'Equipment'
+            case 6: return t('publish.steps.location') || 'Location'
+            case 7: return t('publish.steps.review') || 'Review and Publish'
             default: return ''
         }
     }
@@ -617,20 +617,20 @@ export default function PublishClient() {
                                 <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <h4 className="font-bold text-sm uppercase tracking-wider">Consejos para tu publicación</h4>
+                                <h4 className="font-bold text-sm uppercase tracking-wider">{t('publish.tips.title')}</h4>
                             </div>
                             <ul className="space-y-2 text-sm text-gray-400">
                                 <li className="flex gap-2">
                                     <span className="text-primary-500 mt-1">●</span>
-                                    <span><b>Sé honesto y detallado:</b> Menciona el estado real de la factura, tenencias y si el vehículo ha tenido incidentes o fallos mecánicos. Esto genera confianza.</span>
+                                    <span><b>{t('publish.tips.honest_title')}</b> {t('publish.tips.honest_desc')}</span>
                                 </li>
                                 <li className="flex gap-2">
                                     <span className="text-primary-500 mt-1">●</span>
-                                    <span><b>Punto de encuentro:</b> Te recomendamos acordar la revisión de documentos y del vehículo en un lugar público y seguro.</span>
+                                    <span><b>{t('publish.tips.safety_title')}</b> {t('publish.tips.safety_desc')}</span>
                                 </li>
                                 <li className="flex gap-2">
                                     <span className="text-primary-500 mt-1">●</span>
-                                    <span><b>Transparencia:</b> Una descripción clara sobre los mantenimientos realizados ayuda a vender más rápido.</span>
+                                    <span><b>{t('publish.tips.transparency_title')}</b> {t('publish.tips.transparency_desc')}</span>
                                 </li>
                             </ul>
                         </div>
@@ -695,7 +695,7 @@ export default function PublishClient() {
                                 />
                                 <div className="space-y-2 col-span-1 md:col-span-1">
                                     <label className="block text-text-primary font-medium">
-                                        Moneda
+                                        {t('common.currency', { fallback: 'Moneda' })}
                                     </label>
                                     <SearchableSelect
                                         value={currency}
@@ -807,7 +807,7 @@ export default function PublishClient() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2 col-span-1">
-                                    <label className="block text-text-primary font-medium">Tracción <span className="text-text-secondary text-xs font-normal">(4x4, AWD...)</span></label>
+                                    <label className="block text-text-primary font-medium">{t('publish.labels.traction')} <span className="text-text-secondary text-xs font-normal">(4x4, AWD...)</span></label>
                                     <SearchableSelect
                                         value={traction}
                                         onChange={setTraction}
@@ -817,7 +817,7 @@ export default function PublishClient() {
                                     />
                                 </div>
                                 <div className="space-y-2 col-span-1">
-                                    <label className="block text-text-primary font-medium">Pasajeros <span className="text-text-secondary text-xs font-normal">(Asientos)</span></label>
+                                    <label className="block text-text-primary font-medium">{t('publish.labels.passengers')} <span className="text-text-secondary text-xs font-normal">({t('common.seats', { fallback: 'Asientos' })})</span></label>
                                     <SearchableSelect
                                         value={passengers}
                                         onChange={setPassengers}
@@ -852,10 +852,10 @@ export default function PublishClient() {
                             </div>
 
                             <div className="pt-4 border-t border-surface-highlight">
-                                <h4 className="text-lg font-bold text-text-primary mb-4">Información de Motor y Carga</h4>
+                                <h4 className="text-lg font-bold text-text-primary mb-4">{t('publish.labels.engine_info')}</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <label className="block text-text-primary font-medium">Motor / Cilindrada <span className="text-text-secondary text-xs font-normal">(Opcional)</span></label>
+                                        <label className="block text-text-primary font-medium">{t('publish.labels.engine_displacement')} <span className="text-text-secondary text-xs font-normal">({t('common.optional')})</span></label>
                                         <div className="flex gap-2">
                                             <input
                                                 type="text"
@@ -876,7 +876,7 @@ export default function PublishClient() {
                                     </div>
                                     {(vehicleCategory.toLowerCase().includes('camion') || vehicleCategory.toLowerCase().includes('comercial')) && (
                                         <div className="space-y-2">
-                                            <label className="block text-text-primary font-medium">Capacidad de Carga <span className="text-text-secondary text-xs font-normal">(Opcional)</span></label>
+                                            <label className="block text-text-primary font-medium">{t('publish.labels.cargo_capacity')} <span className="text-text-secondary text-xs font-normal">({t('common.optional')})</span></label>
                                             <input
                                                 type="text"
                                                 inputMode="decimal"
@@ -889,7 +889,7 @@ export default function PublishClient() {
                                     )}
                                     {(vehicleCategory.toLowerCase().includes('industrial') || vehicleCategory.toLowerCase().includes('maquinaria')) && (
                                         <div className="space-y-2">
-                                            <label className="block text-text-primary font-medium">Horas de uso <span className="text-text-secondary text-xs font-normal">(Opcional)</span></label>
+                                            <label className="block text-text-primary font-medium">{t('publish.labels.operating_hours')} <span className="text-text-secondary text-xs font-normal">({t('common.optional')})</span></label>
                                             <input
                                                 type="text"
                                                 inputMode="numeric"
@@ -908,8 +908,8 @@ export default function PublishClient() {
                     {currentStep === 5 && (
                         <div className="space-y-6">
                             <div>
-                                <h2 className="text-2xl font-bold text-text-primary mb-2">Equipamiento y Características</h2>
-                                <p className="text-text-secondary">Selecciona el equipamiento destacado de tu {brand || 'vehículo'}.</p>
+                                <h2 className="text-2xl font-bold text-text-primary mb-2">{t('publish.labels.features_title')}</h2>
+                                <p className="text-text-secondary">{t('publish.labels.features_subtitle', { brand: brand || t('common.vehicle', { fallback: 'vehículo' }) })}</p>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {getFeaturesByCategory(
@@ -953,7 +953,7 @@ export default function PublishClient() {
                                                     </svg>
                                                 )}
                                             </div>
-                                            <span className={`text-sm font-medium ${isSelected ? 'text-primary-400' : 'text-text-primary'}`}>{feature}</span>
+                                            <span className={`text-sm font-medium ${isSelected ? 'text-primary-400' : 'text-text-primary'}`}>{t(`taxonomy.subtypes.${feature}`, { fallback: feature })}</span>
                                         </button>
                                     )
                                 })}
@@ -969,7 +969,7 @@ export default function PublishClient() {
                         <div className="space-y-6">
                             {images.length > 0 && (
                                 <div className="space-y-3">
-                                    <h4 className="font-bold text-text-primary px-2">Fotos del Vehículo</h4>
+                                    <h4 className="font-bold text-text-primary px-2">{t('publish.labels.vehicle_photos')}</h4>
                                     <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x">
                                         {images.map((img, idx) => (
                                             <div key={idx} className="flex-shrink-0 w-48 h-32 rounded-xl overflow-hidden border-2 border-surface-highlight snap-start">
@@ -994,15 +994,15 @@ export default function PublishClient() {
                                     {color && <p><span className="text-text-secondary">{t('publish.labels.color')}:</span> {color}</p>}
                                     {condition && <p><span className="text-text-secondary">{t('publish.labels.condition')}:</span> {condition}</p>}
                                     {doors && <p><span className="text-text-secondary">{t('publish.labels.doors')}:</span> {doors}</p>}
-                                    {(engine || displacement) && <p><span className="text-text-secondary">Motor:</span> {engine}{displacement ? ` (${displacement}cc)` : ''}</p>}
-                                    {cargoCapacity && <p><span className="text-text-secondary">Carga:</span> {cargoCapacity} ton</p>}
+                                    {(engine || displacement) && <p><span className="text-text-secondary">{t('publish.labels.engine')}:</span> {engine}{displacement ? ` (${displacement}cc)` : ''}</p>}
+                                    {cargoCapacity && <p><span className="text-text-secondary">{t('publish.labels.cargo_capacity')}:</span> {cargoCapacity} ton</p>}
                                 </div>
                                 <p className="text-text-secondary mt-4 whitespace-pre-line">{description}</p>
                             </div>
 
                             {selectedFeatures.length > 0 && (
                                 <div className="space-y-4">
-                                    <h4 className="font-bold text-text-primary px-2">Equipamiento Seleccionado</h4>
+                                    <h4 className="font-bold text-text-primary px-2">{t('publish.labels.features_title')}</h4>
                                     <div className="flex flex-wrap gap-2">
                                         {selectedFeatures.map(f => (
                                             <span key={f} className="px-3 py-1.5 bg-surface-highlight border border-surface-highlight text-text-primary rounded-lg text-sm flex items-center gap-2">
@@ -1019,20 +1019,20 @@ export default function PublishClient() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                                 <span className={`text-sm font-medium ${!city ? 'text-red-500' : 'text-text-primary'}`}>
-                                    {city || 'Ubicación no seleccionada'}
+                                    {city || t('publish.labels.location_not_selected')}
                                 </span>
                             </div>
 
                             {(!brand || !model || !year || !price || images.length === 0 || !city) && (
                                 <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl space-y-2">
-                                    <p className="text-red-500 font-bold text-sm">⚠️ Revisión requerida:</p>
+                                    <p className="text-red-500 font-bold text-sm">⚠️ {t('publish.validation.review_required')}</p>
                                     <ul className="text-xs text-red-400 space-y-1">
-                                        {!brand && <li>• Marca faltante</li>}
-                                        {!model && <li>• Modelo faltante</li>}
-                                        {!year && <li>• Año faltante</li>}
-                                        {(!price || parseFloat(price) <= 0) && <li>• Precio no válido</li>}
-                                        {images.length === 0 && <li>• Se requiere al menos una imagen</li>}
-                                        {!city && <li>• Ciudad no seleccionada</li>}
+                                        {!brand && <li>• {t('publish.validation.missing_brand')}</li>}
+                                        {!model && <li>• {t('publish.validation.missing_model')}</li>}
+                                        {!year && <li>• {t('publish.validation.missing_year')}</li>}
+                                        {(!price || parseFloat(price) <= 0) && <li>• {t('publish.validation.invalid_price')}</li>}
+                                        {images.length === 0 && <li>• {t('publish.validation.missing_images')}</li>}
+                                        {!city && <li>• {t('publish.validation.missing_city')}</li>}
                                     </ul>
                                 </div>
                             )}

@@ -304,7 +304,7 @@ export default function MarketFiltersAdvanced({
                         {aiExplanation && (
                             <div className="mt-2 bg-primary-900/20 border border-primary-500/10 rounded-lg p-3 animate-fade-in-up">
                                 <p className="text-xs text-primary-200 italic">
-                                    "Entendido: {aiExplanation}"
+                                    "{t('smart_search.understood', { explanation: aiExplanation })}"
                                 </p>
                             </div>
                         )}
@@ -322,9 +322,9 @@ export default function MarketFiltersAdvanced({
                         onChange={(e) => setCategory(e.target.value as VehicleCategory)}
                         className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
                     >
-                        <option value="">Todos</option>
+                        <option value="">{t('common.all')}</option>
                         {Object.keys(VEHICLE_CATEGORIES).map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
+                            <option key={cat} value={cat}>{t(`taxonomy.categories.${cat}`)}</option>
                         ))}
                     </select>
                 </div>
@@ -338,9 +338,9 @@ export default function MarketFiltersAdvanced({
                         disabled={!category}
                         className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 disabled:opacity-50 text-base md:text-sm"
                     >
-                        <option value="">Todos</option>
+                        <option value="">{t('common.all')}</option>
                         {category && VEHICLE_CATEGORIES[category]?.map(t => (
-                            <option key={t} value={t}>{t}</option>
+                            <option key={t} value={t}>{t(`taxonomy.subtypes.${t}`)}</option>
                         ))}
                     </select>
                 </div>
@@ -390,7 +390,7 @@ export default function MarketFiltersAdvanced({
                             onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
                             value={minPrice}
                             onChange={(e) => setMinPrice(Math.max(0, parseFloat(e.target.value)).toString())}
-                            placeholder="$0"
+                            placeholder={t('taxonomy.units.prices.placeholder_min', { fallback: '$0' })}
                             className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-700"
                         />
                     </div>
@@ -402,7 +402,7 @@ export default function MarketFiltersAdvanced({
                             onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
                             value={maxPrice}
                             onChange={(e) => setMaxPrice(Math.max(0, parseFloat(e.target.value)).toString())}
-                            placeholder="$Max"
+                            placeholder={t('taxonomy.units.prices.placeholder_max', { fallback: '$Max' })}
                             className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-700"
                         />
                     </div>
@@ -559,7 +559,7 @@ export default function MarketFiltersAdvanced({
                                     type="number"
                                     value={maxEngine}
                                     onChange={(e) => setMaxEngine(e.target.value)}
-                                    placeholder={category === 'Motocicleta' ? 'Ej. 1200' : category === 'Camión' ? 'Ej. 600' : 'Ej. 5.0'}
+                                    placeholder={category === 'Motocicleta' ? t('taxonomy.units.cc', { fallback: 'Ej. 1200' }) : category === 'Camión' ? t('taxonomy.units.hp', { fallback: 'Ej. 600' }) : t('taxonomy.units.l', { fallback: 'Ej. 5.0' })}
                                     className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
                                 />
                             </div>
@@ -570,16 +570,16 @@ export default function MarketFiltersAdvanced({
                     <div>
                         <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.transmission')}</label>
                         <div className="flex flex-wrap gap-3">
-                            {TRANSMISSIONS.map(t => (
+                            {TRANSMISSIONS.map(trans => (
                                 <button
-                                    key={t}
-                                    onClick={() => handleToggleArray(t, transmission, setTransmission)}
-                                    className={`px-5 py-3 md:px-3 md:py-1 text-sm md:text-xs rounded-full border transition font-medium ${transmission.includes(t)
+                                    key={trans}
+                                    onClick={() => handleToggleArray(trans, transmission, setTransmission)}
+                                    className={`px-5 py-3 md:px-3 md:py-1 text-sm md:text-xs rounded-full border transition font-medium ${transmission.includes(trans)
                                         ? 'bg-primary-700 text-text-primary border-primary-700'
                                         : 'bg-background text-text-secondary border-surface-highlight'
                                         }`}
                                 >
-                                    {t}
+                                    {t(`taxonomy.transmission.${trans}`)}
                                 </button>
                             ))}
                         </div>
@@ -595,11 +595,11 @@ export default function MarketFiltersAdvanced({
                                 onChange={(e) => setTraction(e.target.value)}
                                 className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary text-sm"
                             >
-                                <option value="">Cualquiera</option>
-                                <option value="Delantera (FWD)">FWD</option>
-                                <option value="Trasera (RWD)">RWD</option>
-                                <option value="4x4 (4WD)">4x4</option>
-                                <option value="Integral (AWD)">AWD</option>
+                                <option value="">{t('common.any')}</option>
+                                <option value="Delantera (FWD)">{t('taxonomy.traction.Delantera (FWD)')}</option>
+                                <option value="Trasera (RWD)">{t('taxonomy.traction.Trasera (RWD)')}</option>
+                                <option value="4x4 (4WD)">{t('taxonomy.traction.4x4 (4WD)')}</option>
+                                <option value="Integral (AWD)">{t('taxonomy.traction.Integral (AWD)')}</option>
                             </select>
                         </div>
                         <div>
@@ -627,7 +627,7 @@ export default function MarketFiltersAdvanced({
                                 type="number"
                                 value={hours}
                                 onChange={(e) => setHours(e.target.value)}
-                                placeholder="Ej. 5000"
+                                placeholder={t('taxonomy.units.hours_placeholder', { fallback: 'Ej. 5000' })}
                                 className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
                             />
                         </div>
@@ -637,16 +637,16 @@ export default function MarketFiltersAdvanced({
                     <div>
                         <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.fuel')}</label>
                         <div className="flex flex-wrap gap-3">
-                            {FUELS.map(f => (
+                            {FUELS.map(fuelVal => (
                                 <button
-                                    key={f}
-                                    onClick={() => handleToggleArray(f, fuel, setFuel)}
-                                    className={`px-5 py-3 md:px-3 md:py-1 text-sm md:text-xs rounded-full border transition font-medium ${fuel.includes(f)
+                                    key={fuelVal}
+                                    onClick={() => handleToggleArray(fuelVal, fuel, setFuel)}
+                                    className={`px-5 py-3 md:px-3 md:py-1 text-sm md:text-xs rounded-full border transition font-medium ${fuel.includes(fuelVal)
                                         ? 'bg-primary-700 text-text-primary border-primary-700'
                                         : 'bg-background text-text-secondary border-surface-highlight'
                                         }`}
                                 >
-                                    {f}
+                                    {t(`taxonomy.fuel.${fuelVal}`)}
                                 </button>
                             ))}
                         </div>
@@ -667,7 +667,7 @@ export default function MarketFiltersAdvanced({
                                             }`}
                                     >
                                         <div className={`w-3 h-3 md:w-2 md:h-2 rounded-full ${features.includes(feat) ? 'bg-primary-500' : 'bg-surface-highlight'}`} />
-                                        {feat}
+                                        {t(`taxonomy.subtypes.${feat}`, { fallback: feat })}
                                     </button>
                                 ))}
                             </div>
