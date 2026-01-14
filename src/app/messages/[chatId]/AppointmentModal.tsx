@@ -206,6 +206,8 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
                                             setCustomLocation(e.target.value);
                                             setSelectedPlace(null);
                                         }}
+                                        onFocus={() => setIsInputFocused(true)}
+                                        onBlur={() => setTimeout(() => setIsInputFocused(false), 200)}
                                         onKeyDown={(e) => e.key === 'Enter' && searchLocation()}
                                         placeholder="Ej. Plaza Principal, Calle Reforma..."
                                         className="w-full bg-background border border-surface-highlight rounded-lg p-3 pr-10 text-text-primary text-sm focus:border-primary-500 outline-none shadow-inner"
@@ -263,7 +265,7 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
                         <button
                             type="button"
                             onClick={handleUseSafePlaces}
-                            className="w-full p-4 bg-primary-500/10 border border-primary-500/30 rounded-xl text-primary-400 font-bold hover:bg-primary-500/20 transition flex items-center justify-center gap-2"
+                            className={`w-full p-4 bg-primary-500/10 border border-primary-500/30 rounded-xl text-primary-400 font-bold hover:bg-primary-500/20 transition flex items-center justify-center gap-2 ${isInputFocused ? 'hidden' : ''}`}
                         >
                             <span className="text-xl">🛡️</span>
                             <span>Usar un punto seguro de CarMatch</span>
@@ -347,7 +349,7 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
                     )}
                 </div>
 
-                <div className="p-4 border-t border-surface-highlight bg-surface-highlight/30 rounded-b-2xl flex justify-end gap-3">
+                <div className={`p-4 border-t border-surface-highlight bg-surface-highlight/30 rounded-b-2xl flex justify-end gap-3 ${isInputFocused ? 'hidden' : ''}`}>
                     <button
                         onClick={onClose}
                         className="px-4 py-2 text-text-secondary hover:text-text-primary text-sm font-medium transition"
