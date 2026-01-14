@@ -373,63 +373,70 @@ export default function MarketClient({
 
                                                 </Link>
 
-                                                <div className="p-3 md:p-4">
-                                                    <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} className="block mb-1 group-hover:text-primary-400 transition">
-                                                        <h3 className="font-bold text-sm md:text-lg text-text-primary line-clamp-1">
+                                                <div className="p-2 md:p-4">
+                                                    <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} className="block mb-0.5 group-hover:text-primary-400 transition">
+                                                        <h3 className="font-bold text-xs md:text-lg text-text-primary line-clamp-1">
                                                             {item.brand ? `${item.brand} ${item.model} ${item.year}` : item.title}
                                                         </h3>
                                                     </Link>
 
                                                     {isBusiness ? (
-                                                        <p className="text-[10px] font-bold text-primary-400 uppercase mb-2">
+                                                        <p className="text-[9px] font-bold text-primary-400 uppercase mb-1">
                                                             {item.category}
                                                         </p>
                                                     ) : (
-                                                        <div className="flex items-center gap-2 text-[10px] md:text-xs text-text-secondary mt-0.5">
+                                                        <div className="flex items-center gap-1.5 text-[9px] md:text-xs text-text-secondary">
                                                             <span>{item.year}</span>
                                                             <span>•</span>
                                                             <span>{formatNumber(item.mileage || 0, locale)}</span>
                                                         </div>
                                                     )}
 
-                                                    <div className="flex flex-wrap gap-1 md:gap-2 mb-2 md:mb-3">
+                                                    <div className="flex flex-wrap gap-1 mb-1.5 mt-1">
                                                         {!isBusiness && item.transmission && (
-                                                            <div className="flex items-center gap-1 text-[10px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 md:px-2 md:py-1 rounded">
-                                                                <span className="truncate">{item.transmission}</span>
+                                                            <div className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded">
+                                                                {item.transmission}
                                                             </div>
                                                         )}
-                                                        <div className="flex items-center gap-1 text-[10px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 md:px-2 md:py-1 rounded">
-                                                            <span>{item.city}</span>
+                                                        <div className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded">
+                                                            {item.city}
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex items-center justify-between mt-2 md:mt-4">
-                                                        {!isBusiness ? (
-                                                            <Link href={`/vehicle/${item.id}`} className="flex flex-col group/more">
-                                                                <p className="font-bold text-lg md:text-xl text-primary-400" suppressHydrationWarning>
-                                                                    {formatPrice(item.price || 0, item.currency || 'MXN', locale)}
-                                                                </p>
-                                                                <span className="text-xs font-bold text-primary-400 uppercase tracking-widest mt-1 transition-colors group-hover/more:text-primary-300">
-                                                                    {t('common.view_more') || 'Ver más'} &rarr;
-                                                                </span>
-                                                            </Link>
-                                                        ) : (
-                                                            <Link
-                                                                href={`/map-store?id=${item.id}`}
-                                                                className="text-xs font-bold text-primary-400 hover:underline"
-                                                            >
-                                                                {t('market.view_on_map')}
-                                                            </Link>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-surface-highlight/10">
-                                                        <ReportImageButton
-                                                            imageUrl={item.images?.[0] || ''}
-                                                            vehicleId={!isBusiness ? item.id : undefined}
-                                                            businessId={isBusiness ? item.id : undefined}
-                                                            className="shadow-md bg-background border border-surface-highlight hover:bg-red-900/10 text-text-secondary hover:text-red-500"
-                                                        />
+                                                    <div className="flex items-center justify-between mt-auto">
+                                                        <div className="flex flex-col">
+                                                            {!isBusiness ? (
+                                                                <>
+                                                                    <p className="font-bold text-sm md:text-xl text-primary-400" suppressHydrationWarning>
+                                                                        {formatPrice(item.price || 0, item.currency || 'MXN', locale)}
+                                                                    </p>
+                                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                                        <Link href={`/vehicle/${item.id}`} className="text-[10px] font-bold text-primary-400 uppercase group-hover:text-primary-300">
+                                                                            {t('common.view_more') || 'Ver más'}
+                                                                        </Link>
+                                                                        <ReportImageButton
+                                                                            imageUrl={item.images?.[0] || ''}
+                                                                            vehicleId={item.id}
+                                                                            className="!p-1 bg-transparent hover:text-red-500 scale-75 origin-left"
+                                                                        />
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <div className="flex items-center gap-2">
+                                                                    <Link
+                                                                        href={`/map-store?id=${item.id}`}
+                                                                        className="text-[10px] font-bold text-primary-400 hover:underline"
+                                                                    >
+                                                                        {t('market.view_on_map')}
+                                                                    </Link>
+                                                                    <ReportImageButton
+                                                                        imageUrl={item.images?.[0] || ''}
+                                                                        businessId={item.id}
+                                                                        className="!p-1 bg-transparent hover:text-red-500 scale-75 origin-left"
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                        </div>
 
                                                         <div className="flex items-center gap-2">
                                                             <div className="hidden md:block">
@@ -446,7 +453,7 @@ export default function MarketClient({
                                                                 initialIsFavorited={item.isFavorited}
                                                                 size="md"
                                                                 rounded="rounded-full"
-                                                                className="shadow-md bg-background border border-surface-highlight"
+                                                                className="shadow-md bg-surface border border-surface-highlight"
                                                             />
                                                         </div>
                                                     </div>
