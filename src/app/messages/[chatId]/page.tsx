@@ -62,8 +62,63 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
         fetchMessages()
         fetchChatDetails()
         const interval = setInterval(fetchMessages, 3000)
-        return () => clearInterval(interval)
+
+        // Safety reminders interval
+        const safetyInterval = setInterval(checkSafetyReminders, 60000) // Check every minute
+
+        return () => {
+            clearInterval(interval)
+            clearInterval(safetyInterval)
+        }
     }, [session, status, chatId])
+
+    const remindedTimes = useRef<Set<string>>(new Set())
+
+    const checkSafetyReminders = () => {
+        const appointment = messages.find(m =>
+            m.type === 'APPOINTMENT' && m.status === 'ACCEPTED'
+        )
+        if (!appointment || !appointment.date) return
+
+        const meetingTime = new Date(appointment.date).getTime()
+        const now = new Date().getTime()
+        const diffMs = meetingTime - now
+        const diffMins = Math.floor(diffMs / 60000)
+
+        const reminderPoints = [
+            { mins: 240, label: '4 horas' },
+            { mins: 120, label: '2 horas' },
+            { mins: 60, label: '1 hora' },
+            { mins: 30, label: '30 minutos' },
+            { mins: 15, label: '15 minutos' },
+            { mins: 0, label: 'ahora' }
+        ]
+
+        for (const point of reminderPoints) {
+            const id = `${appointment.id}-${point.mins}`
+            if (diffMins <= point.mins && diffMins > point.mins - 5 && !remindedTimes.current.has(id)) {
+                remindedTimes.current.add(id)
+
+                // Show a system message or alert
+                const content = point.mins === 0
+                    ? `🔴 LA REUNIÓN ES AHORA. ¿Sigue en pie?`
+                    : `⚠️ RECORDATORIO: Tu reunión segura es en ${point.label}.`
+
+                // We add it locally to the state for immediate feedback
+                setMessages(prev => {
+                    if (prev.find(m => m.content === content)) return prev
+                    return [...prev, {
+                        id: `reminder-${Date.now()}`,
+                        content,
+                        senderId: 'SYSTEM',
+                        sender: { id: 'SYSTEM', name: 'CarMatch Safe', image: null },
+                        type: 'MESSAGE',
+                        createdAt: new Date().toISOString()
+                    } as Message]
+                })
+            }
+        }
+    }
 
     const fetchChatDetails = async () => {
         try {
@@ -215,10 +270,11 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                 }`}>
                 <div className="flex-1 flex flex-col relative w-full overflow-hidden">
                     <SOSComponent
+                        isActive={isSafetyModeActive}
+                        otherUserId={otherUserId}
+                        onEndMeeting={handleEndMeeting}
                         chatId={chatId}
                         activeAppointmentId={activeAppointment?.id}
-                        isEmergencyActive={isEmergencyActive}
-                        onActivateSOS={handleActivateSOS}
                         trustedContact={currentUser?.trustedContact}
                     />
 

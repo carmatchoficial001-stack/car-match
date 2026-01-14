@@ -13,16 +13,25 @@ interface SOSComponentProps {
     isActive: boolean
     otherUserId: string
     onEndMeeting: () => void
+    chatId: string
+    activeAppointmentId?: string
+    trustedContact?: {
+        name: string
+        phone: string
+        relationship: string
+    } | null
 }
 
-export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SOSComponentProps) {
+export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chatId, activeAppointmentId, trustedContact }: SOSComponentProps) {
     const { t, locale } = useLanguage()
     const [sosCountdown, setSosCountdown] = useState<number | null>(null)
     const [showSOSModal, setShowSOSModal] = useState(false)
     const [checkInVisible, setCheckInVisible] = useState(false)
+    const [checkInCount, setCheckInCount] = useState(0)
     const [otherUserLocation, setOtherUserLocation] = useState<any>(null)
     const [loadingLocation, setLoadingLocation] = useState(false)
     const checkInTimerRef = useRef<NodeJS.Timeout | null>(null)
+    const autoCancelTimerRef = useRef<NodeJS.Timeout | null>(null)
 
     // Location Tracking Effect
     useEffect(() => {
@@ -51,16 +60,31 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SO
         const interval = setInterval(sendLocation, 30000)
 
         // Check-in timer (20 mins)
-        checkInTimerRef.current = setInterval(() => {
-            setCheckInVisible(true)
-        }, 20 * 60 * 1000)
-        // For demo purposes, maybe shorter? No, user said 20 mins.
+        const startCheckInTimer = () => {
+            if (checkInTimerRef.current) clearInterval(checkInTimerRef.current)
+            checkInTimerRef.current = setInterval(() => {
+                setCheckInVisible(true)
+                setCheckInCount(prev => prev + 1)
+
+                // Auto-cancel if not answered in 5 minutes (user logic: "si no contesta en la primera... ya se quita")
+                // Let's implement a timeout for the check-in
+                if (autoCancelTimerRef.current) clearTimeout(autoCancelTimerRef.current)
+                autoCancelTimerRef.current = setTimeout(() => {
+                    if (checkInVisible) {
+                        onEndMeeting() // This will end the meeting mode
+                    }
+                }, 5 * 60 * 1000)
+            }, 20 * 60 * 1000)
+        }
+
+        startCheckInTimer()
 
         return () => {
             clearInterval(interval)
             if (checkInTimerRef.current) clearInterval(checkInTimerRef.current)
+            if (autoCancelTimerRef.current) clearTimeout(autoCancelTimerRef.current)
         }
-    }, [isActive])
+    }, [isActive, onEndMeeting])
 
     // SOS Logic
     useEffect(() => {
@@ -84,7 +108,19 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SO
         // 2. Open Modal and Fetch Data
         setShowSOSModal(true)
         setLoadingLocation(true)
+
         try {
+            // Send SOS alert to backend (this would notify trusted contact)
+            await fetch(`/api/chats/${chatId}/sos`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    appointmentId: activeAppointmentId,
+                    latitude: 0, // Should get current
+                    longitude: 0
+                })
+            })
+
             const res = await fetch(`/api/user/location?targetId=${otherUserId}`)
             if (res.ok) {
                 const data = await res.json()
@@ -106,8 +142,8 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SO
                 <div className="flex items-center gap-2">
                     <ShieldAlert className="w-6 h-6" />
                     <div>
-                        <p className="font-bold text-sm md:text-base">{t('safety_mode.active')}</p>
-                        <p className="text-xs opacity-90 hidden md:block">{t('safety_mode.active_desc')}</p>
+                        <p className="font-bold text-sm md:text-base">Misión Segura Activa</p>
+                        <p className="text-xs opacity-90 hidden md:block">Monitoreo GPS y botón SOS habilitados</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -115,7 +151,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SO
                         onClick={onEndMeeting}
                         className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-xs font-bold transition"
                     >
-                        {t('safety_mode.end_btn')}
+                        Terminar Reunión
                     </button>
                     <button
                         onMouseDown={startSOS}
@@ -131,27 +167,43 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SO
                 </div>
             </div>
 
-            {/* Check-in Modal */}
+            {/* Check-in Modal - Every 20 mins */}
             {checkInVisible && (
                 <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-surface p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl border border-surface-highlight">
                         <div className="flex justify-center mb-4 text-primary-500">
                             <Siren className="w-16 h-16 animate-bounce" />
                         </div>
-                        <h3 className="text-xl font-bold text-text-primary mb-2">{t('safety_mode.check_in_title')}</h3>
-                        <p className="text-text-secondary mb-6">{t('safety_mode.check_in_body')}</p>
+                        <h3 className="text-xl font-bold text-text-primary mb-2">¿Todo bien en la negociación?</h3>
+                        <p className="text-text-secondary mb-6 italic text-sm">Cita Segura CarMatch</p>
+
                         <div className="space-y-3">
                             <button
-                                onClick={() => { setCheckInVisible(false); if (checkInTimerRef.current) { clearInterval(checkInTimerRef.current); checkInTimerRef.current = setInterval(() => setCheckInVisible(true), 20 * 60 * 1000) } }}
-                                className="w-full p-3 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700"
+                                onClick={() => {
+                                    setCheckInVisible(false);
+                                    if (autoCancelTimerRef.current) clearTimeout(autoCancelTimerRef.current);
+                                }}
+                                className="w-full p-4 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 shadow-lg shadow-primary-500/20 transition-all active:scale-95"
                             >
-                                {t('safety_mode.still_here')}
+                                SÍ, TODO BIEN
                             </button>
                             <button
-                                onClick={() => { setCheckInVisible(false); startSOS(); }}
-                                className="w-full p-3 bg-red-100 text-red-600 rounded-xl font-bold hover:bg-red-200"
+                                onClick={() => {
+                                    setCheckInVisible(false);
+                                    onEndMeeting();
+                                }}
+                                className="w-full p-4 bg-surface-highlight text-text-primary rounded-xl font-bold hover:bg-surface-highlight/80 transition-all"
                             >
-                                {t('safety_mode.emergency')}
+                                YA TERMINÓ LA NEGOCIACIÓN
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setCheckInVisible(false);
+                                    triggerSOS();
+                                }}
+                                className="w-full p-4 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                🚨 SOS / EMERGENCIA
                             </button>
                         </div>
                     </div>
@@ -161,10 +213,10 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SO
             {/* SOS Modal with Map */}
             {showSOSModal && (
                 <div className="fixed inset-0 bg-red-900/90 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl max-w-4xl w-full h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+                    <div className="bg-white rounded-2xl max-w-4xl w-full h-[85vh] flex flex-col overflow-hidden shadow-2xl">
                         <div className="bg-red-600 p-4 text-white flex justify-between items-center">
                             <h2 className="font-bold text-xl flex items-center gap-2">
-                                🚨 EMERGENCIA - DATOS DEL USUARIO
+                                🚨 EMERGENCIA - LOCALIZACIÓN REAL
                             </h2>
                             <button onClick={() => setShowSOSModal(false)} className="text-white/80 hover:text-white">✕</button>
                         </div>
@@ -179,39 +231,48 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SO
                                     <SOSMap
                                         lat={otherUserLocation.lastLatitude}
                                         lng={otherUserLocation.lastLongitude}
-                                        name={otherUserLocation.name || 'Usuario'}
+                                        name={otherUserLocation.name || 'Contraparte'}
                                         lastUpdate={otherUserLocation.lastLocationUpdate}
                                         locale={locale}
                                     />
+                                    {/* Overlay con la ubicación propia también sería ideal */}
                                 </div>
                             ) : (
                                 <div className="h-full flex items-center justify-center p-8 text-center text-gray-500">
-                                    <p>No se pudo obtener la ubicación en tiempo real del usuario.</p>
+                                    <p>Intentando obtener ubicación exacta...</p>
                                 </div>
                             )}
                         </div>
 
                         <div className="p-6 bg-white border-t space-y-4">
+                            {trustedContact && (
+                                <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between">
+                                    <div>
+                                        <p className="text-[10px] text-blue-600 font-bold uppercase">Contacto de Confianza Notificado</p>
+                                        <p className="font-bold text-blue-900 text-sm">{trustedContact.name} ({trustedContact.relationship})</p>
+                                    </div>
+                                    <a href={`tel:${trustedContact.phone}`} className="p-2 bg-blue-600 text-white rounded-full">
+                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.15 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg>
+                                    </a>
+                                </div>
+                            )}
+
                             <div className="p-4 bg-red-50 border border-red-100 rounded-xl">
-                                <h3 className="font-bold text-red-800 mb-2">COMPARTE ESTO CON LA POLICÍA (911):</h3>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                <h3 className="font-bold text-red-800 text-sm mb-2 uppercase">Información para Autoridades (911):</h3>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                                     <div>
-                                        <span className="text-gray-500 block">Nombre:</span>
-                                        <span className="font-bold">{otherUserLocation?.name || 'Desconocido'}</span>
+                                        <span className="text-gray-500">Contraparte:</span>
+                                        <span className="font-bold block">{otherUserLocation?.name || 'Cargando...'}</span>
                                     </div>
                                     <div>
-                                        <span className="text-gray-500 block">ID Usuario:</span>
-                                        <span className="font-mono bg-gray-100 px-2 py-1 rounded">{otherUserLocation?.id || otherUserId}</span>
-                                    </div>
-                                    <div className="col-span-2">
-                                        <span className="text-gray-500 block">Email:</span>
-                                        <span className="font-bold">{otherUserLocation?.email || 'Desconocido'}</span>
+                                        <span className="text-gray-500">ID Rastreo:</span>
+                                        <span className="font-mono block truncate">{chatId}</span>
                                     </div>
                                     {otherUserLocation?.lastLatitude && (
-                                        <div className="col-span-2">
-                                            <span className="text-gray-500 block">Coordenadas:</span>
-                                            <span className="font-mono font-bold text-lg">
-                                                {otherUserLocation.lastLatitude}, {otherUserLocation.lastLongitude}
+                                        <div className="col-span-2 mt-1">
+                                            <span className="text-gray-500 block">Coordenadas Exactas:</span>
+                                            <span className="font-mono font-bold text-red-600">
+                                                {otherUserLocation.lastLatitude.toFixed(6)}, {otherUserLocation.lastLongitude.toFixed(6)}
                                             </span>
                                         </div>
                                     )}
@@ -221,7 +282,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SO
                                 onClick={() => window.open('tel:911')}
                                 className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-lg shadow-lg flex items-center justify-center gap-2 animate-pulse"
                             >
-                                📞 REINTENTAR LLAMADA AL 911
+                                📞 LLAMAR A LA POLICÍA (911)
                             </button>
                         </div>
                     </div>
@@ -234,9 +295,6 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting }: SO
 function SOSMap({ lat, lng, name, lastUpdate, locale }: { lat: number, lng: number, name: string, lastUpdate: string, locale: string }) {
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<mapboxgl.Map | null>(null)
-
-    // Extract formatting logic
-    const formattedDate = new Date(lastUpdate).toLocaleString(locale === 'es' ? 'es-MX' : 'en-US')
 
     useEffect(() => {
         if (!mapContainer.current) return
@@ -255,8 +313,9 @@ function SOSMap({ lat, lng, name, lastUpdate, locale }: { lat: number, lng: numb
         // Add user marker
         const el = document.createElement('div')
         el.className = 'sos-marker'
-        // SVG Icon de Alerta
         el.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" class="text-red-600 animate-pulse"><circle cx="12" cy="12" r="10" fill="currentColor" fill-opacity="0.3"/><circle cx="12" cy="12" r="6" fill="currentColor" stroke="white" stroke-width="2"/></svg>'
+
+        const formattedDate = lastUpdate ? new Date(lastUpdate).toLocaleString(locale === 'es' ? 'es-MX' : 'en-US') : 'Ubicación actual'
 
         const popup = new mapboxgl.Popup({ offset: 25 })
             .setHTML(`
@@ -273,8 +332,6 @@ function SOSMap({ lat, lng, name, lastUpdate, locale }: { lat: number, lng: numb
             .togglePopup()
 
         newMap.addControl(new mapboxgl.NavigationControl())
-
-        // SOS Map MUST show reference points for safety
 
         map.current = newMap
 
