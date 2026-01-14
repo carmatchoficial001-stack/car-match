@@ -38,18 +38,22 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus }: 
         PENDING: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-600',
         ACCEPTED: 'bg-green-500/10 border-green-500/30 text-green-600',
         REJECTED: 'bg-red-500/10 border-red-500/30 text-red-600',
-        CANCELLED: 'bg-gray-500/10 border-gray-500/30 text-gray-600'
+        CANCELLED: 'bg-gray-500/10 border-gray-500/30 text-gray-600',
+        COMPLETED: 'bg-blue-500/20 border-blue-500/40 text-blue-400'
     }
 
     const statusText = {
         PENDING: 'Pendiente',
         ACCEPTED: 'Confirmada',
         REJECTED: 'Rechazada',
-        CANCELLED: 'Cancelada'
+        CANCELLED: 'Cancelada',
+        COMPLETED: 'Finalizada'
     }
 
+    const currentStatus = appointment.status?.toUpperCase() as keyof typeof statusText || 'PENDING'
+
     return (
-        <div className={`p-4 rounded-xl border ${statusColors[appointment.status] || 'bg-surface border-surface-highlight'} w-full max-w-sm`}>
+        <div className={`p-4 rounded-xl border ${statusColors[currentStatus] || 'bg-surface border-surface-highlight'} w-full max-w-sm shadow-sm`}>
             <div className="flex items-center gap-2 mb-3">
                 <Calendar className="w-5 h-5 opacity-70" />
                 <span className="font-bold">Propuesta de Cita</span>
@@ -76,8 +80,10 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus }: 
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-current/10">
-                <div className="font-medium text-sm">
-                    Estado: <span className="font-bold">{statusText[appointment.status]}</span>
+                <div className="font-medium text-sm text-text-primary">
+                    Estado: <span className={`font-black uppercase tracking-wider ${currentStatus === 'ACCEPTED' ? 'text-green-500' : ''}`}>
+                        {statusText[currentStatus] || currentStatus}
+                    </span>
                 </div>
 
                 {/* Mostrar botones solo si está pendiente Y NO es el proponente (el otro usuario decide) */}

@@ -86,10 +86,11 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
         const diffMins = Math.floor(diffMs / 60000)
 
         const reminderPoints = [
+            { mins: 2880, label: '2 días' },
+            { mins: 1440, label: '1 día' },
+            { mins: 720, label: '12 horas' },
             { mins: 240, label: '4 horas' },
-            { mins: 120, label: '2 horas' },
             { mins: 60, label: '1 hora' },
-            { mins: 30, label: '30 minutos' },
             { mins: 15, label: '15 minutos' },
             { mins: 0, label: 'ahora' }
         ]
