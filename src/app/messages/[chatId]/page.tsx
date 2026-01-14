@@ -207,14 +207,14 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
         try {
             const url = editingAppointment
                 ? `/api/appointments/${editingAppointment.id}`
-                : `/api/chats/${chatId}/appointments`
+                : `/api/appointments`
 
             const method = editingAppointment ? 'PATCH' : 'POST'
 
             const res = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify({ ...data, chatId })
             })
 
             if (res.ok) {
