@@ -49,6 +49,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
     const [editingAppointment, setEditingAppointment] = useState<any>(null)
     const [isEmergencyActive, setIsEmergencyActive] = useState(false)
     const [showSafetyTips, setShowSafetyTips] = useState(false)
+    const [isInputFocused, setIsInputFocused] = useState(false)
     const [safePlaces, setSafePlaces] = useState<any[]>([])
     const [apiTip, setApiTip] = useState('')
 
