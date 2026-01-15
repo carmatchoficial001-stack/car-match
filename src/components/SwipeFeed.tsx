@@ -216,29 +216,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     </div>
                 </div>
             </div>
-
-            {/* 6. Botones de Acción */}
-            <div className="grid grid-cols-2 gap-4 px-6 pb-6">
-                <button
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={() => onSwipe('left')}
-                    className="flex items-center justify-center gap-2 py-3 rounded-xl bg-surface-highlight border-2 border-surface-highlight text-red-400 font-bold text-lg hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 shadow-sm"
-                >
-                    <X size={24} />
-                    <span>{t('swipe.nope_btn')}</span>
-                </button>
-                <button
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={() => onSwipe('right')}
-                    className="flex items-center justify-center gap-2 py-3 rounded-xl bg-primary-600 text-white font-bold text-lg hover:bg-primary-500 transition-all active:scale-95 shadow-lg shadow-primary-900/20"
-                >
-                    <ThumbsUp size={24} />
-                    <span>{t('swipe.like_btn')}</span>
-                </button>
-            </div>
-        </div>
-            </div >
-        </motion.div >
+        </motion.div>
     )
 }
 
