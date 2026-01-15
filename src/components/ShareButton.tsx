@@ -18,9 +18,27 @@ export default function ShareButton({ title, text, url, variant = 'full', classN
         e?.preventDefault()
         e?.stopPropagation()
 
-        // ✅ NUEVA ESTRATEGIA: Siempre copiar el link
-        // Esto evita que se abra en WebViews de WhatsApp/FB/Telegram
-        // El usuario puede pegar el link en su navegador real
+        const shareData = {
+            title: title,
+            text: text,
+            url: url,
+        }
+
+        // 1. Intentar API Nativa primero (Share fácil en WhatsApp, Telegram, etc.)
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData)
+                return
+            } catch (err) {
+                // Si el usuario cancela, no hacer nada
+                if ((err as Error).name === 'AbortError') {
+                    return
+                }
+                console.log('Share failed, falling back to copy:', err)
+            }
+        }
+
+        // 2. Fallback: Copiar al portapapeles
         try {
             await navigator.clipboard.writeText(url)
             setCopied(true)
@@ -31,7 +49,7 @@ export default function ShareButton({ title, text, url, variant = 'full', classN
             }, 3000)
         } catch (err) {
             console.error('Failed to copy', err)
-            // Si falla copiar, intentar abrir en nueva pestaña
+            // Último recurso: abrir en nueva pestaña
             window.open(url, '_blank')
         }
     }
