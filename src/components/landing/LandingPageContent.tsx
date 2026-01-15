@@ -176,10 +176,10 @@ export default function LandingPageContent() {
                     <div className="flex flex-col items-center md:items-end gap-4">
                         <span className="text-gray-400 font-medium">{t('landing.follow_us')}</span>
                         <div className="flex gap-6">
-                            <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
+                            <a href="https://x.com/CarMatchoficial" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
                                 <XIcon className="w-6 h-6" />
                             </a>
-                            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
+                            <a href="https://youtube.com/@carmatchoficial?si=8XfhyrkDkEGnNKG-" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
                                 <YoutubeIcon className="w-6 h-6" />
                             </a>
                             <a href="https://www.facebook.com/share/1AVsMtGGrG/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
@@ -188,7 +188,7 @@ export default function LandingPageContent() {
                             <a href="https://www.instagram.com/car.matchoficial?igsh=MWR2cjN5bGVmZzdoeQ==" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
                                 <InstagramIcon className="w-6 h-6" />
                             </a>
-                            <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
+                            <a href="https://tiktok.com/@car.matchoficial" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-all hover:scale-110">
                                 <TikTokIcon className="w-6 h-6" />
                             </a>
                             {/* QR Code Button */}
