@@ -8,6 +8,11 @@ export default function OpenInBrowserBanner() {
     const { isWebView, webViewType } = useWebViewDetection()
     const [dismissed, setDismissed] = useState(false)
 
+    // No mostrar en rutas admin
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+        return null
+    }
+
     if (!isWebView || dismissed) return null
 
     const getAppName = () => {
