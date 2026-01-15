@@ -134,51 +134,56 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
 
                 {/* Contenido Inferior: Info + Galería + Botones */}
                 <div className="flex flex-col bg-surface pt-4">
-                    {/* 1. Nombre y Año */}
-                    <div className="px-6 mb-1">
-                        <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} onPointerDown={(e) => e.stopPropagation()}>
-                            <h2 className="text-2xl font-bold text-text-primary hover:text-primary-400 transition cursor-pointer leading-tight line-clamp-2">
-                                {item.title} {item.year && <span className="font-light opacity-80 text-lg ml-1">{item.year}</span>}
-                            </h2>
-                        </Link>
-                    </div>
-
-                    {/* 2. Precio */}
-                    <div className="px-6 mb-1">
-                        {!isBusiness ? (
-                            <div className="text-2xl font-bold text-primary-500">
-                                {formatPrice(item.price || 0, item.currency || 'MXN')}
+                    <div className="md:flex md:items-start md:justify-between px-6 gap-6">
+                        {/* Columna Izquierda: Información Principal */}
+                        <div className="flex-1 min-w-0">
+                            {/* 1. Nombre y Año */}
+                            <div className="mb-1">
+                                <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} onPointerDown={(e) => e.stopPropagation()}>
+                                    <h2 className="text-2xl md:text-3xl font-black text-text-primary hover:text-primary-400 transition cursor-pointer leading-tight line-clamp-2">
+                                        {item.title} {item.year && <span className="font-light opacity-80 text-lg ml-1">{item.year}</span>}
+                                    </h2>
+                                </Link>
                             </div>
-                        ) : (
-                            <div className="text-sm font-bold text-primary-400 uppercase tracking-tighter bg-primary-900/20 px-2 py-1 rounded inline-block">
-                                {item.category || 'Negocio'}
-                            </div>
-                        )}
-                    </div>
 
-                    {/* 3. Ubicación */}
-                    <div className="px-6 mb-3 flex items-center gap-2 text-text-secondary text-sm">
-                        <MapPin size={16} className="text-primary-500" />
-                        <span className="font-medium">{item.city}</span>
-                    </div>
-
-                    {/* 4. Galería de Fotos (Miniaturas) */}
-                    {item.images && item.images.length > 1 && (
-                        <div className="px-6 mb-2">
-                            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mask-linear-fade">
-                                {item.images.slice(1, 5).map((img, idx) => (
-                                    <div key={idx} className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border border-surface-highlight">
-                                        <img src={img} className="w-full h-full object-cover" alt={`Gallery ${idx}`} draggable={false} />
+                            {/* 2. Precio */}
+                            <div className="mb-1">
+                                {!isBusiness ? (
+                                    <div className="text-2xl md:text-3xl font-bold text-primary-500">
+                                        {formatPrice(item.price || 0, item.currency || 'MXN')}
                                     </div>
-                                ))}
-                                {item.images.length > 5 && (
-                                    <div className="w-16 h-16 flex-shrink-0 rounded-lg bg-surface-highlight flex items-center justify-center text-xs font-bold text-text-secondary border border-surface-highlight">
-                                        +{item.images.length - 5}
+                                ) : (
+                                    <div className="text-sm font-bold text-primary-400 uppercase tracking-tighter bg-primary-900/20 px-2 py-1 rounded inline-block">
+                                        {item.category || 'Negocio'}
                                     </div>
                                 )}
                             </div>
+
+                            {/* 3. Ubicación */}
+                            <div className="mb-3 flex items-center gap-2 text-text-secondary text-sm">
+                                <MapPin size={16} className="text-primary-500" />
+                                <span className="font-medium">{item.city}</span>
+                            </div>
                         </div>
-                    )}
+
+                        {/* Columna Derecha: Galería (Visible y optimizada en Escritorio) */}
+                        {item.images && item.images.length > 1 && (
+                            <div className="flex-shrink-0 mb-4 md:mb-0">
+                                <div className="flex md:grid md:grid-cols-2 gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
+                                    {item.images.slice(1, 5).map((img, idx) => (
+                                        <div key={idx} className="relative w-16 h-16 md:w-14 md:h-14 lg:w-16 lg:h-16 flex-shrink-0 rounded-xl overflow-hidden border border-surface-highlight shadow-inner">
+                                            <img src={img} className="w-full h-full object-cover" alt={`Gallery ${idx}`} draggable={false} />
+                                        </div>
+                                    ))}
+                                    {item.images.length > 5 && (
+                                        <div className="w-16 h-16 md:w-14 md:h-14 lg:w-16 lg:h-16 flex-shrink-0 rounded-xl bg-surface-highlight flex items-center justify-center text-xs font-bold text-text-secondary border border-surface-highlight">
+                                            +{item.images.length - 5}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     {/* 5. Ver más */}
                     <div className="flex justify-end px-6 mb-2">
