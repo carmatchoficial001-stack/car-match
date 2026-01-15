@@ -80,7 +80,7 @@ interface SystemStats {
     }
 }
 
-type AdminView = 'overview' | 'users' | 'inventory' | 'mapstore' | 'intelligence' | 'reports' | 'logs' | 'ai-hub'
+type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub'
 
 export default function AdminDashboard() {
     const { data: session, status } = useSession()
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
         { id: 'intelligence', icon: Activity, label: t('admin.intelligence') },
         { id: 'users', icon: Users, label: t('admin.users') },
         { id: 'inventory', icon: Car, label: t('admin.inventory') },
-        { id: 'mapstore', icon: Store, label: t('admin.mapstore') },
+        { id: 'map-store', icon: Store, label: t('admin.mapstore') },
         { id: 'ai-hub', icon: Cpu, label: t('admin.ai_hub') },
         { id: 'reports', icon: Flag, label: t('admin.reports'), badge: stats.reports.filter(r => r.status === 'PENDING').length },
         { id: 'logs', icon: Terminal, label: t('admin.logs') },
