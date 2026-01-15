@@ -140,7 +140,7 @@ export default function MessagesPage() {
                                     {/* Info del chat */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <h3 className={`text-text-primary truncate text-sm ${chat.unreadCount > 0 ? 'font-bold' : 'font-semibold'
+                                            <h3 className={`text-text-primary ${chat.unreadCount > 0 ? 'font-bold' : 'font-semibold'
                                                 }`}>
                                                 {chat.vehicle.brand} {chat.vehicle.model} {chat.vehicle.year}
                                             </h3>

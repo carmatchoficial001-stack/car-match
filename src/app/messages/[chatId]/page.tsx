@@ -298,7 +298,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                         <Link href={`/profile/${chat.vehicle.user.id}`} className="hover:underline">
                                             <h2 className="font-bold text-text-primary truncate">{chat.vehicle.user.name}</h2>
                                         </Link>
-                                        <p className="text-xs text-text-secondary truncate">{chat.vehicle.title}</p>
+                                        <p className="text-xs text-text-secondary">{chat.vehicle.title}</p>
                                     </div>
                                 </div>
                             )}
