@@ -95,23 +95,44 @@ export default function SettingsPage() {
                         <Globe size={18} className="text-primary-500" />
                         <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">Seleccionar Idioma</h2>
                     </div>
-                    {/* Horizontal scrollable language menu */}
-                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                    {/* Vertical scrollable language list */}
+                    <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
                         {languages.map((lang) => (
                             <button
                                 key={lang.code}
                                 onClick={() => setLocale(lang.code as any)}
-                                className={`flex-shrink-0 flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all ${locale === lang.code
+                                className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${locale === lang.code
                                     ? 'bg-primary-900/20 border-primary-500 text-primary-400 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]'
-                                    : 'bg-surface border-surface-highlight text-text-primary hover:border-text-secondary/30'
+                                    : 'bg-surface border-surface-highlight text-text-primary hover:border-text-secondary/30 hover:bg-white/5 active:scale-[0.98]'
                                     }`}
                             >
-                                <span className="text-2xl">{lang.flag}</span>
-                                <span className="font-bold whitespace-nowrap">{lang.name}</span>
-                                {locale === lang.code && <Check size={18} className="ml-1" />}
+                                <div className="flex items-center gap-4">
+                                    <span className="text-2xl">{lang.flag}</span>
+                                    <span className={`font-bold ${locale === lang.code ? 'text-primary-400' : 'text-text-primary'}`}>
+                                        {lang.name}
+                                    </span>
+                                </div>
+                                {locale === lang.code && <Check size={20} className="text-primary-500" />}
                             </button>
                         ))}
                     </div>
+
+                    <style jsx>{`
+                        .custom-scrollbar::-webkit-scrollbar {
+                            width: 5px;
+                        }
+                        .custom-scrollbar::-webkit-scrollbar-track {
+                            background: rgba(255, 255, 255, 0.02);
+                            border-radius: 10px;
+                        }
+                        .custom-scrollbar::-webkit-scrollbar-thumb {
+                            background: rgba(var(--primary-rgb), 0.2);
+                            border-radius: 10px;
+                        }
+                        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                            background: rgba(var(--primary-rgb), 0.4);
+                        }
+                    `}</style>
                 </section>
 
                 {/* Notificaciones y Soporte */}
