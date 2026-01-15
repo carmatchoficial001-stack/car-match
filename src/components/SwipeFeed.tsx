@@ -82,7 +82,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
         >
             <div className="bg-surface/95 md:bg-surface/80 md:backdrop-blur-xl rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-full">
                 {/* Imagen Principal (Max height para asegurar que botones sean visibles) */}
-                <div className="relative w-full h-[45vh] md:h-[50vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden">
+                <div className="relative w-full h-[45vh] md:h-[65vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden">
                     {item.images && item.images[0] ? (
                         <img
                             src={item.images[0]}
