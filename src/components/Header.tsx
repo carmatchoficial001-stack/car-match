@@ -18,7 +18,7 @@ export default function Header() {
     const router = useRouter()
     const { data: session, status } = useSession()
     const { t, locale, setLocale } = useLanguage()
-    const [showMenu, setShowMenu] = useState<boolean | string>(false)
+    const [showMenu, setShowMenu] = useState<boolean | 'lang' | 'notifications' | 'user' | 'lang_inner'>(false)
     const [unreadMessages, setUnreadMessages] = useState(0)
     const [unreadNotifications, setUnreadNotifications] = useState(0)
     const [favoritesCount, setFavoritesCount] = useState(0)
