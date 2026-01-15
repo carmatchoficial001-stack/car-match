@@ -204,8 +204,14 @@ export default function LandingPageContent() {
                         </div>
                     </div>
                 </div>
-                <div className="mt-12 text-center text-gray-500 text-sm">
-                    © {new Date().getFullYear()} CarMatch. {t('common.all_rights_reserved')}
+                <div className="mt-12 flex flex-col md:flex-row justify-between items-center gap-6 border-t border-white/5 pt-8">
+                    <div className="flex gap-8 text-gray-500 text-xs font-mono uppercase tracking-[0.2em]">
+                        <Link href="/terms" className="hover:text-primary-400 transition-colors">{t('auth.terms')}</Link>
+                        <Link href="/privacy" className="hover:text-primary-400 transition-colors">{t('auth.privacy')}</Link>
+                    </div>
+                    <div className="text-gray-500 text-sm font-mono tracking-wider">
+                        © {new Date().getFullYear()} CarMatch. {t('common.all_rights_reserved')}
+                    </div>
                 </div>
             </footer>
         </div>
