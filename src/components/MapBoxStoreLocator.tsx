@@ -280,32 +280,33 @@ export default function MapBoxStoreLocator({
                 }
 
                 const popupHTML = `
-                    <div class="p-2 min-w-[200px]">
+                    <div class="p-3 min-w-[220px] max-w-[280px] bg-white rounded-xl">
                         ${props.image ?
-                        `<div class="w-full h-32 relative mb-2 rounded-lg overflow-hidden bg-gray-900">
-                                <div class="absolute inset-0 bg-cover bg-center blur-sm opacity-50" style="background-image: url('${props.image}')"></div>
+                        `<div class="w-full h-32 relative mb-3 rounded-lg overflow-hidden bg-gray-900 shadow-sm border border-gray-100">
+                                <div class="absolute inset-0 bg-cover bg-center blur-sm opacity-40" style="background-image: url('${props.image}')"></div>
                                 <img src="${props.image}" alt="${props.name}" style="object-fit: contain; width: 100%; height: 100%; position: relative; z-index: 10;" />
                             </div>` : ''
                     }
-                        <h3 class="font-bold text-gray-900 text-lg leading-tight mb-1">${props.name}</h3>
+                        <h3 class="font-black text-gray-900 text-lg leading-tight mb-1 truncate">${props.name}</h3>
                         
                         <div class="flex items-center gap-2 mb-2">
-                            <span class="px-2 py-0.5 rounded-full text-xs font-bold text-white bg-gray-800">
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold text-white" style="background-color: #0369a1;">
                                 ${props.category?.toUpperCase()}
                             </span>
                         </div>
                         
-                        <p class="text-xs text-gray-500 mb-2 pb-2 border-b border-gray-200 truncate">
-                            ${props.city}
-                        </p>
+                        <div class="flex items-center gap-1 text-[11px] text-gray-500 mb-4 pb-2 border-b border-gray-100">
+                            <span class="opacity-70">📍</span>
+                            <span class="truncate">${props.city || ''}</span>
+                        </div>
                         
                         <button 
                             onclick="window.dispatchEvent(new CustomEvent('open-business-modal', { detail: '${props.id}' }))"
-                            class="block w-full py-1.5 bg-gray-900 text-white text-sm font-bold rounded hover:bg-black transition"
+                            style="background-color: #0369a1; color: white; padding: 10px; border-radius: 10px; font-weight: 800; font-size: 13px; width: 100%; border: none; cursor: pointer; display: block; text-align: center; box-shadow: 0 4px 6px -1px rgba(3, 105, 161, 0.2);"
                         >
                             ${t('map_locator.view_details')}
                         </button>
-                    </div >
+                    </div>
                 `
 
                 new mapboxgl.Popup({ offset: 15 })
