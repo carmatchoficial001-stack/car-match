@@ -47,14 +47,14 @@ export default function AuthButtons() {
             <button
                 type="button"
                 disabled
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gray-500/50 cursor-not-allowed transition-all rounded-xl shadow-lg border border-gray-600 opacity-60 group"
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#1877F2]/80 cursor-not-allowed transition-all rounded-xl shadow-lg border border-[#1877F2] group"
             >
-                <div className="bg-white/80 rounded-full p-0.5 w-6 h-6 flex items-center justify-center opacity-70">
-                    <svg className="w-5 h-5 text-gray-600 translate-y-[1px]" fill="currentColor" viewBox="0 0 24 24">
+                <div className="bg-white rounded-full p-0.5 w-6 h-6 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-[#1877F2] translate-y-[1px]" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M13.397 20.997v-8.196h2.765l.411-3.209h-3.176V7.548c0-.926.258-1.56 1.587-1.56h1.684V3.127A22.336 22.336 0 0 0 14.201 3c-2.444 0-4.122 1.492-4.122 4.231v2.355H7.332v3.209h2.753v8.202h3.312z" />
                     </svg>
                 </div>
-                <span className="text-white/80 font-bold text-lg">
+                <span className="text-white font-bold text-lg">
                     Facebook (Próximamente)
                 </span>
             </button>
@@ -63,12 +63,12 @@ export default function AuthButtons() {
             <button
                 type="button"
                 disabled
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gray-900/50 cursor-not-allowed transition-all rounded-xl shadow-lg border border-gray-800 opacity-60 group"
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black/80 cursor-not-allowed transition-all rounded-xl shadow-lg border border-gray-800 group"
             >
-                <svg className="w-6 h-6 text-gray-400 opacity-70" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
-                <span className="text-white/70 font-bold text-lg">
+                <span className="text-white font-bold text-lg">
                     X (Próximamente)
                 </span>
             </button>
