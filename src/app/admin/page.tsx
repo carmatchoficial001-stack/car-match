@@ -83,7 +83,6 @@ type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligenc
 export default function AdminDashboard() {
     const { data: session, status } = useSession()
     const router = useRouter()
-    const { t, locale } = useLanguage()
     const [stats, setStats] = useState<SystemStats | null>(null)
     const [loading, setLoading] = useState(true)
     const [activeView, setActiveView] = useState<AdminView>('overview')
