@@ -80,16 +80,24 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
             }}
             className={`touch-none flex flex-col h-full ${!isTop && 'pointer-events-none'}`}
         >
-            <div className="bg-surface/95 md:bg-surface/80 md:backdrop-blur-xl rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-full">
-                {/* Imagen Principal (Max height para asegurar que botones sean visibles) */}
-                <div className="relative w-full h-[45vh] md:h-[65vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden">
+            <div className="bg-surface/95 md:bg-surface/90 md:backdrop-blur-xl rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-full">
+                {/* Imagen Principal (Área Verde: Ver vehículo completo) */}
+                <div className="relative w-full h-[50vh] md:h-[55vh] bg-black/40 overflow-hidden group">
                     {item.images && item.images[0] ? (
-                        <img
-                            src={item.images[0]}
-                            alt={item.title}
-                            className="w-full h-full object-cover"
-                            draggable={false}
-                        />
+                        <>
+                            {/* Blur Background para rellenar espacios si la foto no es panorámica */}
+                            <img
+                                src={item.images[0]}
+                                alt=""
+                                className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-30 scale-110"
+                            />
+                            <img
+                                src={item.images[0]}
+                                alt={item.title}
+                                className="relative w-full h-full object-contain z-10"
+                                draggable={false}
+                            />
+                        </>
                     ) : (
                         <div className="w-full h-full flex items-center justify-center">
                             <svg className="w-32 h-32 text-text-secondary opacity-30" fill="currentColor" viewBox="0 0 24 24">
@@ -112,9 +120,9 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                         className="absolute top-4 right-4 z-30"
                     />
 
-                    {/* Indicadores de swipe (Overlay en la imagen) */}
+                    {/* Indicadores de swipe */}
                     <motion.div
-                        className="absolute top-8 left-8 z-40"
+                        className="absolute top-1/2 left-8 -translate-y-1/2 z-40"
                         style={{ opacity: useTransform(x, [0, 100], [0, 1]) }}
                     >
                         <div className="px-6 py-3 bg-green-500 text-white rounded-2xl font-bold text-2xl rotate-12 border-4 border-white shadow-xl">
@@ -123,7 +131,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     </motion.div>
 
                     <motion.div
-                        className="absolute top-8 right-8 z-40"
+                        className="absolute top-1/2 right-8 -translate-y-1/2 z-40"
                         style={{ opacity: useTransform(x, [-100, 0], [1, 0]) }}
                     >
                         <div className="px-6 py-3 bg-red-500 text-white rounded-2xl font-bold text-2xl -rotate-12 border-4 border-white shadow-xl">
@@ -132,92 +140,105 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     </motion.div>
                 </div>
 
-                {/* Contenido Inferior: Info + Galería + Botones */}
-                <div className="flex flex-col bg-surface pt-4">
-                    <div className="md:flex md:items-start md:justify-between px-6 gap-6">
-                        {/* Columna Izquierda: Información Principal */}
-                        <div className="flex-1 min-w-0">
-                            {/* 1. Nombre y Año */}
-                            <div className="mb-1">
+                {/* Área Roja: Información + Galería + Botones */}
+                <div className="flex-1 flex flex-col justify-between bg-surface pt-4">
+                    <div className="px-6">
+                        <div className="flex items-start justify-between gap-4">
+                            {/* Nombre y Precio */}
+                            <div className="flex-1 min-w-0">
                                 <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} onPointerDown={(e) => e.stopPropagation()}>
-                                    <h2 className="text-2xl md:text-3xl font-black text-text-primary hover:text-primary-400 transition cursor-pointer leading-tight line-clamp-2">
-                                        {item.title} {item.year && <span className="font-light opacity-80 text-lg ml-1">{item.year}</span>}
+                                    <h2 className="text-xl md:text-2xl font-black text-text-primary hover:text-primary-400 transition cursor-pointer leading-tight line-clamp-2">
+                                        {item.title} {item.year && <span className="font-light opacity-60 text-base ml-1">{item.year}</span>}
                                     </h2>
                                 </Link>
-                            </div>
-
-                            {/* 2. Precio */}
-                            <div className="mb-1">
                                 {!isBusiness ? (
-                                    <div className="text-2xl md:text-3xl font-bold text-primary-500">
+                                    <div className="text-xl md:text-2xl font-bold text-primary-500 mt-1">
                                         {formatPrice(item.price || 0, item.currency || 'MXN')}
                                     </div>
                                 ) : (
-                                    <div className="text-sm font-bold text-primary-400 uppercase tracking-tighter bg-primary-900/20 px-2 py-1 rounded inline-block">
+                                    <div className="text-xs font-bold text-primary-400 uppercase tracking-tighter bg-primary-900/20 px-2 py-1 rounded inline-block mt-1">
                                         {item.category || 'Negocio'}
                                     </div>
                                 )}
+                                <div className="mt-2 flex items-center gap-1.5 text-text-secondary text-xs">
+                                    <MapPin size={12} className="text-primary-500" />
+                                    <span className="font-medium truncate">{item.city}</span>
+                                </div>
                             </div>
 
-                            {/* 3. Ubicación */}
-                            <div className="mb-3 flex items-center gap-2 text-text-secondary text-sm">
-                                <MapPin size={16} className="text-primary-500" />
-                                <span className="font-medium">{item.city}</span>
-                            </div>
-                        </div>
-
-                        {/* Columna Derecha: Galería (Visible y optimizada en Escritorio) */}
-                        {item.images && item.images.length > 1 && (
-                            <div className="flex-shrink-0 mb-4 md:mb-0">
-                                <div className="flex md:grid md:grid-cols-2 gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
-                                    {item.images.slice(1, 5).map((img, idx) => (
-                                        <div key={idx} className="relative w-16 h-16 md:w-14 md:h-14 lg:w-16 lg:h-16 flex-shrink-0 rounded-xl overflow-hidden border border-surface-highlight shadow-inner">
-                                            <img src={img} className="w-full h-full object-cover" alt={`Gallery ${idx}`} draggable={false} />
+                            {/* Galería Compacta */}
+                            {item.images && item.images.length > 1 && (
+                                <div className="grid grid-cols-2 gap-1.5 flex-shrink-0">
+                                    {item.images.slice(1, 4).map((img, idx) => (
+                                        <div key={idx} className="relative w-12 h-12 rounded-lg overflow-hidden border border-white/5 shadow-inner">
+                                            <img src={img} className="w-full h-full object-cover" alt="" draggable={false} />
                                         </div>
                                     ))}
-                                    {item.images.length > 5 && (
-                                        <div className="w-16 h-16 md:w-14 md:h-14 lg:w-16 lg:h-16 flex-shrink-0 rounded-xl bg-surface-highlight flex items-center justify-center text-xs font-bold text-text-secondary border border-surface-highlight">
-                                            +{item.images.length - 5}
+                                    {item.images.length > 4 && (
+                                        <div className="w-12 h-12 rounded-lg bg-surface-highlight flex items-center justify-center text-[10px] font-bold text-text-secondary border border-white/5">
+                                            +{item.images.length - 4}
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
 
-                    {/* 5. Ver más */}
-                    <div className="flex justify-end px-6 mb-2">
-                        <Link
-                            href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
-                            onPointerDown={(e) => e.stopPropagation()}
-                            className="text-lg font-bold text-primary-500 hover:text-primary-400 transition flex items-center gap-1"
-                        >
-                            {t('swipe.view_more')} &rarr;
-                        </Link>
-                    </div>
-
-                    {/* 6. Botones de Acción */}
-                    <div className="grid grid-cols-2 gap-4 px-6 pb-6">
-                        <button
-                            onPointerDown={(e) => e.stopPropagation()}
-                            onClick={() => onSwipe('left')}
-                            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-surface-highlight border-2 border-surface-highlight text-red-400 font-bold text-lg hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 shadow-sm"
-                        >
-                            <X size={24} />
-                            <span>{t('swipe.nope_btn')}</span>
-                        </button>
-                        <button
-                            onPointerDown={(e) => e.stopPropagation()}
-                            onClick={() => onSwipe('right')}
-                            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-primary-600 text-white font-bold text-lg hover:bg-primary-500 transition-all active:scale-95 shadow-lg shadow-primary-900/20"
-                        >
-                            <ThumbsUp size={24} />
-                            <span>{t('swipe.like_btn')}</span>
-                        </button>
+                    {/* Botones de Acción (Al final de la tarjeta) */}
+                    <div className="px-6 pb-6 mt-4">
+                        <div className="flex justify-end mb-3">
+                            <Link
+                                href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
+                                onPointerDown={(e) => e.stopPropagation()}
+                                className="text-sm font-bold text-primary-500 hover:text-primary-400 transition flex items-center gap-1"
+                            >
+                                {t('swipe.view_more')} &rarr;
+                            </Link>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <button
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onClick={() => onSwipe('left')}
+                                className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-surface-highlight border border-white/5 text-red-500 font-bold hover:bg-red-500/10 transition-all active:scale-95"
+                            >
+                                <X size={20} />
+                                <span>{t('swipe.nope_btn')}</span>
+                            </button>
+                            <button
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onClick={() => onSwipe('right')}
+                                className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary-600 text-white font-bold shadow-lg shadow-primary-900/20 hover:bg-primary-500 transition-all active:scale-95"
+                            >
+                                <ThumbsUp size={20} />
+                                <span>{t('swipe.like_btn')}</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </motion.div>
+
+            {/* 6. Botones de Acción */}
+            <div className="grid grid-cols-2 gap-4 px-6 pb-6">
+                <button
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={() => onSwipe('left')}
+                    className="flex items-center justify-center gap-2 py-3 rounded-xl bg-surface-highlight border-2 border-surface-highlight text-red-400 font-bold text-lg hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 shadow-sm"
+                >
+                    <X size={24} />
+                    <span>{t('swipe.nope_btn')}</span>
+                </button>
+                <button
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={() => onSwipe('right')}
+                    className="flex items-center justify-center gap-2 py-3 rounded-xl bg-primary-600 text-white font-bold text-lg hover:bg-primary-500 transition-all active:scale-95 shadow-lg shadow-primary-900/20"
+                >
+                    <ThumbsUp size={24} />
+                    <span>{t('swipe.like_btn')}</span>
+                </button>
+            </div>
+        </div>
+            </div >
+        </motion.div >
     )
 }
 
