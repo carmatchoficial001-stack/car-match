@@ -280,7 +280,7 @@ export default function AdminDashboard() {
                         >
                             <QrCode className="w-4 h-4 text-primary-400" />
                             <span className="hidden sm:block text-xs font-bold text-primary-400 uppercase tracking-wider">
-                                {t('admin.share_app')}
+                                COMPARTIR APP
                             </span>
                         </button>
 
