@@ -463,8 +463,8 @@ export default function MarketFiltersAdvanced({
                                 onChange={(e) => setColor(e.target.value)}
                                 className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary"
                             >
-                                <option value="">Cualquiera</option>
-                                {COLORS.map(c => <option key={c} value={c}>{c}</option>)}
+                                <option value="">{t('common.any')}</option>
+                                {COLORS.map(c => <option key={c} value={c}>{t(`taxonomy.colors.${c}`)}</option>)}
                             </select>
                         </div>
                         <div>
@@ -474,8 +474,8 @@ export default function MarketFiltersAdvanced({
                                 onChange={(e) => setCondition(e.target.value)}
                                 className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary"
                             >
-                                <option value="">Cualquiera</option>
-                                {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                                <option value="">{t('common.any')}</option>
+                                {CONDITIONS.map(c => <option key={c} value={c}>{t(`taxonomy.condition.${c}`)}</option>)}
                             </select>
                         </div>
                         <div>
@@ -485,8 +485,8 @@ export default function MarketFiltersAdvanced({
                                 onChange={(e) => setTraction(e.target.value)}
                                 className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary"
                             >
-                                <option value="">Cualquiera</option>
-                                {TRACTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                                <option value="">{t('common.any')}</option>
+                                {TRACTIONS.map(tr => <option key={tr} value={tr}>{t(`taxonomy.traction.${tr}`)}</option>)}
                             </select>
                         </div>
                         <div>
@@ -609,12 +609,12 @@ export default function MarketFiltersAdvanced({
                                 onChange={(e) => setPassengers(e.target.value)}
                                 className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary text-sm"
                             >
-                                <option value="">Cualquiera</option>
+                                <option value="">{t('common.any')}</option>
                                 <option value="2">2+</option>
                                 <option value="4">4+</option>
                                 <option value="5">5+</option>
                                 <option value="7">7+</option>
-                                <option value="8">8+</option>
+                                <option value="12">12+</option>
                             </select>
                         </div>
                     </div>
