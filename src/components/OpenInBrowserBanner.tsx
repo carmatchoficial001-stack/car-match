@@ -1,17 +1,20 @@
 "use client"
 
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { ExternalLink, X, Chrome } from 'lucide-react'
 import { useWebViewDetection } from '@/hooks/useWebViewDetection'
 
 export default function OpenInBrowserBanner() {
-    const { isWebView, webViewType } = useWebViewDetection()
-    const [dismissed, setDismissed] = useState(false)
+    const pathname = usePathname()
 
     // No mostrar en rutas admin
-    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+    if (pathname?.startsWith('/admin')) {
         return null
     }
+
+    const { isWebView, webViewType } = useWebViewDetection()
+    const [dismissed, setDismissed] = useState(false)
 
     if (!isWebView || dismissed) return null
 
