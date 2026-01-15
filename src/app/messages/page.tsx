@@ -129,63 +129,68 @@ export default function MessagesPage() {
                                         {chat.unreadCount}
                                     </div>
                                 )}
-                                <div className="flex items-center gap-4">
+                                <div className="flex gap-4">
                                     {/* Imagen del vehículo */}
-                                    <img
-                                        src={vehicleImage}
-                                        alt={chat.vehicle.title}
-                                        className="w-20 h-20 rounded-lg object-cover"
-                                    />
+                                    <div className="relative shrink-0">
+                                        <img
+                                            src={vehicleImage}
+                                            alt={chat.vehicle.title}
+                                            className="w-24 h-24 rounded-xl object-cover"
+                                        />
+                                    </div>
 
                                     {/* Info del chat */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h3 className={`text-text-primary ${chat.unreadCount > 0 ? 'font-bold' : 'font-semibold'
-                                                }`}>
-                                                {chat.vehicle.brand} {chat.vehicle.model} {chat.vehicle.year}
-                                            </h3>
-                                            {chat.vehicle.status !== 'ACTIVE' && (
-                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${chat.vehicle.status === 'SOLD'
+                                    <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
+                                        <div>
+                                            <div className="flex justify-between items-start gap-2 mb-1">
+                                                <h3 className={`text-text-primary text-lg leading-tight ${chat.unreadCount > 0 ? 'font-black' : 'font-bold'
+                                                    }`}>
+                                                    {chat.vehicle.brand} {chat.vehicle.model} {chat.vehicle.year}
+                                                </h3>
+                                                <div className="text-[10px] text-text-secondary whitespace-nowrap pt-1">
+                                                    {timeSince}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 mb-1">
+                                                {chat.otherUser.image ? (
+                                                    <img
+                                                        src={chat.otherUser.image}
+                                                        alt={chat.otherUser.name}
+                                                        className="w-5 h-5 rounded-md object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-5 h-5 bg-primary-500 rounded-md flex items-center justify-center text-[10px] text-white">
+                                                        {chat.otherUser.name[0]}
+                                                    </div>
+                                                )}
+                                                <span className="text-xs text-text-secondary truncate">
+                                                    {chat.isBuyer ? 'Vendedor' : 'Comprador'}: {chat.otherUser.name}
+                                                </span>
+                                            </div>
+
+                                            {chat.lastMessage && (
+                                                <p className={`text-sm text-text-secondary truncate max-w-[200px] sm:max-w-md ${chat.unreadCount > 0 ? 'font-semibold text-text-primary' : ''
+                                                    }`}>
+                                                    {chat.lastMessage.content}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center justify-between mt-1">
+                                            {chat.vehicle.status !== 'ACTIVE' ? (
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${chat.vehicle.status === 'SOLD'
                                                     ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                                                     : 'bg-red-500/20 text-red-400 border border-red-500/30'
                                                     }`}>
                                                     {chat.vehicle.status === 'SOLD' ? 'Vendido' : 'No Disponible'}
                                                 </span>
-                                            )}
-                                        </div>
-
-                                        <div className="flex items-center gap-2 mb-2">
-                                            {chat.otherUser.image ? (
-                                                <img
-                                                    src={chat.otherUser.image}
-                                                    alt={chat.otherUser.name}
-                                                    className="w-6 h-6 rounded-lg object-cover"
-                                                />
                                             ) : (
-                                                <div className="w-6 h-6 bg-primary-500 rounded-lg flex items-center justify-center text-xs text-white">
-                                                    {chat.otherUser.name[0]}
-                                                </div>
+                                                <div /> // Placeholder
                                             )}
-                                            <span className="text-sm text-text-secondary">
-                                                {chat.isBuyer ? 'Vendedor' : 'Comprador'}: {chat.otherUser.name}
-                                            </span>
-                                        </div>
-
-                                        {chat.lastMessage && (
-                                            <p className={`text-sm text-text-secondary truncate ${chat.unreadCount > 0 ? 'font-semibold' : ''
-                                                }`}>
-                                                {chat.lastMessage.content}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {/* Timestamp y precio */}
-                                    <div className="text-right">
-                                        <div className="text-xs text-text-secondary mb-2">
-                                            {timeSince}
-                                        </div>
-                                        <div className="text-lg font-bold text-primary-500" suppressHydrationWarning>
-                                            {formatPrice(chat.vehicle.price, 'MXN', locale)}
+                                            <div className="text-xl font-black text-primary-500" suppressHydrationWarning>
+                                                {formatPrice(chat.vehicle.price, 'MXN', locale)}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
