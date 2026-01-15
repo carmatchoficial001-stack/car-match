@@ -917,7 +917,6 @@ function MapStoreTab({ businesses }: { businesses: any[] }) {
 }
 
 function IntelligenceTab() {
-    const { t } = useLanguage()
     const [intelligenceData, setIntelligenceData] = useState<any>(null)
     const [loading, setLoading] = useState(true)
 
@@ -972,7 +971,7 @@ function IntelligenceTab() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                                <span className="text-xs font-bold">{t('admin.high_demand')}</span>
+                                <span className="text-xs font-bold">Alta Demanda</span>
                             </div>
                             <p className="text-[10px] text-text-secondary leading-relaxed pl-5">Zonas donde los usuarios están buscando vehículos o servicios específicos activamente.</p>
                         </div>
@@ -980,19 +979,19 @@ function IntelligenceTab() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded-full bg-white border border-black"></div>
-                                <span className="text-xs font-bold">{t('admin.competition')}</span>
+                                <span className="text-xs font-bold">Competencia</span>
                             </div>
                             <p className="text-[10px] text-text-secondary leading-relaxed pl-5">Negocios físicos registrados actualmente en el MapStore.</p>
                         </div>
 
                         <div className="pt-6 border-t border-white/5">
-                            <p className="text-[10px] font-black text-primary-500 uppercase mb-2">{t('admin.roi_tip')}</p>
-                            <p className="text-[10px] italic text-text-primary/70">{t('admin.roi_desc')}</p>
+                            <p className="text-[10px] font-black text-primary-500 uppercase mb-2">Consejo de ROI</p>
+                            <p className="text-[10px] italic text-text-primary/70">Identifica zonas con alta demanda (rojo) y baja competencia (puntos blancos) para maximizar tu inversión.</p>
                         </div>
                     </div>
 
                     <button className="mt-8 w-full py-4 bg-primary-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary-500 transition shadow-xl shadow-primary-900/40">
-                        {t('admin.export_heatmap')}
+                        Exportar Mapa de Calor
                     </button>
                 </div>
             </div>
@@ -1000,7 +999,6 @@ function IntelligenceTab() {
     )
 }
 function AiHubTab() {
-    const { t } = useLanguage()
     const [logs, setLogs] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [isUpdating, setIsUpdating] = useState(false)
@@ -1050,9 +1048,9 @@ function AiHubTab() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h3 className="text-3xl font-black italic tracking-tighter uppercase flex items-center gap-3">
-                        <Cpu className="w-8 h-8 text-primary-500" /> {t('admin.ai_hub_title')}
+                        <Cpu className="w-8 h-8 text-primary-500" /> Centro de Control IA
                     </h3>
-                    <p className="text-text-secondary text-sm mt-1">{t('admin.ai_hub_desc')}</p>
+                    <p className="text-text-secondary text-sm mt-1">Gestiona la inteligencia artificial que alimenta los datos de la plataforma.</p>
                 </div>
                 <button
                     onClick={handleManualUpdate}
@@ -1064,7 +1062,7 @@ function AiHubTab() {
                     ) : (
                         <Sparkles className="w-5 h-5 group-hover:scale-125 transition-transform" />
                     )}
-                    <span>{isUpdating ? 'ESCANEO EN PROCESO...' : t('admin.scan_global')}</span>
+                    <span>{isUpdating ? 'ESCANEO EN PROCESO...' : 'ESCANEAR MERCADO GLOBAL'}</span>
                 </button>
             </div>
 
