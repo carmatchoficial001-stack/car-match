@@ -52,6 +52,21 @@ export default function SettingsPage() {
         { code: 'fr', flag: '🇫🇷', name: 'Français' },
         { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
         { code: 'it', flag: '🇮🇹', name: 'Italiano' },
+        { code: 'zh', flag: '🇨🇳', name: '中文' },
+        { code: 'ja', flag: '🇯🇵', name: '日本語' },
+        { code: 'ru', flag: '🇷🇺', name: 'Русский' },
+        { code: 'ko', flag: '🇰🇷', name: '한국어' },
+        { code: 'ar', flag: '🇸🇦', name: 'العربية' },
+        { code: 'hi', flag: '🇮🇳', name: 'हिन्दी' },
+        { code: 'tr', flag: '🇹🇷', name: 'Türkçe' },
+        { code: 'nl', flag: '🇳🇱', name: 'Nederlands' },
+        { code: 'pl', flag: '🇵🇱', name: 'Polski' },
+        { code: 'sv', flag: '🇸🇪', name: 'Svenska' },
+        { code: 'id', flag: '🇮🇩', name: 'Bahasa' },
+        { code: 'th', flag: '🇹🇭', name: 'ไทย' },
+        { code: 'vi', flag: '🇻🇳', name: 'Tiếng Việt' },
+        { code: 'ur', flag: '🇵🇰', name: 'اردو' },
+        { code: 'he', flag: '🇮🇱', name: 'עברית' },
     ]
 
     return (
