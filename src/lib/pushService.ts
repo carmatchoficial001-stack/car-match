@@ -41,13 +41,21 @@ export async function sendPushNotification(subscription: any, payload: PushPaylo
  */
 export async function sendPushToUser(userId: string, payload: PushPayload) {
     try {
+        console.log(`[PUSH] Buscando suscripciones para usuario: ${userId}`)
+
         const subscriptions = await prisma.pushSubscription.findMany({
             where: { userId }
         })
 
-        if (subscriptions.length === 0) return false
+        console.log(`[PUSH] Encontradas ${subscriptions.length} suscripciones`)
 
-        const promises = subscriptions.map(sub => {
+        if (subscriptions.length === 0) {
+            console.log(`[PUSH] ⚠️ Usuario ${userId} no tiene dispositivos suscritos a notificaciones push`)
+            return false
+        }
+
+        const promises = subscriptions.map(async (sub, index) => {
+            console.log(`[PUSH] Enviando notificación a dispositivo ${index + 1}/${subscriptions.length}`)
             const pushConfig = {
                 endpoint: sub.endpoint,
                 keys: {
@@ -55,13 +63,16 @@ export async function sendPushToUser(userId: string, payload: PushPayload) {
                     auth: sub.auth
                 }
             }
-            return sendPushNotification(pushConfig, payload)
+            const result = await sendPushNotification(pushConfig, payload)
+            console.log(`[PUSH] Resultado dispositivo ${index + 1}: ${result ? '✓ enviado' : '✗ falló'}`)
+            return result
         })
 
         await Promise.all(promises)
+        console.log(`[PUSH] ✓ Proceso completado para usuario ${userId}`)
         return true
     } catch (error) {
-        console.error('Error in sendPushToUser:', error)
+        console.error('[PUSH] ✗ Error in sendPushToUser:', error)
         return false
     }
 }
