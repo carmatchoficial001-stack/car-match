@@ -152,14 +152,14 @@ export default function AdminDashboard() {
     if (!stats) return null
 
     const menuItems = [
-        { id: 'overview', icon: LayoutDashboard, label: t('admin.dashboard') },
-        { id: 'intelligence', icon: Activity, label: t('admin.intelligence') },
-        { id: 'users', icon: Users, label: t('admin.users') },
-        { id: 'inventory', icon: Car, label: t('admin.inventory') },
-        { id: 'map-store', icon: Store, label: t('admin.mapstore') },
-        { id: 'ai-hub', icon: Cpu, label: t('admin.ai_hub') },
-        { id: 'reports', icon: Flag, label: t('admin.reports'), badge: stats.reports.filter(r => r.status === 'PENDING').length },
-        { id: 'logs', icon: Terminal, label: t('admin.logs') },
+        { id: 'overview', icon: LayoutDashboard, label: 'Panel de Control' },
+        { id: 'intelligence', icon: Activity, label: 'Inteligencia' },
+        { id: 'users', icon: Users, label: 'Usuarios' },
+        { id: 'inventory', icon: Car, label: 'Inventario' },
+        { id: 'map-store', icon: Store, label: 'MapStore' },
+        { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
+        { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports.filter(r => r.status === 'PENDING').length },
+        { id: 'logs', icon: Terminal, label: 'Registros' },
     ]
 
     // Mobile Responsive Logic
