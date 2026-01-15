@@ -130,6 +130,7 @@ export async function GET(
         }
 
         const { chatId } = await params
+        console.log(`🔍 [API GET] Request for Chat: ${chatId} by User: ${user.id}`)
         console.log(`[DEBUG API] GET /api/chats/${chatId}/messages. Session user: ${user.id}`)
 
         // Verificar que el chat existe y el usuario es parte de él

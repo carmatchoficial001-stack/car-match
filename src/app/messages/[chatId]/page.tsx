@@ -166,14 +166,13 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
             const res = await fetch(`/api/chats/${chatId}/messages`)
             if (res.ok) {
                 const data = await res.json()
-                console.log(`✅ [MESSAGES LOADED] Received ${data.length} items from server.`)
+                console.log('🔥 [FRONTEND DEBUG] Messages received:', data)
                 const uniqueMessages = Array.from(
                     new Map<string, Message>(data.map((m: Message) => [m.id, m])).values()
                 )
-                console.log(`📊 [MESSAGES PROCESSED] Total items: ${uniqueMessages.length}`)
                 setMessages(uniqueMessages)
             } else {
-                console.error(`❌ [MESSAGES API ERROR] Status: ${res.status}. You may not have permission to view these messages.`)
+                console.error('🚨 [FRONTEND ERROR] API failed:', res.status, res.statusText)
             }
         } catch (error) {
             console.error('Error al cargar mensajes:', error)
