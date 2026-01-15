@@ -317,7 +317,7 @@ export default function AdminDashboard() {
                             {activeView === 'intelligence' && <IntelligenceTab />}
                             {activeView === 'users' && <UsersTab users={stats.users.recent} />}
                             {activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} />}
-                            {activeView === 'mapstore' && <MapStoreTab businesses={stats.businesses.recent} />}
+                            {activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} />}
                             {activeView === 'reports' && <ReportsTab reports={stats.reports} />}
                             {activeView === 'logs' && <LogsTab logs={stats.logs} />}
                         </motion.div>
@@ -337,159 +337,159 @@ export default function AdminDashboard() {
 function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) {
     const { t } = useLanguage()
     return (
-    <div className="space-y-8">
-        {/* Top Grid: Financials & Heatmap */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="space-y-8">
+            {/* Top Grid: Financials & Heatmap */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {/* 1. Global Presence Heatmap */}
-            <div className="lg:col-span-2 bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl relative group h-[400px]">
-                <div className="absolute top-0 left-0 right-0 p-4 border-b border-white/5 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                        <h3 className="text-sm font-black uppercase tracking-widest text-white">CarMatch Live Activity</h3>
-                    </div>
-                    <span className="text-[10px] font-bold bg-white/10 px-2 py-1 rounded text-text-secondary">Tiempo Real</span>
-                </div>
-                {/* Render Heatmap if intelligence data exists */}
-                {stats.intelligence ? (
-                    <AdminHeatMap data={stats.intelligence} />
-                ) : (
-                    <div className="w-full h-full bg-black flex items-center justify-center">
-                        <p className="text-sm text-text-secondary animate-pulse">Cargando Satélite...</p>
-                    </div>
-                )}
-            </div>
-
-            {/* 2. Growth & Financials Column */}
-            <div className="space-y-6">
-                {/* User Growth Chart */}
-                <div className="bg-[#111114] border border-white/5 p-6 rounded-3xl shadow-xl flex flex-col h-[190px] justify-between">
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <h4 className="text-xs font-black uppercase tracking-widest text-text-secondary">Crecimiento Usuarios</h4>
-                            <span className="text-[10px] font-bold text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">+12% Mes</span>
+                {/* 1. Global Presence Heatmap */}
+                <div className="lg:col-span-2 bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl relative group h-[400px]">
+                    <div className="absolute top-0 left-0 right-0 p-4 border-b border-white/5 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                            <h3 className="text-sm font-black uppercase tracking-widest text-white">CarMatch Live Activity</h3>
                         </div>
-                        <h3 className="text-3xl font-black italic tracking-tighter text-white">{formatNumber(stats.users.total, 'es')}</h3>
+                        <span className="text-[10px] font-bold bg-white/10 px-2 py-1 rounded text-text-secondary">Tiempo Real</span>
                     </div>
-                    <div className="flex-1 mt-2">
-                        <SimpleLineChart data={stats.users.growth || [10, 20, 15, 30, 40]} color="#3b82f6" height={80} />
-                    </div>
-                </div>
-
-                {/* Revenue Chart */}
-                <div className="bg-[#111114] border border-white/5 p-6 rounded-3xl shadow-xl flex flex-col h-[190px] justify-between">
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <h4 className="text-xs font-black uppercase tracking-widest text-text-secondary">Ventas Totales (Est.)</h4>
-                            <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">+24% Mes</span>
-                        </div>
-                        <h3 className="text-3xl font-black italic tracking-tighter text-white">${formatNumber(stats.financials?.totalRevenue || 0, 'es')}</h3>
-                    </div>
-                    <div className="flex-1 mt-2">
-                        <SimpleLineChart data={stats.financials?.revenue || [100, 120, 180, 220, 300]} color="#10b981" height={80} />
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {/* Quick Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard2 icon={Car} label={t('admin.inventory')} value={stats.vehicles.active} trend="+5%" color="purple" simple />
-            <StatCard2 icon={Activity} label="Citas Activas" value={stats.appointments.active} trend="+8%" color="green" simple />
-            <StatCard2 icon={Store} label="Negocios" value={stats.businesses.total} trend="Nuevo" color="blue" simple />
-            <StatCard2 icon={Flag} label="Reportes" value={stats.reports.filter((r: any) => r.status === 'PENDING').length} trend="Atención" color="red" simple />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* AI Analyst Section */}
-            <div className="lg:col-span-2 bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-                <div className="bg-gradient-to-r from-primary-900/20 to-transparent p-6 border-b border-white/5 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-xl font-black italic tracking-tight flex items-center gap-2 uppercase">
-                            <Activity className="w-6 h-6 text-primary-500" /> Insight Engine AI
-                        </h3>
-                        <p className="text-xs text-text-secondary mt-1">Análisis predictivo de mercado basado en actividad real</p>
-                    </div>
-                    <button
-                        onClick={handleRunAnalyst}
-                        disabled={isAnalyzing}
-                        className="bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white px-6 py-2 rounded-xl font-bold text-sm transition shadow-lg shadow-primary-900/20 flex items-center gap-2"
-                    >
-                        {isAnalyzing ? 'Procesando Data...' : 'Ejecutar Análisis Maestro'}
-                    </button>
-                </div>
-
-                <div className="p-8">
-                    {aiAnalysis ? (
-                        <div className="space-y-6">
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
-                                <h4 className="text-[10px] font-black text-primary-500 uppercase tracking-[0.2em] mb-3">Resumen Estratégico</h4>
-                                <p className="text-sm leading-relaxed text-text-primary/90">{aiAnalysis.summary}</p>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {aiAnalysis.insights.map((insight: any, i: number) => (
-                                    <div key={i} className="bg-white/5 p-4 rounded-xl border-l-4 border-l-primary-600/50">
-                                        <p className="text-xs font-bold text-text-primary mb-1">{insight.observation}</p>
-                                        <p className="text-[10px] text-text-secondary">{insight.recommendation}</p>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Océanos Azules (Business Opportunities) */}
-                            <div className="pt-4 border-t border-white/5">
-                                <h4 className="text-[10px] font-black text-green-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                    <Target className="w-3.5 h-3.5" /> Océanos Azules Detectados (ROI 90%+)
-                                </h4>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {aiAnalysis.businessOppotunities?.map((opp: any, i: number) => (
-                                        <div key={i} className="bg-green-500/5 border border-green-500/10 p-4 rounded-2xl relative overflow-hidden group hover:border-green-500/30 transition-all">
-                                            <div className="absolute top-0 right-0 p-2 bg-green-500 text-[8px] font-black text-black rounded-bl-xl shadow-lg">
-                                                {opp.roiScore}% ROI
-                                            </div>
-                                            <p className="text-xs font-black text-white mb-1 uppercase tracking-tight">{opp.title}</p>
-                                            <p className="text-[10px] text-green-400 font-bold mb-2 uppercase tracking-widest">{opp.location}</p>
-                                            <p className="text-[9px] text-text-secondary leading-tight italic line-clamp-2">"{opp.reason}"</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                    {/* Render Heatmap if intelligence data exists */}
+                    {stats.intelligence ? (
+                        <AdminHeatMap data={stats.intelligence} />
                     ) : (
-                        <div className="h-64 flex flex-col items-center justify-center text-center opacity-40">
-                            <Terminal className="w-12 h-12 mb-4" />
-                            <p className="text-sm font-medium">Esperando datos de entrada...</p>
-                            <p className="text-xs mt-1">Haga clic en el botón superior para generar perspectivas con IA</p>
+                        <div className="w-full h-full bg-black flex items-center justify-center">
+                            <p className="text-sm text-text-secondary animate-pulse">Cargando Satélite...</p>
                         </div>
                     )}
                 </div>
+
+                {/* 2. Growth & Financials Column */}
+                <div className="space-y-6">
+                    {/* User Growth Chart */}
+                    <div className="bg-[#111114] border border-white/5 p-6 rounded-3xl shadow-xl flex flex-col h-[190px] justify-between">
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="text-xs font-black uppercase tracking-widest text-text-secondary">Crecimiento Usuarios</h4>
+                                <span className="text-[10px] font-bold text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">+12% Mes</span>
+                            </div>
+                            <h3 className="text-3xl font-black italic tracking-tighter text-white">{formatNumber(stats.users.total, 'es')}</h3>
+                        </div>
+                        <div className="flex-1 mt-2">
+                            <SimpleLineChart data={stats.users.growth || [10, 20, 15, 30, 40]} color="#3b82f6" height={80} />
+                        </div>
+                    </div>
+
+                    {/* Revenue Chart */}
+                    <div className="bg-[#111114] border border-white/5 p-6 rounded-3xl shadow-xl flex flex-col h-[190px] justify-between">
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <h4 className="text-xs font-black uppercase tracking-widest text-text-secondary">Ventas Totales (Est.)</h4>
+                                <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">+24% Mes</span>
+                            </div>
+                            <h3 className="text-3xl font-black italic tracking-tighter text-white">${formatNumber(stats.financials?.totalRevenue || 0, 'es')}</h3>
+                        </div>
+                        <div className="flex-1 mt-2">
+                            <SimpleLineChart data={stats.financials?.revenue || [100, 120, 180, 220, 300]} color="#10b981" height={80} />
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {/* System Activity Hub */}
-            <div className="bg-[#111114] border border-white/5 rounded-3xl p-6">
-                <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2 text-text-secondary">
-                    <Terminal className="w-4 h-4" /> Actividad Reciente
-                </h3>
-                <div className="space-y-6">
-                    {stats.logs.slice(0, 6).map((log: any) => (
-                        <div key={log.id} className="flex gap-4 group">
-                            <div className={`w-1 h-8 rounded-full transition-all group-hover:h-10 ${log.level === 'ERROR' ? 'bg-red-500' : 'bg-primary-500'
-                                }`} />
-                            <div>
-                                <p className="text-xs font-bold text-text-primary line-clamp-1">{log.message}</p>
-                                <p className="text-[9px] text-text-secondary mt-1 uppercase tracking-tighter opacity-60">
-                                    {new Date(log.createdAt).toLocaleTimeString()} • {log.source || 'SYS'}
-                                </p>
-                            </div>
+            {/* Quick Stats Row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatCard2 icon={Car} label={t('admin.inventory')} value={stats.vehicles.active} trend="+5%" color="purple" simple />
+                <StatCard2 icon={Activity} label="Citas Activas" value={stats.appointments.active} trend="+8%" color="green" simple />
+                <StatCard2 icon={Store} label="Negocios" value={stats.businesses.total} trend="Nuevo" color="blue" simple />
+                <StatCard2 icon={Flag} label="Reportes" value={stats.reports.filter((r: any) => r.status === 'PENDING').length} trend="Atención" color="red" simple />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* AI Analyst Section */}
+                <div className="lg:col-span-2 bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                    <div className="bg-gradient-to-r from-primary-900/20 to-transparent p-6 border-b border-white/5 flex items-center justify-between">
+                        <div>
+                            <h3 className="text-xl font-black italic tracking-tight flex items-center gap-2 uppercase">
+                                <Activity className="w-6 h-6 text-primary-500" /> Insight Engine AI
+                            </h3>
+                            <p className="text-xs text-text-secondary mt-1">Análisis predictivo de mercado basado en actividad real</p>
                         </div>
-                    ))}
+                        <button
+                            onClick={handleRunAnalyst}
+                            disabled={isAnalyzing}
+                            className="bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white px-6 py-2 rounded-xl font-bold text-sm transition shadow-lg shadow-primary-900/20 flex items-center gap-2"
+                        >
+                            {isAnalyzing ? 'Procesando Data...' : 'Ejecutar Análisis Maestro'}
+                        </button>
+                    </div>
+
+                    <div className="p-8">
+                        {aiAnalysis ? (
+                            <div className="space-y-6">
+                                <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
+                                    <h4 className="text-[10px] font-black text-primary-500 uppercase tracking-[0.2em] mb-3">Resumen Estratégico</h4>
+                                    <p className="text-sm leading-relaxed text-text-primary/90">{aiAnalysis.summary}</p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {aiAnalysis.insights.map((insight: any, i: number) => (
+                                        <div key={i} className="bg-white/5 p-4 rounded-xl border-l-4 border-l-primary-600/50">
+                                            <p className="text-xs font-bold text-text-primary mb-1">{insight.observation}</p>
+                                            <p className="text-[10px] text-text-secondary">{insight.recommendation}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Océanos Azules (Business Opportunities) */}
+                                <div className="pt-4 border-t border-white/5">
+                                    <h4 className="text-[10px] font-black text-green-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <Target className="w-3.5 h-3.5" /> Océanos Azules Detectados (ROI 90%+)
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {aiAnalysis.businessOppotunities?.map((opp: any, i: number) => (
+                                            <div key={i} className="bg-green-500/5 border border-green-500/10 p-4 rounded-2xl relative overflow-hidden group hover:border-green-500/30 transition-all">
+                                                <div className="absolute top-0 right-0 p-2 bg-green-500 text-[8px] font-black text-black rounded-bl-xl shadow-lg">
+                                                    {opp.roiScore}% ROI
+                                                </div>
+                                                <p className="text-xs font-black text-white mb-1 uppercase tracking-tight">{opp.title}</p>
+                                                <p className="text-[10px] text-green-400 font-bold mb-2 uppercase tracking-widest">{opp.location}</p>
+                                                <p className="text-[9px] text-text-secondary leading-tight italic line-clamp-2">"{opp.reason}"</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="h-64 flex flex-col items-center justify-center text-center opacity-40">
+                                <Terminal className="w-12 h-12 mb-4" />
+                                <p className="text-sm font-medium">Esperando datos de entrada...</p>
+                                <p className="text-xs mt-1">Haga clic en el botón superior para generar perspectivas con IA</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
-                <button className="w-full mt-8 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors">
-                    Ver Auditoría Completa
-                </button>
+
+                {/* System Activity Hub */}
+                <div className="bg-[#111114] border border-white/5 rounded-3xl p-6">
+                    <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-2 text-text-secondary">
+                        <Terminal className="w-4 h-4" /> Actividad Reciente
+                    </h3>
+                    <div className="space-y-6">
+                        {stats.logs.slice(0, 6).map((log: any) => (
+                            <div key={log.id} className="flex gap-4 group">
+                                <div className={`w-1 h-8 rounded-full transition-all group-hover:h-10 ${log.level === 'ERROR' ? 'bg-red-500' : 'bg-primary-500'
+                                    }`} />
+                                <div>
+                                    <p className="text-xs font-bold text-text-primary line-clamp-1">{log.message}</p>
+                                    <p className="text-[9px] text-text-secondary mt-1 uppercase tracking-tighter opacity-60">
+                                        {new Date(log.createdAt).toLocaleTimeString()} • {log.source || 'SYS'}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <button className="w-full mt-8 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors">
+                        Ver Auditoría Completa
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-)
+    )
 }
 
 function StatCard2({ icon: Icon, label, value, trend, color, simple }: any) {

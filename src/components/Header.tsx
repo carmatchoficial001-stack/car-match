@@ -10,7 +10,7 @@ import PWAInstallModal from "@/components/PWAInstallModal"
 import NotificationsDropdown from "@/components/NotificationsDropdown"
 import { usePWAInstall } from '@/hooks/usePWAInstall'
 import { getWeightedHomePath } from "@/lib/navigation"
-import { ThumbsUp, Headset, Flame, CarFront, Map, Bell, BellOff } from "lucide-react"
+import { ThumbsUp, Headset, Flame, CarFront, Map, Bell, BellOff, Settings } from "lucide-react"
 import { usePushNotifications } from "@/hooks/usePushNotifications"
 
 export default function Header() {
@@ -372,7 +372,7 @@ export default function Header() {
                                                     </Link>
 
                                                     {/* 👑 PANEL DE ADMINISTRADOR */}
-                                                    {(session.user as any).isAdmin && (
+                                                    {(session?.user as any)?.isAdmin && (
                                                         <Link
                                                             href="/admin"
                                                             className="flex items-center gap-3 px-4 py-3 bg-primary-900/10 text-primary-400 hover:bg-primary-900/20 transition"
@@ -470,95 +470,14 @@ export default function Header() {
 
                                                     <div className="border-t border-surface-highlight/50 my-1"></div>
 
-                                                    {/* Grupo Configuración */}
-                                                    <div className="px-4 py-2">
-                                                        <span className="text-[10px] font-black uppercase tracking-widest text-text-secondary opacity-50">Configuración</span>
-                                                    </div>
-
-                                                    <button
-                                                        onClick={() => setShowMenu(prev => prev === 'lang_inner' ? 'user' : 'lang_inner')}
-                                                        className="flex items-center justify-between gap-3 px-4 py-3 text-text-primary hover:bg-surface-highlight transition w-full"
+                                                    <Link
+                                                        href="/settings"
+                                                        onClick={() => setShowMenu(false)}
+                                                        className="flex items-center gap-3 px-4 py-3 text-text-primary hover:bg-surface-highlight transition"
                                                     >
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="text-xl">
-                                                                {
-                                                                    {
-                                                                        es: '🇪🇸', en: '🇺🇸', pt: '🇧🇷', fr: '🇫🇷', de: '🇩🇪', it: '🇮🇹',
-                                                                        zh: '🇨🇳', ja: '🇯🇵', ru: '🇷🇺', ko: '🇰🇷', ar: '🇸🇦', hi: '🇮🇳',
-                                                                        tr: '🇹🇷', nl: '🇳🇱', pl: '🇵🇱', sv: '🇸🇪', id: '🇮🇩', th: '🇹🇭',
-                                                                        vi: '🇻🇳', ur: '🇵🇰', he: '🇮🇱'
-                                                                    }[locale] || '🌐'
-                                                                }
-                                                            </span>
-                                                            <span className="font-medium text-left">Idiomas</span>
-                                                        </div>
-                                                        <svg className={`w-4 h-4 text-text-secondary transition-transform ${(showMenu as any) === 'lang_inner' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                                    </button>
-
-                                                    {(showMenu as any) === 'lang_inner' && (
-                                                        <div className="bg-surface-highlight/20 py-1 grid grid-cols-2 gap-1 px-2">
-                                                            {[
-                                                                { code: 'es', flag: '🇪🇸' },
-                                                                { code: 'en', flag: '🇺🇸' },
-                                                                { code: 'pt', flag: '🇧🇷' },
-                                                                { code: 'fr', flag: '🇫🇷' },
-                                                                { code: 'de', flag: '🇩🇪' },
-                                                                { code: 'it', flag: '🇮🇹' }
-                                                            ].map((lang) => (
-                                                                <button
-                                                                    key={lang.code}
-                                                                    onClick={() => { setLocale(lang.code as any); setShowMenu(false) }}
-                                                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-surface-highlight transition text-xs ${locale === lang.code ? 'bg-primary-500/20 text-primary-400' : 'text-text-primary'}`}
-                                                                >
-                                                                    <span>{lang.flag}</span>
-                                                                    <span className="uppercase">{lang.code}</span>
-                                                                </button>
-                                                            ))}
-                                                            <button
-                                                                onClick={() => { setShowMenu('lang') }}
-                                                                className="col-span-2 text-center text-[10px] py-1 text-primary-400 hover:underline"
-                                                            >
-                                                                Ver todos los idiomas...
-                                                            </button>
-                                                        </div>
-                                                    )}
-
-                                                    <button
-                                                        onClick={() => {
-                                                            window.dispatchEvent(new CustomEvent('open-chatbot'));
-                                                            setShowMenu(false);
-                                                        }}
-                                                        className="flex items-center gap-3 px-4 py-3 text-text-primary hover:bg-surface-highlight transition w-full"
-                                                    >
-                                                        <Headset size={20} className="text-primary-700" />
-                                                        <span className="font-medium text-left">Soporte CarMatch</span>
-                                                    </button>
-
-                                                    <button
-                                                        onClick={() => {
-                                                            subscribe();
-                                                            setShowMenu(false);
-                                                        }}
-                                                        disabled={isSubscribed || permission === 'denied'}
-                                                        className={`flex items-center gap-3 px-4 py-3 transition w-full ${isSubscribed ? 'text-green-400' : 'text-text-primary hover:bg-surface-highlight'}`}
-                                                    >
-                                                        {isSubscribed ? <Bell size={20} className="text-green-500" /> : <BellOff size={20} className="text-primary-700" />}
-                                                        <span className="font-medium text-left">
-                                                            {isSubscribed ? 'Notificaciones Activas' : 'Activar Notificaciones'}
-                                                        </span>
-                                                    </button>
-
-                                                    <div className="border-t border-surface-highlight my-2"></div>
-
-                                                    <button
-                                                        onClick={handleSignOut}
-                                                        className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-900/20 transition w-full"
-                                                    >
-                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                                        </svg>
-                                                        <span className="font-medium">{t('common.logout')}</span>
-                                                    </button>
+                                                        <Settings size={20} className="text-primary-700" />
+                                                        <span className="font-medium">Configuración</span>
+                                                    </Link>
                                                 </div>
                                             </div>
                                         </>

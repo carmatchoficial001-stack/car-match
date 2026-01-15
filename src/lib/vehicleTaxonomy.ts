@@ -763,28 +763,33 @@ export const getIntlLocale = (locale: string): string => {
 }
 
 /**
- * 🔢 Formatea un número según el idioma (separadores de miles)
+ * 🔢 Formatea un número según el locale
  */
-export const formatNumber = (num: number, locale: string = 'es') => {
+export const formatNumber = (num: any, locale: string = 'es') => {
     try {
-        return new Intl.NumberFormat(getIntlLocale(locale)).format(num)
+        const val = typeof num === 'string' ? parseFloat(num) : num;
+        if (isNaN(val)) return '0';
+        return new Intl.NumberFormat(getIntlLocale(locale)).format(val);
     } catch (e) {
-        return num.toLocaleString()
+        return String(num || '0');
     }
 }
 
 /**
  * 💰 Formatea el precio con separadores de miles y moneda
  */
-export const formatPrice = (price: number, currency: string = 'MXN', locale: string = 'es') => {
+export const formatPrice = (price: any, currency: string = 'MXN', locale: string = 'es') => {
     try {
+        const val = typeof price === 'string' ? parseFloat(price) : price;
+        if (isNaN(val)) return `${currency} 0`;
+
         const formatter = new Intl.NumberFormat(getIntlLocale(locale), {
             style: 'currency',
             currency: currency,
             minimumFractionDigits: 0,
             maximumFractionDigits: 2
         });
-        const formattedPrice = formatter.format(price);
+        const formattedPrice = formatter.format(val);
 
         // Agregar el código de moneda al final para mayor claridad
         // Ejemplo: "$98,689,895 MXN" en lugar de solo "$98,689,895"

@@ -1,0 +1,177 @@
+'use client'
+
+import { useSession, signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/contexts/LanguageContext'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
+import {
+    Settings,
+    ChevronLeft,
+    Globe,
+    Headset,
+    Bell,
+    BellOff,
+    LogOut,
+    Check
+} from 'lucide-react'
+import { motion } from 'framer-motion'
+
+export default function SettingsPage() {
+    const { data: session, status } = useSession()
+    const router = useRouter()
+    const { locale, setLocale, t } = useLanguage()
+    const { isSubscribed, subscribe, permission } = usePushNotifications()
+
+    if (status === 'unauthenticated') {
+        router.push('/auth')
+        return null
+    }
+
+    const handleSignOut = async () => {
+        try {
+            await signOut({
+                callbackUrl: '/',
+                redirect: true
+            })
+        } catch (error) {
+            console.error("Error during sign out:", error)
+            // Fallback: Clear cookies and redirect
+            document.cookie.split(";").forEach((c) => {
+                document.cookie = c
+                    .replace(/^ +/, "")
+                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+            window.location.href = '/'
+        }
+    }
+
+    const languages = [
+        { code: 'es', flag: '🇪🇸', name: 'Español' },
+        { code: 'en', flag: '🇺🇸', name: 'English' },
+        { code: 'pt', flag: '🇧🇷', name: 'Português' },
+        { code: 'fr', flag: '🇫🇷', name: 'Français' },
+        { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
+        { code: 'it', flag: '🇮🇹', name: 'Italiano' },
+    ]
+
+    return (
+        <div className="min-h-screen bg-background pb-20">
+            {/* Header / Navigation */}
+            <div className="sticky top-0 z-30 bg-surface/80 backdrop-blur-md border-b border-surface-highlight px-4 py-4">
+                <div className="max-w-2xl mx-auto flex items-center justify-between">
+                    <button
+                        onClick={() => router.back()}
+                        className="p-2 hover:bg-surface-highlight rounded-full transition-colors text-text-secondary hover:text-text-primary"
+                    >
+                        <ChevronLeft size={24} />
+                    </button>
+                    <h1 className="text-xl font-black italic tracking-tight uppercase flex items-center gap-2">
+                        <Settings className="text-primary-500" size={20} />
+                        Configuración
+                    </h1>
+                    <div className="w-10"></div> {/* Spacer */}
+                </div>
+            </div>
+
+            <main className="max-w-2xl mx-auto p-4 space-y-8 mt-4">
+                {/* Idiomas */}
+                <section className="space-y-4">
+                    <div className="flex items-center gap-2 px-1">
+                        <Globe size={18} className="text-primary-500" />
+                        <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">Seleccionar Idioma</h2>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        {languages.map((lang) => (
+                            <button
+                                key={lang.code}
+                                onClick={() => setLocale(lang.code as any)}
+                                className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${locale === lang.code
+                                        ? 'bg-primary-900/20 border-primary-500 text-primary-400 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]'
+                                        : 'bg-surface border-surface-highlight text-text-primary hover:border-text-secondary/30'
+                                    }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">{lang.flag}</span>
+                                    <span className="font-bold">{lang.name}</span>
+                                </div>
+                                {locale === lang.code && <Check size={18} />}
+                            </button>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Notificaciones y Soporte */}
+                <section className="space-y-4">
+                    <div className="flex items-center gap-2 px-1">
+                        <Settings size={18} className="text-primary-500" />
+                        <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">Preferencias y Ayuda</h2>
+                    </div>
+                    <div className="space-y-2">
+                        <button
+                            onClick={() => subscribe()}
+                            disabled={isSubscribed || permission === 'denied'}
+                            className={`w-full flex items-center justify-between p-5 rounded-2xl border transition-all ${isSubscribed
+                                    ? 'bg-green-900/10 border-green-500/30 text-green-400'
+                                    : 'bg-surface border-surface-highlight text-text-primary hover:border-text-secondary/30'
+                                }`}
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className={`p-2 rounded-xl ${isSubscribed ? 'bg-green-500/20' : 'bg-primary-500/10'}`}>
+                                    {isSubscribed ? <Bell size={22} /> : <BellOff size={22} className="text-primary-500" />}
+                                </div>
+                                <div className="text-left">
+                                    <p className="font-bold">Notificaciones Push</p>
+                                    <p className="text-xs text-text-secondary">
+                                        {isSubscribed ? 'Las notificaciones están activadas' : 'Recibe alertas de mensajes y citas'}
+                                    </p>
+                                </div>
+                            </div>
+                            {!isSubscribed && permission !== 'denied' && (
+                                <span className="text-xs font-black uppercase tracking-tighter bg-primary-600 text-white px-3 py-1 rounded-full">Activar</span>
+                            )}
+                        </button>
+
+                        <button
+                            onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot'))}
+                            className="w-full flex items-center gap-4 p-5 rounded-2xl border border-surface-highlight bg-surface text-text-primary hover:border-text-secondary/30 transition-all"
+                        >
+                            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500">
+                                <Headset size={22} />
+                            </div>
+                            <div className="text-left">
+                                <p className="font-bold">Soporte CarMatch</p>
+                                <p className="text-xs text-text-secondary">Habla con nuestro equipo y asesores IA</p>
+                            </div>
+                        </button>
+                    </div>
+                </section>
+
+                {/* Account Section */}
+                <section className="pt-4 space-y-4">
+                    <div className="flex items-center gap-2 px-1">
+                        <LogOut size={18} className="text-red-500" />
+                        <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">Cuenta</h2>
+                    </div>
+                    <button
+                        onClick={handleSignOut}
+                        className="w-full flex items-center gap-4 p-5 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-all"
+                    >
+                        <div className="p-2 rounded-xl bg-red-500/10">
+                            <LogOut size={22} />
+                        </div>
+                        <div className="text-left">
+                            <p className="font-bold">{t('common.logout')}</p>
+                            <p className="text-xs opacity-60">Cerrar sesión de forma segura</p>
+                        </div>
+                    </button>
+                </section>
+
+                {/* Footer Info */}
+                <div className="text-center pt-8 space-y-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-text-secondary opacity-40">CarMatch v0.1.2</p>
+                    <p className="text-[10px] text-text-secondary opacity-40">© 2026 Todos los derechos reservados</p>
+                </div>
+            </main>
+        </div>
+    )
+}
