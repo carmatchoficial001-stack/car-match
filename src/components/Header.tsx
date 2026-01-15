@@ -209,73 +209,75 @@ export default function Header() {
                             </div>
                         )}
 
-                        {/* Language Switcher */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setShowMenu(showMenu === 'lang' ? false : 'lang')}
-                                className="p-1 md:p-2 rounded-lg hover:bg-surface-highlight text-text-secondary hover:text-text-primary transition"
-                                title="Cambiar idioma"
-                            >
-                                <span className="text-xl leading-none">
-                                    {
+                        {/* Language Switcher - Solo visible si no hay sesión para evitar redundancia con el menú Configuración */}
+                        {!session && (
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowMenu(showMenu === 'lang' ? false : 'lang')}
+                                    className="p-1 md:p-2 rounded-lg hover:bg-surface-highlight text-text-secondary hover:text-text-primary transition"
+                                    title="Cambiar idioma"
+                                >
+                                    <span className="text-xl leading-none">
                                         {
-                                            es: '🇪🇸', en: '🇺🇸', pt: '🇧🇷', fr: '🇫🇷', de: '🇩🇪', it: '🇮🇹',
-                                            zh: '🇨🇳', ja: '🇯🇵', ru: '🇷🇺', ko: '🇰🇷', ar: '🇸🇦', hi: '🇮🇳',
-                                            tr: '🇹🇷', nl: '🇳🇱', pl: '🇵🇱', sv: '🇸🇪', id: '🇮🇩', th: '🇹🇭',
-                                            vi: '🇻🇳', ur: '🇵🇰', he: '🇮🇱'
-                                        }[locale] || '🌐'
-                                    }
-                                </span>
-                            </button>
+                                            {
+                                                es: '🇪🇸', en: '🇺🇸', pt: '🇧🇷', fr: '🇫🇷', de: '🇩🇪', it: '🇮🇹',
+                                                zh: '🇨🇳', ja: '🇯🇵', ru: '🇷🇺', ko: '🇰🇷', ar: '🇸🇦', hi: '🇮🇳',
+                                                tr: '🇹🇷', nl: '🇳🇱', pl: '🇵🇱', sv: '🇸🇪', id: '🇮🇩', th: '🇹🇭',
+                                                vi: '🇻🇳', ur: '🇵🇰', he: '🇮🇱'
+                                            }[locale] || '🌐'
+                                        }
+                                    </span>
+                                </button>
 
-                            {showMenu === 'lang' && (
-                                <>
-                                    <div
-                                        className="fixed inset-0 z-40"
-                                        onClick={() => setShowMenu(false)}
-                                    />
-                                    <div className="absolute right-0 mt-2 w-[300px] md:w-[480px] bg-surface rounded-xl shadow-xl border border-surface-highlight overflow-hidden z-50">
-                                        <div className="p-2 grid grid-cols-2 md:grid-cols-3 gap-1 max-h-[500px] overflow-y-auto">
-                                            {[
-                                                { code: 'es', flag: '🇪🇸', name: 'Español' },
-                                                { code: 'en', flag: '🇺🇸', name: 'English' },
-                                                { code: 'pt', flag: '🇧🇷', name: 'Português' },
-                                                { code: 'fr', flag: '🇫🇷', name: 'Français' },
-                                                { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
-                                                { code: 'it', flag: '🇮🇹', name: 'Italiano' },
-                                                { code: 'ru', flag: '🇷🇺', name: 'Русский' },
-                                                { code: 'zh', flag: '🇨🇳', name: '中文' },
-                                                { code: 'ja', flag: '🇯🇵', name: '日本語' },
-                                                { code: 'ko', flag: '🇰🇷', name: '한국어' },
-                                                { code: 'ar', flag: '🇸🇦', name: 'العربية' },
-                                                { code: 'hi', flag: '🇮🇳', name: 'हिन्दी' },
-                                                { code: 'tr', flag: '🇹🇷', name: 'Türkçe' },
-                                                { code: 'nl', flag: '🇳🇱', name: 'Nederlands' },
-                                                { code: 'pl', flag: '🇵🇱', name: 'Polski' },
-                                                { code: 'sv', flag: '🇸🇪', name: 'Svenska' },
-                                                { code: 'id', flag: '🇮🇩', name: 'Bahasa' },
-                                                { code: 'th', flag: '🇹🇭', name: 'ไทย' },
-                                                { code: 'vi', flag: '🇻🇳', name: 'Tiếng Việt' },
-                                                { code: 'ur', flag: '🇵🇰', name: 'اردو' },
-                                                { code: 'he', flag: '🇮🇱', name: 'עברית' },
-                                            ].map((lang) => (
-                                                <button
-                                                    key={lang.code}
-                                                    onClick={() => { setLocale(lang.code as any); setShowMenu(false) }}
-                                                    className={`
-                                                        flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-highlight transition text-left
-                                                        ${locale === lang.code ? 'bg-primary-700/10 text-primary-400' : 'text-text-primary'}
-                                                    `}
-                                                >
-                                                    <span className="text-xl">{lang.flag}</span>
-                                                    <span className="font-medium text-sm truncate">{lang.name}</span>
-                                                </button>
-                                            ))}
+                                {showMenu === 'lang' && (
+                                    <>
+                                        <div
+                                            className="fixed inset-0 z-40"
+                                            onClick={() => setShowMenu(false)}
+                                        />
+                                        <div className="absolute right-0 mt-2 w-[300px] md:w-[480px] bg-surface rounded-xl shadow-xl border border-surface-highlight overflow-hidden z-50">
+                                            <div className="p-2 grid grid-cols-2 md:grid-cols-3 gap-1 max-h-[500px] overflow-y-auto">
+                                                {[
+                                                    { code: 'es', flag: '🇪🇸', name: 'Español' },
+                                                    { code: 'en', flag: '🇺🇸', name: 'English' },
+                                                    { code: 'pt', flag: '🇧🇷', name: 'Português' },
+                                                    { code: 'fr', flag: '🇫🇷', name: 'Français' },
+                                                    { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
+                                                    { code: 'it', flag: '🇮🇹', name: 'Italiano' },
+                                                    { code: 'ru', flag: '🇷🇺', name: 'Русский' },
+                                                    { code: 'zh', flag: '🇨🇳', name: '中文' },
+                                                    { code: 'ja', flag: '🇯🇵', name: '日本語' },
+                                                    { code: 'ko', flag: '🇰🇷', name: '한국어' },
+                                                    { code: 'ar', flag: '🇸🇦', name: 'العربية' },
+                                                    { code: 'hi', flag: '🇮🇳', name: 'हिन्दी' },
+                                                    { code: 'tr', flag: '🇹🇷', name: 'Türkçe' },
+                                                    { code: 'nl', flag: '🇳🇱', name: 'Nederlands' },
+                                                    { code: 'pl', flag: '🇵🇱', name: 'Polski' },
+                                                    { code: 'sv', flag: '🇸🇪', name: 'Svenska' },
+                                                    { code: 'id', flag: '🇮🇩', name: 'Bahasa' },
+                                                    { code: 'th', flag: '🇹🇭', name: 'ไทย' },
+                                                    { code: 'vi', flag: '🇻🇳', name: 'Tiếng Việt' },
+                                                    { code: 'ur', flag: '🇵🇰', name: 'اردو' },
+                                                    { code: 'he', flag: '🇮🇱', name: 'עברית' },
+                                                ].map((lang) => (
+                                                    <button
+                                                        key={lang.code}
+                                                        onClick={() => { setLocale(lang.code as any); setShowMenu(false) }}
+                                                        className={`
+                                                            flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-highlight transition text-left
+                                                            ${locale === lang.code ? 'bg-primary-700/10 text-primary-400' : 'text-text-primary'}
+                                                        `}
+                                                    >
+                                                        <span className="text-xl">{lang.flag}</span>
+                                                        <span className="font-medium text-sm truncate">{lang.name}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                                    </>
+                                )}
+                            </div>
+                        )}
 
                         {/* Notifications Bell (Independent from user menu) */}
                         {session && (
@@ -436,7 +438,7 @@ export default function Header() {
                                                         )}
                                                     </Link>
 
-                                                    <div className="border-t border-surface-highlight my-2"></div>
+                                                    <div className="border-t border-surface-highlight/50 my-1"></div>
 
                                                     <Link
                                                         href="/credits"
@@ -449,6 +451,78 @@ export default function Header() {
                                                         <span className="font-medium">{t('nav.credits')}</span>
                                                     </Link>
 
+                                                    {!isStandalone && (
+                                                        <button
+                                                            onClick={() => {
+                                                                const ua = navigator.userAgent.toLowerCase();
+                                                                if (/iphone|ipad|ipod/.test(ua)) handleIOSClick();
+                                                                else handleAndroidClick();
+                                                                setShowMenu(false);
+                                                            }}
+                                                            className="flex items-center gap-3 px-4 py-3 text-primary-400 hover:bg-surface-highlight transition w-full"
+                                                        >
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                            </svg>
+                                                            <span className="font-bold whitespace-nowrap text-left text-sm">📥 {t('common.install_app')}</span>
+                                                        </button>
+                                                    )}
+
+                                                    <div className="border-t border-surface-highlight/50 my-1"></div>
+
+                                                    {/* Grupo Configuración */}
+                                                    <div className="px-4 py-2">
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-text-secondary opacity-50">Configuración</span>
+                                                    </div>
+
+                                                    <button
+                                                        onClick={() => setShowMenu(showMenu === 'lang_inner' ? 'user' : 'lang_inner')}
+                                                        className="flex items-center justify-between gap-3 px-4 py-3 text-text-primary hover:bg-surface-highlight transition w-full"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-xl">
+                                                                {
+                                                                    {
+                                                                        es: '🇪🇸', en: '🇺🇸', pt: '🇧🇷', fr: '🇫🇷', de: '🇩🇪', it: '🇮🇹',
+                                                                        zh: '🇨🇳', ja: '🇯🇵', ru: '🇷🇺', ko: '🇰🇷', ar: '🇸🇦', hi: '🇮🇳',
+                                                                        tr: '🇹🇷', nl: '🇳🇱', pl: '🇵🇱', sv: '🇸🇪', id: '🇮🇩', th: '🇹🇭',
+                                                                        vi: '🇻🇳', ur: '🇵🇰', he: '🇮🇱'
+                                                                    }[locale] || '🌐'
+                                                                }
+                                                            </span>
+                                                            <span className="font-medium text-left">Idiomas</span>
+                                                        </div>
+                                                        <svg className={`w-4 h-4 text-text-secondary transition-transform ${showMenu === 'lang_inner' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                                    </button>
+
+                                                    {showMenu === 'lang_inner' && (
+                                                        <div className="bg-surface-highlight/20 py-1 grid grid-cols-2 gap-1 px-2">
+                                                            {[
+                                                                { code: 'es', flag: '🇪🇸' },
+                                                                { code: 'en', flag: '🇺🇸' },
+                                                                { code: 'pt', flag: '🇧🇷' },
+                                                                { code: 'fr', flag: '🇫🇷' },
+                                                                { code: 'de', flag: '🇩🇪' },
+                                                                { code: 'it', flag: '🇮🇹' }
+                                                            ].map((lang) => (
+                                                                <button
+                                                                    key={lang.code}
+                                                                    onClick={() => { setLocale(lang.code as any); setShowMenu(false) }}
+                                                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-surface-highlight transition text-xs ${locale === lang.code ? 'bg-primary-500/20 text-primary-400' : 'text-text-primary'}`}
+                                                                >
+                                                                    <span>{lang.flag}</span>
+                                                                    <span className="uppercase">{lang.code}</span>
+                                                                </button>
+                                                            ))}
+                                                            <button
+                                                                onClick={() => { setShowMenu('lang') }}
+                                                                className="col-span-2 text-center text-[10px] py-1 text-primary-400 hover:underline"
+                                                            >
+                                                                Ver todos los idiomas...
+                                                            </button>
+                                                        </div>
+                                                    )}
+
                                                     <button
                                                         onClick={() => {
                                                             window.dispatchEvent(new CustomEvent('open-chatbot'));
@@ -457,7 +531,7 @@ export default function Header() {
                                                         className="flex items-center gap-3 px-4 py-3 text-text-primary hover:bg-surface-highlight transition w-full"
                                                     >
                                                         <Headset size={20} className="text-primary-700" />
-                                                        <span className="font-medium text-left">{t('common.support')}</span>
+                                                        <span className="font-medium text-left">Soporte CarMatch</span>
                                                     </button>
 
                                                     <button
@@ -473,25 +547,6 @@ export default function Header() {
                                                             {isSubscribed ? 'Notificaciones Activas' : 'Activar Notificaciones'}
                                                         </span>
                                                     </button>
-
-                                                    <div className="border-t border-surface-highlight my-2"></div>
-
-                                                    {!isStandalone && (
-                                                        <button
-                                                            onClick={() => {
-                                                                const ua = navigator.userAgent.toLowerCase();
-                                                                if (/iphone|ipad|ipod/.test(ua)) handleIOSClick();
-                                                                else handleAndroidClick();
-                                                                setShowMenu(false);
-                                                            }}
-                                                            className="flex items-center gap-3 px-4 py-3 text-primary-400 hover:bg-surface-highlight transition w-full md:hidden"
-                                                        >
-                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                            </svg>
-                                                            <span className="font-bold whitespace-nowrap text-left text-sm">📥 {t('common.install_app')}</span>
-                                                        </button>
-                                                    )}
 
                                                     <div className="border-t border-surface-highlight my-2"></div>
 
