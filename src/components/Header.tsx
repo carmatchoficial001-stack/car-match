@@ -492,10 +492,10 @@ export default function Header() {
                                                             </span>
                                                             <span className="font-medium text-left">Idiomas</span>
                                                         </div>
-                                                        <svg className={`w-4 h-4 text-text-secondary transition-transform ${showMenu === 'lang_inner' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                                        <svg className={`w-4 h-4 text-text-secondary transition-transform ${(showMenu as any) === 'lang_inner' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                                                     </button>
 
-                                                    {showMenu === 'lang_inner' && (
+                                                    {(showMenu as any) === 'lang_inner' && (
                                                         <div className="bg-surface-highlight/20 py-1 grid grid-cols-2 gap-1 px-2">
                                                             {[
                                                                 { code: 'es', flag: '🇪🇸' },
