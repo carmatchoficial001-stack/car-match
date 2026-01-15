@@ -3,8 +3,6 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useLanguage } from '@/contexts/LanguageContext'
-import { formatNumber, formatPrice } from '@/lib/vehicleTaxonomy'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     LayoutDashboard,
