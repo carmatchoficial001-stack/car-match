@@ -225,12 +225,32 @@ export function formatDistance(km: number): string {
  */
 export async function searchCity(query: string): Promise<LocationData | null> {
     try {
-        const response = await fetch(`/api/geolocation?q=${encodeURIComponent(query)}`)
+        const response = await fetch(`/api/geolocation?q=${encodeURIComponent(query)}&limit=1`)
         if (!response.ok) return null
         return await response.json()
     } catch (error) {
         console.error('Error en searchCity:', error)
         return null
+    }
+}
+
+/**
+ * Busca múltiples ciudades candidatas por nombre (para desambiguación)
+ * @param query Nombre de la ciudad (ej. "Delicias")
+ * @returns Promise con lista de ubicaciones candidatas
+ */
+export async function searchCities(query: string): Promise<LocationData[]> {
+    try {
+        const response = await fetch(`/api/geolocation?q=${encodeURIComponent(query)}&limit=5`)
+        if (!response.ok) return []
+        const data = await response.json()
+        if (Array.isArray(data)) return data
+        // Si la API devuelve un solo objeto (no array), lo envolvemos
+        if (data && data.latitude) return [data]
+        return []
+    } catch (error) {
+        console.error('Error en searchCities:', error)
+        return []
     }
 }
 

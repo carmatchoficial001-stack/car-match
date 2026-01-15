@@ -8,7 +8,7 @@ import SwipeFeed from '@/components/SwipeFeed'
 import Header from '@/components/Header'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { MapPin, RefreshCw, Search } from 'lucide-react'
-import { calculateDistance, searchCity, normalizeCountryCode } from '@/lib/geolocation'
+import { calculateDistance, searchCity, searchCities, normalizeCountryCode, LocationData } from '@/lib/geolocation'
 
 interface FeedItem {
     id: string
@@ -94,6 +94,10 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     // Modal State
     const [showLocationModal, setShowLocationModal] = useState(false)
     const [locationInput, setLocationInput] = useState('')
+
+    // 🆕 Candidate List State
+    const [locationCandidates, setLocationCandidates] = useState<LocationData[]>([])
+    const [showCandidates, setShowCandidates] = useState(false)
 
     const currentRadius = RADIUS_TIERS[tierIndex]
 
@@ -200,15 +204,22 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
         setIsSearchingLocation(true)
         setLocationError(null)
+        setShowCandidates(false)
+        setLocationCandidates([])
 
         try {
-            const result = await searchCity(locationInput)
-            if (result) {
-                setManualLocation(result) // Global Context Update
-                setTierIndex(0) // Reset radius logic locally
-                setSeenIds(new Set()) // Reset seen stack
-                setShowLocationModal(false)
-                setLocationInput('')
+            // 🔍 Usar búsqueda múltiple para desambiguación
+            const results = await searchCities(locationInput)
+
+            if (results && results.length > 0) {
+                if (results.length === 1) {
+                    // ✅ Caso 1: Solo un resultado -> Selección automática
+                    selectLocation(results[0])
+                } else {
+                    // 📋 Caso 2: Múltiples resultados -> Mostrar lista
+                    setLocationCandidates(results)
+                    setShowCandidates(true)
+                }
             } else {
                 setLocationError('No pudimos encontrar esa ubicación. Intenta ser más específico.')
             }
@@ -217,6 +228,17 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         } finally {
             setIsSearchingLocation(false)
         }
+    }
+
+    // Helper para seleccionar ubicación (usado tanto en auto-select como en click de lista)
+    const selectLocation = (loc: LocationData) => {
+        setManualLocation(loc) // Global Context Update
+        setTierIndex(0) // Reset radius logic locally
+        setSeenIds(new Set()) // Reset seen stack
+        setShowLocationModal(false)
+        setLocationInput('')
+        setShowCandidates(false)
+        setLocationCandidates([])
     }
 
     const isLoading = locationLoading || isInternalLoading
@@ -302,12 +324,41 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                                 onChange={(e) => {
                                     setLocationInput(e.target.value)
                                     if (locationError) setLocationError(null)
+                                    // Ocultar lista si el usuario sigue escribiendo
+                                    if (showCandidates) setShowCandidates(false)
                                 }}
                                 placeholder={t('market.change_location_placeholder')}
                                 className={`w-full px-4 py-3 bg-background border rounded-lg text-text-primary focus:border-primary-500 outline-none transition ${locationError ? 'border-red-500/50' : 'border-surface-highlight'}`}
                                 autoFocus
                                 disabled={isSearchingLocation}
                             />
+
+                            {/* 📋 LISTA DE CANDIDATOS (Disambiguation UI) */}
+                            {showCandidates && locationCandidates.length > 0 && (
+                                <div className="bg-background border border-surface-highlight rounded-lg overflow-hidden max-h-48 overflow-y-auto animate-in slide-in-from-top-2">
+                                    <p className="px-3 py-2 text-xs text-text-secondary bg-surface-highlight/30 font-bold uppercase tracking-wider">
+                                        ¿A cuál te refieres?
+                                    </p>
+                                    {locationCandidates.map((cand, idx) => (
+                                        <button
+                                            key={`${cand.city}-${idx}`}
+                                            type="button"
+                                            onClick={() => selectLocation(cand)}
+                                            className="w-full text-left px-4 py-3 hover:bg-surface-highlight transition border-b border-surface-highlight/50 last:border-0 flex items-center gap-3 group"
+                                        >
+                                            <MapPin size={16} className="text-primary-500 group-hover:scale-110 transition-transform" />
+                                            <div>
+                                                <span className="block font-bold text-text-primary text-sm">
+                                                    {cand.city}
+                                                </span>
+                                                <span className="block text-xs text-text-secondary">
+                                                    {cand.state}, {cand.country}
+                                                </span>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
 
                             {locationError && (
                                 <p className="text-xs text-red-500 animate-in fade-in slide-in-from-top-1">
@@ -325,6 +376,8 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                                         setShowLocationModal(false)
                                         setLocationInput('')
                                         setLocationError(null)
+                                        setShowCandidates(false)
+                                        setLocationCandidates([])
                                     }}
                                     disabled={isSearchingLocation}
                                     className="flex-1 px-4 py-3 bg-surface-highlight text-text-primary rounded-lg font-medium hover:bg-surface-highlight/80 disabled:opacity-50"
