@@ -472,12 +472,14 @@ model Appointment {
   address          String?
   latitude         Float?
   longitude        Float?
-  status           String
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  lastSafetyCheck  DateTime?
-  monitoringActive Boolean   @default(false)
-  chat             Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  status              String
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  lastSafetyCheck     DateTime?
+  monitoringActive    Boolean   @default(false)
+  notifiedMilestones  String[]  // Track which reminders (2d, 1d, 1h, etc.) have been sent
+  missedResponseCount Int       @default(0) // Count of missed 'Still Negotiating' responses
+  chat                Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId])
   @@index([status])

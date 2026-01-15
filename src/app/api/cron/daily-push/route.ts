@@ -16,7 +16,8 @@ export async function GET(req: Request) {
     }
 
     try {
-        const hour = new Date().getHours()
+        const now = new Date()
+        const hour = now.getHours()
         const isMorning = hour >= 6 && hour < 12
 
         const title = isMorning ? '¡Buenos días! 🚗✨' : '¡Noche de CarMatch! 🌙'
@@ -24,13 +25,13 @@ export async function GET(req: Request) {
             ? 'Mira los nuevos vehículos publicados hoy en tu zona.'
             : 'Checa si tienes nuevos mensajes o actualizaciones de tus citas.'
 
-        // Por ahora lo enviamos a todos los usuarios que tengan suscripciones
+        // 1. Notificaciones de Engagement General
         const activeSubscriptions = await prisma.pushSubscription.findMany({
             distinct: ['userId'],
             select: { userId: true }
         })
 
-        const promises = activeSubscriptions.map(sub =>
+        const engagementPromises = activeSubscriptions.map(sub =>
             sendPushToUser(sub.userId, {
                 title,
                 body,
@@ -38,11 +39,47 @@ export async function GET(req: Request) {
             })
         )
 
-        await Promise.all(promises)
+        // 2. Recordatorios de Citas (Appointments) para hoy
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+
+        const todaysAppointments = await prisma.appointment.findMany({
+            where: {
+                date: {
+                    gte: startOfDay,
+                    lte: endOfDay
+                },
+                status: 'ACCEPTED'
+            },
+            include: {
+                chat: {
+                    select: {
+                        buyerId: true,
+                        sellerId: true,
+                        vehicle: { select: { title: true } }
+                    }
+                }
+            }
+        })
+
+        const appointmentPromises = todaysAppointments.flatMap(app => {
+            const reminderPayload = {
+                title: '📅 Recordatorio de Cita',
+                body: `Hoy tienes una reunión para ver: ${app.chat.vehicle.title} en ${app.location}.`,
+                url: `/messages/${app.chatId}`
+            }
+            return [
+                sendPushToUser(app.chat.buyerId, reminderPayload),
+                sendPushToUser(app.chat.sellerId, reminderPayload)
+            ]
+        })
+
+        await Promise.all([...engagementPromises, ...appointmentPromises])
 
         return NextResponse.json({
             success: true,
-            notifiedCount: activeSubscriptions.length,
+            notifiedEngagement: activeSubscriptions.length,
+            notifiedAppointments: todaysAppointments.length,
             type: isMorning ? 'morning' : 'night'
         })
     } catch (error) {

@@ -15,32 +15,91 @@ self.addEventListener('fetch', function (event) {
 
 self.addEventListener('push', function (event) {
     if (event.data) {
-        const data = event.data.json()
-        const options = {
-            body: data.body,
-            icon: data.icon || '/icon-192-v18.png',
-            badge: data.icon || '/icon-192-v18.png',
-            vibrate: [100, 50, 100],
-            data: {
-                dateOfArrival: Date.now(),
-                primaryKey: '2',
-                url: data.url || '/'
-            },
-            actions: [
-                { action: 'explore', title: 'Ver Ahora' },
-                { action: 'close', title: 'Cerrar' },
-            ]
+        try {
+            const data = event.data.json()
+            const isSafetyCheck = data.tag && data.tag.startsWith('safety-check-')
+
+            const options = {
+                body: data.body,
+                icon: data.icon || '/icon.png',
+                badge: '/icon.png',
+                vibrate: isSafetyCheck ? [500, 100, 500, 100, 500] : [100, 50, 100],
+                data: {
+                    dateOfArrival: Date.now(),
+                    url: data.url || '/',
+                    appointmentId: isSafetyCheck ? data.tag.replace('safety-check-', '') : null
+                },
+                actions: isSafetyCheck ? [
+                    { action: 'sos', title: '🚨 SOS' },
+                    { action: 'still', title: '🤝 Aún sigo' },
+                    { action: 'finish', title: '✅ Ya terminó' }
+                ] : [
+                    { action: 'explore', title: 'Ver Ahora' }
+                ],
+                tag: data.tag || 'carmatch-notification',
+                renotify: true,
+                requireInteraction: isSafetyCheck
+            }
+            event.waitUntil(
+                self.registration.showNotification(data.title, options)
+            )
+        } catch (e) {
+            console.error('Error parseando push data:', e)
         }
-        event.waitUntil(
-            self.registration.showNotification(data.title, options)
-        )
     }
 })
 
 self.addEventListener('notificationclick', function (event) {
-    event.notification.close()
+    const notification = event.notification
+    const action = event.action
+    const appointmentId = notification.data.appointmentId
+    const urlToOpen = notification.data.url || '/'
+
+    notification.close()
+
+    if (appointmentId && action && action !== 'explore') {
+        const endpoint = `/api/appointments/${appointmentId}/safety-check`
+        const payload = { action: action.toUpperCase() }
+
+        event.waitUntil(
+            fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                if (action === 'sos') {
+                    return clients.matchAll({ type: 'window', includeUncontrolled: true })
+                        .then(function (windowClients) {
+                            for (let i = 0; i < windowClients.length; i++) {
+                                const client = windowClients[i]
+                                if (client.url.includes(urlToOpen) && 'focus' in client) {
+                                    return client.focus()
+                                }
+                            }
+                            if (clients.openWindow) {
+                                return clients.openWindow(urlToOpen + '?trigger_sos=true')
+                            }
+                        })
+                }
+            })
+        )
+        return
+    }
+
+    // Comportamiento por defecto
     event.waitUntil(
-        clients.openWindow(event.notification.data.url)
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then(function (windowClients) {
+                for (let i = 0; i < windowClients.length; i++) {
+                    const client = windowClients[i]
+                    if (client.url === urlToOpen && 'focus' in client) {
+                        return client.focus()
+                    }
+                }
+                if (clients.openWindow) {
+                    return clients.openWindow(urlToOpen)
+                }
+            })
     )
 })
 

@@ -18,6 +18,12 @@ interface PushPayload {
 
 export async function sendPushNotification(subscription: any, payload: PushPayload) {
     try {
+        // Asegurar que el icono sea una URL absoluta si es relativa
+        const baseUrl = process.env.NEXTAUTH_URL || 'https://carmatchapp.net'
+        if (payload.icon && !payload.icon.startsWith('http')) {
+            payload.icon = `${baseUrl}${payload.icon.startsWith('/') ? '' : '/'}${payload.icon}`
+        }
+
         await webpush.sendNotification(subscription, JSON.stringify(payload))
         return true
     } catch (error) {

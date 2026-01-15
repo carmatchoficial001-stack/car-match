@@ -32,6 +32,19 @@ export async function POST(
         const otherUser = isBuyer ? chat.seller : chat.buyer
         const trustedContact = user.trustedContact
 
+        // 0. Verificar si ya hay una emergencia activa para esta cita
+        if (appointmentId) {
+            const appointment = await prisma.appointment.findUnique({
+                where: { id: appointmentId }
+            })
+            if (appointment?.status === 'EMERGENCY') {
+                return NextResponse.json({
+                    success: false,
+                    message: 'Ya hay una alerta SOS activa para esta cita. El protocolo ya ha sido iniciado.'
+                }, { status: 409 }) // Conflict
+            }
+        }
+
         // Log de la emergencia (Para auditoría de seguridad)
         console.log(`🚨 SOS ACTIVADO por ${user.name} en el chat ${chatId}`)
         if (trustedContact) {
@@ -43,35 +56,62 @@ export async function POST(
             data: {
                 chatId,
                 senderId: 'SYSTEM',
-                content: `🚨 **ALERTA SOS ACTIVADA** 🚨\nEl usuario ${user.name} ha activado el protocolo de emergencia. Autoridades locales y contacto de confianza han sido notificados.`,
+                content: `🚨 **ALERTA SOS ACTIVADA** 🚨\nEl usuario ${user.name} ha activado el protocolo de emergencia. Ubicación reportada: ${latitude}, ${longitude}. Autoridades locales y contacto de confianza han sido notificados.`,
             }
         })
 
         // 2. Enviar Push urgente al otro usuario del chat
         await sendPushToUser(otherUser.id, {
             title: '🚨 ALERTA DE EMERGENCIA',
-            body: `${user.name} ha activado la señal SOS. Por favor mantente en comunicación.`,
+            body: `${user.name} ha activado la señal SOS. SE REQUIERE INTERVENCIÓN.`,
             url: `/messages/${chatId}`
         })
 
-        // 2. Si hay una cita activa, marcarla como emergencia
+        // 3. Notificar al contacto de confianza (Simulación enriquecida)
+        if (trustedContact) {
+            const emergencyDetails = {
+                alertedBy: {
+                    name: user.name,
+                    image: user.image,
+                    phone: user.phone
+                },
+                otherParty: {
+                    name: otherUser.name,
+                    image: otherUser.image,
+                    phone: otherUser.phone
+                },
+                location: {
+                    lat: latitude,
+                    lng: longitude,
+                    googleMapsUrl: `https://www.google.com/maps?q=${latitude},${longitude}`
+                },
+                vehicle: chat.vehicle.title
+            }
+
+            console.log(`🚨 SOS DETALLES PARA CONTACTO DE CONFIANZA (${trustedContact.name}):`, JSON.stringify(emergencyDetails, null, 2))
+
+            // Aquí se enviaría el SMS/Email real con los datos de ambos usuarios
+            await sendPushToUser(trustedContact.id, {
+                title: `🆘 EMERGENCIA: ${user.name} necesita ayuda`,
+                body: `Protocolo SOS activado durante la cita por "${chat.vehicle.title}". Ubicación: ${latitude},${longitude}. Datos del otro usuario: ${otherUser.name}.`,
+                url: `/messages/${chatId}?is_emergency=true`
+            })
+        }
+
+        // 4. Si hay una cita activa, marcarla como emergencia
         if (appointmentId) {
             await prisma.appointment.update({
                 where: { id: appointmentId },
                 data: {
-                    monitoringActive: false, // Detener monitoreo normal
-                    // Aquí podríamos guardar la ubicación de la emergencia si tuviéramos los campos
+                    monitoringActive: false,
+                    status: 'EMERGENCY'
                 }
             })
         }
 
-        // 3. Simulación de envío de ubicación al contacto de confianza
-        // En una app real, aquí enviaríamos un SMS, Push o Email con un link de rastreo
-        // Por ahora, simulamos el éxito de la operación
-
         return NextResponse.json({
             success: true,
-            message: 'SOS activado correctamente',
+            message: 'SOS activado y datos de ambos usuarios enviados al contacto de confianza',
             trustedContactNotified: !!trustedContact
         })
 
