@@ -74,6 +74,11 @@ export default function MobileNav() {
 
     if (!session) return null
 
+    // Ocultar en admin
+    if (pathname?.startsWith('/admin')) {
+        return null
+    }
+
     const isActive = (path: string) => pathname === path
 
     const navItems = [

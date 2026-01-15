@@ -7,14 +7,13 @@ import { useWebViewDetection } from '@/hooks/useWebViewDetection'
 
 export default function OpenInBrowserBanner() {
     const pathname = usePathname()
+    const { isWebView, webViewType } = useWebViewDetection()
+    const [dismissed, setDismissed] = useState(false)
 
     // No mostrar en rutas admin
     if (pathname?.startsWith('/admin')) {
         return null
     }
-
-    const { isWebView, webViewType } = useWebViewDetection()
-    const [dismissed, setDismissed] = useState(false)
 
     if (!isWebView || dismissed) return null
 
