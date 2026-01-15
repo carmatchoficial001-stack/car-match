@@ -8,7 +8,7 @@ type Locale = 'es' | 'en' | 'pt' | 'fr' | 'de' | 'it' | 'zh' | 'ja' | 'ru' | 'ko
 interface LanguageContextType {
     locale: Locale
     setLocale: (locale: Locale) => void
-    t: (key: string) => string
+    t: (key: string, params?: Record<string, string>) => string
     isLoading: boolean
 }
 
