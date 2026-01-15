@@ -144,13 +144,9 @@ export async function GET(
             return NextResponse.json({ error: 'No tienes acceso a este chat' }, { status: 403 })
         }
 
-        // Obtener mensajes (filtrando mensajes del sistema del asistente)
         const messages = await prisma.message.findMany({
             where: {
-                chatId,
-                sender: {
-                    email: { not: 'ai-bot@carmatch.App' }
-                }
+                chatId
             },
             include: {
                 sender: {
@@ -171,7 +167,12 @@ export async function GET(
         // Combinar y ordenar cronológicamente
         let timeline = [
             ...messages.map(m => ({ ...m, type: 'MESSAGE' })),
-            ...appointments.map(a => ({ ...a, type: 'APPOINTMENT', content: 'Cita Propuesta', senderId: a.proposerId }))
+            ...appointments.map(a => ({
+                ...a,
+                type: 'APPOINTMENT',
+                senderId: a.proposerId,
+                sender: messages.find(m => m.senderId === a.proposerId)?.sender || { id: a.proposerId, name: 'Usuario', image: null }
+            }))
         ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 
         // Marcar mensajes como leídos

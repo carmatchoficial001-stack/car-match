@@ -47,7 +47,6 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
     const [chat, setChat] = useState<any>(null)
     const [showAppointmentModal, setShowAppointmentModal] = useState(false)
     const [editingAppointment, setEditingAppointment] = useState<any>(null)
-    const [sending, setSending] = useState(false)
     const [isEmergencyActive, setIsEmergencyActive] = useState(false)
     const [showSafetyTips, setShowSafetyTips] = useState(false)
     const [isInputFocused, setIsInputFocused] = useState(false)
@@ -280,7 +279,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
             <Header />
             <div className={`flex bg-background overflow-hidden md:h-[calc(100vh-64px)] transition-all duration-300 ${isInputFocused
                 ? 'h-[calc(100dvh-64px)]'
-                : 'h-[calc(100dvh-64px-5rem)]'
+                : 'h-[calc(100dvh-64px-4rem)] md:h-[calc(100vh-64px)]'
                 }`}>
                 <div className="flex-1 flex flex-col relative w-full overflow-hidden">
                     <SOSComponent
@@ -443,6 +442,8 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                         type="text"
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
+                                        onFocus={() => setIsInputFocused(true)}
+                                        onBlur={() => setIsInputFocused(false)}
                                         placeholder={chat?.vehicle?.status === 'ACTIVE' ? t('messages.write_message') : 'Vehículo no disponible para consulta'}
                                         className="flex-1 bg-transparent py-3 focus:outline-none text-text-primary text-sm shadow-inner disabled:opacity-50"
                                         disabled={sending || chat?.vehicle?.status !== 'ACTIVE'}
