@@ -126,7 +126,10 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
             const res = await fetch(`/api/chats/${chatId}`)
             if (res.ok) {
                 const data = await res.json()
+                console.log('✅ [CHAT DETAILS LOADED]', data)
                 setChat(data)
+            } else {
+                console.error('❌ [CHAT DETAILS ERROR]', res.status, await res.text())
             }
         } catch (error) {
             console.error('Error fetching chat details:', error)
@@ -163,14 +166,14 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
             const res = await fetch(`/api/chats/${chatId}/messages`)
             if (res.ok) {
                 const data = await res.json()
-                console.log('[DEBUG CHAT] Raw data from API:', data)
+                console.log(`✅ [MESSAGES LOADED] Received ${data.length} items from server.`)
                 const uniqueMessages = Array.from(
                     new Map<string, Message>(data.map((m: Message) => [m.id, m])).values()
                 )
-                console.log('[DEBUG CHAT] Processed unique messages:', uniqueMessages.length)
+                console.log(`📊 [MESSAGES PROCESSED] Total items: ${uniqueMessages.length}`)
                 setMessages(uniqueMessages)
             } else {
-                console.error('[DEBUG CHAT] API Error:', res.status, res.statusText)
+                console.error(`❌ [MESSAGES API ERROR] Status: ${res.status}. You may not have permission to view these messages.`)
             }
         } catch (error) {
             console.error('Error al cargar mensajes:', error)
@@ -360,7 +363,15 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                 </div>
                             </div>
 
-                            {messages.map((message) => {
+                            {messages.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-20 opacity-30">
+                                    <svg className="w-16 h-16 mb-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                    </svg>
+                                    <p className="text-lg font-medium">No hay mensajes aún</p>
+                                    <p className="text-sm">Sé el primero en escribir algo.</p>
+                                </div>
+                            ) : messages.map((message) => {
                                 const isOwn = message.senderId === session?.user?.id
                                 const isSystem = message.senderId === 'SYSTEM'
 
@@ -461,7 +472,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                     <svg className="w-6 h-6 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                                 </button>
                             </form>
-                            {chat?.vehicle?.status !== 'ACTIVE' && (
+                            {chat && chat.vehicle?.status !== 'ACTIVE' && (
                                 <div className="mt-3 p-3 bg-red-900/10 border border-red-500/20 rounded-xl text-center">
                                     <p className="text-xs text-red-400 font-bold flex items-center justify-center gap-1">
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
