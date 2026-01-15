@@ -80,21 +80,20 @@ export default function SettingsPage() {
                         <Globe size={18} className="text-primary-500" />
                         <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">Seleccionar Idioma</h2>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    {/* Horizontal scrollable language menu */}
+                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
                         {languages.map((lang) => (
                             <button
                                 key={lang.code}
                                 onClick={() => setLocale(lang.code as any)}
-                                className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${locale === lang.code
-                                        ? 'bg-primary-900/20 border-primary-500 text-primary-400 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]'
-                                        : 'bg-surface border-surface-highlight text-text-primary hover:border-text-secondary/30'
+                                className={`flex-shrink-0 flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all ${locale === lang.code
+                                    ? 'bg-primary-900/20 border-primary-500 text-primary-400 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]'
+                                    : 'bg-surface border-surface-highlight text-text-primary hover:border-text-secondary/30'
                                     }`}
                             >
-                                <div className="flex items-center gap-3">
-                                    <span className="text-2xl">{lang.flag}</span>
-                                    <span className="font-bold">{lang.name}</span>
-                                </div>
-                                {locale === lang.code && <Check size={18} />}
+                                <span className="text-2xl">{lang.flag}</span>
+                                <span className="font-bold whitespace-nowrap">{lang.name}</span>
+                                {locale === lang.code && <Check size={18} className="ml-1" />}
                             </button>
                         ))}
                     </div>
@@ -111,8 +110,8 @@ export default function SettingsPage() {
                             onClick={() => subscribe()}
                             disabled={isSubscribed || permission === 'denied'}
                             className={`w-full flex items-center justify-between p-5 rounded-2xl border transition-all ${isSubscribed
-                                    ? 'bg-green-900/10 border-green-500/30 text-green-400'
-                                    : 'bg-surface border-surface-highlight text-text-primary hover:border-text-secondary/30'
+                                ? 'bg-green-900/10 border-green-500/30 text-green-400'
+                                : 'bg-surface border-surface-highlight text-text-primary hover:border-text-secondary/30'
                                 }`}
                         >
                             <div className="flex items-center gap-4">
@@ -140,7 +139,7 @@ export default function SettingsPage() {
                             </div>
                             <div className="text-left">
                                 <p className="font-bold">Soporte CarMatch</p>
-                                <p className="text-xs text-text-secondary">Habla con nuestro equipo y asesores IA</p>
+                                <p className="text-xs text-text-secondary">Habla con nuestro equipo y asesores</p>
                             </div>
                         </button>
                     </div>
