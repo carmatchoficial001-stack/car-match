@@ -909,7 +909,7 @@ export default function PublishClient() {
                         <div className="space-y-6">
                             <div>
                                 <h2 className="text-2xl font-bold text-text-primary mb-2">{t('publish.labels.features_title')}</h2>
-                                <p className="text-text-secondary">{t('publish.labels.features_subtitle', { brand: vehicleBrand })}</p>
+                                <p className="text-text-secondary">{t('publish.labels.features_subtitle', { brand: brand || 'vehículo' })}</p>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {getFeaturesByCategory(
