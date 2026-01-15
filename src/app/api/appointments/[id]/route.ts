@@ -18,18 +18,36 @@ export async function PUT(
         const appointment = await prisma.appointment.update({
             where: { id },
             data: { status },
-            include: { chat: true }
+            include: {
+                chat: {
+                    include: { vehicle: true }
+                }
+            }
         })
 
-        // Notificar al otro usuario vía Push
+        // Notificar al otro usuario
         const receiverId = appointment.proposerId === session.user.id
             ? (appointment.chat.buyerId === session.user.id ? appointment.chat.sellerId : appointment.chat.buyerId)
             : appointment.proposerId
 
-        const statusLabel = status === 'ACCEPTED' ? 'aceptado' : status === 'REJECTED' ? 'rechazado' : 'actualizado'
+        const statusLabel = status === 'ACCEPTED' ? 'aceptado' : status === 'REJECTED' ? 'rechazado' : status === 'CANCELLED' ? 'cancelado' : 'actualizado'
+        const statusIcon = status === 'ACCEPTED' ? '✅' : status === 'REJECTED' ? '❌' : '📅'
 
+        // 1. Notificación Interna
+        await prisma.notification.create({
+            data: {
+                userId: receiverId,
+                type: `APPOINTMENT_${status}`,
+                title: `Cita ${statusLabel}`,
+                message: `${session.user.name} ha ${statusLabel} la cita para el vehículo ${appointment.chat.vehicle.title}`,
+                link: `/messages/${appointment.chatId}`,
+                metadata: { appointmentId: id, chatId: appointment.chatId }
+            }
+        })
+
+        // 2. Notificación Push
         await sendPushToUser(receiverId, {
-            title: `Cita ${statusLabel}`,
+            title: `${statusIcon} Cita ${statusLabel}`,
             body: `${session.user.name} ha ${statusLabel} tu propuesta de reunión.`,
             url: `/messages/${appointment.chatId}`
         })
@@ -74,7 +92,38 @@ export async function PATCH(
                 address: address || undefined,
                 latitude: latitude !== undefined ? latitude : undefined,
                 longitude: longitude !== undefined ? longitude : undefined,
+                // 🔥 Lógica de Justicia: Al editar, la cita vuelve a estar pendiente 
+                // para que el OTRO usuario la apruebe.
+                status: 'PENDING',
+                proposerId: session.user.id
+            },
+            include: {
+                chat: {
+                    include: { vehicle: true }
+                }
             }
+        })
+
+        // Notificar al otro usuario del cambio (que ahora debe aprobar)
+        const receiverId = updatedAppointment.chat.buyerId === session.user.id
+            ? updatedAppointment.chat.sellerId
+            : updatedAppointment.chat.buyerId
+
+        await prisma.notification.create({
+            data: {
+                userId: receiverId,
+                type: 'APPOINTMENT_MODIFIED',
+                title: 'Cita modificada',
+                message: `${session.user.name} ha propuesto cambios en la cita. Por favor, revísalos y aprueba si estás de acuerdo.`,
+                link: `/messages/${updatedAppointment.chatId}`,
+                metadata: { appointmentId: id, chatId: updatedAppointment.chatId }
+            }
+        })
+
+        await sendPushToUser(receiverId, {
+            title: '🔄 Cambios en la cita',
+            body: `${session.user.name} modificó la reunión. Requiere tu aprobación.`,
+            url: `/messages/${updatedAppointment.chatId}`
         })
 
         return NextResponse.json(updatedAppointment)

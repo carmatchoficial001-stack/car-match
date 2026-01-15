@@ -46,8 +46,8 @@ export default function AuthButtons() {
             {/* Facebook */}
             <button
                 type="button"
-                disabled
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#1877F2]/80 cursor-not-allowed transition-all rounded-xl shadow-lg border border-[#1877F2] group"
+                onClick={() => handleSignIn("facebook")}
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#1877F2] hover:bg-[#166fe5] transition-all rounded-xl shadow-lg hover:shadow-xl group"
             >
                 <div className="bg-white rounded-full p-0.5 w-6 h-6 flex items-center justify-center">
                     <svg className="w-5 h-5 text-[#1877F2] translate-y-[1px]" fill="currentColor" viewBox="0 0 24 24">
@@ -55,21 +55,21 @@ export default function AuthButtons() {
                     </svg>
                 </div>
                 <span className="text-white font-bold text-lg">
-                    Facebook (Próximamente)
+                    {t('auth.continue_with')} Facebook
                 </span>
             </button>
 
             {/* X */}
             <button
                 type="button"
-                disabled
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black/80 cursor-not-allowed transition-all rounded-xl shadow-lg border border-gray-800 group"
+                onClick={() => handleSignIn("twitter")}
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black hover:bg-gray-900 transition-all rounded-xl shadow-lg hover:shadow-xl group border border-gray-800"
             >
                 <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
                 <span className="text-white font-bold text-lg">
-                    X (Próximamente)
+                    {t('auth.continue_with')} X
                 </span>
             </button>
         </div>

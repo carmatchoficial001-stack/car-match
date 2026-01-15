@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Image from 'next/image'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, MapPin } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
 
 interface Business {
@@ -36,7 +34,6 @@ export default function MapBoxStoreLocator({
     const { t } = useLanguage()
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<mapboxgl.Map | null>(null)
-    const [previewBusiness, setPreviewBusiness] = useState<any>(null)
     const [mapLoaded, setMapLoaded] = useState(false)
 
     // Default: Monterrey (Fallback)
@@ -266,27 +263,56 @@ export default function MapBoxStoreLocator({
             const handlePointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
                 if (!e.features || !e.features[0]) return
 
-                const props = e.features[0].properties as any
-                setPreviewBusiness(props)
+                const feature = e.features[0]
+                const coordinates = (feature.geometry as any).coordinates.slice()
+                const props = feature.properties as any
 
-                // Centrar el mapa un poco arriba del punto para que la tarjeta no lo tape totalmente
-                const coordinates = (e.features[0].geometry as any).coordinates.slice()
-                mapInstance.easeTo({
-                    center: [coordinates[0], coordinates[1]],
-                    offset: [0, 100], // Desplazar hacia abajo para que el pin quede arriba de la tarjeta
-                    duration: 600
-                })
-            }
-
-            // Click en el mapa (fuera de markers) para cerrar
-            mapInstance.on('click', (e) => {
-                const features = mapInstance.queryRenderedFeatures(e.point, {
-                    layers: ['unclustered-point-bg', 'unclustered-point-icon', 'clusters']
-                });
-                if (features.length === 0) {
-                    setPreviewBusiness(null)
+                while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                    coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
                 }
-            })
+
+                // Parse services if stringified (Mapbox behavior)
+                let servicesList: string[] = []
+                try {
+                    servicesList = typeof props.services === 'string' ? JSON.parse(props.services) : props.services
+                } catch (e) {
+                    servicesList = []
+                }
+
+                const popupHTML = `
+                    <div class="p-2 min-w-[200px]">
+                        ${props.image ?
+                        `<div class="w-full h-32 relative mb-2 rounded-lg overflow-hidden bg-gray-900">
+                                <div class="absolute inset-0 bg-cover bg-center blur-sm opacity-50" style="background-image: url('${props.image}')"></div>
+                                <img src="${props.image}" alt="${props.name}" style="object-fit: contain; width: 100%; height: 100%; position: relative; z-index: 10;" />
+                            </div>` : ''
+                    }
+                        <h3 class="font-bold text-gray-900 text-lg leading-tight mb-1">${props.name}</h3>
+                        
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-0.5 rounded-full text-xs font-bold text-white bg-gray-800">
+                                ${props.category?.toUpperCase()}
+                            </span>
+                        </div>
+                        
+                        <p class="text-xs text-gray-500 mb-2 pb-2 border-b border-gray-200 truncate">
+                            ${props.city}
+                        </p>
+                        
+                        <button 
+                            onclick="window.dispatchEvent(new CustomEvent('open-business-modal', { detail: '${props.id}' }))"
+                            class="block w-full py-1.5 bg-gray-900 text-white text-sm font-bold rounded hover:bg-black transition"
+                        >
+                            ${t('map_locator.view_details')}
+                        </button>
+                    </div >
+                `
+
+                new mapboxgl.Popup({ offset: 15 })
+                    .setLngLat(coordinates)
+                    .setHTML(popupHTML)
+                    .addTo(mapInstance);
+            }
 
             // Bind click to both layers
             mapInstance.on('click', 'unclustered-point-bg', handlePointClick);
@@ -312,80 +338,15 @@ export default function MapBoxStoreLocator({
         <div className="w-full h-full relative bg-gray-900">
             <div ref={mapContainer} className="w-full h-full" />
 
-            {/* 🏬 TARRETA DE VISTA RÁPIDA (EN MEDIO DEL MAPA) */}
-            <AnimatePresence>
-                {
-                    previewBusiness && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20, x: '-50%' }}
-                            animate={{ opacity: 1, scale: 1, y: 0, x: '-50%' }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20, x: '-50%' }}
-                            className="absolute bottom-10 left-1/2 z-50 w-[90%] max-w-sm"
-                        >
-                            <div className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden border border-white/20 backdrop-blur-md flex flex-col">
-                                {/* Imagen */}
-                                <div className="h-48 relative bg-slate-900 flex items-center justify-center">
-                                    {previewBusiness.image ? (
-                                        <>
-                                            <img src={previewBusiness.image} alt="" className="absolute inset-0 w-full h-full object-cover blur-xl opacity-30" />
-                                            <img src={previewBusiness.image} alt={previewBusiness.name} className="relative h-full object-contain z-10" />
-                                        </>
-                                    ) : (
-                                        <div className="text-white/20 uppercase font-black text-4xl select-none">CarMatch</div>
-                                    )}
-                                    <button
-                                        onClick={() => setPreviewBusiness(null)}
-                                        className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center bg-black/50 text-white rounded-full hover:bg-black transition-colors"
-                                    >
-                                        <X size={18} />
-                                    </button>
-                                </div>
-
-                                {/* Contenido */}
-                                <div className="p-5 text-left">
-                                    <h3 className="text-2xl font-black text-slate-900 leading-tight mb-1 truncate">
-                                        {previewBusiness.name}
-                                    </h3>
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <span
-                                            className="px-2.5 py-1 rounded-md text-[10px] font-black text-white uppercase tracking-wider"
-                                            style={{ backgroundColor: categoryColors[previewBusiness.category] || '#0369a1' }}
-                                        >
-                                            {categoryEmojis[previewBusiness.category]} {t(`map_store.categories.${previewBusiness.category}`) || previewBusiness.category}
-                                        </span>
-                                        <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
-                                            <MapPin size={12} />
-                                            {previewBusiness.city}
-                                        </span>
-                                    </div>
-
-                                    <button
-                                        onClick={() => {
-                                            window.dispatchEvent(new CustomEvent('open-business-modal', { detail: previewBusiness.id }));
-                                            setPreviewBusiness(null);
-                                        }}
-                                        className="w-full py-4 bg-primary-700 hover:bg-primary-600 text-white font-black rounded-2xl shadow-lg shadow-primary-900/20 transition-all active:scale-95 flex items-center justify-center gap-2 text-lg"
-                                    >
-                                        {t('map_locator.view_details')}
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )
-                }
-            </AnimatePresence >
-
             {/* Loading Overlay */}
-            {
-                !mapLoaded && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10 backdrop-blur-sm">
-                        <div className="flex flex-col items-center gap-2">
-                            <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-                            <span className="text-xs text-white">{t('map_locator.loading_3d')}</span>
-                        </div>
+            {!mapLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-xs text-white">{t('map_locator.loading_3d')}</span>
                     </div>
-                )
-            }
-        </div >
+                </div>
+            )}
+        </div>
     )
 }

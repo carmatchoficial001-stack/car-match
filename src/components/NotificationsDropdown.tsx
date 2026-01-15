@@ -80,6 +80,14 @@ export default function NotificationsDropdown({ isOpen, onClose }: Notifications
                 return '✅'
             case 'VEHICLE_SOLD':
                 return '🤝'
+            case 'APPOINTMENT_REQUEST':
+                return '📅'
+            case 'APPOINTMENT_MODIFIED':
+                return '🔄'
+            case 'APPOINTMENT_ACCEPTED':
+                return '✅'
+            case 'APPOINTMENT_REJECTED':
+                return '❌'
             default:
                 return '🔔'
         }

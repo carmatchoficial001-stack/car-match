@@ -17,9 +17,10 @@ interface AppointmentCardProps {
     appointment: Appointment
     isOwn: boolean
     onUpdateStatus: (id: string, status: string) => void
+    onEdit?: (appointment: Appointment) => void
 }
 
-export default function AppointmentCard({ appointment, isOwn, onUpdateStatus }: AppointmentCardProps) {
+export default function AppointmentCard({ appointment, isOwn, onUpdateStatus, onEdit }: AppointmentCardProps) {
     const { t, locale } = useLanguage()
     const [updating, setUpdating] = useState(false)
 
@@ -59,6 +60,17 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus }: 
             <div className="flex items-center gap-2 mb-3">
                 <Calendar className="w-5 h-5 opacity-70" />
                 <span className="font-bold">{t('appointments.proposal_title')}</span>
+                {appointment.status === 'PENDING' && onEdit && (
+                    <button
+                        onClick={() => onEdit(appointment)}
+                        className="ml-auto p-1.5 text-primary-500 hover:bg-primary-500/10 rounded-lg transition-colors"
+                        title="Editar cita"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                    </button>
+                )}
             </div>
 
             <div className="space-y-3 mb-4">

@@ -6,7 +6,6 @@ import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useLocation } from '@/contexts/LocationContext'
 import SwipeFeed from '@/components/SwipeFeed'
 import Header from '@/components/Header'
-import { AnimatePresence, motion } from 'framer-motion'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { MapPin, RefreshCw, Search } from 'lucide-react'
 import { calculateDistance, searchCity, normalizeCountryCode } from '@/lib/geolocation'
@@ -223,41 +222,9 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     const isLoading = locationLoading || isInternalLoading
 
     return (
-        <div className="flex flex-col min-h-screen bg-background text-text-primary relative overflow-hidden">
-            {/* 🖼️ FONDO DINÁMICO PARA ESCRITORIO (ÉXITO MUNDIAL DESIGN) */}
-            <div className="fixed inset-0 hidden md:block overflow-hidden pointer-events-none -z-10">
-                <AnimatePresence mode='wait'>
-                    {nearbyItems[0]?.images?.[0] ? (
-                        <motion.div
-                            key={nearbyItems[0].id}
-                            initial={{ opacity: 0, scale: 1.1 }}
-                            animate={{ opacity: 0.5, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 1.2, ease: "easeOut" }}
-                            className="absolute inset-0"
-                        >
-                            <img
-                                src={nearbyItems[0].images[0]}
-                                className="w-full h-full object-cover blur-3xl saturate-150 brightness-[0.3]"
-                                alt=""
-                            />
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="default-bg"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-background"
-                        />
-                    )}
-                </AnimatePresence>
-                {/* Overlay gradiente para asegurar contraste */}
-                <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background/80" />
-            </div>
-
+        <div className="flex flex-col min-h-screen bg-background text-text-primary">
             <Header />
-            <main className="flex-1 max-w-4xl mx-auto w-full px-4 pt-10 pb-24 flex flex-col items-center justify-center relative z-10">
+            <main className="flex-1 max-w-4xl mx-auto w-full px-4 pt-10 pb-24 flex flex-col items-center justify-center">
 
                 {/* El indicador de radio se movió dentro de los estados específicos */}
 

@@ -33,6 +33,7 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
     const [safePlaces, setSafePlaces] = useState<SafePlace[]>([])
     const [loadingPlaces, setLoadingPlaces] = useState(false)
     const [showSafePlaces, setShowSafePlaces] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     // Form State
     const [date, setDate] = useState(initialAppointment?.date ? new Date(initialAppointment.date).toISOString().split('T')[0] : '')
@@ -190,23 +191,42 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
     }
 
     const handleSubmit = () => {
-        if (!date || !time) return
+        if (!date || !time) {
+            alert('Por favor selecciona fecha y hora.')
+            return
+        }
 
         const locationName = selectedPlace ? selectedPlace.name : customLocation
         const locationAddress = selectedPlace ? selectedPlace.address : ''
 
-        if (!locationName) return
+        if (!locationName) {
+            alert('Por favor selecciona o escribe un lugar de encuentro.')
+            return
+        }
 
-        const dateTime = new Date(`${date}T${time}`)
+        setIsSubmitting(true)
+        try {
+            const dateTime = new Date(`${date}T${time}`)
 
-        onSubmit({
-            date: dateTime.toISOString(),
-            location: locationName,
-            address: locationAddress,
-            latitude: selectedPlace ? selectedPlace.latitude : customLat || 0,
-            longitude: selectedPlace ? selectedPlace.longitude : customLng || 0,
-            monitoringActive: true
-        })
+            if (isNaN(dateTime.getTime())) {
+                alert('Fecha o hora no válidas.')
+                setIsSubmitting(false)
+                return
+            }
+
+            onSubmit({
+                date: dateTime.toISOString(),
+                location: locationName,
+                address: locationAddress,
+                latitude: selectedPlace ? selectedPlace.latitude : customLat || 0,
+                longitude: selectedPlace ? selectedPlace.longitude : customLng || 0,
+                monitoringActive: true
+            })
+        } catch (error) {
+            console.error('Error in handleSubmit:', error)
+            alert('Error al procesar los datos.')
+            setIsSubmitting(false)
+        }
     }
 
     return (
@@ -459,10 +479,14 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
                     </button>
                     <button
                         onClick={handleSubmit}
-                        disabled={!date || !time || (!selectedPlace && !customLocation)}
-                        className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-bold shadow-lg shadow-primary-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        disabled={!date || !time || (!selectedPlace && !customLocation) || isSubmitting}
+                        className="px-6 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-bold shadow-lg shadow-primary-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center min-w-[140px]"
                     >
-                        {initialAppointment ? 'Actualizar Reunión Segura' : t('appointment.submit')}
+                        {isSubmitting ? (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            initialAppointment ? 'Actualizar Reunión Segura' : t('appointment.submit')
+                        )}
                     </button>
                 </div>
             </div>

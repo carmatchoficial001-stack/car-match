@@ -11,7 +11,11 @@ export async function POST(request: Request) {
         }
 
         const data = await request.json()
-        const { chatId, date, location, address, latitude, longitude } = data
+        const { chatId, date, location, address, latitude, longitude, monitoringActive } = data
+
+        if (!chatId || !date || !location) {
+            return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 })
+        }
 
         const appointment = await prisma.appointment.create({
             data: {
@@ -19,11 +23,45 @@ export async function POST(request: Request) {
                 proposerId: session.user.id,
                 date: new Date(date),
                 location,
-                address,
-                latitude,
-                longitude,
-                status: 'PENDING'
+                address: address || null,
+                latitude: latitude || 0,
+                longitude: longitude || 0,
+                status: 'PENDING',
+                monitoringActive: !!monitoringActive
+            },
+            include: {
+                chat: {
+                    include: {
+                        vehicle: true
+                    }
+                }
             }
+        })
+
+        // 1. Notificación Interna
+        const receiverId = appointment.chat.buyerId === session.user.id
+            ? appointment.chat.sellerId
+            : appointment.chat.buyerId
+
+        await prisma.notification.create({
+            data: {
+                userId: receiverId,
+                type: 'APPOINTMENT_REQUEST',
+                title: 'Nueva propuesta de cita',
+                message: `${session.user.name} ha propuesto una reunión para ver el vehículo ${appointment.chat.vehicle.title}`,
+                link: `/messages/${chatId}`,
+                metadata: {
+                    appointmentId: appointment.id,
+                    chatId
+                }
+            }
+        })
+
+        // 2. Notificación Push
+        await sendPushToUser(receiverId, {
+            title: '📅 Nueva propuesta de reunión',
+            body: `${session.user.name} propuso: ${location} el ${new Date(date).toLocaleDateString()}`,
+            url: `/messages/${chatId}`
         })
 
         // Notificar en el chat (mensaje de sistema opcional o dejar que la UI lo maneje)

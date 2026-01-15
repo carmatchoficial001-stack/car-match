@@ -47,6 +47,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
     const [chat, setChat] = useState<any>(null)
     const [showAppointmentModal, setShowAppointmentModal] = useState(false)
     const [editingAppointment, setEditingAppointment] = useState<any>(null)
+    const [sending, setSending] = useState(false)
     const [isEmergencyActive, setIsEmergencyActive] = useState(false)
     const [showSafetyTips, setShowSafetyTips] = useState(false)
     const [isInputFocused, setIsInputFocused] = useState(false)
@@ -205,6 +206,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
     }
 
     const handleAppointmentSubmit = async (data: any) => {
+        setSending(true)
         try {
             const url = editingAppointment
                 ? `/api/appointments/${editingAppointment.id}`
@@ -223,10 +225,21 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                 setEditingAppointment(null)
                 fetchMessages()
                 router.refresh()
+            } else {
+                const errorData = await res.json().catch(() => ({}))
+                alert(`Error: ${errorData.error || 'No se pudo guardar la cita'}`)
             }
         } catch (error) {
             console.error('Error handling appointment:', error)
+            alert('Error de conexión al intentar guardar la cita.')
+        } finally {
+            setSending(false)
         }
+    }
+
+    const handleEditAppointment = (appointment: any) => {
+        setEditingAppointment(appointment)
+        setShowAppointmentModal(true)
     }
 
     const handleUpdateAppointment = async (id: string, status: string) => {
@@ -363,6 +376,7 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
                                                 }}
                                                 isOwn={message.proposerId === session?.user?.id}
                                                 onUpdateStatus={(status) => handleUpdateAppointment(message.id, status)}
+                                                onEdit={handleEditAppointment}
                                             />
                                         </div>
                                     )
