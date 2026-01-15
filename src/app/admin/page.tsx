@@ -245,7 +245,7 @@ export default function AdminDashboard() {
                         className="w-full flex items-center gap-3 px-3 py-3 text-primary-400 hover:text-primary-300 hover:bg-white/5 transition-all rounded-xl"
                     >
                         <Headset className="w-5 h-5 shrink-0" />
-                        <span className={`font-bold text-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>{t('common.support')}</span>
+                        <span className={`font-bold text-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>Soporte</span>
                     </button>
 
                     <button
@@ -253,7 +253,7 @@ export default function AdminDashboard() {
                         className="w-full flex items-center gap-3 px-3 py-3 text-text-secondary hover:text-white hover:bg-white/5 transition-all rounded-xl"
                     >
                         <LogOut className="w-5 h-5 shrink-0" />
-                        <span className={`text-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>{t('nav.exit_portal')}</span>
+                        <span className={`text-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>Salir del Portal</span>
                     </button>
                 </div>
             </aside>
