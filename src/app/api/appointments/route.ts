@@ -17,6 +17,16 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 })
         }
 
+        // Verificar que el vehículo esté activo
+        const chatCheck = await prisma.chat.findUnique({
+            where: { id: chatId },
+            include: { vehicle: true }
+        })
+
+        if (!chatCheck || chatCheck.vehicle.status !== 'ACTIVE') {
+            return NextResponse.json({ error: 'No se pueden proponer citas para un vehículo inactivo.' }, { status: 410 })
+        }
+
         const appointment = await prisma.appointment.create({
             data: {
                 chatId,

@@ -40,8 +40,7 @@ ${categories.map((cat: any) => `- [${cat.id}] "${cat.label}": Enfocado a ${cat.k
 
 **FORMATO DE RESPUESTA (ESTRICTO JSON):**
 {
-    "categories": ["ID_MAS_RELEVANTE", "ID_SECUNDARIO"],
-    "explanation": "Usa un tono de experto nivel Master. Explica el fenómeno mecánico (ej. 'La detonación prematura en el cilindro 3 está causando el cascabeleo...') y por qué el especialista seleccionado es el adecuado."
+    "categories": ["ID_MAS_RELEVANTE", "ID_SECUNDARIO"]
 }
 
 **QUERY DEL USUARIO A ANALIZAR:**

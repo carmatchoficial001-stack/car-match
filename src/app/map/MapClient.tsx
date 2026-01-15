@@ -59,7 +59,6 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
     const [searchSuccess, setSearchSuccess] = useState(false)
     const [hasSearched, setHasSearched] = useState(false)
-    const [explanation, setExplanation] = useState('')
 
     const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null)
 
@@ -88,7 +87,6 @@ export default function MapClient({ businesses, user }: MapClientProps) {
         setIsAnalyzing(true)
         setSearchSuccess(false)
         setHasSearched(false)
-        setExplanation('')
 
         try {
             const response = await fetch('/api/ai/analyze-problem', {
@@ -114,9 +112,6 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
             if (data.categories && data.categories.length > 0) {
                 setSelectedCategories(data.categories)
-                if (data.explanation) {
-                    setExplanation(data.explanation)
-                }
                 setSearchSuccess(true)
             } else {
                 setSelectedCategories([])
@@ -154,7 +149,6 @@ export default function MapClient({ businesses, user }: MapClientProps) {
             setSelectedCategories(detectedCats)
             if (detectedCats.length > 0) {
                 setSearchSuccess(true)
-                setExplanation(t('map_store.fallback_explanation'))
             }
         } finally {
             setIsAnalyzing(false)
@@ -400,7 +394,6 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                             setSearchQuery(e.target.value)
                                             setSearchSuccess(false)
                                             setHasSearched(false)
-                                            setExplanation('')
                                         }}
                                         placeholder={t('map_store.smart_search_placeholder')}
                                         className="w-full bg-background border border-surface-highlight rounded-xl p-4 text-base md:text-sm text-text-primary focus:border-primary-600 focus:outline-none resize-none h-28"
@@ -430,11 +423,6 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                         <p className="text-xs text-green-400 font-bold flex items-center gap-1">
                                             <span>✅</span> {t('map_store.filter_success')}
                                         </p>
-                                        {explanation && (
-                                            <p className="text-xs text-text-secondary leading-relaxed border-t border-primary-500/10 pt-2">
-                                                {t('map_store.diagnosis')} {explanation}
-                                            </p>
-                                        )}
                                     </div>
                                 ) : hasSearched ? (
                                     <div className="p-2 bg-red-500/10 border border-red-500/20 rounded-lg animate-fade-in-up">

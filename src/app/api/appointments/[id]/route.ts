@@ -15,6 +15,16 @@ export async function PUT(
         const { id } = await params
         const { status } = await request.json()
 
+        // Verificar vehículo activo antes de permitir cambios de estado (Excepto CANCELLED quizás, pero mejor bloquear todo si el carro ya no está)
+        const checkAppointment = await prisma.appointment.findUnique({
+            where: { id },
+            include: { chat: { include: { vehicle: true } } }
+        })
+
+        if (!checkAppointment || checkAppointment.chat.vehicle.status !== 'ACTIVE') {
+            return NextResponse.json({ error: 'El anuncio ya no está activo. No se pueden realizar cambios en la cita.' }, { status: 410 })
+        }
+
         const appointment = await prisma.appointment.update({
             where: { id },
             data: { status },
@@ -82,6 +92,16 @@ export async function PATCH(
 
         if (appointment.chat.buyerId !== session.user.id && appointment.chat.sellerId !== session.user.id) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+        }
+
+        // Bloquear edición si el vehículo no está activo
+        const chatWithVehicle = await prisma.chat.findUnique({
+            where: { id: appointment.chatId },
+            include: { vehicle: true }
+        })
+
+        if (chatWithVehicle?.vehicle?.status !== 'ACTIVE') {
+            return NextResponse.json({ error: 'No se puede editar la cita porque el vehículo no está activo.' }, { status: 410 })
         }
 
         const updatedAppointment = await prisma.appointment.update({
