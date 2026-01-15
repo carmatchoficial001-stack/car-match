@@ -83,7 +83,16 @@
         "no_vehicles": "لا توجد مركبات قريبة",
         "publish": "انشر سيارتك",
         "subtitle": "اسحب لليمين للعثور على سيارة أحلامك",
-        "no_vehicles_desc": "لا توجد إعلانات في منطقتك حالياً"
+        "no_vehicles_desc": "لا توجد إعلانات في منطقتك حالياً",
+        "business_badge": "MapStore Business",
+        "view_more": "View more",
+        "seen_all_title": "You've seen everything in this area!",
+        "seen_all_desc": "Expand your search to discover more vehicles and nearby businesses",
+        "expand_btn": "Expand Search",
+        "like_btn": "Like",
+        "nope_btn": "Pass",
+        "overlay_like": "LIKE",
+        "overlay_nope": "NOPE"
     },
     "market": {
         "filters_label": "الفلاتر",
@@ -261,7 +270,9 @@
             "location_not_selected": "الموقع غير محدد",
             "country": "البلد",
             "state": "المنطقة / المحافظة",
-            "city": "المدينة"
+            "city": "المدينة",
+            "traction": "Traction",
+            "passengers": "Passengers"
         },
         "placeholders": {
             "title": "مثال: تويوتا كورولا 2020 بحالة ممتازة",
@@ -341,6 +352,15 @@
             "error_gps": "لم نتمكن من الوصول إلى الـ GPS. أدخل المدينة يدوياً.",
             "error_search": "لم يتم العثور على المكان. حاول إدخال المدينة فقط.",
             "error_generic": "خطأ في البحث عن العنوان. حاول مرة أخرى."
+        },
+        "tips": {
+            "title": "نصائح للبيع",
+            "honest_title": "الصدق والتفاصيل:",
+            "honest_desc": "اذكر حالة المستندات وأي عيوب. هذا سيزيد ثقة المشتري.",
+            "safety_title": "مكان المقابلة:",
+            "safety_desc": "افحص السيارة والمستندات فقط في أماكن عامة آمنة.",
+            "transparency_title": "الشفافية:",
+            "transparency_desc": "الوصف المفصل لتاريخ الصيانة يسرع البيع."
         }
     },
     "profile": {
@@ -1046,5 +1066,52 @@
                 "placeholder_max": "الأقصى"
             }
         }
+    },
+    "settings": {
+        "title": "Settings",
+        "select_language": "Select Language",
+        "preferences_help": "Preferences and Help",
+        "push_notifications": "Push Notifications",
+        "push_active": "Notifications are enabled",
+        "push_inactive": "Receive alerts for messages and appointments",
+        "support_title": "CarMatch Support",
+        "support_desc": "Talk to our team and advisors",
+        "account_section": "Account",
+        "logout": "Log Out",
+        "logout_desc": "Log out safely",
+        "activate": "Activate"
+    },
+    "sos": {
+        "banner_title": "Safe Mission Active",
+        "banner_desc": "GPS monitoring and SOS button enabled",
+        "end_meeting": "End Meeting",
+        "btn": "SOS",
+        "cancel": "CANCEL",
+        "checkin_title": "Everything okay with the negotiation?",
+        "checkin_subtitle": "CarMatch Safe Meeting",
+        "checkin_ok": "YES, EVERYTHING OK",
+        "checkin_finished": "NEGOTIATION FINISHED",
+        "checkin_emergency": "🚨 SOS / EMERGENCY",
+        "emergency_modal_title": "🚨 EMERGENCY - LIVE LOCATION",
+        "detecting_location": "Trying to get exact location...",
+        "trusted_contact_notified": "Trusted Contact Notified",
+        "authorities_info": "Information for Authorities (911):",
+        "counterpart": "Counterpart",
+        "tracking_id": "Tracking ID",
+        "coordinates": "Exact Coordinates",
+        "call_911": "📞 CALL POLICE (911)",
+        "location_not_found": "Trying to get exact location..."
+    },
+    "appointments": {
+        "proposal_title": "Appointment Proposal",
+        "status_label": "Status",
+        "pending": "Pending",
+        "accepted": "Confirmed",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "completed": "Completed",
+        "accept_btn": "Accept",
+        "reject_btn": "Reject",
+        "cancel_btn": "Cancel"
     }
 }

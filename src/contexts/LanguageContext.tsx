@@ -85,7 +85,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('carmatch-locale', newLocale)
     }
 
-    const t = useCallback((path: string): string => {
+    const t = useCallback((path: string, params?: Record<string, string>): string => {
         if (!translations) return path
 
         const keys = path.split('.')
@@ -101,7 +101,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             }
             current = current[key]
         }
-        return current as string
+
+        if (typeof current !== 'string') return path
+
+        let translated = current
+        if (params) {
+            Object.entries(params).forEach(([key, value]) => {
+                translated = translated.replace(new RegExp(`{${key}}`, 'g'), value)
+            })
+        }
+
+        return translated
     }, [translations, locale])
 
     return (

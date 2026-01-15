@@ -83,7 +83,16 @@
         "no_vehicles": "आसपास कोई वाहन नहीं",
         "publish": "अपनी कार पोस्ट करें",
         "subtitle": "अपने सपनों की कार खोजने के लिए स्वाइप करें",
-        "no_vehicles_desc": "फिलहाल आपके क्षेत्र में कोई विज्ञापन नहीं है"
+        "no_vehicles_desc": "फिलहाल आपके क्षेत्र में कोई विज्ञापन नहीं है",
+        "business_badge": "MapStore Business",
+        "view_more": "View more",
+        "seen_all_title": "You've seen everything in this area!",
+        "seen_all_desc": "Expand your search to discover more vehicles and nearby businesses",
+        "expand_btn": "Expand Search",
+        "like_btn": "Like",
+        "nope_btn": "Pass",
+        "overlay_like": "LIKE",
+        "overlay_nope": "NOPE"
     },
     "market": {
         "filters_label": "फ़िल्टर",
@@ -261,7 +270,9 @@
             "location_not_selected": "स्थान नहीं चुना गया",
             "country": "देश",
             "state": "राज्य / प्रांत",
-            "city": "शहर"
+            "city": "शहर",
+            "traction": "Traction",
+            "passengers": "Passengers"
         },
         "placeholders": {
             "title": "उदा: 2020 टोयोटा कोरोला उत्कृष्ट स्थिति में",
@@ -341,6 +352,15 @@
             "error_gps": "GPS तक पहुँचने में असमर्थ। मैन्युअल रूप से शहर दर्ज करें।",
             "error_search": "स्थान नहीं मिला। केवल शहर दर्ज करने का प्रयास करें।",
             "error_generic": "पता खोजने में त्रुटि। फिर से प्रयास करें।"
+        },
+        "tips": {
+            "title": "बेचने के लिए टिप्स",
+            "honest_title": "ईमानदारी और विवरण:",
+            "honest_desc": "दस्तावेज़ों की स्थिति और किसी भी दोष का उल्लेख करें। इससे खरीदार का विश्वास बढ़ेगा।",
+            "safety_title": "मिलने का स्थान:",
+            "safety_desc": "कार और दस्तावेजों की जाँच केवल सुरक्षित सार्वजनिक स्थानों पर करें।",
+            "transparency_title": "पारदर्शिता:",
+            "transparency_desc": "रखरखाव के इतिहास का विस्तृत विवरण बिक्री को तेज करता है।"
         }
     },
     "profile": {
@@ -1046,5 +1066,52 @@
                 "placeholder_max": "₹Max"
             }
         }
+    },
+    "settings": {
+        "title": "Settings",
+        "select_language": "Select Language",
+        "preferences_help": "Preferences and Help",
+        "push_notifications": "Push Notifications",
+        "push_active": "Notifications are enabled",
+        "push_inactive": "Receive alerts for messages and appointments",
+        "support_title": "CarMatch Support",
+        "support_desc": "Talk to our team and advisors",
+        "account_section": "Account",
+        "logout": "Log Out",
+        "logout_desc": "Log out safely",
+        "activate": "Activate"
+    },
+    "sos": {
+        "banner_title": "Safe Mission Active",
+        "banner_desc": "GPS monitoring and SOS button enabled",
+        "end_meeting": "End Meeting",
+        "btn": "SOS",
+        "cancel": "CANCEL",
+        "checkin_title": "Everything okay with the negotiation?",
+        "checkin_subtitle": "CarMatch Safe Meeting",
+        "checkin_ok": "YES, EVERYTHING OK",
+        "checkin_finished": "NEGOTIATION FINISHED",
+        "checkin_emergency": "🚨 SOS / EMERGENCY",
+        "emergency_modal_title": "🚨 EMERGENCY - LIVE LOCATION",
+        "detecting_location": "Trying to get exact location...",
+        "trusted_contact_notified": "Trusted Contact Notified",
+        "authorities_info": "Information for Authorities (911):",
+        "counterpart": "Counterpart",
+        "tracking_id": "Tracking ID",
+        "coordinates": "Exact Coordinates",
+        "call_911": "📞 CALL POLICE (911)",
+        "location_not_found": "Trying to get exact location..."
+    },
+    "appointments": {
+        "proposal_title": "Appointment Proposal",
+        "status_label": "Status",
+        "pending": "Pending",
+        "accepted": "Confirmed",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "completed": "Completed",
+        "accept_btn": "Accept",
+        "reject_btn": "Reject",
+        "cancel_btn": "Cancel"
     }
 }

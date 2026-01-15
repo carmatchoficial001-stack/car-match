@@ -476,7 +476,7 @@ export default function Header() {
                                                         className="flex items-center gap-3 px-4 py-3 text-text-primary hover:bg-surface-highlight transition"
                                                     >
                                                         <Settings size={20} className="text-primary-700" />
-                                                        <span className="font-medium">Configuración</span>
+                                                        <span className="font-medium">{t('settings.title')}</span>
                                                     </Link>
                                                 </div>
                                             </div>

@@ -83,7 +83,16 @@
         "no_vehicles": "Рядом нет автомобилей",
         "publish": "Опубликовать авто",
         "subtitle": "Листайте, чтобы найти авто вашей мечты",
-        "no_vehicles_desc": "В вашем районе пока нет объявлений"
+        "no_vehicles_desc": "В вашем районе пока нет объявлений",
+        "business_badge": "MapStore Business",
+        "view_more": "View more",
+        "seen_all_title": "You've seen everything in this area!",
+        "seen_all_desc": "Expand your search to discover more vehicles and nearby businesses",
+        "expand_btn": "Expand Search",
+        "like_btn": "Like",
+        "nope_btn": "Pass",
+        "overlay_like": "LIKE",
+        "overlay_nope": "NOPE"
     },
     "market": {
         "filters_label": "Фильтры",
@@ -261,7 +270,9 @@
             "location_not_selected": "Местоположение не выбрано",
             "country": "Страна",
             "state": "Регион / Область",
-            "city": "Город"
+            "city": "Город",
+            "traction": "Traction",
+            "passengers": "Passengers"
         },
         "placeholders": {
             "title": "Напр. Toyota Corolla 2020 в отличном состоянии",
@@ -341,6 +352,15 @@
             "error_gps": "Не удалось получить доступ к GPS. Введите город вручную.",
             "error_search": "Место не найдено. Попробуйте ввести только город.",
             "error_generic": "Ошибка при поиске адреса. Попробуйте еще раз."
+        },
+        "tips": {
+            "title": "Советы для продажи",
+            "honest_title": "Честность и детали:",
+            "honest_desc": "Укажите статус документов и любые недочеты. Это повысит доверие покупателя.",
+            "safety_title": "Место встречи:",
+            "safety_desc": "Осматривайте авто и документы только в безопасных общественных местах.",
+            "transparency_title": "Прозрачность:",
+            "transparency_desc": "Подробное описание сервисной истории ускоряет продажу."
         }
     },
     "profile": {
@@ -1046,5 +1066,52 @@
                 "placeholder_max": "Без лимита"
             }
         }
+    },
+    "settings": {
+        "title": "Settings",
+        "select_language": "Select Language",
+        "preferences_help": "Preferences and Help",
+        "push_notifications": "Push Notifications",
+        "push_active": "Notifications are enabled",
+        "push_inactive": "Receive alerts for messages and appointments",
+        "support_title": "CarMatch Support",
+        "support_desc": "Talk to our team and advisors",
+        "account_section": "Account",
+        "logout": "Log Out",
+        "logout_desc": "Log out safely",
+        "activate": "Activate"
+    },
+    "sos": {
+        "banner_title": "Safe Mission Active",
+        "banner_desc": "GPS monitoring and SOS button enabled",
+        "end_meeting": "End Meeting",
+        "btn": "SOS",
+        "cancel": "CANCEL",
+        "checkin_title": "Everything okay with the negotiation?",
+        "checkin_subtitle": "CarMatch Safe Meeting",
+        "checkin_ok": "YES, EVERYTHING OK",
+        "checkin_finished": "NEGOTIATION FINISHED",
+        "checkin_emergency": "🚨 SOS / EMERGENCY",
+        "emergency_modal_title": "🚨 EMERGENCY - LIVE LOCATION",
+        "detecting_location": "Trying to get exact location...",
+        "trusted_contact_notified": "Trusted Contact Notified",
+        "authorities_info": "Information for Authorities (911):",
+        "counterpart": "Counterpart",
+        "tracking_id": "Tracking ID",
+        "coordinates": "Exact Coordinates",
+        "call_911": "📞 CALL POLICE (911)",
+        "location_not_found": "Trying to get exact location..."
+    },
+    "appointments": {
+        "proposal_title": "Appointment Proposal",
+        "status_label": "Status",
+        "pending": "Pending",
+        "accepted": "Confirmed",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "completed": "Completed",
+        "accept_btn": "Accept",
+        "reject_btn": "Reject",
+        "cancel_btn": "Cancel"
     }
 }

@@ -82,7 +82,7 @@ export default function SettingsPage() {
                     </button>
                     <h1 className="text-xl font-black italic tracking-tight uppercase flex items-center gap-2">
                         <Settings className="text-primary-500" size={20} />
-                        Configuración
+                        {t('settings.title')}
                     </h1>
                     <div className="w-10"></div> {/* Spacer */}
                 </div>
@@ -93,7 +93,7 @@ export default function SettingsPage() {
                 <section className="space-y-4">
                     <div className="flex items-center gap-2 px-1">
                         <Globe size={18} className="text-primary-500" />
-                        <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">Seleccionar Idioma</h2>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">{t('settings.select_language')}</h2>
                     </div>
                     {/* Vertical scrollable language list */}
                     <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
@@ -139,7 +139,7 @@ export default function SettingsPage() {
                 <section className="space-y-4">
                     <div className="flex items-center gap-2 px-1">
                         <Settings size={18} className="text-primary-500" />
-                        <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">Preferencias y Ayuda</h2>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">{t('settings.preferences_help')}</h2>
                     </div>
                     <div className="space-y-2">
                         <button
@@ -155,14 +155,14 @@ export default function SettingsPage() {
                                     {isSubscribed ? <Bell size={22} /> : <BellOff size={22} className="text-primary-500" />}
                                 </div>
                                 <div className="text-left">
-                                    <p className="font-bold">Notificaciones Push</p>
+                                    <p className="font-bold">{t('settings.push_notifications')}</p>
                                     <p className="text-xs text-text-secondary">
-                                        {isSubscribed ? 'Las notificaciones están activadas' : 'Recibe alertas de mensajes y citas'}
+                                        {isSubscribed ? t('settings.push_active') : t('settings.push_inactive')}
                                     </p>
                                 </div>
                             </div>
                             {!isSubscribed && permission !== 'denied' && (
-                                <span className="text-xs font-black uppercase tracking-tighter bg-primary-600 text-white px-3 py-1 rounded-full">Activar</span>
+                                <span className="text-xs font-black uppercase tracking-tighter bg-primary-600 text-white px-3 py-1 rounded-full">{t('settings.activate')}</span>
                             )}
                         </button>
 
@@ -174,8 +174,10 @@ export default function SettingsPage() {
                                 <Headset size={22} />
                             </div>
                             <div className="text-left">
-                                <p className="font-bold">Soporte CarMatch</p>
-                                <p className="text-xs text-text-secondary">Habla con nuestro equipo y asesores</p>
+                                <p className="font-bold">{t('settings.support_title')}</p>
+                                <p className="text-xs text-text-secondary">
+                                    {t('settings.support_desc')}
+                                </p>
                             </div>
                         </button>
                     </div>
@@ -185,7 +187,7 @@ export default function SettingsPage() {
                 <section className="pt-4 space-y-4">
                     <div className="flex items-center gap-2 px-1">
                         <LogOut size={18} className="text-red-500" />
-                        <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">Cuenta</h2>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">{t('settings.account_section')}</h2>
                     </div>
                     <button
                         onClick={handleSignOut}

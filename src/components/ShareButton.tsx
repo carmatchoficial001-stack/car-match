@@ -18,24 +18,9 @@ export default function ShareButton({ title, text, url, variant = 'full', classN
         e?.preventDefault()
         e?.stopPropagation()
 
-        const shareData = {
-            title: title,
-            text: text,
-            url: url,
-        }
-
-        // 1. Intentar API Nativa (Móviles: Abre menú de compartir de iOS/Android)
-        if (navigator.share) {
-            try {
-                await navigator.share(shareData)
-                return
-            } catch (err) {
-                // Si el usuario cancela o hay error, no hacemos nada (o podríamos hacer fallback)
-                console.log('Error sharing:', err)
-            }
-        }
-
-        // 2. Fallback Desktop: Copiar al portapapeles
+        // ✅ NUEVA ESTRATEGIA: Siempre copiar el link
+        // Esto evita que se abra en WebViews de WhatsApp/FB/Telegram
+        // El usuario puede pegar el link en su navegador real
         try {
             await navigator.clipboard.writeText(url)
             setCopied(true)
@@ -43,11 +28,11 @@ export default function ShareButton({ title, text, url, variant = 'full', classN
             setTimeout(() => {
                 setCopied(false)
                 setShowTooltip(false)
-            }, 2000)
+            }, 3000)
         } catch (err) {
-            // Fallback final: abrir WhatsApp si todo falla (solo si es variant full o lógica específica)
-            // Pero "Copiar" es lo más genérico para "otros medios".
             console.error('Failed to copy', err)
+            // Si falla copiar, intentar abrir en nueva pestaña
+            window.open(url, '_blank')
         }
     }
 
@@ -62,10 +47,10 @@ export default function ShareButton({ title, text, url, variant = 'full', classN
                 >
                     {copied ? <Check size={20} className="text-green-500" /> : <Share2 size={20} />}
                 </button>
-                {/* Tooltip simple */}
+                {/* Tooltip con instrucciones */}
                 {showTooltip && (
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded whitespace-nowrap z-50">
-                        ¡Link copiado!
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-black text-white text-xs rounded whitespace-nowrap z-50 shadow-xl">
+                        ✅ Link copiado • Pégalo en tu navegador
                     </div>
                 )}
             </div>
@@ -89,8 +74,8 @@ export default function ShareButton({ title, text, url, variant = 'full', classN
                     ) : (children || <Share2 size={20} />)}
                 </button>
                 {showTooltip && (
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded whitespace-nowrap z-50">
-                        ¡Link copiado!
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-black text-white text-xs rounded whitespace-nowrap z-50 shadow-xl">
+                        ✅ Link copiado • Pégalo en tu navegador
                     </div>
                 )}
             </div>

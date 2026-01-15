@@ -142,8 +142,8 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
                 <div className="flex items-center gap-2">
                     <ShieldAlert className="w-6 h-6" />
                     <div>
-                        <p className="font-bold text-sm md:text-base">Misión Segura Activa</p>
-                        <p className="text-xs opacity-90 hidden md:block">Monitoreo GPS y botón SOS habilitados</p>
+                        <p className="font-bold text-sm md:text-base">{t('sos.banner_title')}</p>
+                        <p className="text-xs opacity-90 hidden md:block">{t('sos.banner_desc')}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -151,7 +151,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
                         onClick={onEndMeeting}
                         className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-xs font-bold transition"
                     >
-                        Terminar Reunión
+                        {t('sos.end_meeting')}
                     </button>
                     <button
                         onMouseDown={startSOS}
@@ -162,7 +162,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
                         className={`px-4 py-2 rounded-lg font-bold transition-all transform active:scale-95 ${sosCountdown !== null ? 'bg-white text-red-600' : 'bg-red-800 hover:bg-red-900'
                             }`}
                     >
-                        {sosCountdown !== null ? `CANCELAR (${sosCountdown})` : 'SOS'}
+                        {sosCountdown !== null ? `${t('sos.cancel')} (${sosCountdown})` : t('sos.btn')}
                     </button>
                 </div>
             </div>
@@ -174,8 +174,8 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
                         <div className="flex justify-center mb-4 text-primary-500">
                             <Siren className="w-16 h-16 animate-bounce" />
                         </div>
-                        <h3 className="text-xl font-bold text-text-primary mb-2">¿Todo bien en la negociación?</h3>
-                        <p className="text-text-secondary mb-6 italic text-sm">Cita Segura CarMatch</p>
+                        <h3 className="text-xl font-bold text-text-primary mb-2">{t('sos.checkin_title')}</h3>
+                        <p className="text-text-secondary mb-6 italic text-sm">{t('sos.checkin_subtitle')}</p>
 
                         <div className="space-y-3">
                             <button
@@ -185,7 +185,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
                                 }}
                                 className="w-full p-4 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 shadow-lg shadow-primary-500/20 transition-all active:scale-95"
                             >
-                                SÍ, TODO BIEN
+                                {t('sos.checkin_ok')}
                             </button>
                             <button
                                 onClick={() => {
@@ -194,7 +194,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
                                 }}
                                 className="w-full p-4 bg-surface-highlight text-text-primary rounded-xl font-bold hover:bg-surface-highlight/80 transition-all"
                             >
-                                YA TERMINÓ LA NEGOCIACIÓN
+                                {t('sos.checkin_finished')}
                             </button>
                             <button
                                 onClick={() => {
@@ -203,7 +203,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
                                 }}
                                 className="w-full p-4 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                             >
-                                🚨 SOS / EMERGENCIA
+                                {t('sos.checkin_emergency')}
                             </button>
                         </div>
                     </div>
@@ -216,7 +216,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
                     <div className="bg-white rounded-2xl max-w-4xl w-full h-[85vh] flex flex-col overflow-hidden shadow-2xl">
                         <div className="bg-red-600 p-4 text-white flex justify-between items-center">
                             <h2 className="font-bold text-xl flex items-center gap-2">
-                                🚨 EMERGENCIA - LOCALIZACIÓN REAL
+                                {t('sos.emergency_modal_title')}
                             </h2>
                             <button onClick={() => setShowSOSModal(false)} className="text-white/80 hover:text-white">✕</button>
                         </div>
@@ -239,7 +239,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
                                 </div>
                             ) : (
                                 <div className="h-full flex items-center justify-center p-8 text-center text-gray-500">
-                                    <p>Intentando obtener ubicación exacta...</p>
+                                    <p>{t('sos.location_not_found')}</p>
                                 </div>
                             )}
                         </div>
@@ -248,7 +248,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
                             {trustedContact && (
                                 <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between">
                                     <div>
-                                        <p className="text-[10px] text-blue-600 font-bold uppercase">Contacto de Confianza Notificado</p>
+                                        <p className="text-[10px] text-blue-600 font-bold uppercase">{t('sos.trusted_contact_notified')}</p>
                                         <p className="font-bold text-blue-900 text-sm">{trustedContact.name} ({trustedContact.relationship})</p>
                                     </div>
                                     <a href={`tel:${trustedContact.phone}`} className="p-2 bg-blue-600 text-white rounded-full">
@@ -258,19 +258,19 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
                             )}
 
                             <div className="p-4 bg-red-50 border border-red-100 rounded-xl">
-                                <h3 className="font-bold text-red-800 text-sm mb-2 uppercase">Información para Autoridades (911):</h3>
+                                <h3 className="font-bold text-red-800 text-sm mb-2 uppercase">{t('sos.authorities_info')}</h3>
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                                     <div>
-                                        <span className="text-gray-500">Contraparte:</span>
-                                        <span className="font-bold block">{otherUserLocation?.name || 'Cargando...'}</span>
+                                        <span className="text-gray-500">{t('sos.counterpart')}:</span>
+                                        <span className="font-bold block">{otherUserLocation?.name || t('common.loading')}</span>
                                     </div>
                                     <div>
-                                        <span className="text-gray-500">ID Rastreo:</span>
+                                        <span className="text-gray-500">{t('sos.tracking_id')}:</span>
                                         <span className="font-mono block truncate">{chatId}</span>
                                     </div>
                                     {otherUserLocation?.lastLatitude && (
                                         <div className="col-span-2 mt-1">
-                                            <span className="text-gray-500 block">Coordenadas Exactas:</span>
+                                            <span className="text-gray-500 block">{t('sos.coordinates')}:</span>
                                             <span className="font-mono font-bold text-red-600">
                                                 {otherUserLocation.lastLatitude.toFixed(6)}, {otherUserLocation.lastLongitude.toFixed(6)}
                                             </span>
@@ -282,7 +282,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
                                 onClick={() => window.open('tel:911')}
                                 className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-lg shadow-lg flex items-center justify-center gap-2 animate-pulse"
                             >
-                                📞 LLAMAR A LA POLICÍA (911)
+                                {t('sos.call_911')}
                             </button>
                         </div>
                     </div>

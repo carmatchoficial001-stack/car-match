@@ -83,7 +83,16 @@
         "no_vehicles": "قریب کوئی گاڑی نہیں ہے",
         "publish": "اپنی گاڑی کا اشتہار دیں",
         "subtitle": "اپنی خوابوں کی کار تلاش کرنے کے لیے سوائپ کریں",
-        "no_vehicles_desc": "فی الحال آپ کے علاقے میں کوئی اشتہار نہیں ہے"
+        "no_vehicles_desc": "فی الحال آپ کے علاقے میں کوئی اشتہار نہیں ہے",
+        "business_badge": "MapStore Business",
+        "view_more": "View more",
+        "seen_all_title": "You've seen everything in this area!",
+        "seen_all_desc": "Expand your search to discover more vehicles and nearby businesses",
+        "expand_btn": "Expand Search",
+        "like_btn": "Like",
+        "nope_btn": "Pass",
+        "overlay_like": "LIKE",
+        "overlay_nope": "NOPE"
     },
     "market": {
         "filters_label": "فلٹرز",
@@ -261,7 +270,9 @@
             "location_not_selected": "مقام منتخب نہیں کیا گیا",
             "country": "ملک",
             "state": "صوبہ / علاقہ",
-            "city": "شہر"
+            "city": "شہر",
+            "traction": "Traction",
+            "passengers": "Passengers"
         },
         "placeholders": {
             "title": "مثلاً: ٹویوٹا کرولا 2020 بہترین حالت میں",
@@ -341,6 +352,15 @@
             "error_gps": "GPS تک رسائی ممکن نہیں ہوئی۔ شہر دستی طور پر درج کریں۔",
             "error_search": "مقام نہیں ملا۔ صرف شہر کا نام درج کرنے کی کوشش کریں۔",
             "error_generic": "پتہ تلاش کرنے میں خرابی۔ دوبارہ کوشش کریں۔"
+        },
+        "tips": {
+            "title": "فروخت کے مشورے",
+            "honest_title": "دیانتداری اور تفصیل:",
+            "honest_desc": "دستاویزات کی حالت اور کسی بھی نقص کا ذکر کریں۔ اس سے خریدار کا اعتماد بڑھتا ہے۔",
+            "safety_title": "ملاقات کی جگہ:",
+            "safety_desc": "دستاویزات اور گاڑی کا معائنہ صرف محفوظ عوامی مقامات پر کریں۔",
+            "transparency_title": "شفافیت:",
+            "transparency_desc": "مینٹیننس ہسٹری کی تفصیلی وضاحت گاڑی کو تیزی سے بیچنے میں مدد دیتی ہے۔"
         }
     },
     "profile": {
@@ -1046,5 +1066,52 @@
                 "placeholder_max": "زیادہ سے زیادہ"
             }
         }
+    },
+    "settings": {
+        "title": "Settings",
+        "select_language": "Select Language",
+        "preferences_help": "Preferences and Help",
+        "push_notifications": "Push Notifications",
+        "push_active": "Notifications are enabled",
+        "push_inactive": "Receive alerts for messages and appointments",
+        "support_title": "CarMatch Support",
+        "support_desc": "Talk to our team and advisors",
+        "account_section": "Account",
+        "logout": "Log Out",
+        "logout_desc": "Log out safely",
+        "activate": "Activate"
+    },
+    "sos": {
+        "banner_title": "Safe Mission Active",
+        "banner_desc": "GPS monitoring and SOS button enabled",
+        "end_meeting": "End Meeting",
+        "btn": "SOS",
+        "cancel": "CANCEL",
+        "checkin_title": "Everything okay with the negotiation?",
+        "checkin_subtitle": "CarMatch Safe Meeting",
+        "checkin_ok": "YES, EVERYTHING OK",
+        "checkin_finished": "NEGOTIATION FINISHED",
+        "checkin_emergency": "🚨 SOS / EMERGENCY",
+        "emergency_modal_title": "🚨 EMERGENCY - LIVE LOCATION",
+        "detecting_location": "Trying to get exact location...",
+        "trusted_contact_notified": "Trusted Contact Notified",
+        "authorities_info": "Information for Authorities (911):",
+        "counterpart": "Counterpart",
+        "tracking_id": "Tracking ID",
+        "coordinates": "Exact Coordinates",
+        "call_911": "📞 CALL POLICE (911)",
+        "location_not_found": "Trying to get exact location..."
+    },
+    "appointments": {
+        "proposal_title": "Appointment Proposal",
+        "status_label": "Status",
+        "pending": "Pending",
+        "accepted": "Confirmed",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "completed": "Completed",
+        "accept_btn": "Accept",
+        "reject_btn": "Reject",
+        "cancel_btn": "Cancel"
     }
 }

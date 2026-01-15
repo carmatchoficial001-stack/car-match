@@ -83,7 +83,16 @@
         "no_vehicles": "Brak pojazdów w pobliżu",
         "publish": "Ogłoś swój samochód",
         "subtitle": "Przesuwaj, aby znaleźć wymarzony samochód",
-        "no_vehicles_desc": "Obecnie nie ma ogłoszeń w Twojej okolicy"
+        "no_vehicles_desc": "Obecnie nie ma ogłoszeń w Twojej okolicy",
+        "business_badge": "MapStore Business",
+        "view_more": "View more",
+        "seen_all_title": "You've seen everything in this area!",
+        "seen_all_desc": "Expand your search to discover more vehicles and nearby businesses",
+        "expand_btn": "Expand Search",
+        "like_btn": "Like",
+        "nope_btn": "Pass",
+        "overlay_like": "LIKE",
+        "overlay_nope": "NOPE"
     },
     "market": {
         "filters_label": "Filtry",
@@ -261,7 +270,9 @@
             "location_not_selected": "Lokalizacja nie wybrana",
             "country": "Kraj",
             "state": "Województwo",
-            "city": "Miasto"
+            "city": "Miasto",
+            "traction": "Traction",
+            "passengers": "Passengers"
         },
         "placeholders": {
             "title": "np.: Toyota Corolla 2020 w doskonałym stanie",
@@ -341,6 +352,15 @@
             "error_gps": "Brak dostępu do GPS. Wpisz miasto ręcznie.",
             "error_search": "Lokalizacja nie znaleziona. Spróbuj wpisać tylko nazwę miasta.",
             "error_generic": "Błąd podczas szukania adresu. Spróbuj ponownie."
+        },
+        "tips": {
+            "title": "Porady sprzedażowe",
+            "honest_title": "Uczciwość i szczegóły:",
+            "honest_desc": "Podaj status dokumentów i wszelkie usterki. Zwiększa to zaufanie kupującego.",
+            "safety_title": "Miejsce spotkania:",
+            "safety_desc": "Sprawdzaj auto i dokumenty tylko w bezpiecznych miejscach publicznych.",
+            "transparency_title": "Przejrzystość:",
+            "transparency_desc": "Szczegółowy opis historii serwisowej pomaga w szybszej sprzedaży."
         }
     },
     "profile": {
@@ -1046,5 +1066,52 @@
                 "placeholder_max": "Maks"
             }
         }
+    },
+    "settings": {
+        "title": "Settings",
+        "select_language": "Select Language",
+        "preferences_help": "Preferences and Help",
+        "push_notifications": "Push Notifications",
+        "push_active": "Notifications are enabled",
+        "push_inactive": "Receive alerts for messages and appointments",
+        "support_title": "CarMatch Support",
+        "support_desc": "Talk to our team and advisors",
+        "account_section": "Account",
+        "logout": "Log Out",
+        "logout_desc": "Log out safely",
+        "activate": "Activate"
+    },
+    "sos": {
+        "banner_title": "Safe Mission Active",
+        "banner_desc": "GPS monitoring and SOS button enabled",
+        "end_meeting": "End Meeting",
+        "btn": "SOS",
+        "cancel": "CANCEL",
+        "checkin_title": "Everything okay with the negotiation?",
+        "checkin_subtitle": "CarMatch Safe Meeting",
+        "checkin_ok": "YES, EVERYTHING OK",
+        "checkin_finished": "NEGOTIATION FINISHED",
+        "checkin_emergency": "🚨 SOS / EMERGENCY",
+        "emergency_modal_title": "🚨 EMERGENCY - LIVE LOCATION",
+        "detecting_location": "Trying to get exact location...",
+        "trusted_contact_notified": "Trusted Contact Notified",
+        "authorities_info": "Information for Authorities (911):",
+        "counterpart": "Counterpart",
+        "tracking_id": "Tracking ID",
+        "coordinates": "Exact Coordinates",
+        "call_911": "📞 CALL POLICE (911)",
+        "location_not_found": "Trying to get exact location..."
+    },
+    "appointments": {
+        "proposal_title": "Appointment Proposal",
+        "status_label": "Status",
+        "pending": "Pending",
+        "accepted": "Confirmed",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "completed": "Completed",
+        "accept_btn": "Accept",
+        "reject_btn": "Reject",
+        "cancel_btn": "Cancel"
     }
 }

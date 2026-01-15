@@ -83,7 +83,16 @@
         "no_vehicles": "附近没有车辆",
         "publish": "发布车辆",
         "subtitle": "滑动寻找您的理想座驾",
-        "no_vehicles_desc": "当前所在区域暂时没有车辆"
+        "no_vehicles_desc": "当前所在区域暂时没有车辆",
+        "business_badge": "MapStore Business",
+        "view_more": "View more",
+        "seen_all_title": "You've seen everything in this area!",
+        "seen_all_desc": "Expand your search to discover more vehicles and nearby businesses",
+        "expand_btn": "Expand Search",
+        "like_btn": "Like",
+        "nope_btn": "Pass",
+        "overlay_like": "LIKE",
+        "overlay_nope": "NOPE"
     },
     "market": {
         "filters_label": "筛选",
@@ -261,7 +270,9 @@
             "location_not_selected": "未选择位置",
             "country": "国家",
             "state": "州或地区",
-            "city": "城市"
+            "city": "城市",
+            "traction": "Traction",
+            "passengers": "Passengers"
         },
         "placeholders": {
             "title": "例如：2020款丰田卡罗拉，状态极佳",
@@ -341,6 +352,15 @@
             "error_gps": "无法检测到您的位置。请手动输入城市。",
             "error_search": "我们无法找到该准确位置。请尝试输入更简单的信息。",
             "error_generic": "搜索位置时出错。请重试。"
+        },
+        "tips": {
+            "title": "发布技巧",
+            "honest_title": "诚实且详尽：",
+            "honest_desc": "说明车辆真实的证件情况、税费情况，以及车辆是否有过事故或机械故障。这能建立信任。",
+            "safety_title": "会面地点：",
+            "safety_desc": "我们建议在公共且安全的场所进行证件查验及看车。",
+            "transparency_title": "透明度：",
+            "transparency_desc": "清晰描述已做过的保养项目，有助于更快卖出。"
         }
     },
     "profile": {
@@ -1046,5 +1066,52 @@
                 "placeholder_max": "￥最高"
             }
         }
+    },
+    "settings": {
+        "title": "Settings",
+        "select_language": "Select Language",
+        "preferences_help": "Preferences and Help",
+        "push_notifications": "Push Notifications",
+        "push_active": "Notifications are enabled",
+        "push_inactive": "Receive alerts for messages and appointments",
+        "support_title": "CarMatch Support",
+        "support_desc": "Talk to our team and advisors",
+        "account_section": "Account",
+        "logout": "Log Out",
+        "logout_desc": "Log out safely",
+        "activate": "Activate"
+    },
+    "sos": {
+        "banner_title": "Safe Mission Active",
+        "banner_desc": "GPS monitoring and SOS button enabled",
+        "end_meeting": "End Meeting",
+        "btn": "SOS",
+        "cancel": "CANCEL",
+        "checkin_title": "Everything okay with the negotiation?",
+        "checkin_subtitle": "CarMatch Safe Meeting",
+        "checkin_ok": "YES, EVERYTHING OK",
+        "checkin_finished": "NEGOTIATION FINISHED",
+        "checkin_emergency": "🚨 SOS / EMERGENCY",
+        "emergency_modal_title": "🚨 EMERGENCY - LIVE LOCATION",
+        "detecting_location": "Trying to get exact location...",
+        "trusted_contact_notified": "Trusted Contact Notified",
+        "authorities_info": "Information for Authorities (911):",
+        "counterpart": "Counterpart",
+        "tracking_id": "Tracking ID",
+        "coordinates": "Exact Coordinates",
+        "call_911": "📞 CALL POLICE (911)",
+        "location_not_found": "Trying to get exact location..."
+    },
+    "appointments": {
+        "proposal_title": "Appointment Proposal",
+        "status_label": "Status",
+        "pending": "Pending",
+        "accepted": "Confirmed",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "completed": "Completed",
+        "accept_btn": "Accept",
+        "reject_btn": "Reject",
+        "cancel_btn": "Cancel"
     }
 }

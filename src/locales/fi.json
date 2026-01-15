@@ -83,7 +83,16 @@
         "no_vehicles": "Ei ajoneuvoja lähistöllä",
         "publish": "Ilmoita autosi",
         "subtitle": "Pyyhkäise löytääksesi unelma-autosi",
-        "no_vehicles_desc": "Alueellasi ei ole tällä hetkellä ilmoituksia"
+        "no_vehicles_desc": "Alueellasi ei ole tällä hetkellä ilmoituksia",
+        "business_badge": "MapStore Business",
+        "view_more": "View more",
+        "seen_all_title": "You've seen everything in this area!",
+        "seen_all_desc": "Expand your search to discover more vehicles and nearby businesses",
+        "expand_btn": "Expand Search",
+        "like_btn": "Like",
+        "nope_btn": "Pass",
+        "overlay_like": "LIKE",
+        "overlay_nope": "NOPE"
     },
     "market": {
         "filters_label": "Suodattimet",
@@ -261,7 +270,9 @@
             "location_not_selected": "Sijaintia ei valittu",
             "country": "Maa",
             "state": "Maakunta / Alue",
-            "city": "Kaupunki"
+            "city": "Kaupunki",
+            "traction": "Traction",
+            "passengers": "Passengers"
         },
         "placeholders": {
             "title": "esim: Toyota Corolla 2020 erinomaisessa kunnossa",
@@ -341,6 +352,15 @@
             "error_gps": "GPS-yhteyttä ei saatu. Syötä kaupunki manuaalisesti.",
             "error_search": "Sijaintia ei löytynyt. Kokeile pelkkää kaupungin nime.",
             "error_generic": "Virhe osoitteen etsinnässä. Yritä uudelleen."
+        },
+        "tips": {
+            "title": "Myyntivinkit",
+            "honest_title": "Rehellisyys ja yksityiskohdat:",
+            "honest_desc": "Ilmoita asiakirjojen tila ja mahdolliset viat. Tämä lisää ostajan luottamusta.",
+            "safety_title": "Tapaamispaikka:",
+            "safety_desc": "Tarkista auto ja asiakirjat vain turvallisella julkisella paikalla.",
+            "transparency_title": "Läpinäkyvyys:",
+            "transparency_desc": "Yksityiskohtainen kuvaus huoltohistoriasta auttaa myymään nopeammin."
         }
     },
     "profile": {
@@ -1046,5 +1066,52 @@
                 "placeholder_max": "Max"
             }
         }
+    },
+    "settings": {
+        "title": "Settings",
+        "select_language": "Select Language",
+        "preferences_help": "Preferences and Help",
+        "push_notifications": "Push Notifications",
+        "push_active": "Notifications are enabled",
+        "push_inactive": "Receive alerts for messages and appointments",
+        "support_title": "CarMatch Support",
+        "support_desc": "Talk to our team and advisors",
+        "account_section": "Account",
+        "logout": "Log Out",
+        "logout_desc": "Log out safely",
+        "activate": "Activate"
+    },
+    "sos": {
+        "banner_title": "Safe Mission Active",
+        "banner_desc": "GPS monitoring and SOS button enabled",
+        "end_meeting": "End Meeting",
+        "btn": "SOS",
+        "cancel": "CANCEL",
+        "checkin_title": "Everything okay with the negotiation?",
+        "checkin_subtitle": "CarMatch Safe Meeting",
+        "checkin_ok": "YES, EVERYTHING OK",
+        "checkin_finished": "NEGOTIATION FINISHED",
+        "checkin_emergency": "🚨 SOS / EMERGENCY",
+        "emergency_modal_title": "🚨 EMERGENCY - LIVE LOCATION",
+        "detecting_location": "Trying to get exact location...",
+        "trusted_contact_notified": "Trusted Contact Notified",
+        "authorities_info": "Information for Authorities (911):",
+        "counterpart": "Counterpart",
+        "tracking_id": "Tracking ID",
+        "coordinates": "Exact Coordinates",
+        "call_911": "📞 CALL POLICE (911)",
+        "location_not_found": "Trying to get exact location..."
+    },
+    "appointments": {
+        "proposal_title": "Appointment Proposal",
+        "status_label": "Status",
+        "pending": "Pending",
+        "accepted": "Confirmed",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "completed": "Completed",
+        "accept_btn": "Accept",
+        "reject_btn": "Reject",
+        "cancel_btn": "Cancel"
     }
 }

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import MobileNav from "@/components/MobileNav";
+import OpenInBrowserBanner from "@/components/OpenInBrowserBanner";
 import { ResponsiveViewportFix } from "./responsive-viewport-fix";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -48,6 +49,7 @@ export default function RootLayout({
         <html lang="es" className="dark" style={{ colorScheme: 'dark' }}>
             <body className={`${inter.className} min-h-screen-safe overflow-x-hidden bg-[#0f172a]`}>
                 <Providers>
+                    <OpenInBrowserBanner />
                     <ResponsiveViewportFix />
                     <main className="min-h-screen-safe">
                         {children}

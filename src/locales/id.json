@@ -83,7 +83,16 @@
         "no_vehicles": "Tidak ada kendaraan di sekitar",
         "publish": "Iklankan Mobil Anda",
         "subtitle": "Geser untuk menemukan mobil impian Anda",
-        "no_vehicles_desc": "Saat ini tidak ada iklan di area Anda"
+        "no_vehicles_desc": "Saat ini tidak ada iklan di area Anda",
+        "business_badge": "MapStore Business",
+        "view_more": "View more",
+        "seen_all_title": "You've seen everything in this area!",
+        "seen_all_desc": "Expand your search to discover more vehicles and nearby businesses",
+        "expand_btn": "Expand Search",
+        "like_btn": "Like",
+        "nope_btn": "Pass",
+        "overlay_like": "LIKE",
+        "overlay_nope": "NOPE"
     },
     "market": {
         "filters_label": "Filter",
@@ -261,7 +270,9 @@
             "location_not_selected": "Lokasi belum dipilih",
             "country": "Negara",
             "state": "Negara Bagian / Provinsi",
-            "city": "Kota"
+            "city": "Kota",
+            "traction": "Traction",
+            "passengers": "Passengers"
         },
         "placeholders": {
             "title": "misalnya: Toyota Corolla 2020 kondisi sangat baik",
@@ -341,6 +352,15 @@
             "error_gps": "Tidak dapat mengakses GPS. Masukkan kota secara manual.",
             "error_search": "Lokasi tidak ditemukan. Coba masukkan nama kota saja.",
             "error_generic": "Kesalahan mencari alamat. Coba lagi."
+        },
+        "tips": {
+            "title": "Tips Menjual",
+            "honest_title": "Kejujuran dan Detail:",
+            "honest_desc": "Sebutkan status dokumen dan cacat apa pun. Ini akan meningkatkan kepercayaan pembeli.",
+            "safety_title": "Tempat Pertemuan:",
+            "safety_desc": "Periksa mobil dan dokumen hanya di tempat umum yang aman.",
+            "transparency_title": "Transparansi:",
+            "transparency_desc": "Penjelasan rinci mengenai riwayat perawatan akan mempercepat penjualan."
         }
     },
     "profile": {
@@ -1046,5 +1066,52 @@
                 "placeholder_max": "Maks"
             }
         }
+    },
+    "settings": {
+        "title": "Settings",
+        "select_language": "Select Language",
+        "preferences_help": "Preferences and Help",
+        "push_notifications": "Push Notifications",
+        "push_active": "Notifications are enabled",
+        "push_inactive": "Receive alerts for messages and appointments",
+        "support_title": "CarMatch Support",
+        "support_desc": "Talk to our team and advisors",
+        "account_section": "Account",
+        "logout": "Log Out",
+        "logout_desc": "Log out safely",
+        "activate": "Activate"
+    },
+    "sos": {
+        "banner_title": "Safe Mission Active",
+        "banner_desc": "GPS monitoring and SOS button enabled",
+        "end_meeting": "End Meeting",
+        "btn": "SOS",
+        "cancel": "CANCEL",
+        "checkin_title": "Everything okay with the negotiation?",
+        "checkin_subtitle": "CarMatch Safe Meeting",
+        "checkin_ok": "YES, EVERYTHING OK",
+        "checkin_finished": "NEGOTIATION FINISHED",
+        "checkin_emergency": "🚨 SOS / EMERGENCY",
+        "emergency_modal_title": "🚨 EMERGENCY - LIVE LOCATION",
+        "detecting_location": "Trying to get exact location...",
+        "trusted_contact_notified": "Trusted Contact Notified",
+        "authorities_info": "Information for Authorities (911):",
+        "counterpart": "Counterpart",
+        "tracking_id": "Tracking ID",
+        "coordinates": "Exact Coordinates",
+        "call_911": "📞 CALL POLICE (911)",
+        "location_not_found": "Trying to get exact location..."
+    },
+    "appointments": {
+        "proposal_title": "Appointment Proposal",
+        "status_label": "Status",
+        "pending": "Pending",
+        "accepted": "Confirmed",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "completed": "Completed",
+        "accept_btn": "Accept",
+        "reject_btn": "Reject",
+        "cancel_btn": "Cancel"
     }
 }

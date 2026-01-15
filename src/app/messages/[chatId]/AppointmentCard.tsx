@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Calendar, MapPin, Clock } from 'lucide-react'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface Appointment {
     id: string
@@ -19,6 +20,7 @@ interface AppointmentCardProps {
 }
 
 export default function AppointmentCard({ appointment, isOwn, onUpdateStatus }: AppointmentCardProps) {
+    const { t, locale } = useLanguage()
     const [updating, setUpdating] = useState(false)
 
     const handleAction = async (status: string) => {
@@ -31,8 +33,8 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus }: 
     }
 
     const dateObj = new Date(appointment.date)
-    const formattedDate = dateObj.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })
-    const formattedTime = dateObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+    const formattedDate = dateObj.toLocaleDateString(locale === 'es' ? 'es-MX' : locale === 'en' ? 'en-US' : locale, { weekday: 'long', day: 'numeric', month: 'long' })
+    const formattedTime = dateObj.toLocaleTimeString(locale === 'es' ? 'es-MX' : locale === 'en' ? 'en-US' : locale, { hour: '2-digit', minute: '2-digit' })
 
     const statusColors = {
         PENDING: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-600',
@@ -43,11 +45,11 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus }: 
     }
 
     const statusText = {
-        PENDING: 'Pendiente',
-        ACCEPTED: 'Confirmada',
-        REJECTED: 'Rechazada',
-        CANCELLED: 'Cancelada',
-        COMPLETED: 'Finalizada'
+        PENDING: t('appointments.pending'),
+        ACCEPTED: t('appointments.accepted'),
+        REJECTED: t('appointments.rejected'),
+        CANCELLED: t('appointments.cancelled'),
+        COMPLETED: t('appointments.completed')
     }
 
     const currentStatus = appointment.status?.toUpperCase() as keyof typeof statusText || 'PENDING'
@@ -56,7 +58,7 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus }: 
         <div className={`p-4 rounded-xl border ${statusColors[currentStatus] || 'bg-surface border-surface-highlight'} w-full max-w-sm shadow-sm`}>
             <div className="flex items-center gap-2 mb-3">
                 <Calendar className="w-5 h-5 opacity-70" />
-                <span className="font-bold">Propuesta de Cita</span>
+                <span className="font-bold">{t('appointments.proposal_title')}</span>
             </div>
 
             <div className="space-y-3 mb-4">
@@ -81,7 +83,7 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus }: 
 
             <div className="flex items-center justify-between pt-2 border-t border-current/10">
                 <div className="font-medium text-sm text-text-primary">
-                    Estado: <span className={`font-black uppercase tracking-wider ${currentStatus === 'ACCEPTED' ? 'text-green-500' : ''}`}>
+                    {t('appointments.status_label')}: <span className={`font-black uppercase tracking-wider ${currentStatus === 'ACCEPTED' ? 'text-green-500' : ''}`}>
                         {statusText[currentStatus] || currentStatus}
                     </span>
                 </div>
@@ -94,14 +96,14 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus }: 
                             disabled={updating}
                             className="px-3 py-1.5 text-xs font-bold bg-white/20 hover:bg-white/30 rounded-lg transition"
                         >
-                            Rechazar
+                            {t('appointments.reject_btn')}
                         </button>
                         <button
                             onClick={() => handleAction('ACCEPTED')}
                             disabled={updating}
                             className="px-3 py-1.5 text-xs font-bold bg-green-600 text-white hover:bg-green-700 rounded-lg shadow transition"
                         >
-                            Aceptar
+                            {t('appointments.accept_btn')}
                         </button>
                     </div>
                 )}
@@ -113,7 +115,7 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus }: 
                         disabled={updating}
                         className="px-3 py-1.5 text-xs font-bold bg-white/20 hover:bg-white/30 rounded-lg transition"
                     >
-                        Cancelar
+                        {t('appointments.cancel_btn')}
                     </button>
                 )}
             </div>

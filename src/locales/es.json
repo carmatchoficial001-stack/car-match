@@ -98,7 +98,16 @@
         "no_vehicles": "No hay vehículos cerca",
         "publish": "Publicar un vehículo",
         "subtitle": "Desliza y encuentra tu carro perfecto",
-        "no_vehicles_desc": "No hay vehículos en tu zona por el momento"
+        "no_vehicles_desc": "No hay vehículos en tu zona por el momento",
+        "business_badge": "Negocio MapStore",
+        "view_more": "Ver más",
+        "seen_all_title": "¡Has visto todo en esta zona!",
+        "seen_all_desc": "Expande tu búsqueda para descubrir más vehículos y negocios cercanos",
+        "expand_btn": "Expandir Búsqueda",
+        "like_btn": "Me Gusta",
+        "nope_btn": "Pasar",
+        "overlay_like": "LIKE",
+        "overlay_nope": "NOPE"
     },
     "market": {
         "filters_label": "Filtros",
@@ -1018,8 +1027,55 @@
             "mi": "mi",
             "prices": {
                 "placeholder_min": "$0",
-                "placeholder_max": "$Max"
+                "placeholder_max": "$Máx"
             }
         }
+    },
+    "settings": {
+        "title": "Configuración",
+        "select_language": "Seleccionar Idioma",
+        "preferences_help": "Preferencias y Ayuda",
+        "push_notifications": "Notificaciones Push",
+        "push_active": "Las notificaciones están activadas",
+        "push_inactive": "Recibe alertas de mensajes y citas",
+        "support_title": "Soporte CarMatch",
+        "support_desc": "Habla con nuestro equipo y asesores",
+        "account_section": "Cuenta",
+        "logout": "Cerrar Sesión",
+        "logout_desc": "Cerrar sesión de forma segura",
+        "activate": "Activar"
+    },
+    "sos": {
+        "banner_title": "Misión Segura Activa",
+        "banner_desc": "Monitoreo GPS y botón SOS habilitados",
+        "end_meeting": "Terminar Reunión",
+        "btn": "SOS",
+        "cancel": "CANCELAR",
+        "checkin_title": "¿Todo bien en la negociación?",
+        "checkin_subtitle": "Cita Segura CarMatch",
+        "checkin_ok": "SÍ, TODO BIEN",
+        "checkin_finished": "YA TERMINÓ LA NEGOCIACIÓN",
+        "checkin_emergency": "🚨 SOS / EMERGENCIA",
+        "emergency_modal_title": "🚨 EMERGENCIA - LOCALIZACIÓN REAL",
+        "detecting_location": "Intentando obtener ubicación exacta...",
+        "trusted_contact_notified": "Contacto de Confianza Notificado",
+        "authorities_info": "Información para Autoridades (911):",
+        "counterpart": "Contraparte",
+        "tracking_id": "ID Rastreo",
+        "coordinates": "Coordenadas Exactas",
+        "call_911": "📞 LLAMAR A LA POLICÍA (911)",
+        "location_not_found": "Intentando obtener ubicación exacta..."
+    },
+    "appointments": {
+        "proposal_title": "Propuesta de Cita",
+        "status_label": "Estado",
+        "pending": "Pendiente",
+        "accepted": "Confirmada",
+        "rejected": "Rechazada",
+        "cancelled": "Cancelada",
+        "completed": "Finalizada",
+        "accept_btn": "Aceptar",
+        "reject_btn": "Rechazar",
+        "cancel_btn": "Cancelar"
     }
 }

@@ -7,6 +7,7 @@ import ContactButton from './ContactButton'
 import ShareButton from './ShareButton'
 import ReportImageButton from './ReportImageButton'
 import { formatPrice } from '@/lib/vehicleTaxonomy'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface FeedItem {
     id: string
@@ -37,6 +38,7 @@ interface SwipeCardProps {
 }
 
 function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
+    const { t } = useLanguage()
     const x = useMotionValue(0)
     const rotate = useTransform(x, [-200, 200], [-25, 25])
     const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0])
@@ -99,7 +101,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     {isBusiness && (
                         <div className="absolute top-4 left-4 z-30 px-3 py-1 bg-primary-600 text-white text-[10px] font-bold rounded-full shadow-lg flex items-center gap-1 uppercase tracking-widest">
                             <MapPin size={10} />
-                            Negocio MapStore
+                            {t('swipe.business_badge')}
                         </div>
                     )}
 
@@ -116,7 +118,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                         style={{ opacity: useTransform(x, [0, 100], [0, 1]) }}
                     >
                         <div className="px-6 py-3 bg-green-500 text-white rounded-2xl font-bold text-2xl rotate-12 border-4 border-white shadow-xl">
-                            LIKE
+                            {t('swipe.overlay_like')}
                         </div>
                     </motion.div>
 
@@ -125,7 +127,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                         style={{ opacity: useTransform(x, [-100, 0], [1, 0]) }}
                     >
                         <div className="px-6 py-3 bg-red-500 text-white rounded-2xl font-bold text-2xl -rotate-12 border-4 border-white shadow-xl">
-                            NOPE
+                            {t('swipe.overlay_nope')}
                         </div>
                     </motion.div>
                 </div>
@@ -185,7 +187,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                             onPointerDown={(e) => e.stopPropagation()}
                             className="text-lg font-bold text-primary-500 hover:text-primary-400 transition flex items-center gap-1"
                         >
-                            Ver más &rarr;
+                            {t('swipe.view_more')} &rarr;
                         </Link>
                     </div>
 
@@ -197,7 +199,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                             className="flex items-center justify-center gap-2 py-3 rounded-xl bg-surface-highlight border-2 border-surface-highlight text-red-400 font-bold text-lg hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 shadow-sm"
                         >
                             <X size={24} />
-                            <span>Pasar</span>
+                            <span>{t('swipe.nope_btn')}</span>
                         </button>
                         <button
                             onPointerDown={(e) => e.stopPropagation()}
@@ -205,7 +207,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                             className="flex items-center justify-center gap-2 py-3 rounded-xl bg-primary-600 text-white font-bold text-lg hover:bg-primary-500 transition-all active:scale-95 shadow-lg shadow-primary-900/20"
                         >
                             <ThumbsUp size={24} />
-                            <span>Me Gusta</span>
+                            <span>{t('swipe.like_btn')}</span>
                         </button>
                     </div>
                 </div>
@@ -222,6 +224,7 @@ interface SwipeFeedProps {
 }
 
 export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: SwipeFeedProps) {
+    const { t } = useLanguage()
     const [isSwiping, setIsSwiping] = useState(false)
     const [exitX, setExitX] = useState<number | undefined>(undefined)
 
@@ -256,10 +259,10 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
                     </svg>
                 </div>
                 <h2 className="text-2xl font-bold text-text-primary mb-3">
-                    ¡Has visto todo en esta zona!
+                    {t('swipe.seen_all_title')}
                 </h2>
                 <p className="text-text-secondary mb-8 max-w-md">
-                    Expande tu búsqueda para descubrir más vehículos y negocios cercanos
+                    {t('swipe.seen_all_desc')}
                 </p>
                 <button
                     onClick={onNeedMore}
@@ -268,7 +271,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    Expandir Búsqueda
+                    {t('swipe.expand_btn')}
                 </button>
             </div>
         )

@@ -83,7 +83,16 @@
         "no_vehicles": "Không có xe nào gần đây",
         "publish": "Đăng tin bán xe",
         "subtitle": "Vuốt để tìm chiếc xe mơ ước của bạn",
-        "no_vehicles_desc": "Hiện tại không có tin đăng nào trong khu vực của bạn"
+        "no_vehicles_desc": "Hiện tại không có tin đăng nào trong khu vực của bạn",
+        "business_badge": "MapStore Business",
+        "view_more": "View more",
+        "seen_all_title": "You've seen everything in this area!",
+        "seen_all_desc": "Expand your search to discover more vehicles and nearby businesses",
+        "expand_btn": "Expand Search",
+        "like_btn": "Like",
+        "nope_btn": "Pass",
+        "overlay_like": "LIKE",
+        "overlay_nope": "NOPE"
     },
     "market": {
         "filters_label": "Bộ lọc",
@@ -261,7 +270,9 @@
             "location_not_selected": "Chưa chọn vị trí",
             "country": "Quốc gia",
             "state": "Bang / Tỉnh",
-            "city": "Thành phố"
+            "city": "Thành phố",
+            "traction": "Traction",
+            "passengers": "Passengers"
         },
         "placeholders": {
             "title": "VD: Toyota Corolla 2020 tình trạng xuất sắc",
@@ -341,6 +352,15 @@
             "error_gps": "Không thể truy cập GPS. Nhập thành phố thủ công.",
             "error_search": "Không tìm thấy địa điểm. Thử chỉ nhập tên thành phố.",
             "error_generic": "Lỗi khi tìm địa chỉ. Thử lại."
+        },
+        "tips": {
+            "title": "Mẹo bán hàng",
+            "honest_title": "Trung thực và chi tiết:",
+            "honest_desc": "Nêu rõ tình trạng giấy tờ và bất kỳ lỗi nào. Điều này tăng sự tin tưởng của người mua.",
+            "safety_title": "Địa điểm gặp gỡ:",
+            "safety_desc": "Chỉ kiểm tra xe và giấy tờ ở những nơi công cộng an toàn.",
+            "transparency_title": "Minh bạch:",
+            "transparency_desc": "Mô tả chi tiết lịch sử bảo dưỡng giúp bán xe nhanh hơn."
         }
     },
     "profile": {
@@ -1046,5 +1066,52 @@
                 "placeholder_max": "Max"
             }
         }
+    },
+    "settings": {
+        "title": "Settings",
+        "select_language": "Select Language",
+        "preferences_help": "Preferences and Help",
+        "push_notifications": "Push Notifications",
+        "push_active": "Notifications are enabled",
+        "push_inactive": "Receive alerts for messages and appointments",
+        "support_title": "CarMatch Support",
+        "support_desc": "Talk to our team and advisors",
+        "account_section": "Account",
+        "logout": "Log Out",
+        "logout_desc": "Log out safely",
+        "activate": "Activate"
+    },
+    "sos": {
+        "banner_title": "Safe Mission Active",
+        "banner_desc": "GPS monitoring and SOS button enabled",
+        "end_meeting": "End Meeting",
+        "btn": "SOS",
+        "cancel": "CANCEL",
+        "checkin_title": "Everything okay with the negotiation?",
+        "checkin_subtitle": "CarMatch Safe Meeting",
+        "checkin_ok": "YES, EVERYTHING OK",
+        "checkin_finished": "NEGOTIATION FINISHED",
+        "checkin_emergency": "🚨 SOS / EMERGENCY",
+        "emergency_modal_title": "🚨 EMERGENCY - LIVE LOCATION",
+        "detecting_location": "Trying to get exact location...",
+        "trusted_contact_notified": "Trusted Contact Notified",
+        "authorities_info": "Information for Authorities (911):",
+        "counterpart": "Counterpart",
+        "tracking_id": "Tracking ID",
+        "coordinates": "Exact Coordinates",
+        "call_911": "📞 CALL POLICE (911)",
+        "location_not_found": "Trying to get exact location..."
+    },
+    "appointments": {
+        "proposal_title": "Appointment Proposal",
+        "status_label": "Status",
+        "pending": "Pending",
+        "accepted": "Confirmed",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "completed": "Completed",
+        "accept_btn": "Accept",
+        "reject_btn": "Reject",
+        "cancel_btn": "Cancel"
     }
 }

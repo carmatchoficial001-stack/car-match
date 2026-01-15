@@ -83,7 +83,16 @@
         "no_vehicles": "近くに車両がありません",
         "publish": "車両を出品する",
         "subtitle": "スワイプして理想の車を見つけよう",
-        "no_vehicles_desc": "現在お住まいの地域に車両はありません"
+        "no_vehicles_desc": "現在お住まいの地域に車両はありません",
+        "business_badge": "MapStore Business",
+        "view_more": "View more",
+        "seen_all_title": "You've seen everything in this area!",
+        "seen_all_desc": "Expand your search to discover more vehicles and nearby businesses",
+        "expand_btn": "Expand Search",
+        "like_btn": "Like",
+        "nope_btn": "Pass",
+        "overlay_like": "LIKE",
+        "overlay_nope": "NOPE"
     },
     "market": {
         "filters_label": "フィルター",
@@ -261,7 +270,9 @@
             "location_not_selected": "場所が選択されていません",
             "country": "国",
             "state": "都道府県・地域",
-            "city": "市区町村"
+            "city": "市区町村",
+            "traction": "Traction",
+            "passengers": "Passengers"
         },
         "placeholders": {
             "title": "例: 2020年式 トヨタ カローラ 状態良好",
@@ -341,6 +352,15 @@
             "error_gps": "位置情報を取得できませんでした。手動で市区町村を入力してください。",
             "error_search": "正確な場所が見つかりませんでした。より簡潔なワードで試してください。",
             "error_generic": "場所の検索中にエラーが発生しました。もう一度お試しください。"
+        },
+        "tips": {
+            "title": "出品のコツ",
+            "honest_title": "誠実さと詳細さ:",
+            "honest_desc": "書類や税金の状況、事故歴、不具合などを正確に記載してください。信頼につながります。",
+            "safety_title": "面会の場所:",
+            "safety_desc": "書類の確認や現車確認は、安全な公共の場所で行うことをお勧めします。",
+            "transparency_title": "透明性:",
+            "transparency_desc": "メンテンナンス履歴を詳しく書くことで、成約しやすくなります。"
         }
     },
     "profile": {
@@ -1046,5 +1066,52 @@
                 "placeholder_max": "￥上限なし"
             }
         }
+    },
+    "settings": {
+        "title": "Settings",
+        "select_language": "Select Language",
+        "preferences_help": "Preferences and Help",
+        "push_notifications": "Push Notifications",
+        "push_active": "Notifications are enabled",
+        "push_inactive": "Receive alerts for messages and appointments",
+        "support_title": "CarMatch Support",
+        "support_desc": "Talk to our team and advisors",
+        "account_section": "Account",
+        "logout": "Log Out",
+        "logout_desc": "Log out safely",
+        "activate": "Activate"
+    },
+    "sos": {
+        "banner_title": "Safe Mission Active",
+        "banner_desc": "GPS monitoring and SOS button enabled",
+        "end_meeting": "End Meeting",
+        "btn": "SOS",
+        "cancel": "CANCEL",
+        "checkin_title": "Everything okay with the negotiation?",
+        "checkin_subtitle": "CarMatch Safe Meeting",
+        "checkin_ok": "YES, EVERYTHING OK",
+        "checkin_finished": "NEGOTIATION FINISHED",
+        "checkin_emergency": "🚨 SOS / EMERGENCY",
+        "emergency_modal_title": "🚨 EMERGENCY - LIVE LOCATION",
+        "detecting_location": "Trying to get exact location...",
+        "trusted_contact_notified": "Trusted Contact Notified",
+        "authorities_info": "Information for Authorities (911):",
+        "counterpart": "Counterpart",
+        "tracking_id": "Tracking ID",
+        "coordinates": "Exact Coordinates",
+        "call_911": "📞 CALL POLICE (911)",
+        "location_not_found": "Trying to get exact location..."
+    },
+    "appointments": {
+        "proposal_title": "Appointment Proposal",
+        "status_label": "Status",
+        "pending": "Pending",
+        "accepted": "Confirmed",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "completed": "Completed",
+        "accept_btn": "Accept",
+        "reject_btn": "Reject",
+        "cancel_btn": "Cancel"
     }
 }
