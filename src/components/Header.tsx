@@ -476,7 +476,7 @@ export default function Header() {
                                                     </div>
 
                                                     <button
-                                                        onClick={() => setShowMenu(showMenu === 'lang_inner' ? 'user' : 'lang_inner')}
+                                                        onClick={() => setShowMenu(prev => prev === 'lang_inner' ? 'user' : 'lang_inner')}
                                                         className="flex items-center justify-between gap-3 px-4 py-3 text-text-primary hover:bg-surface-highlight transition w-full"
                                                     >
                                                         <div className="flex items-center gap-3">
