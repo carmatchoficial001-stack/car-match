@@ -332,7 +332,6 @@ export default function AdminDashboard() {
 }
 
 function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) {
-    const { t } = useLanguage()
     return (
         <div className="space-y-8">
             {/* Top Grid: Financials & Heatmap */}
@@ -366,7 +365,7 @@ function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) 
                                 <h4 className="text-xs font-black uppercase tracking-widest text-text-secondary">Crecimiento Usuarios</h4>
                                 <span className="text-[10px] font-bold text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">+12% Mes</span>
                             </div>
-                            <h3 className="text-3xl font-black italic tracking-tighter text-white">{formatNumber(stats.users.total, 'es')}</h3>
+                            <h3 className="text-3xl font-black italic tracking-tighter text-white">{stats.users.total.toLocaleString('es-MX')}</h3>
                         </div>
                         <div className="flex-1 mt-2">
                             <SimpleLineChart data={stats.users.growth || [10, 20, 15, 30, 40]} color="#3b82f6" height={80} />
@@ -380,7 +379,7 @@ function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) 
                                 <h4 className="text-xs font-black uppercase tracking-widest text-text-secondary">Ventas Totales (Est.)</h4>
                                 <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">+24% Mes</span>
                             </div>
-                            <h3 className="text-3xl font-black italic tracking-tighter text-white">${formatNumber(stats.financials?.totalRevenue || 0, 'es')}</h3>
+                            <h3 className="text-3xl font-black italic tracking-tighter text-white">${(stats.financials?.totalRevenue || 0).toLocaleString('es-MX')}</h3>
                         </div>
                         <div className="flex-1 mt-2">
                             <SimpleLineChart data={stats.financials?.revenue || [100, 120, 180, 220, 300]} color="#10b981" height={80} />
@@ -391,7 +390,7 @@ function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) 
 
             {/* Quick Stats Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard2 icon={Car} label={t('admin.inventory')} value={stats.vehicles.active} trend="+5%" color="purple" simple />
+                <StatCard2 icon={Car} label="Inventario" value={stats.vehicles.active} trend="+5%" color="purple" simple />
                 <StatCard2 icon={Activity} label="Citas Activas" value={stats.appointments.active} trend="+8%" color="green" simple />
                 <StatCard2 icon={Store} label="Negocios" value={stats.businesses.total} trend="Nuevo" color="blue" simple />
                 <StatCard2 icon={Flag} label="Reportes" value={stats.reports.filter((r: any) => r.status === 'PENDING').length} trend="Atención" color="red" simple />
@@ -508,7 +507,7 @@ function StatCard2({ icon: Icon, label, value, trend, color, simple }: any) {
             </div>
             <div>
                 <p className="text-text-secondary text-[10px] font-medium uppercase tracking-widest mb-1 truncate">{label}</p>
-                <h4 className="text-2xl font-black italic tracking-tighter">{formatNumber(value, 'es')}</h4>
+                <h4 className="text-2xl font-black italic tracking-tighter">{value.toLocaleString('es-MX')}</h4>
             </div>
         </div>
     )
@@ -654,7 +653,9 @@ function InventoryTab({ vehicles }: { vehicles: any[] }) {
                                 </div>
                             </td>
                             <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.user.name}</td>
-                            <td className="px-6 py-4 text-sm font-bold text-primary-400">{formatPrice(vehicle.price, vehicle.currency || 'MXN', 'es')}</td>
+                            <td className="px-6 py-4 text-sm font-bold text-primary-400">
+                                {Number(vehicle.price).toLocaleString('es-MX', { style: 'currency', currency: vehicle.currency || 'MXN' })}
+                            </td>
                             <td className="px-6 py-4">
                                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
                                     }`}>
