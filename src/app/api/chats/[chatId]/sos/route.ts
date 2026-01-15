@@ -21,7 +21,8 @@ export async function POST(
             where: { id: chatId },
             include: {
                 buyer: { include: { trustedContact: true } },
-                seller: { include: { trustedContact: true } }
+                seller: { include: { trustedContact: true } },
+                vehicle: { select: { title: true } }
             }
         })
 
