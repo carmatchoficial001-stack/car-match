@@ -19,6 +19,7 @@ export const authConfig: NextAuthConfig = {
         Twitter({
             clientId: process.env.TWITTER_CLIENT_ID || process.env.AUTH_TWITTER_ID,
             clientSecret: process.env.TWITTER_CLIENT_SECRET || process.env.AUTH_TWITTER_SECRET,
+            allowDangerousEmailAccountLinking: true,
         }),
     ],
     pages: {
