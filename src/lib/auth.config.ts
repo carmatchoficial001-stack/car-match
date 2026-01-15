@@ -9,10 +9,12 @@ export const authConfig: NextAuthConfig = {
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID || process.env.AUTH_GOOGLE_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.AUTH_GOOGLE_SECRET,
+            allowDangerousEmailAccountLinking: true,
         }),
         Facebook({
             clientId: process.env.FACEBOOK_CLIENT_ID || process.env.AUTH_FACEBOOK_ID,
             clientSecret: process.env.FACEBOOK_CLIENT_SECRET || process.env.AUTH_FACEBOOK_SECRET,
+            allowDangerousEmailAccountLinking: true,
         }),
         Twitter({
             clientId: process.env.TWITTER_CLIENT_ID || process.env.AUTH_TWITTER_ID,
