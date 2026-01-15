@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Image from 'next/image'
+import { motion, AnimatePresence } from 'framer-motion'
+import { X, MapPin } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
 
 interface Business {
@@ -35,6 +37,7 @@ export default function MapBoxStoreLocator({
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<mapboxgl.Map | null>(null)
     const [previewBusiness, setPreviewBusiness] = useState<any>(null)
+    const [mapLoaded, setMapLoaded] = useState(false)
 
     // Default: Monterrey (Fallback)
     const DEFAULT_LAT = 25.6866
