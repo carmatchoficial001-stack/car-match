@@ -130,6 +130,7 @@ export async function GET(
         }
 
         const { chatId } = await params
+        console.log(`[DEBUG API] GET /api/chats/${chatId}/messages. Session user: ${user.id}`)
 
         // Verificar que el chat existe y el usuario es parte de él
         const chat = await prisma.chat.findUnique({
@@ -174,6 +175,8 @@ export async function GET(
                 sender: messages.find(m => m.senderId === a.proposerId)?.sender || { id: a.proposerId, name: 'Usuario', image: null }
             }))
         ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+
+        console.log(`[API GET Messages] Chat: ${chatId}, Found: ${messages.length} msgs, ${appointments.length} apps. Total: ${timeline.length}`)
 
         // Marcar mensajes como leídos
         await prisma.message.updateMany({

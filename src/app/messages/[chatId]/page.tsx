@@ -163,10 +163,14 @@ export default function ChatPage({ params }: { params: Promise<{ chatId: string 
             const res = await fetch(`/api/chats/${chatId}/messages`)
             if (res.ok) {
                 const data = await res.json()
+                console.log('[DEBUG CHAT] Raw data from API:', data)
                 const uniqueMessages = Array.from(
                     new Map<string, Message>(data.map((m: Message) => [m.id, m])).values()
                 )
+                console.log('[DEBUG CHAT] Processed unique messages:', uniqueMessages.length)
                 setMessages(uniqueMessages)
+            } else {
+                console.error('[DEBUG CHAT] API Error:', res.status, res.statusText)
             }
         } catch (error) {
             console.error('Error al cargar mensajes:', error)
