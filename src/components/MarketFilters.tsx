@@ -15,6 +15,9 @@ import {
     VehicleCategory
 } from '@/lib/vehicleTaxonomy'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useLocation } from '@/contexts/LocationContext'
+import { searchCities, LocationData } from '@/lib/geolocation'
+import { MapPin, Search, Loader2 } from 'lucide-react'
 
 interface MarketFiltersAdvancedProps {
     currentFilters: any
@@ -34,6 +37,7 @@ export default function MarketFiltersAdvanced({
     userCity = ''
 }: MarketFiltersAdvancedProps) {
     const { t } = useLanguage()
+    const { setManualLocation } = useLocation()
     const router = useRouter()
     const searchParams = useSearchParams()
     const availableYears = getYears()
@@ -54,6 +58,54 @@ export default function MarketFiltersAdvanced({
     const [country, setCountry] = useState(currentFilters.country || userCountry)
     const [state, setState] = useState(currentFilters.state || userState)
     const [city, setCity] = useState(currentFilters.city || userCity)
+
+    // 📍 Location Search State
+    const [locationInput, setLocationInput] = useState(currentFilters.city || userCity || '')
+    const [isSearchingLocation, setIsSearchingLocation] = useState(false)
+    const [locationCandidates, setLocationCandidates] = useState<LocationData[]>([])
+    const [showCandidates, setShowCandidates] = useState(false)
+    const [locationError, setLocationError] = useState<string | null>(null)
+
+    const handleLocationSearch = async (e?: React.FormEvent) => {
+        e?.preventDefault()
+        if (!locationInput.trim() || isSearchingLocation) return
+
+        setIsSearchingLocation(true)
+        setLocationError(null)
+        setShowCandidates(false)
+        setLocationCandidates([])
+
+        try {
+            const results = await searchCities(locationInput)
+            if (results && results.length > 0) {
+                if (results.length === 1) {
+                    selectLocation(results[0])
+                } else {
+                    setLocationCandidates(results)
+                    setShowCandidates(true)
+                }
+            } else {
+                setLocationError('No encontramos esa ciudad.')
+            }
+        } catch (error) {
+            setLocationError('Error al buscar.')
+        } finally {
+            setIsSearchingLocation(false)
+        }
+    }
+
+    const selectLocation = (loc: LocationData) => {
+        setCountry(loc.country)
+        setState(loc.state)
+        setCity(loc.city)
+        setLocationInput(`${loc.city}, ${loc.state}`)
+
+        // Update Global Context
+        setManualLocation(loc)
+
+        setShowCandidates(false)
+        setLocationCandidates([])
+    }
 
     // Técnicos
     const [transmission, setTransmission] = useState<string[]>(currentFilters.transmission ? currentFilters.transmission.split(',') : [])
@@ -259,6 +311,64 @@ export default function MarketFiltersAdvanced({
             <div className="flex items-center justify-between mb-2">
                 <h2 className="text-lg font-bold text-text-primary">{t('market.filters.title')}</h2>
                 <button onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
+            </div>
+
+            {/* 📍 NEW LOCATION SEARCH BAR */}
+            <div className="relative">
+                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
+                    Ubicación ({t('common.city')})
+                </label>
+                <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-500">
+                        <MapPin size={18} />
+                    </div>
+                    <input
+                        type="text"
+                        value={locationInput}
+                        onChange={(e) => {
+                            setLocationInput(e.target.value)
+                            setShowCandidates(false)
+                        }}
+                        onKeyDown={(e) => e.key === 'Enter' && handleLocationSearch(e)}
+                        placeholder="Ciudad o Código Postal..."
+                        className="w-full h-12 pl-10 pr-12 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-500 transition-colors"
+                    />
+                    <button
+                        onClick={handleLocationSearch}
+                        disabled={isSearchingLocation}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-primary-500/10 hover:bg-primary-500/20 text-primary-500 rounded-lg transition"
+                    >
+                        {isSearchingLocation ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
+                    </button>
+                </div>
+
+                {/* Candidates Dropdown */}
+                {showCandidates && locationCandidates.length > 0 && (
+                    <div className="absolute z-50 left-0 right-0 mt-2 bg-surface border border-primary-500/30 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+                        <div className="px-3 py-2 bg-primary-900/20 border-b border-primary-500/10">
+                            <p className="text-xs font-bold text-primary-300">¿A cuál te refieres?</p>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto">
+                            {locationCandidates.map((loc, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => selectLocation(loc)}
+                                    className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors flex items-center gap-3 border-b border-white/5 last:border-0"
+                                >
+                                    <MapPin size={16} className="text-text-secondary shrink-0" />
+                                    <div>
+                                        <p className="font-bold text-sm text-text-primary">{loc.city}</p>
+                                        <p className="text-xs text-text-secondary">{loc.state}, {loc.country}</p>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {locationError && (
+                    <p className="text-xs text-red-400 mt-1">{locationError}</p>
+                )}
             </div>
 
             {/* 🧠 SMART SEARCH AI - REBRANDED TO ASESOR PERSONAL */}
