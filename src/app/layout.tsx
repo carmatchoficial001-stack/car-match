@@ -40,6 +40,8 @@ export const viewport: Viewport = {
     interactiveWidget: "resizes-content",
 };
 
+import PushNotificationRequest from "@/components/PushNotificationRequest";
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -49,6 +51,7 @@ export default function RootLayout({
         <html lang="es" className="dark" style={{ colorScheme: 'dark' }}>
             <body className={`${inter.className} min-h-screen-safe overflow-x-hidden bg-[#0f172a]`}>
                 <Providers>
+                    <PushNotificationRequest />
                     <OpenInBrowserBanner />
                     <ResponsiveViewportFix />
                     <main className="min-h-screen-safe">

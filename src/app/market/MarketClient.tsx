@@ -118,7 +118,7 @@ export default function MarketClient({
 
     // Modal UI State
     const [showLocationModal, setShowLocationModal] = useState(false)
-    const [showLocationModal, setShowLocationModal] = useState(false)
+
     const [locationInput, setLocationInput] = useState('')
 
     // 🆕 Candidate List State
