@@ -79,8 +79,8 @@ export default function GlobalAddressSearch({ onSelect, proximity }: GlobalAddre
             const params = new URLSearchParams({
                 access_token: token,
                 types: 'address,poi,place,locality',
-                language: locale === 'es' ? 'es' : 'en', // Basic mapping for now
-                limit: '5'
+                language: locale === 'es' ? 'es' : 'en',
+                limit: '10' // Increased limit for better sorting pool
             })
 
             // Add proximity biasing if available to prefer local results
@@ -92,7 +92,33 @@ export default function GlobalAddressSearch({ onSelect, proximity }: GlobalAddre
             const data = await res.json()
 
             if (data.features) {
-                setSuggestions(data.features)
+                let processedFeatures = data.features
+
+                // 🔥 SUPER-INTELLIGENT SORTING: Re-order by physical distance if proximity is known
+                if (proximity) {
+                    const R = 6371 // Earth radius in km
+                    const toRad = (deg: number) => deg * (Math.PI / 180)
+
+                    processedFeatures = [...data.features].sort((a: any, b: any) => {
+                        const dist = (pt: [number, number]) => {
+                            const [lng2, lat2] = pt
+                            const dLat = toRad(lat2 - proximity.lat)
+                            const dLon = toRad(lng2 - proximity.lng)
+                            const x = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                                Math.cos(toRad(proximity.lat)) * Math.cos(toRad(lat2)) *
+                                Math.sin(dLon / 2) * Math.sin(dLon / 2)
+                            const c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x))
+                            return R * c
+                        }
+
+                        const distA = dist(a.center)
+                        const distB = dist(b.center)
+
+                        return distA - distB
+                    })
+                }
+
+                setSuggestions(processedFeatures)
                 setIsOpen(true)
             }
         } catch (error) {
