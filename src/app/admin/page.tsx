@@ -138,6 +138,18 @@ export default function AdminDashboard() {
         }
     }
 
+    // Mobile Responsive Logic - Moved up to avoid hook rule violation
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768) setIsSidebarOpen(false)
+            else setIsSidebarOpen(true)
+        }
+        // Initial check
+        handleResize()
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
     if (loading) {
         return (
             <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center">
@@ -161,18 +173,6 @@ export default function AdminDashboard() {
         { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports.filter(r => r.status === 'PENDING').length },
         { id: 'logs', icon: Terminal, label: 'Registros' },
     ]
-
-    // Mobile Responsive Logic
-    useEffect(() => {
-        const handleResize = () => {
-            if (window.innerWidth < 768) setIsSidebarOpen(false)
-            else setIsSidebarOpen(true)
-        }
-        // Initial check
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
 
     return (
         <div className="min-h-screen bg-[#0c0c0e] text-text-primary flex relative overflow-hidden">
