@@ -577,6 +577,7 @@ export default function MyBusinessesClient() {
                                             🔍 Buscar Ubicación Exacta
                                         </label>
                                         <GlobalAddressSearch
+                                            proximity={viewCenter}
                                             onSelect={(data) => {
                                                 setLatitude(data.latitude)
                                                 setLongitude(data.longitude)

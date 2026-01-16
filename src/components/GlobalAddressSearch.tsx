@@ -24,9 +24,13 @@ interface GlobalAddressSearchProps {
         state: string
         fullAddress: string
     }) => void
+    proximity?: {
+        lat: number
+        lng: number
+    } | null
 }
 
-export default function GlobalAddressSearch({ onSelect }: GlobalAddressSearchProps) {
+export default function GlobalAddressSearch({ onSelect, proximity }: GlobalAddressSearchProps) {
     const { t, locale } = useLanguage()
     const [query, setQuery] = useState('')
     const [suggestions, setSuggestions] = useState<Suggestion[]>([])
@@ -78,6 +82,11 @@ export default function GlobalAddressSearch({ onSelect }: GlobalAddressSearchPro
                 language: locale === 'es' ? 'es' : 'en', // Basic mapping for now
                 limit: '5'
             })
+
+            // Add proximity biasing if available to prefer local results
+            if (proximity) {
+                params.append('proximity', `${proximity.lng},${proximity.lat}`)
+            }
 
             const res = await fetch(`${endpoint}?${params.toString()}`)
             const data = await res.json()
