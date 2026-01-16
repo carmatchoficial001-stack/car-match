@@ -52,9 +52,10 @@ export async function GET(request: NextRequest) {
             if (mapboxToken) {
                 try {
                     const searchWithMapbox = async (q: string) => {
-                        // 🔒 STRICT MODE: Solo Ciudades, Estados, Países y Códigos Postales.
-                        // Se eliminaron 'district' y 'locality' porque a veces devolvían colonias.
-                        let mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${mapboxToken}&language=es&limit=${limit}&types=country,region,place,postcode`
+                        // 🔒 STRICT MODE: Priorizamos Ciudades (place), Localidades (locality) y Distritos (district - como Alcaldías)
+                        // 'postcode' se añade para búsquedas directas de CP.
+                        // 'neighborhood' se OMITE explícitamente para evitar colonias.
+                        let mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${mapboxToken}&language=es&limit=${limit}&types=country,region,district,place,locality,postcode`
 
                         if (biasLat && biasLng) mapboxUrl += `&proximity=${biasLng},${biasLat}`
                         const mbRes = await fetch(mapboxUrl)
@@ -76,7 +77,11 @@ export async function GET(request: NextRequest) {
                         if (limit > 1) {
                             return NextResponse.json(features.map((f: any) => {
                                 const context = f.context || []
-                                const city = context.find((c: any) => c.id.startsWith('place'))?.text || f.text
+                                const city = f.place_type.includes('place') ? f.text :
+                                    (context.find((c: any) => c.id.startsWith('place'))?.text ||
+                                        context.find((c: any) => c.id.startsWith('locality'))?.text ||
+                                        context.find((c: any) => c.id.startsWith('district'))?.text || f.text)
+
                                 const state = context.find((c: any) => c.id.startsWith('region'))?.text || ''
                                 const country = context.find((c: any) => c.id.startsWith('country'))?.text || ''
                                 const countryCode = context.find((c: any) => c.id.startsWith('country'))?.short_code?.toUpperCase() || ''
@@ -95,7 +100,11 @@ export async function GET(request: NextRequest) {
 
                         const f = features[0]
                         const context = f.context || []
-                        const city = context.find((c: any) => c.id.startsWith('place'))?.text || f.text
+                        const city = f.place_type.includes('place') ? f.text :
+                            (context.find((c: any) => c.id.startsWith('place'))?.text ||
+                                context.find((c: any) => c.id.startsWith('locality'))?.text ||
+                                context.find((c: any) => c.id.startsWith('district'))?.text || f.text)
+
                         const state = context.find((c: any) => c.id.startsWith('region'))?.text || ''
                         const country = context.find((c: any) => c.id.startsWith('country'))?.text || ''
                         const countryCode = context.find((c: any) => c.id.startsWith('country'))?.short_code?.toUpperCase() || ''
@@ -139,7 +148,7 @@ export async function GET(request: NextRequest) {
                             // 🛡️ ACTUALIZADO: Filtro Estricto para Nomad
                             // Eliminamos barrios, villas pequeñas si se confunden, y resultados que no sean place/boundary
                             const type = f.addresstype || f.type
-                            const allowed = ['city', 'town', 'municipality', 'administrative', 'state', 'country']
+                            const allowed = ['city', 'town', 'municipality', 'administrative', 'state', 'country', 'village', 'county', 'district', 'borough']
                             return allowed.includes(type)
                         })
                         .map((f: any) => ({
