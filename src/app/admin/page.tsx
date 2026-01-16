@@ -315,6 +315,7 @@ export default function AdminDashboard() {
                             {activeView === 'users' && <UsersTab users={stats.users.recent} />}
                             {activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} />}
                             {activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} />}
+                            {activeView === 'ai-hub' && <AiHubTab />}
                             {activeView === 'reports' && <ReportsTab reports={stats.reports} />}
                             {activeView === 'logs' && <LogsTab logs={stats.logs} />}
                         </motion.div>

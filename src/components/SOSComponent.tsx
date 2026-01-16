@@ -55,9 +55,9 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
             })
         }
 
-        // Send immediately and then every 30s
+        // Send immediately and then every 10s for real-time tracking
         sendLocation()
-        const interval = setInterval(sendLocation, 30000)
+        const interval = setInterval(sendLocation, 10000)
 
         // Check-in timer (20 mins)
         const startCheckInTimer = () => {
@@ -111,7 +111,7 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
 
         try {
             // Send SOS alert to backend (this would notify trusted contact)
-            await fetch(`/api/chats/${chatId}/sos`, {
+            const sosResponse = await fetch(`/api/chats/${chatId}/sos`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -120,6 +120,14 @@ export default function SOSComponent({ isActive, otherUserId, onEndMeeting, chat
                     longitude: 0
                 })
             })
+
+            if (sosResponse.ok) {
+                const sosData = await sosResponse.json()
+                // Redirigir a la página de emergencia en tiempo real
+                if (sosData.alertId) {
+                    window.location.href = `/emergency/${sosData.alertId}`
+                }
+            }
 
             const res = await fetch(`/api/user/location?targetId=${otherUserId}`)
             if (res.ok) {

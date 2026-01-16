@@ -71,7 +71,8 @@ export async function POST(request: Request) {
         await sendPushToUser(receiverId, {
             title: '📅 Nueva propuesta de reunión',
             body: `${session.user.name} propuso: ${location} el ${new Date(date).toLocaleDateString()}`,
-            url: `/messages/${chatId}`
+            url: `/messages/${chatId}`,
+            tag: `appointment-${appointment.id}`
         })
 
         // Notificar en el chat (mensaje de sistema opcional o dejar que la UI lo maneje)

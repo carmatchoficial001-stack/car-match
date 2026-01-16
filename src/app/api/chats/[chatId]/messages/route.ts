@@ -99,7 +99,8 @@ export async function POST(
             title: `Mensaje de ${user.name}`,
             body: content.length > 50 ? content.substring(0, 47) + '...' : content,
             url: `/messages/${chatId}`,
-            icon: user.image || undefined
+            icon: user.image || undefined,
+            tag: `message-${message.id}`
         })
 
         return NextResponse.json(message)

@@ -14,6 +14,9 @@ interface PushPayload {
     body: string
     url?: string
     icon?: string
+    tag?: string
+    renotify?: boolean
+    requireInteraction?: boolean
 }
 
 export async function sendPushNotification(subscription: any, payload: PushPayload) {

@@ -59,7 +59,8 @@ export async function PUT(
         await sendPushToUser(receiverId, {
             title: `${statusIcon} Cita ${statusLabel}`,
             body: `${session.user.name} ha ${statusLabel} tu propuesta de reunión.`,
-            url: `/messages/${appointment.chatId}`
+            url: `/messages/${appointment.chatId}`,
+            tag: `appointment-update-${id}`
         })
 
         return NextResponse.json(appointment)

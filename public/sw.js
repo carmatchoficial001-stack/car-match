@@ -21,9 +21,9 @@ self.addEventListener('push', function (event) {
 
             const options = {
                 body: data.body,
-                icon: data.icon || '/icon.png',
-                badge: '/icon.png',
-                vibrate: isSafetyCheck ? [500, 100, 500, 100, 500] : [100, 50, 100],
+                icon: data.icon || '/icon-192-v18.png',
+                badge: '/icon-192-v18.png',
+                vibrate: data.vibrate || (isSafetyCheck ? [500, 100, 500, 100, 500] : [100, 50, 100]),
                 data: {
                     dateOfArrival: Date.now(),
                     url: data.url || '/',
@@ -36,12 +36,12 @@ self.addEventListener('push', function (event) {
                 ] : [
                     { action: 'explore', title: 'Ver Ahora' }
                 ],
-                tag: data.tag || 'carmatch-notification',
-                renotify: true,
-                requireInteraction: isSafetyCheck
+                tag: data.tag || (isSafetyCheck ? 'safety-check' : 'carmatch-notification'),
+                renotify: data.renotify !== undefined ? data.renotify : true,
+                requireInteraction: data.requireInteraction !== undefined ? data.requireInteraction : isSafetyCheck
             }
             event.waitUntil(
-                self.registration.showNotification(data.title, options)
+                self.registration.showNotification(data.title || 'CarMatch', options)
             )
         } catch (e) {
             console.error('Error parseando push data:', e)

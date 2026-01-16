@@ -33,69 +33,54 @@ export async function POST(
         const otherUser = isBuyer ? chat.seller : chat.buyer
         const trustedContact = user.trustedContact
 
-        // 0. Verificar si ya hay una emergencia activa para esta cita
-        if (appointmentId) {
-            const appointment = await prisma.appointment.findUnique({
-                where: { id: appointmentId }
-            })
-            if (appointment?.status === 'EMERGENCY') {
-                return NextResponse.json({
-                    success: false,
-                    message: 'Ya hay una alerta SOS activa para esta cita. El protocolo ya ha sido iniciado.'
-                }, { status: 409 }) // Conflict
+        // 0. Crear registro oficial de Alerta SOS
+        const sosAlert = await prisma.sOSAlert.create({
+            data: {
+                victimId: user.id,
+                counterpartId: otherUser.id,
+                chatId,
+                appointmentId,
+                victimLat: latitude || user.lastLatitude,
+                victimLng: longitude || user.lastLongitude,
+                counterpartLat: otherUser.lastLatitude,
+                counterpartLng: otherUser.lastLongitude,
+                status: 'ACTIVE'
             }
-        }
+        })
 
         // Log de la emergencia (Para auditoría de seguridad)
-        console.log(`🚨 SOS ACTIVADO por ${user.name} en el chat ${chatId}`)
-        if (trustedContact) {
-            console.log(`📲 Notificando a contacto de confianza: ${trustedContact.name} (${trustedContact.email})`)
-        }
+        console.log(`🚨 SOS ACTIVADO por ${user.name} en el chat ${chatId}. ID Alerta: ${sosAlert.id}`)
 
         // 1. Crear un mensaje de sistema en el chat sobre la alerta SOS
         await prisma.message.create({
             data: {
                 chatId,
                 senderId: 'SYSTEM',
-                content: `🚨 **ALERTA SOS ACTIVADA** 🚨\nEl usuario ${user.name} ha activado el protocolo de emergencia. Ubicación reportada: ${latitude}, ${longitude}. Autoridades locales y contacto de confianza han sido notificados.`,
+                content: `🚨 **ALERTA SOS ACTIVADA** 🚨\nEl usuario ${user.name} ha activado el protocolo de emergencia. Autoridades locales y contacto de confianza han sido notificados.`,
             }
         })
 
-        // 2. Enviar Push urgente al otro usuario del chat
+        // 2. Enviar Push urgente al otro usuario del chat (el potencial agresor o testigo)
         await sendPushToUser(otherUser.id, {
             title: '🚨 ALERTA DE EMERGENCIA',
             body: `${user.name} ha activado la señal SOS. SE REQUIERE INTERVENCIÓN.`,
-            url: `/messages/${chatId}`
+            url: `/messages/${chatId}`,
+            tag: `sos-alert-${sosAlert.id}`,
+            requireInteraction: true,
+            renotify: true
         })
 
-        // 3. Notificar al contacto de confianza (Simulación enriquecida)
+        // 3. Notificar al contacto de confianza con link de rastreo real
         if (trustedContact) {
-            const emergencyDetails = {
-                alertedBy: {
-                    name: user.name,
-                    image: user.image,
-                    phone: user.phone
-                },
-                otherParty: {
-                    name: otherUser.name,
-                    image: otherUser.image,
-                    phone: otherUser.phone
-                },
-                location: {
-                    lat: latitude,
-                    lng: longitude,
-                    googleMapsUrl: `https://www.google.com/maps?q=${latitude},${longitude}`
-                },
-                vehicle: chat.vehicle.title
-            }
+            const trackingUrl = `/emergency/${sosAlert.id}`
 
-            console.log(`🚨 SOS DETALLES PARA CONTACTO DE CONFIANZA (${trustedContact.name}):`, JSON.stringify(emergencyDetails, null, 2))
-
-            // Aquí se enviaría el SMS/Email real con los datos de ambos usuarios
             await sendPushToUser(trustedContact.id, {
                 title: `🆘 EMERGENCIA: ${user.name} necesita ayuda`,
-                body: `Protocolo SOS activado durante la cita por "${chat.vehicle.title}". Ubicación: ${latitude},${longitude}. Datos del otro usuario: ${otherUser.name}.`,
-                url: `/messages/${chatId}?is_emergency=true`
+                body: `Protocolo SOS activado. Pulsa para VER UBICACIÓN EN TIEMPO REAL de ambos usuarios.`,
+                url: trackingUrl,
+                tag: `sos-tracking-${sosAlert.id}`,
+                requireInteraction: true,
+                renotify: true
             })
         }
 
@@ -112,7 +97,8 @@ export async function POST(
 
         return NextResponse.json({
             success: true,
-            message: 'SOS activado y datos de ambos usuarios enviados al contacto de confianza',
+            alertId: sosAlert.id,
+            message: 'SOS activado y rastreo en tiempo real iniciado.',
             trustedContactNotified: !!trustedContact
         })
 

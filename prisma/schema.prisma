@@ -53,6 +53,8 @@ model User {
   trustedContact          User?                     @relation("TrustedContact", fields: [trustedContactId], references: [id])
   trustedBy               User[]                    @relation("TrustedContact")
   vehicles                Vehicle[]
+  victimAlerts            SOSAlert[]                @relation("VictimAlerts")
+  counterpartAlerts       SOSAlert[]                @relation("CounterpartAlerts")
 
   @@index([email])
   @@index([city])
@@ -484,6 +486,24 @@ model Appointment {
   @@index([chatId])
   @@index([status])
   @@index([date])
+}
+
+model SOSAlert {
+  id              String      @id @default(cuid())
+  victimId        String
+  counterpartId   String?
+  chatId          String
+  appointmentId   String?
+  status          String      @default("ACTIVE") // ACTIVE, RESOLVED
+  victimLat       Float?
+  victimLng       Float?
+  counterpartLat  Float?
+  counterpartLng  Float?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  victim          User        @relation("VictimAlerts", fields: [victimId], references: [id])
+  counterpart     User?       @relation("CounterpartAlerts", fields: [counterpartId], references: [id])
 }
 
 model PaymentMethod {
