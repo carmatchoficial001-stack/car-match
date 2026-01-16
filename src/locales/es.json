@@ -1156,6 +1156,7 @@
         "completed": "Finalizada",
         "accept_btn": "Aceptar",
         "reject_btn": "Rechazar",
-        "cancel_btn": "Cancelar"
+        "cancel_btn": "Cancelar",
+        "past": "Finalizada"
     }
 }

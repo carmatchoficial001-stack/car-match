@@ -55,6 +55,21 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus, on
 
     const currentStatus = appointment.status?.toUpperCase() as keyof typeof statusText || 'PENDING'
 
+    const getCountdown = () => {
+        const now = new Date()
+        const diff = dateObj.getTime() - now.getTime()
+
+        if (diff <= 0) return t('appointments.past') || 'Finalizada'
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+
+        if (days > 0) return `${t('common.in') || 'En'} ${days}d ${hours}h`
+        return `${t('common.in') || 'En'} ${hours}h`
+    }
+
+    const simpleStatus = statusText[currentStatus] || (currentStatus === 'PENDING' ? 'Pendiente' : 'Actualizando...')
+
     return (
         <div className={`p-4 rounded-xl border ${statusColors[currentStatus] || 'bg-surface border-surface-highlight'} w-full max-w-sm shadow-sm`}>
             <div className="flex items-center gap-2 mb-3">
@@ -94,10 +109,16 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus, on
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-current/10">
-                <div className="font-medium text-sm text-text-primary">
-                    {t('appointments.status_label')}: <span className={`font-black uppercase tracking-wider ${currentStatus === 'ACCEPTED' ? 'text-green-500' : ''}`}>
-                        {statusText[currentStatus] || currentStatus}
-                    </span>
+                <div className="flex flex-col">
+                    <div className="font-medium text-xs opacity-70 uppercase tracking-widest mb-0.5">
+                        {simpleStatus}
+                    </div>
+                    {/* ⏳ COUNTDOWN / TIMER */}
+                    {['ACCEPTED', 'PENDING'].includes(currentStatus) && (
+                        <div className="font-bold text-lg">
+                            {getCountdown()}
+                        </div>
+                    )}
                 </div>
 
                 {/* Mostrar botones solo si está pendiente Y NO es el proponente (el otro usuario decide) */}
