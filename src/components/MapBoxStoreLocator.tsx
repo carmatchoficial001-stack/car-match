@@ -147,58 +147,15 @@ export default function MapBoxStoreLocator({
             mapInstance.addSource(sourceId, {
                 type: 'geojson',
                 data: geojson,
-                cluster: true,
-                clusterMaxZoom: 14,
-                clusterRadius: 50
+                cluster: false,
             })
 
-            // 1. CLUSTERS LAYER (Circles)
-            mapInstance.addLayer({
-                id: 'clusters',
-                type: 'circle',
-                source: sourceId,
-                filter: ['has', 'point_count'],
-                paint: {
-                    'circle-color': [
-                        'step',
-                        ['get', 'point_count'],
-                        '#51bbd6',
-                        100,
-                        '#f1f075',
-                        750,
-                        '#f28cb1'
-                    ],
-                    'circle-radius': [
-                        'step',
-                        ['get', 'point_count'],
-                        20,
-                        100,
-                        30,
-                        750,
-                        40
-                    ]
-                }
-            })
-
-            // 2. CLUSTER COUNT LAYER (Text)
-            mapInstance.addLayer({
-                id: 'cluster-count',
-                type: 'symbol',
-                source: sourceId,
-                filter: ['has', 'point_count'],
-                layout: {
-                    'text-field': ['get', 'point_count_abbreviated'],
-                    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-                    'text-size': 12
-                }
-            })
 
             // 3. UNCLUSTERED POINTS LAYER (The Pin Shape)
             mapInstance.addLayer({
                 id: 'unclustered-point-bg',
                 type: 'symbol',
                 source: sourceId,
-                filter: ['!', ['has', 'point_count']],
                 layout: {
                     'icon-image': 'pin',
                     'icon-size': 0.08, // SVG is large (384x512), scale down significantly. 512 * 0.08 = ~40px height
@@ -220,7 +177,6 @@ export default function MapBoxStoreLocator({
                 id: 'unclustered-point-icon',
                 type: 'symbol',
                 source: sourceId,
-                filter: ['!', ['has', 'point_count']],
                 layout: {
                     'text-field': [
                         'match',
@@ -240,24 +196,6 @@ export default function MapBoxStoreLocator({
 
             // --- CLICK HANDLERS ---
 
-            // Click on Cluster -> Zoom
-            mapInstance.on('click', 'clusters', (e) => {
-                const features = mapInstance.queryRenderedFeatures(e.point, {
-                    layers: ['clusters']
-                });
-                const clusterId = features[0].properties?.cluster_id;
-                (mapInstance.getSource('businesses') as mapboxgl.GeoJSONSource).getClusterExpansionZoom(
-                    clusterId,
-                    (err, zoom) => {
-                        if (err || zoom == null) return;
-
-                        mapInstance.easeTo({
-                            center: (features[0].geometry as any).coordinates,
-                            zoom: zoom
-                        });
-                    }
-                );
-            });
 
             // Click Handler Function
             const handlePointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
@@ -322,8 +260,6 @@ export default function MapBoxStoreLocator({
             const setPointer = () => mapInstance.getCanvas().style.cursor = 'pointer';
             const resetPointer = () => mapInstance.getCanvas().style.cursor = '';
 
-            mapInstance.on('mouseenter', 'clusters', setPointer);
-            mapInstance.on('mouseleave', 'clusters', resetPointer);
 
             mapInstance.on('mouseenter', 'unclustered-point-bg', setPointer);
             mapInstance.on('mouseleave', 'unclustered-point-bg', resetPointer);
