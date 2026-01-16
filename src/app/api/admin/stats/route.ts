@@ -24,21 +24,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Fetch system statistics
-        const [
-            totalUsers,
-            activeUsers,
-            totalVehicles,
-            activeVehicles,
-            totalBusinesses,
-            totalChats,
-            totalAppointments,
-            activeAppointments,
-            recentLogs,
-            recentReports,
-            recentUsers,
-            recentVehicles,
-            recentBusinesses
-        ] = await Promise.all([
+        const statsResults = await Promise.all([
             // 0-4: Basic Counts
             prisma.user.count(),
             prisma.user.count({ where: { isActive: true } }),
@@ -81,51 +67,50 @@ export async function GET(request: NextRequest) {
                 include: { user: { select: { name: true } } }
             }),
 
-            // 📊 13+ Nuevas Métricas (Appended to avoid shifting indices)
-            // 13. Compartidos
-            prisma.analyticsEvent.count({ where: { eventType: 'SHARE' } }),
-
-            // 14. Compradores
-            prisma.user.count({
-                where: {
-                    vehicles: { none: {} },
-                    businesses: { none: {} }
-                }
-            }),
-
-            // 15-16. Vehículos (Gratis/Paid)
-            prisma.vehicle.count({ where: { isFreePublication: true } }),
-            prisma.vehicle.count({ where: { isFreePublication: false } }),
-
-            // 17-18. Negocios (Gratis/Paid)
-            prisma.business.count({ where: { isFreePublication: true } }),
-            prisma.business.count({ where: { isFreePublication: false } }),
-
-            // 19-20. Créditos
-            prisma.payment.aggregate({ where: { status: 'COMPLETED' }, _sum: { creditsAdded: true } }),
-            prisma.creditTransaction.aggregate({ where: { amount: { lt: 0 } }, _sum: { amount: true } }),
-
-            // 21. Negocios Activos
-            prisma.business.count({ where: { isActive: true } }),
-
-            // 22. SOS Count
-            prisma.sOSAlert.count()
+            // 📊 13+ Nuevas Métricas
+            prisma.analyticsEvent.count({ where: { eventType: 'SHARE' } }), // 13
+            prisma.user.count({ where: { vehicles: { none: {} }, businesses: { none: {} } } }), // 14
+            prisma.vehicle.count({ where: { isFreePublication: true } }), // 15
+            prisma.vehicle.count({ where: { isFreePublication: false } }), // 16
+            prisma.business.count({ where: { isFreePublication: true } }), // 17
+            prisma.business.count({ where: { isFreePublication: false } }), // 18
+            prisma.payment.aggregate({ where: { status: 'COMPLETED' }, _sum: { creditsAdded: true, amount: true } }), // 19
+            prisma.creditTransaction.aggregate({ where: { amount: { lt: 0 } }, _sum: { amount: true } }), // 20
+            prisma.business.count({ where: { isActive: true } }), // 21
+            prisma.sOSAlert.count() // 22
         ])
 
-        // Destructure new metrics (indices based on order above)
-        const shareCount = arguments[13] || 0
-        const buyerCount = arguments[14] || 0
-        const freeVehicles = arguments[15] || 0
-        const paidVehicles = arguments[16] || 0
-        const freeBusinesses = arguments[17] || 0
-        const paidBusinesses = arguments[18] || 0
-        const creditsPurchased = arguments[19]?._sum?.creditsAdded || 0
-        const creditsUsed = Math.abs(arguments[20]?._sum?.amount || 0)
-        const activeBusinesses = arguments[21] || 0
-        const sosCount = arguments[22] || 0
+        const [
+            totalUsers,
+            activeUsers,
+            totalVehicles,
+            activeVehicles,
+            totalBusinesses,
+            totalChats,
+            totalAppointments,
+            activeAppointments,
+            recentLogs,
+            recentReports,
+            recentUsers,
+            recentVehicles,
+            recentBusinesses,
+            shareCount,
+            buyerCount,
+            freeVehicles,
+            paidVehicles,
+            freeBusinesses,
+            paidBusinesses,
+            paymentSummary,
+            usageSummary,
+            activeBusinesses,
+            sosCount
+        ] = statsResults
+
+        const creditsPurchased = paymentSummary?._sum?.creditsAdded || 0
+        const totalRevenue = Number(paymentSummary?._sum?.amount || 0)
+        const creditsUsed = Math.abs(Number(usageSummary?._sum?.amount || 0))
 
         // 🧠 Intelligence Processing
-        // Extract Coordinates for Heatmap
         const intelligence = {
             searches: [] as any[],
             vehicles: recentVehicles
@@ -150,7 +135,7 @@ export async function GET(request: NextRequest) {
 
         const growth = {
             users: generateTrend(totalUsers, 14),
-            revenue: generateTrend(totalUsers * 10, 14)
+            revenue: generateTrend(totalRevenue, 14)
         }
 
         return NextResponse.json({
@@ -181,7 +166,7 @@ export async function GET(request: NextRequest) {
             intelligence: intelligence,
             financials: {
                 revenue: growth.revenue,
-                totalRevenue: totalUsers * 15
+                totalRevenue: totalRevenue
             },
             detailedStats: {
                 shareCount,
