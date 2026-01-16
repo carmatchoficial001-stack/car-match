@@ -38,7 +38,7 @@ export default function MarketFiltersAdvanced({
     onClose
 }: MarketFiltersAdvancedProps & { onClose?: () => void }) {
     const { t } = useLanguage()
-    const { setManualLocation } = useLocation()
+    const { setManualLocation, location } = useLocation()
     const router = useRouter()
     const searchParams = useSearchParams()
     const availableYears = getYears()
@@ -61,7 +61,8 @@ export default function MarketFiltersAdvanced({
     const [city, setCity] = useState(currentFilters.city || userCity)
 
     // 📍 Location Search State
-    const [locationInput, setLocationInput] = useState(currentFilters.city || userCity || '')
+    // PREFERENCIA: 1. Filtro actual URl -> 2. Prop usuario -> 3. Contexto Global (GPS)
+    const [locationInput, setLocationInput] = useState(currentFilters.city || userCity || location?.city || '')
     const [isSearchingLocation, setIsSearchingLocation] = useState(false)
     const [locationCandidates, setLocationCandidates] = useState<LocationData[]>([])
     const [showCandidates, setShowCandidates] = useState(false)
