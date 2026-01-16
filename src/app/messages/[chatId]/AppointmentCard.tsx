@@ -37,23 +37,30 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus, on
     const formattedDate = dateObj.toLocaleDateString(locale === 'es' ? 'es-MX' : locale === 'en' ? 'en-US' : locale, { weekday: 'long', day: 'numeric', month: 'long' })
     const formattedTime = dateObj.toLocaleTimeString(locale === 'es' ? 'es-MX' : locale === 'en' ? 'en-US' : locale, { hour: '2-digit', minute: '2-digit' })
 
-    const statusColors = {
+    const statusColors: any = {
         PENDING: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-600',
         ACCEPTED: 'bg-green-500/10 border-green-500/30 text-green-600',
         REJECTED: 'bg-red-500/10 border-red-500/30 text-red-600',
         CANCELLED: 'bg-gray-500/10 border-gray-500/30 text-gray-600',
-        COMPLETED: 'bg-blue-500/20 border-blue-500/40 text-blue-400'
+        COMPLETED: 'bg-blue-500/20 border-blue-500/40 text-blue-400',
+        FINISHED: 'bg-blue-500/20 border-blue-500/40 text-blue-400',
+        EMERGENCY: 'bg-red-600 text-white border-red-800'
     }
 
-    const statusText = {
-        PENDING: t('appointments.pending'),
-        ACCEPTED: t('appointments.accepted'),
-        REJECTED: t('appointments.rejected'),
-        CANCELLED: t('appointments.cancelled'),
-        COMPLETED: t('appointments.completed')
+    const statusText: any = {
+        PENDING: t('appointments.pending') || 'Pendiente',
+        ACCEPTED: t('appointments.accepted') || 'Confirmada',
+        REJECTED: t('appointments.rejected') || 'Rechazada',
+        CANCELLED: t('appointments.cancelled') || 'Cancelada',
+        COMPLETED: t('appointments.completed') || 'Finalizada',
+        FINISHED: t('appointments.completed') || 'Finalizada',
+        EMERGENCY: '🚨 EMERGENCIA'
     }
 
-    const currentStatus = appointment.status?.toUpperCase() as keyof typeof statusText || 'PENDING'
+    // 🛡️ Safe Status Resolution
+    const rawStatus = (appointment.status || 'PENDING').toUpperCase()
+    const currentStatus = (statusText.hasOwnProperty(rawStatus) ? rawStatus : 'PENDING')
+    const simpleStatus = statusText[currentStatus]
 
     const getCountdown = () => {
         const now = new Date()
@@ -67,8 +74,6 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus, on
         if (days > 0) return `${t('common.in') || 'En'} ${days}d ${hours}h`
         return `${t('common.in') || 'En'} ${hours}h`
     }
-
-    const simpleStatus = statusText[currentStatus] || (currentStatus === 'PENDING' ? 'Pendiente' : 'Actualizando...')
 
     return (
         <div className={`p-4 rounded-xl border ${statusColors[currentStatus] || 'bg-surface border-surface-highlight'} w-full max-w-sm shadow-sm`}>
@@ -113,9 +118,9 @@ export default function AppointmentCard({ appointment, isOwn, onUpdateStatus, on
                     <div className="font-medium text-xs opacity-70 uppercase tracking-widest mb-0.5">
                         {simpleStatus}
                     </div>
-                    {/* ⏳ COUNTDOWN / TIMER */}
+                    {/* ⏳ COUNTDOWN / TIMER - Visible si es futuro y está activo */}
                     {['ACCEPTED', 'PENDING'].includes(currentStatus) && (
-                        <div className="font-bold text-lg">
+                        <div className="font-bold text-lg text-primary-400 mt-1">
                             {getCountdown()}
                         </div>
                     )}
