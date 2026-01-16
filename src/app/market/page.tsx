@@ -309,53 +309,15 @@ export default async function MarketPage({
         getCachedColors()
     ])
 
-    // Obtener SOLO negocios de administradores para inyectar en el feed (exclusividad solicitada)
-    const businesses = await prisma.business.findMany({
-        where: {
-            isActive: true,
-            // Si NO es admin, filtrar para mostrar SOLO los del admin
-            // Si ES admin, mostrar también los propios
-            user: {
-                isAdmin: true
-            }
-        },
-        select: {
-            id: true,
-            name: true,
-            category: true,
-            city: true,
-            latitude: true,
-            longitude: true,
-            images: true,
-            country: true,
-            user: {
-                select: {
-                    name: true,
-                    image: true,
-                    isAdmin: true
-                }
-            }
-        },
-        orderBy: { createdAt: 'desc' }
-    })
-
-    const itemsWithBoost = [
-        ...vehiclesWithFavoriteStatus.map(v => ({
-            ...v,
-            feedType: 'VEHICLE' as const,
-            isBoosted: v.user.isAdmin
-        })),
-        ...businesses.map(b => ({
-            ...b,
-            title: b.name,
-            feedType: 'BUSINESS' as const,
-            isBoosted: true // Todos los negocios en el feed son de admin ahora
-        }))
-    ]
+    const items = vehiclesWithFavoriteStatus.map(v => ({
+        ...v,
+        feedType: 'VEHICLE' as const,
+        isBoosted: v.user.isAdmin
+    }))
 
     return (
         <MarketClient
-            initialItems={serializeDecimal(itemsWithBoost) as any}
+            initialItems={serializeDecimal(items) as any}
             currentUserId={currentUser.id}
             brands={brands}
             vehicleTypes={vehicleTypes}
