@@ -18,36 +18,3 @@ export async function GET(req: Request) {
     }
 }
 
-
-async function sendSafetyCheck(app: any) {
-    const payload = {
-        title: '🔒 Control de Seguridad CarMatch',
-        body: `Tu encuentro por "${app.chat.vehicle.title}" está en curso. ¿Todo va bien?`,
-        url: `/messages/${app.chatId}?safety_check=${app.id}`,
-        tag: `safety-check-${app.id}`
-    }
-
-    // El frontend/SW manejará los botones: SOS, Sigo en Negociación, Terminado
-    // Para web push, los botones se definen en el SW, aquí solo enviamos el trigger
-    await sendPushToUser(app.chat.buyerId, payload)
-    await sendPushToUser(app.chat.sellerId, payload)
-
-    await prisma.appointment.update({
-        where: { id: app.id },
-        data: {
-            lastSafetyCheck: new Date(),
-            missedResponseCount: { increment: 1 }
-        }
-    })
-}
-
-async function finalizeAppointment(id: string) {
-    await prisma.appointment.update({
-        where: { id },
-        data: {
-            status: 'FINISHED',
-            monitoringActive: false
-        }
-    })
-    console.log(`Cita ${id} finalizada automáticamente por inactividad.`)
-}
