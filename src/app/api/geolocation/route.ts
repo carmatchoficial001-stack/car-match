@@ -133,29 +133,37 @@ export async function GET(request: NextRequest) {
                     nomData = await searchWithNominatim(query)
                 }
 
-                if (nomData) {
-                    if (limit > 1) {
-                        return NextResponse.json(nomData.map((f: any) => ({
+                if (limit > 1) {
+                    return NextResponse.json(nomData
+                        .filter((f: any) => {
+                            // 🛡️ ACTUALIZADO: Filtro Estricto para Nomad
+                            // Eliminamos barrios, villas pequeñas si se confunden, y resultados que no sean place/boundary
+                            const type = f.addresstype || f.type
+                            const allowed = ['city', 'town', 'municipality', 'administrative', 'state', 'country']
+                            return allowed.includes(type)
+                        })
+                        .map((f: any) => ({
                             latitude: parseFloat(f.lat),
                             longitude: parseFloat(f.lon),
                             address: f.display_name,
-                            city: f.address?.city || f.address?.town || f.address?.village || f.address?.municipality || '',
+                            city: f.address?.city || f.address?.town || f.address?.municipality || '',
                             state: f.address?.state || '',
                             country: f.address?.country || '',
                             countryCode: f.address?.country_code?.toUpperCase() || ''
-                        })))
-                    }
-
-                    const f = nomData[0]
-                    return NextResponse.json({
-                        latitude: parseFloat(f.lat),
-                        longitude: parseFloat(f.lon),
-                        city: f.address?.city || f.address?.town || f.address?.village || f.address?.municipality || 'Ubicación encontrada',
-                        state: f.address?.state || '',
-                        country: f.address?.country || '',
-                        countryCode: f.address?.country_code?.toUpperCase() || ''
-                    })
+                        }))
+                        .filter((f: any) => f.city) // Asegurar que tenga ciudad
+                    )
                 }
+
+                const f = nomData[0]
+                return NextResponse.json({
+                    latitude: parseFloat(f.lat),
+                    longitude: parseFloat(f.lon),
+                    city: f.address?.city || f.address?.town || f.address?.village || f.address?.municipality || 'Ubicación encontrada',
+                    state: f.address?.state || '',
+                    country: f.address?.country || '',
+                    countryCode: f.address?.country_code?.toUpperCase() || ''
+                })
             } catch (e) {
                 console.error("Nominatim search error:", e)
             }
