@@ -15,27 +15,34 @@ export const {
     ...authConfig,
     adapter: PrismaAdapter(prisma),
     debug: true, // 🔍 Debug habilitado para ver errores en Vercel logs
-    // 🔥 EVENTOS COMENTADOS TEMPORALMENTE PARA FIX CRÍTICO DE PRODUCCIÓN
-    // events: {
-    //     async createUser({ user }) {
-    //         if (user.email === process.env.ADMIN_EMAIL) {
-    //             await prisma.user.update({
-    //                 where: { id: user.id },
-    //                 data: { isAdmin: true }
-    //             })
-    //             console.log(`👑 Admin Maestro creado en DB: ${user.email}`)
-    //         }
-    //     },
-    //     async signIn({ user }) {
-    //         // Asegurar que si ya existía pero no era admin, se actualice al entrar
-    //         if (user.email === process.env.ADMIN_EMAIL) {
-    //             await prisma.user.update({
-    //                 where: { id: user.id },
-    //                 data: { isAdmin: true }
-    //             })
-    //         }
-    //     }
-    // },
+    events: {
+        async createUser({ user }) {
+            if (user.email === process.env.ADMIN_EMAIL) {
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: { isAdmin: true }
+                })
+                console.log(`👑 Admin Maestro creado en DB: ${user.email}`)
+            }
+        },
+        async signIn({ user }) {
+            // Asegurar que si ya existía pero no era admin, se actualice al entrar
+            if (user.email === process.env.ADMIN_EMAIL) {
+                // Verificar si ya es admin para evitar updates innecesarios
+                const currentUser = await prisma.user.findUnique({
+                    where: { id: user.id },
+                    select: { isAdmin: true }
+                })
+
+                if (!currentUser?.isAdmin) {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { isAdmin: true }
+                    })
+                }
+            }
+        }
+    },
     providers: [
         ...authConfig.providers,
         Credentials({
