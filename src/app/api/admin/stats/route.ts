@@ -39,14 +39,19 @@ export async function GET(request: NextRequest) {
             recentVehicles,
             recentBusinesses
         ] = await Promise.all([
+            // 0-4: Basic Counts
             prisma.user.count(),
             prisma.user.count({ where: { isActive: true } }),
             prisma.vehicle.count(),
             prisma.vehicle.count({ where: { status: 'ACTIVE' } }),
             prisma.business.count(),
+
+            // 5-7: Chats/Appointments
             prisma.chat.count(),
             prisma.appointment.count(),
             prisma.appointment.count({ where: { status: 'ACCEPTED' } }),
+
+            // 8-12: Lists (Recent Items)
             prisma.systemLog.findMany({
                 take: 50,
                 orderBy: { createdAt: 'desc' }
@@ -66,22 +71,63 @@ export async function GET(request: NextRequest) {
                 select: { id: true, name: true, email: true, image: true, isAdmin: true, isActive: true, createdAt: true, credits: true }
             }),
             prisma.vehicle.findMany({
-                take: 100, // Increased for Heatmap
-                orderBy: { createdAt: 'desc' },
-                include: { user: { select: { name: true } } } // Need lat/lng if available? 
-                // Assuming vehicles have latitude/longitude. Let's select them explicitly.
-            }),
-            prisma.business.findMany({
-                take: 100, // Increased for Heatmap
+                take: 100,
                 orderBy: { createdAt: 'desc' },
                 include: { user: { select: { name: true } } }
-            })
+            }),
+            prisma.business.findMany({
+                take: 100,
+                orderBy: { createdAt: 'desc' },
+                include: { user: { select: { name: true } } }
+            }),
+
+            // 📊 13+ Nuevas Métricas (Appended to avoid shifting indices)
+            // 13. Compartidos
+            prisma.analyticsEvent.count({ where: { eventType: 'SHARE' } }),
+
+            // 14. Compradores
+            prisma.user.count({
+                where: {
+                    vehicles: { none: {} },
+                    businesses: { none: {} }
+                }
+            }),
+
+            // 15-16. Vehículos (Gratis/Paid)
+            prisma.vehicle.count({ where: { isFreePublication: true } }),
+            prisma.vehicle.count({ where: { isFreePublication: false } }),
+
+            // 17-18. Negocios (Gratis/Paid)
+            prisma.business.count({ where: { isFreePublication: true } }),
+            prisma.business.count({ where: { isFreePublication: false } }),
+
+            // 19-20. Créditos
+            prisma.payment.aggregate({ where: { status: 'COMPLETED' }, _sum: { creditsAdded: true } }),
+            prisma.creditTransaction.aggregate({ where: { amount: { lt: 0 } }, _sum: { amount: true } }),
+
+            // 21. Negocios Activos
+            prisma.business.count({ where: { isActive: true } }),
+
+            // 22. SOS Count
+            prisma.sOSAlert.count()
         ])
+
+        // Destructure new metrics (indices based on order above)
+        const shareCount = arguments[13] || 0
+        const buyerCount = arguments[14] || 0
+        const freeVehicles = arguments[15] || 0
+        const paidVehicles = arguments[16] || 0
+        const freeBusinesses = arguments[17] || 0
+        const paidBusinesses = arguments[18] || 0
+        const creditsPurchased = arguments[19]?._sum?.creditsAdded || 0
+        const creditsUsed = Math.abs(arguments[20]?._sum?.amount || 0)
+        const activeBusinesses = arguments[21] || 0
+        const sosCount = arguments[22] || 0
 
         // 🧠 Intelligence Processing
         // Extract Coordinates for Heatmap
         const intelligence = {
-            searches: [] as any[], // Future: Real searches
+            searches: [] as any[],
             vehicles: recentVehicles
                 .filter(v => v.latitude && v.longitude)
                 .map(v => ({ latitude: v.latitude, longitude: v.longitude, title: v.title })),
@@ -90,13 +136,11 @@ export async function GET(request: NextRequest) {
                 .map(b => ({ latitude: b.latitude, longitude: b.longitude, name: b.name, category: b.category }))
         }
 
-        // Mock Growth Data (for Chart) - In a real app, use groupBy date
-        // Generating a consistent "fake" growth curve based on total count for visualization
+        // Mock Growth Data
         const generateTrend = (total: number, days: number) => {
-            let current = Math.floor(total * 0.6) // Start at 60%
+            let current = Math.floor(total * 0.6)
             const data = []
             for (let i = 0; i < days; i++) {
-                // Add random noise + trend
                 const increment = Math.floor(Math.random() * (total * 0.05))
                 current = Math.min(total, current + increment)
                 data.push(current)
@@ -106,7 +150,7 @@ export async function GET(request: NextRequest) {
 
         const growth = {
             users: generateTrend(totalUsers, 14),
-            revenue: generateTrend(totalUsers * 10, 14) // Mock revenue based on users
+            revenue: generateTrend(totalUsers * 10, 14)
         }
 
         return NextResponse.json({
@@ -134,10 +178,35 @@ export async function GET(request: NextRequest) {
             },
             logs: recentLogs,
             reports: recentReports,
-            intelligence: intelligence, // New Geo Data
+            intelligence: intelligence,
             financials: {
                 revenue: growth.revenue,
-                totalRevenue: totalUsers * 15 // Mock total
+                totalRevenue: totalUsers * 15
+            },
+            detailedStats: {
+                shareCount,
+                buyerCount,
+                sellerCount: activeUsers - buyerCount,
+                sosCount, // 🚨 New Metric
+                vehicleStats: {
+                    free: freeVehicles,
+                    paid: paidVehicles,
+                    active: activeVehicles,
+                    inactive: totalVehicles - activeVehicles,
+                    total: totalVehicles
+                },
+                businessStats: {
+                    free: freeBusinesses,
+                    paid: paidBusinesses,
+                    active: activeBusinesses, // 🚨 New Metric
+                    inactive: totalBusinesses - activeBusinesses,
+                    total: totalBusinesses
+                },
+                creditStats: {
+                    purchased: creditsPurchased,
+                    used: creditsUsed,
+                    activeInCirculation: creditsPurchased - creditsUsed
+                }
             }
         })
     } catch (error) {
