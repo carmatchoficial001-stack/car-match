@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import {
     VEHICLE_CATEGORIES,
     BRANDS,
+    POPULAR_MODELS,
     TRANSMISSIONS,
     FUELS,
     TRACTIONS,
@@ -17,7 +18,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useLocation } from '@/contexts/LocationContext'
 import { searchCities, LocationData } from '@/lib/geolocation'
-import { MapPin, Search, Loader2 } from 'lucide-react'
+import { MapPin, Search, Loader2, ChevronDown, X } from 'lucide-react'
 
 interface MarketFiltersAdvancedProps {
     currentFilters: any
@@ -320,6 +321,11 @@ export default function MarketFiltersAdvanced({
         ? dynamicBrands[category] || []
         : dynamicAllBrands.length > 0 ? dynamicAllBrands : Array.from(new Set(Object.values(dynamicBrands).flat())).sort()
 
+    // 🧠 Filter Models based on Brand
+    const filteredModels = brand && POPULAR_MODELS[brand]
+        ? POPULAR_MODELS[brand]
+        : (availableModels.length > 0 ? availableModels : [])
+
     return (
         <div className="bg-surface border border-surface-highlight rounded-xl p-6 space-y-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
@@ -470,38 +476,30 @@ export default function MarketFiltersAdvanced({
                 </div>
 
                 {/* 3. Marca (Dinámica 'Global') */}
+                {/* 3. Marca (Autocompletado Intake) */}
                 <div>
                     <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.brand')}</label>
-                    <input
-                        list="brands-list"
+                    <AutocompleteDropdown
                         value={brand}
-                        onChange={(e) => setBrand(e.target.value)}
+                        onChange={setBrand}
+                        options={availableBrands}
                         placeholder={t('market.filters.brand_placeholder')}
-                        className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
+                        emptyMessage="No encontramos esa marca"
                     />
-                    <datalist id="brands-list">
-                        {availableBrands.map(b => (
-                            <option key={b} value={b} />
-                        ))}
-                    </datalist>
                 </div>
 
                 {/* 4. Modelo */}
+                {/* 4. Modelo (Autocompletado Intake) */}
                 <div>
                     <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.model')}</label>
-                    <input
-                        type="text"
+                    <AutocompleteDropdown
                         value={model}
-                        onChange={(e) => setModel(e.target.value)}
-                        placeholder={t('market.filters.model_placeholder')}
-                        className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
-                        list="models-list"
+                        onChange={setModel}
+                        options={filteredModels}
+                        placeholder={brand ? t('market.filters.model_placeholder') : "Selecciona una marca primero"}
+                        emptyMessage={brand ? "No listado (escríbelo manual)" : "Selecciona marca..."}
+                        onManualInput={setModel}
                     />
-                    <datalist id="models-list">
-                        {availableModels.map(m => (
-                            <option key={m} value={m} />
-                        ))}
-                    </datalist>
                 </div>
 
                 {/* 5. Precio Rango */}
@@ -812,6 +810,102 @@ export default function MarketFiltersAdvanced({
                     {t('market.filters.apply')}
                 </button>
             </div>
+        </div>
+    )
+}
+
+// 🧠 Reusable Autocomplete Component
+interface AutocompleteDropdownProps {
+    value: string
+    onChange: (value: string) => void
+    options: string[]
+    placeholder?: string
+    disabled?: boolean
+    emptyMessage?: string
+    onManualInput?: (value: string) => void
+}
+
+function AutocompleteDropdown({
+    value,
+    onChange,
+    options,
+    placeholder,
+    disabled,
+    emptyMessage = "No se encontraron resultados",
+    onManualInput
+}: AutocompleteDropdownProps) {
+    const [isOpen, setIsOpen] = useState(false)
+    const [searchTerm, setSearchTerm] = useState('')
+
+    // Sync search term with value only when closed or explicit set
+    useEffect(() => {
+        if (!isOpen) setSearchTerm(value)
+    }, [value, isOpen])
+
+    const filteredOptions = options.filter(opt =>
+        opt.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
+    return (
+        <div className="relative group">
+            <div className="relative">
+                <input
+                    type="text"
+                    value={isOpen ? searchTerm : value}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value)
+                        setIsOpen(true)
+                        if (onManualInput) onManualInput(e.target.value)
+                    }}
+                    onFocus={() => {
+                        setSearchTerm(value) // Reset search to current value on focus? Or empty? Better current.
+                        setIsOpen(true)
+                    }}
+                    onBlur={() => setTimeout(() => setIsOpen(false), 200)} // Delay for click
+                    placeholder={placeholder}
+                    disabled={disabled}
+                    className="w-full h-12 md:h-10 px-4 pr-10 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm truncate"
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                    {isOpen ? <Search size={16} /> : <ChevronDown size={16} />}
+                </div>
+                {value && !isOpen && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            onChange('')
+                            setSearchTerm('')
+                        }}
+                        className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                        <X size={14} />
+                    </button>
+                )}
+            </div>
+
+            {/* Dropdown */}
+            {isOpen && (
+                <div className="absolute z-50 w-full mt-2 bg-surface border border-surface-highlight rounded-xl shadow-xl max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2">
+                    {filteredOptions.length > 0 ? (
+                        filteredOptions.map((opt) => (
+                            <button
+                                key={opt}
+                                onClick={() => {
+                                    onChange(opt)
+                                    setIsOpen(false)
+                                }}
+                                className="w-full text-left px-4 py-3 hover:bg-surface-highlight text-text-primary text-sm border-b border-surface-highlight/50 last:border-0"
+                            >
+                                {opt}
+                            </button>
+                        ))
+                    ) : (
+                        <div className="px-4 py-3 text-text-secondary text-sm text-center italic">
+                            {emptyMessage}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     )
 }
