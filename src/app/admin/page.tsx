@@ -101,7 +101,7 @@ export default function AdminDashboard() {
         if (status === 'authenticated') {
             fetchStats()
         }
-    }, [status])
+    }, [status, router])
 
     const fetchStats = async () => {
         try {
