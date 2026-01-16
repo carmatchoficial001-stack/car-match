@@ -327,8 +327,19 @@ export default function MarketFiltersAdvanced({
         : (availableModels.length > 0 ? availableModels : [])
 
     return (
-        <div className="bg-surface border border-surface-highlight rounded-xl p-6 space-y-6 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
+        <div className="bg-surface border border-surface-highlight rounded-xl p-6 space-y-6 shadow-sm relative">
+            {/* 🚪 Close Button */}
+            {onClose && (
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 p-2 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
+                    aria-label="Cerrar filtros"
+                >
+                    <X size={20} />
+                </button>
+            )}
+
+            <div className="flex items-center justify-between mb-2 pr-8">
                 <h2 className="text-lg font-bold text-text-primary">{t('market.filters.title')}</h2>
                 <button onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
             </div>
