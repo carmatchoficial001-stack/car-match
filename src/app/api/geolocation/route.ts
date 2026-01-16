@@ -52,7 +52,10 @@ export async function GET(request: NextRequest) {
             if (mapboxToken) {
                 try {
                     const searchWithMapbox = async (q: string) => {
-                        let mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${mapboxToken}&language=es&limit=${limit}&types=country,region,place,locality,postcode,district`
+                        // 🔒 STRICT MODE: Solo Ciudades, Estados, Países y Códigos Postales.
+                        // Se eliminaron 'district' y 'locality' porque a veces devolvían colonias.
+                        let mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${mapboxToken}&language=es&limit=${limit}&types=country,region,place,postcode`
+
                         if (biasLat && biasLng) mapboxUrl += `&proximity=${biasLng},${biasLat}`
                         const mbRes = await fetch(mapboxUrl)
                         if (!mbRes.ok) return null
