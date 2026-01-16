@@ -4,6 +4,9 @@ import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 
+import { useLanguage } from '@/contexts/LanguageContext'
+import { BUSINESS_CATEGORIES } from '@/lib/businessCategories'
+
 // Dynamic import for Mapbox component
 const MapBoxAddressPicker = dynamic(() => import('@/components/MapBoxAddressPicker'), {
     ssr: false,
@@ -12,12 +15,13 @@ const MapBoxAddressPicker = dynamic(() => import('@/components/MapBoxAddressPick
 
 export default function BusinessRegisterPage() {
     const router = useRouter()
+    const { t } = useLanguage()
     const [loading, setLoading] = useState(false)
 
     // Form Data
     const [formData, setFormData] = useState({
         name: '',
-        category: 'TALLER',
+        category: 'mecanico',
         phone: '',
         whatsapp: '',
         description: ''
@@ -61,16 +65,6 @@ export default function BusinessRegisterPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [searching, setSearching] = useState(false)
 
-    const categories = [
-        { id: 'TALLER', label: 'Taller Mecánico', icon: '🔧' },
-        { id: 'REFACCIONES', label: 'Refaccionaria', icon: '⚙️' },
-        { id: 'CARWASH', label: 'Car Wash', icon: '💦' },
-        { id: 'DESPONCHADORA', label: 'Desponchadora', icon: '🚙' },
-        { id: 'ELECTRICO', label: 'Eléctrico Automotriz', icon: '⚡' },
-        { id: 'PINTURA', label: 'Hojalatería y Pintura', icon: '🎨' },
-        { id: 'CONCESIONARIO', label: 'Lote de Autos', icon: '🏢' },
-        { id: 'OTRO', label: 'Otro Servicio', icon: '📍' },
-    ]
 
     // Handler for pin movement (Reverse Geocoding)
     const handleLocationSelect = useCallback(async (lat: number, lng: number) => {
@@ -215,21 +209,25 @@ export default function BusinessRegisterPage() {
                             {/* Categoría */}
                             <div>
                                 <label className="block text-text-primary font-bold mb-2">Categoría</label>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                    {categories.map(cat => (
-                                        <button
-                                            key={cat.id}
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, category: cat.id })}
-                                            className={`p-3 rounded-lg border text-left flex flex-col items-center gap-2 transition-all hover:shadow-md ${formData.category === cat.id
-                                                ? 'border-primary-700 bg-primary-700/20 text-text-primary shadow-inner'
-                                                : 'border-surface-highlight bg-background text-text-secondary hover:border-primary-700/50'
-                                                }`}
-                                        >
-                                            <span className="text-2xl">{cat.icon}</span>
-                                            <span className="text-xs font-medium text-center">{cat.label}</span>
-                                        </button>
-                                    ))}
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[400px] overflow-y-auto p-1 custom-scrollbar">
+                                    {[...BUSINESS_CATEGORIES]
+                                        .sort((a, b) => (t(`map_store.categories.${a.id}`) || a.label).localeCompare(t(`map_store.categories.${b.id}`) || b.label))
+                                        .map(cat => (
+                                            <button
+                                                key={cat.id}
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, category: cat.id })}
+                                                className={`p-3 rounded-lg border text-left flex flex-col items-center gap-2 transition-all hover:shadow-md ${formData.category === cat.id
+                                                    ? 'border-primary-700 bg-primary-700/20 text-text-primary shadow-inner'
+                                                    : 'border-surface-highlight bg-background text-text-secondary hover:border-primary-700/50'
+                                                    }`}
+                                            >
+                                                <span className="text-2xl">{cat.icon}</span>
+                                                <span className="text-[10px] font-medium text-center leading-tight">
+                                                    {t(`map_store.categories.${cat.id}`) || cat.label}
+                                                </span>
+                                            </button>
+                                        ))}
                                 </div>
                             </div>
 

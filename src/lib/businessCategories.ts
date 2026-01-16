@@ -6,7 +6,8 @@ export const CATEGORY_COLORS: Record<string, string> = {
     'frenos': '#991b1b', // Dark Red
     'electrico': '#facc15', // Yellow
     'hojalateria': '#a855f7', // Purple
-    'llantas': '#f97316', // Orange
+    'llantera': '#f97316', // Orange
+    'polarizado': '#0f172a', // Dark Navy
     'estetica': '#3b82f6', // Blue
     'detallado': '#6366f1', // Indigo
     'refacciones': '#22c55e', // Green
@@ -29,7 +30,10 @@ export const CATEGORY_COLORS: Record<string, string> = {
     'estacionamiento': '#475569', // BlueGray
     'suspension': '#65a30d', // Lime
     'aire_acondicionado': '#14b8a6', // Teal
-    'importadoras': '#1e3a8a', // Navy Blue (Distinct from aesthetics)
+    'importadoras': '#1e3a8a', // Navy Blue
+    'iluminacion': '#fde047', // Yellow-Sun
+    'rotulacion': '#ec4899', // Pink
+    'inyectores': '#0ea5e9', // Sky Blue
 }
 
 export const CATEGORY_EMOJIS: Record<string, string> = {
@@ -37,7 +41,8 @@ export const CATEGORY_EMOJIS: Record<string, string> = {
     'frenos': '🛑',
     'electrico': '⚡',
     'hojalateria': '🎨',
-    'llantas': '🛞',
+    'llantera': '🛞',
+    'polarizado': '🕶️',
     'estetica': '🚿',
     'detallado': '✨',
     'refacciones': '📦',
@@ -61,17 +66,21 @@ export const CATEGORY_EMOJIS: Record<string, string> = {
     'suspension': '🔩',
     'aire_acondicionado': '❄️',
     'importadoras': '🚢',
+    'iluminacion': '💡',
+    'rotulacion': '🖌️',
+    'inyectores': '🧪',
 }
 
 export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
     mecanico: ['Afinación', 'Frenos', 'Suspensión', 'Motor', 'Transmisión', 'Cambio de Aceite', 'Diagnóstico por Computadora', 'Clutch'],
     electrico: ['Baterías', 'Alternadores', 'Marchas', 'Luces', 'Alarmas', 'Sensores', 'Aire Acondicionado', 'Computadoras', 'Fusibles'],
     hojalateria: ['Hojalatería', 'Pintura General', 'Pintura de Piezas', 'Pulido', 'Restauración de Choques', 'Enderezado de Chasis', 'Soldadura'],
-    llantas: ['Venta de Llantas', 'Reparación de Ponchaduras', 'Alineación', 'Balanceo', 'Suspensión', 'Frenos', 'Inflado con Nitrógeno'],
+    llantera: ['Venta de Llantas', 'Reparación de Ponchaduras', 'Alineación', 'Balanceo', 'Suspensión', 'Frenos', 'Inflado con Nitrógeno'],
     estetica: ['Lavado Exterior', 'Lavado de Interiores', 'Pulido y Encerado', 'Detallado de Motor', 'Restauración de Faros', 'Lavado de Chassis', 'Cerámico'],
     refacciones: ['Partes de Motor', 'Suspensión', 'Frenos', 'Eléctrico', 'Carrocería', 'Accesorios', 'Baterías', 'Aceites y Fluidos'],
     audio: ['Instalación de Estéreo', 'Bocinas', 'Amplificadores', 'Alarmas', 'GPS', 'Cámaras de Reversa', 'Sensores de Reversa'],
-    cristales: ['Parabrisas', 'Polarizado', 'Reparación de Impactos', 'Espejos', 'Elevadores de Vidrios'],
+    cristales: ['Parabrisas', 'Reemplazo de Cristales', 'Reparación de Impactos', 'Espejos', 'Elevadores de Vidrios'],
+    polarizado: ['Polarizado de Humo', 'Película de Seguridad', 'Nano Cerámico', 'Polarizado Inteligente', 'Desinstalación de Polarizado'],
     tapiceria: ['Tapicería de Asientos', 'Techo', 'Volante', 'Alfombras', 'Tablero', 'Fundas a Medida'],
     transmisiones: ['Transmisiones Automáticas', 'Transmisiones Manuales', 'Dirección Hidráulica', 'Diferenciales', 'Juntas Homocinéticas'],
     gruas: ['Grúa de Plataforma', 'Grúa de Arrastre', 'Paso de Corriente', 'Cambio de Llanta', 'Abasto de Combustible'],
@@ -91,7 +100,10 @@ export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
     suspension: ['Amortiguadores', 'Rotulas', 'Bujes', 'Cajas de Dirección', 'Ejes'],
     aire_acondicionado: ['Carga de Gas', 'Compresores', 'Fugas', 'Mangueras', 'Filtros de Cabina'],
     detallado: ['Pulido', 'Encerado', 'Lavado de Motor', 'Limpieza de Vestiduras', 'Restauración de Faros'],
-    importadoras: ['Importación de Vehículos', 'Trámites de Aduana', 'Regularización', 'Venta de Autos Importados', 'Logística de Transporte']
+    importadoras: ['Importación de Vehículos', 'Trámites de Aduana', 'Regularización', 'Venta de Autos Importados', 'Logística de Transporte'],
+    iluminacion: ['Faros LED', 'Luces de Xenón', 'Iluminación Interior RGB', 'Barra de Luces 4x4', 'Reparación de Calaveras'],
+    rotulacion: ['Vinyl Wrap Completo', 'Rotulación Comercial', 'Protección de Pintura (PPF)', 'Franjas Deportivas', 'Remoción de Vinil'],
+    inyectores: ['Limpieza de Inyectores por Ultrasonido', 'Prueba en Banco', 'Cambio de Microfiltros', 'Diagnóstico de Inyección', 'Limpieza de Cuerpo de Aceleración']
 }
 
 // Helper for Map & Search

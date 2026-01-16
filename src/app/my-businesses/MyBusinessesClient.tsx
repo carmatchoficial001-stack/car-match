@@ -7,7 +7,7 @@ import { getUserLocation } from '@/lib/geolocation'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { CATEGORY_COLORS, CATEGORY_EMOJIS, SERVICES_BY_CATEGORY } from '@/lib/businessCategories'
+import { CATEGORY_COLORS, CATEGORY_EMOJIS, SERVICES_BY_CATEGORY, BUSINESS_CATEGORIES } from '@/lib/businessCategories'
 import { generateDeviceFingerprint } from '@/lib/fingerprint'
 import ConfirmationModal from '@/components/ConfirmationModal'
 
@@ -554,42 +554,14 @@ export default function MyBusinessesClient() {
                                         className="w-full px-4 py-3 bg-background border-2 border-primary-700/50 rounded-lg text-text-primary focus:border-primary-700 outline-none font-medium text-sm md:text-base max-h-60"
                                     >
                                         <option value="">Selecciona una categoría...</option>
-                                        <optgroup label="Servicios Específicos">
-                                            <option value="frenos">🛑 Especialista en Frenos</option>
-                                            <option value="suspension">🔩 Especialista en Suspensión</option>
-                                            <option value="aire_acondicionado">❄️ Aire Acondicionado</option>
-                                            <option value="mofles">💨 Mofles y Escapes</option>
-                                            <option value="radiadores">🌡️ Radiadores y Enfriamiento</option>
-                                            <option value="rectificadora">⚙️ Rectificadora de Motores</option>
-                                            <option value="transmisiones">🕹️ Transmisiones y Cajas</option>
-                                            <option value="diesel">⛽ Diesel y Camiones</option>
-                                        </optgroup>
-                                        <optgroup label="Carrocería e Interiores">
-                                            <option value="hojalateria">🎨 Hojalatería y Pintura</option>
-                                            <option value="detallado">✨ Detallado Automotriz / Detail</option>
-                                            <option value="cristales">💎 Cristales y Polarizado</option>
-                                            <option value="tapiceria">💺 Tapicería de Interiores</option>
-                                            <option value="blindaje">🛡️ Blindaje y Seguridad</option>
-                                        </optgroup>
-                                        <optgroup label="Personalización y Estilo">
-                                            <option value="estetica">🚿 Car Wash y Estética</option>
-                                            <option value="audio">🔊 Audio y Alarmas</option>
-                                            <option value="performance">🏎️ Tuning y Performance</option>
-                                            <option value="offroad">⛰️ 4x4 y Off-Road</option>
-                                        </optgroup>
-                                        <optgroup label="Comercio y Servicios">
-                                            <option value="refacciones">📦 Refacciones y Accesorios (Verde)</option>
-                                            <option value="yonke">♻️ Yonke / Autopartes Usadas</option>
-                                            <option value="gasolinera">⛽ Gasolinera</option>
-                                            <option value="estacionamiento">🅿️ Estacionamiento / Pensión</option>
-                                        </optgroup>
-                                        <optgroup label="Servicios en Ruta">
-                                            <option value="gruas">🆘 Grúas y Asistencia</option>
-                                            <option value="cerrajeria">🔑 Cerrajería Automotriz</option>
-                                        </optgroup>
-                                        <optgroup label="Otros Vehículos">
-                                            <option value="motos">🏍️ Taller de Motos</option>
-                                        </optgroup>
+                                        {/* Dynamic category list from taxonomy - Sorted Alphabetically by Translation */}
+                                        {[...BUSINESS_CATEGORIES]
+                                            .sort((a, b) => (t(`map_store.categories.${a.id}`) || a.label).localeCompare(t(`map_store.categories.${b.id}`) || b.label))
+                                            .map(cat => (
+                                                <option key={cat.id} value={cat.id}>
+                                                    {cat.icon} {t(`map_store.categories.${cat.id}`) || cat.label}
+                                                </option>
+                                            ))}
                                     </select>
                                 </div>
 

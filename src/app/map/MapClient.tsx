@@ -455,39 +455,41 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                     )}
                                 </div>
                                 <div className="space-y-1">
-                                    {CATEGORIES.map(cat => {
-                                        const isSelected = selectedCategories.includes(cat.id)
-                                        return (
-                                            <div
-                                                key={cat.id}
-                                                onClick={() => toggleCategory(cat.id)}
-                                                className={`
-                                                    flex items-center space-x-3 p-2 rounded-lg cursor-pointer transition-all
-                                                    ${isSelected ? 'bg-surface-highlight/50' : 'hover:bg-surface-highlight'}
-                                                `}
-                                            >
+                                    {[...CATEGORIES]
+                                        .sort((a, b) => (t(`map_store.categories.${a.id}`) || a.label).localeCompare(t(`map_store.categories.${b.id}`) || b.label))
+                                        .map(cat => {
+                                            const isSelected = selectedCategories.includes(cat.id)
+                                            return (
                                                 <div
+                                                    key={cat.id}
+                                                    onClick={() => toggleCategory(cat.id)}
                                                     className={`
-                                                        w-5 h-5 rounded border flex items-center justify-center transition-colors
-                                                        ${isSelected ? 'bg-transparent' : 'bg-transparent'}
+                                                        flex items-center space-x-3 p-2 rounded-lg cursor-pointer transition-all
+                                                        ${isSelected ? 'bg-surface-highlight/50' : 'hover:bg-surface-highlight'}
                                                     `}
-                                                    style={{
-                                                        backgroundColor: isSelected ? cat.color : 'transparent',
-                                                        borderColor: cat.color
-                                                    }}
                                                 >
-                                                    {isSelected && (
-                                                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                                        </svg>
-                                                    )}
+                                                    <div
+                                                        className={`
+                                                            w-5 h-5 rounded border flex items-center justify-center transition-colors
+                                                            ${isSelected ? 'bg-transparent' : 'bg-transparent'}
+                                                        `}
+                                                        style={{
+                                                            backgroundColor: isSelected ? cat.color : 'transparent',
+                                                            borderColor: cat.color
+                                                        }}
+                                                    >
+                                                        {isSelected && (
+                                                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                        )}
+                                                    </div>
+                                                    <span className={`text-sm ${isSelected ? 'text-white font-medium' : 'text-gray-400'}`}>
+                                                        {t(`map_store.categories.${cat.id}`) || cat.label}
+                                                    </span>
                                                 </div>
-                                                <span className={`text-sm ${isSelected ? 'text-white font-medium' : 'text-gray-400'}`}>
-                                                    {t(`map_store.categories.${cat.id}`) || cat.label}
-                                                </span>
-                                            </div>
-                                        )
-                                    })}
+                                            )
+                                        })}
                                 </div>
                             </div>
                         </div>

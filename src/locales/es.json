@@ -775,7 +775,8 @@
             "frenos": "Frenos",
             "electrico": "Eléctrico",
             "hojalateria": "Hojalatería",
-            "llantas": "Llantas",
+            "llantera": "Llantera",
+            "polarizado": "Polarizado",
             "estetica": "Estética",
             "detallado": "Detallado",
             "refacciones": "Refacciones",
@@ -798,7 +799,10 @@
             "estacionamiento": "Estacionamiento",
             "suspension": "Suspensión",
             "aire_acondicionado": "Aire Acondicionado",
-            "importadoras": "Importadoras de Vehículos"
+            "importadoras": "Importación de Vehículos",
+            "iluminacion": "Iluminación y Faros",
+            "rotulacion": "Rotulación y Vinyl Wrap",
+            "inyectores": "Laboratorio de Inyectores"
         }
     },
     "business_details": {
