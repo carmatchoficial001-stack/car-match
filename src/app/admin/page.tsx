@@ -221,8 +221,6 @@ export default function AdminDashboard() {
                                     <span className="hidden md:block">{item.label}</span>
                                 )}
                             </span>
-                            {/* Mobile Label Fix when open */}
-                            {isSidebarOpen && <span className="md:hidden">{item.label}</span>}
 
                             {item.badge ? (
                                 <span className={`absolute ${isSidebarOpen ? 'right-3' : 'top-2 right-2'} bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold`}>
