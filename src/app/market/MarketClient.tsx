@@ -344,6 +344,7 @@ export default function MarketClient({
                                 vehicleTypes={vehicleTypes}
                                 colors={colors}
                                 currentFilters={searchParams}
+                                onClose={() => setShowFilters(false)}
                             />
                         </div>
                     )

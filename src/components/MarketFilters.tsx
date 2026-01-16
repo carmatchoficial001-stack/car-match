@@ -34,8 +34,9 @@ export default function MarketFiltersAdvanced({
     currentFilters,
     userCountry = 'México',
     userState = '',
-    userCity = ''
-}: MarketFiltersAdvancedProps) {
+    userCity = '',
+    onClose
+}: MarketFiltersAdvancedProps & { onClose?: () => void }) {
     const { t } = useLanguage()
     const { setManualLocation } = useLocation()
     const router = useRouter()
@@ -150,28 +151,39 @@ export default function MarketFiltersAdvanced({
             const { filters, explanation } = data
 
             if (filters) {
-                if (filters.category) setCategory(filters.category as VehicleCategory)
-                if (filters.brand) setBrand(filters.brand)
-                if (filters.model) setModel(filters.model)
-                if (filters.minPrice) setMinPrice(filters.minPrice.toString())
-                if (filters.maxPrice) setMaxPrice(filters.maxPrice.toString())
-                if (filters.minYear) setMinYear(filters.minYear.toString())
-                if (filters.maxYear) setMaxYear(filters.maxYear.toString())
-                if (filters.color) setColor(filters.color)
+                // 🚀 DIRECT EXECUTION: Construct URL based on AI filters
+                const params = new URLSearchParams()
+
+                // Preserve location if set
+                if (country) params.set('country', country)
+                if (state) params.set('state', state)
+                if (city) params.set('city', city)
+
+                // Add AI filters
+                if (filters.category) params.set('category', filters.category)
+                if (filters.brand) params.set('brand', filters.brand)
+                if (filters.model) params.set('model', filters.model)
+                if (filters.minPrice) params.set('minPrice', filters.minPrice.toString())
+                if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString())
+                if (filters.minYear) params.set('minYear', filters.minYear.toString())
+                if (filters.maxYear) params.set('maxYear', filters.maxYear.toString())
+                if (filters.color) params.set('color', filters.color)
 
                 if (filters.transmission) {
-                    setTransmission(Array.isArray(filters.transmission) ? filters.transmission : [filters.transmission])
+                    const trans = Array.isArray(filters.transmission) ? filters.transmission.join(',') : filters.transmission
+                    params.set('transmission', trans)
                 }
+
                 if (filters.fuel) {
-                    setFuel(Array.isArray(filters.fuel) ? filters.fuel : [filters.fuel])
+                    const f = Array.isArray(filters.fuel) ? filters.fuel.join(',') : filters.fuel
+                    params.set('fuel', f)
                 }
 
-                setAiExplanation(explanation || t('smart_search.explanation_success') || 'Okey!')
+                setAiExplanation(explanation || 'Buscando...')
 
-                // Animamos la apertura de filtros avanzados si la IA configuró algo de ahí
-                if (filters.transmission || filters.fuel || filters.color) {
-                    setShowAdvanced(true)
-                }
+                // Execute Search & Close
+                router.push(`/market?${params.toString()}`)
+                if (onClose) onClose()
             }
         } catch (error) {
             console.error('Error in AI Search:', error)
@@ -245,6 +257,7 @@ export default function MarketFiltersAdvanced({
 
 
         router.push(`/market?${params.toString()}`)
+        if (onClose) onClose()
     }
 
     const clearFilters = () => {
