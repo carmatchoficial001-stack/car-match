@@ -20,7 +20,7 @@ export async function getFakeNotificationCounter(userId: string) {
     ])
 
     const totalPublications = activeVehicles + activeBusinesses
-    const targetPerPublication = 179
+    const targetPerPublication = 168 // Max requested by user
     const targetCount = Math.max(1, totalPublications * targetPerPublication)
 
     let counter = await prisma.fakeNotificationCounter.findFirst({
@@ -113,6 +113,12 @@ export async function createFakeVehicleLike(userId: string, vehicleId: string) {
         }
     })
 
+    // Increment fake favorites count on Vehicle
+    await prisma.vehicle.update({
+        where: { id: vehicleId },
+        data: { fakeFavorites: { increment: 1 } }
+    })
+
     // Incrementar contador
     const now = new Date()
     const monthYear = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
@@ -157,6 +163,12 @@ export async function createFakeVehicleView(userId: string, vehicleId: string) {
         }
     })
 
+    // Increment view count on Vehicle
+    await prisma.vehicle.update({
+        where: { id: vehicleId },
+        data: { views: { increment: viewCount } }
+    })
+
     // Incrementar contador
     const now = new Date()
     const monthYear = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
@@ -198,6 +210,19 @@ export async function createFakeBusinessSearch(userId: string, businessId: strin
             message: `${searchCount} personas buscaron negocios como el tuyo hoy`,
             businessId,
             isRead: false
+        }
+    })
+
+    // Increment fake searches on Business Analytics
+    await prisma.businessAnalytics.upsert({
+        where: { businessId },
+        create: {
+            businessId,
+            currentMonth: new Date().getMonth() + 1,
+            fakeSearches: searchCount
+        },
+        update: {
+            fakeSearches: { increment: searchCount }
         }
     })
 
@@ -245,6 +270,19 @@ export async function createFakeBusinessView(userId: string, businessId: string)
             message,
             businessId,
             isRead: false
+        }
+    })
+
+    // Increment fake views on Business Analytics
+    await prisma.businessAnalytics.upsert({
+        where: { businessId },
+        create: {
+            businessId,
+            currentMonth: new Date().getMonth() + 1,
+            fakeViews: viewCount
+        },
+        update: {
+            fakeViews: { increment: viewCount }
         }
     })
 

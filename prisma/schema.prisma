@@ -157,6 +157,8 @@ model Vehicle {
   range              Int?
   torque             String?
   weight             Int?
+  views              Int              @default(0)
+  fakeFavorites      Int              @default(0)
   chats              Chat[]
   dislikes           Dislike[]
   favorites          Favorite[]
