@@ -575,146 +575,145 @@ function OwnerActionButton({ action, vehicleId, icon, label, variant }: {
                     },
                     body: JSON.stringify({ status: newStatus })
                 })
-            })
-        } else if (action === 'delete') {
-            res = await fetch(`/api/vehicles/${vehicleId}`, {
-                method: 'DELETE'
-            })
-        } else {
-            // Solo para activate-credit usar PATCH (requiere lógica de créditos)
-            const newStatus = 'ACTIVE'
-            res = await fetch(`/api/vehicles/${vehicleId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    status: newStatus,
-                    useCredit: action === 'activate-credit'
+            } else if (action === 'delete') {
+                res = await fetch(`/api/vehicles/${vehicleId}`, {
+                    method: 'DELETE'
                 })
-            })
-        }
+            } else {
+                // Solo para activate-credit usar PATCH (requiere lógica de créditos)
+                const newStatus = 'ACTIVE'
+                res = await fetch(`/api/vehicles/${vehicleId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        status: newStatus,
+                        useCredit: action === 'activate-credit'
+                    })
+                })
+            }
 
-        const data = await res.json()
-        if (res.ok) {
-            setModal({
-                isOpen: true,
-                title: '¡Éxito!',
-                message: `La acción "${label}" se ha realizado correctamente.`,
-                variant: 'success',
-                confirmLabel: 'Aceptar',
-                confirmLabel: 'Aceptar',
-                onConfirm: () => {
-                    if (action === 'delete') {
-                        window.location.href = '/profile'
-                    } else {
-                        window.location.reload()
+            const data = await res.json()
+            if (res.ok) {
+                setModal({
+                    isOpen: true,
+                    title: '¡Éxito!',
+                    message: `La acción "${label}" se ha realizado correctamente.`,
+                    variant: 'success',
+                    confirmLabel: 'Aceptar',
+                    confirmLabel: 'Aceptar',
+                    onConfirm: () => {
+                        if (action === 'delete') {
+                            window.location.href = '/profile'
+                        } else {
+                            window.location.reload()
+                        }
                     }
-                }
-            })
-        } else {
-            const isInsufficientCredits = data.error?.toLowerCase().includes('créditos insuficiente') || res.status === 402;
+                })
+            } else {
+                const isInsufficientCredits = data.error?.toLowerCase().includes('créditos insuficiente') || res.status === 402;
 
+                setModal({
+                    isOpen: true,
+                    title: isInsufficientCredits ? 'Saldo Insuficiente' : 'Error',
+                    message: data.error || 'No se pudo completar la acción. Inténtalo de nuevo más tarde.',
+                    variant: isInsufficientCredits ? 'credit' : 'danger',
+                    confirmLabel: isInsufficientCredits ? 'Comprar Créditos' : 'Entendido',
+                    onConfirm: isInsufficientCredits ? () => router.push('/credits') : () => setModal(prev => ({ ...prev, isOpen: false })),
+                })
+            }
+        } catch (e) {
+            console.error(e)
             setModal({
                 isOpen: true,
-                title: isInsufficientCredits ? 'Saldo Insuficiente' : 'Error',
-                message: data.error || 'No se pudo completar la acción. Inténtalo de nuevo más tarde.',
-                variant: isInsufficientCredits ? 'credit' : 'danger',
-                confirmLabel: isInsufficientCredits ? 'Comprar Créditos' : 'Entendido',
-                onConfirm: isInsufficientCredits ? () => router.push('/credits') : () => setModal(prev => ({ ...prev, isOpen: false })),
+                title: 'Error de Conexión',
+                message: 'Ocurrió un error técnico al procesar tu solicitud. Revisa tu conexión de internet.',
+                variant: 'danger',
+                confirmLabel: 'Aceptar',
+                onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
             })
+        } finally {
+            setLoading(false)
         }
-    } catch (e) {
-        console.error(e)
+    }
+
+    const handleClick = () => {
+        if (action === 'edit') return // Handled by Link
+
+        let title = '¿Estás seguro?'
+        let message = `¿Deseas ${label.toLowerCase()} esta publicación?`
+        let variant: 'info' | 'danger' | 'success' | 'credit' = 'info'
+        let confirmLabel = 'Confirmar'
+
+        if (action === 'ai-fix') {
+            title = 'Corrección Automática'
+            message = '¿Deseas corregir los datos de tu vehículo automáticamente según las fotos y activarlo ahora?'
+            variant = 'info'
+        }
+        if (action === 'activate-credit') {
+            title = 'Activar con Crédito'
+            message = '¿Deseas activar esta publicación usando 1 crédito? Esto extenderá la vigencia por 30 días.'
+            variant = 'credit'
+            confirmLabel = 'Usar 1 Crédito'
+        }
+        if (action === 'sold') {
+            variant = 'success'
+            confirmLabel = 'Marcar como Vendido'
+        }
+        if (action === 'delete') { // Added delete action logic
+            title = '¿Eliminar Vehículo?'
+            message = 'Esta acción es permanente y no se puede deshacer. ¿Seguro que quieres eliminar este vehículo?'
+            variant = 'danger'
+            confirmLabel = 'Sí, Eliminar'
+        }
+
         setModal({
             isOpen: true,
-            title: 'Error de Conexión',
-            message: 'Ocurrió un error técnico al procesar tu solicitud. Revisa tu conexión de internet.',
-            variant: 'danger',
-            confirmLabel: 'Aceptar',
-            onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
+            title,
+            message,
+            variant,
+            confirmLabel,
+            onConfirm: handleAction
         })
-    } finally {
-        setLoading(false)
-    }
-}
-
-const handleClick = () => {
-    if (action === 'edit') return // Handled by Link
-
-    let title = '¿Estás seguro?'
-    let message = `¿Deseas ${label.toLowerCase()} esta publicación?`
-    let variant: 'info' | 'danger' | 'success' | 'credit' = 'info'
-    let confirmLabel = 'Confirmar'
-
-    if (action === 'ai-fix') {
-        title = 'Corrección Automática'
-        message = '¿Deseas corregir los datos de tu vehículo automáticamente según las fotos y activarlo ahora?'
-        variant = 'info'
-    }
-    if (action === 'activate-credit') {
-        title = 'Activar con Crédito'
-        message = '¿Deseas activar esta publicación usando 1 crédito? Esto extenderá la vigencia por 30 días.'
-        variant = 'credit'
-        confirmLabel = 'Usar 1 Crédito'
-    }
-    if (action === 'sold') {
-        variant = 'success'
-        confirmLabel = 'Marcar como Vendido'
-    }
-    if (action === 'delete') { // Added delete action logic
-        title = '¿Eliminar Vehículo?'
-        message = 'Esta acción es permanente y no se puede deshacer. ¿Seguro que quieres eliminar este vehículo?'
-        variant = 'danger'
-        confirmLabel = 'Sí, Eliminar'
     }
 
-    setModal({
-        isOpen: true,
-        title,
-        message,
-        variant,
-        confirmLabel,
-        onConfirm: handleAction
-    })
-}
+    const variants = {
+        ia: 'bg-primary-500 text-white hover:bg-primary-600 shadow-lg shadow-primary-900/40',
+        credit: 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-900/40',
+        success: 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-900/40',
+        neutral: 'bg-surface-highlight text-text-primary hover:bg-surface border border-white/5',
+        sold: 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-900/40',
+        danger: 'bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 shadow-lg shadow-red-900/10'
+    }
 
-const variants = {
-    ia: 'bg-primary-500 text-white hover:bg-primary-600 shadow-lg shadow-primary-900/40',
-    credit: 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-900/40',
-    success: 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-900/40',
-    neutral: 'bg-surface-highlight text-text-primary hover:bg-surface border border-white/5',
-    sold: 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-900/40',
-    danger: 'bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 shadow-lg shadow-red-900/10'
-}
+    return (
+        <>
+            <button
+                onClick={handleClick}
+                disabled={loading}
+                className={`flex flex-col items-center justify-center p-3 rounded-2xl transition gap-1 group w-full ${variants[variant]}`}
+            >
+                {loading ? (
+                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                    <div className="group-hover:scale-110 transition">{icon}</div>
+                )}
+                <span className="text-[10px] font-bold uppercase tracking-tighter line-clamp-1">{label}</span>
+            </button>
 
-return (
-    <>
-        <button
-            onClick={handleClick}
-            disabled={loading}
-            className={`flex flex-col items-center justify-center p-3 rounded-2xl transition gap-1 group w-full ${variants[variant]}`}
-        >
-            {loading ? (
-                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            ) : (
-                <div className="group-hover:scale-110 transition">{icon}</div>
-            )}
-            <span className="text-[10px] font-bold uppercase tracking-tighter line-clamp-1">{label}</span>
-        </button>
-
-        <ConfirmationModal
-            isOpen={modal.isOpen}
-            onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
-            onConfirm={modal.onConfirm}
-            title={modal.title}
-            message={modal.message}
-            variant={modal.variant}
-            confirmLabel={modal.confirmLabel}
-            isLoading={loading}
-        />
-    </>
-)
+            <ConfirmationModal
+                isOpen={modal.isOpen}
+                onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={modal.onConfirm}
+                title={modal.title}
+                message={modal.message}
+                variant={modal.variant}
+                confirmLabel={modal.confirmLabel}
+                isLoading={loading}
+            />
+        </>
+    )
 }
 
 function DetailItem({ icon, label, value }: { icon: any, label: string, value: string }) {
