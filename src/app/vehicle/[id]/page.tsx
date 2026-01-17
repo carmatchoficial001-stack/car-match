@@ -6,12 +6,11 @@ import VehicleDetailClient from "./VehicleDetailClient"
 import { auth } from '@/lib/auth'
 
 interface Props {
-    params: Promise<{
-        id: string
-    }>
+    params: Promise<{ id: string }>
+    searchParams: Promise<any>
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
     const { id } = await params
     const vehicle = await prisma.vehicle.findUnique({
         where: { id },
@@ -66,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 }
 
-export default async function VehicleDetailPage({ params }: Props) {
+export default async function VehicleDetailPage({ params, searchParams }: Props) {
     const session = await auth()
     const { id } = await params
     const vehicle = await prisma.vehicle.findUnique({

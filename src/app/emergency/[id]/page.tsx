@@ -24,7 +24,13 @@ interface SOSData {
     createdAt: string
 }
 
-export default function EmergencyPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EmergencyPage({
+    params,
+    searchParams: _searchParams
+}: {
+    params: Promise<{ id: string }>,
+    searchParams: Promise<any>
+}) {
     const { id } = use(params)
     const { data: session, status } = useSession()
     const router = useRouter()

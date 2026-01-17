@@ -4,12 +4,11 @@ import ProfileClient from "../ProfileClient"
 import { notFound } from "next/navigation"
 
 interface PublicProfilePageProps {
-    params: Promise<{
-        id: string
-    }>
+    params: Promise<{ id: string }>
+    searchParams: Promise<any>
 }
 
-export default async function PublicProfilePage({ params }: PublicProfilePageProps) {
+export default async function PublicProfilePage({ params, searchParams }: PublicProfilePageProps) {
     const { id } = await params
     const session = await auth()
 

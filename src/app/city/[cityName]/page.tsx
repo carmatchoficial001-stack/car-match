@@ -5,8 +5,15 @@ import { getCachedBrands, getCachedVehicleTypes, getCachedColors } from "@/lib/c
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 
-export async function generateMetadata({ params }: { params: { cityName: string } }) {
-    const city = decodeURIComponent(params.cityName)
+export async function generateMetadata({
+    params,
+    searchParams
+}: {
+    params: Promise<{ cityName: string }>,
+    searchParams: Promise<any>
+}) {
+    const { cityName } = await params
+    const city = decodeURIComponent(cityName)
     return {
         title: `Autos, Motos y Talleres en ${city} | CarMatch`,
         description: `Encuentra los mejores vehículos y servicios automotrices en ${city}. Explora el marketplace y el mapa de negocios en tiempo real.`,
@@ -14,8 +21,15 @@ export async function generateMetadata({ params }: { params: { cityName: string 
     }
 }
 
-export default async function CityPage({ params }: { params: { cityName: string } }) {
-    const city = decodeURIComponent(params.cityName)
+export default async function CityPage({
+    params,
+    searchParams: _searchParams
+}: {
+    params: Promise<{ cityName: string }>,
+    searchParams: Promise<any>
+}) {
+    const { cityName } = await params
+    const city = decodeURIComponent(cityName)
     const session = await auth()
 
     if (!session?.user) {

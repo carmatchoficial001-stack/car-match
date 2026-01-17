@@ -31,7 +31,13 @@ interface Message {
     proposerId?: string
 }
 
-export default function ChatPage({ params }: { params: Promise<{ chatId: string }> }) {
+export default function ChatPage({
+    params,
+    searchParams: _searchParams
+}: {
+    params: Promise<{ chatId: string }>,
+    searchParams: Promise<any>
+}) {
     const { chatId } = use(params)
     const { t } = useLanguage()
     const { data: session, status } = useSession()

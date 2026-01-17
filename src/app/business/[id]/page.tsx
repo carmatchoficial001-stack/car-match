@@ -5,10 +5,11 @@ import { Metadata } from 'next'
 
 interface Props {
     params: Promise<{ id: string }>
+    searchParams: Promise<any>
 }
 
 // Generar Metadata dinámica para SEO y Compartir en Redes (WhatsApp, Facebook, etc.)
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
     const { id } = await params
     const business = await prisma.business.findUnique({
         where: { id },
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 import { auth } from '@/lib/auth'
 
-export default async function BusinessDetailPage({ params }: Props) {
+export default async function BusinessDetailPage({ params, searchParams }: Props) {
     const { id } = await params
 
     // Fetch business data

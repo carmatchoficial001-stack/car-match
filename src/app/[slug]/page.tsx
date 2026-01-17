@@ -5,9 +5,10 @@ import MiniWebClient from './MiniWebClient'
 
 interface Props {
     params: Promise<{ slug: string }>
+    searchParams: Promise<any>
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
     const { slug } = await params
 
     // Lista de rutas reservadas que NO deben confundirse con slugs de negocios
@@ -46,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 }
 
-export default async function MiniWebPage({ params }: Props) {
+export default async function MiniWebPage({ params, searchParams }: Props) {
     const { slug } = await params
 
     // 1. Evitar colisión con rutas estáticas (aunque Next.js ya prioriza, por seguridad)
