@@ -14,6 +14,9 @@ export const metadata: Metadata = {
         template: "%s | CarMatch"
     },
     description: "Aplicación CarMatch: La red social líder para comprar autos, vender vehículos y encontrar talleres mecánicos 24/7 en Juárez y todo México. Tu app de emergencia y mercado automotriz.",
+    verification: {
+        google: "u4BWC_7mrWziSal62PD0Jv6grcjI6Pl2zHOnc0Jcdxg",
+    },
     keywords: ["CarMatch App", "servicio 24/7", "emergencia mecánica", "aplicación CarMatch", "venta de autos", "compra de autos", "talleres mecánicos", "refacciones Juárez", "auxilio vial"],
     manifest: "/manifest.json",
     authors: [{ name: "CarMatch Team" }],
