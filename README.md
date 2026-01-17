@@ -67,7 +67,7 @@ carmatch/
 
 ## 💰 Sistema de Monetización
 
-- **Vehículos**: 1er vehículo gratis por 6 meses, vehículos adicionales 7 días gratis luego 1 crédito/mes
+- **Vehículos**: 1er vehículo gratis por 6 meses, vehículos adicionales 15 días gratis luego 1 crédito/mes
 - **Negocios**: **Primer negocio 3 MESES GRATIS**, siguientes negocios 1 crédito/mes
 - **Paquetes de Créditos**: Disponibles con descuentos progresivos
 
