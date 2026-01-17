@@ -31,14 +31,14 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                     <div className="flex flex-col gap-6">
                         <div className="flex flex-row items-start gap-4 sm:gap-6">
                             {/* 1. Foto de Perfil (Izquierda - Rojo) */}
-                            <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 flex-shrink-0">
-                                <div className="relative w-full h-full rounded-full overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface group">
+                            <div className="w-24 sm:w-32 md:w-40 flex-shrink-0">
+                                <div className="relative w-full rounded-xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface group">
                                     {user.image ? (
                                         <>
                                             <img
                                                 src={user.image}
                                                 alt={user.name}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-auto object-cover"
                                             />
                                             {isOwner && (
                                                 <button
@@ -143,12 +143,7 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
 
                 {/* Vehículos */}
                 <div className="bg-surface rounded-2xl shadow-xl p-8 border border-surface-highlight">
-                    <h2 className="text-2xl font-bold text-text-primary mb-6 flex items-center gap-3">
-                        <svg className="w-6 h-6 text-primary-400" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M22 13.5V12c0-.55-.45-1-1-1h-1.5c-.3 0-.57.14-.74.36L17.2 9.1c-.24-.31-.61-.5-1-.5h-8.4c-.39 0-.76.19-1 .5L5.24 11.36c-.17-.22-.44-.36-.74-.36H3c-.55 0-1 .45-1 1v1.5c0 .25.1.48.26.65l.04.05C2.11 14.4 2 14.69 2 15v4c0 .55.45 1 1 1h1.5c.55 0 1-.45 1-1v-1h13v1c0 .55.45 1 1 1h1.5c.55 0 1-.45 1-1v-4c0-.31-.11-.6-.3-.8l.04-.05c.16-.17.26-.4.26-.65zM6.5 17c-.83 0-1.5-.67-1.5-1.5S5.67 14 6.5 14s1.5.67 1.5 1.5S7.33 17 6.5 17zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5.5 12l1.2-2h10.6l1.2 2H5.5z" />
-                        </svg>
-                        {isOwner ? t('profile.my_vehicles') : t('profile.user_vehicles').replace('{name}', user.name)}
-                    </h2>
+
 
                     {vehiclesToShow.length === 0 ? (
                         <div className="text-center py-12 text-text-secondary bg-background/50 rounded-xl border border-surface-highlight border-dashed">

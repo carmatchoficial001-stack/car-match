@@ -393,7 +393,8 @@
             "sold": "Vendido",
             "inactive": "Inactivo"
         },
-        "user_id": "ID de Usuario"
+        "user_id": "ID de Usuario",
+        "edit_profile": "Editar Perfil"
     },
     "business": {
         "title": "Mis Negocios",
