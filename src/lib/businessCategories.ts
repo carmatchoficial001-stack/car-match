@@ -76,7 +76,7 @@ export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
     electrico: ['Baterías', 'Alternadores', 'Marchas', 'Luces', 'Alarmas', 'Sensores', 'Aire Acondicionado', 'Computadoras', 'Fusibles'],
     hojalateria: ['Hojalatería', 'Pintura', 'Pintura General', 'Pintura de Piezas', 'Pulido', 'Restauración de Choques', 'Enderezado de Chasis', 'Soldadura', 'Pintura Automotriz', 'Igualado de Color', 'Repintado', 'Sopleteo'],
     llantera: ['Venta de Llantas', 'Reparación de Ponchaduras', 'Alineación', 'Balanceo', 'Suspensión', 'Frenos', 'Inflado con Nitrógeno'],
-    estetica: ['Lavado Exterior', 'Lavado de Interiores', 'Pulido y Encerado', 'Detallado de Motor', 'Restauración de Faros', 'Lavado de Chassis', 'Cerámico'],
+    estetica: ['Lavado Exterior', 'Lavado de Interiores', 'Pulido y Encerado', 'Detallado de Motor', 'Restauración de Faros', 'Lavado de Chassis', 'Cerámico', 'Car Wash', 'Autolavado', 'Limpieza de Asientos', 'Aspirado', 'Lavado a Presión'],
     refacciones: ['Partes de Motor', 'Suspensión', 'Frenos', 'Eléctrico', 'Carrocería', 'Accesorios', 'Baterías', 'Aceites y Fluidos'],
     audio: ['Instalación de Estéreo', 'Bocinas', 'Amplificadores', 'Alarmas', 'GPS', 'Cámaras de Reversa', 'Sensores de Reversa'],
     cristales: ['Parabrisas', 'Reemplazo de Cristales', 'Reparación de Impactos', 'Espejos', 'Elevadores de Vidrios'],
