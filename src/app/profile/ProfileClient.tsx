@@ -28,83 +28,67 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
             <div className="container mx-auto px-4 pt-8 pb-24 max-w-5xl">
                 {/* Header del Perfil */}
                 <div className="bg-surface rounded-2xl shadow-xl p-8 mb-8 border border-surface-highlight">
-                    <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-8">
-                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 w-full">
-                            <div className="w-48 sm:w-64 md:w-72 lg:w-80 flex-shrink-0">
-                                <div className="relative rounded-2xl overflow-hidden shadow-xl border-2 border-surface-highlight bg-surface group">
+                    <div className="flex flex-col gap-6">
+                        <div className="flex flex-row items-start gap-4 sm:gap-6">
+                            {/* 1. Foto de Perfil (Izquierda - Rojo) */}
+                            <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 flex-shrink-0">
+                                <div className="relative w-full h-full rounded-full overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface group">
                                     {user.image ? (
                                         <>
                                             <img
                                                 src={user.image}
                                                 alt={user.name}
-                                                className="w-full h-auto min-h-[150px] md:min-h-[200px] max-h-[400px] object-cover"
+                                                className="w-full h-full object-cover"
                                             />
-                                            {isOwner && (
-                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                                    <button
-                                                        onClick={() => setShowEditModal(true)}
-                                                        className="bg-primary-700 hover:bg-primary-600 text-white px-4 py-2 rounded-xl font-bold shadow-lg transform translate-y-2 group-hover:translate-y-0 transition flex items-center gap-2 text-sm"
-                                                    >
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                        </svg>
-                                                        {t('profile.edit_profile' as any) || 'Editar Perfil'}
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <div className="aspect-square md:aspect-[4/5] bg-surface-highlight flex flex-col items-center justify-center relative">
-                                            <img
-                                                src={`/defaults/avatars/car_${((user.name?.charCodeAt(0) || 0) % 6) + 1}.png`}
-                                                alt="Avatar"
-                                                className="w-full h-full object-cover opacity-30"
-                                            />
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-                                                <span className="text-5xl md:text-6xl font-black text-primary-400/50 mb-2">
-                                                    {user.name?.[0]?.toUpperCase()}
-                                                </span>
-                                            </div>
-
                                             {isOwner && (
                                                 <button
                                                     onClick={() => setShowEditModal(true)}
-                                                    className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
+                                                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
                                                 >
-                                                    <div className="bg-primary-700 text-white px-4 py-2 rounded-xl font-bold shadow-lg text-sm">
-                                                        {t('profile.edit_profile' as any) || 'Editar Perfil'}
-                                                    </div>
+                                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="w-full h-full bg-surface-highlight flex items-center justify-center relative">
+                                            <span className="text-3xl sm:text-4xl font-black text-primary-400/50">
+                                                {user.name?.[0]?.toUpperCase()}
+                                            </span>
+                                            {isOwner && (
+                                                <button
+                                                    onClick={() => setShowEditModal(true)}
+                                                    className="absolute inset-0 z-10 w-full h-full flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all"
+                                                >
+                                                    <svg className="w-5 h-5 text-white opacity-0 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    </svg>
                                                 </button>
                                             )}
                                         </div>
                                     )}
                                 </div>
                             </div>
-                            <div className="flex-1 text-center sm:text-left">
-                                <div className="flex flex-col sm:flex-row items-center gap-2 mb-1">
-                                    <h1 className="text-3xl font-bold text-text-primary">
+
+                            {/* 2. Información (Derecha - Azul y Verde) */}
+                            <div className="flex-1 flex flex-col items-start gap-1">
+                                {/* Nombre y Fecha */}
+                                <div className="flex flex-col items-start">
+                                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-text-primary leading-tight">
                                         {user.name}
                                     </h1>
-                                    {isOwner && (
-                                        <button
-                                            onClick={() => setShowEditModal(true)}
-                                            className="text-text-secondary hover:text-primary-400 transition p-1"
-                                            title="Editar nombre"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                            </svg>
-                                        </button>
-                                    )}
+                                    <p className="text-text-secondary text-xs sm:text-sm">
+                                        {t('profile.member_since')} {formattedDate}
+                                    </p>
                                 </div>
-                                <p className="text-text-secondary text-sm">
-                                    {t('profile.member_since')} {formattedDate}
-                                </p>
+
+                                {/* ID de Usuario */}
                                 {isOwner && (
-                                    <div className="flex items-center justify-center sm:justify-start gap-2 mt-3">
-                                        <div className="bg-surface-highlight/30 px-3 py-1.5 rounded-lg border border-surface-highlight flex items-center gap-2 overflow-hidden max-w-[200px] sm:max-w-none">
-                                            <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider flex-shrink-0">{t('profile.user_id')}:</span>
-                                            <code className="text-xs text-primary-400 font-mono truncate max-w-[80px] sm:max-w-[120px]">
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <div className="bg-surface-highlight/30 px-2 py-1 rounded-md border border-surface-highlight flex items-center gap-1.5">
+                                            <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">ID:</span>
+                                            <code className="text-[10px] sm:text-xs text-primary-400 font-mono truncate max-w-[80px] sm:max-w-[120px]">
                                                 {user.id}
                                             </code>
                                         </div>
@@ -114,25 +98,38 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                 // @ts-ignore
                                                 const btn = e.currentTarget
                                                 const originalHtml = btn.innerHTML
-                                                btn.innerHTML = `<span class="text-[10px] text-green-400 font-bold">${t('common.copied')}</span>`
+                                                btn.innerHTML = `<span class="text-[10px] text-green-400 font-bold">OK</span>`
                                                 setTimeout(() => {
                                                     btn.innerHTML = originalHtml
                                                 }, 2000)
                                             }}
-                                            className="px-4 py-1.5 bg-surface-highlight/50 hover:bg-surface-highlight rounded-lg transition text-text-secondary hover:text-primary-400 border border-surface-highlight"
+                                            className="p-1.5 bg-surface-highlight/50 hover:bg-surface-highlight rounded-md transition text-text-secondary hover:text-primary-400 border border-surface-highlight"
                                             title="Copiar ID"
                                         >
-                                            <span className="text-[10px] font-bold uppercase tracking-tight">{t('common.copy')}</span>
+                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
                                         </button>
                                     </div>
+                                )}
+
+                                {/* Botón de Editar (Móvil) */}
+                                {isOwner && (
+                                    <button
+                                        onClick={() => setShowEditModal(true)}
+                                        className="mt-2 text-xs text-primary-400 font-bold hover:underline sm:hidden"
+                                    >
+                                        {t('profile.edit_profile' as any) || 'Editar Perfil'}
+                                    </button>
                                 )}
                             </div>
                         </div>
 
+                        {/* 3. Botón Publicar (Abajo - Morado) */}
                         {isOwner && (
                             <Link
                                 href="/publish"
-                                className="w-full md:w-auto px-6 py-3 bg-primary-700 text-background text-center font-bold rounded-xl hover:bg-primary-600 transition shadow-lg flex items-center justify-center gap-2 text-sm"
+                                className="w-full sm:w-auto px-6 py-3 bg-primary-700 text-background text-center font-bold rounded-xl hover:bg-primary-600 transition shadow-lg flex items-center justify-center gap-2 text-sm sm:self-start"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
