@@ -99,7 +99,7 @@ export default function LandingPageContent() {
                     {t('landing.hero_subtitle')}
                 </p>
 
-                <div className="mb-24">
+                <div className="flex flex-col sm:flex-row gap-4 mb-24">
                     <Link
                         href="/auth"
                         replace
@@ -108,6 +108,15 @@ export default function LandingPageContent() {
                         {t('landing.cta_enter')}
                         <svg className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
                     </Link>
+                    <button
+                        onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot'))}
+                        className="group inline-flex items-center justify-center px-12 py-5 text-lg font-bold text-white bg-white/10 border border-white/20 rounded-full hover:bg-white/20 transition-all hover:scale-105"
+                    >
+                        Asesor
+                        <svg className="w-5 h-5 ml-2 text-primary-400 group-hover:animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                    </button>
                 </div>
 
                 {/* Advantages Section */}

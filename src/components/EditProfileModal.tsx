@@ -78,20 +78,20 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                     </svg>
                 </button>
 
-                <h2 className="text-2xl font-bold text-text-primary mb-6">{t('title')}</h2>
+                <h2 className="text-2xl font-bold text-text-primary mb-6">{t('edit_profile.title')}</h2>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Sección Nombre */}
                     <div>
                         <label className="block text-sm font-medium text-text-secondary mb-2">
-                            {t('name_label')}
+                            {t('edit_profile.name_label')}
                         </label>
 
                         {/* Tip movido arriba por solicitud del usuario */}
                         <div className="mb-3 p-3 bg-primary-900/20 border border-primary-900/30 rounded-lg">
                             <p className="text-xs text-primary-300">
-                                💡 <strong>{t('creative_idea')}</strong> {t('creative_desc')} <br />
-                                Ejemplos: <em>"El Garaje de {currentUser.name?.split(' ')[0] || 'Ana'}", "Autos del Norte", "La Colección de {currentUser.name?.split(' ')[0] || 'Mike'}"</em>
+                                💡 <strong>{t('edit_profile.creative_idea')}</strong> {t('edit_profile.creative_desc')} <br />
+                                {t('edit_profile.creative_examples', { name: currentUser.name?.split(' ')[0] || 'CarMatch User' })}
                             </p>
                         </div>
 
@@ -102,14 +102,14 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                             autoComplete="off"
                             data-lpignore="true"
                             className="w-full bg-background border border-surface-highlight rounded-xl px-4 py-3 text-text-primary focus:ring-2 focus:ring-primary-500 outline-none transition"
-                            placeholder="Ej: Juan Pérez"
+                            placeholder={t('edit_profile.name_placeholder')}
                         />
                     </div>
 
                     {/* Sección Imagen */}
                     <div>
                         <label className="block text-sm font-medium text-text-secondary mb-3">
-                            Foto de Perfil
+                            {t('edit_profile.photo_label')}
                         </label>
 
                         {/* Subir Foto Personalizada */}
@@ -126,7 +126,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                             )}
 
                             <ImageUpload
-                                label={(!hasValidImage) ? t('upload_first') : t('change_photo')}
+                                label={(!hasValidImage) ? t('edit_profile.upload_first') : t('edit_profile.change_photo')}
                                 images={hasValidImage ? [selectedImage] : []}
                                 onImagesChange={(imgs) => {
                                     setSelectedImage(imgs[0] || '')
@@ -138,7 +138,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                 fallbackContent={
                                     <div className="border-2 border-dashed border-surface-highlight rounded-lg p-4">
                                         <p className="text-xs text-text-secondary text-center mb-3">
-                                            {t('current_profile_desc')}
+                                            {t('edit_profile.current_profile_desc')}
                                         </p>
                                         <div className="relative w-full max-w-xs aspect-video rounded-xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface mx-auto">
                                             <img
@@ -160,7 +160,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 <span>
-                                    <strong>{t('recommendation')}</strong> {t('recommendation_full')}
+                                    <strong>{t('edit_profile.recommendation')}</strong> {t('edit_profile.recommendation_full')}
                                 </span>
                             </div>
                         </div>
@@ -170,7 +170,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                         {/* Vehículos del Usuario (si tiene) */}
                         {userVehicles.length > 0 && (
                             <div className="mt-4">
-                                <p className="text-xs text-text-secondary mb-2 uppercase tracking-wider font-bold">{t('your_vehicles')}</p>
+                                <p className="text-xs text-text-secondary mb-2 uppercase tracking-wider font-bold">{t('edit_profile.your_vehicles')}</p>
                                 <div className="grid grid-cols-4 gap-3">
                                     {userVehicles.map((vehicle) => (
                                         vehicle.images?.[0] && (
@@ -201,8 +201,8 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                 </svg>
                             </div>
                             <div>
-                                <h3 className="text-red-400 font-bold">{t('security_sos')}</h3>
-                                <p className="text-[10px] text-text-secondary">{t('sos_desc')}</p>
+                                <h3 className="text-red-400 font-bold">{t('edit_profile.security_sos')}</h3>
+                                <p className="text-[10px] text-text-secondary">{t('edit_profile.sos_desc')}</p>
                             </div>
                         </div>
 
@@ -222,7 +222,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                     }}
                                     className="text-xs text-red-400 hover:text-red-300 font-bold"
                                 >
-                                    {t('remove')}
+                                    {t('edit_profile.remove')}
                                 </button>
                             </div>
                         ) : (
@@ -230,7 +230,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder={t('search_user')}
+                                        placeholder={t('edit_profile.search_user')}
                                         className="w-full bg-background border border-surface-highlight rounded-xl px-4 py-2.5 text-sm text-text-primary outline-none focus:border-red-500/50 transition"
                                         value={searchQuery}
                                         onChange={async (e) => {
@@ -288,7 +288,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                             </div>
                         )}
                         <p className="text-[9px] text-text-secondary italic">
-                            💡 {t('sos_warning')}
+                            💡 {t('edit_profile.sos_warning')}
                         </p>
                     </div>
 
@@ -299,7 +299,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                             onClick={onClose}
                             className="px-6 py-2 rounded-xl text-text-secondary hover:bg-surface-highlight transition"
                         >
-                            {t('cancel')}
+                            {t('edit_profile.cancel')}
                         </button>
                         <button
                             type="submit"
@@ -312,10 +312,10 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    {t('saving')}
+                                    {t('edit_profile.saving')}
                                 </>
                             ) : (
-                                t('save_changes')
+                                t('edit_profile.save_changes')
                             )}
                         </button>
                     </div>

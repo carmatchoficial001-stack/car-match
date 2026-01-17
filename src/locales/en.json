@@ -189,9 +189,9 @@
         }
     },
     "landing": {
-        "hero_title_1": "YOUR NEXT",
-        "hero_title_2": "CAR IS HERE",
-        "hero_subtitle": "The social network where you find, compare, and save vehicles like never before.",
+        "hero_title_1": "CARMATCH",
+        "hero_title_2": "THE APP",
+        "hero_subtitle": "The ultimate social network for vehicle owners. Your app to buy, sell, and find shops with AI.",
         "cta_enter": "Enter CarMatch",
         "download_on": "Download on",
         "get_it_on": "Get it on",
@@ -217,13 +217,10 @@
     },
     "publish": {
         "steps": {
-            "vehicle_type": "Vehicle Type",
-            "basic_info": "Basic Info",
-            "technical_details": "Technical Details",
-            "images": "Images",
-            "features": "Equipment",
-            "location": "Location",
-            "review": "Review",
+            "images": "Photos",
+            "identity_price": "Identity & Price",
+            "specs_features": "Specs & Features",
+            "location_review": "Location & Launch",
             "validation": {
                 "title": "Photos not verified",
                 "description": "The system couldn't automatically verify all vehicle details from photos. Do you want to continue manually?",
@@ -830,6 +827,7 @@
         "title": "Edit Profile",
         "creative_idea": "Creative Idea:",
         "creative_desc": "Why not use a fun name?",
+        "creative_examples": "Examples: '{name}'s Garage', 'North Cars', '{name}'s Collection'",
         "recommendation": "Recommendation:",
         "rec_desc": "Use a photo where you look trustworthy.",
         "name_label": "Profile Name",
@@ -1189,5 +1187,9 @@
         "accept_btn": "Accept",
         "reject_btn": "Reject",
         "cancel_btn": "Cancel"
+    },
+    "chat": {
+        "welcome": "Hello! I am your CarMatch Advisor. 👨‍💻 How can I advise you today?",
+        "title": "CarMatch Advisor"
     }
 }

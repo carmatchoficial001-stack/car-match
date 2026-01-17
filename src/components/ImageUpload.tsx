@@ -88,12 +88,12 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
         <div>
             <div className="mb-4">
                 <label className="block text-sm font-medium text-text-primary mb-2">
-                    {label || t('publish.vehicle_photos')} {required && <span className="text-red-500">*</span>}
+                    {label || t('publish.labels.vehicle_photos')} {required && <span className="text-red-500">*</span>}
                 </label>
                 <p className="text-xs text-text-secondary mb-3">
                     {maxImages === 1
-                        ? 'Esta foto aparecerá en la tarjeta de tu negocio.'
-                        : `Sube hasta ${maxImages} fotos. La primera será la foto principal.`
+                        ? t('image_upload.business_desc')
+                        : t('image_upload.vehicle_desc', { max: maxImages.toString() })
                     }
                 </p>
 
@@ -117,8 +117,8 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
                         )}
                         <span>
                             {maxImages === 1 && images.length > 0
-                                ? 'Cambiar (Galería)'
-                                : 'Elegir Galería'}
+                                ? t('image_upload.change_gallery')
+                                : t('image_upload.choose_gallery')}
                         </span>
                     </button>
 
@@ -136,7 +136,7 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        <span>Tomar Foto</span>
+                        <span>{t('image_upload.take_photo')}</span>
                     </button>
 
                     <input
@@ -176,7 +176,7 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
                             {/* Badge de foto principal */}
                             {index === 0 && (
                                 <div className="absolute top-2 left-2 px-2 py-1 bg-primary-700 text-white text-xs font-medium rounded shadow-sm">
-                                    Principal
+                                    {t('image_upload.main_photo')}
                                 </div>
                             )}
 
@@ -204,7 +204,7 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <p className="text-text-secondary text-sm">
-                            {t('publish.no_photos_yet')}
+                            {t('image_upload.no_photos_yet')}
                         </p>
                     </div>
                 )

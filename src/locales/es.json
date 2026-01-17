@@ -47,9 +47,9 @@
         "select_city": "Selecciona una ciudad:",
         "back_to_gps": "Volver a ubicación GPS",
         "all_rights_reserved": "Todos los derechos reservados.",
-        "support": "Soporte CarMatch",
+        "support": "Asesor",
         "install_app": "Instalar CarMatch App",
-        "online_team": "Equipo en línea",
+        "online_team": "En línea ahora",
         "typing_placeholder": "Escribe tu duda...",
         "copy": "Copiar",
         "copied": "¡Copiado!",
@@ -205,9 +205,9 @@
         }
     },
     "landing": {
-        "hero_title_1": "TU PRÓXIMO",
-        "hero_title_2": "AUTO ESTÁ AQUÍ",
-        "hero_subtitle": "La red social donde encuentras, comparas y guardas vehículos como nunca antes.",
+        "hero_title_1": "CARMATCH",
+        "hero_title_2": "LA APLICACIÓN",
+        "hero_subtitle": "La red social definitiva para dueños de vehículos. Tu app para comprar, vender y encontrar talleres con IA.",
         "cta_enter": "Ingresar a CarMatch",
         "download_on": "Descarga en",
         "get_it_on": "Disponible en",
@@ -233,13 +233,10 @@
     },
     "publish": {
         "steps": {
-            "vehicle_type": "Tipo de Vehículo",
-            "basic_info": "Información Básica",
-            "technical_details": "Detalles Técnicos",
             "images": "Imágenes",
-            "features": "Equipamiento",
-            "location": "Ubicación",
-            "review": "Revisión y Publicar"
+            "identity_price": "Identidad y Valor",
+            "specs_features": "Alma y Equipo",
+            "location_review": "Ubicación y Lanzamiento"
         },
         "titles": {
             "what_type": "¿Qué tipo de vehículo vas a publicar?",
@@ -840,6 +837,7 @@
         "title": "Editar Perfil",
         "creative_idea": "Idea Creativa:",
         "creative_desc": "¿Por qué no usar un nombre divertido?",
+        "creative_examples": "Ejemplos: 'El Garaje de {name}', 'Autos del Norte', 'La Colección de {name}'",
         "recommendation": "Recomendación:",
         "rec_desc": "Usa una foto donde te veas confiable.",
         "name_label": "Nombre del Perfil",
@@ -1162,5 +1160,9 @@
         "reject_btn": "Rechazar",
         "cancel_btn": "Cancelar",
         "past": "Finalizada"
+    },
+    "chat": {
+        "welcome": "¡Hola! Soy tu Asesor CarMatch. 👨‍💻 ¿En qué puedo asesorarte hoy?",
+        "title": "Asesor CarMatch"
     }
 }

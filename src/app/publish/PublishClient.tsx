@@ -30,7 +30,7 @@ import {
 import { getUserLocation, reverseGeocode } from '@/lib/geolocation'
 import { useModelNames } from '@/hooks/useVehicleData'
 
-type FormStep = 1 | 2 | 3 | 4 | 5 | 6 | 7
+type FormStep = 1 | 2 | 3 | 4
 type VehicleStatus = 'ACTIVE' | 'INACTIVE' | 'SOLD'
 
 export default function PublishClient() {
@@ -58,13 +58,10 @@ export default function PublishClient() {
     // Helper for Step Names
     const getStepName = (step: number) => {
         switch (step) {
-            case 1: return t('publish.steps.images') || 'Images'
-            case 2: return t('publish.steps.vehicle_type') || 'Vehicle Type'
-            case 3: return t('publish.steps.basic_info') || 'Basic Info'
-            case 4: return t('publish.steps.technical_details') || 'Technical Details'
-            case 5: return t('publish.steps.features') || 'Equipment'
-            case 6: return t('publish.steps.location') || 'Location'
-            case 7: return t('publish.steps.review') || 'Review and Publish'
+            case 1: return t('publish.steps.images')
+            case 2: return t('publish.steps.identity_price')
+            case 3: return t('publish.steps.specs_features')
+            case 4: return t('publish.steps.location_review')
             default: return ''
         }
     }
@@ -122,12 +119,9 @@ export default function PublishClient() {
 
     // Validation for the new flow
     const canProceedFromStep1 = images.length > 0
-    const canProceedFromStep2 = vehicleCategory !== '' && vehicleType !== ''
-    const canProceedFromStep3 = brand !== '' && model !== '' && year !== '' && price !== '' && parseFloat(price) > 0
-    // Step 4 (Technical): Validar Kilometraje si es obligatorio, y otros campos clave si se desea
-    const canProceedFromStep4 = mileage !== '' && (parseInt(mileage) >= 0)
-    const canProceedFromStep5 = true // Features siguen siendo opcional
-    const canProceedFromStep6 = latitude !== null && longitude !== null && city !== ''
+    const canProceedFromStep2 = vehicleCategory !== '' && vehicleType !== '' && brand !== '' && model !== '' && year !== '' && price !== '' && parseFloat(price) > 0
+    const canProceedFromStep3 = mileage !== '' && (parseInt(mileage) >= 0)
+    const canProceedFromStep4 = latitude !== null && longitude !== null && city !== ''
 
     // 🤖 Dynamic vehicle data from database
     const modelNames = useModelNames(brand)
@@ -305,7 +299,7 @@ export default function PublishClient() {
 
     const handleNextStep = () => {
         setCurrentStep(prev => {
-            if (prev < 7) return (prev + 1) as FormStep
+            if (prev < 4) return (prev + 1) as FormStep
             return prev
         })
     }
@@ -554,7 +548,7 @@ export default function PublishClient() {
                 {/* Progress Bar */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
-                        {[1, 2, 3, 4, 5, 6, 7].map((step) => (
+                        {[1, 2, 3, 4].map((step) => (
                             <div key={step} className="flex items-center flex-1">
                                 <div
                                     className={`flex flex-col items-center flex-1 ${step < currentStep ? 'cursor-pointer group' : ''}`}
@@ -577,7 +571,7 @@ export default function PublishClient() {
                                     </div>
                                     <span className={`text-xs mt-2 hidden md:block ${step === currentStep ? 'text-primary-400' : 'text-text-secondary'}`}>{getStepName(step)}</span>
                                 </div>
-                                {step < 7 && <div className={`h-0.5 flex-1 mx-2 ${step < currentStep ? 'bg-green-500' : 'bg-surface-highlight'}`}></div>}
+                                {step < 4 && <div className={`h-0.5 flex-1 mx-2 ${step < currentStep ? 'bg-green-500' : 'bg-surface-highlight'}`}></div>}
                             </div>
                         ))}
                     </div>
@@ -648,381 +642,260 @@ export default function PublishClient() {
                     )}
 
                     {currentStep === 2 && (
-                        <VehicleTypeSelector
-                            selectedCategory={vehicleCategory}
-                            selectedSubtype={vehicleType}
-                            onCategoryChange={setVehicleCategory}
-                            onSubtypeChange={setVehicleType}
-                        />
-                    )}
-
-                    {currentStep === 3 && (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <SearchableSelect
-                                    label={t('publish.labels.brand')}
-                                    value={brand}
-                                    onChange={setBrand}
-                                    strict={false}
-                                    options={(() => {
-                                        const cat = vehicleCategory.toLowerCase()
-                                        let taxCat: VehicleCategory = 'Automóvil'
-
-                                        if (cat.includes('moto')) taxCat = 'Motocicleta'
-                                        else if (cat.includes('comercial') || cat.includes('camion')) taxCat = 'Camión'
-                                        else if (cat.includes('industrial') || cat.includes('maquinaria')) taxCat = 'Maquinaria'
-                                        else if (cat.includes('transporte') || cat.includes('autobus') || cat.includes('bus')) taxCat = 'Autobús'
-                                        else if (cat.includes('especial')) taxCat = 'Especial'
-
-                                        return BRANDS[taxCat] || BRANDS['Automóvil']
-                                    })()}
-                                />
-                                <SearchableSelect
-                                    label={t('publish.labels.model')}
-                                    value={model}
-                                    onChange={setModel}
-                                    options={modelNames}
-                                    strict={false}
+                        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {/* Identificación del Vehículo */}
+                            <div className="space-y-6">
+                                <VehicleTypeSelector
+                                    selectedCategory={vehicleCategory}
+                                    selectedSubtype={vehicleType}
+                                    onCategoryChange={setVehicleCategory}
+                                    onSubtypeChange={setVehicleType}
                                 />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <SearchableSelect
-                                    label={t('publish.labels.year')}
-                                    value={year}
-                                    onChange={setYear}
-                                    options={getYears().map(String)}
-                                    strict={false}
-                                />
-                                <div className="space-y-2 col-span-1 md:col-span-1">
-                                    <label className="block text-text-primary font-medium">
-                                        {t('common.currency')}
-                                    </label>
+
+                            {/* Marca, Modelo y Año */}
+                            <div className="pt-8 border-t border-surface-highlight">
+                                <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+                                    <span className="w-8 h-8 bg-primary-700/20 text-primary-400 rounded-lg flex items-center justify-center text-sm">2</span>
+                                    Marca y Modelo
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <SearchableSelect
-                                        value={currency}
-                                        onChange={setCurrency}
-                                        options={CURRENCIES.map(c => c.code)}
-                                        // Custom display to show "USD - Dólar (US)"
-                                        renderOption={(option) => {
-                                            const c = CURRENCIES.find(curr => curr.code === option)
-                                            return `${option} - ${c?.name || ''}`
-                                        }}
+                                        label={t('publish.labels.brand')}
+                                        value={brand}
+                                        onChange={setBrand}
+                                        strict={false}
+                                        options={(() => {
+                                            const cat = vehicleCategory.toLowerCase()
+                                            let taxCat: VehicleCategory = 'Automóvil'
+
+                                            if (cat.includes('moto')) taxCat = 'Motocicleta'
+                                            else if (cat.includes('camion') || cat.includes('comercial')) taxCat = 'Camión'
+                                            else if (cat.includes('industrial') || cat.includes('maquinaria')) taxCat = 'Maquinaria'
+                                            else if (cat.includes('transporte') || cat.includes('autobus') || cat.includes('bus')) taxCat = 'Autobús'
+                                            else if (cat.includes('especial')) taxCat = 'Especial'
+
+                                            return BRANDS[taxCat] || BRANDS['Automóvil']
+                                        })()}
+                                    />
+                                    <SearchableSelect
+                                        label={t('publish.labels.model')}
+                                        value={model}
+                                        onChange={setModel}
+                                        options={modelNames}
+                                        strict={false}
                                     />
                                 </div>
-                                <div className="space-y-2 col-span-1 md:col-span-1">
-                                    <label className="block text-text-primary font-medium">
-                                        {t('publish.labels.price')}
-                                    </label>
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        value={price}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            // Permitir solo números
-                                            const onlyNums = val.replace(/[^0-9]/g, '');
-                                            // Eliminar ceros a la izquierda pero permitir "0" solo
-                                            const sanitized = onlyNums.replace(/^0+(?=\d)/, '');
-                                            setPrice(sanitized);
-                                        }}
-                                        placeholder="0.00"
-                                        className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all"
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                    <SearchableSelect
+                                        label={t('publish.labels.year')}
+                                        value={year}
+                                        onChange={setYear}
+                                        options={getYears().map(String)}
+                                        strict={false}
                                     />
+                                    <SearchableSelect
+                                        label={t('publish.labels.color')}
+                                        value={color}
+                                        onChange={setColor}
+                                        options={COLORS}
+                                        strict={true}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Precio */}
+                            <div className="pt-8 border-t border-surface-highlight">
+                                <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+                                    <span className="w-8 h-8 bg-primary-700/20 text-primary-400 rounded-lg flex items-center justify-center text-sm">3</span>
+                                    {t('publish.labels.price')}
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-2 col-span-1">
+                                        <label className="block text-text-primary font-medium">
+                                            {t('common.currency')}
+                                        </label>
+                                        <SearchableSelect
+                                            value={currency}
+                                            onChange={setCurrency}
+                                            options={CURRENCIES.map(c => c.code)}
+                                            renderOption={(option) => {
+                                                const c = CURRENCIES.find(curr => curr.code === option)
+                                                return `${option} - ${c?.name || ''}`
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="space-y-2 col-span-1 md:col-span-2">
+                                        <label className="block text-text-primary font-medium">
+                                            {t('publish.labels.price')}
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                value={price}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    const onlyNums = val.replace(/[^0-9]/g, '');
+                                                    const sanitized = onlyNums.replace(/^0+(?=\d)/, '');
+                                                    setPrice(sanitized);
+                                                }}
+                                                placeholder="0"
+                                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all pl-12 text-xl font-bold text-primary-400"
+                                            />
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-xl">$</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {currentStep === 4 && (
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="block text-text-primary font-medium">
+                    {currentStep === 3 && (
+                        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {/* Kilometraje y Transmisión */}
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="block text-text-primary font-bold">
+                                            {t('publish.labels.mileage')} <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                value={mileage}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    const onlyNums = val.replace(/[^0-9]/g, '');
+                                                    const sanitized = onlyNums.replace(/^0+(?=\d)/, '');
+                                                    setMileage(sanitized);
+                                                }}
+                                                placeholder="0"
+                                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none pr-24 transition-all"
+                                            />
+                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 bg-surface-highlight p-1 rounded-lg">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMileageUnit('km')}
+                                                    className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mileageUnit === 'km' ? 'bg-primary-700 text-white' : 'text-text-secondary hover:bg-surface'}`}
+                                                >KM</button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMileageUnit('mi')}
+                                                    className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mileageUnit === 'mi' ? 'bg-primary-700 text-white' : 'text-text-secondary hover:bg-surface'}`}
+                                                >MI</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <SearchableSelect
+                                        label={t('publish.labels.transmission')}
+                                        value={transmission}
+                                        onChange={setTransmission}
+                                        options={TRANSMISSIONS}
+                                        strict={true}
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <SearchableSelect label={t('publish.labels.fuel')} value={fuel} onChange={setFuel} options={FUELS} strict={true} />
+                                    <SearchableSelect label={t('publish.labels.condition')} value={condition} onChange={setCondition} options={CONDITIONS} strict={true} />
+                                    <SearchableSelect label={t('publish.labels.doors')} value={doors} onChange={setDoors} options={['2', '3', '4', '5', '6']} strict={true} />
+                                </div>
+                            </div>
+
+                            {/* Equipamiento (Burbujas) */}
+                            <div className="pt-8 border-t border-surface-highlight">
+                                <h3 className="text-xl font-bold text-text-primary mb-4">{t('publish.labels.features_title')}</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {getFeaturesByCategory(
+                                        (() => {
+                                            const c = vehicleCategory.toLowerCase()
+                                            if (c.includes('moto')) return 'Motocicleta'
+                                            if (c.includes('camion') || c.includes('comercial')) return 'Camión'
+                                            if (c.includes('industrial') || c.includes('maquinaria')) return 'Maquinaria'
+                                            if (c.includes('transporte') || c.includes('autobus') || c.includes('bus')) return 'Autobús'
+                                            if (c.includes('especial')) return 'Especial'
+                                            return 'Automóvil'
+                                        })()
+                                    ).map(feature => {
+                                        const isSelected = selectedFeatures.includes(feature)
+                                        return (
+                                            <button
+                                                key={feature}
+                                                type="button"
+                                                onClick={() => {
+                                                    if (isSelected) setSelectedFeatures(prev => prev.filter(f => f !== feature))
+                                                    else setSelectedFeatures(prev => [...prev, feature])
+                                                }}
+                                                className={`
+                                                    px-4 py-2 rounded-full border-2 transition-all text-sm font-medium
+                                                    ${isSelected ? 'border-primary-700 bg-primary-700 text-text-primary shadow-lg' : 'border-surface-highlight bg-surface text-text-secondary hover:border-primary-700/50'}
+                                                `}
+                                            >
+                                                {t(`taxonomy.subtypes.${feature}`) || feature}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Descripción */}
+                            <div className="pt-8 border-t border-surface-highlight">
+                                <label className="block text-xl font-bold text-text-primary mb-4">
                                     {t('publish.labels.description')} <span className="text-xs font-normal text-text-secondary">({t('common.optional')})</span>
                                 </label>
                                 <textarea
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
-                                    placeholder={t('publish.labels.description')}
+                                    placeholder="Comentarios adicionales, estado de llantas, mantenimiento, etc..."
                                     rows={4}
                                     className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg resize-none focus:ring-2 focus:ring-primary-700 outline-none transition-all"
                                 />
                             </div>
-
-                            <h3 className="text-xl font-bold text-text-primary mb-4">
-                                {t('publish.steps.technical_details')} <span className="text-sm font-normal text-text-secondary">({t('common.optional')})</span>
-                            </h3>
-                            <div className="space-y-2">
-                                <label className="block text-text-primary font-medium">
-                                    {t('publish.labels.mileage')} <span className="text-xs font-bold text-red-500">*</span>
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        value={mileage}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            // Permitir solo números
-                                            const onlyNums = val.replace(/[^0-9]/g, '');
-                                            // Eliminar ceros a la izquierda pero permitir "0" solo
-                                            const sanitized = onlyNums.replace(/^0+(?=\d)/, '');
-                                            setMileage(sanitized);
-                                        }}
-                                        placeholder="0"
-                                        className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none pr-24 transition-all"
-                                    />
-                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 bg-surface-highlight p-1 rounded-lg">
-                                        <button
-                                            type="button"
-                                            onClick={() => setMileageUnit('km')}
-                                            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mileageUnit === 'km' ? 'bg-primary-700 text-white' : 'text-text-secondary hover:bg-surface'}`}
-                                        >
-                                            KM
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setMileageUnit('mi')}
-                                            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mileageUnit === 'mi' ? 'bg-primary-700 text-white' : 'text-text-secondary hover:bg-surface'}`}
-                                        >
-                                            MI
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <SearchableSelect
-                                    label={t('publish.labels.transmission')}
-                                    value={transmission}
-                                    onChange={setTransmission}
-                                    options={TRANSMISSIONS}
-                                    strict={true}
-                                />
-                                <SearchableSelect
-                                    label={t('publish.labels.fuel')}
-                                    value={fuel}
-                                    onChange={setFuel}
-                                    options={FUELS}
-                                    strict={true}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2 col-span-1">
-                                    <label className="block text-text-primary font-medium">{t('publish.labels.traction')} <span className="text-text-secondary text-xs font-normal">(4x4, AWD...)</span></label>
-                                    <SearchableSelect
-                                        value={traction}
-                                        onChange={setTraction}
-                                        // TODO: Import TRACTIONS
-                                        options={['Delantera (FWD)', 'Trasera (RWD)', '4x4 (4WD)', 'Integral (AWD)', '6x4', '6x6', '8x4', '8x8']}
-                                        strict={true}
-                                    />
-                                </div>
-                                <div className="space-y-2 col-span-1">
-                                    <label className="block text-text-primary font-medium">{t('publish.labels.passengers')} <span className="text-text-secondary text-xs font-normal">({t('common.seats')})</span></label>
-                                    <SearchableSelect
-                                        value={passengers}
-                                        onChange={setPassengers}
-                                        options={['2', '4', '5', '7', '8', '12', '15', '40+']}
-                                        strict={false}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <SearchableSelect
-                                    label={t('publish.labels.color')}
-                                    value={color}
-                                    onChange={setColor}
-                                    options={COLORS}
-                                    strict={true}
-                                />
-                                <SearchableSelect
-                                    label={t('publish.labels.condition')}
-                                    value={condition}
-                                    onChange={setCondition}
-                                    options={CONDITIONS}
-                                    strict={true}
-                                />
-                                <SearchableSelect
-                                    label={t('publish.labels.doors')}
-                                    value={doors}
-                                    onChange={setDoors}
-                                    options={['2', '3', '4', '5', '6']}
-                                    strict={true}
-                                />
-                            </div>
-
-                            <div className="pt-4 border-t border-surface-highlight">
-                                <h4 className="text-lg font-bold text-text-primary mb-4">{t('publish.labels.engine_info')}</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="block text-text-primary font-medium">{t('publish.labels.engine_displacement')} <span className="text-text-secondary text-xs font-normal">({t('common.optional')})</span></label>
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={engine}
-                                                onChange={(e) => setEngine(e.target.value)}
-                                                placeholder="Ej: 2.0L Turbo, V6"
-                                                className="flex-1 min-w-0 px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all"
-                                            />
-                                            <input
-                                                type="text"
-                                                inputMode="numeric"
-                                                value={displacement}
-                                                onChange={(e) => setDisplacement(e.target.value.replace(/[^0-9]/g, ''))}
-                                                placeholder="cc"
-                                                className="w-20 px-3 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all text-center"
-                                            />
-                                        </div>
-                                    </div>
-                                    {(vehicleCategory.toLowerCase().includes('camion') || vehicleCategory.toLowerCase().includes('comercial')) && (
-                                        <div className="space-y-2">
-                                            <label className="block text-text-primary font-medium">{t('publish.labels.cargo_capacity')} <span className="text-text-secondary text-xs font-normal">({t('common.optional')})</span></label>
-                                            <input
-                                                type="text"
-                                                inputMode="decimal"
-                                                value={cargoCapacity}
-                                                onChange={(e) => setCargoCapacity(e.target.value)}
-                                                placeholder="Ej: 3.5 ton"
-                                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all"
-                                            />
-                                        </div>
-                                    )}
-                                    {(vehicleCategory.toLowerCase().includes('industrial') || vehicleCategory.toLowerCase().includes('maquinaria')) && (
-                                        <div className="space-y-2">
-                                            <label className="block text-text-primary font-medium">{t('publish.labels.operating_hours')} <span className="text-text-secondary text-xs font-normal">({t('common.optional')})</span></label>
-                                            <input
-                                                type="text"
-                                                inputMode="numeric"
-                                                value={operatingHours}
-                                                onChange={(e) => setOperatingHours(e.target.value.replace(/[^0-9]/g, ''))}
-                                                placeholder="Ej: 1200 hrs"
-                                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
                         </div>
                     )}
 
-                    {currentStep === 5 && (
-                        <div className="space-y-6">
-                            <div>
-                                <h2 className="text-2xl font-bold text-text-primary mb-2">{t('publish.labels.features_title')}</h2>
-                                <p className="text-text-secondary">{t('publish.labels.features_subtitle', { brand: brand || 'vehículo' })}</p>
-                            </div>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                {getFeaturesByCategory(
-                                    (() => {
-                                        const c = vehicleCategory.toLowerCase()
-                                        if (c.includes('moto')) return 'Motocicleta'
-                                        if (c.includes('camion') || c.includes('comercial')) return 'Camión'
-                                        if (c.includes('industrial') || c.includes('maquinaria')) return 'Maquinaria'
-                                        if (c.includes('transporte') || c.includes('autobus') || c.includes('bus')) return 'Autobús'
-                                        if (c.includes('especial')) return 'Especial'
-                                        return 'Automóvil'
-                                    })()
-                                ).map(feature => {
-                                    const isSelected = selectedFeatures.includes(feature)
-                                    return (
-                                        <button
-                                            key={feature}
-                                            type="button"
-                                            onClick={() => {
-                                                if (isSelected) {
-                                                    setSelectedFeatures(prev => prev.filter(f => f !== feature))
-                                                } else {
-                                                    setSelectedFeatures(prev => [...prev, feature])
-                                                }
-                                            }}
-                                            className={`
-                                                flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left group
-                                                ${isSelected
-                                                    ? 'border-primary-700 bg-primary-700/10 shadow-lg shadow-primary-700/10'
-                                                    : 'border-surface-highlight bg-background hover:border-primary-700/50'
-                                                }
-                                            `}
-                                        >
-                                            <div className={`
-                                                w-6 h-6 rounded flex items-center justify-center border-2 transition-colors
-                                                ${isSelected ? 'bg-primary-700 border-primary-700' : 'border-surface-highlight group-hover:border-primary-700/50'}
-                                            `}>
-                                                {isSelected && (
-                                                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                )}
-                                            </div>
-                                            <span className={`text-sm font-medium ${isSelected ? 'text-primary-400' : 'text-text-primary'}`}>{t(`taxonomy.subtypes.${feature}`) || feature}</span>
-                                        </button>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    )}
+                    {currentStep === 4 && (
+                        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {/* Ubicación */}
+                            <GPSCaptureStep onLocationChange={handleLocationChange} latitude={latitude} longitude={longitude} city={city} />
 
-                    {currentStep === 6 && (
-                        <GPSCaptureStep onLocationChange={handleLocationChange} latitude={latitude} longitude={longitude} city={city} />
-                    )}
+                            {/* Resumen Final para Revisión */}
+                            <div className="pt-8 border-t border-surface-highlight">
+                                <div className="p-6 bg-surface-highlight/20 border border-surface-highlight rounded-2xl relative overflow-hidden">
+                                    {/* Sello de Calidad IA */}
+                                    {aiConfidence === 100 && (
+                                        <div className="absolute -top-1 -right-8 bg-green-500 text-white px-10 py-1 rotate-12 text-[10px] font-bold shadow-sm z-10 flex items-center gap-1">
+                                            <span>✓</span> AI VERIFIED
+                                        </div>
+                                    )}
 
-                    {currentStep === 7 && (
-                        <div className="space-y-6">
-                            {images.length > 0 && (
-                                <div className="space-y-3">
-                                    <h4 className="font-bold text-text-primary px-2">{t('publish.labels.vehicle_photos')}</h4>
-                                    <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x">
-                                        {images.map((img, idx) => (
-                                            <div key={idx} className="flex-shrink-0 w-48 h-32 rounded-xl overflow-hidden border-2 border-surface-highlight snap-start">
-                                                <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+                                    <div className="flex flex-col md:flex-row gap-6">
+                                        {images[0] && (
+                                            <div className="w-full md:w-1/3 aspect-video rounded-xl overflow-hidden shadow-lg border-2 border-primary-700/30">
+                                                <img src={images[0]} alt="Portada" className="w-full h-full object-cover" />
                                             </div>
-                                        ))}
+                                        )}
+                                        <div className="flex-1">
+                                            <h3 className="text-2xl font-black text-text-primary uppercase tracking-tight">{brand} {model} {year}</h3>
+                                            <div className="flex items-center gap-3 mt-2">
+                                                <span className="text-3xl font-black text-primary-400">
+                                                    {formatPrice(parseFloat(price || '0'), currency, locale)}
+                                                </span>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2 mt-4 text-xs font-bold uppercase text-text-secondary">
+                                                <div className="flex items-center gap-2">📍 {city}</div>
+                                                <div className="flex items-center gap-2">🛣️ {mileage} {mileageUnit}</div>
+                                                <div className="flex items-center gap-2">⚙️ {transmission}</div>
+                                                <div className="flex items-center gap-2">⛽ {fuel}</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            )}
-                            <div className="p-6 bg-surface-highlight/20 border border-surface-highlight rounded-2xl">
-                                <h3 className="text-xl font-bold text-text-primary">{brand} {model} {year}</h3>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <span className="px-3 py-1 bg-primary-700/20 text-primary-400 rounded-full text-xs font-bold uppercase tracking-wider">{vehicleType}</span>
-                                    <span className="text-2xl font-bold text-primary-400">
-                                        {formatPrice(parseFloat(price || '0'), currency, locale)}
-                                    </span>
-                                </div>
-                                {mileage && <p suppressHydrationWarning><span className="text-text-secondary">{t('publish.labels.mileage')}:</span> {formatNumber(parseInt(mileage), locale)} {mileageUnit}</p>}
-                                <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-3 gap-x-4 mt-4 text-sm border-t border-surface-highlight/30 pt-4">
-                                    {transmission && <p><span className="text-text-secondary">{t('publish.labels.transmission')}:</span> {transmission}</p>}
-                                    {fuel && <p><span className="text-text-secondary">{t('publish.labels.fuel')}:</span> {fuel}</p>}
-                                    {color && <p><span className="text-text-secondary">{t('publish.labels.color')}:</span> {color}</p>}
-                                    {condition && <p><span className="text-text-secondary">{t('publish.labels.condition')}:</span> {condition}</p>}
-                                    {doors && <p><span className="text-text-secondary">{t('publish.labels.doors')}:</span> {doors}</p>}
-                                    {(engine || displacement) && <p><span className="text-text-secondary">{t('publish.labels.engine')}:</span> {engine}{displacement ? ` (${displacement}cc)` : ''}</p>}
-                                    {cargoCapacity && <p><span className="text-text-secondary">{t('publish.labels.cargo_capacity')}:</span> {cargoCapacity} ton</p>}
-                                </div>
-                                <p className="text-text-secondary mt-4 whitespace-pre-line">{description}</p>
                             </div>
 
-                            {selectedFeatures.length > 0 && (
-                                <div className="space-y-4">
-                                    <h4 className="font-bold text-text-primary px-2">{t('publish.labels.features_title')}</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {selectedFeatures.map(f => (
-                                            <span key={f} className="px-3 py-1.5 bg-surface-highlight border border-surface-highlight text-text-primary rounded-lg text-sm flex items-center gap-2">
-                                                <span className="text-green-500 text-xs">●</span> {f}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="flex items-center gap-2 p-4 bg-primary-700/10 border border-primary-700/20 rounded-xl">
-                                <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                <span className={`text-sm font-medium ${!city ? 'text-red-500' : 'text-text-primary'}`}>
-                                    {city || t('publish.labels.location_not_selected')}
-                                </span>
-                            </div>
-
+                            {/* Alertas de Validación */}
                             {(!brand || !model || !year || !price || images.length === 0 || !city) && (
                                 <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl space-y-2">
                                     <p className="text-red-500 font-bold text-sm">⚠️ {t('publish.validation.review_required')}</p>
@@ -1049,7 +922,7 @@ export default function PublishClient() {
                                 {t('publish.actions.back')}
                             </button>
                         )}
-                        {currentStep < 7 ? (
+                        {currentStep < 4 ? (
                             <button
                                 type="button"
                                 onClick={handleNext}
@@ -1057,9 +930,6 @@ export default function PublishClient() {
                                     if (currentStep === 1) return canProceedFromStep1;
                                     if (currentStep === 2) return canProceedFromStep2;
                                     if (currentStep === 3) return canProceedFromStep3;
-                                    if (currentStep === 4) return canProceedFromStep4;
-                                    if (currentStep === 5) return canProceedFromStep5;
-                                    if (currentStep === 6) return canProceedFromStep6;
                                     return true;
                                 })()}
                                 className="flex-1 px-6 py-3 bg-primary-700 text-text-primary rounded-xl font-bold hover:bg-primary-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95"
@@ -1070,7 +940,7 @@ export default function PublishClient() {
                             <button
                                 type="button"
                                 onClick={handlePublish}
-                                disabled={loading}
+                                disabled={loading || !canProceedFromStep4}
                                 className="flex-1 px-6 py-3 bg-green-600 text-text-primary rounded-xl font-bold hover:bg-green-500 disabled:opacity-50 transition-all shadow-lg active:scale-95"
                             >
                                 {loading ? t('publish.actions.publishing') : t('publish.actions.publish')}

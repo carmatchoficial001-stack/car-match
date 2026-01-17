@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: '/',
             disallow: ['/admin/', '/profile/', '/api/', '/messages/', '/login', '/register'],
         },
-        sitemap: 'https://carmatch.mx/sitemap.xml', // Ajustar URL base si es necesario
+        sitemap: 'https://carmatchapp.net/sitemap.xml', // Ajustar URL base si es necesario
     }
 }

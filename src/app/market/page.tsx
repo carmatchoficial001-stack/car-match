@@ -6,6 +6,18 @@ import { getCachedBrands, getCachedVehicleTypes, getCachedColors } from "@/lib/c
 import { serializeDecimal } from "@/lib/serialize"
 import { VEHICLE_CATEGORIES } from "@/lib/vehicleTaxonomy"
 
+export const metadata = {
+    title: "MarketCar | Venta de Autos, Motos, Tractores y Maquinaria Pesada",
+    description: "La mayor variedad de vehículos en un solo lugar. Compra y vende autos (Toyota, Nissan, Ford), motocicletas (Italika, Yamaha), tractores (John Deere), camiones y maquinaria pesada. Filtros profesionales en CarMatch.",
+    keywords: [
+        "Toyota en venta", "Nissan usados", "Honda Civic", "Ford F-150",
+        "venta de motos", "Italika", "Yamaha R6", "KTM",
+        "tractores agrícolas", "John Deere", "Massey Ferguson", "maquinaria pesada",
+        "camiones de carga", "remolques", "semirremolques",
+        "autos baratos Juárez", "camionetas 4x4", "BMW seminuevos", "vender mi auto gratis"
+    ]
+}
+
 interface SearchParams {
     search?: string
     brand?: string

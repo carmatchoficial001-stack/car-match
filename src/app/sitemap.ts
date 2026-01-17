@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { prisma } from '@/lib/db'
 
 // URL Base del sitio (ajustar a dominio real en producción)
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://carmatch.mx'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://carmatchapp.net'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 1. Obtener Vehículos Activos (Limitado a 5000 para no saturar memoria en Vercel)
