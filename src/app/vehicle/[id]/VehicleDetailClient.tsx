@@ -602,7 +602,7 @@ function OwnerActionButton({ action, vehicleId, icon, label, variant }: {
                     message: `La acción "${label}" se ha realizado correctamente.`,
                     variant: 'success',
                     confirmLabel: 'Aceptar',
-                    confirmLabel: 'Aceptar',
+
                     onConfirm: () => {
                         if (action === 'delete') {
                             window.location.href = '/profile'
