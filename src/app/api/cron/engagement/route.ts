@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { sendPushNotification } from '@/lib/push'
 import { generateRandomFakeNotifications } from '@/lib/fakeNotifications'
+import { processBusinessDopamine } from '@/lib/cron/dopamine-business'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,6 +26,12 @@ export async function GET(req: NextRequest) {
 
     try {
         console.log('🎣 Iniciando CRON de Engagement y Dopamina...')
+
+        // 0. Generar actividad para negocios (Dopamina B2B)
+        // Esto estaba desconectado. Ahora genera notificaciones de "Vistas en mapa" o "Búsquedas de categoría"
+        console.log('🏢 Procesando actividad de negocios...')
+        const businessResult = await processBusinessDopamine()
+        console.log(`✅ Negocios procesados: ${businessResult.generated} notificaciones generadas`)
 
         // 1. Obtener usuarios con vehículos/negocios activos
         const activeUsers = await prisma.user.findMany({
@@ -100,6 +107,7 @@ export async function GET(req: NextRequest) {
         const summary = {
             success: true,
             usersProcessed: activeUsers.length,
+            businessNotificationsCreated: businessResult.generated,
             fakeNotificationsCreated,
             pushNotificationsSent,
             timestamp: new Date().toISOString()
