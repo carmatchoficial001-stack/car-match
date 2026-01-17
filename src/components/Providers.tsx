@@ -12,7 +12,7 @@ const PushNotificationRequest = dynamic(() => import("@/components/PushNotificat
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     return (
-        <SessionProvider>
+        <SessionProvider refetchOnWindowFocus={false}>
             <LanguageProvider>
                 <LocationProvider>
                     <RegisterSW />
