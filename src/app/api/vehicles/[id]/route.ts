@@ -167,6 +167,9 @@ export async function PATCH(
             if ('useCredit' in finalUpdateData) {
                 delete finalUpdateData.useCredit
             }
+            if ('deviceFingerprint' in finalUpdateData) {
+                delete finalUpdateData.deviceFingerprint
+            }
 
             return await tx.vehicle.update({
                 where: { id },
