@@ -87,8 +87,9 @@ RESPONDE SOLO EL JSON.
 ═══ PROTOCOLO DE ANÁLISIS (PASO A PASO) ═══
 1. OLVIDA EL TEXTO: Ignora cualquier marca o modelo dado por el usuario.
 2. ESCANEO VISUAL: Identifica silueta, parrilla, faros y logotipos.
-3. IDENTIFICACIÓN PURA: Determina qué vehículo es basándote *solo* en la imagen.
+3. IDENTIFICACIÓN PURA: Determina qué vehículo es basándote *solo* en la imagen. Intenta identificar la VERSIÓN/TRIM específica (ej: Touring, Denali, GTI).
 4. COMPARACIÓN CRÍTICA: Si el contexto dice "Hyundai" pero ves un "Jeep Wrangler", reporte JEEP WRANGLER.
+5. 🧞‍♂️ MODO GENIO (AGENCY KNOWLEDGE): Una vez identificado el modelo y versión, USA TU BASE DE DATOS INTERNA para listar TODO el equipamiento que ese auto tiene de fábrica en el campo "features". NO te limites a lo que ves en la foto. Asume que está completo si es la versión correcta.
 
 RESPONDE ÚNICAMENTE CON ESTE JSON:
 {
@@ -118,11 +119,13 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
     "axles": "Ejes (si es pesado)",
     "cargoCapacity": "Capacidad de carga kg (si es comercial)",
     "operatingHours": "Horas de uso (si es maquinaria)",
-    "condition": "Nuevo|Usado"
+    "condition": "Nuevo|Usado",
+    "features": ["Feature 1", "Feature 2", "Feature N..."]
   }
 }
 
 REGLA CRÍTICA DE FORMATO:
+- En "features": INCLUYE TODO LO QUE SEPAS DE ESE MODELO. Ejemplos: "Frenos ABS", "6 Bolsas de aire", "Control de tracción", "Pantalla táctil", "Asientos de piel", "Quemacocos", "Apple CarPlay", "Faros LED", "Cámara de reversa", "Sensores de estacionamiento". ¡SE GENEROSO Y EXHAUSTIVO!
 - Si un dato técnico NO es visible en las fotos o es INCIERTO para ese modelo, usa null (sin comillas).
 - NUNCA uses "N/A", "Unknown", "Desconocido", "NA", cadenas vacías "", ni similares.
 - Investiga el modelo identificado y completa TODO lo posible con tu conocimiento técnico.
