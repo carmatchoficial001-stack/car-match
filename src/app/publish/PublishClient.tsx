@@ -117,10 +117,13 @@ export default function PublishClient() {
     // Step 6: Features
     const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
 
+    // 🔒 Track which fields user has manually edited (to prevent AI from overwriting)
+    const [userEditedFields, setUserEditedFields] = useState<Set<string>>(new Set())
+
     // Validation for the new flow
     const canProceedFromStep1 = images.length > 0
     const canProceedFromStep2 = vehicleCategory !== '' && vehicleType !== '' && brand !== '' && model !== '' && year !== '' && price !== '' && parseFloat(price) > 0
-    const canProceedFromStep3 = mileage !== '' && (parseInt(mileage) >= 0)
+    const canProceedFromStep3 = true // Mileage is now optional
     const canProceedFromStep4 = latitude !== null && longitude !== null && city !== ''
 
     // 🤖 Dynamic vehicle data from database
@@ -226,7 +229,8 @@ export default function PublishClient() {
             return 'Automóvil'
         }
 
-        if (details.brand) {
+        // 🔒 RESPETO A LAS CORRECCIONES DEL USUARIO: Solo aplicar brand/model/year si el usuario NO los editó manualmente
+        if (details.brand && !userEditedFields.has('brand')) {
             const taxCat = mapCategoryToTaxonomy(category)
             if (taxCat && BRANDS[taxCat]) {
                 const match = findInList(details.brand, BRANDS[taxCat])
@@ -236,39 +240,39 @@ export default function PublishClient() {
             }
         }
 
-        // 🛡️ REGLA DE AUTORIDAD CARMATCH: Sobrescribir especificaciones técnicas con la verdad de la IA
-        if (details.model) setModel(details.model)
-        if (details.year) setYear(details.year.toString())
-        if (details.color) setColor(details.color)
-        if (details.type) setVehicleType(details.type)
+        // 🛡️ REGLA DE AUTORIDAD CARMATCH: Sobrescribir especificaciones técnicas SOLO si el usuario no las corrigió
+        if (details.model && !userEditedFields.has('model')) setModel(details.model)
+        if (details.year && !userEditedFields.has('year')) setYear(details.year.toString())
+        if (details.color && !userEditedFields.has('color')) setColor(details.color)
+        if (details.type && !userEditedFields.has('vehicleType')) setVehicleType(details.type)
 
-        if (details.transmission) {
+        if (details.transmission && !userEditedFields.has('transmission')) {
             const match = findInList(details.transmission, TRANSMISSIONS)
             setTransmission(match)
         }
-        if (details.fuel) {
+        if (details.fuel && !userEditedFields.has('fuel')) {
             const match = findInList(details.fuel, FUELS)
             setFuel(match)
         }
 
-        if (details.engine) setEngine(details.engine)
-        if (details.doors) setDoors(details.doors.toString())
-        if (details.displacement) setDisplacement(details.displacement.toString())
-        if (details.cargoCapacity) setCargoCapacity(details.cargoCapacity.toString())
-        if (details.traction) setTraction(details.traction)
-        if (details.passengers) setPassengers(details.passengers.toString())
-        if (details.aspiration) setAspiration(details.aspiration)
-        if (details.cylinders) setCylinders(details.cylinders.toString())
-        if (details.hp) setHp(details.hp.toString())
-        if (details.torque) setTorque(details.torque)
-        if (details.batteryCapacity) setBatteryCapacity(details.batteryCapacity.toString())
-        if (details.range) setRange(details.range.toString())
-        if (details.weight) setWeight(details.weight.toString())
-        if (details.axles) setAxles(details.axles.toString())
+        if (details.engine && !userEditedFields.has('engine')) setEngine(details.engine)
+        if (details.doors && !userEditedFields.has('doors')) setDoors(details.doors.toString())
+        if (details.displacement && !userEditedFields.has('displacement')) setDisplacement(details.displacement.toString())
+        if (details.cargoCapacity && !userEditedFields.has('cargoCapacity')) setCargoCapacity(details.cargoCapacity.toString())
+        if (details.traction && !userEditedFields.has('traction')) setTraction(details.traction)
+        if (details.passengers && !userEditedFields.has('passengers')) setPassengers(details.passengers.toString())
+        if (details.aspiration && !userEditedFields.has('aspiration')) setAspiration(details.aspiration)
+        if (details.cylinders && !userEditedFields.has('cylinders')) setCylinders(details.cylinders.toString())
+        if (details.hp && !userEditedFields.has('hp')) setHp(details.hp.toString())
+        if (details.torque && !userEditedFields.has('torque')) setTorque(details.torque)
+        if (details.batteryCapacity && !userEditedFields.has('batteryCapacity')) setBatteryCapacity(details.batteryCapacity.toString())
+        if (details.range && !userEditedFields.has('range')) setRange(details.range.toString())
+        if (details.weight && !userEditedFields.has('weight')) setWeight(details.weight.toString())
+        if (details.axles && !userEditedFields.has('axles')) setAxles(details.axles.toString())
 
         // 🚗 Keep respecting user input for variable/personal data
-        if (!mileage && details.mileage) setMileage(details.mileage.toString())
-        if (!condition && details.condition) setCondition(details.condition)
+        if (!mileage && details.mileage && !userEditedFields.has('mileage')) setMileage(details.mileage.toString())
+        if (!condition && details.condition && !userEditedFields.has('condition')) setCondition(details.condition)
 
         if (category) {
             const lowerCat = category.toLowerCase()
@@ -438,7 +442,7 @@ export default function PublishClient() {
             if (isNaN(parsedYear) || parsedYear < 1900 || parsedYear > new Date().getFullYear() + 2) errors.push('Año válido')
             if (!price || parseFloat(price) <= 0) errors.push('Precio')
             if (images.length === 0) errors.push('Al menos 1 imagen')
-            if (!mileage) errors.push('Kilometraje')
+            // Mileage is now optional - removed validation
             if (!city) errors.push('Ciudad')
             // Removida la validación de stateLocation si el backend no la requiere estrictamente o si queremos que falle allá
 
@@ -663,7 +667,10 @@ export default function PublishClient() {
                                     <SearchableSelect
                                         label={t('publish.labels.brand')}
                                         value={brand}
-                                        onChange={setBrand}
+                                        onChange={(value) => {
+                                            setBrand(value)
+                                            setUserEditedFields(prev => new Set(prev).add('brand'))
+                                        }}
                                         strict={false}
                                         options={(() => {
                                             const cat = vehicleCategory.toLowerCase()
@@ -681,7 +688,10 @@ export default function PublishClient() {
                                     <SearchableSelect
                                         label={t('publish.labels.model')}
                                         value={model}
-                                        onChange={setModel}
+                                        onChange={(value) => {
+                                            setModel(value)
+                                            setUserEditedFields(prev => new Set(prev).add('model'))
+                                        }}
                                         options={modelNames}
                                         strict={false}
                                     />
@@ -690,14 +700,20 @@ export default function PublishClient() {
                                     <SearchableSelect
                                         label={t('publish.labels.year')}
                                         value={year}
-                                        onChange={setYear}
+                                        onChange={(value) => {
+                                            setYear(value)
+                                            setUserEditedFields(prev => new Set(prev).add('year'))
+                                        }}
                                         options={getYears().map(String)}
                                         strict={false}
                                     />
                                     <SearchableSelect
                                         label={t('publish.labels.color')}
                                         value={color}
-                                        onChange={setColor}
+                                        onChange={(value) => {
+                                            setColor(value)
+                                            setUserEditedFields(prev => new Set(prev).add('color'))
+                                        }}
                                         options={COLORS}
                                         strict={true}
                                     />
@@ -758,7 +774,7 @@ export default function PublishClient() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <label className="block text-text-primary font-bold">
-                                            {t('publish.labels.mileage')} <span className="text-red-500">*</span>
+                                            {t('publish.labels.mileage')} <span className="text-xs font-normal text-text-secondary">({t('common.optional')})</span>
                                         </label>
                                         <div className="relative">
                                             <input
@@ -770,6 +786,7 @@ export default function PublishClient() {
                                                     const onlyNums = val.replace(/[^0-9]/g, '');
                                                     const sanitized = onlyNums.replace(/^0+(?=\d)/, '');
                                                     setMileage(sanitized);
+                                                    setUserEditedFields(prev => new Set(prev).add('mileage'));
                                                 }}
                                                 placeholder="0"
                                                 className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none pr-24 transition-all"
@@ -791,16 +808,46 @@ export default function PublishClient() {
                                     <SearchableSelect
                                         label={t('publish.labels.transmission')}
                                         value={transmission}
-                                        onChange={setTransmission}
+                                        onChange={(value) => {
+                                            setTransmission(value)
+                                            setUserEditedFields(prev => new Set(prev).add('transmission'))
+                                        }}
                                         options={TRANSMISSIONS}
                                         strict={true}
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <SearchableSelect label={t('publish.labels.fuel')} value={fuel} onChange={setFuel} options={FUELS} strict={true} />
-                                    <SearchableSelect label={t('publish.labels.condition')} value={condition} onChange={setCondition} options={CONDITIONS} strict={true} />
-                                    <SearchableSelect label={t('publish.labels.doors')} value={doors} onChange={setDoors} options={['2', '3', '4', '5', '6']} strict={true} />
+                                    <SearchableSelect
+                                        label={t('publish.labels.fuel')}
+                                        value={fuel}
+                                        onChange={(value) => {
+                                            setFuel(value)
+                                            setUserEditedFields(prev => new Set(prev).add('fuel'))
+                                        }}
+                                        options={FUELS}
+                                        strict={true}
+                                    />
+                                    <SearchableSelect
+                                        label={t('publish.labels.condition')}
+                                        value={condition}
+                                        onChange={(value) => {
+                                            setCondition(value)
+                                            setUserEditedFields(prev => new Set(prev).add('condition'))
+                                        }}
+                                        options={CONDITIONS}
+                                        strict={true}
+                                    />
+                                    <SearchableSelect
+                                        label={t('publish.labels.doors')}
+                                        value={doors}
+                                        onChange={(value) => {
+                                            setDoors(value)
+                                            setUserEditedFields(prev => new Set(prev).add('doors'))
+                                        }}
+                                        options={['2', '3', '4', '5', '6']}
+                                        strict={true}
+                                    />
                                 </div>
                             </div>
 
