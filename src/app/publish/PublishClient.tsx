@@ -116,6 +116,26 @@ export default function PublishClient() {
 
     // Step 6: Features
     const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
+    const [newFeature, setNewFeature] = useState('')
+
+    const addCustomFeature = () => {
+        if (newFeature.trim() && !selectedFeatures.includes(newFeature.trim())) {
+            setSelectedFeatures(prev => [...prev, newFeature.trim()])
+            setNewFeature('')
+        }
+    }
+
+    const removeFeature = (index: number) => {
+        setSelectedFeatures(prev => prev.filter((_, i) => i !== index))
+    }
+
+    const updateFeature = (index: number, value: string) => {
+        setSelectedFeatures(prev => {
+            const next = [...prev]
+            next[index] = value
+            return next
+        })
+    }
 
     // 🔒 Track which fields user has manually edited (to prevent AI from overwriting)
     const [userEditedFields, setUserEditedFields] = useState<Set<string>>(new Set())
@@ -855,39 +875,114 @@ export default function PublishClient() {
                                 </div>
                             </div>
 
-                            {/* Equipamiento (Burbujas) */}
+                            {/* Equipamiento y Características */}
                             <div className="pt-8 border-t border-surface-highlight">
-                                <h3 className="text-xl font-bold text-text-primary mb-4">{t('publish.labels.features_title')}</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {getFeaturesByCategory(
-                                        (() => {
-                                            const c = vehicleCategory.toLowerCase()
-                                            if (c.includes('moto')) return 'Motocicleta'
-                                            if (c.includes('camion') || c.includes('comercial')) return 'Camión'
-                                            if (c.includes('industrial') || c.includes('maquinaria')) return 'Maquinaria'
-                                            if (c.includes('transporte') || c.includes('autobus') || c.includes('bus')) return 'Autobús'
-                                            if (c.includes('especial')) return 'Especial'
-                                            return 'Automóvil'
-                                        })()
-                                    ).map(feature => {
-                                        const isSelected = selectedFeatures.includes(feature)
-                                        return (
-                                            <button
-                                                key={feature}
-                                                type="button"
-                                                onClick={() => {
-                                                    if (isSelected) setSelectedFeatures(prev => prev.filter(f => f !== feature))
-                                                    else setSelectedFeatures(prev => [...prev, feature])
-                                                }}
-                                                className={`
-                                                    px-4 py-2 rounded-full border-2 transition-all text-sm font-medium
-                                                    ${isSelected ? 'border-primary-700 bg-primary-700 text-text-primary shadow-lg' : 'border-surface-highlight bg-surface text-text-secondary hover:border-primary-700/50'}
-                                                `}
-                                            >
-                                                {t(`taxonomy.subtypes.${feature}`) || feature}
-                                            </button>
-                                        )
-                                    })}
+                                <h3 className="text-xl font-bold text-text-primary mb-2">{t('publish.labels.features_title')}</h3>
+                                <p className="text-sm text-text-secondary mb-6">
+                                    Revisa, edita o elimina lo que la IA detectó automáticamente, o agrega nuevas características manuales.
+                                </p>
+
+                                {/* 1. Lista de Equipamiento Seleccionado (Editable) */}
+                                <div className="space-y-3 mb-8">
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedFeatures.length === 0 ? (
+                                            <p className="text-sm text-text-secondary italic bg-surface-highlight/20 px-4 py-2 rounded-lg border border-dashed border-surface-highlight">
+                                                No hay equipamiento seleccionado. Usa las sugerencias o agrega uno nuevo.
+                                            </p>
+                                        ) : (
+                                            selectedFeatures.map((feature, index) => (
+                                                <div
+                                                    key={`selected-${index}`}
+                                                    className="flex items-center bg-primary-700/10 border border-primary-700/30 rounded-xl px-3 py-1.5 gap-2 group hover:bg-primary-700/20 transition-all"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value={feature}
+                                                        onChange={(e) => updateFeature(index, e.target.value)}
+                                                        className="bg-transparent border-none focus:ring-0 text-sm font-medium text-text-primary p-0 min-w-[80px]"
+                                                        style={{ width: `${Math.max(80, feature.length * 8)}px` }}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeFeature(index)}
+                                                        className="text-text-secondary hover:text-red-400 p-0.5 rounded-md hover:bg-red-400/10 transition"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* 2. Agregar Característica Personalizada */}
+                                <div className="flex gap-2 max-w-md mb-8">
+                                    <div className="relative flex-1">
+                                        <input
+                                            type="text"
+                                            value={newFeature}
+                                            onChange={(e) => setNewFeature(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault()
+                                                    addCustomFeature()
+                                                }
+                                            }}
+                                            placeholder="Ej: Rines deportivos 20\", GPS..."
+                                        className="w-full bg-surface-highlight border border-surface-highlight p-3 rounded-xl pr-10 text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={addCustomFeature}
+                                        disabled={!newFeature.trim()}
+                                        className="bg-primary-700 hover:bg-primary-600 disabled:opacity-50 text-white font-bold px-4 rounded-xl transition-all flex items-center gap-2"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                        <span className="hidden sm:inline">Agregar</span>
+                                    </button>
+                                </div>
+
+                                {/* 3. Sugerencias Rápidas */}
+                                <div className="space-y-4">
+                                    <h4 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Sugerencias por categoría</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {getFeaturesByCategory(
+                                            (() => {
+                                                const c = vehicleCategory.toLowerCase()
+                                                if (c.includes('moto')) return 'Motocicleta'
+                                                if (c.includes('camion') || c.includes('comercial')) return 'Camión'
+                                                if (c.includes('industrial') || c.includes('maquinaria')) return 'Maquinaria'
+                                                if (c.includes('transporte') || c.includes('autobus') || c.includes('bus')) return 'Autobús'
+                                                if (c.includes('especial')) return 'Especial'
+                                                return 'Automóvil'
+                                            })()
+                                        ).map(feature => {
+                                            const isSelected = selectedFeatures.includes(feature)
+                                            return (
+                                                <button
+                                                    key={feature}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (isSelected) setSelectedFeatures(prev => prev.filter(f => f !== feature))
+                                                        else setSelectedFeatures(prev => [...prev, feature])
+                                                    }}
+                                                    className={`
+                                                        px-4 py-2 rounded-xl text-sm font-medium border transition-all
+                                                        ${isSelected
+                                                            ? 'bg-primary-700 border-primary-700 text-white shadow-lg shadow-primary-700/20'
+                                                            : 'bg-surface-highlight border-transparent text-text-secondary hover:border-primary-700/50 hover:text-text-primary'}
+                                                    `}
+                                                >
+                                                    {feature}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
                                 </div>
                             </div>
 
