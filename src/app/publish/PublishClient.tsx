@@ -587,9 +587,7 @@ export default function PublishClient() {
                             <h3 className="text-2xl font-bold text-text-primary animate-pulse text-center px-6">
                                 Subiendo fotos...
                             </h3>
-                            <p className="text-primary-400 mt-2 text-sm font-bold uppercase tracking-widest">
-                                Estableciendo Identidad Soberana
-                            </p>
+
                             <div className="w-64 h-2 bg-surface-highlight rounded-full mt-6 overflow-hidden">
                                 <div className="h-full bg-green-500 transition-all" style={{ width: `${aiConfidence}%` }}></div>
                             </div>
