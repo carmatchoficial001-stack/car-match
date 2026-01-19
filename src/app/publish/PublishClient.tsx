@@ -585,7 +585,7 @@ export default function PublishClient() {
                     {isAnalyzing && (
                         <div className="absolute inset-0 z-40 bg-surface/90 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl">
                             <h3 className="text-2xl font-bold text-text-primary animate-pulse text-center px-6">
-                                Analizando todas tus fotos (hasta 10)...
+                                Subiendo fotos...
                             </h3>
                             <p className="text-primary-400 mt-2 text-sm font-bold uppercase tracking-widest">
                                 Estableciendo Identidad Soberana
