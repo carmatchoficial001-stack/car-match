@@ -912,11 +912,7 @@ export default function PublishClient() {
                             <div className="pt-8 border-t border-surface-highlight">
                                 <div className="p-6 bg-surface-highlight/20 border border-surface-highlight rounded-2xl relative overflow-hidden">
                                     {/* Sello de Calidad IA */}
-                                    {aiConfidence === 100 && (
-                                        <div className="absolute -top-1 -right-8 bg-green-500 text-white px-10 py-1 rotate-12 text-[10px] font-bold shadow-sm z-10 flex items-center gap-1">
-                                            <span>✓</span> AI VERIFIED
-                                        </div>
-                                    )}
+                                    {/* Sello de Calidad IA REMOVIDO */}
 
                                     <div className="flex flex-col md:flex-row gap-6">
                                         {images[0] && (
