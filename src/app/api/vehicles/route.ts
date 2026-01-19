@@ -212,8 +212,8 @@ export async function POST(request: NextRequest) {
             isFreePublication = true
         }
         else if (lifetimeCount < 25) {
-            // Vehículos 2 al 25 HISTÓRICOS: 15 Días Gratis
-            expiresAt.setDate(now.getDate() + 15)
+            // Vehículos 2 al 25 HISTÓRICOS: 7 Días Gratis
+            expiresAt.setDate(now.getDate() + 7)
             isFreePublication = true
         }
         else {
