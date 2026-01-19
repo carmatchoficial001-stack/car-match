@@ -62,6 +62,8 @@ export async function POST(request: NextRequest) {
                 brand: vehicleData.brand,
                 model: vehicleData.model,
                 year: vehicleData.year,
+                // Excluir el vehículo actual si se está editando
+                ...(body.currentVehicleId ? { id: { not: body.currentVehicleId } } : {}),
                 OR: [
                     { status: 'ACTIVE' },
                     { status: 'INACTIVE' },
@@ -106,22 +108,9 @@ export async function POST(request: NextRequest) {
                 }
             }
 
-            // GPS cercano (si ambos tienen)
-            if (existingVehicle.latitude && existingVehicle.longitude && gpsLocation?.latitude && gpsLocation?.longitude) {
-                const distance = calculateDistance(
-                    existingVehicle.latitude,
-                    existingVehicle.longitude,
-                    gpsLocation.latitude,
-                    gpsLocation.longitude
-                );
-                if (distance < 1000) { // Menos de 1km
-                    similarityScore += 10;
-                }
-            }
-
             console.log(`🎯 Similaridad con vehículo ${existingVehicle.id}: ${similarityScore}%`);
 
-            // Si es MUY similar (>= 70%), es probable que sea el mismo vehículo
+            // Si es MUY similar (>= 70%) y NO es una edición (ya filtrado arriba)
             if (similarityScore >= 70) {
                 const daysSinceLastUpdate = Math.floor(
                     (new Date().getTime() - new Date(existingVehicle.updatedAt).getTime()) / (1000 * 60 * 60 * 24)
@@ -129,55 +118,31 @@ export async function POST(request: NextRequest) {
 
                 console.log(`⚠️ VEHÍCULO DUPLICADO DETECTADO | Status: ${existingVehicle.status} | Hace ${daysSinceLastUpdate} días`);
 
-                // Si el vehículo anterior fue marcado como SOLD/INACTIVE y están intentando republicar
-                if (existingVehicle.status === 'SOLD' || existingVehicle.status === 'INACTIVE') {
-                    // POLÍTICA: Cobrar crédito, NO bloquear
-                    return NextResponse.json({
-                        action: 'REQUIRE_CREDIT',
-                        isFraud: false,
-                        score: similarityScore,
-                        message: `Ya publicaste este ${vehicleData.brand} ${vehicleData.model} hace ${daysSinceLastUpdate} días. Para republicarlo necesitas 1 crédito.`,
-                        requiresCredit: true,
-                        previousVehicleId: existingVehicle.id
-                    });
-                }
-
-                // Si está actualmente ACTIVO, redirigirlo a su publicación existente
+                // Si está actualmente ACTIVO, probablemente es un error del usuario intentando publicar de nuevo en vez de editar
+                // PERO, si el usuario insiste, le avisamos.
                 if (existingVehicle.status === 'ACTIVE') {
                     return NextResponse.json({
-                        action: 'REDIRECT',
+                        action: 'REDIRECT', // Redirigir a la publicación existente para que la edite
                         isFraud: true,
                         score: similarityScore,
                         redirectTo: `/vehicle/${existingVehicle.id}`,
-                        message: `Ya tienes este vehículo publicado actualmente.`
+                        message: `Ya tienes este vehículo publicado. Te estamos redirigiendo para que puedas editarlo.`
                     });
                 }
             }
         }
 
-        // 5. Verificar si es un SEGUNDO vehículo IDÉNTICO (política: siempre cobra)
-        // Ejemplo: alguien tiene 2 Civic 2020 rojos idénticos
-        if (activeVehiclesCount >= 1) {
-            const identicalActiveVehicle = await prisma.vehicle.findFirst({
-                where: {
-                    userId: session.user.id,
-                    brand: vehicleData.brand,
-                    model: vehicleData.model,
-                    year: vehicleData.year,
-                    status: 'ACTIVE'
-                }
+        // 5. Verificar límite de vehículos gratis (Primeros 25 GRATIS)
+        // Ejemplo: alguien tiene 26 vehículos activos
+        if (activeVehiclesCount >= 25) {
+            console.log(`💰 LÍMITE GRATUITO EXCEDIDO (${activeVehiclesCount} activos) - Requiere crédito`);
+            return NextResponse.json({
+                action: 'REQUIRE_CREDIT',
+                isFraud: false,
+                score: 0,
+                message: `Has alcanzado el límite de 25 vehículos gratuitos activos. Para publicar más necesitas 1 crédito.`,
+                requiresCredit: true
             });
-
-            if (identicalActiveVehicle) {
-                console.log(`💰 SEGUNDO VEHÍCULO IDÉNTICO - Requiere crédito`);
-                return NextResponse.json({
-                    action: 'REQUIRE_CREDIT',
-                    isFraud: false,
-                    score: 100,
-                    message: `Ya tienes un ${vehicleData.brand} ${vehicleData.model} ${vehicleData.year} activo. Publicar otro vehículo idéntico requiere 1 crédito.`,
-                    requiresCredit: true
-                });
-            }
         }
 
         // 6. TODO: Buscar publicaciones similares de OTROS usuarios (fraude cruzado)

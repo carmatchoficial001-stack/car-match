@@ -493,7 +493,13 @@ export default function PublishClient() {
                 const fraudCheck = await fetch('/api/fraud/check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ deviceFingerprint: deviceFP, images, vehicleData, gpsLocation: { latitude, longitude } })
+                    body: JSON.stringify({
+                        deviceFingerprint: deviceFP,
+                        images,
+                        vehicleData,
+                        gpsLocation: { latitude, longitude },
+                        currentVehicleId: editId
+                    })
                 })
                 const fraudResult = await fraudCheck.json()
 
