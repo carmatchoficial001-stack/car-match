@@ -225,15 +225,7 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                     </p>
                                                     {isOwner && (
                                                         <div className="flex flex-col gap-1 mt-2">
-                                                            {vehicle.expiresAt && (
-                                                                <p className={`text-xs font-medium px-2 py-1 rounded inline-block ${isExpired ? "bg-red-900/20 text-red-400" : "bg-surface-highlight/30 text-text-secondary"}`}>
-                                                                    {isExpired ? '❌ Expirado: ' : '📅 Vence: '} {new Date(vehicle.expiresAt).toLocaleDateString(locale === 'es' ? 'es-MX' : 'en-US', {
-                                                                        day: 'numeric',
-                                                                        month: 'long',
-                                                                        year: 'numeric'
-                                                                    })}
-                                                                </p>
-                                                            )}
+
                                                             {vehicle.moderationStatus === 'REJECTED' && (
                                                                 <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider">⚠️ Rechazado por un Asesor - Entra para corregir datos automáticamente</p>
                                                             )}
