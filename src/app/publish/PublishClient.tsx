@@ -184,10 +184,9 @@ export default function PublishClient() {
             const validation = await res.json()
             setAiConfidence(100)
 
-            // 1. 🛡️ REGLA SOBERANA: Aplicar Brand/Model/Year de la portada SIEMPRE
-            // incluso si el usuario ya escribió algo, el Asesor Real tiene la última palabra visual.
+            // 1. 🛡️ APLICAR DETALLES DE IA (Si la portada es válida)
             if (validation.details && (!validation.invalidIndices || !validation.invalidIndices.includes(0))) {
-                applyAiDetails(validation.details, validation.category, true) // Pass flag to force overwrite
+                applyAiDetails(validation.details, validation.category)
             }
 
             // 2. 🚨 VALIDAR PORTADA (Index 0)
@@ -228,7 +227,7 @@ export default function PublishClient() {
 
     const cancelValidation = () => { }
 
-    const applyAiDetails = (details: any, category: string, forceIdentityOverwrite: boolean = false) => {
+    const applyAiDetails = (details: any, category: string) => {
         const findInList = (value: string, list: string[]) => {
             if (!value) return ''
             const normalized = value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")

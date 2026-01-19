@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
         }
         else if (isPermanentlyRestricted || isFraudulentRetry || isAiRejected) {
             // Usuarios marcados, fraude detectado o RECHAZADO POR IA -> INACTIVO (Borrador)
-            expiresAt = new Date()
+            expiresAt.setDate(now.getDate() + 7)
             isFreePublication = false
             initialStatus = 'INACTIVE'
         }

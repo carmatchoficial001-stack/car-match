@@ -120,68 +120,13 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                             </div>
 
                             {vehicle.expiresAt && (
-                                <div className={`flex items-center gap-1.5 text-xs font-bold ${isExpired ? 'text-red-400' : 'text-text-secondary'}`}>
+                                <div className={`flex items-center gap-1.5 text-xs font-bold ${(isExpired && vehicle.status !== 'ACTIVE') ? 'text-red-400' : 'text-text-secondary'}`}>
                                     <Calendar size={14} />
-                                    {isExpired ? 'Expirado el: ' : 'Vence el: '}
+                                    {(isExpired && vehicle.status !== 'ACTIVE') ? 'Expirado el: ' : 'Vence el: '}
                                     {new Date(vehicle.expiresAt).toLocaleDateString(locale === 'es' ? 'es-MX' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                                 </div>
                             )}
                         </div>
-
-                        {vehicle.moderationStatus === 'REJECTED' && (
-                            <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-4 flex gap-3 items-start">
-                                <AlertTriangle className="text-red-400 flex-shrink-0" size={20} />
-                                <div>
-                                    <p className="text-red-400 font-black text-xs uppercase tracking-wider mb-1">Rechazado por un Asesor</p>
-                                    <p className="text-gray-300 text-sm leading-relaxed">
-                                        {vehicle.moderationFeedback || 'Tu anuncio requiere corrección. Haz clic en el botón "Corregir datos automáticamente" para que nuestro sistema ajuste los datos según tus fotos y active tu publicación.'}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-
-                        {vehicle.moderationStatus === 'APPROVED' && vehicle.moderationFeedback?.includes('Auto-corregido') && (
-                            <div className="bg-primary-500/5 border border-primary-500/20 rounded-2xl p-4 flex flex-col gap-3">
-                                <div className="flex gap-3 items-start">
-                                    <Sparkles className="text-primary-400 flex-shrink-0" size={20} />
-                                    <div>
-                                        <p className="text-primary-400 font-black text-xs uppercase tracking-wider mb-1">Optimizado por un Asesor</p>
-                                        <p className="text-gray-300 text-sm leading-relaxed">
-                                            {vehicle.moderationFeedback.replace('Auto-corregido:', 'Corrigiendo datos reales:')}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex gap-2 pl-8">
-                                    <button
-                                        onClick={async () => {
-                                            try {
-                                                const res = await fetch(`/api/vehicles/${vehicle.id}`, {
-                                                    method: 'PATCH',
-                                                    headers: { 'Content-Type': 'application/json' },
-                                                    body: JSON.stringify({ moderationFeedback: null })
-                                                })
-                                                if (res.ok) {
-                                                    window.location.reload()
-                                                }
-                                            } catch (e) {
-                                                console.error(e)
-                                            }
-                                        }}
-                                        className="px-3 py-1.5 bg-green-500/20 text-green-400 text-xs font-bold rounded-lg border border-green-500/30 hover:bg-green-500/30 transition flex items-center gap-1"
-                                    >
-                                        <CheckCircle2 size={12} />
-                                        Aceptar
-                                    </button>
-                                    <Link
-                                        href={`/publish?edit=${vehicle.id}`}
-                                        className="px-3 py-1.5 bg-white/5 text-gray-300 text-xs font-bold rounded-lg border border-white/10 hover:bg-white/10 transition flex items-center gap-1"
-                                    >
-                                        <Edit3 size={12} />
-                                        Editar
-                                    </Link>
-                                </div>
-                            </div>
-                        )}
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full md:w-auto">
@@ -193,15 +138,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                             <span className="text-[10px] font-bold uppercase tracking-tighter">Editar</span>
                         </Link>
 
-                        {vehicle.status !== 'ACTIVE' && vehicle.moderationStatus === 'REJECTED' && (
-                            <OwnerActionButton
-                                action="ai-fix"
-                                vehicleId={vehicle.id}
-                                icon={<Sparkles size={20} />}
-                                label="Corregir datos automáticamente"
-                                variant="ia"
-                            />
-                        )}
+
 
                         {vehicle.status !== 'ACTIVE' && needsCreditToActivate && (
                             <OwnerActionButton
