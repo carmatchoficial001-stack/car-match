@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { Logo } from "@/components/Logo"
 import { useLanguage } from "@/contexts/LanguageContext"
@@ -16,6 +16,9 @@ export default function AuthPageContent() {
     const { t } = useLanguage()
     const { data: session, status } = useSession()
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const error = searchParams.get("error")
+
     const [isLinked, setIsLinked] = useState<boolean | null>(null)
     const [linkedEmail, setLinkedEmail] = useState<string | null>(null)
     const [isChecking, setIsChecking] = useState(true)
@@ -108,40 +111,53 @@ export default function AuthPageContent() {
                         {isLinked ? "Bienvenido de nuevo" : t('auth.welcome')}
                     </h1>
                     <p className="text-center text-text-secondary mb-8">
-                        {isLinked
-                            ? "Inicia sesión con tu cuenta vinculada para continuar."
-                            : t('auth.login_subtitle')
-                        }
+                        {isLinked ? "Este dispositivo está vinculado a una cuenta protegida." : t('auth.login_subtitle')}
                     </p>
 
-                    {isLinked && (
-                        <div className="mb-8 p-4 bg-primary-500/10 border border-primary-500/20 rounded-2xl flex flex-col items-center animate-fade-in">
-                            <p className="text-xs text-primary-400 uppercase tracking-widest font-black mb-1">Cuenta de este dispositivo:</p>
-                            <p className="text-white font-bold text-lg truncate w-full text-center">{linkedEmail}</p>
+                    {error === "AccessDenied" && (
+                        <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex flex-col items-center text-center animate-shake">
+                            <AlertTriangle className="text-red-400 mb-2" size={24} />
+                            <p className="text-red-400 font-bold text-sm">Seguridad: Acceso Denegado</p>
+                            <p className="text-gray-300 text-xs mt-1">
+                                No puedes crear una cuenta nueva en este dispositivo.
+                                Por favor regresa a la cuenta que ya tienes vinculada.
+                            </p>
                         </div>
                     )}
 
-                    <AuthButtons linkedEmail={linkedEmail} />
+                    {isLinked ? (
+                        <div className="space-y-6 animate-fade-in">
+                            <div className="p-5 bg-primary-500/5 border border-primary-500/10 rounded-3xl flex flex-col items-center">
+                                <div className="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center mb-3">
+                                    <LogIn className="text-primary-400" size={32} />
+                                </div>
+                                <p className="text-[10px] text-primary-400 uppercase tracking-[0.2em] font-black mb-1">Cuenta Autorizada</p>
+                                <p className="text-white font-bold text-xl truncate w-full text-center px-2">{linkedEmail}</p>
+                            </div>
 
-                    {isLinked && (
-                        <p className="mt-6 text-center text-xs text-text-secondary leading-relaxed px-4">
-                            Por seguridad, CarMatch solo permite una cuenta por dispositivo.
-                            <br />
-                            Si necesitas usar otra cuenta, contacta a soporte.
-                        </p>
-                    )}
+                            <AuthButtons linkedEmail={linkedEmail} forceOnlyLinked={true} />
 
-                    {!isLinked && (
-                        <p className="mt-8 text-center text-xs text-text-secondary font-sans leading-relaxed">
-                            {t('auth.agree_terms')}{" "}
-                            <Link href="/terms" className="text-primary-700 hover:text-primary-600 font-medium transition">
-                                {t('auth.terms')}
-                            </Link>{" "}
-                            {t('auth.and')}{" "}
-                            <Link href="/privacy" className="text-primary-700 hover:text-primary-600 font-medium transition">
-                                {t('auth.privacy')}
-                            </Link>
-                        </p>
+
+                            <div className="pt-4 border-t border-surface-highlight text-center">
+                                <p className="text-[10px] text-text-secondary leading-relaxed uppercase tracking-widest font-medium">
+                                    Este dispositivo está vinculado permanentemente<br />a la cuenta anterior.
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <AuthButtons />
+                            <p className="mt-8 text-center text-xs text-text-secondary font-sans leading-relaxed">
+                                {t('auth.agree_terms')}{" "}
+                                <Link href="/terms" className="text-primary-700 hover:text-primary-600 font-medium transition">
+                                    {t('auth.terms')}
+                                </Link>{" "}
+                                {t('auth.and')}{" "}
+                                <Link href="/privacy" className="text-primary-700 hover:text-primary-600 font-medium transition">
+                                    {t('auth.privacy')}
+                                </Link>
+                            </p>
+                        </>
                     )}
                 </div>
 

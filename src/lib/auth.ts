@@ -4,6 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/db"
 import { comparePassword } from "@/lib/password"
 import { authConfig } from "./auth.config"
+import { cookies } from "next/headers"
 
 // 🚀 Instancia completa con DB para uso en Servidor (API, Server Actions)
 export const {
@@ -14,6 +15,31 @@ export const {
 } = NextAuth({
     ...authConfig,
     adapter: PrismaAdapter(prisma),
+    callbacks: {
+        ...authConfig.callbacks,
+        async signIn({ user }) {
+            // 🛡️ REGLA DE ORO CARMATCH: Bloqueo preventivo en el Servidor
+            try {
+                const cookieStore = await cookies()
+                const deviceHash = cookieStore.get('device-fingerprint')?.value
+
+                if (deviceHash) {
+                    const linkedFP = await prisma.digitalFingerprint.findUnique({
+                        where: { deviceHash },
+                        include: { user: true }
+                    })
+
+                    if (linkedFP && linkedFP.user.email !== user.email) {
+                        console.log(`🛡️ SEGURIDAD: Bloqueando entrada de ${user.email} en dispositivo de ${linkedFP.user.email}`)
+                        return false // ⛔ No permite el login ni la creación de cuenta
+                    }
+                }
+            } catch (error) {
+                console.error("Error validando huella en signIn:", error)
+            }
+            return true
+        }
+    },
     debug: true, // 🔍 Debug habilitado para ver errores en Vercel logs
     events: {
         async createUser({ user }) {
