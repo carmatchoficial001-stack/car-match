@@ -12,24 +12,20 @@ export default function AuthButtons({
     const { t } = useLanguage()
 
     const handleSignIn = async (provider: string) => {
+        const options: any = {
+            callbackUrl: "/",
+        }
+
+        if (linkedEmail && provider === 'google') {
+            options.login_hint = linkedEmail
+            // Opcional: intentamos que Google no pregunte si ya hay sesión
+            // options.prompt = "none" // ⚠️ No usar a menos que estemos seguros
+        }
+
         try {
-            const signOptions: any = {
-                callbackUrl: "/",
-                redirect: false
-            }
-
-            if (linkedEmail && provider === 'google') {
-                signOptions.login_hint = linkedEmail
-            }
-
-            const result = await signIn(provider, signOptions) as any
-
-            if (result && result.url) {
-                window.location.replace(result.url)
-            }
+            await signIn(provider, options)
         } catch (error) {
             console.error("Error signing in:", error)
-            signIn(provider, { callbackUrl: "/", login_hint: linkedEmail || undefined })
         }
     }
 
