@@ -19,7 +19,8 @@ export default function AuthButtons({
             if (session) {
                 // Limpiar cookie de soft_logout
                 document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-                router.push("/") // El root ya nos mandará a los feeds
+                // Forzamos recarga completa para sincronizar Header y MobileNav
+                window.location.href = "/"
                 return
             }
 

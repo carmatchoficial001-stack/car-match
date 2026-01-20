@@ -73,7 +73,7 @@ export default function MobileNav() {
             document.removeEventListener('focusin', handleFocus);
             document.removeEventListener('focusout', handleBlur);
         };
-    }, []);
+    }, [pathname]);
 
     if (!session || isSoftLogout) return null
 

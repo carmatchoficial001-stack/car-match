@@ -23,7 +23,7 @@ export default function Header() {
 
     useEffect(() => {
         setIsSoftLogout(document.cookie.includes('soft_logout=true'))
-    }, [])
+    }, [pathname])
     const [unreadMessages, setUnreadMessages] = useState(0)
     const [unreadNotifications, setUnreadNotifications] = useState(0)
     const [favoritesCount, setFavoritesCount] = useState(0)
