@@ -138,7 +138,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     <div className="px-6 mb-1">
                         <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} onPointerDown={(e) => e.stopPropagation()}>
                             <h2 className="text-2xl font-bold text-text-primary hover:text-primary-400 transition cursor-pointer leading-tight line-clamp-2">
-                                {item.title} {item.year && <span className="font-light opacity-80 text-lg ml-1">{item.year}</span>}
+                                {item.title}
                             </h2>
                         </Link>
                     </div>
