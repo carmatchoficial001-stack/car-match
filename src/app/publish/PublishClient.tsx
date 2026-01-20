@@ -303,10 +303,44 @@ export default function PublishClient() {
             else setVehicleCategory('automovil')
         }
 
+        // 🧠 SMART FEATURES: Match AI features with UI suggestions
         const feats = details.features || []
+        
         if (feats.length > 0) {
+            // 1. Get official taxonomy for this category
+            const taxCat = mapCategoryToTaxonomy(category) || 'Automóvil'
+            const officialFeatures = getFeaturesByCategory(taxCat)
+
+            const normalizedFeats = feats.map((f: string) => {
+                const normF = f.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                
+                // Try to find a match in official features
+                const match = officialFeatures.find(official => {
+                    const normOfficial = official.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                    
+                    // Direct match or inclusion
+                    if (normOfficial === normF) return true
+                    if (normOfficial.includes(normF) && normF.length > 3) return true // "Piel" in "Asientos de Piel"
+                    
+                    // Synonyms Logic
+                    if (normOfficial.includes('piel') && normF.includes('cuero')) return true
+                    if (normOfficial.includes('quemacocos') && (normF.includes('techo') || normF.includes('solar') || normF.includes('sunroof'))) return true
+                    if (normOfficial.includes('pantalla') && (normF.includes('tactil') || normF.includes('touch') || normF.includes('infotainment'))) return true
+                    if (normOfficial.includes('reversa') && (normF.includes('trasera') || normF.includes('backup'))) return true
+                    if (normOfficial.includes('niebla') && (normF.includes('niebla') || normF.includes('fog'))) return true
+                    if (normOfficial.includes('rines') && (normF.includes('aleacion') || normF.includes('aluminio') || normF.includes('deportivos'))) return true
+                    if (normOfficial.includes('vidrios') && (normF.includes('ventanas') || normF.includes('cristales') || normF.includes('electricos'))) return true
+                    if (normOfficial.includes('aire') && (normF.includes('a/c') || normF.includes('clima'))) return true
+                    if (normOfficial.includes('android') && (normF.includes('carplay') || normF.includes('apple'))) return true
+                    
+                    return false
+                })
+
+                return match || f // Return the official name if matched, otherwise keep original
+            })
+
             setSelectedFeatures(prev => {
-                const newFeats = [...new Set([...prev, ...feats])]
+                const newFeats = [...new Set([...prev, ...normalizedFeats])]
                 return newFeats
             })
         }
