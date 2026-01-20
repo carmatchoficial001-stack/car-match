@@ -22,7 +22,9 @@ export default function Header() {
     const [isSoftLogout, setIsSoftLogout] = useState(false)
 
     useEffect(() => {
-        setIsSoftLogout(document.cookie.includes('soft_logout=true'))
+        const hasCookie = document.cookie.includes('soft_logout=true')
+        const hasStorage = localStorage.getItem('soft_logout') === 'true'
+        setIsSoftLogout(hasCookie || hasStorage)
     }, [pathname])
     const [unreadMessages, setUnreadMessages] = useState(0)
     const [unreadNotifications, setUnreadNotifications] = useState(0)
@@ -53,9 +55,8 @@ export default function Header() {
     const handleSignOut = async () => {
         try {
             // 🔥 CIERRE DE SESIÓN SIMULADO (Soft Logout)
-            // En lugar de cerrar sesión real con Google (que obligaría a elegir cuenta luego),
-            // simplemente marcamos el estado y mandamos a la landing.
             document.cookie = "soft_logout=true; Path=/; Max-Age=31536000" // 1 año
+            localStorage.setItem('soft_logout', 'true')
             window.location.href = '/'
         } catch (error) {
             console.error("Error durante el cierre de sesión simulado:", error)
@@ -476,6 +477,18 @@ export default function Header() {
                                                         <Settings size={20} className="text-primary-700" />
                                                         <span className="font-medium">{t('settings.title')}</span>
                                                     </Link>
+
+                                                    <div className="border-t border-surface-highlight/50 my-1"></div>
+
+                                                    <button
+                                                        onClick={handleSignOut}
+                                                        className="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-500/10 transition w-full"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                        </svg>
+                                                        <span className="font-medium">{t('common.logout')}</span>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </>

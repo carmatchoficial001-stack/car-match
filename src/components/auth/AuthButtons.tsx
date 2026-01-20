@@ -17,9 +17,12 @@ export default function AuthButtons({
         try {
             // 🔥 SI YA HAY SESIÓN (Soft Logout), simplemente re-entramos
             if (session) {
-                // Limpiar cookie de soft_logout
+                // Limpiar cookie de soft_logout (cliente y servidor)
                 document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-                // Forzamos recarga completa para sincronizar Header y MobileNav
+                localStorage.removeItem('soft_logout')
+                await fetch('/api/auth/soft-logout-clear', { method: 'POST' })
+
+                // Forzamos recarga completa
                 window.location.href = "/"
                 return
             }

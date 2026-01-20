@@ -20,7 +20,9 @@ export default function MobileNav() {
     const [isSoftLogout, setIsSoftLogout] = useState(false)
 
     useEffect(() => {
-        setIsSoftLogout(document.cookie.includes('soft_logout=true'))
+        const hasCookie = document.cookie.includes('soft_logout=true')
+        const hasStorage = localStorage.getItem('soft_logout') === 'true'
+        setIsSoftLogout(hasCookie || hasStorage)
 
         // Función simplificada y robusta para detectar teclado
         const handleResize = () => {

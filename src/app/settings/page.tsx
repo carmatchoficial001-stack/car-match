@@ -31,6 +31,7 @@ export default function SettingsPage() {
         try {
             // 🔥 CIERRE DE SESIÓN SIMULADO (Soft Logout)
             document.cookie = "soft_logout=true; Path=/; Max-Age=31536000" // 1 año
+            localStorage.setItem('soft_logout', 'true')
             window.location.href = '/'
         } catch (error) {
             console.error("Error during soft sign out:", error)
