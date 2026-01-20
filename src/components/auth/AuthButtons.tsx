@@ -12,20 +12,24 @@ export default function AuthButtons({
     const { t } = useLanguage()
 
     const handleSignIn = async (provider: string) => {
-        const options: any = { callbackUrl: "/" }
+        const signOptions: any = { callbackUrl: "/" }
 
         if (linkedEmail && provider === 'google') {
-            options.login_hint = linkedEmail
+            // En NextAuth v5 Beta, los parámetros adicionales de OIDC 
+            // se deben pasar dentro de authorizationParams
+            signOptions.authorizationParams = {
+                login_hint: linkedEmail
+            }
 
             // Intentar login silencioso si no venimos de un error previo
             const urlParams = new URLSearchParams(window.location.search)
             if (urlParams.get('error') !== 'login_required') {
-                options.prompt = "none"
+                signOptions.authorizationParams.prompt = "none"
             }
         }
 
         try {
-            await signIn(provider, options)
+            await signIn(provider, signOptions)
         } catch (error) {
             console.error("Error signing in:", error)
         }
