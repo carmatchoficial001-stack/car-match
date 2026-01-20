@@ -13,28 +13,17 @@ export default function AuthButtons({
 
     const handleSignIn = async (provider: string) => {
         try {
+            const options: any = { callbackUrl: "/" }
+
             if (linkedEmail && provider === 'google') {
-                const urlParams = new URLSearchParams(window.location.search)
-                const isErrorRetry = urlParams.get('error') === 'login_required'
-
-                const params = new URLSearchParams({
-                    callbackUrl: "/",
-                    login_hint: linkedEmail
-                })
-
-                if (!isErrorRetry) {
-                    params.set('prompt', 'none')
-                }
-
-                // Salto directo al endpoint de NextAuth con los parámetros forzados
-                window.location.href = `/api/auth/signin/google?${params.toString()}`
-                return
+                // login_hint ayuda a pre-seleccionar la cuenta sin romper el flujo
+                options.login_hint = linkedEmail
             }
 
-            // Registro o login normal
-            await signIn(provider, { callbackUrl: "/" })
+            await signIn(provider, options)
         } catch (error) {
             console.error("Error signing in:", error)
+            // Fallback manual en caso de que falle la librería
             window.location.href = `/api/auth/signin/${provider}?callbackUrl=/`
         }
     }

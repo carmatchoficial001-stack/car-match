@@ -9,12 +9,6 @@ export const authConfig: NextAuthConfig = {
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID || process.env.AUTH_GOOGLE_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.AUTH_GOOGLE_SECRET,
-            authorization: {
-                params: {
-                    access_type: "offline",
-                    response_type: "code"
-                }
-            }
         }),
         Facebook({
             clientId: process.env.FACEBOOK_CLIENT_ID || process.env.AUTH_FACEBOOK_ID,
