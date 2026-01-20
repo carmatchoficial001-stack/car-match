@@ -979,43 +979,7 @@ export default function PublishClient() {
                                     </button>
                                 </div>
 
-                                {/* 3. Sugerencias Rápidas */}
-                                <div className="space-y-4">
-                                    <h4 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Sugerencias por categoría</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {getFeaturesByCategory(
-                                            (() => {
-                                                const c = vehicleCategory.toLowerCase()
-                                                if (c.includes('moto')) return 'Motocicleta'
-                                                if (c.includes('camion') || c.includes('comercial')) return 'Camión'
-                                                if (c.includes('industrial') || c.includes('maquinaria')) return 'Maquinaria'
-                                                if (c.includes('transporte') || c.includes('autobus') || c.includes('bus')) return 'Autobús'
-                                                if (c.includes('especial')) return 'Especial'
-                                                return 'Automóvil'
-                                            })()
-                                        ).map(feature => {
-                                            const isSelected = selectedFeatures.includes(feature)
-                                            return (
-                                                <button
-                                                    key={feature}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (isSelected) setSelectedFeatures(prev => prev.filter(f => f !== feature))
-                                                        else setSelectedFeatures(prev => [...prev, feature])
-                                                    }}
-                                                    className={`
-                                                        px-4 py-2 rounded-xl text-sm font-medium border transition-all
-                                                        ${isSelected
-                                                            ? 'bg-primary-700 border-primary-700 text-white shadow-lg shadow-primary-700/20'
-                                                            : 'bg-surface-highlight border-transparent text-text-secondary hover:border-primary-700/50 hover:text-text-primary'}
-                                                    `}
-                                                >
-                                                    {feature}
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
+
                             </div>
 
                             {/* Descripción */}
