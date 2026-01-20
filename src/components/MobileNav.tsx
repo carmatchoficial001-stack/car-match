@@ -22,7 +22,16 @@ export default function MobileNav() {
     useEffect(() => {
         const hasCookie = document.cookie.includes('soft_logout=true')
         const hasStorage = localStorage.getItem('soft_logout') === 'true'
-        setIsSoftLogout(hasCookie || hasStorage)
+        const currentSoftLogout = hasCookie || hasStorage
+
+        // 🔥 AUTO-UNLOCK: Si ya hay sesión y estamos dentro, limpiamos rastro
+        if (session && currentSoftLogout && pathname !== '/') {
+            document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+            localStorage.removeItem('soft_logout')
+            setIsSoftLogout(false)
+        } else {
+            setIsSoftLogout(currentSoftLogout)
+        }
 
         // Función simplificada y robusta para detectar teclado
         const handleResize = () => {
@@ -75,7 +84,7 @@ export default function MobileNav() {
             document.removeEventListener('focusin', handleFocus);
             document.removeEventListener('focusout', handleBlur);
         };
-    }, [pathname]);
+    }, [pathname, session]);
 
     if (!session || isSoftLogout) return null
 

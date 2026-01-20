@@ -24,8 +24,18 @@ export default function Header() {
     useEffect(() => {
         const hasCookie = document.cookie.includes('soft_logout=true')
         const hasStorage = localStorage.getItem('soft_logout') === 'true'
-        setIsSoftLogout(hasCookie || hasStorage)
-    }, [pathname])
+        const currentSoftLogout = hasCookie || hasStorage
+
+        // 🔥 AUTO-UNLOCK: Si ya hay sesión y estamos dentro de la app (no en landing),
+        // pero la UI cree que estamos en soft_logout, limpiamos el rastro.
+        if (session && currentSoftLogout && pathname !== '/') {
+            document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+            localStorage.removeItem('soft_logout')
+            setIsSoftLogout(false)
+        } else {
+            setIsSoftLogout(currentSoftLogout)
+        }
+    }, [pathname, session])
     const [unreadMessages, setUnreadMessages] = useState(0)
     const [unreadNotifications, setUnreadNotifications] = useState(0)
     const [favoritesCount, setFavoritesCount] = useState(0)
