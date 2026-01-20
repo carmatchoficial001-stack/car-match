@@ -929,8 +929,8 @@ export default function PublishClient() {
                                                     addCustomFeature()
                                                 }
                                             }}
-                                            placeholder="Ej: Rines deportivos 20\", GPS..."
-                                        className="w-full bg-surface-highlight border border-surface-highlight p-3 rounded-xl pr-10 text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            placeholder={'Ej: Rines deportivos 20", GPS...'}
+                                            className="w-full bg-surface-highlight border border-surface-highlight p-3 rounded-xl pr-10 text-sm focus:ring-1 focus:ring-primary-700 outline-none"
                                         />
                                     </div>
                                     <button
