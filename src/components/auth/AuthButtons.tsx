@@ -12,31 +12,39 @@ export default function AuthButtons({
     const { t } = useLanguage()
 
     const handleSignIn = async (provider: string) => {
-        const signOptions: any = {
-            callbackUrl: "/",
-            // Redundancia absoluta para Google
-            login_hint: linkedEmail,
-        }
-
-        if (linkedEmail && provider === 'google') {
+        try {
             const urlParams = new URLSearchParams(window.location.search)
             const isErrorRetry = urlParams.get('error') === 'login_required'
 
-            const promptValue = isErrorRetry ? "" : "none"
-
-            // Metodo 1: Top-level (algunas versiones de v5)
-            signOptions.login_hint = linkedEmail
-            signOptions.prompt = promptValue
-
-            // Metodo 2: nested (otras versiones de v5)
-            signOptions.authorizationParams = {
-                login_hint: linkedEmail,
-                prompt: promptValue
+            const authParams: any = {}
+            if (linkedEmail && provider === 'google') {
+                authParams.login_hint = linkedEmail
+                if (!isErrorRetry) {
+                    authParams.prompt = "none"
+                }
             }
-        }
 
-        try {
-            await signIn(provider, signOptions)
+            // Usamos redirect: false para interceptar la URL antes del salto
+            const result = await (signIn as any)(provider, {
+                callbackUrl: "/",
+                redirect: false
+            }, authParams)
+
+            if (result?.url) {
+                let targetUrl = result.url
+
+                // REFUERZO: Si la URL final por alguna razón NO trae los parámetros, los inyectamos a mano
+                if (linkedEmail && provider === 'google' && !targetUrl.includes('login_hint')) {
+                    const url = new URL(targetUrl)
+                    url.searchParams.set('login_hint', linkedEmail)
+                    if (!isErrorRetry) {
+                        url.searchParams.set('prompt', 'none')
+                    }
+                    targetUrl = url.toString()
+                }
+
+                window.location.href = targetUrl
+            }
         } catch (error) {
             console.error("Error signing in:", error)
         }
