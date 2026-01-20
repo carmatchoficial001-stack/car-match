@@ -132,6 +132,15 @@ export async function POST(request: NextRequest) {
 
         const isAdmin = user.isAdmin || session.user.email === process.env.ADMIN_EMAIL
 
+        // 🔍 Validar duplicados de contenido (Mismo carro republicado?)
+        const contentHash = generateVehicleHash({
+            brand: coverAnalysis.details?.brand || brand,
+            model: coverAnalysis.details?.model || model,
+            year: coverAnalysis.details?.year ? parseInt(coverAnalysis.details.year) : parseInt(year),
+            color: coverAnalysis.details?.color || body.color,
+            vehicleType: coverAnalysis.details?.type || body.vehicleType
+        })
+
         // 🛡️ VALIDAR HUELLA DIGITAL GLOBAL (Detecta fraude de varios correos en mismo cel)
         let isFraudulentRetry = false
         let fraudReason = ''
@@ -143,7 +152,8 @@ export async function POST(request: NextRequest) {
                 latitude: body.latitude || 0,
                 longitude: body.longitude || 0,
                 deviceHash: deviceHash,
-                ipAddress: clientIp
+                ipAddress: clientIp,
+                vehicleHash: contentHash
             })
 
             if (globalFraudCheck.isFraud) {
@@ -159,14 +169,7 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // 🔍 Validar duplicados de contenido (Mismo carro republicado?)
-        const contentHash = generateVehicleHash({
-            brand: coverAnalysis.details?.brand || brand,
-            model: coverAnalysis.details?.model || model,
-            year: coverAnalysis.details?.year ? parseInt(coverAnalysis.details.year) : parseInt(year),
-            color: coverAnalysis.details?.color || body.color,
-            vehicleType: coverAnalysis.details?.type || body.vehicleType
-        })
+
 
         if (!isFirstVehicle && !isAdmin && !isFraudulentRetry) {
             const recentDuplicates = await prisma.vehicle.findFirst({
@@ -200,9 +203,9 @@ export async function POST(request: NextRequest) {
             expiresAt.setFullYear(now.getFullYear() + 10)
             isFreePublication = true
         }
-        else if (isPermanentlyRestricted || isFraudulentRetry || isAiRejected) {
-            // Usuarios marcados, fraude detectado o RECHAZADO POR IA -> INACTIVO (Borrador)
-            expiresAt.setDate(now.getDate() + 7)
+        else if (isPermanentlyRestricted || isAiRejected) {
+            // Usuarios marcados o RECHAZADO POR IA -> INACTIVO (Borrador)
+            expiresAt.setDate(now.getDate() + 30) // Vigencia estándar para cuando paguen
             isFreePublication = false
             initialStatus = 'INACTIVE'
         }
@@ -275,7 +278,7 @@ export async function POST(request: NextRequest) {
                 isFreePublication: isFreePublication,
                 publishedAt: now,
                 expiresAt: expiresAt,
-                // Usamos searchIndex para guardar el hash de contenido y facilitar búsquedas futuras
+                // searchIndex para guardar el hash de contenido y facilitar búsquedas futuras
                 searchIndex: contentHash
             }
         })
@@ -376,8 +379,6 @@ export async function POST(request: NextRequest) {
         let successMessage = '¡Publicación enviada! Nuestro equipo la verificará pronto. Recuerda que los datos reales atraen a más compradores.'
         if (isPermanentlyRestricted) {
             successMessage = 'Cuenta restringida. El anuncio se guardó como BORRADOR. Puedes activarlo con un crédito o contactar a soporte.'
-        } else if (isFraudulentRetry) {
-            successMessage = 'Se detectaron múltiples cuentas. Para mantener la confianza en la red, puedes activar este anuncio usando 1 crédito.'
         } else if (isAiRejected) {
             successMessage = `La IA detectó que los datos o fotos podrían no coincidir (${coverAnalysis.reason || 'Imagen inusual'}). Entre más reales sean tus datos, más rápido venderás. Puedes corregirlo o activarlo con 1 crédito.`
         }

@@ -37,7 +37,7 @@ model User {
   buyerChats              Chat[]                    @relation("BuyerChats")
   sellerChats             Chat[]                    @relation("SellerChats")
   creditTransactions      CreditTransaction[]
-  fingerprint             DigitalFingerprint?
+  fingerprints            DigitalFingerprint[]
   dislikes                Dislike[]
   fakeNotifCounters       FakeNotificationCounter[]
   favorites               Favorite[]
@@ -325,14 +325,16 @@ model BusinessFavorite {
 }
 
 model DigitalFingerprint {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  ipAddress String
-  userAgent String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  userId      String
+  deviceHash  String   @unique // 🛡️ SOLO UNA CUENTA POR DISPOSITIVO
+  ipAddress   String
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([deviceHash])
   @@index([ipAddress])
 }
 

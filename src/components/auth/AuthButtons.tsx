@@ -2,17 +2,22 @@ import { signIn } from "next-auth/react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getWeightedHomePath } from "@/lib/navigation"
 
-export default function AuthButtons() {
+export default function AuthButtons({ linkedEmail }: { linkedEmail?: string | null }) {
     const { t } = useLanguage()
 
     const handleSignIn = async (provider: string) => {
         try {
-            // Usamos redirect: false para obtener la URL de Google/FB/X 
-            // y luego usar window.location.replace() para que /auth NO quede en el historial
-            const result = await signIn(provider, {
+            // Si hay un correo vinculado al dispositivo, lo enviamos como sugerencia a Google
+            const signOptions: any = {
                 callbackUrl: "/",
                 redirect: false
-            })
+            }
+
+            if (linkedEmail && provider === 'google') {
+                signOptions.login_hint = linkedEmail
+            }
+
+            const result = await signIn(provider, signOptions)
 
             if (result?.url) {
                 window.location.replace(result.url)
@@ -20,7 +25,7 @@ export default function AuthButtons() {
         } catch (error) {
             console.error("Error signing in:", error)
             // Fallback
-            signIn(provider, { callbackUrl: "/" })
+            signIn(provider, { callbackUrl: "/", login_hint: linkedEmail || undefined })
         }
     }
 
