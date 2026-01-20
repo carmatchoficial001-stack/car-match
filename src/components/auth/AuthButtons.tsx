@@ -12,21 +12,20 @@ export default function AuthButtons({
     const { t } = useLanguage()
 
     const handleSignIn = async (provider: string) => {
-        const options = { callbackUrl: "/" }
-        const authParams: any = {}
+        const options: any = { callbackUrl: "/" }
 
         if (linkedEmail && provider === 'google') {
-            authParams.login_hint = linkedEmail
+            options.login_hint = linkedEmail
 
             // Intentar login silencioso si no venimos de un error previo
             const urlParams = new URLSearchParams(window.location.search)
             if (urlParams.get('error') !== 'login_required') {
-                authParams.prompt = "none"
+                options.prompt = "none"
             }
         }
 
         try {
-            await signIn(provider, options, authParams)
+            await signIn(provider, options)
         } catch (error) {
             console.error("Error signing in:", error)
         }
