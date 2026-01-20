@@ -163,6 +163,14 @@ export default function MarketClient({
                         if (userLat && userLng && item.latitude && item.longitude) {
                             d = calculateDistance(userLat, userLng, item.latitude, item.longitude)
                         }
+
+                        // 👑 ADMIN GLOBAL VISIBILITY:
+                        // If it's an admin vehicle (isBoosted) AND in the same country,
+                        // force distance to 0 so it appears as "Local" (0-12km tier) anywhere in the country.
+                        if (item.isBoosted && normalizeCountryCode(item.country) === userCountry) {
+                            d = 0
+                        }
+
                         return { ...item, distance: d }
                     })
                     // 🌍 FRONTERA DIGITAL: Filtrar estrictamente por país normalizado

@@ -135,12 +135,19 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                 return itemCountry === userCountry
             })
             .map((item: FeedItem) => {
-                const distance = calculateDistance(
+                let distance = calculateDistance(
                     location.latitude,
                     location.longitude,
                     item.latitude || 0,
                     item.longitude || 0
                 )
+
+                // 👑 ADMIN GLOBAL VISIBILITY:
+                // Force admin vehicles to be "radius 0" (Local) for everyone in the same country.
+                if (item.isBoosted && normalizeCountryCode(item.country) === userCountry) {
+                    distance = 0
+                }
+
                 return { ...item, distance }
             })
 
