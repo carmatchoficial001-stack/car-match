@@ -98,6 +98,16 @@ export default function AuthPageContent() {
                         </div>
                     )}
 
+                    {(error === "login_required" || error === "interaction_required") && (
+                        <div className="mb-6 bg-primary-500/10 border border-primary-500/20 rounded-2xl p-4 flex flex-col items-center text-center">
+                            <AlertTriangle className="text-primary-400 mb-2" size={24} />
+                            <p className="text-primary-400 font-bold text-sm">Acción Requerida</p>
+                            <p className="text-gray-300 text-xs mt-1">
+                                Google requiere que confirmes tu identidad manualmente por seguridad.
+                            </p>
+                        </div>
+                    )}
+
                     {isLinked ? (
                         <div className="space-y-6 animate-fade-in">
                             <div className="p-5 bg-primary-500/5 border border-primary-500/10 rounded-3xl flex flex-col items-center">

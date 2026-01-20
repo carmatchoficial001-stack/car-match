@@ -18,8 +18,13 @@ export default function AuthButtons({
 
         if (linkedEmail && provider === 'google') {
             options.login_hint = linkedEmail
-            // Opcional: intentamos que Google no pregunte si ya hay sesión
-            // options.prompt = "none" // ⚠️ No usar a menos que estemos seguros
+
+            // Si no venimos de un error de "login_required", intentamos el login silencioso
+            // para saltar el selector de cuentas de Google.
+            const urlParams = new URLSearchParams(window.location.search)
+            if (urlParams.get('error') !== 'login_required') {
+                options.prompt = "none"
+            }
         }
 
         try {
