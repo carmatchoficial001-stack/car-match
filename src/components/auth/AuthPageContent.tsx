@@ -45,35 +45,8 @@ export default function AuthPageContent() {
                 } else {
                     setIsLinked(false)
                 }
-            } catch (err) {
-                console.error("Error checking fingerprint:", err)
             } finally {
                 setIsChecking(false)
-            }
-
-            // 2. Si ya está logueado, intentar vincular o verificar propiedad
-            if (session?.user?.id) {
-                try {
-                    const saveRes = await fetch('/api/auth/fingerprint-save', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            deviceHash: fingerprint.visitorId,
-                            userAgent: window.navigator.userAgent
-                        }),
-                    })
-
-                    if (!saveRes.ok) {
-                        const errorData = await saveRes.json()
-                        if (errorData.code === "DEVICE_ALREADY_LINKED") {
-                            // 🚨 CONFLICTO: El usuario entró con otra cuenta en un dispositivo ajeno
-                            // Forzar logout y mostrar error
-                            await signOut({ redirect: false })
-                            window.location.reload()
-                        }
-                    }
-                } catch (err) {
-                    console.error("Error saving fingerprint:", err)
-                }
             }
         }
 
