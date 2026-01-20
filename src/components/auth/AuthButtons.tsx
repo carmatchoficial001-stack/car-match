@@ -24,6 +24,10 @@ export default function AuthButtons({
             const urlParams = new URLSearchParams(window.location.search)
             if (urlParams.get('error') !== 'login_required') {
                 options.prompt = "none"
+            } else {
+                // Si el modo silencioso falló, dejamos que Google intente auto-seleccionar
+                // pero sin forzar una pantalla de login nueva.
+                options.prompt = ""
             }
         }
 
