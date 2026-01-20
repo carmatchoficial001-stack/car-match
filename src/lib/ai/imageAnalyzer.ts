@@ -44,7 +44,7 @@ interface ImageAnalysisResult {
 }
 
 export async function analyzeImage(imageBase64: string, type: 'VEHICLE' | 'BUSINESS' = 'VEHICLE'): Promise<ImageAnalysisResult> {
-  console.log(`🤖 Analizando imagen (${type}) con Gemini Vision...`);
+  console.log(`🤖 [${type}] Iniciando análisis con Gemini Vision... (Tamaño: ${imageBase64.length} caracteres)`);
 
   let prompt = '';
 
@@ -79,10 +79,27 @@ RESPONDE SOLO EL JSON.
   } else {
     // 🚗 VALIDATION FOR VEHICLES
     prompt = `
-═══ REGLAS DE RECHAZO (TOLERANCIA CERO) ═══
-- NO ES UN VEHÍCULO (Ej: TVs, muebles, pantallas, artículos del hogar, personas solas). RECHAZO INMEDIATO.
-- ES UN JUGUETE O DIBUJO. RECHAZO INMEDIATO.
-- CONTENIDO INSEGURO (Desnudez, armas, violencia). RECHAZO INMEDIATO.
+═══ REGLAS DE APROBACIÓN (VEHÍCULOS MOTORIZADOS TERRESTRES) ═══
+✅ APRUEBA AUTOMÁTICAMENTE SI VES CUALQUIERA DE ESTOS:
+- Autos (sedanes, hatchbacks, coches deportivos, cupés)
+- Camionetas y SUVs (GMC, Chevrolet, Ford, Toyota, Jeep, etc.)
+- Pickups (F-150, Silverado, Ram, Tundra, etc.)
+- Vans (minivans, furgonetas, vans de pasajeros)
+- Motocicletas, scooters, motonetas, cuatrimotos (ATVs)
+- Camiones (carga, volteo, trailer, tractor-camión)
+- Vehículos comerciales (ambulancias, autobuses, patrullas)
+- Maquinaria pesada CON LLANTAS (excavadoras, grúas, tractores agrícolas)
+- Vehículos clásicos, antiguos, modificados o de colección
+- **CUALQUIER COSA CON MOTOR Y LLANTAS QUE SE MUEVA EN TIERRA**
+
+❌ RECHAZA SOLO SI VES:
+- NO ES UN VEHÍCULO (muebles, TVs, electrodomésticos, ropa, herramientas manuales)
+- Personas solas SIN vehículo visible en la imagen
+- Juguetes pequeños a escala (Hot Wheels, carrito de control remoto de juguete)
+- Dibujos, ilustraciones, pantallas mostrando vehículos (no vehículos reales)
+- CONTENIDO PROHIBIDO (desnudez, armas, violencia, drogas)
+
+IMPORTANTE: Ante la duda, SI PARECE UN VEHÍCULO REAL → APRUÉBALO.
 
 ═══ PROTOCOLO DE ANÁLISIS (PASO A PASO) ═══
 1. OLVIDA EL TEXTO: Ignora cualquier marca o modelo dado por el usuario.
@@ -93,8 +110,8 @@ RESPONDE SOLO EL JSON.
 
 RESPONDE ÚNICAMENTE CON ESTE JSON:
 {
-  "valid": boolean (false si es un artículo del hogar como una TV),
-  "reason": "OK o razón de rechazo (Ej: 'Contenido no es un vehículo (TV)')",
+  "valid": boolean (true si es un vehículo real, false solo si NO es vehículo o contenido prohibido),
+  "reason": "OK o razón de rechazo (Ej: 'Contenido no es un vehículo (TV)' o 'Contenido prohibido (desnudez)')",
   "category": "automovil" | "motocicleta" | "comercial" | "industrial" | "transporte" | "especial",
   "details": {
     "brand": "Marca REAL identificada visualmente",
@@ -135,7 +152,7 @@ REGLA CRÍTICA DE FORMATO:
   }
 
   let lastError: any;
-  const maxRetries = 5; // 🚀 Incrementado para mayor resiliencia silenciosa
+  const maxRetries = 7; // 🚀 MÁS reintentos para vehículos legítimos (antes 5)
 
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -195,24 +212,36 @@ REGLA CRÍTICA DE FORMATO:
   const msg = lastError?.message?.toLowerCase() || '';
 
   // 🛡️ MANEJO DE ERRORES ESPECÍFICOS PARA EL USUARIO
-  if (msg.includes("429") || msg.includes("quota") || msg.includes("exhausted")) {
-    return {
-      valid: false,
-      reason: "El Asesor Real está atendiendo a muchos usuarios ahora mismo. Por favor, reintenta en unos segundos."
-    };
-  }
 
+  // ❌ FAIL-CLOSED: Errores de seguridad (contenido bloqueado por políticas)
   if (msg.includes("safety") || msg.includes("blocked")) {
+    console.warn("🚫 Imagen bloqueada por políticas de seguridad de Gemini");
     return {
       valid: false,
       reason: "La imagen no pudo ser analizada por políticas de seguridad. Intenta con una foto más clara del vehículo."
     };
   }
 
-  // Si llegamos aquí, es un error técnico inesperado, no necesariamente "saturación"
+  // ✅ FAIL-OPEN: Errores técnicos (cuota, timeout, red, sobrecarga)
+  if (msg.includes("429") || msg.includes("quota") || msg.includes("exhausted") ||
+    msg.includes("503") || msg.includes("overloaded") || msg.includes("timeout") ||
+    msg.includes("fetch") || msg.includes("network") || msg.includes("deadline")) {
+    console.warn("⚠️ ERROR TÉCNICO DE GEMINI - APROBANDO IMAGEN POR DEFECTO (Fail-Open)");
+    console.warn("⚠️ Razón:", msg);
+    return {
+      valid: true,  // ✅ FAIL-OPEN: Aprobar por defecto
+      reason: "OK (Aprobado por mantenimiento técnico)",
+      details: {} // Sin detalles específicos
+    };
+  }
+
+  // ✅ FAIL-OPEN: Error técnico desconocido → APROBAR por seguridad del usuario
+  console.warn("⚠️ ERROR TÉCNICO DESCONOCIDO - APROBANDO IMAGEN POR DEFECTO (Fail-Open)");
+  console.warn("⚠️ Error:", lastError);
   return {
-    valid: false,
-    reason: `Hubo un inconveniente técnico al analizar la imagen. Por favor, intenta subirla de nuevo.`
+    valid: true,  // ✅ FAIL-OPEN: Aprobar por defecto
+    reason: "OK (Aprobado por mantenimiento técnico)",
+    details: {}
   };
 }
 
@@ -302,7 +331,7 @@ export async function analyzeMultipleImages(
        }`;
 
   let lastError: any;
-  const maxRetries = 5; // 🚀 Incrementado para mayor resiliencia silenciosa
+  const maxRetries = 7; // 🚀 MÁS reintentos para vehículos legítimos (antes 5)
 
   // 🚀 REGLA RUBEN: PARA VEHÍCULOS, LA PORTADA SE ANALIZA PRIMERO Y MANDA
   if (type === 'VEHICLE' && images.length > 0) {
@@ -475,14 +504,16 @@ export async function analyzeMultipleImages(
   console.error("❌ Error definitivo tras reintentos en analyzeMultipleImages:", lastError);
 
   const msg = lastError?.message?.toLowerCase() || '';
-  const isQuota = msg.includes("429") || msg.includes("quota") || msg.includes("exhausted");
+
+  // ✅ FAIL-OPEN: En caso de error técnico, aprobar todas las imágenes
+  console.warn("⚠️ ERROR TÉCNICO MÚLTIPLE - APROBANDO TODAS LAS IMÁGENES (Fail-Open)");
+  console.warn("⚠️ Razón:", msg);
 
   return {
-    valid: false,
-    reason: isQuota
-      ? "El sistema de IA está recibiendo muchas solicitudes. Por favor, espera un minuto e intenta subir las fotos de nuevo."
-      : "Hubo un error al procesar las imágenes. Por favor, intenta de nuevo con fotos más claras.",
-    invalidIndices: [0]
+    valid: true,  // ✅ FAIL-OPEN: Aprobar por defecto en errores técnicos
+    reason: "OK (Aprobado por mantenimiento técnico)",
+    details: {},
+    invalidIndices: []
   };
 }
 
