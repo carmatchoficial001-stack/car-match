@@ -11,7 +11,7 @@ import ShareButton from '@/components/ShareButton'
 import ReportImageButton from '@/components/ReportImageButton'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { formatPrice, formatNumber } from '@/lib/vehicleTaxonomy'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Edit3, Sparkles, CreditCard, Play, Pause, BadgeCheck, AlertTriangle, Share2, X, Trash2 } from 'lucide-react'
 import ConfirmationModal from '@/components/ConfirmationModal'
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
@@ -89,7 +89,15 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
         fetch(`/api/vehicles/${vehicle.id}/view`, { method: 'POST' }).catch(() => { })
     }, [vehicle.id])
 
-    const locationString = [vehicle.city, vehicle.state, vehicle.country]
+    // 📍 ADMIN DYNAMIC LOCATION LOGIC
+    const searchParams = useSearchParams()
+    const contextCity = searchParams.get('contextCity')
+
+    // Si es Admin Y tenemos contextCity, mostramos esa ciudad. Si no, la real.
+    // Opcional: También podríamos pasar el estado/país si fuera necesario, pero la ciudad es lo más visual.
+    const displayCity = (vehicle.user.isAdmin && contextCity) ? contextCity : vehicle.city
+
+    const locationString = [displayCity, vehicle.state, vehicle.country]
         .filter(b => b && b !== 'null' && b !== 'undefined')
         .join(', ')
 

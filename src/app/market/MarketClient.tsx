@@ -378,7 +378,13 @@ export default function MarketClient({
                                         return (
                                             <div key={item.id} className={`bg-surface border rounded-2xl overflow-hidden hover:shadow-xl transition group relative ${isBusiness ? 'border-primary-700/30' : 'border-surface-highlight'}`}>
                                                 {/* Imagen y Badge */}
-                                                <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} className="block relative aspect-[4/3] bg-gray-800 group-hover:opacity-95 transition-opacity">
+                                                <Link
+                                                    href={isBusiness
+                                                        ? `/map-store?id=${item.id}`
+                                                        : `/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                    }
+                                                    className="block relative aspect-[4/3] bg-gray-800 group-hover:opacity-95 transition-opacity"
+                                                >
                                                     {item.images && item.images[0] ? (
                                                         <img
                                                             src={item.images[0]}
@@ -408,7 +414,13 @@ export default function MarketClient({
                                                 </Link>
 
                                                 <div className="p-2 md:p-4">
-                                                    <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} className="block mb-0.5 group-hover:text-primary-400 transition">
+                                                    <Link
+                                                        href={isBusiness
+                                                            ? `/map-store?id=${item.id}`
+                                                            : `/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                        }
+                                                        className="block mb-0.5 group-hover:text-primary-400 transition"
+                                                    >
                                                         <h3 className="font-bold text-xs md:text-lg text-text-primary line-clamp-1">
                                                             {item.brand ? `${item.brand} ${item.model}` : item.title}
                                                         </h3>
@@ -433,7 +445,8 @@ export default function MarketClient({
                                                             </div>
                                                         )}
                                                         <div className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded">
-                                                            {item.city}
+                                                            {/* 📍 ADMIN DYNAMIC LOCATION: Override city if it's an admin post */}
+                                                            {item.isBoosted && activeLocation?.city ? activeLocation.city : item.city}
                                                         </div>
                                                     </div>
 
@@ -445,7 +458,10 @@ export default function MarketClient({
                                                                         {formatPrice(item.price || 0, item.currency || 'MXN', locale)}
                                                                     </p>
                                                                     <div className="flex items-center gap-2 mt-0.5">
-                                                                        <Link href={`/vehicle/${item.id}`} className="text-[10px] font-bold text-primary-400 uppercase group-hover:text-primary-300">
+                                                                        <Link
+                                                                            href={`/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`}
+                                                                            className="text-[10px] font-bold text-primary-400 uppercase group-hover:text-primary-300"
+                                                                        >
                                                                             {t('common.view_more') || 'Ver más'}
                                                                         </Link>
                                                                         <ReportImageButton
