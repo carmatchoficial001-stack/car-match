@@ -13,40 +13,29 @@ export default function AuthButtons({
 
     const handleSignIn = async (provider: string) => {
         try {
-            const urlParams = new URLSearchParams(window.location.search)
-            const isErrorRetry = urlParams.get('error') === 'login_required'
-
-            const authParams: any = {}
             if (linkedEmail && provider === 'google') {
-                authParams.login_hint = linkedEmail
+                const urlParams = new URLSearchParams(window.location.search)
+                const isErrorRetry = urlParams.get('error') === 'login_required'
+
+                const params = new URLSearchParams({
+                    callbackUrl: "/",
+                    login_hint: linkedEmail
+                })
+
                 if (!isErrorRetry) {
-                    authParams.prompt = "none"
-                }
-            }
-
-            // Usamos redirect: false para interceptar la URL antes del salto
-            const result = await (signIn as any)(provider, {
-                callbackUrl: "/",
-                redirect: false
-            }, authParams)
-
-            if (result?.url) {
-                let targetUrl = result.url
-
-                // REFUERZO: Si la URL final por alguna razón NO trae los parámetros, los inyectamos a mano
-                if (linkedEmail && provider === 'google' && !targetUrl.includes('login_hint')) {
-                    const url = new URL(targetUrl)
-                    url.searchParams.set('login_hint', linkedEmail)
-                    if (!isErrorRetry) {
-                        url.searchParams.set('prompt', 'none')
-                    }
-                    targetUrl = url.toString()
+                    params.set('prompt', 'none')
                 }
 
-                window.location.href = targetUrl
+                // Salto directo al endpoint de NextAuth con los parámetros forzados
+                window.location.href = `/api/auth/signin/google?${params.toString()}`
+                return
             }
+
+            // Registro o login normal
+            await signIn(provider, { callbackUrl: "/" })
         } catch (error) {
             console.error("Error signing in:", error)
+            window.location.href = `/api/auth/signin/${provider}?callbackUrl=/`
         }
     }
 
