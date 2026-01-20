@@ -878,7 +878,7 @@ export default function PublishClient() {
                             <div className="pt-8 border-t border-surface-highlight">
                                 <h3 className="text-xl font-bold text-text-primary mb-2">{t('publish.labels.features_title')}</h3>
                                 <p className="text-sm text-text-secondary mb-6">
-                                    Revisa, edita o elimina lo que la IA detectó automáticamente, o agrega nuevas características manuales.
+                                    Revisa, edita o elimina lo que un asesor detectó automáticamente, o agrega nuevas características manuales.
                                 </p>
 
                                 {/* 1. Lista de Equipamiento Seleccionado (Editable) */}
@@ -892,19 +892,18 @@ export default function PublishClient() {
                                             selectedFeatures.map((feature, index) => (
                                                 <div
                                                     key={`selected-${index}`}
-                                                    className="flex items-center bg-primary-700/10 border border-primary-700/30 rounded-xl px-3 py-1.5 gap-2 group hover:bg-primary-700/20 transition-all"
+                                                    className="flex items-center bg-primary-700/10 border border-primary-700/30 rounded-xl px-3 py-1.5 gap-2 group hover:bg-primary-700/20 transition-all max-w-full"
                                                 >
                                                     <input
                                                         type="text"
                                                         value={feature}
                                                         onChange={(e) => updateFeature(index, e.target.value)}
-                                                        className="bg-transparent border-none focus:ring-0 text-sm font-medium text-text-primary p-0 min-w-[80px]"
-                                                        style={{ width: `${Math.max(80, feature.length * 8)}px` }}
+                                                        className="bg-transparent border-none focus:ring-0 text-sm font-medium text-text-primary p-0 min-w-[60px] max-w-[240px] flex-1"
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={() => removeFeature(index)}
-                                                        className="text-text-secondary hover:text-red-400 p-0.5 rounded-md hover:bg-red-400/10 transition"
+                                                        className="text-text-secondary hover:text-red-400 p-0.5 rounded-md hover:bg-red-400/10 transition flex-shrink-0"
                                                     >
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

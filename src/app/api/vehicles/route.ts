@@ -226,10 +226,11 @@ export async function POST(request: NextRequest) {
             initialStatus = 'INACTIVE' // Requiere pago para activarse
         }
 
-        // Regenerar título si hubo corrección por IA o para asegurar consistencia
-        const finalBrand = coverAnalysis.details?.brand || brand
-        const finalModel = coverAnalysis.details?.model || model
-        const finalYear = coverAnalysis.details?.year ? parseInt(coverAnalysis.details.year) : parseInt(year)
+        // Regenerar título respetando datos del usuario primero
+        // 🔒 PRIORIDAD: Datos del usuario > Datos de  la IA
+        const finalBrand = brand || coverAnalysis.details?.brand || 'Desconocido'
+        const finalModel = model || coverAnalysis.details?.model || 'N/A'
+        const finalYear = parseInt(year) || (coverAnalysis.details?.year ? parseInt(coverAnalysis.details.year) : new Date().getFullYear())
         const finalTitle = `${finalBrand} ${finalModel} ${finalYear}`
 
         // Crear vehículo
@@ -246,13 +247,13 @@ export async function POST(request: NextRequest) {
                 latitude: latitude ? parseFloat(latitude) : null,
                 longitude: longitude ? parseFloat(longitude) : null,
                 images: body.images || [],
-                // Campos opcionales
+                // Campos opcionales - PRIORIDAD: Usuario primero, IA como fallback
                 mileage: safeInt(body.mileage),
                 transmission: body.transmission || null,
                 fuel: body.fuel || null,
                 engine: body.engine || null,
-                color: coverAnalysis.details?.color || body.color,
-                vehicleType: coverAnalysis.details?.type || body.vehicleType,
+                color: body.color || coverAnalysis.details?.color || null,
+                vehicleType: body.vehicleType || coverAnalysis.details?.type || null,
                 currency: body.currency || 'MXN',
 
                 // Campos adicionales restaurados
