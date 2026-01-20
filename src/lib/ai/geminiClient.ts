@@ -28,7 +28,7 @@ export const geminiModel = genAI.getGenerativeModel({
 /**
  * Wrapper robusto para llamar a Gemini con reintentos automáticos
  */
-export async function safeGenerateContent(prompt: string, maxRetries = 3) {
+export async function safeGenerateContent(prompt: string, maxRetries = 5) {
     let lastError: any;
 
     for (let i = 0; i < maxRetries; i++) {
@@ -37,7 +37,16 @@ export async function safeGenerateContent(prompt: string, maxRetries = 3) {
             return result.response;
         } catch (error: any) {
             lastError = error;
-            const isRetryable = error.message?.includes("429") || error.message?.includes("500") || error.message?.includes("503");
+            const msg = error.message?.toLowerCase() || '';
+            const isRetryable =
+                msg.includes("429") ||
+                msg.includes("500") ||
+                msg.includes("503") ||
+                msg.includes("quota") ||
+                msg.includes("overloaded") ||
+                msg.includes("exhausted") ||
+                msg.includes("timeout") ||
+                msg.includes("deadline");
 
             if (isRetryable && i < maxRetries - 1) {
                 const waitTime = Math.pow(2, i) * 1000 + Math.random() * 1000;

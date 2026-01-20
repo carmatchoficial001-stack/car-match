@@ -135,7 +135,7 @@ REGLA CRÍTICA DE FORMATO:
   }
 
   let lastError: any;
-  const maxRetries = 3;
+  const maxRetries = 5; // 🚀 Incrementado para mayor resiliencia silenciosa
 
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -168,18 +168,21 @@ REGLA CRÍTICA DE FORMATO:
       lastError = error;
       const errorMsg = error.message?.toLowerCase() || '';
 
-      // 🚀 RESILIENCIA CARMATCH: Errores reintentables
+      // 🚀 RESILIENCIA CARMATCH: Errores reintentables (Red, Timeouts, Cuotas temporales, Sobrecarga)
       const isRetryable =
         errorMsg.includes("429") ||
         errorMsg.includes("quota") ||
         errorMsg.includes("503") ||
         errorMsg.includes("overloaded") ||
+        errorMsg.includes("exhausted") ||
         errorMsg.includes("fetch") ||
-        errorMsg.includes("network");
+        errorMsg.includes("network") ||
+        errorMsg.includes("timeout") ||
+        errorMsg.includes("deadline");
 
       if (isRetryable && i < maxRetries - 1) {
-        const waitTime = Math.pow(2, i) * 1000; // 1s, 2s, 4s
-        console.warn(`⚠️ Error de red o cuota detectado. Reintentando (${i + 1}/${maxRetries}) en ${waitTime}ms...`);
+        const waitTime = Math.pow(2, i) * 1000 + (Math.random() * 500); // Backoff exponencial con jitter
+        console.warn(`⚠️ Asesor Real ocupado (${i + 1}/${maxRetries}). Reintentando en ${Math.round(waitTime)}ms...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
       }
@@ -187,16 +190,29 @@ REGLA CRÍTICA DE FORMATO:
     }
   }
 
-  console.error("❌ Error CRÍTICO definitivo en análisis de imagen:", lastError);
+  console.error("❌ Error CRÍTICO en análisis de imagen:", lastError);
 
-  const msg = lastError.message?.toLowerCase() || '';
-  if (msg.includes("429") || msg.includes("quota")) {
-    return { valid: false, reason: "El Asesor Real está muy ocupado identificando otros vehículos. Reintenta en un par de segundos." };
+  const msg = lastError?.message?.toLowerCase() || '';
+
+  // 🛡️ MANEJO DE ERRORES ESPECÍFICOS PARA EL USUARIO
+  if (msg.includes("429") || msg.includes("quota") || msg.includes("exhausted")) {
+    return {
+      valid: false,
+      reason: "El Asesor Real está atendiendo a muchos usuarios ahora mismo. Por favor, reintenta en unos segundos."
+    };
   }
 
+  if (msg.includes("safety") || msg.includes("blocked")) {
+    return {
+      valid: false,
+      reason: "La imagen no pudo ser analizada por políticas de seguridad. Intenta con una foto más clara del vehículo."
+    };
+  }
+
+  // Si llegamos aquí, es un error técnico inesperado, no necesariamente "saturación"
   return {
     valid: false,
-    reason: "Lo sentimos, el servicio de identificación está saturado por el tráfico. Reintenta ahora mismo."
+    reason: `Hubo un inconveniente técnico al analizar la imagen. Por favor, intenta subirla de nuevo.`
   };
 }
 
@@ -286,7 +302,7 @@ export async function analyzeMultipleImages(
        }`;
 
   let lastError: any;
-  const maxRetries = 2;
+  const maxRetries = 5; // 🚀 Incrementado para mayor resiliencia silenciosa
 
   // 🚀 REGLA RUBEN: PARA VEHÍCULOS, LA PORTADA SE ANALIZA PRIMERO Y MANDA
   if (type === 'VEHICLE' && images.length > 0) {
@@ -439,12 +455,15 @@ export async function analyzeMultipleImages(
         errorMsg.includes("quota") ||
         errorMsg.includes("503") ||
         errorMsg.includes("overloaded") ||
+        errorMsg.includes("exhausted") ||
         errorMsg.includes("fetch") ||
-        errorMsg.includes("network");
+        errorMsg.includes("network") ||
+        errorMsg.includes("timeout") ||
+        errorMsg.includes("deadline");
 
       if (isRetryable && i < maxRetries - 1) {
-        const waitTime = Math.pow(2, i) * 1000 + 500; // 1.5s, 2.5s
-        console.warn(`⚠️ Error reintentable en Asesor Real (${i + 1}/${maxRetries}): ${errorMsg}. Reintentando en ${waitTime}ms...`);
+        const waitTime = Math.pow(2, i) * 1000 + (Math.random() * 800); // Backoff con jitter más amplio
+        console.warn(`⚠️ Asesor Real ocupado (${i + 1}/${maxRetries}). Reintentando en ${Math.round(waitTime)}ms...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
       }
@@ -455,12 +474,14 @@ export async function analyzeMultipleImages(
   // Si llegamos aquí es porque fallaron los reintentos
   console.error("❌ Error definitivo tras reintentos en analyzeMultipleImages:", lastError);
 
-  const isQuota = lastError.message?.includes("429") || lastError.message?.includes("quota");
+  const msg = lastError?.message?.toLowerCase() || '';
+  const isQuota = msg.includes("429") || msg.includes("quota") || msg.includes("exhausted");
+
   return {
     valid: false,
     reason: isQuota
       ? "El sistema de IA está recibiendo muchas solicitudes. Por favor, espera un minuto e intenta subir las fotos de nuevo."
-      : `Error del Asesor Real: ${lastError.message || 'El servidor está saturado.'}`,
+      : "Hubo un error al procesar las imágenes. Por favor, intenta de nuevo con fotos más claras.",
     invalidIndices: [0]
   };
 }
