@@ -12,27 +12,21 @@ export default function AuthButtons({
     const { t } = useLanguage()
 
     const handleSignIn = async (provider: string) => {
-        const options: any = {
-            callbackUrl: "/",
-        }
+        const options = { callbackUrl: "/" }
+        const authParams: any = {}
 
         if (linkedEmail && provider === 'google') {
-            options.login_hint = linkedEmail
+            authParams.login_hint = linkedEmail
 
-            // Si no venimos de un error de "login_required", intentamos el login silencioso
-            // para saltar el selector de cuentas de Google.
+            // Intentar login silencioso si no venimos de un error previo
             const urlParams = new URLSearchParams(window.location.search)
             if (urlParams.get('error') !== 'login_required') {
-                options.prompt = "none"
-            } else {
-                // Si el modo silencioso falló, dejamos que Google intente auto-seleccionar
-                // pero sin forzar una pantalla de login nueva.
-                options.prompt = ""
+                authParams.prompt = "none"
             }
         }
 
         try {
-            await signIn(provider, options)
+            await signIn(provider, options, authParams)
         } catch (error) {
             console.error("Error signing in:", error)
         }
