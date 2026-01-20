@@ -64,7 +64,10 @@ export default function AuthPageContent() {
         )
     }
 
-    if (session) return null
+    // Si hay sesión, no redirigimos automáticamente a los feeds aquí,
+    // permitimos que se muestre la interfaz de "Regreso" si el dispositivo está vinculado
+    // o si el usuario simplemente entró de nuevo.
+    // if (session) return null 
 
     return (
         <div className="min-h-screen bg-background flex items-center justify-center px-4">

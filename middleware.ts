@@ -6,6 +6,7 @@ const { auth } = NextAuth(authConfig)
 export default auth((req) => {
     const isLoggedIn = !!req.auth
     const { pathname } = req.nextUrl
+    const isSoftLogout = req.cookies.get('soft_logout')?.value === 'true'
 
     // Rutas protegidas que requieren autenticación (RED SOCIAL)
     const protectedRoutes = [
@@ -13,40 +14,44 @@ export default auth((req) => {
         "/publish",
         "/credits",
         "/favorites",
-        "/market",      // Feed MarketCar - solo autenticados
-        "/swipe",       // Feed CarMatch - solo autenticados
-        "/map",         // Map Store - solo autenticados
+        "/market",
+        "/swipe",
+        "/map",
         "/my-businesses",
         "/messages",
-        "/vehicle",     // Detalle Vehículo - Forzar registro (Viral loop)
-        "/business"     // Detalle Negocio - Forzar registro (Viral loop)
+        "/vehicle",
+        "/business"
     ]
 
-    // Rutas de autenticación (no permitidas si ya está logueado)
+    // Rutas de autenticación (no permitidas si ya está logueado y NO es soft_logout)
     const authRoutes = ["/auth", "/auth/login", "/auth/register"]
 
-    // Si está intentando acceder a una ruta protegida sin estar logueado
-    if (protectedRoutes.some(route => pathname.startsWith(route)) && !isLoggedIn) {
-        // SMART REDIRECT: Guardamos a dónde quería ir para regresarlo ahí después de registrarse
-        // Esto es CLAVE para la viralidad: Click Link -> Registro -> Ver Contenido
+    // 1. Si está en soft logout o no está logueado, y trata de entrar a rutas protegidas
+    if ((protectedRoutes.some(route => pathname.startsWith(route))) && (!isLoggedIn || isSoftLogout)) {
         const callbackUrl = encodeURIComponent(req.nextUrl.pathname + req.nextUrl.search)
-        return Response.redirect(new URL(`/auth?callbackUrl=${callbackUrl}`, req.url))
+        // Si es soft logout, lo mandamos a la landing (/) para que vea el "fake logout"
+        // Si no está logueado, a /auth
+        const dest = isSoftLogout ? '/' : `/auth?callbackUrl=${callbackUrl}`
+        return Response.redirect(new URL(dest, req.url))
     }
 
-    // Si está logueado y trata de acceder a login/register O LA RAÍZ (/), redirigir a la app
+    // 2. Si está logueado y trata de acceder a login/register O LA RAÍZ (/)
     if ((authRoutes.some(route => pathname.startsWith(route)) || pathname === "/") && isLoggedIn) {
-        // Si hay un callbackUrl pendiente (ejemplo: quería ver un carro), lo mandamos ahí
+        // PERO si es soft logout, permitimos que se quede en / o vaya a /auth
+        if (isSoftLogout) return
+
+        // Si no es soft logout, aplicamos redirección normal a la app
         const callbackUrl = req.nextUrl.searchParams.get('callbackUrl')
         if (callbackUrl) {
             return Response.redirect(new URL(decodeURIComponent(callbackUrl), req.url))
         }
-        // Redirigir usando distribución ponderada
+
         const random = Math.random();
-        let destination = "/swipe";     // 50% - Feed CarMatch
+        let destination = "/swipe";
         if (random >= 0.5 && random < 0.9) {
-            destination = "/market";    // 40% - Feed MarketCar
+            destination = "/market";
         } else if (random >= 0.9) {
-            destination = "/map";       // 10% - MapStore
+            destination = "/map";
         }
         return Response.redirect(new URL(destination, req.url))
     }

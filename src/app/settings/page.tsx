@@ -29,18 +29,11 @@ export default function SettingsPage() {
 
     const handleSignOut = async () => {
         try {
-            await signOut({
-                callbackUrl: '/',
-                redirect: true
-            })
+            // 🔥 CIERRE DE SESIÓN SIMULADO (Soft Logout)
+            document.cookie = "soft_logout=true; Path=/; Max-Age=31536000" // 1 año
+            window.location.href = '/'
         } catch (error) {
-            console.error("Error during sign out:", error)
-            // Fallback: Clear cookies and redirect
-            document.cookie.split(";").forEach((c) => {
-                document.cookie = c
-                    .replace(/^ +/, "")
-                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-            });
+            console.error("Error during soft sign out:", error)
             window.location.href = '/'
         }
     }

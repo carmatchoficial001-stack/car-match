@@ -17,8 +17,11 @@ export default function MobileNav() {
     const { t } = useLanguage()
     const { data: session } = useSession()
     const [isVisible, setIsVisible] = useState(true)
+    const [isSoftLogout, setIsSoftLogout] = useState(false)
 
     useEffect(() => {
+        setIsSoftLogout(document.cookie.includes('soft_logout=true'))
+
         // Función simplificada y robusta para detectar teclado
         const handleResize = () => {
             // Si el viewport es mucho más chico que la pantalla, es probable que esté el teclado
@@ -72,7 +75,7 @@ export default function MobileNav() {
         };
     }, []);
 
-    if (!session) return null
+    if (!session || isSoftLogout) return null
 
     // Ocultar en admin
     if (pathname?.startsWith('/admin')) {

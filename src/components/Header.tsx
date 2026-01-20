@@ -19,6 +19,11 @@ export default function Header() {
     const { data: session, status } = useSession()
     const { t, locale, setLocale } = useLanguage()
     const [showMenu, setShowMenu] = useState<boolean | 'lang' | 'notifications' | 'user' | 'lang_inner'>(false)
+    const [isSoftLogout, setIsSoftLogout] = useState(false)
+
+    useEffect(() => {
+        setIsSoftLogout(document.cookie.includes('soft_logout=true'))
+    }, [])
     const [unreadMessages, setUnreadMessages] = useState(0)
     const [unreadNotifications, setUnreadNotifications] = useState(0)
     const [favoritesCount, setFavoritesCount] = useState(0)
@@ -47,19 +52,13 @@ export default function Header() {
 
     const handleSignOut = async () => {
         try {
-            // Un cierre de sesión limpio y redirección forzada
-            await signOut({
-                callbackUrl: '/',
-                redirect: true
-            })
+            // 🔥 CIERRE DE SESIÓN SIMULADO (Soft Logout)
+            // En lugar de cerrar sesión real con Google (que obligaría a elegir cuenta luego),
+            // simplemente marcamos el estado y mandamos a la landing.
+            document.cookie = "soft_logout=true; Path=/; Max-Age=31536000" // 1 año
+            window.location.href = '/'
         } catch (error) {
-            console.error("Error durante el cierre de sesión:", error)
-            // Fallback agresivo: Borrado manual y recarga
-            document.cookie.split(";").forEach((c) => {
-                document.cookie = c
-                    .replace(/^ +/, "")
-                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-            });
+            console.error("Error durante el cierre de sesión simulado:", error)
             window.location.href = '/'
         }
     }
@@ -280,7 +279,7 @@ export default function Header() {
                         )}
 
                         {/* Notifications Bell (Independent from user menu) */}
-                        {session && (
+                        {session && !isSoftLogout && (
                             <div className="relative">
                                 <button
                                     onClick={() => setShowMenu(showMenu === 'notifications' ? false : 'notifications')}
@@ -297,7 +296,6 @@ export default function Header() {
                                         </span>
                                     )}
                                 </button>
-
                                 {/* Notifications Dropdown */}
                                 <NotificationsDropdown
                                     isOpen={showMenu === 'notifications'}
@@ -309,7 +307,7 @@ export default function Header() {
                         {/* User Profile */}
                         {status === 'loading' ? (
                             <div className="w-8 h-8 bg-surface-highlight rounded-lg animate-pulse" />
-                        ) : session ? (
+                        ) : (session && !isSoftLogout) ? (
                             <div className="flex items-center">
                                 {/* Quitamos HeaderBadges, ahora está integrado en el menú */}
 

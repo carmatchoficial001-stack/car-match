@@ -23,7 +23,8 @@ export default function LandingPageContent() {
 
     // 🔥 Redirección limpia si ya está logueado
     useEffect(() => {
-        if (status === "authenticated") {
+        const isSoftLogout = document.cookie.includes('soft_logout=true')
+        if (status === "authenticated" && !isSoftLogout) {
             router.replace(getWeightedHomePath())
         }
     }, [status, router])

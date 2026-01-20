@@ -1,6 +1,6 @@
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { useLanguage } from "@/contexts/LanguageContext"
-import { getWeightedHomePath } from "@/lib/navigation"
+import { useRouter } from "next/navigation"
 
 export default function AuthButtons({
     linkedEmail,
@@ -10,9 +10,19 @@ export default function AuthButtons({
     forceOnlyLinked?: boolean
 }) {
     const { t } = useLanguage()
+    const { data: session } = useSession()
+    const router = useRouter()
 
     const handleSignIn = async (provider: string) => {
         try {
+            // 🔥 SI YA HAY SESIÓN (Soft Logout), simplemente re-entramos
+            if (session) {
+                // Limpiar cookie de soft_logout
+                document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+                router.push("/") // El root ya nos mandará a los feeds
+                return
+            }
+
             const options: any = { callbackUrl: "/" }
 
             if (linkedEmail && provider === 'google') {
