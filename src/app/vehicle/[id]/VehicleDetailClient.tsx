@@ -506,51 +506,53 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 </p>
                             </div>
 
-                            {/* Sección de Vendedor - Siempre visible si no es admin boosted o según preferencia */}
-                            <div className="border-t border-surface-highlight pt-8 mt-4">
-                                <h3 className="text-xl font-bold text-text-primary mb-6 font-outfit flex items-center gap-2">
-                                    <ShieldCheck size={22} className="text-primary-400" />
-                                    Información del Vendedor
-                                </h3>
-                                <div className="bg-surface-highlight/20 border border-white/5 rounded-3xl p-6 transition-all hover:bg-surface-highlight/30">
-                                    <div className="flex items-center justify-between">
-                                        <div
-                                            onClick={() => {
-                                                if (isGuest) {
-                                                    router.push('/auth?callbackUrl=' + encodeURIComponent(`/profile/${vehicle.user.id}`));
-                                                } else {
-                                                    router.push(`/profile/${vehicle.user.id}`);
-                                                }
-                                            }}
-                                            className="flex items-center gap-4 group/seller transition-all cursor-pointer w-full"
-                                        >
-                                            <div className="relative">
-                                                <div className="w-16 h-16 bg-primary-700/20 rounded-full flex items-center justify-center text-primary-400 font-bold text-2xl uppercase shadow-glow group-hover/seller:bg-primary-700/40 transition-all overflow-hidden border-2 border-primary-500/30">
-                                                    {vehicle.user.image ? (
-                                                        <img src={vehicle.user.image} alt={vehicle.user.name} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        vehicle.user.name.substring(0, 2)
-                                                    )}
+                            {/* Sección de Vendedor - Solo visible si NO es el dueño */}
+                            {!isOwner && (
+                                <div className="border-t border-surface-highlight pt-8 mt-4">
+                                    <h3 className="text-xl font-bold text-text-primary mb-6 font-outfit flex items-center gap-2">
+                                        <ShieldCheck size={22} className="text-primary-400" />
+                                        Información del Vendedor
+                                    </h3>
+                                    <div className="bg-surface-highlight/20 border border-white/5 rounded-3xl p-6 transition-all hover:bg-surface-highlight/30">
+                                        <div className="flex items-center justify-between">
+                                            <div
+                                                onClick={() => {
+                                                    if (isGuest) {
+                                                        router.push('/auth?callbackUrl=' + encodeURIComponent(`/profile/${vehicle.user.id}`));
+                                                    } else {
+                                                        router.push(`/profile/${vehicle.user.id}`);
+                                                    }
+                                                }}
+                                                className="flex items-center gap-4 group/seller transition-all cursor-pointer w-full"
+                                            >
+                                                <div className="relative">
+                                                    <div className="w-20 h-20 bg-primary-700/20 rounded-2xl flex items-center justify-center text-primary-400 font-bold text-2xl uppercase shadow-glow group-hover/seller:bg-primary-700/40 transition-all overflow-hidden border-2 border-primary-500/30">
+                                                        {vehicle.user.image ? (
+                                                            <img src={vehicle.user.image} alt={vehicle.user.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            vehicle.user.name.substring(0, 2)
+                                                        )}
+                                                    </div>
+                                                    <div className="absolute -bottom-1 -right-1 bg-green-500 w-5 h-5 rounded-full border-4 border-surface flex items-center justify-center shadow-lg">
+                                                        <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                                    </div>
                                                 </div>
-                                                <div className="absolute -bottom-1 -right-1 bg-green-500 w-5 h-5 rounded-full border-4 border-surface flex items-center justify-center">
-                                                    <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <p className="font-black text-xl text-text-primary group-hover/seller:text-primary-400 transition-colors flex items-center gap-2">
-                                                    {vehicle.user.name}
-                                                    {vehicle.user.isAdmin && <BadgeCheck size={18} className="text-primary-400" />}
-                                                </p>
-                                                <p className="text-sm text-text-secondary font-medium">{t('vehicle.verified_seller')}</p>
-                                                <div className="flex items-center gap-4 mt-2">
-                                                    <span className="text-xs px-2.5 py-1 bg-green-500/10 text-green-400 rounded-lg border border-green-500/20 font-bold uppercase tracking-tight">Active Now</span>
-                                                    <span className="text-xs text-primary-400 font-bold">Ver Perfil Completo →</span>
+                                                <div>
+                                                    <p className="font-black text-xl text-text-primary group-hover/seller:text-primary-400 transition-colors flex items-center gap-2">
+                                                        {vehicle.user.name}
+                                                        {vehicle.user.isAdmin && <BadgeCheck size={18} className="text-primary-400" />}
+                                                    </p>
+                                                    <p className="text-sm text-text-secondary font-medium">{t('vehicle.verified_seller')}</p>
+                                                    <div className="flex items-center gap-4 mt-2">
+                                                        <span className="text-xs px-2.5 py-1 bg-green-500/10 text-green-400 rounded-lg border border-green-500/20 font-bold uppercase tracking-tight">Active Now</span>
+                                                        <span className="text-xs text-primary-400 font-bold">Ver Perfil Completo →</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
