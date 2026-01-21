@@ -5,8 +5,8 @@ export default function robots(): MetadataRoute.Robots {
         rules: {
             userAgent: '*',
             allow: '/',
-            disallow: ['/admin/', '/profile/', '/api/', '/messages/', '/login', '/register'],
+            disallow: ['/admin/', '/api/', '/messages/', '/settings/'],
         },
-        sitemap: 'https://carmatchapp.net/sitemap.xml', // Ajustar URL base si es necesario
+        sitemap: 'https://carmatchapp.net/sitemap.xml',
     }
 }
