@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import Header from '@/components/Header'
@@ -230,14 +231,21 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Column: Images */}
                     <div className="space-y-4">
-                        <div className="relative w-full bg-black/95 rounded-2xl overflow-hidden border border-surface-highlight shadow-2xl flex items-center justify-center min-h-[300px] group">
+                        <div className="relative w-full bg-black/95 rounded-2xl overflow-hidden border border-surface-highlight shadow-2xl flex items-center justify-center min-h-[300px] group aspect-video lg:aspect-square md:aspect-video">
                             {vehicle.images && vehicle.images.length > 0 ? (
-                                <img
-                                    src={vehicle.images[activeImage]}
-                                    alt={vehicle.title}
-                                    className="w-full h-full object-contain mx-auto cursor-zoom-in"
-                                    onClick={() => setShowFullImage(true)}
-                                />
+                                <AnimatePresence mode="wait">
+                                    <motion.img
+                                        key={activeImage}
+                                        src={vehicle.images[activeImage]}
+                                        alt={vehicle.title}
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 1.05 }}
+                                        transition={{ duration: 0.3, ease: "easeOut" }}
+                                        className="w-full h-full object-contain mx-auto cursor-zoom-in"
+                                        onClick={() => setShowFullImage(true)}
+                                    />
+                                </AnimatePresence>
                             ) : (
                                 <div className="flex items-center justify-center h-full text-text-secondary">
                                     <span className="text-lg">{t('vehicle.no_images')}</span>
@@ -287,12 +295,28 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
 
                         {/* Thumbnails */}
                         {vehicle.images && vehicle.images.length > 1 && (
-                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                            <div
+                                ref={thumbnailsRef}
+                                onScroll={handleThumbnailsScroll}
+                                onTouchStart={() => isManualScrolling.current = true}
+                                onTouchEnd={() => {
+                                    setTimeout(() => isManualScrolling.current = false, 500)
+                                }}
+                                onMouseDown={() => isManualScrolling.current = true}
+                                onMouseUp={() => {
+                                    setTimeout(() => isManualScrolling.current = false, 500)
+                                }}
+                                className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory scroll-smooth"
+                                style={{ WebkitOverflowScrolling: 'touch' }}
+                            >
                                 {vehicle.images.map((img, idx) => (
                                     <button
                                         key={idx}
-                                        onClick={() => setActiveImage(idx)}
-                                        className={`relative w-24 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition ${activeImage === idx ? 'border-primary-500' : 'border-transparent opacity-70 hover:opacity-100'
+                                        onClick={() => {
+                                            isManualScrolling.current = false;
+                                            setActiveImage(idx);
+                                        }}
+                                        className={`relative w-24 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition snap-center ${activeImage === idx ? 'border-primary-500 scale-105 shadow-glow-sm' : 'border-transparent opacity-50 hover:opacity-100'
                                             }`}
                                     >
                                         <Image src={img} alt={`Thumbnail ${idx}`} fill className="object-cover" />
