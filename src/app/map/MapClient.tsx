@@ -407,162 +407,137 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                     />
                 </div>
 
-                {/* 🔍 FLOATING SEARCH BAR (TOP OVER MAP) */}
-                <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[90%] md:w-[600px] z-[100] transition-all">
-                    <div className="bg-surface/80 backdrop-blur-xl border-2 border-surface-highlight/50 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center p-1.5 focus-within:border-primary-600/50 transition-all">
-                        <div className="flex-1 flex items-center px-4">
-                            <Sparkles size={20} className="text-primary-500 mr-3" />
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => {
-                                    setSearchQuery(e.target.value)
-                                    setSearchSuccess(false)
-                                    setHasSearched(false)
-                                }}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSmartSearch()}
-                                placeholder={t('map_store.smart_search_placeholder')}
-                                className="bg-transparent border-none text-text-primary placeholder:text-text-secondary/50 focus:outline-none w-full text-base font-medium"
-                                disabled={isAnalyzing}
-                            />
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <button
-                                onClick={() => setShowSidebar(!showSidebar)}
-                                className={`p-3 rounded-full transition-all ${showSidebar ? 'bg-primary-600 text-white' : 'bg-surface-highlight text-text-secondary hover:text-white'}`}
-                            >
-                                <Settings2 size={22} />
-                            </button>
-                            <button
-                                onClick={handleSmartSearch}
-                                disabled={isAnalyzing || !searchQuery.trim()}
-                                className="bg-primary-700 hover:bg-primary-600 text-white px-6 py-3 rounded-full font-black uppercase text-xs tracking-widest shadow-lg shadow-primary-900/40 transition-all active:scale-95 disabled:opacity-30"
-                            >
-                                {isAnalyzing ? '...' : 'Buscar'}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Active Categories Indicators (Mini Pills) */}
-                    {selectedCategories.length > 0 && (
-                        <div className="flex flex-wrap justify-center gap-2 mt-4 animate-in fade-in slide-in-from-top-2 duration-500">
-                            {selectedCategories.map(cat => (
-                                <div key={cat} className="bg-surface/90 backdrop-blur-md px-3 py-1.5 rounded-full border-2 border-primary-500/30 flex items-center gap-2 shadow-xl">
-                                    <span className="text-sm">{CATEGORIES.find(c => c.id === cat)?.icon}</span>
-                                    <span className="text-[10px] font-black text-white uppercase tracking-wider">{t(`map_store.categories.${cat}`) || cat}</span>
-                                    <button onClick={() => toggleCategory(cat)} className="ml-1 text-white/50 hover:text-red-400">✕</button>
-                                </div>
-                            ))}
-                            <button
-                                onClick={() => setSelectedCategories([])}
-                                className="bg-red-500/20 backdrop-blur-md text-red-500 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider border border-red-500/30"
-                            >
-                                Limpiar Filtros
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {/* 🗺️ DYNAMIC LOADER INDICATOR */}
-                {isLoadingBounds && (
-                    <div className="absolute top-[130px] left-1/2 -translate-x-1/2 z-[10] pointer-events-none">
-                        <div className="bg-primary-900/80 text-white px-4 py-2 rounded-full text-[10px] font-black shadow-2xl backdrop-blur-md flex items-center gap-2 border border-primary-500/20 animate-in fade-in zoom-in duration-300 uppercase tracking-widest">
-                            <div className="w-2.5 h-2.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            Buscando Expertos...
-                        </div>
-                    </div>
+                {/* 📱 BOTÓN MOSTRAR FILTROS (FLOTANTE) */}
+                {!showSidebar && (
+                    <button
+                        onClick={() => setShowSidebar(true)}
+                        className="absolute top-6 left-6 z-[100] px-8 py-4 bg-primary-700 text-white rounded-full shadow-[0_15px_30px_rgba(0,0,0,0.5)] font-black uppercase tracking-[0.15em] border-2 border-primary-500/50 flex items-center gap-3 active:scale-95 hover:bg-primary-600 transition-all animate-in fade-in slide-in-from-left-4 duration-500"
+                    >
+                        <Settings2 size={24} />
+                        {t('map_store.show_filters')}
+                    </button>
                 )}
 
-                {/* 🗂️ FLOATING FILTERS OVERLAY (THE "CASILLAS") */}
+                {/* 🗂️ PANEL DE FILTROS (OVERLAY PANAL) */}
                 <div className={`
-                    absolute inset-0 z-[200] flex items-end md:items-center justify-center p-4 transition-all duration-500
+                    absolute inset-0 z-[200] flex items-end md:items-start justify-start transition-all duration-500
                     ${showSidebar ? 'visible' : 'invisible'}
                 `}>
                     {/* Backdrop */}
                     <div
-                        className={`absolute inset-0 bg-background/60 backdrop-blur-md transition-opacity duration-500 ${showSidebar ? 'opacity-100' : 'opacity-0'}`}
+                        className={`absolute inset-0 bg-background/40 backdrop-blur-sm transition-opacity duration-500 ${showSidebar ? 'opacity-100' : 'opacity-0'}`}
                         onClick={() => setShowSidebar(false)}
                     />
 
-                    {/* Filter Panel */}
+                    {/* Filter Panel (SIDEBAR STYLE) */}
                     <div className={`
-                        relative w-full max-w-2xl bg-surface/90 backdrop-blur-2xl border-2 border-surface-highlight rounded-[3rem] shadow-[0_50px_100px_rgba(0,0,0,0.7)] flex flex-col max-h-[80vh] overflow-hidden transition-all duration-500 ease-out transform
-                        ${showSidebar ? 'translate-y-0 scale-100' : 'translate-y-full md:scale-90 opacity-0'}
+                        relative h-full w-full md:w-[450px] bg-surface/90 backdrop-blur-2xl border-r border-surface-highlight shadow-[20px_0_50px_rgba(0,0,0,0.5)] flex flex-col transition-transform duration-500 ease-out transform
+                        ${showSidebar ? 'translate-x-0' : '-translate-x-full'}
                     `}>
-                        <div className="p-6 border-b border-surface-highlight flex justify-between items-center">
+                        {/* Header */}
+                        <div className="p-6 border-b border-surface-highlight flex justify-between items-center bg-surface/50">
                             <div>
-                                <h3 className="text-xl font-black text-text-primary uppercase tracking-tight">Elegir Especialidad</h3>
-                                <p className="text-xs text-text-secondary font-bold uppercase tracking-[0.15em] mt-1">Busca expertos en {location?.city || 'tu zona'}</p>
+                                <h2 className="text-2xl font-black text-text-primary tracking-tighter uppercase italic">MapStore</h2>
+                                <p className="text-[10px] text-text-secondary font-bold uppercase tracking-[0.2em]">{filteredBusinesses.length} {t('map_store.results_found')}</p>
                             </div>
                             <button
                                 onClick={() => setShowSidebar(false)}
-                                className="w-12 h-12 flex items-center justify-center rounded-2xl bg-surface-highlight/50 text-text-primary hover:bg-primary-600 transition-colors"
+                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-highlight text-text-primary hover:bg-red-500/20 hover:text-red-500 transition-all"
                             >
                                 <Plus size={24} className="rotate-45" />
                             </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {CATEGORIES.map(cat => {
-                                    const isSelected = selectedCategories.includes(cat.id);
-                                    return (
-                                        <button
-                                            key={cat.id}
-                                            onClick={() => toggleCategory(cat.id)}
-                                            className={`
-                                                relative flex flex-col items-center justify-center p-6 rounded-[2.5rem] border-2 transition-all duration-500 overflow-hidden group active:scale-90
-                                                ${isSelected
-                                                    ? 'shadow-2xl scale-[1.05] z-10'
-                                                    : 'bg-surface/40 border-surface-highlight/40 opacity-80 hover:opacity-100'
-                                                }
-                                            `}
-                                            style={{
-                                                borderColor: isSelected ? cat.color : `${cat.color}20`,
-                                                backgroundColor: isSelected ? `${cat.color}20` : undefined,
-                                                boxShadow: isSelected ? `0 20px 25px -5px ${cat.color}30, 0 8px 10px -6px ${cat.color}30` : undefined
-                                            }}
-                                        >
-                                            <span className={`text-4xl mb-3 transition-all duration-500 ${isSelected ? 'scale-125 rotate-6' : 'group-hover:scale-110'}`}>
-                                                {cat.icon}
-                                            </span>
-                                            <span className={`text-[11px] font-black uppercase text-center leading-tight tracking-[0.1em] transition-colors duration-300 ${isSelected ? 'text-text-primary' : 'text-text-secondary'}`}>
-                                                {t(`map_store.categories.${cat.id}`) || cat.label}
-                                            </span>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6 pb-20">
+                            {/* 1. REGISTRAR NEGOCIO */}
+                            <a
+                                href="/my-businesses?action=new"
+                                className="w-full flex items-center justify-center gap-3 py-4 px-6 bg-gradient-to-br from-primary-600 to-primary-800 text-white rounded-2xl text-base font-black uppercase tracking-[0.2em] shadow-xl hover:shadow-primary-600/30 transition-all active:scale-[0.97] border border-white/10"
+                            >
+                                <Plus size={20} strokeWidth={4} />
+                                Registrar Negocio
+                            </a>
 
-                                            {isSelected && (
-                                                <div className="absolute top-4 right-4 w-2 h-2 rounded-full shadow-glow animate-pulse" style={{ backgroundColor: cat.color }} />
-                                            )}
-                                        </button>
-                                    );
-                                })}
+                            {/* 2. CONSULTA CON UN ASESOR (SMART SEARCH) */}
+                            <div className="bg-surface-highlight/30 rounded-3xl p-5 border border-surface-highlight">
+                                <h3 className="text-xs font-black text-primary-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <Sparkles size={16} />
+                                    Consulta con un asesor
+                                </h3>
+                                <div className="relative group">
+                                    <textarea
+                                        value={searchQuery}
+                                        onChange={(e) => {
+                                            setSearchQuery(e.target.value)
+                                            setSearchSuccess(false)
+                                            setHasSearched(false)
+                                        }}
+                                        placeholder={t('map_store.smart_search_placeholder')}
+                                        className="w-full bg-background/50 border-2 border-surface-highlight rounded-2xl p-4 pr-12 text-sm text-text-primary focus:border-primary-600 focus:outline-none resize-none h-24 transition-all"
+                                        disabled={isAnalyzing}
+                                    />
+                                    <button
+                                        onClick={handleSmartSearch}
+                                        disabled={isAnalyzing || !searchQuery.trim()}
+                                        className="absolute right-3 bottom-3 p-2 bg-primary-700 text-white rounded-xl shadow-lg hover:bg-primary-600 transition-all disabled:opacity-30"
+                                    >
+                                        {isAnalyzing ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Sparkles size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* 3. LISTA DE FILTROS */}
+                            <div className="space-y-2">
+                                <h3 className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-4 ml-2">Especialidades Disponibles</h3>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {CATEGORIES.map(cat => {
+                                        const isSelected = selectedCategories.includes(cat.id);
+                                        return (
+                                            <button
+                                                key={cat.id}
+                                                onClick={() => toggleCategory(cat.id)}
+                                                className={`
+                                                    w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 group
+                                                    ${isSelected
+                                                        ? 'bg-primary-700/20 border-primary-600 text-white shadow-glow-sm scale-[1.02]'
+                                                        : 'bg-surface/40 border-surface-highlight/40 hover:border-surface-highlight hover:bg-surface/60'
+                                                    }
+                                                `}
+                                                style={{
+                                                    borderColor: isSelected ? cat.color : undefined,
+                                                }}
+                                            >
+                                                <span className={`text-2xl transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>
+                                                    {cat.icon}
+                                                </span>
+                                                <div className="flex-1 text-left">
+                                                    <span className={`text-[12px] font-black uppercase tracking-widest ${isSelected ? 'text-text-primary' : 'text-text-secondary'}`}>
+                                                        {t(`map_store.categories.${cat.id}`) || cat.label}
+                                                    </span>
+                                                </div>
+                                                {isSelected ? (
+                                                    <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center text-[10px] font-black">✓</div>
+                                                ) : (
+                                                    <div className="w-2 h-2 rounded-full opacity-20 bg-text-secondary" />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="p-6 bg-surface-highlight/20 flex flex-col md:flex-row gap-4 items-center justify-between">
-                            <p className="text-[10px] text-text-secondary font-black uppercase tracking-widest text-center md:text-left">
-                                Selecciona uno o varios expertos para verlos en el mapa
-                            </p>
+                        {/* Footer de Aplicar */}
+                        <div className="p-4 bg-surface-highlight/20 border-t border-surface-highlight">
                             <button
                                 onClick={() => setShowSidebar(false)}
-                                className="w-full md:w-auto px-10 py-4 bg-primary-700 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl hover:bg-primary-600 transition-all hov"
+                                className="w-full py-4 bg-primary-700 text-white rounded-xl font-black uppercase tracking-[0.2em] shadow-xl hover:bg-primary-600 active:scale-95 transition-all"
                             >
-                                Aplicar Filtros
+                                Ver en el Mapa
                             </button>
                         </div>
                     </div>
                 </div>
-
-                {/* ➕ FLOATING REGISTER BUTTON (BOTTOM RIGHT) */}
-                <a
-                    href="/my-businesses?action=new"
-                    className="absolute bottom-10 right-8 z-[150] w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-800 text-white rounded-3xl flex items-center justify-center shadow-[0_20px_40px_rgba(0,0,0,0.5)] border-2 border-white/20 hover:scale-110 active:scale-95 transition-all group"
-                >
-                    <Plus size={32} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-500" />
-                    <span className="absolute right-[calc(100%+15px)] top-1/2 -translate-y-1/2 bg-surface/90 backdrop-blur-md px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-surface-highlight opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-2xl">
-                        Registrar Negocio
-                    </span>
-                </a>
             </div>
 
             {/* 🌍 MODAL DE UBICACIÓN MANUAL */}
