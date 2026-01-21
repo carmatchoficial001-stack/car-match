@@ -86,9 +86,31 @@ export default function MapBoxStoreLocator({
             }
         })
 
+        // 🎯 Focus Business Listener
+        const handleFocus = (e: any) => {
+            const { lat, lng, id } = e.detail;
+            newMap.flyTo({
+                center: [lng, lat],
+                zoom: 15,
+                essential: true
+            });
+            // Auto open popup after fly
+            setTimeout(() => {
+                const features = newMap.queryRenderedFeatures({ layers: ['unclustered-point-bg'] });
+                const busFeature = features.find(f => f.properties?.id === id);
+                if (busFeature) {
+                    // This is complex in Mapbox to trigger programmatic clicks on symbols, 
+                    // better to just fly there. The highlighting in the sidebar already helps.
+                }
+            }, 1000);
+        };
+
+        window.addEventListener('map-focus-business', handleFocus);
+
         map.current = newMap
 
         return () => {
+            window.removeEventListener('map-focus-business', handleFocus);
             if (map.current) {
                 map.current.remove()
                 map.current = null
