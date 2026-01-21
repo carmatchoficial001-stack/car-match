@@ -335,40 +335,41 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 </div>
                             </div>
 
-                            <div className="flex gap-3 mb-8 items-stretch">
-                                {/* Columna Izquierda: Compartir y Favorito */}
-                                <div className="flex-1 flex flex-col gap-3">
-                                    <ShareButton
-                                        title={vehicle.title}
-                                        text={t('vehicle.share_text').replace('{title}', vehicle.title)}
-                                        url={typeof window !== 'undefined' ? `${window.location.origin}/vehicle/${vehicle.id}` : `/vehicle/${vehicle.id}`}
-                                        variant="full"
-                                        className="mt-0"
+                            <div className="flex flex-col gap-3 mb-8">
+                                {/* Botón de Contacto Principal (Mandar Mensaje) */}
+                                {!isOwner && (
+                                    <ContactButton
+                                        sellerId={vehicle.userId}
+                                        vehicleId={vehicle.id}
+                                        vehicleTitle={vehicle.title}
+                                        status={vehicle.status as any}
+                                        label="Mandar Mensaje al Vendedor"
+                                        className="w-full text-lg py-4 shadow-lg shadow-primary-900/20 active:scale-[0.98] transition-all"
                                     />
-                                    {!isOwner && (
-                                        <FavoriteButton
-                                            vehicleId={vehicle.id}
-                                            initialIsFavorited={vehicle.isFavorited}
-                                            size="lg"
-                                            showText={true}
-                                            rounded="rounded-2xl"
-                                            className="w-full h-full min-h-[56px] border border-surface-highlight"
-                                        />
-                                    )}
-                                </div>
-
-                                {/* Columna Derecha: Contactar */}
-                                {!isOwner && !vehicle.user.isAdmin && (
-                                    <div className="flex-1">
-                                        <ContactButton
-                                            sellerId={vehicle.userId}
-                                            vehicleId={vehicle.id}
-                                            vehicleTitle={vehicle.title}
-                                            status={vehicle.status as any}
-                                            className="h-full flex flex-col items-center justify-center text-center py-6"
-                                        />
-                                    </div>
                                 )}
+
+                                <div className="flex gap-3 items-stretch">
+                                    {/* Columna Izquierda: Compartir y Favorito */}
+                                    <div className="flex-1 flex flex-col gap-3">
+                                        <ShareButton
+                                            title={vehicle.title}
+                                            text={t('vehicle.share_text').replace('{title}', vehicle.title)}
+                                            url={typeof window !== 'undefined' ? `${window.location.origin}/vehicle/${vehicle.id}` : `/vehicle/${vehicle.id}`}
+                                            variant="full"
+                                            className="mt-0"
+                                        />
+                                        {!isOwner && (
+                                            <FavoriteButton
+                                                vehicleId={vehicle.id}
+                                                initialIsFavorited={vehicle.isFavorited}
+                                                size="lg"
+                                                showText={true}
+                                                rounded="rounded-2xl"
+                                                className="w-full h-full min-h-[56px] border border-surface-highlight"
+                                            />
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Main Specs Grid */}
@@ -453,24 +454,42 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 </p>
                             </div>
 
-                            {/* Sección de Vendedor - Oculta para el dueño y si el vendedor es admin */}
-                            {!isOwner && !vehicle.user.isAdmin && (
-                                <div className="border-t border-surface-highlight pt-6">
-                                    <h3 className="text-lg font-bold text-text-primary mb-4 font-outfit">{t('vehicle.seller')}</h3>
+                            {/* Sección de Vendedor - Siempre visible si no es admin boosted o según preferencia */}
+                            <div className="border-t border-surface-highlight pt-8 mt-4">
+                                <h3 className="text-xl font-bold text-text-primary mb-6 font-outfit flex items-center gap-2">
+                                    <ShieldCheck size={22} className="text-primary-400" />
+                                    Información del Vendedor
+                                </h3>
+                                <div className="bg-surface-highlight/20 border border-white/5 rounded-3xl p-6 transition-all hover:bg-surface-highlight/30">
                                     <div className="flex items-center justify-between">
-                                        <Link href={`/profile/${vehicle.user.id}`} className="flex items-center gap-3 group/seller transition-all hover:opacity-80">
-                                            <div className="w-12 h-12 bg-primary-700/20 rounded-full flex items-center justify-center text-primary-400 font-bold text-xl uppercase shadow-glow group-hover/seller:bg-primary-700/30 transition-colors">
-                                                {vehicle.user.name.substring(0, 2)}
+                                        <Link href={`/profile/${vehicle.user.id}`} className="flex items-center gap-4 group/seller transition-all">
+                                            <div className="relative">
+                                                <div className="w-16 h-16 bg-primary-700/20 rounded-full flex items-center justify-center text-primary-400 font-bold text-2xl uppercase shadow-glow group-hover/seller:bg-primary-700/40 transition-all overflow-hidden border-2 border-primary-500/30">
+                                                    {vehicle.user.image ? (
+                                                        <img src={vehicle.user.image} alt={vehicle.user.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        vehicle.user.name.substring(0, 2)
+                                                    )}
+                                                </div>
+                                                <div className="absolute -bottom-1 -right-1 bg-green-500 w-5 h-5 rounded-full border-4 border-surface flex items-center justify-center">
+                                                    <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                                </div>
                                             </div>
                                             <div>
-                                                <p className="font-bold text-text-primary group-hover/seller:text-primary-400 transition-colors">{vehicle.user.name}</p>
-                                                <p className="text-xs text-text-secondary">{t('vehicle.verified_seller')}</p>
+                                                <p className="font-black text-xl text-text-primary group-hover/seller:text-primary-400 transition-colors flex items-center gap-2">
+                                                    {vehicle.user.name}
+                                                    {vehicle.user.isAdmin && <BadgeCheck size={18} className="text-primary-400" />}
+                                                </p>
+                                                <p className="text-sm text-text-secondary font-medium">{t('vehicle.verified_seller')}</p>
+                                                <div className="flex items-center gap-4 mt-2">
+                                                    <span className="text-xs px-2.5 py-1 bg-green-500/10 text-green-400 rounded-lg border border-green-500/20 font-bold uppercase tracking-tight">Active Now</span>
+                                                    <span className="text-xs text-primary-400 hover:underline font-bold">Ver Perfil Completo →</span>
+                                                </div>
                                             </div>
                                         </Link>
-                                        {/* Botón de contacto movido arriba por petición del usuario */}
                                     </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
                     </div>
                 </div>
