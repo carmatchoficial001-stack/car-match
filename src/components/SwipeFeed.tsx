@@ -39,6 +39,7 @@ interface SwipeCardProps {
 
 function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
     const { t } = useLanguage()
+    const [activeImage, setActiveImage] = useState(0)
     const x = useMotionValue(0)
     const rotate = useTransform(x, [-200, 200], [-25, 25])
     const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0])
@@ -83,13 +84,20 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
             <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-full">
                 {/* Imagen Principal (Max height para asegurar que botones sean visibles) */}
                 <div className="relative w-full h-[45vh] md:h-[50vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden">
-                    {item.images && item.images[0] ? (
-                        <img
-                            src={item.images[0]}
-                            alt={item.title}
-                            className="w-full h-full object-cover"
-                            draggable={false}
-                        />
+                    {item.images && item.images[activeImage] ? (
+                        <AnimatePresence mode="wait">
+                            <motion.img
+                                key={activeImage}
+                                src={item.images[activeImage]}
+                                alt={item.title}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="w-full h-full object-cover"
+                                draggable={false}
+                            />
+                        </AnimatePresence>
                     ) : (
                         <div className="w-full h-full flex items-center justify-center">
                             <svg className="w-32 h-32 text-text-secondary opacity-30" fill="currentColor" viewBox="0 0 24 24">
@@ -106,7 +114,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     )}
 
                     <ReportImageButton
-                        imageUrl={item.images?.[0] || ''}
+                        imageUrl={item.images?.[activeImage] || ''}
                         vehicleId={!isBusiness ? item.id : undefined}
                         businessId={isBusiness ? item.id : undefined}
                         className="absolute top-4 right-4 z-30"
@@ -166,15 +174,25 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     {item.images && item.images.length > 1 && (
                         <div className="px-6 mb-2">
                             <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mask-linear-fade">
-                                {item.images.slice(1, 5).map((img, idx) => (
-                                    <div key={idx} className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border border-surface-highlight">
+                                {item.images.slice(0, 5).map((img, idx) => (
+                                    <button
+                                        key={idx}
+                                        onPointerDown={(e) => e.stopPropagation()}
+                                        onClick={() => setActiveImage(idx)}
+                                        className={`relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${activeImage === idx ? 'border-primary-500 scale-105 shadow-glow-sm' : 'border-surface-highlight opacity-60 hover:opacity-100'
+                                            }`}
+                                    >
                                         <img src={img} className="w-full h-full object-cover" alt={`Gallery ${idx}`} draggable={false} />
-                                    </div>
+                                    </button>
                                 ))}
                                 {item.images.length > 5 && (
-                                    <div className="w-16 h-16 flex-shrink-0 rounded-lg bg-surface-highlight flex items-center justify-center text-xs font-bold text-text-secondary border border-surface-highlight">
+                                    <Link
+                                        href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
+                                        onPointerDown={(e) => e.stopPropagation()}
+                                        className="w-16 h-16 flex-shrink-0 rounded-lg bg-surface-highlight flex items-center justify-center text-xs font-bold text-text-secondary border border-surface-highlight hover:bg-surface-highlight/80 transition"
+                                    >
                                         +{item.images.length - 5}
-                                    </div>
+                                    </Link>
                                 )}
                             </div>
                         </div>
