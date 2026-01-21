@@ -18,8 +18,6 @@ export default async function SwipePage() {
     const currentUserId = currentUser?.id || 'guest'
     const isAdmin = currentUser?.isAdmin || currentUser?.id === process.env.ADMIN_EMAIL
 
-    const isAdmin = currentUser.isAdmin || currentUser.id === process.env.ADMIN_EMAIL
-
     // Obtener vehículos ACTIVOS
     const vehiclesWhere: any = {
         status: "ACTIVE",
@@ -34,8 +32,8 @@ export default async function SwipePage() {
         }
     }
 
-    // Si NO es admin, ocultar propios
-    if (!isAdmin) {
+    // Si NO es admin y hay usuario, ocultar propios. Invitados ven todo.
+    if (!isAdmin && currentUser) {
         vehiclesWhere.userId = {
             not: currentUser.id
         }
