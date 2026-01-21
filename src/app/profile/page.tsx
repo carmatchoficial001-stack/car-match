@@ -24,6 +24,13 @@ export default async function ProfilePage() {
                         favorites: true,
                     },
                 },
+                reportsMade: {
+                    include: {
+                        vehicle: { select: { title: true } },
+                        business: { select: { name: true } }
+                    },
+                    orderBy: { createdAt: 'desc' }
+                }
             },
         })
 

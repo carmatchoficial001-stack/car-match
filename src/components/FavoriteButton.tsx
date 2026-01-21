@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface FavoriteButtonProps {
@@ -28,6 +28,11 @@ export default function FavoriteButton({
     const [isLoading, setIsLoading] = useState(false)
     const [animate, setAnimate] = useState(false)
     const router = useRouter()
+
+    // Sincronizar con cambios en props (importante para refrescos de servidor)
+    useEffect(() => {
+        setIsFavorited(initialIsFavorited)
+    }, [initialIsFavorited])
 
     const sizeClasses = {
         sm: 'p-1.5',
@@ -90,13 +95,24 @@ export default function FavoriteButton({
                 throw new Error('Error al actualizar favorito')
             }
 
-            // Confirmar estado real del servidor para negocios (devuelve isFavorite en vez de isFavorited)
+            // Confirmar estado real del servidor
             const data = await response.json()
+            let finalState = newState
+
             if (data.hasOwnProperty('isFavorite')) {
-                setIsFavorited(data.isFavorite)
+                finalState = data.isFavorite
             } else if (data.hasOwnProperty('isFavorited')) {
-                setIsFavorited(data.isFavorited)
+                finalState = data.isFavorited
             }
+
+            setIsFavorited(finalState)
+            if (onToggle) onToggle(finalState)
+
+            // 🔄 Sincronizar con el servidor y otros componentes
+            router.refresh()
+            window.dispatchEvent(new CustomEvent('favoriteUpdated', {
+                detail: { vehicleId, businessId, isFavorited: finalState }
+            }))
 
         } catch (error) {
             console.error('Error:', error)

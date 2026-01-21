@@ -8,6 +8,7 @@ import SwipeFeed from '@/components/SwipeFeed'
 import Header from '@/components/Header'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { MapPin, RefreshCw, Search } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { calculateDistance, searchCity, searchCities, normalizeCountryCode, LocationData } from '@/lib/geolocation'
 
 interface FeedItem {
@@ -80,6 +81,7 @@ function boostShuffleArray(array: FeedItem[]): FeedItem[] {
 export default function SwipeClient({ initialItems, currentUserId }: SwipeClientProps) {
     const { t } = useLanguage()
     const { location, loading: locationLoading, setManualLocation } = useLocation()
+    const router = useRouter()
 
     const items = initialItems
 
@@ -196,6 +198,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                 body: JSON.stringify({ vehicleId: id, action: 'add' })
             })
             window.dispatchEvent(new CustomEvent('favoriteUpdated'))
+            router.refresh()
         } catch (e) { }
     }
 

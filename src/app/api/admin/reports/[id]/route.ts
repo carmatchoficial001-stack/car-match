@@ -68,8 +68,47 @@ export async function PATCH(
             })
 
             return NextResponse.json(updatedReport)
+        } else if (action === 'RESTORE') {
+            // RESTAURAR: Reactivar la publicación y marcar reporte como revisado
+            if (report.vehicleId) {
+                await prisma.vehicle.update({
+                    where: { id: report.vehicleId },
+                    data: { status: 'ACTIVE' }
+                })
+            }
+            if (report.businessId) {
+                await prisma.business.update({
+                    where: { id: report.businessId },
+                    data: { isActive: true }
+                })
+            }
+
+            const updatedReport = await prisma.report.update({
+                where: { id },
+                data: { status: 'DISMISSED' }
+            })
+
+            return NextResponse.json(updatedReport)
         } else {
-            // DISMISS: Solo marcar el reporte como descartado, no tocar la publicación
+            // DISMISS: Solo marcar el reporte como descartado, no tocar la publicación (aunque ya esté oculta)
+            // Si el admin hace DISMISS pero el item sigue oculto por el reporte, 
+            // quizás DISMISS debería restaurar? Usuario dijo "hasta que yo decida".
+            // Así que usaré RESTORE para volver a mostrar. DISMISS será solo ignorar el reporte pero dejarlo como está?
+            // Mejor que DISMISS también restaure si el admin lo ignora.
+
+            if (report.vehicleId) {
+                await prisma.vehicle.update({
+                    where: { id: report.vehicleId },
+                    data: { status: 'ACTIVE' }
+                })
+            }
+            if (report.businessId) {
+                await prisma.business.update({
+                    where: { id: report.businessId },
+                    data: { isActive: true }
+                })
+            }
+
             const updatedReport = await prisma.report.update({
                 where: { id },
                 data: { status: 'DISMISSED' }

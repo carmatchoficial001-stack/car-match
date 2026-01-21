@@ -78,6 +78,7 @@ export default function MyBusinessesClient() {
     const [facebook, setFacebook] = useState('')
     const [instagram, setInstagram] = useState('')
     const [tiktok, setTiktok] = useState('')
+    const [hours, setHours] = useState('')
 
     // [NEW] Business Attributes
     const [is24Hours, setIs24Hours] = useState(false)
@@ -284,6 +285,7 @@ export default function MyBusinessesClient() {
         setFacebook(b.facebook || '')
         setInstagram(b.instagram || '')
         setTiktok(b.tiktok || '')
+        setHours(b.hours || '')
 
         // Load Attributes
         setIs24Hours(b.is24Hours || false)
@@ -320,6 +322,7 @@ export default function MyBusinessesClient() {
         setFacebook('')
         setInstagram('')
         setTiktok('')
+        setHours('')
 
         // Reset Attributes
         setIs24Hours(false)
@@ -409,6 +412,7 @@ export default function MyBusinessesClient() {
                 hasEmergencyService,
                 hasHomeService,
                 isSafeMeetingPoint,
+                hours,
                 fingerprint // 🛡️ Enviar huella
             }
 
@@ -660,6 +664,42 @@ export default function MyBusinessesClient() {
                                     </div>
 
                                     {/* Additional Phones */}
+                                    <div className="space-y-3">
+                                        <label className="block text-sm font-medium text-text-primary">Teléfonos Adicionales (Opcional)</label>
+                                        <div className="space-y-2">
+                                            {additionalPhones.map((p, idx) => (
+                                                <div key={idx} className="flex gap-2 animate-fade-in">
+                                                    <div className="flex-1">
+                                                        <PhoneInput
+                                                            value={p}
+                                                            onChange={(val) => {
+                                                                const newPhones = [...additionalPhones];
+                                                                newPhones[idx] = val;
+                                                                setAdditionalPhones(newPhones);
+                                                            }}
+                                                            placeholder={`Teléfono ${idx + 2}`}
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setAdditionalPhones(prev => prev.filter((_, i) => i !== idx))}
+                                                        className="px-3 bg-red-500/10 text-red-500 rounded-lg border border-red-500/20 hover:bg-red-500/20 transition"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {additionalPhones.length < 3 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setAdditionalPhones(prev => [...prev, ''])}
+                                                    className="w-full py-2 border-2 border-dashed border-surface-highlight rounded-lg text-text-secondary text-sm hover:border-primary-700/50 hover:text-primary-400 transition flex items-center justify-center gap-2"
+                                                >
+                                                    + Agregar otro teléfono
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
 
 
                                     {/* WhatsApp & Telegram */}
@@ -722,6 +762,15 @@ export default function MyBusinessesClient() {
                                                 className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg outline-none focus:border-primary-500 text-sm"
                                             />
                                         </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-text-primary mb-1">⏰ Horario de Atención (Opcional)</label>
+                                            <input
+                                                value={hours}
+                                                onChange={(e) => setHours(e.target.value)}
+                                                placeholder="L-V 9am-6pm, Sáb 10am-2pm"
+                                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg outline-none focus:border-primary-500 text-sm"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -756,6 +805,36 @@ export default function MyBusinessesClient() {
                                                 Esto atraerá visitas y potenciales clientes a tu local.
                                             </span>
                                         </div>
+                                    </label>
+
+                                    <label className="flex items-center gap-3 p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background transition">
+                                        <input
+                                            type="checkbox"
+                                            checked={is24Hours}
+                                            onChange={(e) => setIs24Hours(e.target.checked)}
+                                            className="w-5 h-5 rounded border-surface-highlight text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm font-bold text-text-primary">🕒 Servicio 24 Horas</span>
+                                    </label>
+
+                                    <label className="flex items-center gap-3 p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background transition">
+                                        <input
+                                            type="checkbox"
+                                            checked={hasEmergencyService}
+                                            onChange={(e) => setHasEmergencyService(e.target.checked)}
+                                            className="w-5 h-5 rounded border-surface-highlight text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm font-bold text-text-primary">🚨 Servicio de Emergencia</span>
+                                    </label>
+
+                                    <label className="flex items-center gap-3 p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background transition">
+                                        <input
+                                            type="checkbox"
+                                            checked={hasHomeService}
+                                            onChange={(e) => setHasHomeService(e.target.checked)}
+                                            className="w-5 h-5 rounded border-surface-highlight text-primary-600 focus:ring-primary-500"
+                                        />
+                                        <span className="text-sm font-bold text-text-primary">🏠 Servicio a Domicilio</span>
                                     </label>
                                 </div>
 

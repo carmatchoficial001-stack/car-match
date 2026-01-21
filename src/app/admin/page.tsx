@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     LayoutDashboard,
@@ -686,48 +686,239 @@ function InventoryTab({ vehicles }: { vehicles: any[] }) {
 }
 
 function ReportsTab({ reports }: { reports: any[] }) {
+    const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
+    const selectedReport = reports.find(r => r.id === selectedReportId)
+
     return (
-        <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-            <div className="p-6 border-b border-white/5">
-                <h3 className="font-bold text-lg flex items-center gap-2">
-                    <Flag className="w-5 h-5 text-red-500" /> Centro de Moderación
-                </h3>
+        <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-280px)]">
+            {/* Lista de Reportes */}
+            <div className={`bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl flex flex-col ${selectedReportId ? 'w-full lg:w-1/3' : 'w-full'}`}>
+                <div className="p-6 border-b border-white/5 flex items-center justify-between shrink-0">
+                    <h3 className="font-bold text-lg flex items-center gap-2">
+                        <Flag className="w-5 h-5 text-red-500" /> Moderación
+                    </h3>
+                    <span className="text-[10px] font-black bg-red-500/10 text-red-500 px-2 py-1 rounded">
+                        {reports.filter(r => r.status === 'PENDING').length} PENDIENTES
+                    </span>
+                </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                    {reports.length === 0 ? (
+                        <div className="p-12 text-center opacity-30 italic text-sm">No hay reportes hoy</div>
+                    ) : (
+                        <div className="divide-y divide-white/5">
+                            {reports.map((report) => (
+                                <button
+                                    key={report.id}
+                                    onClick={() => setSelectedReportId(report.id)}
+                                    className={`w-full text-left p-4 hover:bg-white/5 transition-colors group ${selectedReportId === report.id ? 'bg-white/5' : ''}`}
+                                >
+                                    <div className="flex justify-between items-start mb-1">
+                                        <span className={`text-[9px] font-black uppercase tracking-widest ${report.status === 'PENDING' ? 'text-red-500' : 'text-green-500'}`}>
+                                            {report.status}
+                                        </span>
+                                        <span className="text-[9px] text-text-secondary">{new Date(report.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                    <h4 className="font-bold text-sm line-clamp-1 group-hover:text-primary-400">
+                                        {report.vehicle?.title || report.business?.name || 'Usuario/Otro'}
+                                    </h4>
+                                    <p className="text-[10px] text-text-secondary truncate mt-0.5">{report.reason}</p>
+                                    <div className="flex items-center gap-2 mt-3">
+                                        <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[9px] font-bold">
+                                            {report.reporter.name[0]}
+                                        </div>
+                                        <span className="text-[9px] text-text-secondary truncate">por {report.reporter.name}</span>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-                {reports.map((report) => (
-                    <div key={report.id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex flex-col">
-                        <div className="aspect-video relative bg-black">
-                            <img src={report.imageUrl || ''} className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" />
-                            <div className="absolute top-3 right-3">
-                                <span className={`text-[9px] font-black px-2 py-1 rounded bg-black/80 backdrop-blur shadow-xl ${report.status === 'PENDING' ? 'text-red-500' : 'text-green-500'
-                                    }`}>
-                                    {report.status}
-                                </span>
+
+            {/* Detalle y Chat */}
+            {selectedReportId && selectedReport ? (
+                <div className="flex-1 bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-right-4">
+                    {/* Header del Detalle */}
+                    <div className="p-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/[0.02]">
+                        <div className="flex items-center gap-4">
+                            <button onClick={() => setSelectedReportId(null)} className="lg:hidden p-2 hover:bg-white/5 rounded-lg">
+                                <ChevronRight className="w-5 h-5 rotate-180" />
+                            </button>
+                            <div>
+                                <h3 className="font-bold">{selectedReport.vehicle?.title || selectedReport.business?.name || 'Usuario'}</h3>
+                                <p className="text-[10px] text-red-400 font-bold uppercase tracking-widest">{selectedReport.reason}</p>
                             </div>
                         </div>
-                        <div className="p-4 flex-1">
-                            <h4 className="font-bold text-sm text-red-400 flex items-center gap-2">
-                                <AlertCircle className="w-3.5 h-3.5" /> {report.reason}
-                            </h4>
-                            <p className="text-xs text-text-secondary mt-1">{report.description || 'Sin descripción adicional.'}</p>
-
-                            <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold">
-                                        {report.reporter.name[0]}
-                                    </div>
-                                    <span className="text-[10px] text-text-secondary">por {report.reporter.name}</span>
-                                </div>
-                                <div className="flex gap-2">
-                                    <AdminReportAction2 reportId={report.id} action="DISMISS" label="Ignorar" />
-                                    <AdminReportAction2 reportId={report.id} action="RESOLVE" label="BORRAR" danger />
-                                </div>
-                            </div>
+                        <div className="flex gap-2">
+                            <AdminReportAction2 reportId={selectedReport.id} action="RESTORE" label="RESTAURAR" primary />
+                            <AdminReportAction2 reportId={selectedReport.id} action="RESOLVE" label="BORRAR PERMANENTE" danger />
                         </div>
                     </div>
-                ))}
-            </div>
+
+                    <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                        {/* Info General */}
+                        <div className="w-full lg:w-1/2 p-6 overflow-y-auto custom-scrollbar border-b lg:border-b-0 lg:border-r border-white/5">
+                            <div className="aspect-video rounded-2xl overflow-hidden bg-black mb-6 group relative">
+                                <img src={selectedReport.imageUrl || ''} className="w-full h-full object-cover" />
+                                {!selectedReport.imageUrl && (
+                                    <div className="w-full h-full flex items-center justify-center text-text-secondary italic text-xs">Sin imagen adjunta</div>
+                                )}
+                            </div>
+
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-2">Descripción del Reporte</label>
+                                    <div className="p-4 bg-white/5 rounded-2xl text-sm border border-white/5">
+                                        {selectedReport.description || 'No se proporcionó una descripción adicional.'}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                                        <label className="text-[9px] font-black text-text-secondary uppercase block mb-1">Reportero</label>
+                                        <p className="text-sm font-bold">{selectedReport.reporter.name}</p>
+                                        <p className="text-[10px] text-text-secondary truncate">{selectedReport.reporter.email}</p>
+                                    </div>
+                                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                                        <label className="text-[9px] font-black text-text-secondary uppercase block mb-1">Objetivo del reporte</label>
+                                        <p className="text-sm font-bold truncate">{selectedReport.vehicle?.title || selectedReport.business?.name || 'Usuario'}</p>
+                                        <p className="text-[10px] text-primary-400">{selectedReport.vehicleId ? 'Vehículo' : selectedReport.businessId ? 'Negocio' : 'Perfil'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Chat de Comunicación */}
+                        <div className="flex-1 flex flex-col bg-black/20">
+                            <div className="p-4 border-b border-white/5 bg-white/[0.01]">
+                                <h4 className="text-[10px] font-black uppercase text-text-secondary flex items-center gap-2">
+                                    <Headset className="w-3 h-3" /> Centro de Dudas / Soporte
+                                </h4>
+                            </div>
+
+                            <ReportChat reportId={selectedReport.id} />
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="flex-1 bg-[#111114] border border-white/5 border-dashed rounded-3xl flex items-center justify-center opacity-30 select-none">
+                    <div className="text-center">
+                        <Flag className="w-12 h-12 mx-auto mb-4" />
+                        <p className="text-sm font-bold">Selecciona un reporte para ver los detalles</p>
+                    </div>
+                </div>
+            )}
         </div>
+    )
+}
+
+function ReportChat({ reportId }: { reportId: string }) {
+    const [messages, setMessages] = useState<any[]>([])
+    const [newMessage, setNewMessage] = useState("")
+    const [loading, setLoading] = useState(true)
+    const [sending, setSending] = useState(false)
+    const scrollRef = useRef<HTMLDivElement>(null)
+
+    const fetchMessages = async () => {
+        try {
+            const res = await fetch(`/api/report/${reportId}/messages`)
+            if (res.ok) {
+                const data = await res.json()
+                setMessages(data)
+            }
+        } catch (e) { console.error(e) }
+        finally { setLoading(false) }
+    }
+
+    useEffect(() => {
+        fetchMessages()
+        const interval = setInterval(fetchMessages, 5000)
+        return () => clearInterval(interval)
+    }, [reportId])
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+        }
+    }, [messages])
+
+    const handleSend = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!newMessage.trim() || sending) return
+
+        setSending(true)
+        try {
+            const res = await fetch(`/api/report/${reportId}/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: newMessage })
+            })
+            if (res.ok) {
+                const msg = await res.json()
+                setMessages(prev => [...prev, msg])
+                setNewMessage("")
+            }
+        } catch (e) {
+            console.error(e)
+        } finally {
+            setSending(false)
+        }
+    }
+
+    if (loading) return <div className="flex-1 flex items-center justify-center text-xs opacity-50">Cargando conversación...</div>
+
+    return (
+        <>
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                {messages.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center gap-4 opacity-30 grayscale p-8">
+                        <div className="p-4 bg-white/5 rounded-full">
+                            <Headset className="w-8 h-8" />
+                        </div>
+                        <p className="text-xs font-bold text-center">Inicia una conversación con el usuario para resolver dudas sobre este reporte.</p>
+                    </div>
+                ) : (
+                    messages.map((msg) => {
+                        const isMe = msg.sender.isAdmin // En esta vista admin, "Me" son los admins
+                        return (
+                            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[85%] p-3 rounded-2xl text-xs ${isMe
+                                    ? 'bg-primary-600 text-white rounded-tr-none'
+                                    : 'bg-white/5 border border-white/10 text-text-primary rounded-tl-none'
+                                    }`}>
+                                    <div className="flex items-center gap-2 mb-1 opacity-70">
+                                        <span className="font-black uppercase text-[8px]">{msg.sender.name}</span>
+                                        <span className="text-[8px]">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    </div>
+                                    <p className="leading-relaxed">{msg.content}</p>
+                                </div>
+                            </div>
+                        )
+                    })
+                )}
+            </div>
+
+            <form onSubmit={handleSend} className="p-4 border-t border-white/5 bg-white/[0.01]">
+                <div className="flex gap-2">
+                    <input
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Escribe un mensaje al usuario..."
+                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-primary-500 transition-colors"
+                        disabled={sending}
+                    />
+                    <button
+                        disabled={!newMessage.trim() || sending}
+                        className="p-2 bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white rounded-xl transition-all shadow-lg active:scale-95"
+                    >
+                        {sending ? <RefreshCw className="w-4 h-4 animate-spin text-white" /> : <ChevronRight className="w-4 h-4 text-white" />}
+                    </button>
+                </div>
+                <p className="text-[8px] text-text-secondary mt-2 italic text-center opacity-50">
+                    * Tu respuesta llegará al "Centro de Reportes" del usuario.
+                </p>
+            </form>
+        </>
     )
 }
 

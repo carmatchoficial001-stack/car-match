@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
                     reporter: { select: { name: true, email: true } },
                     targetUser: { select: { name: true, email: true } },
                     vehicle: { select: { title: true } },
+                    business: { select: { name: true } }
                 }
             }),
             prisma.user.findMany({
