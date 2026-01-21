@@ -169,6 +169,11 @@ async function importGasStations() {
                     const osmIdSuffix = node.id ? node.id.toString().slice(-5) : Math.random().toString(36).substring(2, 7);
                     const finalSlug = `${baseSlug}-${osmIdSuffix}`;
 
+                    // Establecer vigencia de 10 años para administrador
+                    const now = new Date();
+                    const expirationDate = new Date();
+                    expirationDate.setFullYear(now.getFullYear() + 10);
+
                     await prisma.business.create({
                         data: {
                             userId: adminUser.id,
@@ -191,6 +196,7 @@ async function importGasStations() {
                             images: [],
                             is24Hours: node.tags?.opening_hours === '24/7' || node.tags?.opening_hours === '24 hours' || node.tags?.opening_hours === '24h',
                             hasMiniWeb: false,
+                            expiresAt: expirationDate,
                         }
                     });
                     addedCount++;

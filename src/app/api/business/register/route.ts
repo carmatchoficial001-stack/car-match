@@ -38,6 +38,14 @@ export async function POST(request: NextRequest) {
             where: { userId: session.user.id }
         })
 
+        // Verificar si el usuario es administrador
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { id: true, credits: true, isAdmin: true, email: true }
+        })
+
+        const isAdmin = user?.isAdmin || user?.email === process.env.ADMIN_EMAIL
+
         const isFirstBusiness = totalBusinessesCount === 0
 
         // Calcular fecha de expiración y estado
@@ -45,18 +53,16 @@ export async function POST(request: NextRequest) {
         let expirationDate = new Date()
         let isActive = false
 
-        if (isFirstBusiness) {
+        if (isAdmin) {
+            // 👑 Admin: 10 AÑOS GRATIS y SIEMPRE ACTIVO
+            expirationDate.setFullYear(now.getFullYear() + 10)
+            isActive = true
+        } else if (isFirstBusiness) {
             // 🎁 Primer negocio: 1 MES GRATIS y ACTIVO
-            // (Basado en ID de usuario como huella digital primaria por ahora)
             expirationDate.setMonth(now.getMonth() + 1)
             isActive = true
         } else {
             // 🪙 Segundo en adelante: Requiere crédito
-            const user = await prisma.user.findUnique({
-                where: { id: session.user.id },
-                select: { credits: true }
-            })
-
             if (user && user.credits > 0) {
                 // ✅ Tiene créditos: Descontar 1 y activar por 30 días
                 await prisma.user.update({
