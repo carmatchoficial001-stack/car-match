@@ -202,11 +202,44 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                         />
 
 
-                    </div>
-                </div>
-            </div>
-        )
     }
+
+    const thumbnailsRef = useRef<HTMLDivElement>(null)
+    const isManualScrolling = useRef(false)
+
+    // Sincronizar scroll manual de miniaturas con la imagen principal
+    const handleThumbnailsScroll = () => {
+        if (!thumbnailsRef.current || !vehicle.images || vehicle.images.length <= 1) return
+        
+        // Solo actuar si el scroll es manual
+        if (isManualScrolling.current) {
+            const container = thumbnailsRef.current
+            const scrollPercent = container.scrollLeft / (container.scrollWidth - container.clientWidth)
+            const index = Math.min(
+                Math.max(Math.round(scrollPercent * (vehicle.images.length - 1)), 0),
+                vehicle.images.length - 1
+            )
+            
+            if (index !== activeImage) {
+                setActiveImage(index)
+            }
+        }
+    }
+
+    // Auto-centrar la miniatura cuando cambia activeImage
+    useEffect(() => {
+        if (thumbnailsRef.current && !isManualScrolling.current) {
+            const container = thumbnailsRef.current
+            const activeThumb = container.children[activeImage] as HTMLElement
+            if (activeThumb) {
+                const targetScroll = activeThumb.offsetLeft - (container.offsetWidth / 2) + (activeThumb.offsetWidth / 2)
+                container.scrollTo({
+                    left: targetScroll,
+                    behavior: 'smooth'
+                })
+            }
+        }
+    }, [activeImage])
 
     return (
         <div className="min-h-screen bg-background pb-32">
