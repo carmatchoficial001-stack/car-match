@@ -10,19 +10,15 @@ export default auth((req) => {
 
     // Rutas protegidas que requieren autenticación (RED SOCIAL)
     const protectedRoutes = [
-        "/profile",
-        "/publish",
-        "/credits",
-        "/favorites",
-        "/market",
-        "/swipe",
-        "/map",
-        "/my-businesses",
-        "/messages",
-        "/vehicle",
-        "/business"
+        '/profile',
+        '/publish',
+        '/my-businesses',
+        '/messages',
+        '/credits',
+        '/admin',
+        '/settings',
+        '/favorites'
     ]
-
     // Rutas de autenticación (no permitidas si ya está logueado y NO es soft_logout)
     const authRoutes = ["/auth", "/auth/login", "/auth/register"]
 

@@ -10,10 +10,16 @@ export default async function LandingPage() {
     const isSoftLogout = cookieStore.get('soft_logout')?.value === 'true'
 
     // 🔥 Redirección inmediata en el Servidor si ya está logueado
-    // PERO si es un "soft logout", permitimos ver la landing de nuevo
     if (session && !isSoftLogout) {
         redirect(getWeightedHomePath())
     }
 
-    return <LandingPageContent />
+    // 🎲 REDIRECCIÓN PROBABILÍSTICA PARA INVITADOS (90% MarketCar / 10% MapStore)
+    // Esto elimina la barrera de la landing estática
+    const random = Math.random()
+    if (random < 0.9) {
+        redirect('/market') // 90% MarketCar
+    } else {
+        redirect('/map') // 10% MapStore
+    }
 }

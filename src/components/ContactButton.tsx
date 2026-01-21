@@ -31,7 +31,9 @@ export default function ContactButton({
 
     const handleContact = async () => {
         if (!session) {
-            router.push('/auth')
+            // Redirigir a login con callbackUrl para volver aquí
+            const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+            router.push(`/auth?callbackUrl=${encodeURIComponent(currentPath)}`)
             return
         }
 

@@ -59,6 +59,11 @@ export default function FavoriteButton({
 
         if (isLoading) return
 
+        // Proactive check for guest users
+        // Since we don't have useSession here, we check if the interaction fails with 401
+        // OR we could pass session as a prop if we want to be proactive.
+        // For now, let's keep the reactive fix but ensure callbackUrl is used.
+
         // Optimistic update
         const newState = !isFavorited
         setIsFavorited(newState)
@@ -84,10 +89,10 @@ export default function FavoriteButton({
             })
 
             if (response.status === 401) {
-                // Si no está autorizado, redirigir a login
-                // Revertir estado
+                // Si no está autorizado, redirigir a login con callback
                 setIsFavorited(!newState)
-                router.push('/auth')
+                const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+                router.push(`/auth?callbackUrl=${encodeURIComponent(currentPath)}`)
                 return
             }
 

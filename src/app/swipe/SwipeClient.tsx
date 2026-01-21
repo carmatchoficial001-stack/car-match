@@ -190,6 +190,13 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     }
 
     const handleLike = async (id: string) => {
+        // Si no hay usuario logueado, redirigir con callback
+        if (currentUserId === 'guest') {
+            const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/swipe'
+            router.push(`/auth?callbackUrl=${encodeURIComponent(currentPath)}`)
+            return
+        }
+
         markAsSeen(id)
         try {
             await fetch('/api/favorites', {
