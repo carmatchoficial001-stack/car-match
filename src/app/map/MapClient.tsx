@@ -7,7 +7,7 @@ import Header from '@/components/Header'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { BUSINESS_CATEGORIES as CATEGORIES } from '@/lib/businessCategories'
 import { useLocation } from '@/contexts/LocationContext'
-import { Star, Sparkles } from 'lucide-react'
+import { Star, Sparkles, MapPin } from 'lucide-react'
 
 const MapBoxStoreLocator = dynamic(() => import('@/components/MapBoxStoreLocator'), {
     ssr: false,
