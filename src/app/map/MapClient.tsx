@@ -490,39 +490,45 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                             <div className="space-y-2">
                                 <h3 className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-4 ml-2">Especialidades Disponibles</h3>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {CATEGORIES.map(cat => {
-                                        const isSelected = selectedCategories.includes(cat.id);
-                                        return (
-                                            <button
-                                                key={cat.id}
-                                                onClick={() => toggleCategory(cat.id)}
-                                                className={`
-                                                    w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 group
-                                                    ${isSelected
-                                                        ? 'bg-primary-700/20 border-primary-600 text-white shadow-glow-sm scale-[1.02]'
-                                                        : 'bg-surface/40 border-surface-highlight/40 hover:border-surface-highlight hover:bg-surface/60'
-                                                    }
-                                                `}
-                                                style={{
-                                                    borderColor: isSelected ? cat.color : undefined,
-                                                }}
-                                            >
-                                                <span className={`text-2xl transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>
-                                                    {cat.icon}
-                                                </span>
-                                                <div className="flex-1 text-left">
-                                                    <span className={`text-[12px] font-black uppercase tracking-widest ${isSelected ? 'text-text-primary' : 'text-text-secondary'}`}>
-                                                        {t(`map_store.categories.${cat.id}`) || cat.label}
+                                    {[...CATEGORIES]
+                                        .sort((a, b) => {
+                                            const labelA = t(`map_store.categories.${a.id}`) || a.label;
+                                            const labelB = t(`map_store.categories.${b.id}`) || b.label;
+                                            return labelA.localeCompare(labelB);
+                                        })
+                                        .map(cat => {
+                                            const isSelected = selectedCategories.includes(cat.id);
+                                            return (
+                                                <button
+                                                    key={cat.id}
+                                                    onClick={() => toggleCategory(cat.id)}
+                                                    className={`
+                                                        w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 group
+                                                        ${isSelected
+                                                            ? 'bg-primary-700/20 border-primary-600 text-white shadow-glow-sm scale-[1.02]'
+                                                            : 'bg-surface/40 border-surface-highlight/40 hover:border-surface-highlight hover:bg-surface/60'
+                                                        }
+                                                    `}
+                                                    style={{
+                                                        borderColor: isSelected ? cat.color : undefined,
+                                                    }}
+                                                >
+                                                    <span className={`text-2xl transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>
+                                                        {cat.icon}
                                                     </span>
-                                                </div>
-                                                {isSelected ? (
-                                                    <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center text-[10px] font-black">✓</div>
-                                                ) : (
-                                                    <div className="w-2 h-2 rounded-full opacity-20 bg-text-secondary" />
-                                                )}
-                                            </button>
-                                        );
-                                    })}
+                                                    <div className="flex-1 text-left">
+                                                        <span className={`text-[12px] font-black uppercase tracking-widest ${isSelected ? 'text-text-primary' : 'text-text-secondary'}`}>
+                                                            {t(`map_store.categories.${cat.id}`) || cat.label}
+                                                        </span>
+                                                    </div>
+                                                    {isSelected ? (
+                                                        <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center text-[10px] font-black">✓</div>
+                                                    ) : (
+                                                        <div className="w-2 h-2 rounded-full opacity-20 bg-text-secondary" />
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
                                 </div>
                             </div>
                         </div>
