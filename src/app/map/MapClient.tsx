@@ -458,11 +458,11 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                 Registrar Negocio
                             </a>
 
-                            {/* 2. CONSULTA CON UN ASESOR (SMART SEARCH) */}
+                            {/* 2. PREGUNTAR AL EXPERTO (SMART SEARCH) */}
                             <div className="bg-surface-highlight/30 rounded-3xl p-5 border border-surface-highlight">
                                 <h3 className="text-xs font-black text-primary-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                                     <Sparkles size={16} />
-                                    Consulta con un asesor
+                                    Preguntar al experto
                                 </h3>
                                 <div className="relative group">
                                     <textarea
@@ -488,7 +488,12 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
                             {/* 3. LISTA DE FILTROS */}
                             <div className="space-y-2">
-                                <h3 className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-4 ml-2">Especialidades Disponibles</h3>
+                                <div className="ml-2 mb-4">
+                                    <h3 className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1">Especialidades Disponibles</h3>
+                                    <p className="text-[9px] text-primary-500/80 font-bold uppercase tracking-wider">
+                                        Seleccione por ejemplo en esta ocacion selecciono mecánico y transmisiones
+                                    </p>
+                                </div>
                                 <div className="grid grid-cols-1 gap-2">
                                     {[...CATEGORIES]
                                         .sort((a, b) => {
@@ -522,9 +527,12 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                                         </span>
                                                     </div>
                                                     {isSelected ? (
-                                                        <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center text-[10px] font-black">✓</div>
+                                                        <div
+                                                            className="w-5 h-5 rounded-full shadow-glow-sm"
+                                                            style={{ backgroundColor: cat.color }}
+                                                        />
                                                     ) : (
-                                                        <div className="w-2 h-2 rounded-full opacity-20 bg-text-secondary" />
+                                                        <div className="w-5 h-5 rounded-full border-2 border-surface-highlight opacity-30" />
                                                     )}
                                                 </button>
                                             );
