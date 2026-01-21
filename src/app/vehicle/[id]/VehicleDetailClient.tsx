@@ -526,9 +526,9 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                                 className="flex items-center gap-4 group/seller transition-all cursor-pointer w-full"
                                             >
                                                 <div className="relative">
-                                                    <div className="w-20 h-20 bg-primary-700/20 rounded-2xl flex items-center justify-center text-primary-400 font-bold text-2xl uppercase shadow-glow group-hover/seller:bg-primary-700/40 transition-all overflow-hidden border-2 border-primary-500/30">
+                                                    <div className="w-20 h-20 bg-black/20 rounded-2xl flex items-center justify-center text-primary-400 font-bold text-2xl uppercase shadow-glow group-hover/seller:bg-black/30 transition-all overflow-hidden border-2 border-primary-500/30">
                                                         {vehicle.user.image ? (
-                                                            <img src={vehicle.user.image} alt={vehicle.user.name} className="w-full h-full object-cover" />
+                                                            <img src={vehicle.user.image} alt={vehicle.user.name} className="w-full h-full object-contain" />
                                                         ) : (
                                                             vehicle.user.name.substring(0, 2)
                                                         )}

@@ -121,7 +121,7 @@ export default function FavoritesClient({ favorites }: { favorites: FavoriteVehi
                                             <img
                                                 src={vehicle.images[0]}
                                                 alt={vehicle.title}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-contain bg-black/40"
                                             />
                                         ) : (
                                             <svg className="w-16 h-16 text-text-secondary opacity-50" fill="currentColor" viewBox="0 0 24 24">

@@ -411,7 +411,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                 {!showSidebar && (
                     <button
                         onClick={() => setShowSidebar(true)}
-                        className="absolute top-6 left-6 z-[100] px-8 py-4 bg-primary-700 text-white rounded-full shadow-[0_15px_30px_rgba(0,0,0,0.5)] font-black uppercase tracking-[0.15em] border-2 border-primary-500/50 flex items-center gap-3 active:scale-95 hover:bg-primary-600 transition-all animate-in fade-in slide-in-from-left-4 duration-500"
+                        className="absolute top-6 left-6 z-30 px-8 py-4 bg-primary-700 text-white rounded-full shadow-[0_15px_30px_rgba(0,0,0,0.5)] font-black uppercase tracking-[0.15em] border-2 border-primary-500/50 flex items-center gap-3 active:scale-95 hover:bg-primary-600 transition-all animate-in fade-in slide-in-from-left-4 duration-500"
                     >
                         <Settings2 size={24} />
                         {t('map_store.show_filters')}
@@ -420,7 +420,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
                 {/* 🗂️ PANEL DE FILTROS (OVERLAY PANAL) */}
                 <div className={`
-                    absolute inset-0 z-[200] flex items-end md:items-start justify-start transition-all duration-500
+                    absolute inset-0 z-40 flex items-end md:items-start justify-start transition-all duration-500
                     ${showSidebar ? 'visible' : 'invisible'}
                 `}>
                     {/* Backdrop */}

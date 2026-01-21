@@ -32,13 +32,13 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                         <div className="flex flex-row items-start gap-4 sm:gap-6">
                             {/* 1. Foto de Perfil (Izquierda - Rojo) */}
                             <div className="w-24 sm:w-32 md:w-40 flex-shrink-0">
-                                <div className="relative w-full rounded-xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface group">
+                                <div className="relative w-full aspect-square rounded-2xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-black/10 group flex items-center justify-center">
                                     {user.image ? (
                                         <>
                                             <img
                                                 src={user.image}
                                                 alt={user.name}
-                                                className="w-full h-auto object-cover"
+                                                className="w-full h-full object-contain"
                                             />
                                             {isOwner && (
                                                 <button

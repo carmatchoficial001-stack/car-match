@@ -389,7 +389,7 @@ export default function MarketClient({
                                                         <img
                                                             src={item.images[0]}
                                                             alt={item.title}
-                                                            className="w-full h-full object-cover"
+                                                            className="w-full h-full object-contain bg-black/40"
                                                         />
                                                     ) : (
                                                         <div className="absolute inset-0 flex items-center justify-center text-text-secondary opacity-20">

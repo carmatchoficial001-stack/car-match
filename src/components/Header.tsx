@@ -145,7 +145,7 @@ export default function Header() {
     const totalUnread = unreadMessages + unreadNotifications
 
     return (
-        <header className="sticky top-0 z-50 bg-surface border-b border-surface-highlight shadow-lg">
+        <header className="sticky top-0 z-[100] bg-surface border-b border-surface-highlight shadow-lg">
             <div className="container mx-auto px-2 md:px-4 py-2 md:py-4">
                 <div className="flex items-center justify-between">
                     {/* Logo */}

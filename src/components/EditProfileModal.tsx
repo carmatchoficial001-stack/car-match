@@ -282,7 +282,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                                 className="w-full p-3 flex items-center gap-3 hover:bg-surface-highlight transition text-left"
                                             >
                                                 {user.image ? (
-                                                    <img src={user.image} className="w-8 h-8 rounded-lg object-cover" alt="" />
+                                                    <img src={user.image} className="w-8 h-8 rounded-lg object-contain bg-black/20" alt="" />
                                                 ) : (
                                                     <div className="w-8 h-8 rounded-lg bg-primary-500/20 flex items-center justify-center text-xs font-bold text-primary-400">
                                                         {user.name[0].toUpperCase()}
