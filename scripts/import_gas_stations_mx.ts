@@ -1,5 +1,6 @@
 
 import { prisma } from '../src/lib/db';
+import { generateSlug } from '../src/lib/slug';
 import dotenv from 'dotenv';
 // fetch is global in Node 18+
 
@@ -7,12 +8,25 @@ dotenv.config();
 
 // Config
 // Reverting to Main Instance with GET request for maximum compatibility
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
-const TIMEOUT_SECONDS = 900; // 15 Minutos para país completo
-const BATCH_SIZE = 50;
+const OVERPASS_MIRRORS = [
+    'https://overpass-api.de/api/interpreter',
+    'https://lz4.overpass-api.de/api/interpreter',
+    'https://z.overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter'
+];
+const TIMEOUT_SECONDS = 900;
+const BATCH_SIZE = 100;
+
+// Obtener ciudad de los argumentos de línea de comandos
+const cityArg = process.argv[2];
 
 async function importGasStations() {
-    console.log('⛽ Iniciando importación de Gasolineras para TODO MÉXICO...');
+    if (cityArg) {
+        console.log(`⛽ Iniciando importación de Gasolineras para: ${cityArg}...`);
+    } else {
+        console.log('⛽ Iniciando importación de Gasolineras para TODO MÉXICO...');
+        console.warn('⚠️ ADVERTENCIA: Importar todo México puede ser muy lento y fallar por timeout.');
+    }
 
     // 1. Find Admin User
     console.log('🔍 Buscando usuario Administrador...');
@@ -37,24 +51,69 @@ async function importGasStations() {
     console.log(`✅ Asignando gasolineras al usuario: ${adminUser.name || 'Admin'} (${adminUser.email})`);
 
     // 2. Fetch from Overpass API
-    console.log('🌍 Descargando datos de OpenStreetMap para TODO MÉXICO (Esto puede tardar varios minutos)...');
-
-    // Query: Nodes tagged as fuel in Mexico (Relation 3601146805)
-    // Warning: Area ID in Overpass is 3600000000 + OSM Relation ID. Mexico is 1146805 -> 3601146805
-    const query = `[out:json][timeout:900];area(3601146805)->.searchArea;(node["amenity"="fuel"](area.searchArea););out qt;`;
-    const url = `${OVERPASS_URL}?data=${encodeURIComponent(query)}`;
+    if (cityArg) {
+        console.log(`🌍 Descargando datos de OpenStreetMap para ${cityArg}...`);
+    } else {
+        console.log('🌍 Descargando datos de OpenStreetMap para TODO MÉXICO (Esto puede tardar varios minutos)...');
+    }
 
     try {
-        const response = await fetch(url);
+        // Query: Buscamos gasolineras (nodos, vías y relaciones) en el área de la ciudad.
+        // Usamos un filtro de admin_level para priorizar municipios (8) o estados (4) si es necesario.
+        const query = cityArg
+            ? `[out:json][timeout:900];
+                (
+                  area["name"="${cityArg}"]["admin_level"~"8|6|7|4"];
+                  area["name"="Municipio de ${cityArg}"];
+                  area["name"~"${cityArg}"]["admin_level"="8"];
+                )->.searchArea;
+                (
+                  node["amenity"="fuel"](area.searchArea);
+                  way["amenity"="fuel"](area.searchArea);
+                  relation["amenity"="fuel"](area.searchArea);
+                );
+                out center qt;`
+            : `[out:json][timeout:900];area["ISO3166-1"="MX"]->.searchArea;(node["amenity"="fuel"](area.searchArea);way["amenity"="fuel"](area.searchArea);relation["amenity"="fuel"](area.searchArea););out center qt;`;
 
-        if (!response.ok) {
-            const text = await response.text();
-            throw new Error(`Overpass API Error: ${response.status} ${response.statusText} \nBody: ${text.slice(0, 200)}`);
+        let elements = [];
+        let success = false;
+
+        for (const mirror of OVERPASS_MIRRORS) {
+            if (success) break;
+            console.log(`🌍 Intentando con mirror: ${mirror}...`);
+            const url = `${mirror}?data=${encodeURIComponent(query)}`;
+
+            try {
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    console.warn(`⚠️ Mirror ${mirror} falló: ${response.status} ${response.statusText}`);
+                    continue;
+                }
+
+                const data: any = await response.json();
+                elements = data.elements || [];
+                if (elements.length > 0) {
+                    console.log(`📡 Se encontraron ${elements.length} gasolineras en ${cityArg || 'México'}.`);
+                    success = true;
+                } else {
+                    console.warn(`⚠️ Mirror ${mirror} devolvió 0 resultados.`);
+                }
+            } catch (err) {
+                console.warn(`❌ Error con mirror ${mirror}:`, err instanceof Error ? err.message : err);
+            }
         }
 
-        const data: any = await response.json();
-        const elements = data.elements || [];
-        console.log(`📡 Se encontraron ${elements.length} gasolineras en TODO MÉXICO.`);
+        if (!success) {
+            console.error('❌ ERROR: Todos los mirrors de Overpass fallaron o devolvieron 0 resultados.');
+            if (cityArg) {
+                console.error(`👉 TIPS:`);
+                console.error(`   1. Asegúrate de que "${cityArg}" sea el nombre oficial (ej: "Tijuana", no "Tij").`);
+                console.error(`   2. Si es una ciudad con nombre compuesto, intenta con comillas.`);
+                console.error(`   3. A veces OSM usa nombres como "Municipio de ${cityArg}".`);
+            }
+            process.exit(1);
+        }
 
         // 3. Process and Insert
         console.log('💾 Procesando y guardando en base de datos...');
@@ -69,11 +128,17 @@ async function importGasStations() {
 
             await Promise.all(batch.map(async (node: any) => {
                 try {
-                    // Check if exists close by (simple dedup by checking exact coordinates or name+city)
+                    // Si es way o relation, el punto es 'center', si es node es lat/lon
+                    const lat = node.lat || node.center?.lat;
+                    const lon = node.lon || node.center?.lon;
+
+                    if (!lat || !lon) return;
+
+                    // Check if exists close by
                     const exists = await prisma.business.findFirst({
                         where: {
-                            latitude: node.lat,
-                            longitude: node.lon,
+                            latitude: { gte: lat - 0.0001, lte: lat + 0.0001 },
+                            longitude: { gte: lon - 0.0001, lte: lon + 0.0001 },
                             category: 'gasolinera'
                         }
                     });
@@ -93,37 +158,44 @@ async function importGasStations() {
                     // Build address
                     const street = node.tags?.['addr:street'] || '';
                     const number = node.tags?.['addr:housenumber'] || '';
-                    const address = (street + ' ' + number).trim() || `Ubicación: ${node.lat.toFixed(4)}, ${node.lon.toFixed(4)}`;
+                    const address = (street + ' ' + number).trim() || `Ubicación: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
 
-                    // Usa la info de tag (puede venir vacia en muchos nodos, pero intentamos)
-                    const city = node.tags?.['addr:city'] || 'México';
+                    // Usara la info de tag o el argumento de ciudad
+                    const city = node.tags?.['addr:city'] || cityArg || 'México';
                     const state = node.tags?.['addr:state'] || '';
+
+                    // Generar Slug Único
+                    const baseSlug = generateSlug(`${name} ${city}`);
+                    const osmIdSuffix = node.id ? node.id.toString().slice(-5) : Math.random().toString(36).substring(2, 7);
+                    const finalSlug = `${baseSlug}-${osmIdSuffix}`;
 
                     await prisma.business.create({
                         data: {
                             userId: adminUser.id,
                             name: name,
+                            slug: finalSlug,
                             category: 'gasolinera', // Matches CATEGORY_COLORS key
-                            description: `Gasolinera ${brand} verificada. Servicios disponibles.`,
+                            description: `Gasolinera ${brand} verificada en ${city}. Ubicación estratégica y servicios de calidad.`,
                             address: address,
                             city: city,
                             state: state,
                             country: 'MX',
-                            latitude: node.lat,
-                            longitude: node.lon,
+                            latitude: lat,
+                            longitude: lon,
                             isActive: true, // Auto-activate
                             isFreePublication: true,
                             phone: node.tags?.phone || null,
                             website: node.tags?.website || null,
-                            services: ['Baños', 'Tienda de Conveniencia', 'Magna', 'Premium', 'Aire'],
+                            services: ['Magna', 'Premium', 'Diesel', 'Baños', 'Tienda'],
                             hours: node.tags?.opening_hours || '24 Horas',
-                            images: [], // No images from OSM usually
-                            is24Hours: node.tags?.opening_hours === '24/7',
+                            images: [],
+                            is24Hours: node.tags?.opening_hours === '24/7' || node.tags?.opening_hours === '24 hours' || node.tags?.opening_hours === '24h',
                             hasMiniWeb: false,
                         }
                     });
                     addedCount++;
                 } catch (err) {
+                    console.error('❌ Error al insertar:', err);
                     errorCount++;
                 }
             }));
@@ -133,6 +205,7 @@ async function importGasStations() {
         }
 
         console.log('🏁 IMPORTACIÓN COMPLETADA');
+        console.log(`📍 Ciudad: ${cityArg || 'Todo México'}`);
         console.log(`✅ Agregadas: ${addedCount}`);
         console.log(`⏭️ Saltadas (ya existían): ${skippedCount}`);
         console.log(`❌ Errores: ${errorCount}`);
@@ -145,3 +218,4 @@ async function importGasStations() {
 }
 
 importGasStations();
+

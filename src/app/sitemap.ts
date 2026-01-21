@@ -13,12 +13,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         take: 5000
     })
 
-    // 2. Obtener Negocios Activos
+    // 2. Obtener Negocios Activos (Ampliamos para cobertura nacional)
     const businesses = await prisma.business.findMany({
         where: { isActive: true },
-        select: { id: true, updatedAt: true },
+        select: { id: true, slug: true, updatedAt: true },
         orderBy: { updatedAt: 'desc' },
-        take: 1000
+        take: 20000
     })
 
     // 3. Mapear Vehículos
@@ -29,9 +29,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
     }))
 
-    // 4. Mapear Negocios
+    // 4. Mapear Negocios (SEO Dinámico)
     const businessUrls = businesses.map((business) => ({
-        url: `${BASE_URL}/business/${business.id}`,
+        url: business.slug ? `${BASE_URL}/${business.slug}` : `${BASE_URL}/business/${business.id}`,
         lastModified: business.updatedAt,
         changeFrequency: 'weekly' as const,
         priority: 0.9,

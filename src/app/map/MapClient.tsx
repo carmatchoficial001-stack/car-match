@@ -443,7 +443,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center">
                                     <label className="text-sm font-bold text-text-secondary uppercase tracking-wider">
-                                        {t('map_store.categories_label')} ({filteredBusinesses.length})
+                                        {t('map_store.categories_label')}
                                     </label>
                                     {selectedCategories.length > 0 && (
                                         <button
