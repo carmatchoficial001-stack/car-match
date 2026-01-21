@@ -38,6 +38,9 @@ export const authConfig: NextAuthConfig = {
             if (session.user && token) {
                 // @ts-ignore
                 session.user.id = (token.id as string) || (token.sub as string)
+                session.user.image = (token.picture as string) || session.user.image
+                session.user.name = (token.name as string) || session.user.name
+
                 if (session.user.email === process.env.ADMIN_EMAIL) {
                     // @ts-ignore
                     session.user.isAdmin = true
@@ -45,8 +48,12 @@ export const authConfig: NextAuthConfig = {
             }
             return session
         },
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger, session }) {
             if (user) token.id = user.id
+            if (trigger === "update") {
+                if (session?.image) token.picture = session.image
+                if (session?.name) token.name = session.name
+            }
             return token
         },
         async redirect({ url, baseUrl }) {

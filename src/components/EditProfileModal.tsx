@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useSession } from 'next-auth/react'
 import ImageUpload from './ImageUpload'
 
 interface EditProfileModalProps {
@@ -20,6 +21,7 @@ interface EditProfileModalProps {
 
 export default function EditProfileModal({ isOpen, onClose, currentUser, userVehicles }: EditProfileModalProps) {
     const router = useRouter()
+    const { update } = useSession()
     const { t } = useLanguage()
     const [name, setName] = useState(currentUser.name || '')
     const [selectedImage, setSelectedImage] = useState(currentUser.image || '')
@@ -47,6 +49,9 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
             })
 
             if (res.ok) {
+                // 🔥 Forzar actualización de la sesión en el cliente (Header, etc)
+                await update({ name, image: selectedImage })
+
                 router.refresh()
                 onClose()
             }
