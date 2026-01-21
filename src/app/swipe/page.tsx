@@ -8,25 +8,26 @@ import { serializeDecimal } from "@/lib/serialize"
 export default async function SwipePage() {
     const session = await auth()
 
-    if (!session?.user) {
-        redirect("/auth")
-    }
+    const currentUser = session?.user?.email
+        ? await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { id: true, isAdmin: true }
+        })
+        : null
 
-    const currentUser = await prisma.user.findUnique({
-        where: { email: session.user.email! },
-        select: { id: true, isAdmin: true }
-    })
-
-    if (!currentUser) {
-        redirect("/auth")
-    }
+    const currentUserId = currentUser?.id || 'guest'
+    const isAdmin = currentUser?.isAdmin || currentUser?.id === process.env.ADMIN_EMAIL
 
     const isAdmin = currentUser.isAdmin || currentUser.id === process.env.ADMIN_EMAIL
 
     // Obtener vehículos ACTIVOS
     const vehiclesWhere: any = {
         status: "ACTIVE",
-        dislikes: {
+    }
+
+    // Si hay usuario, excluir lo que ya le dio dislike
+    if (currentUser) {
+        vehiclesWhere.dislikes = {
             none: {
                 userId: currentUser.id
             }
@@ -66,13 +67,16 @@ export default async function SwipePage() {
                     favorites: true
                 }
             },
-            favorites: {
+            favorites: currentUser ? {
                 where: {
                     userId: currentUser.id
                 },
                 select: {
                     id: true
                 }
+            } : {
+                where: { id: 'none' },
+                take: 0
             }
         },
         orderBy: {
@@ -95,7 +99,7 @@ export default async function SwipePage() {
     return (
         <SwipeClient
             initialItems={serializeDecimal(items) as any}
-            currentUserId={currentUser.id}
+            currentUserId={currentUserId}
         />
     )
 }

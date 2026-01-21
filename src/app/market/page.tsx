@@ -53,28 +53,24 @@ export default async function MarketPage({
     const searchParams = await searchParamsPromise
     const session = await auth()
 
-    if (!session?.user) {
-        redirect("/auth")
-    }
+    // Obtener usuario si está logueado, si no, modo guest
+    const currentUser = session?.user?.email
+        ? await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { id: true, isAdmin: true, lastLatitude: true, lastLongitude: true }
+        })
+        : null
 
-    const currentUser = await prisma.user.findUnique({
-        where: { email: session.user.email! },
-        select: { id: true, isAdmin: true, lastLatitude: true, lastLongitude: true }
-    })
-
-    if (!currentUser) {
-        redirect("/auth")
-    }
-
-    const isAdmin = currentUser.isAdmin || currentUser.id === process.env.ADMIN_EMAIL // Fallback comparison
+    const isAdmin = currentUser?.isAdmin || currentUser?.id === process.env.ADMIN_EMAIL
+    const currentUserId = currentUser?.id || 'guest'
 
     // Construir query dinámico basado en filtros
     const where: any = {
         status: "ACTIVE",
     }
 
-    // Si NO es admin, ocultar propios. Si ES admin, mostrarlos (para que pueda verse a sí mismo)
-    if (!isAdmin) {
+    // Si NO es admin, ocultar propios. Si ES admin, mostrarlos. Invitados ven todo.
+    if (!isAdmin && currentUser) {
         where.userId = {
             not: currentUser.id
         }
@@ -255,10 +251,10 @@ export default async function MarketPage({
             data: {
                 query: searchParams.search || null,
                 category: (searchParams.category as string) || (searchParams.vehicleType as string) || null,
-                userId: currentUser.id,
+                userId: currentUser?.id || null,
                 // Tomamos la ubicación del usuario si está disponible, si no, intentamos por ciudad filter
-                latitude: currentUser.lastLatitude || 0,
-                longitude: currentUser.lastLongitude || 0
+                latitude: currentUser?.lastLatitude || 0,
+                longitude: currentUser?.lastLongitude || 0
             }
         }).catch(err => console.error("Error saving SearchMetric:", err));
     }
@@ -295,13 +291,16 @@ export default async function MarketPage({
                     favorites: true
                 }
             },
-            favorites: {
+            favorites: currentUser ? {
                 where: {
                     userId: currentUser.id
                 },
                 select: {
                     id: true
                 }
+            } : {
+                where: { id: 'none' }, // Consulta vacía segura para invitados
+                take: 0
             }
         },
         orderBy
@@ -330,7 +329,7 @@ export default async function MarketPage({
     return (
         <MarketClient
             initialItems={serializeDecimal(items) as any}
-            currentUserId={currentUser.id}
+            currentUserId={currentUserId}
             brands={brands}
             vehicleTypes={vehicleTypes}
             colors={colors}
