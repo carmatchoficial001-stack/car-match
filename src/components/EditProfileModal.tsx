@@ -52,6 +52,9 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                 // 🔥 Forzar actualización de la sesión en el cliente (Header, etc)
                 await update({ name, image: selectedImage })
 
+                // 📡 Notificar a otros componentes (Header) que deben refrescarse
+                window.dispatchEvent(new CustomEvent('profileUpdated'))
+
                 router.refresh()
                 onClose()
             }

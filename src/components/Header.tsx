@@ -16,7 +16,7 @@ import { usePushNotifications } from "@/hooks/usePushNotifications"
 export default function Header() {
     const pathname = usePathname()
     const router = useRouter()
-    const { data: session, status } = useSession()
+    const { data: session, status, update } = useSession()
     const { t, locale, setLocale } = useLanguage()
     const [showMenu, setShowMenu] = useState<boolean | 'lang' | 'notifications' | 'user' | 'lang_inner'>(false)
     const [isSoftLogout, setIsSoftLogout] = useState(false)
@@ -127,12 +127,20 @@ export default function Header() {
         const handleFavUpdate = () => fetchCounts()
         window.addEventListener('favoriteUpdated', handleFavUpdate)
 
+        // Escuchar actualizaciones de perfil
+        const handleProfileUpdate = () => {
+            update()
+            router.refresh()
+        }
+        window.addEventListener('profileUpdated', handleProfileUpdate)
+
         const interval = setInterval(fetchCounts, 10000) // Polling cada 10s
         return () => {
             clearInterval(interval)
             window.removeEventListener('favoriteUpdated', handleFavUpdate)
+            window.removeEventListener('profileUpdated', handleProfileUpdate)
         }
-    }, [status])
+    }, [status, update, router])
 
     const totalUnread = unreadMessages + unreadNotifications
 
@@ -331,6 +339,7 @@ export default function Header() {
                                         <div className="relative">
                                             {session.user?.image ? (
                                                 <img
+                                                    key={`pfp-${session.user.image || 'default'}`}
                                                     src={session.user.image}
                                                     alt={session.user.name || "Usuario"}
                                                     className="w-8 h-8 rounded-lg object-contain bg-black/50"
