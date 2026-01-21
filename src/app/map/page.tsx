@@ -9,19 +9,11 @@ export const dynamic = 'force-dynamic'
 export default async function MapPage() {
     const session = await auth()
 
-    if (!session?.user) {
-        redirect('/auth')
-    }
+    const user = session?.user?.email
+        ? await prisma.user.findUnique({ where: { email: session.user.email } })
+        : null
 
-    const user = await prisma.user.findUnique({
-        where: { email: session.user.email! }
-    })
-
-    if (!user) {
-        redirect('/auth')
-    }
-
-    // Fetch active businesses OR businesses owned by the current user (even if inactive)
+    // Fetch active businesses OR businesses owned by the current user (if logged in)
     let whereCondition: any = {
         isActive: true
     }

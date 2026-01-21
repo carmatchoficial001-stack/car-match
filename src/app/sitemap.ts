@@ -13,12 +13,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         take: 5000
     })
 
-    // 2. Obtener Negocios Activos (Ampliamos para cobertura nacional)
+    // 2. Obtener Negocios Activos
     const businesses = await prisma.business.findMany({
         where: { isActive: true },
-        select: { id: true, slug: true, updatedAt: true },
+        select: { id: true, slug: true, updatedAt: true, city: true, category: true },
         orderBy: { updatedAt: 'desc' },
         take: 20000
+    })
+
+    // 2.1 Generar rutas de Directorio Local (Ciudad + Categoría)
+    const directoryUrls: any[] = []
+    const processedCombos = new Set<string>()
+
+    businesses.forEach(b => {
+        if (b.city && b.category) {
+            const combo = `${b.city.toLowerCase()}-${b.category.toLowerCase()}`
+            if (!processedCombos.has(combo)) {
+                processedCombos.add(combo)
+                directoryUrls.push({
+                    url: `${BASE_URL}/negocios/${encodeURIComponent(b.city)}/${encodeURIComponent(b.category)}`,
+                    lastModified: new Date(),
+                    changeFrequency: 'weekly' as const,
+                    priority: 0.9,
+                })
+            }
+        }
     })
 
     // 3. Mapear Vehículos
@@ -50,5 +69,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 1.0,
     }))
 
-    return [...staticRoutes, ...vehicleUrls, ...businessUrls]
+    return [...staticRoutes, ...directoryUrls, ...vehicleUrls, ...businessUrls]
 }

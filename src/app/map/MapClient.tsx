@@ -63,6 +63,8 @@ export default function MapClient({ businesses, user }: MapClientProps) {
     const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null)
     const [activeBusinessId, setActiveBusinessId] = useState<string | null>(null)
 
+    const isGuest = !user
+
     // Listen for custom event from MapBoxStoreLocator
     useEffect(() => {
         const handleOpenModal = (e: CustomEvent<string>) => {
