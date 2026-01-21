@@ -459,11 +459,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
                             {/* 2. PREGUNTAR AL EXPERTO (SMART SEARCH) */}
                             <div className="bg-surface-highlight/30 rounded-3xl p-5 border border-surface-highlight">
-                                <h3 className="text-xs font-black text-primary-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <Sparkles size={16} />
-                                    Preguntar al experto
-                                </h3>
-                                <div className="relative group">
+                                <div className="space-y-4">
                                     <textarea
                                         value={searchQuery}
                                         onChange={(e) => {
@@ -472,15 +468,22 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                             setHasSearched(false)
                                         }}
                                         placeholder={t('map_store.smart_search_placeholder')}
-                                        className="w-full bg-background/50 border-2 border-surface-highlight rounded-2xl p-4 pr-12 text-sm text-text-primary focus:border-primary-600 focus:outline-none resize-none h-24 transition-all"
+                                        className="w-full bg-background/50 border-2 border-surface-highlight rounded-2xl p-4 text-sm text-text-primary focus:border-primary-600 focus:outline-none resize-none h-24 transition-all"
                                         disabled={isAnalyzing}
                                     />
                                     <button
                                         onClick={handleSmartSearch}
                                         disabled={isAnalyzing || !searchQuery.trim()}
-                                        className="absolute right-3 bottom-3 p-2 bg-primary-700 text-white rounded-xl shadow-lg hover:bg-primary-600 transition-all disabled:opacity-30"
+                                        className="w-full flex items-center justify-center gap-2 py-3 bg-primary-700 text-white rounded-xl shadow-lg hover:bg-primary-600 transition-all disabled:opacity-30 text-sm font-bold uppercase tracking-wider"
                                     >
-                                        {isAnalyzing ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Sparkles size={18} />}
+                                        {isAnalyzing ? (
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        ) : (
+                                            <>
+                                                <Sparkles size={18} />
+                                                Preguntar al experto
+                                            </>
+                                        )}
                                     </button>
                                 </div>
                             </div>
