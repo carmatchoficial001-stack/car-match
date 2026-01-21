@@ -1,8 +1,8 @@
 "use client"
 // v1.4 Refactor: Global LocationContext Usage
 
-import { useEffect, useState } from 'react'
-import { MapPin, Search } from 'lucide-react'
+import { useEffect, useState, useRef, useCallback } from 'react'
+import { MapPin, Search, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
@@ -141,6 +141,21 @@ export default function MarketClient({
             setItems(boostShuffleArray(initialItems))
         }
     }, [initialItems, searchParams.sort])
+
+    // --- INFINITE SCROLL LOGIC ---
+    const observer = useRef<IntersectionObserver | null>(null)
+    const lastItemRef = useCallback((node: HTMLDivElement | null) => {
+        if (isFiltering) return
+        if (observer.current) observer.current.disconnect()
+
+        observer.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && visibleCount < filteredItems.length) {
+                setVisibleCount(prev => prev + CARS_PER_PAGE)
+            }
+        }, { threshold: 0.5 })
+
+        if (node) observer.current.observe(node)
+    }, [isFiltering, visibleCount, filteredItems.length])
 
     // --- LÓGICA DE FILTRADO Y DISTANCIA ---
     useEffect(() => {
@@ -515,46 +530,39 @@ export default function MarketClient({
                                         )
                                     })}
 
-                                    {/* Action Card (Load More or Expand) */}
-                                    {(visibleCount < filteredItems.length) ? (
-                                        // Card: Ver más
-                                        <button
-                                            onClick={() => setVisibleCount(prev => prev + CARS_PER_PAGE)}
-                                            className="bg-surface border border-surface-highlight hover:border-primary-500 rounded-2xl flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-surface-highlight/50 transition group min-h-[250px]"
+                                    {/* Action Card (Infinite Scroll Sentinel or Expand) */}
+                                    {visibleCount < filteredItems.length ? (
+                                        <div
+                                            ref={lastItemRef}
+                                            className="col-span-2 md:col-span-3 py-10 flex flex-col items-center justify-center space-y-4"
                                         >
-                                            <div className="w-16 h-16 bg-surface-highlight rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                                <svg className="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+                                            <p className="text-text-secondary text-sm font-medium animate-pulse">
+                                                {t('market.loading_more') || 'Cargando más vehículos...'}
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={handleExpandSearch}
+                                            className="bg-primary-900/20 border-2 border-primary-700/50 hover:border-primary-500 rounded-2xl flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-primary-900/40 transition group min-h-[250px]"
+                                        >
+                                            <div className="w-16 h-16 bg-primary-700 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-primary-900/50">
+                                                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                                 </svg>
                                             </div>
-                                            <span className="font-bold text-lg text-text-primary">{t('market.view_more')}</span>
-                                            <span className="text-sm text-text-secondary mt-1">{t('market.load_next')} {CARS_PER_PAGE}</span>
+                                            <span className="font-bold text-lg text-white">
+                                                {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search') : t('market.expand_search')}
+                                            </span>
+                                            <div className="mt-2 px-3 py-1 bg-white/10 rounded-full border border-white/20">
+                                                <span className="text-[10px] md:text-xs text-primary-200 font-bold uppercase tracking-wider">
+                                                    {t('market.radius_label').replace('{radius}', searchRadius.toString())} | {displayCity}
+                                                </span>
+                                            </div>
+                                            <span className="text-sm text-primary-200 mt-2">
+                                                {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search_desc') : t('market.expand_search_desc')}
+                                            </span>
                                         </button>
-                                    ) : (
-                                        // Card: Expandir
-                                        (
-                                            <button
-                                                onClick={handleExpandSearch}
-                                                className="bg-primary-900/20 border-2 border-primary-700/50 hover:border-primary-500 rounded-2xl flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-primary-900/40 transition group min-h-[250px]"
-                                            >
-                                                <div className="w-16 h-16 bg-primary-700 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-primary-900/50">
-                                                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                                    </svg>
-                                                </div>
-                                                <span className="font-bold text-lg text-white">
-                                                    {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search') : t('market.expand_search')}
-                                                </span>
-                                                <div className="mt-2 px-3 py-1 bg-white/10 rounded-full border border-white/20">
-                                                    <span className="text-[10px] md:text-xs text-primary-200 font-bold uppercase tracking-wider">
-                                                        {t('market.radius_label').replace('{radius}', searchRadius.toString())} | {displayCity}
-                                                    </span>
-                                                </div>
-                                                <span className="text-sm text-primary-200 mt-2">
-                                                    {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search_desc') : t('market.expand_search_desc')}
-                                                </span>
-                                            </button>
-                                        )
                                     )}
                                 </div>
                             ) : (
