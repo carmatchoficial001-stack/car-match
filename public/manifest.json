@@ -28,37 +28,37 @@
     "dir": "ltr",
     "icons": [
         {
-            "src": "/favicon-v18.png",
+            "src": "/favicon-v19.png",
             "sizes": "32x32",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/icon-192-v18.png",
+            "src": "/icon-192-v19.png",
             "sizes": "48x48",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/icon-192-v18.png",
+            "src": "/icon-192-v19.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/maskable-192-v18.png",
+            "src": "/maskable-192-v19.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "maskable"
         },
         {
-            "src": "/icon-512-v18.png",
+            "src": "/icon-512-v19.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/maskable-512-v18.png",
+            "src": "/maskable-512-v19.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
@@ -89,7 +89,7 @@
             "url": "/carmatch",
             "icons": [
                 {
-                    "src": "/icon-192-v18.png",
+                    "src": "/icon-192-v19.png",
                     "sizes": "192x192"
                 }
             ]
@@ -101,7 +101,7 @@
             "url": "/map",
             "icons": [
                 {
-                    "src": "/icon-192-v18.png",
+                    "src": "/icon-192-v19.png",
                     "sizes": "192x192"
                 }
             ]

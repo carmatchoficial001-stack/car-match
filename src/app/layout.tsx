@@ -35,7 +35,7 @@ export const metadata: Metadata = {
         description: "Desliza, encuentra y conecta. La forma más inteligente y segura de comprar autos y encontrar servicios mecánicos.",
         images: [
             {
-                url: "/logo-v18.png",
+                url: "/logo-v19.png",
                 width: 1200,
                 height: 630,
                 alt: "CarMatch Marketplace Oficial",
@@ -46,17 +46,17 @@ export const metadata: Metadata = {
         card: "summary_large_image",
         title: "CarMatch® | El Marketplace de Autos del Futuro",
         description: "Compra, vende y encuentra servicios mecánicos en tiempo real. La app definitiva para el sector automotriz.",
-        images: ["/logo-v18.png"],
+        images: ["/logo-v19.png"],
     },
     icons: {
         icon: [
-            { url: "/favicon-v18.png", sizes: "32x32", type: "image/png" },
-            { url: "/icon-192-v18.png", sizes: "48x48", type: "image/png" },
-            { url: "/icon-192-v18.png", sizes: "192x192", type: "image/png" }
+            { url: "/favicon-v19.png", sizes: "32x32", type: "image/png" },
+            { url: "/icon-192-v19.png", sizes: "48x48", type: "image/png" },
+            { url: "/icon-192-v19.png", sizes: "192x192", type: "image/png" }
         ],
-        shortcut: ["/favicon-v18.png"],
+        shortcut: ["/favicon-v19.png"],
         apple: [
-            { url: "/maskable-192-v18.png", sizes: "180x180", type: "image/png" }
+            { url: "/maskable-192-v19.png", sizes: "180x180", type: "image/png" }
         ],
     }
 };
@@ -92,7 +92,7 @@ export default function RootLayout({
                                 "name": "CarMatch®",
                                 "alternateName": "CarMatch Official",
                                 "url": "https://carmatchapp.net",
-                                "logo": "https://carmatchapp.net/logo-v18.png",
+                                "logo": "https://carmatchapp.net/logo-v19.png",
                                 "sameAs": [
                                     "https://www.facebook.com/share/1AVsMtGGrG/",
                                     "https://www.instagram.com/car.matchoficial?igsh=MWR2cjN5bGVmZzdoeQ=="
@@ -109,7 +109,7 @@ export default function RootLayout({
                                 "operatingSystem": "iOS, Android, Windows, macOS",
                                 "description": "La aplicación líder para comprar, vender y descubrir vehículos. Incluye Swipe estilo Tinder y MapStore de talleres.",
                                 "softwareVersion": "1.0.0",
-                                "screenshot": "https://carmatchapp.net/logo-v18.png",
+                                "screenshot": "https://carmatchapp.net/logo-v19.png",
                                 "offers": {
                                     "@type": "Offer",
                                     "price": "0",
