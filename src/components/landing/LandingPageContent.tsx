@@ -221,33 +221,6 @@ export default function LandingPageContent() {
                     © {new Date().getFullYear()} CarMatch. {t('common.all_rights_reserved')}
                 </div>
 
-                {/* 🚀 SEO FOOTER - DOMINANCIA LOCAL */}
-                <div className="mt-16 pt-16 border-t border-white/5">
-                    <h3 className="text-xl font-black mb-8 text-center text-text-primary tracking-tighter uppercase italic opacity-50">Explora Servicios en México</h3>
-                    <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 max-w-4xl mx-auto">
-                        {['mecanico', 'llantera', 'gruas', 'refacciones', 'detallado', 'blindaje'].map(cat => (
-                            <Link
-                                key={cat}
-                                href={`/negocios/Juárez/${cat}`}
-                                className="text-sm text-gray-400 hover:text-primary-500 transition-colors uppercase font-bold tracking-widest"
-                            >
-                                {cat.replace('_', ' ')} en Juárez
-                            </Link>
-                        ))}
-                        {['mecanico', 'llantera', 'refacciones'].map(cat => (
-                            <Link
-                                key={cat + 'chih'}
-                                href={`/negocios/Chihuahua/${cat}`}
-                                className="text-sm text-gray-400 hover:text-primary-500 transition-colors uppercase font-bold tracking-widest"
-                            >
-                                {cat.replace('_', ' ')} en Chihuahua
-                            </Link>
-                        ))}
-                    </div>
-                    <div className="mt-8 text-center">
-                        <Link href="/map-store" className="text-xs text-primary-600/50 hover:text-primary-500 font-black uppercase tracking-[0.2em] transition">Ver Directorio Nacional Completo</Link>
-                    </div>
-                </div>
             </footer>
         </div>
     )
