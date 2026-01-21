@@ -305,7 +305,7 @@ export default function PublishClient() {
 
         // 🧠 SMART FEATURES: Match AI features with UI suggestions
         const feats = details.features || []
-        
+
         if (feats.length > 0) {
             // 1. Get official taxonomy for this category
             const taxCat = mapCategoryToTaxonomy(category) || 'Automóvil'
@@ -313,15 +313,15 @@ export default function PublishClient() {
 
             const normalizedFeats = feats.map((f: string) => {
                 const normF = f.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                
+
                 // Try to find a match in official features
                 const match = officialFeatures.find(official => {
                     const normOfficial = official.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                    
+
                     // Direct match or inclusion
                     if (normOfficial === normF) return true
                     if (normOfficial.includes(normF) && normF.length > 3) return true // "Piel" in "Asientos de Piel"
-                    
+
                     // Synonyms Logic
                     if (normOfficial.includes('piel') && normF.includes('cuero')) return true
                     if (normOfficial.includes('quemacocos') && (normF.includes('techo') || normF.includes('solar') || normF.includes('sunroof'))) return true
@@ -332,7 +332,7 @@ export default function PublishClient() {
                     if (normOfficial.includes('vidrios') && (normF.includes('ventanas') || normF.includes('cristales') || normF.includes('electricos'))) return true
                     if (normOfficial.includes('aire') && (normF.includes('a/c') || normF.includes('clima'))) return true
                     if (normOfficial.includes('android') && (normF.includes('carplay') || normF.includes('apple'))) return true
-                    
+
                     return false
                 })
 
@@ -806,7 +806,7 @@ export default function PublishClient() {
                                             <input
                                                 type="text"
                                                 inputMode="numeric"
-                                                value={price}
+                                                value={price ? Number(price).toLocaleString(locale === 'es' ? 'es-MX' : 'en-US') : ''}
                                                 onChange={(e) => {
                                                     const val = e.target.value;
                                                     const onlyNums = val.replace(/[^0-9]/g, '');
@@ -837,7 +837,7 @@ export default function PublishClient() {
                                             <input
                                                 type="text"
                                                 inputMode="numeric"
-                                                value={mileage}
+                                                value={mileage ? Number(mileage).toLocaleString(locale === 'es' ? 'es-MX' : 'en-US') : ''}
                                                 onChange={(e) => {
                                                     const val = e.target.value;
                                                     const onlyNums = val.replace(/[^0-9]/g, '');
