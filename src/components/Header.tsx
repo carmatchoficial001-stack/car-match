@@ -62,14 +62,20 @@ export default function Header() {
 
     const isActive = (path: string) => pathname === path
 
-    const handleSignOut = async () => {
+    const handleSignOut = async (hard: boolean = false) => {
         try {
+            if (hard) {
+                // 🔥 CIERRE DE SESIÓN REAL (Para pruebas de invitado)
+                await signOut({ redirect: true, callbackUrl: '/' })
+                return
+            }
+
             // 🔥 CIERRE DE SESIÓN SIMULADO (Soft Logout)
             document.cookie = "soft_logout=true; Path=/; Max-Age=31536000" // 1 año
             localStorage.setItem('soft_logout', 'true')
             window.location.href = '/'
         } catch (error) {
-            console.error("Error durante el cierre de sesión simulado:", error)
+            console.error("Error durante el cierre de sesión:", error)
             window.location.href = '/'
         }
     }
@@ -496,6 +502,18 @@ export default function Header() {
                                                         <Settings size={20} className="text-primary-700" />
                                                         <span className="font-medium">{t('settings.title')}</span>
                                                     </Link>
+
+                                                    <div className="border-t border-surface-highlight/50 my-1"></div>
+
+                                                    <button
+                                                        onClick={() => handleSignOut(true)}
+                                                        className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-950/20 transition w-full"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                        </svg>
+                                                        <span className="font-bold">{t('common.logout')}</span>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </>
