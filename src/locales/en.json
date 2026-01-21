@@ -686,6 +686,9 @@
         "safety_shield": "Safety Guide"
     },
     "map_store": {
+        "view_list": "Show Map and List",
+        "show_filters": "Show Filters",
+        "results_found": "results found",
         "loading": "Loading Map...",
         "loading_location": "Getting your location...",
         "location_required": "Location Required",

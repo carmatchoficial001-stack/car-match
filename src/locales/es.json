@@ -729,6 +729,9 @@
         "btn_search": "Preguntar al Asesor"
     },
     "map_store": {
+        "view_list": "Mostrar Mapa y Lista",
+        "show_filters": "Mostrar Filtros",
+        "results_found": "resultados encontrados",
         "search_placeholder": "🔍 Buscar calle, colonia o lugar...",
         "loading": "Cargando Mapa...",
         "loading_location": "Obteniendo tu ubicación...",

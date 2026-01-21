@@ -80,9 +80,11 @@ interface VehicleDetailProps {
 
 export default function VehicleDetailClient({ vehicle, currentUserEmail, currentUserId }: VehicleDetailProps) {
     const { t, locale } = useLanguage()
+    const router = useRouter()
     const [activeImage, setActiveImage] = useState(0)
     const [showFullImage, setShowFullImage] = useState(false)
-    const isOwner = currentUserId === vehicle.userId
+    const isOwner = !!currentUserId && currentUserId === vehicle.userId
+    const isGuest = !currentUserId
 
     useEffect(() => {
         // Registrar vista real al entrar
@@ -462,7 +464,16 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 </h3>
                                 <div className="bg-surface-highlight/20 border border-white/5 rounded-3xl p-6 transition-all hover:bg-surface-highlight/30">
                                     <div className="flex items-center justify-between">
-                                        <Link href={`/profile/${vehicle.user.id}`} className="flex items-center gap-4 group/seller transition-all">
+                                        <div
+                                            onClick={() => {
+                                                if (isGuest) {
+                                                    router.push('/auth?callbackUrl=' + encodeURIComponent(`/profile/${vehicle.user.id}`));
+                                                } else {
+                                                    router.push(`/profile/${vehicle.user.id}`);
+                                                }
+                                            }}
+                                            className="flex items-center gap-4 group/seller transition-all cursor-pointer w-full"
+                                        >
                                             <div className="relative">
                                                 <div className="w-16 h-16 bg-primary-700/20 rounded-full flex items-center justify-center text-primary-400 font-bold text-2xl uppercase shadow-glow group-hover/seller:bg-primary-700/40 transition-all overflow-hidden border-2 border-primary-500/30">
                                                     {vehicle.user.image ? (
@@ -483,10 +494,10 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                                 <p className="text-sm text-text-secondary font-medium">{t('vehicle.verified_seller')}</p>
                                                 <div className="flex items-center gap-4 mt-2">
                                                     <span className="text-xs px-2.5 py-1 bg-green-500/10 text-green-400 rounded-lg border border-green-500/20 font-bold uppercase tracking-tight">Active Now</span>
-                                                    <span className="text-xs text-primary-400 hover:underline font-bold">Ver Perfil Completo →</span>
+                                                    <span className="text-xs text-primary-400 font-bold">Ver Perfil Completo →</span>
                                                 </div>
                                             </div>
-                                        </Link>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

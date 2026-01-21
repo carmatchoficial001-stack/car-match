@@ -95,7 +95,10 @@ export default async function VehicleDetailPage({ params, searchParams }: Props)
                 select: {
                     id: true
                 }
-            } : undefined
+            } : {
+                where: { id: 'none' }, // Consulta vacía segura para invitados
+                take: 0
+            }
         }
     })
 

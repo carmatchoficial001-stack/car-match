@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
 import Header from '@/components/Header'
@@ -62,6 +62,10 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
     const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null)
     const [activeBusinessId, setActiveBusinessId] = useState<string | null>(null)
+    const [dynamicBusinesses, setDynamicBusinesses] = useState<any[]>(businesses)
+    const [isLoadingBounds, setIsLoadingBounds] = useState(false)
+    const debounceTimer = useRef<NodeJS.Timeout | null>(null)
+    const lastBounds = useRef<string>('')
 
     const isGuest = !user
 
@@ -69,7 +73,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
     useEffect(() => {
         const handleOpenModal = (e: CustomEvent<string>) => {
             const businessId = e.detail
-            const business = businesses.find(b => b.id === businessId)
+            const business = dynamicBusinesses.find(b => b.id === businessId)
             if (business) {
                 setSelectedBusiness(business)
                 setActiveBusinessId(businessId)
@@ -89,7 +93,45 @@ export default function MapClient({ businesses, user }: MapClientProps) {
         return () => {
             window.removeEventListener('open-business-modal' as any, handleOpenModal as any)
         }
-    }, [businesses])
+    }, [dynamicBusinesses])
+
+    // 🗺️ Dynamic Bounds Fetch
+    const handleBoundsChange = (bounds: any) => {
+        const boundsKey = JSON.stringify(bounds)
+        if (boundsKey === lastBounds.current) return
+        lastBounds.current = boundsKey
+
+        if (debounceTimer.current) clearTimeout(debounceTimer.current)
+
+        debounceTimer.current = setTimeout(async () => {
+            setIsLoadingBounds(true)
+            try {
+                const params = new URLSearchParams({
+                    minLat: bounds.minLat.toString(),
+                    maxLat: bounds.maxLat.toString(),
+                    minLng: bounds.minLng.toString(),
+                    maxLng: bounds.maxLng.toString(),
+                    category: selectedCategories.length === 1 ? selectedCategories[0] : 'all'
+                })
+
+                const res = await fetch(`/api/businesses/bounds?${params}`)
+                if (res.ok) {
+                    const data = await res.json()
+                    // Merge with existing to avoid flickering, or replace to satisfy "only what is seen"
+                    // Additive is usually better for mobile UX so items don't disappear from list while panning slightly
+                    setDynamicBusinesses(prev => {
+                        const existingIds = new Set(prev.map(b => b.id))
+                        const newOnes = data.businesses.filter((b: any) => !existingIds.has(b.id))
+                        return [...prev, ...newOnes].slice(-1000) // Keep a reasonable pool
+                    })
+                }
+            } catch (err) {
+                console.error("Bounds fetch error:", err)
+            } finally {
+                setIsLoadingBounds(false)
+            }
+        }, 800)
+    }
 
     const handleSmartSearch = async () => {
         if (!searchQuery.trim()) return
@@ -248,7 +290,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
     // Filter Logic
     const filteredBusinesses = useMemo(() => {
-        let result = businesses;
+        let result = dynamicBusinesses;
         if (selectedCategories.length > 0) {
             result = result.filter(b => selectedCategories.includes(b.category));
         }
@@ -256,7 +298,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
         // Sorting: If user has location, sort by distance? Or just boosted first.
         // For now, let's keep it simple.
         return result;
-    }, [businesses, selectedCategories])
+    }, [dynamicBusinesses, selectedCategories])
 
     // 🔒 Si está cargando la ubicación, mostrar pantalla de carga
     if (loading) {
@@ -365,8 +407,8 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                     onClick={() => setShowSidebar(true)}
                     className="md:hidden absolute top-4 left-4 z-10 px-6 py-2.5 bg-primary-700 text-white rounded-full shadow-2xl font-black uppercase tracking-widest border-2 border-primary-500/50 flex items-center gap-2 active:scale-95 transition-all"
                 >
-                    <Star size={18} fill="currentColor" />
-                    {t('map_store.view_list')}
+                    <Settings2 size={18} />
+                    {t('map_store.show_filters')}
                 </button>
 
                 {/* 🗂️ Sidebar (Desktop & Mobile Drawer) - GOOGLE STYLE RESULTS LIST */}
@@ -486,11 +528,20 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
                 {/* 🗺️ MAP */}
                 <div className="flex-1 w-full h-full relative z-0">
+                    {isLoadingBounds && (
+                        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+                            <div className="bg-primary-900/90 text-white px-4 py-2 rounded-full text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 border border-primary-500/30 animate-in fade-in zoom-in duration-300">
+                                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Buscando en esta zona...
+                            </div>
+                        </div>
+                    )}
                     <MapBoxStoreLocator
                         businesses={filteredBusinesses}
                         categoryColors={CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.color }), {})}
                         categoryEmojis={CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.icon }), {})}
                         initialLocation={location ? { latitude: location.latitude, longitude: location.longitude } : undefined}
+                        onBoundsChange={handleBoundsChange}
                     />
                 </div>
 

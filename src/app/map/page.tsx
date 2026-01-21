@@ -29,7 +29,18 @@ export default async function MapPage() {
 
     const businesses = await prisma.business.findMany({
         where: whereCondition,
-        include: {
+        take: 500, // optimization: don't load 5000 at once on mobile
+        select: {
+            id: true,
+            name: true,
+            category: true,
+            latitude: true,
+            longitude: true,
+            city: true,
+            images: true,
+            description: true,
+            services: true,
+            userId: true,
             user: {
                 select: {
                     name: true,

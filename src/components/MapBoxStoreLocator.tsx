@@ -23,13 +23,15 @@ interface MapBoxStoreLocatorProps {
     categoryColors: Record<string, string>
     categoryEmojis: Record<string, string>
     initialLocation?: { latitude: number; longitude: number }
+    onBoundsChange?: (bounds: { minLat: number; maxLat: number; minLng: number; maxLng: number }) => void
 }
 
 export default function MapBoxStoreLocator({
     businesses,
     categoryColors,
     categoryEmojis,
-    initialLocation
+    initialLocation,
+    onBoundsChange
 }: MapBoxStoreLocatorProps) {
     const { t } = useLanguage()
     const mapContainer = useRef<HTMLDivElement>(null)
@@ -84,6 +86,24 @@ export default function MapBoxStoreLocator({
             if (newMap.getLayer('poi-label')) {
                 newMap.setLayoutProperty('poi-label', 'visibility', 'none')
             }
+
+            // 📍 Report initial bounds or when map moves
+            const reportBounds = () => {
+                if (!onBoundsChange) return
+                const bounds = newMap.getBounds()
+                if (!bounds) return
+
+                onBoundsChange({
+                    minLat: bounds.getSouth(),
+                    maxLat: bounds.getNorth(),
+                    minLng: bounds.getWest(),
+                    maxLng: bounds.getEast()
+                })
+            }
+
+            newMap.on('moveend', reportBounds)
+            // Report once map is loaded and centered
+            setTimeout(reportBounds, 1000)
         })
 
         // 🎯 Focus Business Listener
@@ -172,7 +192,6 @@ export default function MapBoxStoreLocator({
                 cluster: false,
             })
 
-
             // 3. UNCLUSTERED POINTS LAYER (The Pin Shape)
             mapInstance.addLayer({
                 id: 'unclustered-point-bg',
@@ -180,16 +199,16 @@ export default function MapBoxStoreLocator({
                 source: sourceId,
                 layout: {
                     'icon-image': 'pin',
-                    'icon-size': 0.08, // SVG is large (384x512), scale down significantly. 512 * 0.08 = ~40px height
+                    'icon-size': 0.08,
                     'icon-allow-overlap': true,
-                    'icon-anchor': 'bottom', // Pin tip at the coordinate
+                    'icon-anchor': 'bottom',
                 },
                 paint: {
                     'icon-color': [
                         'match',
                         ['get', 'category'],
                         ...Object.entries(categoryColors).flat(),
-                        '#ef4444' // Default Red
+                        '#ef4444'
                     ]
                 }
             })
@@ -204,15 +223,15 @@ export default function MapBoxStoreLocator({
                         'match',
                         ['get', 'category'],
                         ...Object.entries(categoryEmojis).flat(),
-                        '📍' // Default
+                        '📍'
                     ],
                     'text-size': 14,
                     'text-allow-overlap': true,
                     'text-anchor': 'bottom',
-                    'text-offset': [0, -2.2] // Move up to sit in the pin head (approx 75% height)
+                    'text-offset': [0, -2.2]
                 },
                 paint: {
-                    'text-color': '#ffffff' // White emoji/text for contrast on colored pin
+                    'text-color': '#ffffff'
                 }
             })
 
