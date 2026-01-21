@@ -82,8 +82,14 @@ interface VehicleDetailProps {
 export default function VehicleDetailClient({ vehicle, currentUserEmail, currentUserId }: VehicleDetailProps) {
     const { t, locale } = useLanguage()
     const router = useRouter()
+    const searchParams = useSearchParams()
+
+    // Hooks should be at the top level
     const [activeImage, setActiveImage] = useState(0)
     const [showFullImage, setShowFullImage] = useState(false)
+    const thumbnailsRef = useRef<HTMLDivElement>(null)
+    const isManualScrolling = useRef(false)
+
     const isOwner = !!currentUserId && currentUserId === vehicle.userId
     const isGuest = !currentUserId
 
@@ -92,25 +98,51 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
         fetch(`/api/vehicles/${vehicle.id}/view`, { method: 'POST' }).catch(() => { })
     }, [vehicle.id])
 
+    // Sincronizar scroll manual de miniaturas con la imagen principal
+    const handleThumbnailsScroll = () => {
+        if (!thumbnailsRef.current || !vehicle.images || vehicle.images.length <= 1) return
+
+        // Solo actuar si el scroll es manual
+        if (isManualScrolling.current) {
+            const container = thumbnailsRef.current
+            const scrollPercent = container.scrollLeft / (container.scrollWidth - container.clientWidth)
+            const index = Math.min(
+                Math.max(Math.round(scrollPercent * (vehicle.images.length - 1)), 0),
+                vehicle.images.length - 1
+            )
+
+            if (index !== activeImage) {
+                setActiveImage(index)
+            }
+        }
+    }
+
+    // Auto-centrar la miniatura cuando cambia activeImage
+    useEffect(() => {
+        if (thumbnailsRef.current && !isManualScrolling.current) {
+            const container = thumbnailsRef.current
+            const activeThumb = container.children[activeImage] as HTMLElement
+            if (activeThumb) {
+                const targetScroll = activeThumb.offsetLeft - (container.offsetWidth / 2) + (activeThumb.offsetWidth / 2)
+                container.scrollTo({
+                    left: targetScroll,
+                    behavior: 'smooth'
+                })
+            }
+        }
+    }, [activeImage])
+
     // 📍 ADMIN DYNAMIC LOCATION LOGIC
-    const searchParams = useSearchParams()
     const contextCity = searchParams.get('contextCity')
-
-    // Si es Admin Y tenemos contextCity, mostramos esa ciudad. Si no, la real.
-    // Opcional: También podríamos pasar el estado/país si fuera necesario, pero la ciudad es lo más visual.
     const displayCity = (vehicle.user.isAdmin && contextCity) ? contextCity : vehicle.city
-
     const locationString = [displayCity, vehicle.state, vehicle.country]
         .filter(b => b && b !== 'null' && b !== 'undefined')
         .join(', ')
 
     // Componentes de Gestión Internos (Solo Dueño)
     const ManagementPanel = () => {
-        // 💡 Lógica de Condición para botones
         const isExpired = vehicle.expiresAt && new Date(vehicle.expiresAt) < new Date()
         const isSold = vehicle.status === 'SOLD'
-
-        // Si está vendido, siempre necesita crédito para reactivar
         const needsCreditToActivate = isSold || !vehicle.isFreePublication || isExpired || vehicle.moderationStatus === 'REJECTED'
         const canActivateFree = !isSold && vehicle.isFreePublication && !isExpired && (vehicle.moderationStatus === 'APPROVED' || vehicle.moderationStatus === 'PENDING_AI')
         const statusKey = vehicle.status.toLowerCase()
@@ -138,7 +170,6 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 </div>
                             )}
                         </div>
-
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full md:w-auto">
@@ -149,8 +180,6 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                             <Edit3 size={20} className="text-primary-400 group-hover:scale-110 transition" />
                             <span className="text-[10px] font-bold uppercase tracking-tighter">Editar</span>
                         </Link>
-
-
 
                         {vehicle.status !== 'ACTIVE' && needsCreditToActivate && (
                             <OwnerActionButton
@@ -192,7 +221,6 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                             />
                         )}
 
-                        {/* Botón de Eliminar (Siempre visible para el dueño) */}
                         <OwnerActionButton
                             action="delete"
                             vehicleId={vehicle.id}
@@ -200,46 +228,11 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                             label="Eliminar"
                             variant="danger"
                         />
-
-
+                    </div>
+                </div>
+            </div>
+        )
     }
-
-    const thumbnailsRef = useRef<HTMLDivElement>(null)
-    const isManualScrolling = useRef(false)
-
-    // Sincronizar scroll manual de miniaturas con la imagen principal
-    const handleThumbnailsScroll = () => {
-        if (!thumbnailsRef.current || !vehicle.images || vehicle.images.length <= 1) return
-        
-        // Solo actuar si el scroll es manual
-        if (isManualScrolling.current) {
-            const container = thumbnailsRef.current
-            const scrollPercent = container.scrollLeft / (container.scrollWidth - container.clientWidth)
-            const index = Math.min(
-                Math.max(Math.round(scrollPercent * (vehicle.images.length - 1)), 0),
-                vehicle.images.length - 1
-            )
-            
-            if (index !== activeImage) {
-                setActiveImage(index)
-            }
-        }
-    }
-
-    // Auto-centrar la miniatura cuando cambia activeImage
-    useEffect(() => {
-        if (thumbnailsRef.current && !isManualScrolling.current) {
-            const container = thumbnailsRef.current
-            const activeThumb = container.children[activeImage] as HTMLElement
-            if (activeThumb) {
-                const targetScroll = activeThumb.offsetLeft - (container.offsetWidth / 2) + (activeThumb.offsetWidth / 2)
-                container.scrollTo({
-                    left: targetScroll,
-                    behavior: 'smooth'
-                })
-            }
-        }
-    }, [activeImage])
 
     return (
         <div className="min-h-screen bg-background pb-32">
