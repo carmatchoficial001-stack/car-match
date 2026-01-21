@@ -301,199 +301,200 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                 })}
                             </div>
                         )}
-                        ) : (
-                        <div className="space-y-6">
-                            <div className="bg-surface rounded-2xl shadow-xl border border-surface-highlight overflow-hidden flex flex-col md:flex-row h-[600px]">
-                                {/* Lista de Reportes Hechos */}
-                                <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-surface-highlight flex flex-col">
-                                    <div className="p-4 border-b border-surface-highlight bg-black/5">
-                                        <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                                            <Flag className="w-3.5 h-3.5 text-primary-400" /> Mis Reportes
-                                        </h3>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                        {user.reportsMade?.length === 0 ? (
-                                            <div className="p-8 text-center text-xs text-text-secondary italic">No has realizado reportes.</div>
-                                        ) : (
-                                            <div className="divide-y divide-surface-highlight">
-                                                {user.reportsMade.map((report: any) => (
-                                                    <button
-                                                        key={report.id}
-                                                        onClick={() => setSelectedReportId(report.id)}
-                                                        className={`w-full text-left p-4 hover:bg-surface-highlight transition-colors group ${selectedReportId === report.id ? 'bg-surface-highlight' : ''}`}
-                                                    >
-                                                        <div className="flex justify-between items-start mb-1">
-                                                            <span className={`text-[8px] font-black uppercase tracking-widest ${report.status === 'PENDING' ? 'text-red-400' : 'text-green-400'}`}>
-                                                                {report.status}
-                                                            </span>
-                                                            <span className="text-[8px] text-text-secondary">{new Date(report.createdAt).toLocaleDateString()}</span>
-                                                        </div>
-                                                        <h4 className="font-bold text-xs truncate group-hover:text-primary-400">
-                                                            {report.vehicle?.title || report.business?.name || 'Reporte de publicación'}
-                                                        </h4>
-                                                        <p className="text-[10px] text-text-secondary truncate mt-0.5">{report.reason}</p>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
+                    </div>
+                ) : (
+                    <div className="space-y-6">
+                        <div className="bg-surface rounded-2xl shadow-xl border border-surface-highlight overflow-hidden flex flex-col md:flex-row h-[600px]">
+                            {/* Lista de Reportes Hechos */}
+                            <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-surface-highlight flex flex-col">
+                                <div className="p-4 border-b border-surface-highlight bg-black/5">
+                                    <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                                        <Flag className="w-3.5 h-3.5 text-primary-400" /> Mis Reportes
+                                    </h3>
                                 </div>
-
-                                {/* Detalle y Chat */}
-                                <div className="flex-1 flex flex-col bg-black/10">
-                                    {selectedReportId ? (
-                                        <>
-                                            <div className="p-4 border-b border-surface-highlight bg-surface flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-red-400/10 rounded-lg text-red-400">
-                                                        <ShieldCheck className="w-4 h-4" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-xs font-bold">{user.reportsMade.find((r: any) => r.id === selectedReportId)?.vehicle?.title || user.reportsMade.find((r: any) => r.id === selectedReportId)?.business?.name || 'Publicación'}</h3>
-                                                        <p className="text-[8px] text-text-secondary font-black uppercase">{user.reportsMade.find((r: any) => r.id === selectedReportId)?.reason}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="text-[8px] bg-surface-highlight px-2 py-1 rounded text-text-secondary"># {selectedReportId.slice(-6)}</div>
-                                            </div>
-
-                                            {/* Componente de Chat Reutilizable (simplificado acá por brevedad) */}
-                                            <div className="flex-1 flex flex-col overflow-hidden">
-                                                <ReportChat reportId={selectedReportId} />
-                                            </div>
-                                        </>
+                                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                    {user.reportsMade?.length === 0 ? (
+                                        <div className="p-8 text-center text-xs text-text-secondary italic">No has realizado reportes.</div>
                                     ) : (
-                                        <div className="flex-1 flex flex-col items-center justify-center opacity-30 p-8 text-center">
-                                            <MessageSquare className="w-12 h-12 mb-4" />
-                                            <p className="text-sm font-bold">Selecciona un reporte para hablar con un asesor</p>
-                                            <p className="text-[10px] mt-2 max-w-[200px]">Aquí podrás seguir el estado de tus denuncias y adjuntar más información si es necesario.</p>
+                                        <div className="divide-y divide-surface-highlight">
+                                            {user.reportsMade.map((report: any) => (
+                                                <button
+                                                    key={report.id}
+                                                    onClick={() => setSelectedReportId(report.id)}
+                                                    className={`w-full text-left p-4 hover:bg-surface-highlight transition-colors group ${selectedReportId === report.id ? 'bg-surface-highlight' : ''}`}
+                                                >
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <span className={`text-[8px] font-black uppercase tracking-widest ${report.status === 'PENDING' ? 'text-red-400' : 'text-green-400'}`}>
+                                                            {report.status}
+                                                        </span>
+                                                        <span className="text-[8px] text-text-secondary">{new Date(report.createdAt).toLocaleDateString()}</span>
+                                                    </div>
+                                                    <h4 className="font-bold text-xs truncate group-hover:text-primary-400">
+                                                        {report.vehicle?.title || report.business?.name || 'Reporte de publicación'}
+                                                    </h4>
+                                                    <p className="text-[10px] text-text-secondary truncate mt-0.5">{report.reason}</p>
+                                                </button>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
                             </div>
+
+                            {/* Detalle y Chat */}
+                            <div className="flex-1 flex flex-col bg-black/10">
+                                {selectedReportId ? (
+                                    <>
+                                        <div className="p-4 border-b border-surface-highlight bg-surface flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-red-400/10 rounded-lg text-red-400">
+                                                    <ShieldCheck className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-xs font-bold">{user.reportsMade.find((r: any) => r.id === selectedReportId)?.vehicle?.title || user.reportsMade.find((r: any) => r.id === selectedReportId)?.business?.name || 'Publicación'}</h3>
+                                                    <p className="text-[8px] text-text-secondary font-black uppercase">{user.reportsMade.find((r: any) => r.id === selectedReportId)?.reason}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-[8px] bg-surface-highlight px-2 py-1 rounded text-text-secondary"># {selectedReportId.slice(-6)}</div>
+                                        </div>
+
+                                        {/* Componente de Chat Reutilizable (simplificado acá por brevedad) */}
+                                        <div className="flex-1 flex flex-col overflow-hidden">
+                                            <ReportChat reportId={selectedReportId} />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex-1 flex flex-col items-center justify-center opacity-30 p-8 text-center">
+                                        <MessageSquare className="w-12 h-12 mb-4" />
+                                        <p className="text-sm font-bold">Selecciona un reporte para hablar con un asesor</p>
+                                        <p className="text-[10px] mt-2 max-w-[200px]">Aquí podrás seguir el estado de tus denuncias y adjuntar más información si es necesario.</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                )}
                     </div>
+                )}
+            </div>
 
             {/* Modal de Edición */}
-                <EditProfileModal
-                    isOpen={showEditModal}
-                    onClose={() => setShowEditModal(false)}
-                    currentUser={{
-                        name: user.name,
-                        image: user.image,
-                        email: user.email,
-                        trustedContactId: user.trustedContactId,
-                        trustedContact: user.trustedContact
-                    }}
-                    userVehicles={vehiclesToShow}
-                />
-            </div>
-            )
+            <EditProfileModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                currentUser={{
+                    name: user.name,
+                    image: user.image,
+                    email: user.email,
+                    trustedContactId: user.trustedContactId,
+                    trustedContact: user.trustedContact
+                }}
+                userVehicles={vehiclesToShow}
+            />
+        </div>
+    )
 }
 
-            function ReportChat({reportId}: {reportId: string }) {
+function ReportChat({ reportId }: { reportId: string }) {
     const [messages, setMessages] = useState<any[]>([])
-            const [newMessage, setNewMessage] = useState("")
-            const [loading, setLoading] = useState(true)
-            const [sending, setSending] = useState(false)
-            const scrollRef = useRef<HTMLDivElement>(null)
+    const [newMessage, setNewMessage] = useState("")
+    const [loading, setLoading] = useState(true)
+    const [sending, setSending] = useState(false)
+    const scrollRef = useRef<HTMLDivElement>(null)
 
     const fetchMessages = useCallback(async () => {
         try {
             const res = await fetch(`/api/report/${reportId}/messages`)
-                if (res.ok) {
+            if (res.ok) {
                 const data = await res.json()
                 setMessages(data)
             }
-        } catch (e) {console.error(e)}
-                finally {setLoading(false)}
+        } catch (e) { console.error(e) }
+        finally { setLoading(false) }
     }, [reportId])
 
     useEffect(() => {
-                    fetchMessages()
+        fetchMessages()
         const interval = setInterval(fetchMessages, 5000)
         return () => clearInterval(interval)
     }, [fetchMessages])
 
     useEffect(() => {
         if (scrollRef.current) {
-                    scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-                }
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+        }
     }, [messages])
 
     const handleSend = async (e: React.FormEvent) => {
-                    e.preventDefault()
+        e.preventDefault()
         if (!newMessage.trim() || sending) return
 
-                setSending(true)
-                try {
+        setSending(true)
+        try {
             const res = await fetch(`/api/report/${reportId}/messages`, {
-                    method: 'POST',
-                headers: {'Content-Type': 'application/json' },
-                body: JSON.stringify({content: newMessage })
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: newMessage })
             })
-                if (res.ok) {
+            if (res.ok) {
                 const msg = await res.json()
                 setMessages(prev => [...prev, msg])
                 setNewMessage("")
             }
         } catch (e) {
-                    console.error(e)
-                } finally {
-                    setSending(false)
-                }
+            console.error(e)
+        } finally {
+            setSending(false)
+        }
     }
 
-                if (loading) return <div className="flex-1 flex items-center justify-center text-xs opacity-50">Cargando conversación...</div>
+    if (loading) return <div className="flex-1 flex items-center justify-center text-xs opacity-50">Cargando conversación...</div>
 
-                return (
-                <>
-                    <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-                        {messages.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center gap-4 opacity-30 grayscale p-8">
-                                <div className="p-4 bg-primary-400/10 rounded-full">
-                                    <Headset className="w-8 h-8 text-primary-400" />
-                                </div>
-                                <p className="text-[10px] font-bold text-center">Inicia una conversación con un administrador sobre tu reporte.</p>
-                            </div>
-                        ) : (
-                            messages.map((msg) => {
-                                const isMe = !msg.sender.isAdmin // Para el usuario, "Me" son los NO admins
-                                return (
-                                    <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[85%] p-3 rounded-2xl text-[11px] ${isMe
-                                            ? 'bg-primary-700 text-white rounded-tr-none'
-                                            : 'bg-surface border border-surface-highlight text-text-primary rounded-tl-none'
-                                            }`}>
-                                            <div className="flex items-center gap-2 mb-1 opacity-70">
-                                                <span className="font-black uppercase text-[8px]">{msg.sender.isAdmin ? 'ADMINISTRADOR' : 'TU'}</span>
-                                                <span className="text-[8px]">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                            </div>
-                                            <p className="leading-relaxed">{msg.content}</p>
-                                        </div>
-                                    </div>
-                                )
-                            })
-                        )}
-                    </div>
-
-                    <form onSubmit={handleSend} className="p-4 border-t border-surface-highlight bg-surface">
-                        <div className="flex gap-2">
-                            <input
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="Escribe un mensaje..."
-                                className="flex-1 bg-background border border-surface-highlight rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-primary-500 transition-colors"
-                                disabled={sending}
-                            />
-                            <button
-                                disabled={!newMessage.trim() || sending}
-                                className="p-2 bg-primary-700 hover:bg-primary-600 disabled:opacity-50 text-white rounded-xl transition-all shadow-lg active:scale-95"
-                            >
-                                {sending ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
-                            </button>
+    return (
+        <>
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                {messages.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center gap-4 opacity-30 grayscale p-8">
+                        <div className="p-4 bg-primary-400/10 rounded-full">
+                            <Headset className="w-8 h-8 text-primary-400" />
                         </div>
-                    </form>
-                </>
-                )
+                        <p className="text-[10px] font-bold text-center">Inicia una conversación con un administrador sobre tu reporte.</p>
+                    </div>
+                ) : (
+                    messages.map((msg) => {
+                        const isMe = !msg.sender.isAdmin // Para el usuario, "Me" son los NO admins
+                        return (
+                            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[85%] p-3 rounded-2xl text-[11px] ${isMe
+                                    ? 'bg-primary-700 text-white rounded-tr-none'
+                                    : 'bg-surface border border-surface-highlight text-text-primary rounded-tl-none'
+                                    }`}>
+                                    <div className="flex items-center gap-2 mb-1 opacity-70">
+                                        <span className="font-black uppercase text-[8px]">{msg.sender.isAdmin ? 'ADMINISTRADOR' : 'TU'}</span>
+                                        <span className="text-[8px]">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    </div>
+                                    <p className="leading-relaxed">{msg.content}</p>
+                                </div>
+                            </div>
+                        )
+                    })
+                )}
+            </div>
+
+            <form onSubmit={handleSend} className="p-4 border-t border-surface-highlight bg-surface">
+                <div className="flex gap-2">
+                    <input
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Escribe un mensaje..."
+                        className="flex-1 bg-background border border-surface-highlight rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-primary-500 transition-colors"
+                        disabled={sending}
+                    />
+                    <button
+                        disabled={!newMessage.trim() || sending}
+                        className="p-2 bg-primary-700 hover:bg-primary-600 disabled:opacity-50 text-white rounded-xl transition-all shadow-lg active:scale-95"
+                    >
+                        {sending ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
+                    </button>
+                </div>
+            </form>
+        </>
+    )
 }
