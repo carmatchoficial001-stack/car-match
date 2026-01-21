@@ -480,6 +480,15 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                             </>
                                         )}
                                     </button>
+
+                                    {searchSuccess && !isAnalyzing && (
+                                        <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-xl animate-in fade-in zoom-in duration-300">
+                                            <p className="text-[10px] text-green-400 font-bold text-center leading-relaxed">
+                                                Ya te seleccioné los negocios indicados, <br />
+                                                dale click en <span className="text-white underline">VER EN EL MAPA</span>
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
