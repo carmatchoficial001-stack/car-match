@@ -438,7 +438,6 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                         <div className="p-6 border-b border-surface-highlight flex justify-between items-center bg-surface/50">
                             <div>
                                 <h2 className="text-2xl font-black text-text-primary tracking-tighter uppercase italic">MapStore</h2>
-                                <p className="text-[10px] text-text-secondary font-bold uppercase tracking-[0.2em]">{filteredBusinesses.length} {t('map_store.results_found')}</p>
                             </div>
                             <button
                                 onClick={() => setShowSidebar(false)}
@@ -488,12 +487,6 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
                             {/* 3. LISTA DE FILTROS */}
                             <div className="space-y-2">
-                                <div className="ml-2 mb-4">
-                                    <h3 className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1">Especialidades Disponibles</h3>
-                                    <p className="text-[9px] text-primary-500/80 font-bold uppercase tracking-wider">
-                                        Seleccione por ejemplo en esta ocacion selecciono mecánico y transmisiones
-                                    </p>
-                                </div>
                                 <div className="grid grid-cols-1 gap-2">
                                     {[...CATEGORIES]
                                         .sort((a, b) => {
