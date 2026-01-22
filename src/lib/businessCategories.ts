@@ -1,5 +1,6 @@
 // 🏢 Centralized Business Categories & Taxonomy
 // Single Source of Truth for CarMatch Business Logic
+// Updated: Cleanup central_autobus
 
 export const CATEGORY_COLORS: Record<string, string> = {
     'mecanico': '#ef4444', // Red
@@ -32,15 +33,14 @@ export const CATEGORY_COLORS: Record<string, string> = {
     'aire_acondicionado': '#14b8a6', // Teal
     'importadoras': '#1e3a8a', // Navy Blue
     'iluminacion': '#fde047', // Yellow-Sun
-    'rotulacion': '#ec4899', // Pink
-    'inyectores': '#0ea5e9', // Sky Blue
+    'rotulacion': '#c026d3', // Fuchsia (Distinct from Performance)
+    'inyectores': '#0891b2', // Cyan Dark (Distinct from Radiadores)
     'electrolinera': '#84cc16', // Lime Green
-    'caseta': '#f97316', // Orange
-    'hospital': '#ef4444', // Red
-    'policia': '#3b82f6', // Blue
-    'aeropuerto': '#0ea5e9', // Sky Blue
-    'central_autobus': '#eab308', // Yellow
-    'estacion_tren': '#6366f1', // Indigo
+    'caseta': '#c2410c', // Dark Orange (Unique)
+    'hospital': '#be123c', // Rose Dark (Unique)
+    'policia': '#1e3a8a', // Navy Dark (Unique)
+    'aeropuerto': '#0284c7', // Deep Sky (Unique)
+    'estacion_tren': '#7c3aed', // Violet (Unique)
 
 }
 
@@ -82,7 +82,6 @@ export const CATEGORY_EMOJIS: Record<string, string> = {
     'hospital': '🏥',
     'policia': '🚓',
     'aeropuerto': '✈️',
-    'central_autobus': '🚌',
 
     'estacion_tren': '🚆',
 }
@@ -125,7 +124,6 @@ export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
     hospital: ['Urgencias', 'Consulta General', 'Farmacia', 'Ambulancia', 'Laboratorio'],
     policia: ['Denuncias', 'Tránsito', 'Emergencias', 'Patrullas', 'Asistencia Vial'],
     aeropuerto: ['Vuelos Nacionales', 'Vuelos Internacionales', 'Taxis', 'Renta de Autos', 'Cambio de Divisa'],
-    central_autobus: ['Venta de Boletos', 'Salas de Espera', 'Paquetería', 'Taxis', 'Cafetería'],
     estacion_tren: ['Venta de Boletos', 'Andenes', 'Sala de Espera', 'Cafetería', 'Taxis']
 
 }
@@ -146,7 +144,7 @@ export const BUSINESS_CATEGORIES = Object.keys(CATEGORY_COLORS)
     })
     .sort((a, b) => {
         // Public Services Logic: Put them at the end
-        const publicServices = ['caseta', 'hospital', 'policia', 'aeropuerto', 'central_autobus', 'estacion_tren'];
+        const publicServices = ['caseta', 'hospital', 'policia', 'aeropuerto', 'estacion_tren'];
         const isPublicA = publicServices.includes(a.id);
         const isPublicB = publicServices.includes(b.id);
 

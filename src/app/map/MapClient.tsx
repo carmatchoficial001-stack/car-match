@@ -496,7 +496,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                             <div className="space-y-2">
                                 <div className="grid grid-cols-1 gap-2">
                                     {(() => {
-                                        const publicIds = ['caseta', 'hospital', 'policia', 'aeropuerto', 'central_autobus', 'estacion_tren'];
+                                        const publicIds = ['caseta', 'hospital', 'policia', 'aeropuerto', 'estacion_tren'];
 
                                         // Helper to sort by translated name
                                         const sortByLabel = (a: any, b: any) => {
