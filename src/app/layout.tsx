@@ -14,7 +14,7 @@ export const metadata: Metadata = {
         default: "CarMatch® | Red Social y MarketCar Oficial • Compra y Venta de Autos",
         template: "%s | CarMatch®"
     },
-    description: "CarMatch es la red social líder para comprar, vender y descubrir vehículos en México. MarketCar oficial con Swipe y MapStore 24/7 de servicios automotrices.",
+    description: "CarMatch es la red social líder para comprar, vender y descubrir vehículos en México. MarketCar oficial con Modo CarMatch y MapStore 24/7 de servicios automotrices.",
     alternates: {
         canonical: "/",
     },
@@ -101,7 +101,7 @@ export default function RootLayout({
                                 "url": "https://carmatchapp.net",
                                 "applicationCategory": "ShoppingApplication, SocialNetworkingApplication",
                                 "operatingSystem": "iOS, Android, Windows, macOS",
-                                "description": "La aplicación líder para comprar, vender y descubrir vehículos. Incluye Swipe CarMatch y MapStore de talleres.",
+                                "description": "La aplicación líder para comprar, vender y descubrir vehículos. Incluye Modo CarMatch y MapStore de talleres.",
                                 "softwareVersion": "1.0.0",
                                 "screenshot": "https://carmatchapp.net/logo-v19.png",
                                 "offers": {
