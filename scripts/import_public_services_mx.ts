@@ -30,11 +30,11 @@ const cityArg = process.argv[2];
 
 // Configuration for each type
 const TYPES = [
-    //    { key: 'hospital', amenity: 'hospital', label: 'Hospital', emoji: '🏥', services: ['Urgencias', 'Farmacia', 'Ambulancia'] },
+    { key: 'hospital', amenity: 'hospital', label: 'Hospital', emoji: '🏥', services: ['Urgencias', 'Farmacia', 'Ambulancia'] },
     { key: 'policia', amenity: 'police', label: 'Estación de Policía', emoji: '🚓', services: ['Denuncias', 'Emergencias'] },
-    { key: 'central_autobus', amenity: 'bus_station', label: 'Central de Autobuses', emoji: '🚌', services: ['Boletos', 'Andenes', 'Taxis'] },
     { key: 'aeropuerto', amenity: null, aeroway: 'aerodrome', label: 'Aeropuerto', emoji: '✈️', services: ['Vuelos', 'Taxis', 'Renta de Autos'] }
 ];
+
 
 async function main() {
     console.log('🔍 Buscando usuario Administrador...');
