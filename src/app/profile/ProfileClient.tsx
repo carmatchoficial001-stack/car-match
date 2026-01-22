@@ -278,7 +278,6 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                         </div>
                     )}
                 </div>
-                }
             </div>
         </div>
 
