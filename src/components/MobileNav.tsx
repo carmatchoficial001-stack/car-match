@@ -86,7 +86,7 @@ export default function MobileNav() {
         };
     }, [pathname, session]);
 
-    if (!session || isSoftLogout) return null
+    // if (!session || isSoftLogout) return null // ❌ REMOVIDO: Ahora se muestra siempre
 
     // Ocultar en admin
     if (pathname?.startsWith('/admin')) {
@@ -99,7 +99,12 @@ export default function MobileNav() {
         { href: "/swipe", icon: Flame, label: t('nav.carmatch'), color: "text-orange-500" },
         { href: "/market", icon: Car, label: t('nav.marketcar'), color: "text-blue-500" },
         { href: "/map", icon: MapIcon, label: t('nav.mapstore'), color: "text-green-500" },
-        { href: "/profile", icon: User, label: t('nav.profile'), color: "text-purple-500" },
+        {
+            href: (session && !isSoftLogout) ? "/profile" : "/auth",
+            icon: User,
+            label: (session && !isSoftLogout) ? t('nav.profile') : t('common.login'),
+            color: "text-purple-500"
+        },
     ]
 
     return (
