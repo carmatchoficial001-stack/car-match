@@ -524,9 +524,14 @@ export default function Header() {
                             <Link
                                 href="/auth"
                                 replace
-                                className="px-4 py-2 bg-primary-700 text-text-primary rounded-lg font-medium hover:bg-primary-600 transition"
+                                className="px-3 py-2 bg-primary-700 text-text-primary rounded-lg font-bold text-sm hover:bg-primary-600 transition shadow-lg animate-pulse-slow"
                             >
-                                {t('common.login')}
+                                {pathname?.includes('/map') || pathname?.includes('/business')
+                                    ? t('common.login_business')
+                                    : (pathname?.includes('/market') || pathname?.includes('/swipe') || pathname?.includes('/vehicle'))
+                                        ? t('common.login_vehicle')
+                                        : t('common.login')
+                                }
                             </Link>
                         )}
                     </div>

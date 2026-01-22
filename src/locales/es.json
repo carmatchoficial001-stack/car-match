@@ -1,6 +1,8 @@
 {
     "common": {
         "login": "Iniciar Sesión",
+        "login_vehicle": "Vender Vehículo",
+        "login_business": "Sube tu Negocio",
         "logout": "Cerrar Sesión",
         "ios": "iOS",
         "android": "Android",
