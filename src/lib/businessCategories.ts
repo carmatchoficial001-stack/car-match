@@ -34,6 +34,12 @@ export const CATEGORY_COLORS: Record<string, string> = {
     'iluminacion': '#fde047', // Yellow-Sun
     'rotulacion': '#ec4899', // Pink
     'inyectores': '#0ea5e9', // Sky Blue
+    'electrolinera': '#84cc16', // Lime Green
+    'caseta': '#f97316', // Orange
+    'hospital': '#ef4444', // Red
+    'policia': '#3b82f6', // Blue
+    'aeropuerto': '#0ea5e9', // Sky Blue
+    'central_autobus': '#eab308', // Yellow
 }
 
 export const CATEGORY_EMOJIS: Record<string, string> = {
@@ -69,6 +75,12 @@ export const CATEGORY_EMOJIS: Record<string, string> = {
     'iluminacion': '💡',
     'rotulacion': '🖌️',
     'inyectores': '🧪',
+    'electrolinera': '🔌',
+    'caseta': '🛂',
+    'hospital': '🏥',
+    'policia': '🚓',
+    'aeropuerto': '✈️',
+    'central_autobus': '🚌',
 }
 
 export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
@@ -103,7 +115,13 @@ export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
     importadoras: ['Importación de Vehículos', 'Trámites de Aduana', 'Regularización', 'Venta de Autos Importados', 'Logística de Transporte'],
     iluminacion: ['Faros LED', 'Luces de Xenón', 'Iluminación Interior RGB', 'Barra de Luces 4x4', 'Reparación de Calaveras'],
     rotulacion: ['Vinyl Wrap Completo', 'Rotulación Comercial', 'Protección de Pintura (PPF)', 'Franjas Deportivas', 'Remoción de Vinil'],
-    inyectores: ['Limpieza de Inyectores por Ultrasonido', 'Prueba en Banco', 'Cambio de Microfiltros', 'Diagnóstico de Inyección', 'Limpieza de Cuerpo de Aceleración']
+    inyectores: ['Limpieza de Inyectores por Ultrasonido', 'Prueba en Banco', 'Cambio de Microfiltros', 'Diagnóstico de Inyección', 'Limpieza de Cuerpo de Aceleración'],
+    electrolinera: ['Cargador Universal', 'Tesla Supercharger', 'Carga Rápida DC', 'Conector J1772', 'Conector CCS', 'Carga Nivel 2'],
+    caseta: ['Pago en Efectivo', 'Tag/IAVE', 'Telepeaje', 'Sanitarios', 'Facturación'],
+    hospital: ['Urgencias', 'Consulta General', 'Farmacia', 'Ambulancia', 'Laboratorio'],
+    policia: ['Denuncias', 'Tránsito', 'Emergencias', 'Patrullas', 'Asistencia Vial'],
+    aeropuerto: ['Vuelos Nacionales', 'Vuelos Internacionales', 'Taxis', 'Renta de Autos', 'Cambio de Divisa'],
+    central_autobus: ['Venta de Boletos', 'Salas de Espera', 'Paquetería', 'Taxis', 'Cafetería']
 }
 
 // Helper for Map & Search

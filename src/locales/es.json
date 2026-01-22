@@ -524,6 +524,30 @@
             "pesados": {
                 "name": "Vehículos Pesados",
                 "services": "Talleres para camiones|Suspensión neumática|Sistemas hidráulicos|Mantenimiento de flotillas"
+            },
+            "electrolinera": {
+                "name": "Estaciones de Carga",
+                "services": "Carga rápida|Cargadores Tesla|Conectores Tipo 1 y 2|Estaciones de carga pública|Puntos de recarga gratuita"
+            },
+            "caseta": {
+                "name": "Casetas de Cobro",
+                "services": "Pago en Efectivo|Telepeaje|Baños|Facturación"
+            },
+            "hospital": {
+                "name": "Hospitales",
+                "services": "Urgencias|Consulta|Farmacia|Ambulancia"
+            },
+            "policia": {
+                "name": "Estación de Policía",
+                "services": "Emergencias|Denuncias|Tránsito|Patrullas"
+            },
+            "aeropuerto": {
+                "name": "Aeropuertos",
+                "services": "Vuelos|Taxis|Renta de Autos|Cambio de Divisa"
+            },
+            "central_autobus": {
+                "name": "Central de Autobuses",
+                "services": "Boletos|Andenes|Taxis|Cafetería"
             }
         }
     },
@@ -805,7 +829,13 @@
             "importadoras": "Importación de Vehículos",
             "iluminacion": "Iluminación y Faros",
             "rotulacion": "Rotulación y Vinyl Wrap",
-            "inyectores": "Laboratorio de Inyectores"
+            "inyectores": "Laboratorio de Inyectores",
+            "electrolinera": "Electrolinera",
+            "caseta": "Caseta de Cobro",
+            "hospital": "Hospital",
+            "policia": "Policía",
+            "aeropuerto": "Aeropuerto",
+            "central_autobus": "Central de Autobuses"
         }
     },
     "business_details": {
