@@ -548,6 +548,10 @@
             "central_autobus": {
                 "name": "Central de Autobuses",
                 "services": "Boletos|Andenes|Taxis|Cafetería"
+            },
+            "estacion_tren": {
+                "name": "Estación de Tren",
+                "services": "Boletos|Andenes|Sala de Espera|Cafetería"
             }
         }
     },
@@ -835,7 +839,8 @@
             "hospital": "Hospital",
             "policia": "Policía",
             "aeropuerto": "Aeropuerto",
-            "central_autobus": "Central de Autobuses"
+            "central_autobus": "Central de Autobuses",
+            "estacion_tren": "Estación de Tren"
         }
     },
     "business_details": {

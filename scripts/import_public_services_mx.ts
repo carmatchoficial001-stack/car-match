@@ -30,7 +30,7 @@ const cityArg = process.argv[2];
 
 // Configuration for each type
 const TYPES = [
-    { key: 'hospital', amenity: 'hospital', label: 'Hospital', emoji: '🏥', services: ['Urgencias', 'Farmacia', 'Ambulancia'] },
+    //    { key: 'hospital', amenity: 'hospital', label: 'Hospital', emoji: '🏥', services: ['Urgencias', 'Farmacia', 'Ambulancia'] },
     { key: 'policia', amenity: 'police', label: 'Estación de Policía', emoji: '🚓', services: ['Denuncias', 'Emergencias'] },
     { key: 'central_autobus', amenity: 'bus_station', label: 'Central de Autobuses', emoji: '🚌', services: ['Boletos', 'Andenes', 'Taxis'] },
     { key: 'aeropuerto', amenity: null, aeroway: 'aerodrome', label: 'Aeropuerto', emoji: '✈️', services: ['Vuelos', 'Taxis', 'Renta de Autos'] }
@@ -116,22 +116,32 @@ async function importTypeForState(type: any, regionName: string, adminUser: any)
     let elements: any[] = [];
     let success = false;
 
+    console.log(`   🌍 Descargando datos de ${regionName}...`);
+
     for (const mirror of OVERPASS_MIRRORS) {
         if (success) break;
         try {
-            const response = await fetch(`${mirror}?data=${encodeURIComponent(query)}`);
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
+            const response = await fetch(`${mirror}?data=${encodeURIComponent(query)}`, { signal: controller.signal });
+            clearTimeout(timeout);
+
             if (!response.ok) continue;
             const data: any = await response.json();
             elements = data.elements || [];
             success = true;
         } catch (e) {
-            // Try next mirror
+            // Try next
         }
     }
 
     if (!success || elements.length === 0) {
+        if (!success) console.warn(`   ⚠️ Error descargando ${regionName}`);
         return;
     }
+
+    console.log(`   💾 Guardando ${elements.length} registros en ${regionName}...`);
 
     let addedCount = 0;
 

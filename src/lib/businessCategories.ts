@@ -40,6 +40,8 @@ export const CATEGORY_COLORS: Record<string, string> = {
     'policia': '#3b82f6', // Blue
     'aeropuerto': '#0ea5e9', // Sky Blue
     'central_autobus': '#eab308', // Yellow
+    'estacion_tren': '#6366f1', // Indigo
+
 }
 
 export const CATEGORY_EMOJIS: Record<string, string> = {
@@ -81,6 +83,8 @@ export const CATEGORY_EMOJIS: Record<string, string> = {
     'policia': '🚓',
     'aeropuerto': '✈️',
     'central_autobus': '🚌',
+
+    'estacion_tren': '🚆',
 }
 
 export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
@@ -121,7 +125,9 @@ export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
     hospital: ['Urgencias', 'Consulta General', 'Farmacia', 'Ambulancia', 'Laboratorio'],
     policia: ['Denuncias', 'Tránsito', 'Emergencias', 'Patrullas', 'Asistencia Vial'],
     aeropuerto: ['Vuelos Nacionales', 'Vuelos Internacionales', 'Taxis', 'Renta de Autos', 'Cambio de Divisa'],
-    central_autobus: ['Venta de Boletos', 'Salas de Espera', 'Paquetería', 'Taxis', 'Cafetería']
+    central_autobus: ['Venta de Boletos', 'Salas de Espera', 'Paquetería', 'Taxis', 'Cafetería'],
+    estacion_tren: ['Venta de Boletos', 'Andenes', 'Sala de Espera', 'Cafetería', 'Taxis']
+
 }
 
 // Helper for Map & Search
@@ -134,6 +140,20 @@ export const BUSINESS_CATEGORIES = Object.keys(CATEGORY_COLORS)
             color: CATEGORY_COLORS[id],
             icon: CATEGORY_EMOJIS[id] || '🔧',
             keywords: [id, ...SERVICES_BY_CATEGORY[id]?.map(s => s.toLowerCase()) || []]
+
         };
+
     })
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .sort((a, b) => {
+        // Public Services Logic: Put them at the end
+        const publicServices = ['caseta', 'hospital', 'policia', 'aeropuerto', 'central_autobus', 'estacion_tren'];
+        const isPublicA = publicServices.includes(a.id);
+        const isPublicB = publicServices.includes(b.id);
+
+
+        if (isPublicA && !isPublicB) return 1; // A (Public) goes after B (Business)
+        if (!isPublicA && isPublicB) return -1; // B (Public) goes after A (Business)
+
+        // If both are same type, sort alphabetically
+        return a.label.localeCompare(b.label);
+    });
