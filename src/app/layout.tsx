@@ -49,9 +49,9 @@ export const metadata: Metadata = {
         images: ["/logo-v19.png"],
     },
     icons: {
-        icon: "/icon-512-v19.png",
-        shortcut: "/icon-512-v19.png",
-        apple: "/icon-512-v19.png",
+        icon: "/maskable-512-v19.png",
+        shortcut: "/maskable-512-v19.png",
+        apple: "/maskable-512-v19.png",
     }
 };
 
