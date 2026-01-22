@@ -279,21 +279,20 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                     )}
                 </div>
             </div>
-        </div>
 
-            {/* Modal de Edición */ }
-    <EditProfileModal
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        currentUser={{
-            name: user.name,
-            image: user.image,
-            email: user.email,
-            trustedContactId: user.trustedContactId,
-            trustedContact: user.trustedContact
-        }}
-        userVehicles={vehiclesToShow}
-    />
+            {/* Modal de Edición */}
+            <EditProfileModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                currentUser={{
+                    name: user.name,
+                    image: user.image,
+                    email: user.email,
+                    trustedContactId: user.trustedContactId,
+                    trustedContact: user.trustedContact
+                }}
+                userVehicles={vehiclesToShow}
+            />
         </div >
     )
 }
