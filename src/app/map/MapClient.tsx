@@ -495,9 +495,20 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                             {/* 3. LISTA DE FILTROS */}
                             <div className="space-y-2">
                                 <div className="grid grid-cols-1 gap-2">
-                                    {[...CATEGORIES]
+                                    {(() => {
+                                        const publicIds = ['caseta', 'hospital', 'policia', 'aeropuerto', 'central_autobus', 'estacion_tren'];
 
-                                        .map(cat => {
+                                        // Helper to sort by translated name
+                                        const sortByLabel = (a: any, b: any) => {
+                                            const labelA = t(`map_store.categories.${a.id}`) || a.label;
+                                            const labelB = t(`map_store.categories.${b.id}`) || b.label;
+                                            return labelA.localeCompare(labelB);
+                                        };
+
+                                        const commercial = CATEGORIES.filter(c => !publicIds.includes(c.id)).sort(sortByLabel);
+                                        const publicServices = CATEGORIES.filter(c => publicIds.includes(c.id)).sort(sortByLabel);
+
+                                        const renderCategory = (cat: any) => {
                                             const isSelected = selectedCategories.includes(cat.id);
                                             return (
                                                 <button
@@ -532,7 +543,29 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                                     )}
                                                 </button>
                                             );
-                                        })}
+                                        };
+
+                                        return (
+                                            <>
+                                                {/* Commercial Categories */}
+                                                {commercial.map(renderCategory)}
+
+                                                {/* Divider */}
+                                                <div className="pt-4 pb-2">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <div className="h-[1px] flex-1 bg-surface-highlight/30"></div>
+                                                        <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">
+                                                            Servicios Públicos
+                                                        </span>
+                                                        <div className="h-[1px] flex-1 bg-surface-highlight/30"></div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Public Services */}
+                                                {publicServices.map(renderCategory)}
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         </div>
