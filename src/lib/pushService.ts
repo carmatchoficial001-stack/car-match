@@ -10,9 +10,10 @@ if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
 }
 
 interface PushPayload {
-    title: string
+    title?: string // Opcional, usará el del SW si no viene
     body: string
     url?: string
+
     icon?: string
     tag?: string
     renotify?: boolean

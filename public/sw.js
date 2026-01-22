@@ -13,6 +13,12 @@ self.addEventListener('fetch', function (event) {
     event.respondWith(fetch(event.request));
 });
 
+// Reclamar control inmediatamente
+self.addEventListener('activate', function (event) {
+    event.waitUntil(self.clients.claim());
+});
+
+
 self.addEventListener('push', function (event) {
     if (event.data) {
         try {
@@ -21,9 +27,10 @@ self.addEventListener('push', function (event) {
 
             const options = {
                 body: data.body,
-                icon: data.icon || '/icon-192-v18.png',
-                badge: '/icon-192-v18.png',
+                icon: data.icon || '/icon-192-v19.png',
+                badge: '/favicon-v19.png',
                 vibrate: data.vibrate || (isSafetyCheck ? [500, 100, 500, 100, 500] : [100, 50, 100]),
+
                 data: {
                     dateOfArrival: Date.now(),
                     url: data.url || '/',
