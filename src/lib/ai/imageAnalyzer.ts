@@ -11,7 +11,9 @@ interface ImageAnalysisResult {
     // Identificación básica
     brand?: string;
     model?: string;
+    version?: string; // Ej: King Ranch, Raptor, Denali
     year?: string; // Estimated
+
     color?: string;
     type?: string; // SUV, Sedan, Pickup, etc.
 
@@ -115,31 +117,38 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
   "category": "automovil" | "motocicleta" | "comercial" | "industrial" | "transporte" | "especial",
   "details": {
     "brand": "Marca REAL identificada visualmente",
-    "model": "Modelo REAL identificado visualmente",
+    "model": "Modelo REAL (Ej: F-150, Silverado, Civic)",
+    "version": "Versión/Trim/Edición específica (Ej: King Ranch, Raptor, Laramie, Denali, GTI, Rubicon). ¡MUY IMPORTANTE!",
     "year": "Año o generación",
     "color": "Color",
     "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
     "transmission": "Manual|Automática",
     "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-    "engine": "Especificación motor (ej: 2.0L Turbo)",
-    "displacement": "Cilindrada (ej: 2400cc o 2.4L)",
+    "engine": "Especificación motor (ej: 3.5L V6 EcoBoost o 6.2L V8)",
+    "displacement": "Cilindrada (ej: 3500cc)",
     "traction": "FWD|RWD|4x4|AWD",
     "doors": 2|3|4|5,
     "passengers": 2|5|7|9,
-    "hp": "Potencia (CV/HP)",
-    "torque": "Torque (lb-ft o Nm)",
+    "hp": "Potencia aproximada",
+    "torque": "Torque aproximado",
     "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged",
     "cylinders": 3|4|5|6|8|10|12,
-    "batteryCapacity": "Capacidad kWh (si es eléctrico)",
-    "range": "Autonomía km (si es eléctrico/híbrido)",
-    "weight": "Peso aproximado (kg)",
-    "axles": "Ejes (si es pesado)",
-    "cargoCapacity": "Capacidad de carga kg (si es comercial)",
-    "operatingHours": "Horas de uso (si es maquinaria)",
+    "batteryCapacity": "null",
+    "range": "null",
+    "weight": "null",
+    "axles": "null",
+    "cargoCapacity": "null",
+    "operatingHours": "null",
     "condition": "Nuevo|Usado",
-    "features": ["Feature 1", "Feature 2", "Feature N..."]
+    "features": ["Lista exhaustiva de equipamiento de esta VERSIÓN Específica"]
   }
 }
+
+═══ REGLAS DE ORO DE IDENTIFICACIÓN ═══
+- SE UN EXPERTO: Si ves una Ford con detalles de lujo y madera, es probablemente una Lariat, King Ranch o Platinum. Si ves suspensión reforzada y guardabarros anchos, es una Raptor.
+- NO TE EQUIVOQUES: Diferencia bien entre versiones. Una "Raptor" es muy distinta a una "FX4".
+- SIEMPRE PRIORIZA LA VERSIÓN: El campo "version" es vital para el valor del vehículo en CarMatch.
+
 
 REGLA CRÍTICA DE FORMATO:
 - En "features": INCLUYE TODO LO QUE SEPAS DE ESE MODELO. Ejemplos: "Frenos ABS", "6 Bolsas de aire", "Control de tracción", "Pantalla táctil", "Asientos de piel", "Quemacocos", "Apple CarPlay", "Faros LED", "Cámara de reversa", "Sensores de estacionamiento". ¡SE GENEROSO Y EXHAUSTIVO!
@@ -361,9 +370,11 @@ export async function analyzeMultipleImages(
       const IDENTIDAD_SOBERANA_DE_PORTADA = {
         brand: coverResult.details?.brand,
         model: coverResult.details?.model,
+        version: coverResult.details?.version,
         year: coverResult.details?.year,
         type: coverResult.details?.type
       };
+
 
       const galleryImages = images.slice(1, 10); // Analizar las 9 fotos de la galería (Total 10 con portada)
       const galleryPrompt = `
@@ -373,26 +384,28 @@ export async function analyzeMultipleImages(
         🚗 VEHÍCULO SOBERANO (IDENTIDAD CREADA EN PORTADA):
         - Marca: "${IDENTIDAD_SOBERANA_DE_PORTADA.brand || '?'}"
         - Modelo: "${IDENTIDAD_SOBERANA_DE_PORTADA.model || '?'}"
+        - Versión/Edición: "${IDENTIDAD_SOBERANA_DE_PORTADA.version || '?'}"
         - Estilo: "${IDENTIDAD_SOBERANA_DE_PORTADA.type || '?'}"
 
         ESTÁS RECIBIENDO ${galleryImages.length} IMÁGENES DE GALERÍA. 
-        IMPORTANTE: El "index" de la primera imagen de este grupo es 0, la segunda es 1, etc.
 
-        📋 REGLAS DE AUDITORÍA (TOLERANCIA CERO):
-        - LA PORTADA MANDANTE: La identidad de arriba es la ÚNICA válida para este anuncio.
-        - CUALQUIER IMAGEN QUE NO SEA EL MISMO VEHÍCULO MENCIONADO EN LA PORTADA DEBE SER MARCADA AS "isValid": false.
-        - RECHAZA CONTENIDO NO FOTOGRÁFICO: Si ves dibujos, bocetos, memes o arte digital, "isValid": false.
-        - RECHAZA CONTENIDO NO VEHICULAR: Si ves animales, personas solas, o captura de menús/apps, "isValid": false.
-        - IMPORTANTE: Si la foto es un vehículo pero es DIFERENTE al de la portada (ej: la portada es Tahoe y ves un Hyundai), MARCA "isValid": false para esa foto de la galería. 
-        - LA PORTADA NUNCA ES INVÁLIDA POR CULPA DE LA GALERÍA. SIEMPRE PREVALECE LA PORTADA.
+        📋 REGLAS DE AUDITORÍA (MÁXIMA INTELIGENCIA):
+        - SÉ FLEXIBLE CON LAS VERSIONES: Si la portada se identificó como "Ford F-150" y en la galería ves que es una "King Ranch" o "Raptor", APRUÉBALA. Es el mismo vehículo, solo estamos descubriendo más detalles.
+        - CONSISTENCIA DE MARCA Y TIPO: Si la portada es una Pickup Ford, la galería NO puede tener un Sedan Toyota.
+        - RECHAZA SOLO SI ES OBVIAMENTE OTRO CARRO: Diferentes colores, diferentes marcas o tipos de carrocería totalmente distintos.
+        - RECHAZA CONTENIDO NO FOTOGRÁFICO: Dibujos, capturas de pantalla, etc.
+        - LA PORTADA NUNCA ES INVÁLIDA POR CULPA DE LA GALERÍA.
+
 
         Responde con este JSON:
         {
           "analysis": [
             { "index": number, "isValid": boolean, "reason": "OK" }
           ],
-          "details": {
-             "transmission": "Manual|Automática",
+              "model": "Confirmar modelo",
+              "version": "Detectar versión específica (Ej: King Ranch, Raptor R, TRX)",
+              "transmission": "Manual|Automática",
+
              "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
              "engine": "Ej: 2.0L Turbo",
              "displacement": "Cilindrada",
@@ -446,9 +459,11 @@ export async function analyzeMultipleImages(
             // Forzamos que la identidad sea la de la portada, sin importar qué dijo la galería
             brand: IDENTIDAD_SOBERANA_DE_PORTADA.brand,
             model: IDENTIDAD_SOBERANA_DE_PORTADA.model,
+            version: galleryParsed.details?.version || IDENTIDAD_SOBERANA_DE_PORTADA.version, // Permitimos que la galería mejore la versión detectada
             year: IDENTIDAD_SOBERANA_DE_PORTADA.year,
             type: IDENTIDAD_SOBERANA_DE_PORTADA.type
           },
+
           category: coverResult.category,
           analysis: galleryAnalysis
         };
