@@ -27,7 +27,7 @@ self.addEventListener('push', function (event) {
 
             const options = {
                 body: data.body,
-                icon: data.icon || '/icon-192-v19.png',
+                icon: data.icon || '/maskable-192-v19.png',
                 badge: '/favicon-v19.png',
                 vibrate: data.vibrate || (isSafetyCheck ? [500, 100, 500, 100, 500] : [100, 50, 100]),
 
