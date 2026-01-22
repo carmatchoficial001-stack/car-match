@@ -219,7 +219,7 @@
         "carmatch_subtitle": "Swipe",
         "carmatch_desc": "Desliza y guarda. Encuentra tu auto ideal de forma adictiva, dando LIKE a lo que te gusta.",
         "marketcar_title": "MarketCar",
-        "marketcar_subtitle": "Marketplace",
+        "marketcar_subtitle": "Búsqueda Avanzada",
         "marketcar_desc": "Filtros profesionales, detalles completos. La herramienta seria para compradores exigentes.",
         "mapstore_title": "MapStore",
         "mapstore_subtitle": "Servicios",
@@ -229,7 +229,7 @@
         "advantage_p2p_title": "Trato P2P Directo",
         "advantage_p2p_desc": "Sin intermediarios ni comisiones abusivas. Habla directo con el dueño.",
         "advantage_360_title": "Visibilidad 360°",
-        "advantage_360_desc": "Publica una vez y aparece en todos lados: Swipe, Marketplace y Mapa.",
+        "advantage_360_desc": "Publica una vez y aparece en todos lados: CarMatch, MarketCar y MapStore.",
         "advantage_safety_title": "Seguridad Humana",
         "advantage_safety_desc": "Cada publicación es revisada por nuestro equipo de seguridad."
     },

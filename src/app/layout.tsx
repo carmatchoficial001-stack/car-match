@@ -11,10 +11,10 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     metadataBase: new URL("https://carmatchapp.net"),
     title: {
-        default: "CarMatch® | Marketplace Oficial • Compra y Venta de Autos",
+        default: "CarMatch® | Red Social y MarketCar Oficial • Compra y Venta de Autos",
         template: "%s | CarMatch®"
     },
-    description: "CarMatch es la red social líder para comprar, vender y descubrir vehículos en México. Marketplace oficial con Swipe estilo Tinder y MapStore 24/7 de servicios automotrices.",
+    description: "CarMatch es la red social líder para comprar, vender y descubrir vehículos en México. MarketCar oficial con Swipe y MapStore 24/7 de servicios automotrices.",
     alternates: {
         canonical: "/",
     },
@@ -49,15 +49,9 @@ export const metadata: Metadata = {
         images: ["/logo-v19.png"],
     },
     icons: {
-        icon: [
-            { url: "/favicon-v19.png", sizes: "32x32", type: "image/png" },
-            { url: "/icon-192-v19.png", sizes: "48x48", type: "image/png" },
-            { url: "/icon-192-v19.png", sizes: "192x192", type: "image/png" }
-        ],
-        shortcut: ["/favicon-v19.png"],
-        apple: [
-            { url: "/maskable-192-v19.png", sizes: "180x180", type: "image/png" }
-        ],
+        icon: "/custom-icon.png",
+        shortcut: "/custom-icon.png",
+        apple: "/custom-icon.png",
     }
 };
 
@@ -107,7 +101,7 @@ export default function RootLayout({
                                 "url": "https://carmatchapp.net",
                                 "applicationCategory": "ShoppingApplication, SocialNetworkingApplication",
                                 "operatingSystem": "iOS, Android, Windows, macOS",
-                                "description": "La aplicación líder para comprar, vender y descubrir vehículos. Incluye Swipe estilo Tinder y MapStore de talleres.",
+                                "description": "La aplicación líder para comprar, vender y descubrir vehículos. Incluye Swipe CarMatch y MapStore de talleres.",
                                 "softwareVersion": "1.0.0",
                                 "screenshot": "https://carmatchapp.net/logo-v19.png",
                                 "offers": {
