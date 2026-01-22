@@ -496,11 +496,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                             <div className="space-y-2">
                                 <div className="grid grid-cols-1 gap-2">
                                     {[...CATEGORIES]
-                                        .sort((a, b) => {
-                                            const labelA = t(`map_store.categories.${a.id}`) || a.label;
-                                            const labelB = t(`map_store.categories.${b.id}`) || b.label;
-                                            return labelA.localeCompare(labelB);
-                                        })
+
                                         .map(cat => {
                                             const isSelected = selectedCategories.includes(cat.id);
                                             return (
