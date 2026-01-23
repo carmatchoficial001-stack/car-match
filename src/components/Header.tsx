@@ -473,7 +473,7 @@ export default function Header() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex items-center gap-1 sm:gap-6 overflow-hidden">
+                            <div className="flex items-center gap-1 sm:gap-6 overflow-hidden max-w-[60vw] sm:max-w-none justify-end">
                                 <AnimatePresence mode="wait">
                                     {(ctas[ctaIndex] || "").includes(' | ') && (
                                         <motion.div
@@ -491,7 +491,7 @@ export default function Header() {
                                 <Link
                                     href="/auth"
                                     replace
-                                    className="px-2 py-2 sm:px-4 sm:py-3 bg-transparent text-text-primary rounded-2xl font-black text-xs sm:text-lg hover:bg-white/5 transition-all flex items-center gap-3 whitespace-nowrap uppercase tracking-tighter"
+                                    className="px-2 py-1.5 sm:px-4 sm:py-3 bg-transparent text-text-primary rounded-2xl font-black text-[10px] sm:text-lg hover:bg-white/5 transition-all flex items-center gap-1.5 sm:gap-3 whitespace-nowrap uppercase tracking-tighter shrink min-w-0"
                                 >
                                     <CarFront className="w-5 h-5 sm:w-7 sm:h-7 hidden sm:block text-accent-500" />
                                     <AnimatePresence mode="wait">

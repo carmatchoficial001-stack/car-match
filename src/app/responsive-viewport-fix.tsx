@@ -11,24 +11,40 @@ import { useEffect } from 'react'
  */
 export function ResponsiveViewportFix() {
     useEffect(() => {
-        // Enforce mobile viewport settings
-        const metaViewport = document.querySelector('meta[name="viewport"]') || document.createElement('meta');
-        metaViewport.setAttribute('name', 'viewport');
+        const updateViewport = () => {
+            let meta = document.querySelector('meta[name="viewport"]');
+            const content = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover, interactive-widget=resizes-content";
 
-        // Ensure critical mobile viewport properties are present
-        // We overwrite to ensure no cached 'desktop' settings remain
-        metaViewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover, interactive-widget=resizes-content');
+            if (!meta) {
+                meta = document.createElement("meta");
+                (meta as HTMLMetaElement).name = "viewport";
+                document.getElementsByTagName("head")[0].appendChild(meta);
+            }
 
-        if (!metaViewport.parentElement) {
-            document.head.appendChild(metaViewport);
-        }
-
-        // Prevent unwanted zoom on iOS
-        const preventZoom = (e: Event) => {
-            e.preventDefault();
+            if (meta.getAttribute("content") !== content) {
+                meta.setAttribute("content", content);
+            }
         };
 
-        document.addEventListener('gesturestart', preventZoom);
+        // Initial check and immediate reinforcement
+        updateViewport();
+
+        // Prevent zooming on iOS double tap/pinch
+        const preventZoom = (e: TouchEvent) => {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        };
+
+        // Additional reinforcement for Safari
+        const handleGestureStart = (e: Event) => e.preventDefault();
+
+        document.addEventListener('gesturestart', handleGestureStart);
+        document.addEventListener('touchstart', preventZoom as any, { passive: false });
+
+        // Hydration check and periodic reinforcement
+        const timer = setTimeout(updateViewport, 500);
+        const interval = setInterval(updateViewport, 2000);
 
         // Safari iOS 100vh Fix
         const handleResize = () => {
@@ -41,7 +57,10 @@ export function ResponsiveViewportFix() {
         window.addEventListener('orientationchange', handleResize);
 
         return () => {
-            document.removeEventListener('gesturestart', preventZoom);
+            clearTimeout(timer);
+            clearInterval(interval);
+            document.removeEventListener('gesturestart', handleGestureStart);
+            document.removeEventListener('touchstart', preventZoom as any);
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('orientationchange', handleResize);
         };

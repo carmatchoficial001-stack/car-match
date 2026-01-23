@@ -89,7 +89,6 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
     // ANILLOS PROGRESIVOS
     const RADIUS_TIERS = [12, 100, 250, 500, 1000, 2500, 5000]
-    const STORAGE_KEY = `carmatch_swipe_seen_v1_${currentUserId}`
 
     const [tierIndex, setTierIndex] = useState(0)
     const [seenIds, setSeenIds] = useState<Set<string>>(new Set())
@@ -105,25 +104,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
     const currentRadius = RADIUS_TIERS[tierIndex]
 
-    // 1. Cargar historial
-    useEffect(() => {
-        const saved = localStorage.getItem(STORAGE_KEY)
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved)
-                const now = Date.now()
-                const validIds = new Set<string>()
-                if (Array.isArray(parsed)) {
-                    parsed.forEach((item: any) => {
-                        const id = typeof item === 'string' ? item : item.id
-                        const ts = typeof item === 'string' ? now : item.timestamp
-                        if (now - ts < 24 * 60 * 60 * 1000) validIds.add(id)
-                    })
-                }
-                setSeenIds(validIds)
-            } catch (e) { setSeenIds(new Set()) }
-        }
-    }, [])
+    // 1. Historial (Eliminado para que sea siempre dinámico)
 
     // 2. MAZO ESTABLE CON FRONTERA DIGITAL - ESTRATEGIA INCREMENTAL
     const [shuffledItems, setShuffledItems] = useState<FeedItem[]>([])
@@ -213,27 +194,23 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         setSeenIds(prev => {
             const next = new Set(prev)
             next.add(id)
-            const saved = localStorage.getItem(STORAGE_KEY)
-            let entries: any[] = saved ? JSON.parse(saved) : []
-            entries.push({ id, timestamp: Date.now() })
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(-500)))
             return next
         })
     }
 
     const handleLike = async (id: string) => {
         // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos en silencio
+        // NOTA: Se ejecuta en background para no bloquear la animación
         const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
         if (currentUserId !== 'guest' && isSoftLogout) {
-            // 🎬 FEEDBACK VISUAL: Mostramos el overlay y esperamos un poco para la "magia"
-            window.dispatchEvent(new Event('session-restore-start'))
-            await new Promise(resolve => setTimeout(resolve, 2500))
-
-            document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-            localStorage.removeItem('soft_logout')
-            window.dispatchEvent(new Event('session-restored'))
+            (async () => {
+                window.dispatchEvent(new Event('session-restore-start'))
+                await new Promise(resolve => setTimeout(resolve, 2500))
+                document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+                localStorage.removeItem('soft_logout')
+                window.dispatchEvent(new Event('session-restored'))
+            })();
         }
-
 
         // Si no hay usuario logueado, redirigir con callback
         if (currentUserId === 'guest') {
@@ -254,17 +231,17 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         } catch (e) { }
     }
 
-    const handleDislike = async (id: string) => {
-        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos en silencio
+    const handleDislike = (id: string) => {
+        // 🔥 RESTAURAR SESIÓN (Background)
         const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
         if (currentUserId !== 'guest' && isSoftLogout) {
-            // 🎬 FEEDBACK VISUAL: Mostramos el overlay y esperamos un poco para la "magia"
-            window.dispatchEvent(new Event('session-restore-start'))
-            await new Promise(resolve => setTimeout(resolve, 2500))
-
-            document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-            localStorage.removeItem('soft_logout')
-            window.dispatchEvent(new Event('session-restored'))
+            (async () => {
+                window.dispatchEvent(new Event('session-restore-start'))
+                await new Promise(resolve => setTimeout(resolve, 2500))
+                document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+                localStorage.removeItem('soft_logout')
+                window.dispatchEvent(new Event('session-restored'))
+            })();
         }
         markAsSeen(id)
     }
