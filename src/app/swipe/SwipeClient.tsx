@@ -185,7 +185,6 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     const expandSearch = useCallback(() => {
         setIsInternalLoading(true)
         setSeenIds(new Set());
-        localStorage.removeItem(STORAGE_KEY);
         setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length);
         setTimeout(() => setIsInternalLoading(false), 400)
     }, [RADIUS_TIERS.length])
