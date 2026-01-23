@@ -461,12 +461,90 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
 
                                     <DetailItem icon={<CheckCircle2 size={18} />} label="Condición" value={vehicle.condition || 'N/A'} />
 
+                                    {/* 🏎️ ESPECIFICACIONES AVANZADAS (NUEVAS) */}
+                                    {vehicle.displacement && (
+                                        <DetailItem
+                                            icon={<Pipette size={18} />}
+                                            label="Cilindraje"
+                                            value={vehicle.displacement > 100 ? `${vehicle.displacement} cc` : `${vehicle.displacement}L`}
+                                        />
+                                    )}
 
-                                    {vehicle.cargoCapacity && <DetailItem icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>} label="Carga" value={`${vehicle.cargoCapacity} kg`} />}
+                                    {vehicle.hp && (
+                                        <DetailItem
+                                            icon={<Zap size={18} />}
+                                            label="Potencia"
+                                            value={`${vehicle.hp} HP`}
+                                        />
+                                    )}
+
+                                    {vehicle.torque && (
+                                        <DetailItem
+                                            icon={<Activity size={18} />}
+                                            label="Torque"
+                                            value={vehicle.torque}
+                                        />
+                                    )}
+
+                                    {vehicle.cylinders && (
+                                        <DetailItem
+                                            icon={<CircleDot size={18} />}
+                                            label="Cilindros"
+                                            value={vehicle.cylinders.toString()}
+                                        />
+                                    )}
+
+                                    {vehicle.aspiration && (
+                                        <DetailItem
+                                            icon={<Wind size={18} />}
+                                            label="Aspiración"
+                                            value={vehicle.aspiration}
+                                        />
+                                    )}
+
+                                    {vehicle.batteryCapacity && (
+                                        <DetailItem
+                                            icon={<BatteryCharging size={18} />}
+                                            label="Batería"
+                                            value={`${vehicle.batteryCapacity} kWh`}
+                                        />
+                                    )}
+
+                                    {vehicle.range && (
+                                        <DetailItem
+                                            icon={<Route size={18} />}
+                                            label="Rango Eléctrico"
+                                            value={`${vehicle.range} km`}
+                                        />
+                                    )}
+
+                                    {vehicle.weight && (
+                                        <DetailItem
+                                            icon={<Weight size={18} />}
+                                            label="Peso"
+                                            value={`${vehicle.weight} kg`}
+                                        />
+                                    )}
+
+                                    {vehicle.axles && (
+                                        <DetailItem
+                                            icon={<Truck size={18} />}
+                                            label="Ejes"
+                                            value={vehicle.axles.toString()}
+                                        />
+                                    )}
+
+                                    {vehicle.cargoCapacity && (
+                                        <DetailItem
+                                            icon={<Container size={18} />}
+                                            label="Carga"
+                                            value={`${vehicle.cargoCapacity} kg`}
+                                        />
+                                    )}
 
                                     {vehicle.traction && (
                                         <DetailItem
-                                            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
+                                            icon={<Settings2 size={18} />}
                                             label="Tracción"
                                             value={vehicle.traction}
                                         />

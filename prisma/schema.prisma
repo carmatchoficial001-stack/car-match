@@ -140,7 +140,7 @@ model Vehicle {
   owners             Int?
   features           String[]
   searchIndex        String?
-  displacement       Int?
+  displacement       Float?
   cargoCapacity      Float?
   operatingHours     Int?
   latitude           Float?

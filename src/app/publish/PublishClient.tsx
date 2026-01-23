@@ -507,6 +507,13 @@ export default function PublishClient() {
             }
 
             const deviceFP = await generateDeviceFingerprint()
+            // 🧪 Helper para parsear números seguros
+            const parseN = (val: string) => {
+                if (!val) return null
+                const clean = val.replace(/[^0-9.]/g, '')
+                return isNaN(parseFloat(clean)) ? null : parseFloat(clean)
+            }
+
             const vehicleData = {
                 title: `${brand} ${model} ${year}`,
                 description, brand, model,
@@ -519,27 +526,27 @@ export default function PublishClient() {
                 latitude, longitude, images,
                 vehicleType,
                 features: selectedFeatures,
-                mileage: mileage ? parseInt(mileage) : null,
+                mileage: mileage ? parseInt(mileage.replace(/\D/g, '')) : null,
                 mileageUnit,
                 transmission: transmission || null,
                 fuel: fuel || null,
                 engine: engine || null,
-                doors: doors ? parseInt(doors) : null,
+                doors: doors ? parseInt(doors.replace(/\D/g, '')) : null,
                 color: color || null,
                 condition: condition || null,
                 traction: traction || null,
-                passengers: passengers ? parseInt(passengers) : null,
-                displacement: displacement || undefined,
-                cargoCapacity: cargoCapacity || undefined,
-                operatingHours: operatingHours || undefined,
-                hp: hp || undefined,
+                passengers: parseN(passengers),
+                displacement: parseN(displacement),
+                cargoCapacity: parseN(cargoCapacity),
+                operatingHours: parseN(operatingHours),
+                hp: parseN(hp),
                 torque: torque || undefined,
                 aspiration: aspiration || undefined,
-                cylinders: cylinders || undefined,
-                batteryCapacity: batteryCapacity || undefined,
-                range: range || undefined,
-                weight: weight || undefined,
-                axles: axles || undefined,
+                cylinders: parseN(cylinders),
+                batteryCapacity: parseN(batteryCapacity),
+                range: parseN(range),
+                weight: parseN(weight),
+                axles: parseN(axles),
             }
 
             if (deviceFP) {
@@ -906,6 +913,207 @@ export default function PublishClient() {
                                         strict={true}
                                     />
                                 </div>
+
+                                {/* 🔬 Detalles Técnicos Avanzados (NUEVOS) */}
+                                <div className="pt-6 border-t border-surface-highlight/50 space-y-4">
+                                    <h4 className="text-sm font-bold text-primary-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Pipette size={16} />
+                                        Motor y Potencia
+                                    </h4>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Cilindraje</label>
+                                            <input
+                                                type="text"
+                                                value={displacement}
+                                                onChange={(e) => {
+                                                    setDisplacement(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('displacement'))
+                                                }}
+                                                placeholder="Ej: 2.5 (L) o 600 (cc)"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Potencia (HP)</label>
+                                            <input
+                                                type="text"
+                                                value={hp}
+                                                onChange={(e) => {
+                                                    setHp(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('hp'))
+                                                }}
+                                                placeholder="Ej: 250"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Torque</label>
+                                            <input
+                                                type="text"
+                                                value={torque}
+                                                onChange={(e) => {
+                                                    setTorque(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('torque'))
+                                                }}
+                                                placeholder="Ej: 300 lb-pie"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Cilindros</label>
+                                            <input
+                                                type="text"
+                                                value={cylinders}
+                                                onChange={(e) => {
+                                                    setCylinders(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('cylinders'))
+                                                }}
+                                                placeholder="Ej: 4, 6, 8"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Tipo de Motor / Descripción</label>
+                                            <input
+                                                type="text"
+                                                value={engine}
+                                                onChange={(e) => {
+                                                    setEngine(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('engine'))
+                                                }}
+                                                placeholder="Ej: 2.0L Turbo, V6 i-VTEC, Eléctrico Dual Motor"
+                                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <SearchableSelect
+                                            label="Tracción"
+                                            value={traction}
+                                            onChange={(value) => {
+                                                setTraction(value)
+                                                setUserEditedFields(prev => new Set(prev).add('traction'))
+                                            }}
+                                            options={['FWD (Delantera)', 'RWD (Trasera)', 'AWD (Integral)', '4WD (4x4)', '2WD', '4x2', '6x4', '8x4']}
+                                            strict={false}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <SearchableSelect
+                                            label="Aspiración"
+                                            value={aspiration}
+                                            onChange={(value) => {
+                                                setAspiration(value)
+                                                setUserEditedFields(prev => new Set(prev).add('aspiration'))
+                                            }}
+                                            options={['Atmosférico', 'Turbo', 'Bi-Turbo', 'Supercargado', 'Aspirado Natural']}
+                                            strict={false}
+                                        />
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Nº Pasajeros</label>
+                                            <input
+                                                type="text"
+                                                value={passengers}
+                                                onChange={(e) => {
+                                                    setPassengers(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('passengers'))
+                                                }}
+                                                placeholder="Ej: 5"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Peso (kg)</label>
+                                            <input
+                                                type="text"
+                                                value={weight}
+                                                onChange={(e) => {
+                                                    setWeight(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('weight'))
+                                                }}
+                                                placeholder="Ej: 1540"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 🔌 Campo Eléctrico (Opcional) */}
+                                {fuel?.toLowerCase().includes('electric') || fuel?.toLowerCase().includes('hibrid') || engine?.toLowerCase().includes('electri') ? (
+                                    <div className="pt-6 border-t border-surface-highlight/50 space-y-4 animate-in slide-in-from-left-2 duration-300">
+                                        <h4 className="text-sm font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                                            <BatteryCharging size={16} />
+                                            Detalles Eléctricos
+                                        </h4>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="block text-xs font-medium text-text-secondary uppercase">Capacidad Batería (kWh)</label>
+                                                <input
+                                                    type="text"
+                                                    value={batteryCapacity}
+                                                    onChange={(e) => setBatteryCapacity(e.target.value)}
+                                                    placeholder="Ej: 75"
+                                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="block text-xs font-medium text-text-secondary uppercase">Rango Eléctrico (km)</label>
+                                                <input
+                                                    type="text"
+                                                    value={range}
+                                                    onChange={(e) => setRange(e.target.value)}
+                                                    placeholder="Ej: 450"
+                                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : null}
+
+                                {/* 🚚 Campos Específicos por Tipo (Carga / Industrial / Pesados) */}
+                                {(vehicleCategory === 'comercial' || vehicleCategory === 'transporte' || vehicleCategory === 'industrial') && (
+                                    <div className="pt-6 border-t border-surface-highlight/50 space-y-4 animate-in slide-in-from-left-2 duration-300">
+                                        <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                                            <Truck size={16} />
+                                            Detalles de Carga y Pesados
+                                        </h4>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="block text-xs font-medium text-text-secondary uppercase">Capacidad de Carga (kg)</label>
+                                                <input
+                                                    type="text"
+                                                    value={cargoCapacity}
+                                                    onChange={(e) => setCargoCapacity(e.target.value)}
+                                                    placeholder="Ej: 3500"
+                                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="block text-xs font-medium text-text-secondary uppercase">Ejes</label>
+                                                <input
+                                                    type="text"
+                                                    value={axles}
+                                                    onChange={(e) => setAxles(e.target.value)}
+                                                    placeholder="Ej: 2, 3, 4"
+                                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                />
+                                            </div>
+                                            {vehicleCategory === 'industrial' && (
+                                                <div className="space-y-1 col-span-2 md:col-span-1">
+                                                    <label className="block text-xs font-medium text-text-secondary uppercase">Horas de Operación</label>
+                                                    <input
+                                                        type="text"
+                                                        value={operatingHours}
+                                                        onChange={(e) => setOperatingHours(e.target.value)}
+                                                        placeholder="Ej: 1200"
+                                                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Equipamiento y Características */}
