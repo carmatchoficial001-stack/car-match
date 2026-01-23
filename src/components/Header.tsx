@@ -469,7 +469,7 @@ export default function Header() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex items-center gap-1 sm:gap-4 overflow-hidden">
+                            <div className="flex items-center gap-1 sm:gap-6 overflow-hidden">
                                 <AnimatePresence mode="wait">
                                     {(ctas[ctaIndex] || "").includes(' | ') && (
                                         <motion.div
@@ -477,7 +477,7 @@ export default function Header() {
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: 10 }}
-                                            className="hidden lg:block text-text-primary font-bold text-lg whitespace-nowrap"
+                                            className="hidden md:block text-text-primary font-bold text-lg lg:text-xl whitespace-nowrap tracking-tight"
                                         >
                                             {(ctas[ctaIndex] || "").split(' | ')[0]}
                                         </motion.div>
@@ -487,9 +487,9 @@ export default function Header() {
                                 <Link
                                     href="/auth"
                                     replace
-                                    className="px-4 py-2.5 sm:px-8 sm:py-3.5 bg-gradient-to-r from-primary-600 to-primary-800 text-text-primary rounded-2xl font-bold text-xs sm:text-base hover:from-primary-500 hover:to-primary-700 transition-all shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-3 whitespace-nowrap border border-white/10"
+                                    className="px-5 py-2.5 sm:px-10 sm:py-4 bg-gradient-to-r from-accent-500 to-accent-700 text-white rounded-2xl font-black text-xs sm:text-lg hover:from-accent-400 hover:to-accent-600 transition-all shadow-[0_10px_30px_rgba(249,115,22,0.3)] hover:scale-105 active:scale-95 flex items-center gap-3 whitespace-nowrap border border-white/20 uppercase tracking-tighter"
                                 >
-                                    <CarFront className="w-5 h-5 sm:w-6 sm:h-6 hidden sm:block text-yellow-400" />
+                                    <CarFront className="w-5 h-5 sm:w-7 sm:h-7 hidden sm:block text-white" />
                                     <AnimatePresence mode="wait">
                                         <motion.div
                                             key={`action-${ctaIndex}`}
@@ -505,13 +505,13 @@ export default function Header() {
                                                         const parts = (ctas[ctaIndex] || t('common.login_vehicle')).split(' | ')
                                                         if (parts.length > 1) {
                                                             return (
-                                                                <div className="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-2 leading-tight sm:leading-normal">
-                                                                    <span className="text-[10px] sm:hidden text-text-secondary font-medium">{parts[0]}</span>
-                                                                    <span className="text-sm sm:text-lg text-yellow-400 font-black tracking-tight drop-shadow-sm">{parts[1]}</span>
+                                                                <div className="flex flex-col items-center leading-none">
+                                                                    <span className="text-[9px] sm:hidden text-white/80 font-medium mb-1">{parts[0]}</span>
+                                                                    <span className="text-sm sm:text-xl text-white drop-shadow-md">{parts[1]}</span>
                                                                 </div>
                                                             )
                                                         }
-                                                        return <span className="text-sm sm:text-lg">{ctas[ctaIndex] || t('common.login_vehicle')}</span>
+                                                        return <span className="text-sm sm:text-xl">{ctas[ctaIndex] || t('common.login_vehicle')}</span>
                                                     })()
                                                     : t('common.login')
                                             }
