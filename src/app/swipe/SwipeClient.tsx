@@ -2,7 +2,7 @@
 // 🔒 FEATURE LOCKED: CARMATCH SWIPE. DO NOT EDIT WITHOUT EXPLICIT USER OVERRIDE.
 'use client'
 
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { useLocation } from '@/contexts/LocationContext'
 import SwipeFeed from '@/components/SwipeFeed'
 import Header from '@/components/Header'
@@ -36,6 +36,7 @@ interface FeedItem {
     _count?: {
         favorites: number
     }
+    distance?: number
 }
 
 interface SwipeClientProps {
@@ -124,51 +125,81 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         }
     }, [])
 
-    // 2. MAZO ESTABLE CON FRONTERA DIGITAL
-    const stablePool = useMemo(() => {
-        if (locationLoading || !location) return []
+    // 2. MAZO ESTABLE CON FRONTERA DIGITAL - ESTRATEGIA INCREMENTAL
+    const [shuffledItems, setShuffledItems] = useState<FeedItem[]>([])
+    const isFirstRun = useRef(true)
+
+    useEffect(() => {
+        if (locationLoading || !location || items.length === 0) return
 
         const userCountry = normalizeCountryCode(location?.country)
 
-        const withDist = items
-            .filter((item: FeedItem) => {
-                // 🔐 FRONTERA DIGITAL ESTRICTA
-                // Solo mostrar vehículos del mismo país que la ubicación del usuario.
-                const itemCountry = normalizeCountryCode(item.country)
-                return itemCountry === userCountry
-            })
-            .map((item: FeedItem) => {
+        // 1. Filtrar los items de la prop que pertenecen a la frontera digital
+        const validItems = items.filter((item: FeedItem) => {
+            const itemCountry = normalizeCountryCode(item.country)
+            return itemCountry === userCountry
+        })
+
+        // 2. Identificar qué items son NUEVOS (no están en nuestro mazo actual)
+        const currentIds = new Set(shuffledItems.map(i => i.id))
+        const newItemsRaw = validItems.filter(i => !currentIds.has(i.id))
+
+        // Si es el primer run o cambiamos de ciudad, reiniciamos el mazo
+        if (isFirstRun.current || (shuffledItems.length > 0 && shuffledItems[0].city !== location.city)) {
+            const withDist = validItems.map((item: FeedItem) => {
                 let distance = calculateDistance(
                     location.latitude,
                     location.longitude,
                     item.latitude || 0,
                     item.longitude || 0
                 )
-
-                // 👑 ADMIN GLOBAL VISIBILITY:
-                // Force admin vehicles to be "radius 0" (Local) for everyone in the same country.
-                if (item.isBoosted && normalizeCountryCode(item.country) === userCountry) {
-                    distance = 0
-                }
-
+                if (item.isBoosted) distance = 0
                 return { ...item, distance }
             })
 
-        const tiers = RADIUS_TIERS.map(r => ({ max: r, items: [] as any[] }))
+            const tiers = RADIUS_TIERS.map(r => ({ max: r, items: [] as any[] }))
+            withDist.forEach(item => {
+                const tier = tiers.find(t => item.distance <= t.max) || tiers[tiers.length - 1]
+                tier.items.push(item)
+            })
 
-        withDist.forEach(item => {
-            const tier = tiers.find(t => item.distance <= t.max) || tiers[tiers.length - 1]
-            tier.items.push(item)
-        })
+            const finalPool = tiers.reduce((acc, ss) => [...acc, ...boostShuffleArray(ss.items)], [] as any[])
+            setShuffledItems(finalPool)
+            isFirstRun.current = false
+            return
+        }
 
-        return tiers.reduce((acc, ss) => [...acc, ...boostShuffleArray(ss.items)], [] as any[])
-    }, [items, location, locationLoading])
+        // 3. Si hay items nuevos, los mezclamos y los añadimos AL FINAL
+        if (newItemsRaw.length > 0) {
+            const newWithDist = newItemsRaw.map(item => ({
+                ...item,
+                distance: calculateDistance(
+                    location.latitude,
+                    location.longitude,
+                    item.latitude || 0,
+                    item.longitude || 0
+                )
+            }))
+
+            // Mezclamos los nuevos items y los pegamos al final de los existentes
+            const shuffledNew = boostShuffleArray(newWithDist)
+            setShuffledItems(prev => [...prev, ...shuffledNew])
+        }
+    }, [items, location?.city, locationLoading])
+
+    const stablePool = shuffledItems
 
     // 3. FILTRADO FINAL
     const nearbyItems = useMemo(() => {
-        const stack = stablePool.filter(v => v.distance <= currentRadius && !seenIds.has(v.id))
-        return stack
-    }, [stablePool, seenIds, currentRadius])
+        // Marcamos los IDs que vienen del servidor para asegurar que seguimos mostrando solo lo vigente
+        const validIds = new Set(items.map(i => i.id))
+
+        return stablePool.filter(v =>
+            v.distance <= currentRadius &&
+            !seenIds.has(v.id) &&
+            validIds.has(v.id) // Solo si sigue estando en la lista del servidor
+        )
+    }, [stablePool, seenIds, currentRadius, items])
 
     const expandSearch = useCallback(() => {
         setIsInternalLoading(true)

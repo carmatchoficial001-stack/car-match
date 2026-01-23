@@ -68,7 +68,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 x: exitX || (x.get() < 0 ? -1000 : 1000),
                 opacity: 0,
                 rotate: x.get() < 0 ? -45 : 45,
-                transition: { duration: 1.0, ease: "easeInOut" }
+                transition: { duration: 0.4, ease: "easeOut" }
             }}
             style={{
                 x,
@@ -254,16 +254,18 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
         setIsSwiping(true)
         setExitX(swipeDirection === 'left' ? -1000 : 1000)
 
-        setTimeout(() => {
-            if (swipeDirection === 'right') {
-                onLike(currentItem.id)
-            } else {
-                onDislike(currentItem.id)
-            }
+        // Ejecutar acción inmediatamente
+        if (swipeDirection === 'right') {
+            onLike(currentItem.id)
+        } else {
+            onDislike(currentItem.id)
+        }
 
+        // Resetear estado ligeramente después para permitir que la animación respire
+        setTimeout(() => {
             setExitX(undefined)
             setIsSwiping(false)
-        }, 1000)
+        }, 300)
     }
 
     const currentItem = items[0]
