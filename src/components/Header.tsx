@@ -3,7 +3,8 @@
 import { Logo } from "@/components/Logo"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState, useMemo } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { signOut, useSession } from "next-auth/react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import PWAInstallModal from "@/components/PWAInstallModal"
@@ -37,17 +38,21 @@ export default function Header() {
         }
     }, [pathname, session])
 
-    const [dynamicCta, setDynamicCta] = useState("")
+    const [ctaIndex, setCtaIndex] = useState(0)
+    const ctas = useMemo(() => {
+        if (!t || !locale) return []
+        const raw = t('common.dynamic_ctas.vehicles', { returnObjects: true })
+        return Array.isArray(raw) ? raw : []
+    }, [t, locale])
 
     useEffect(() => {
-        if (!session && t && locale) {
-            const ctas = t('common.dynamic_ctas.vehicles', { returnObjects: true })
-            if (Array.isArray(ctas) && ctas.length > 0) {
-                const randomIndex = Math.floor(Math.random() * ctas.length)
-                setDynamicCta(ctas[randomIndex])
-            }
+        if (ctas.length > 0 && !session) {
+            const interval = setInterval(() => {
+                setCtaIndex((prev) => (prev + 1) % ctas.length)
+            }, 6000) // Cambiar cada 6 segundos
+            return () => clearInterval(interval)
         }
-    }, [locale, session])
+    }, [ctas, session])
 
     const [unreadMessages, setUnreadMessages] = useState(0)
     const [unreadNotifications, setUnreadNotifications] = useState(0)
@@ -464,30 +469,56 @@ export default function Header() {
                                 </div>
                             </div>
                         ) : (
-                            <Link
-                                href="/auth"
-                                replace
-                                className="px-5 py-2.5 sm:px-8 sm:py-3.5 bg-gradient-to-r from-primary-600 to-primary-800 text-text-primary rounded-2xl font-bold text-xs sm:text-base hover:from-primary-500 hover:to-primary-700 transition-all shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-3 whitespace-nowrap border border-white/10"
-                            >
-                                <CarFront className="w-5 h-5 sm:w-6 sm:h-6 hidden sm:block text-yellow-400" />
-                                {pathname?.includes('/map') || pathname?.includes('/business')
-                                    ? <span className="text-base">{t('common.login_business')}</span>
-                                    : (pathname?.includes('/market') || pathname?.includes('/swipe') || pathname?.includes('/vehicle'))
-                                        ? (() => {
-                                            const parts = (dynamicCta || t('common.login_vehicle')).split(' | ')
-                                            if (parts.length > 1) {
-                                                return (
-                                                    <div className="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-2 leading-tight sm:leading-normal">
-                                                        <span className="text-[10px] sm:text-sm text-text-secondary font-medium">{parts[0]}</span>
-                                                        <span className="text-sm sm:text-lg text-yellow-400 font-black tracking-tight drop-shadow-sm">{parts[1]}</span>
-                                                    </div>
-                                                )
+                            <div className="flex items-center gap-1 sm:gap-4 overflow-hidden">
+                                <AnimatePresence mode="wait">
+                                    {(ctas[ctaIndex] || "").includes(' | ') && (
+                                        <motion.div
+                                            key={`hook-${ctaIndex}`}
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: 10 }}
+                                            className="hidden lg:block text-text-primary font-bold text-lg whitespace-nowrap"
+                                        >
+                                            {(ctas[ctaIndex] || "").split(' | ')[0]}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                <Link
+                                    href="/auth"
+                                    replace
+                                    className="px-4 py-2.5 sm:px-8 sm:py-3.5 bg-gradient-to-r from-primary-600 to-primary-800 text-text-primary rounded-2xl font-bold text-xs sm:text-base hover:from-primary-500 hover:to-primary-700 transition-all shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-3 whitespace-nowrap border border-white/10"
+                                >
+                                    <CarFront className="w-5 h-5 sm:w-6 sm:h-6 hidden sm:block text-yellow-400" />
+                                    <AnimatePresence mode="wait">
+                                        <motion.div
+                                            key={`action-${ctaIndex}`}
+                                            initial={{ opacity: 0, y: 5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -5 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            {pathname?.includes('/map') || pathname?.includes('/business')
+                                                ? t('common.login_business')
+                                                : (pathname?.includes('/market') || pathname?.includes('/swipe') || pathname?.includes('/vehicle'))
+                                                    ? (() => {
+                                                        const parts = (ctas[ctaIndex] || t('common.login_vehicle')).split(' | ')
+                                                        if (parts.length > 1) {
+                                                            return (
+                                                                <div className="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-2 leading-tight sm:leading-normal">
+                                                                    <span className="text-[10px] sm:hidden text-text-secondary font-medium">{parts[0]}</span>
+                                                                    <span className="text-sm sm:text-lg text-yellow-400 font-black tracking-tight drop-shadow-sm">{parts[1]}</span>
+                                                                </div>
+                                                            )
+                                                        }
+                                                        return <span className="text-sm sm:text-lg">{ctas[ctaIndex] || t('common.login_vehicle')}</span>
+                                                    })()
+                                                    : t('common.login')
                                             }
-                                            return <span className="text-sm sm:text-lg">{dynamicCta || t('common.login_vehicle')}</span>
-                                        })()
-                                        : <span className="text-base">{t('common.login')}</span>
-                                }
-                            </Link>
+                                        </motion.div>
+                                    </AnimatePresence>
+                                </Link>
+                            </div>
                         )}
                     </div>
                 </div>
