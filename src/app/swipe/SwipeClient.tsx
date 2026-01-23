@@ -195,7 +195,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         const validIds = new Set(items.map(i => i.id))
 
         return stablePool.filter(v =>
-            v.distance <= currentRadius &&
+            (v.distance ?? 999999) <= currentRadius &&
             !seenIds.has(v.id) &&
             validIds.has(v.id) // Solo si sigue estando en la lista del servidor
         )
