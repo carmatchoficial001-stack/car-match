@@ -33,6 +33,9 @@ export default function ContactButton({
         // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos en silencio
         const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
         if (session && isSoftLogout) {
+            const wantRestore = window.confirm("¿Deseas reactivar tu sesión para enviar este mensaje? Tu cuenta sigue vinculada.")
+            if (!wantRestore) return
+
             // 🎬 FEEDBACK VISUAL: Mostramos el overlay y esperamos un poco para la "magia"
             window.dispatchEvent(new Event('session-restore-start'))
             await new Promise(resolve => setTimeout(resolve, 2500))
@@ -86,8 +89,10 @@ export default function ContactButton({
         }
     }
 
-    // No mostrar si es tu propio vehículo
-    if (session?.user?.id === sellerId) {
+    // No mostrar si es tu propio vehículo (Solo si la sesión está ACTIVA y NO en soft logout)
+    const isSoftLogout = typeof document !== 'undefined' && (document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true')
+
+    if (session?.user?.id === sellerId && !isSoftLogout) {
         return null
     }
 

@@ -202,13 +202,16 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         // NOTA: Se ejecuta en background para no bloquear la animación
         const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
         if (currentUserId !== 'guest' && isSoftLogout) {
-            (async () => {
-                window.dispatchEvent(new Event('session-restore-start'))
-                await new Promise(resolve => setTimeout(resolve, 2500))
-                document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-                localStorage.removeItem('soft_logout')
-                window.dispatchEvent(new Event('session-restored'))
-            })();
+            const wantRestore = window.confirm("¿Deseas reactivar tu sesión para guardar este vehículo? Tu cuenta sigue vinculada.")
+            if (wantRestore) {
+                (async () => {
+                    window.dispatchEvent(new Event('session-restore-start'))
+                    await new Promise(resolve => setTimeout(resolve, 2500))
+                    document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+                    localStorage.removeItem('soft_logout')
+                    window.dispatchEvent(new Event('session-restored'))
+                })();
+            }
         }
 
         // Si no hay usuario logueado, redirigir con callback
@@ -234,13 +237,16 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         // 🔥 RESTAURAR SESIÓN (Background)
         const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
         if (currentUserId !== 'guest' && isSoftLogout) {
-            (async () => {
-                window.dispatchEvent(new Event('session-restore-start'))
-                await new Promise(resolve => setTimeout(resolve, 2500))
-                document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-                localStorage.removeItem('soft_logout')
-                window.dispatchEvent(new Event('session-restored'))
-            })();
+            const wantRestore = window.confirm("¿Deseas reactivar tu sesión para que CarMatch aprenda tus gustos? Tu cuenta sigue vinculada.")
+            if (wantRestore) {
+                (async () => {
+                    window.dispatchEvent(new Event('session-restore-start'))
+                    await new Promise(resolve => setTimeout(resolve, 2500))
+                    document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+                    localStorage.removeItem('soft_logout')
+                    window.dispatchEvent(new Event('session-restored'))
+                })();
+            }
         }
         markAsSeen(id)
     }
