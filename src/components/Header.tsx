@@ -49,7 +49,7 @@ export default function Header() {
         if (ctas.length > 0 && !session) {
             const interval = setInterval(() => {
                 setCtaIndex((prev) => (prev + 1) % ctas.length)
-            }, 6000) // Cambiar cada 6 segundos
+            }, 15000) // Cambiar cada 15 segundos (más pausado)
             return () => clearInterval(interval)
         }
     }, [ctas, session])
