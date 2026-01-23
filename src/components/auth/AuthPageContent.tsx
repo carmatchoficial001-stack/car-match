@@ -3,7 +3,8 @@
 import Link from "next/link"
 import { useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useSession, signOut } from "next-auth/react"
+import { useSession, signOut, signIn } from "next-auth/react"
+
 import { Logo } from "@/components/Logo"
 import { useLanguage } from "@/contexts/LanguageContext"
 import AuthButtons from "./AuthButtons"
@@ -52,6 +53,19 @@ export default function AuthPageContent() {
 
         handleFingerprint()
     }, [session])
+
+    // 🔥 AUTO-LOGIN LOGIC: Si está vinculado, intentamos entrar directamente
+    useEffect(() => {
+        if (isLinked && linkedEmail && !error) {
+            // Un pequeño delay para que el usuario vea qué pasa (o que no parpadee)
+            const timer = setTimeout(() => {
+                const options: any = { callbackUrl: getWeightedHomePath(), login_hint: linkedEmail };
+                signIn('google', options);
+            }, 600);
+            return () => clearTimeout(timer);
+        }
+    }, [isLinked, linkedEmail, error, router])
+
 
     if (status === "loading" || isChecking) {
         return (
@@ -112,25 +126,19 @@ export default function AuthPageContent() {
                     )}
 
                     {isLinked ? (
-                        <div className="space-y-6 animate-fade-in">
-                            <div className="p-5 bg-primary-500/5 border border-primary-500/10 rounded-3xl flex flex-col items-center">
-                                <div className="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center mb-3">
-                                    <LogIn className="text-primary-400" size={32} />
-                                </div>
-                                <p className="text-[10px] text-primary-400 uppercase tracking-[0.2em] font-black mb-1">Cuenta Autorizada</p>
-                                <p className="text-white font-bold text-xl truncate w-full text-center px-2">{linkedEmail}</p>
-                            </div>
-
-                            <AuthButtons linkedEmail={linkedEmail} forceOnlyLinked={true} />
-
-
-                            <div className="pt-4 border-t border-surface-highlight text-center">
-                                <p className="text-[10px] text-text-secondary leading-relaxed uppercase tracking-widest font-medium">
-                                    Este dispositivo está vinculado permanentemente<br />a la cuenta anterior.
+                        <div className="space-y-6 animate-pulse">
+                            <div className="flex flex-col items-center py-10">
+                                <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                                <p className="text-primary-400 font-bold uppercase tracking-widest text-sm">
+                                    Iniciando sesión segura...
+                                </p>
+                                <p className="text-text-secondary text-xs mt-2">
+                                    {linkedEmail}
                                 </p>
                             </div>
                         </div>
                     ) : (
+
                         <>
                             <AuthButtons />
                             <p className="mt-8 text-center text-xs text-text-secondary font-sans leading-relaxed">
