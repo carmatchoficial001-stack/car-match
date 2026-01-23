@@ -246,76 +246,6 @@ export default function Header() {
                             </div>
                         )}
 
-                        {/* Language Switcher - Solo visible si no hay sesión para evitar redundancia con el menú Configuración */}
-                        {!session && (
-                            <div className="relative">
-                                <button
-                                    onClick={() => setShowMenu(showMenu === 'lang' ? false : 'lang')}
-                                    className="p-1 md:p-2 rounded-lg hover:bg-surface-highlight text-text-secondary hover:text-text-primary transition"
-                                    title="Cambiar idioma"
-                                >
-                                    <span className="text-xl leading-none">
-                                        {
-                                            {
-                                                es: '🇪🇸', en: '🇺🇸', pt: '🇧🇷', fr: '🇫🇷', de: '🇩🇪', it: '🇮🇹',
-                                                zh: '🇨🇳', ja: '🇯🇵', ru: '🇷🇺', ko: '🇰🇷', ar: '🇸🇦', hi: '🇮🇳',
-                                                tr: '🇹🇷', nl: '🇳🇱', pl: '🇵🇱', sv: '🇸🇪', id: '🇮🇩', th: '🇹🇭',
-                                                vi: '🇻🇳', ur: '🇵🇰', he: '🇮🇱'
-                                            }[locale] || '🌐'
-                                        }
-                                    </span>
-                                </button>
-
-                                {showMenu === 'lang' && (
-                                    <>
-                                        <div
-                                            className="fixed inset-0 z-40"
-                                            onClick={() => setShowMenu(false)}
-                                        />
-                                        <div className="absolute right-0 mt-2 w-[300px] md:w-[480px] bg-surface rounded-xl shadow-xl border border-surface-highlight overflow-hidden z-50">
-                                            <div className="p-2 grid grid-cols-2 md:grid-cols-3 gap-1 max-h-[500px] overflow-y-auto">
-                                                {[
-                                                    { code: 'es', flag: '🇪🇸', name: 'Español' },
-                                                    { code: 'en', flag: '🇺🇸', name: 'English' },
-                                                    { code: 'pt', flag: '🇧🇷', name: 'Português' },
-                                                    { code: 'fr', flag: '🇫🇷', name: 'Français' },
-                                                    { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
-                                                    { code: 'it', flag: '🇮🇹', name: 'Italiano' },
-                                                    { code: 'ru', flag: '🇷🇺', name: 'Русский' },
-                                                    { code: 'zh', flag: '🇨🇳', name: '中文' },
-                                                    { code: 'ja', flag: '🇯🇵', name: '日本語' },
-                                                    { code: 'ko', flag: '🇰🇷', name: '한국어' },
-                                                    { code: 'ar', flag: '🇸🇦', name: 'العربية' },
-                                                    { code: 'hi', flag: '🇮🇳', name: 'हिन्दी' },
-                                                    { code: 'tr', flag: '🇹🇷', name: 'Türkçe' },
-                                                    { code: 'nl', flag: '🇳🇱', name: 'Nederlands' },
-                                                    { code: 'pl', flag: '🇵🇱', name: 'Polski' },
-                                                    { code: 'sv', flag: '🇸🇪', name: 'Svenska' },
-                                                    { code: 'id', flag: '🇮🇩', name: 'Bahasa' },
-                                                    { code: 'th', flag: '🇹🇭', name: 'ไทย' },
-                                                    { code: 'vi', flag: '🇻🇳', name: 'Tiếng Việt' },
-                                                    { code: 'ur', flag: '🇵🇰', name: 'اردو' },
-                                                    { code: 'he', flag: '🇮🇱', name: 'עברית' },
-                                                ].map((lang) => (
-                                                    <button
-                                                        key={lang.code}
-                                                        onClick={() => { setLocale(lang.code as any); setShowMenu(false) }}
-                                                        className={`
-                                                            flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-highlight transition text-left
-                                                            ${locale === lang.code ? 'bg-primary-700/10 text-primary-400' : 'text-text-primary'}
-                                                        `}
-                                                    >
-                                                        <span className="text-xl">{lang.flag}</span>
-                                                        <span className="font-medium text-sm truncate">{lang.name}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        )}
-
                         {/* Notifications Bell (Independent from user menu) */}
                         {session && !isSoftLogout && (
                             <div className="relative">
@@ -537,14 +467,25 @@ export default function Header() {
                             <Link
                                 href="/auth"
                                 replace
-                                className="px-3 py-2 bg-gradient-to-r from-primary-600 to-primary-800 text-text-primary rounded-xl font-bold text-[10px] sm:text-xs hover:from-primary-500 hover:to-primary-700 transition-all shadow-lg hover:scale-105 active:scale-95 flex items-center gap-2 whitespace-nowrap"
+                                className="px-5 py-2.5 sm:px-8 sm:py-3.5 bg-gradient-to-r from-primary-600 to-primary-800 text-text-primary rounded-2xl font-bold text-xs sm:text-base hover:from-primary-500 hover:to-primary-700 transition-all shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-3 whitespace-nowrap border border-white/10"
                             >
-                                <CarFront className="w-4 h-4 hidden sm:block" />
+                                <CarFront className="w-5 h-5 sm:w-6 sm:h-6 hidden sm:block text-yellow-400" />
                                 {pathname?.includes('/map') || pathname?.includes('/business')
-                                    ? t('common.login_business')
+                                    ? <span className="text-base">{t('common.login_business')}</span>
                                     : (pathname?.includes('/market') || pathname?.includes('/swipe') || pathname?.includes('/vehicle'))
-                                        ? (dynamicCta || t('common.login_vehicle'))
-                                        : t('common.login')
+                                        ? (() => {
+                                            const parts = (dynamicCta || t('common.login_vehicle')).split(' | ')
+                                            if (parts.length > 1) {
+                                                return (
+                                                    <div className="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-2 leading-tight sm:leading-normal">
+                                                        <span className="text-[10px] sm:text-sm text-text-secondary font-medium">{parts[0]}</span>
+                                                        <span className="text-sm sm:text-lg text-yellow-400 font-black tracking-tight drop-shadow-sm">{parts[1]}</span>
+                                                    </div>
+                                                )
+                                            }
+                                            return <span className="text-sm sm:text-lg">{dynamicCta || t('common.login_vehicle')}</span>
+                                        })()
+                                        : <span className="text-base">{t('common.login')}</span>
                                 }
                             </Link>
                         )}

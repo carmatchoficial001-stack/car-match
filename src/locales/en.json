@@ -1,6 +1,37 @@
 {
     "common": {
         "login": "Log In",
+        "login_vehicle": "Sell Vehicle",
+        "login_business": "Add Business",
+        "dynamic_ctas": {
+            "vehicles": [
+                "Need cash fast? | Sell a Vehicle",
+                "Don't like your car anymore? | Sell a Vehicle",
+                "Looking for something new? | Sell a Vehicle",
+                "Need cash? | Sell a Vehicle",
+                "Garage full? | Sell a Vehicle",
+                "Time to renew? | Sell a Vehicle",
+                "Extra car? | Sell a Vehicle",
+                "Looking for your next ride? | Sell a Vehicle",
+                "Need capital? | Sell a Vehicle",
+                "Scale up your model? | Sell a Vehicle",
+                "Need more room? | Sell a Vehicle",
+                "Car in the way? | Sell a Vehicle",
+                "Want a better ride? | Sell a Vehicle",
+                "Expenses going up? | Sell a Vehicle",
+                "Need a down payment? | Sell a Vehicle",
+                "Going on a trip? | Sell a Vehicle",
+                "Moving soon? | Sell a Vehicle",
+                "Want better gas mileage? | Sell a Vehicle",
+                "Need more horsepower? | Sell a Vehicle",
+                "Family growing? | Sell a Vehicle",
+                "Served its purpose? | Sell a Vehicle",
+                "Want quick cash? | Sell a Vehicle",
+                "Too many wheels? | Sell a Vehicle",
+                "Ready for a change? | Sell a Vehicle",
+                "Want a new car this month? | Sell a Vehicle"
+            ]
+        },
         "logout": "Log Out",
         "ios": "iOS",
         "android": "Android",
