@@ -879,7 +879,8 @@
         "features": {
             "24_hours": "🕒 24 Horas",
             "emergency": "🚑 Emergencias",
-            "home_service": "🏠 Servicio a Domicilio"
+            "home_service": "🏠 Servicio a Domicilio",
+            "safe_meeting_point": "🤝 Punto de Encuentro Seguro"
         }
     },
     "map_locator": {
