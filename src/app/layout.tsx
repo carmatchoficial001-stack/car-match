@@ -5,6 +5,8 @@ import Providers from "@/components/Providers";
 import MobileNav from "@/components/MobileNav";
 import OpenInBrowserBanner from "@/components/OpenInBrowserBanner";
 import { ResponsiveViewportFix } from "./responsive-viewport-fix";
+import RestoringSessionOverlay from "@/components/RestoringSessionOverlay";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -144,7 +146,9 @@ export default function RootLayout({
                     <PushNotificationRequest />
                     <OpenInBrowserBanner />
                     <ResponsiveViewportFix />
+                    <RestoringSessionOverlay />
                     <main className="min-h-screen-safe">
+
                         {children}
                     </main>
                     <MobileNav />

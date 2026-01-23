@@ -33,6 +33,10 @@ export default function ContactButton({
         // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos en silencio
         const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
         if (session && isSoftLogout) {
+            // 🎬 FEEDBACK VISUAL: Mostramos el overlay y esperamos un poco para la "magia"
+            window.dispatchEvent(new Event('session-restore-start'))
+            await new Promise(resolve => setTimeout(resolve, 2500))
+
             document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
             localStorage.removeItem('soft_logout')
             window.dispatchEvent(new Event('session-restored'))
@@ -40,6 +44,7 @@ export default function ContactButton({
 
 
         if (!session) {
+
             // Redirigir a login con callbackUrl para volver aquí
             const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
             router.push(`/auth?callbackUrl=${encodeURIComponent(currentPath)}`)

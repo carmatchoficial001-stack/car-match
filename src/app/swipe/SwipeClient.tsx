@@ -194,10 +194,15 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos en silencio
         const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
         if (currentUserId !== 'guest' && isSoftLogout) {
+            // 🎬 FEEDBACK VISUAL: Mostramos el overlay y esperamos un poco para la "magia"
+            window.dispatchEvent(new Event('session-restore-start'))
+            await new Promise(resolve => setTimeout(resolve, 2500))
+
             document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
             localStorage.removeItem('soft_logout')
             window.dispatchEvent(new Event('session-restored'))
         }
+
 
         // Si no hay usuario logueado, redirigir con callback
         if (currentUserId === 'guest') {
@@ -218,16 +223,21 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         } catch (e) { }
     }
 
-    const handleDislike = (id: string) => {
+    const handleDislike = async (id: string) => {
         // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos en silencio
         const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
         if (currentUserId !== 'guest' && isSoftLogout) {
+            // 🎬 FEEDBACK VISUAL: Mostramos el overlay y esperamos un poco para la "magia"
+            window.dispatchEvent(new Event('session-restore-start'))
+            await new Promise(resolve => setTimeout(resolve, 2500))
+
             document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
             localStorage.removeItem('soft_logout')
             window.dispatchEvent(new Event('session-restored'))
         }
         markAsSeen(id)
     }
+
 
 
     const [isSearchingLocation, setIsSearchingLocation] = useState(false)
