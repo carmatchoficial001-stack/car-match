@@ -487,9 +487,9 @@ export default function Header() {
                                 <Link
                                     href="/auth"
                                     replace
-                                    className="px-5 py-2.5 sm:px-10 sm:py-4 bg-gradient-to-r from-accent-500 to-accent-700 text-white rounded-2xl font-black text-xs sm:text-lg hover:from-accent-400 hover:to-accent-600 transition-all shadow-[0_10px_30px_rgba(249,115,22,0.3)] hover:scale-105 active:scale-95 flex items-center gap-3 whitespace-nowrap border border-white/20 uppercase tracking-tighter"
+                                    className="px-2 py-2 sm:px-4 sm:py-3 bg-transparent text-text-primary rounded-2xl font-black text-xs sm:text-lg hover:bg-white/5 transition-all flex items-center gap-3 whitespace-nowrap uppercase tracking-tighter"
                                 >
-                                    <CarFront className="w-5 h-5 sm:w-7 sm:h-7 hidden sm:block text-white" />
+                                    <CarFront className="w-5 h-5 sm:w-7 sm:h-7 hidden sm:block text-accent-500" />
                                     <AnimatePresence mode="wait">
                                         <motion.div
                                             key={`action-${ctaIndex}`}
@@ -507,13 +507,13 @@ export default function Header() {
                                                             return (
                                                                 <div className="flex flex-col items-center leading-none">
                                                                     <span className="text-[9px] sm:hidden text-white/80 font-medium mb-1">{parts[0]}</span>
-                                                                    <span className="text-sm sm:text-xl text-white drop-shadow-md">{parts[1]}</span>
+                                                                    <span className="text-sm sm:text-xl text-accent-500 drop-shadow-md">{parts[1]}</span>
                                                                 </div>
                                                             )
                                                         }
-                                                        return <span className="text-sm sm:text-xl">{ctas[ctaIndex] || t('common.login_vehicle')}</span>
+                                                        return <span className="text-sm sm:text-xl text-accent-500">{ctas[ctaIndex] || t('common.login_vehicle')}</span>
                                                     })()
-                                                    : t('common.login')
+                                                    : <span className="text-accent-500">{t('common.login')}</span>
                                             }
                                         </motion.div>
                                     </AnimatePresence>
