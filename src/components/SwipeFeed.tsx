@@ -84,27 +84,33 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
             <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-full">
                 {/* Imagen Principal (Max height para asegurar que botones sean visibles) */}
                 <div className="relative w-full h-[45vh] md:h-[50vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden">
-                    {item.images && item.images[activeImage] ? (
-                        <AnimatePresence mode="wait">
-                            <motion.img
-                                key={activeImage}
-                                src={item.images[activeImage]}
-                                alt={item.title}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.2 }}
-                                className="w-full h-full object-contain bg-black/40"
-                                draggable={false}
-                            />
-                        </AnimatePresence>
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                            <svg className="w-32 h-32 text-text-secondary opacity-30" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                            </svg>
-                        </div>
-                    )}
+                    <Link
+                        href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className="block w-full h-full"
+                    >
+                        {item.images && item.images[activeImage] ? (
+                            <AnimatePresence mode="wait">
+                                <motion.img
+                                    key={activeImage}
+                                    src={item.images[activeImage]}
+                                    alt={item.title}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="w-full h-full object-contain bg-black/40"
+                                    draggable={false}
+                                />
+                            </AnimatePresence>
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                                <svg className="w-32 h-32 text-text-secondary opacity-30" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                                </svg>
+                            </div>
+                        )}
+                    </Link>
 
                     {isBusiness && (
                         <div className="absolute top-4 left-4 z-30 px-3 py-1 bg-primary-600 text-white text-[10px] font-bold rounded-full shadow-lg flex items-center gap-1 uppercase tracking-widest">
@@ -122,7 +128,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
 
                     {/* Indicadores de swipe (Overlay en la imagen) */}
                     <motion.div
-                        className="absolute top-8 left-8 z-40"
+                        className="absolute top-8 left-8 z-40 pointer-events-none"
                         style={{ opacity: useTransform(x, [0, 100], [0, 1]) }}
                     >
                         <div className="px-6 py-3 bg-green-500 text-white rounded-2xl font-bold text-2xl rotate-12 border-4 border-white shadow-xl">
@@ -131,7 +137,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     </motion.div>
 
                     <motion.div
-                        className="absolute top-8 right-8 z-40"
+                        className="absolute top-8 right-8 z-40 pointer-events-none"
                         style={{ opacity: useTransform(x, [-100, 0], [1, 0]) }}
                     >
                         <div className="px-6 py-3 bg-red-500 text-white rounded-2xl font-bold text-2xl -rotate-12 border-4 border-white shadow-xl">
@@ -153,15 +159,21 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
 
                     {/* 2. Precio */}
                     <div className="px-6 mb-1">
-                        {!isBusiness ? (
-                            <div className="text-2xl font-bold text-primary-500">
-                                {formatPrice(item.price || 0, item.currency || 'MXN')}
-                            </div>
-                        ) : (
-                            <div className="text-sm font-bold text-primary-400 uppercase tracking-tighter bg-primary-900/20 px-2 py-1 rounded inline-block">
-                                {item.category || 'Negocio'}
-                            </div>
-                        )}
+                        <Link
+                            href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            className="block"
+                        >
+                            {!isBusiness ? (
+                                <div className="text-2xl font-bold text-primary-500">
+                                    {formatPrice(item.price || 0, item.currency || 'MXN')}
+                                </div>
+                            ) : (
+                                <div className="text-sm font-bold text-primary-400 uppercase tracking-tighter bg-primary-900/20 px-2 py-1 rounded inline-block">
+                                    {item.category || 'Negocio'}
+                                </div>
+                            )}
+                        </Link>
                     </div>
 
                     {/* 3. Ubicación */}

@@ -110,6 +110,43 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     const [shuffledItems, setShuffledItems] = useState<FeedItem[]>([])
     const isFirstRun = useRef(true)
 
+    // 🚀 RESTAURAR ESTADO DESDE SESSIONSTORAGE (Para persistencia al volver atrás)
+    useEffect(() => {
+        try {
+            const savedItems = sessionStorage.getItem('carmatch_swipe_items')
+            const savedSeen = sessionStorage.getItem('carmatch_swipe_seen')
+            const savedTier = sessionStorage.getItem('carmatch_swipe_tier')
+
+            if (savedItems) {
+                const parsedItems = JSON.parse(savedItems)
+                if (parsedItems.length > 0) {
+                    setShuffledItems(parsedItems)
+                    isFirstRun.current = false
+                }
+            }
+            if (savedSeen) {
+                setSeenIds(new Set(JSON.parse(savedSeen)))
+            }
+            if (savedTier) {
+                setTierIndex(parseInt(savedTier))
+            }
+        } catch (e) {
+            console.error("Error al restaurar sesión de swipe:", e)
+        }
+    }, [])
+
+    // 💾 GUARDAR ESTADO EN SESSIONSTORAGE
+    useEffect(() => {
+        if (!isFirstRun.current) {
+            sessionStorage.setItem('carmatch_swipe_items', JSON.stringify(shuffledItems))
+            sessionStorage.setItem('carmatch_swipe_tier', tierIndex.toString())
+        }
+    }, [shuffledItems, tierIndex])
+
+    useEffect(() => {
+        sessionStorage.setItem('carmatch_swipe_seen', JSON.stringify(Array.from(seenIds)))
+    }, [seenIds])
+
     useEffect(() => {
         if (locationLoading || !location || items.length === 0) return
 
@@ -127,6 +164,15 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
         // Si es el primer run o cambiamos de ciudad, reiniciamos el mazo
         if (isFirstRun.current || (shuffledItems.length > 0 && shuffledItems[0].city !== location.city)) {
+            // Si el cambio es por ciudad, limpiamos storage
+            if (shuffledItems.length > 0 && shuffledItems[0].city !== location.city) {
+                sessionStorage.removeItem('carmatch_swipe_items')
+                sessionStorage.removeItem('carmatch_swipe_seen')
+                sessionStorage.removeItem('carmatch_swipe_tier')
+                setSeenIds(new Set())
+                setTierIndex(0)
+            }
+
             const withDist = validItems.map((item: FeedItem) => {
                 let distance = calculateDistance(
                     location.latitude,
