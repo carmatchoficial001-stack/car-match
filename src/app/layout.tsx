@@ -75,7 +75,29 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="es" className="dark" style={{ colorScheme: 'dark' }}>
+            <head>
+                {/* 🔥 FORCE MOBILE VIEWPORT IMMEDIATELY (Prevents desktop-to-mobile flicker) */}
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                            (function() {
+                                var viewport = document.querySelector('meta[name="viewport"]');
+                                if (viewport) {
+                                    viewport.content = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover, interactive-widget=resizes-content";
+                                } else {
+                                    var meta = document.createElement('meta');
+                                    meta.name = "viewport";
+                                    meta.content = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover, interactive-widget=resizes-content";
+                                    document.head.appendChild(meta);
+                                }
+                                document.documentElement.style.colorScheme = 'dark';
+                            })();
+                        `
+                    }}
+                />
+            </head>
             <body className={`${inter.className} min-h-screen-safe overflow-x-hidden bg-[#0f172a]`}>
+
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{

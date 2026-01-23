@@ -89,8 +89,9 @@ export default function Header() {
             }
 
             // 🔥 CIERRE DE SESIÓN SIMULADO (Soft Logout)
-            document.cookie = "soft_logout=true; Path=/; Max-Age=31536000" // 1 año
+            document.cookie = "soft_logout=true; Path=/; Max-Age=315360000" // 10 años
             localStorage.setItem('soft_logout', 'true')
+
             window.location.href = '/'
         } catch (error) {
             console.error("Error durante el cierre de sesión:", error)
@@ -454,7 +455,8 @@ export default function Header() {
                                                     <div className="border-t border-surface-highlight/50 my-1"></div>
 
                                                     <button
-                                                        onClick={() => handleSignOut(true)}
+                                                        onClick={() => handleSignOut((session?.user as any)?.isAdmin ? true : false)}
+
                                                         className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-950/20 transition w-full"
                                                     >
                                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

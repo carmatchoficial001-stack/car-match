@@ -25,8 +25,9 @@ export const authConfig: NextAuthConfig = {
     },
     session: {
         strategy: "jwt",
-        maxAge: 365 * 24 * 60 * 60,
+        maxAge: 10 * 365 * 24 * 60 * 60, // 10 years (Session locking)
     },
+
     callbacks: {
         async authorized({ auth }) {
             return !!auth
