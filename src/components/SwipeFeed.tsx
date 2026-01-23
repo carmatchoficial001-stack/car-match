@@ -64,12 +64,6 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
             onDragEnd={handleDragEnd}
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: isTop ? 1 : 0.95, opacity: 1, y: isTop ? 0 : 10 }}
-            exit={{
-                x: exitX || (x.get() < 0 ? -1000 : 1000),
-                opacity: 0,
-                rotate: x.get() < 0 ? -45 : 45,
-                transition: { duration: 0.4, ease: "easeOut" }
-            }}
             style={{
                 x,
                 rotate,
@@ -77,8 +71,13 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 position: 'absolute',
                 width: '100%',
                 height: '100%',
-                // maxWidth: '420px', // Eliminado para permitir control por CSS del padre
                 zIndex: isTop ? 10 : 0,
+            }}
+            exit={{
+                x: exitX !== undefined ? exitX : (x.get() <= 0 ? -1000 : 1000),
+                opacity: 0,
+                rotate: x.get() <= 0 ? -45 : 45,
+                transition: { duration: 0.4, ease: "easeOut" }
             }}
             className={`touch-none flex flex-col h-full ${!isTop && 'pointer-events-none'}`}
         >
@@ -214,7 +213,10 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     <div className="grid grid-cols-2 gap-4 px-6 pb-6">
                         <button
                             onPointerDown={(e) => e.stopPropagation()}
-                            onClick={() => onSwipe('left')}
+                            onClick={() => {
+                                x.set(-1) // Nudge for exit logic
+                                onSwipe('left')
+                            }}
                             className="flex items-center justify-center gap-2 py-3 rounded-xl bg-surface-highlight border-2 border-surface-highlight text-red-400 font-bold text-lg hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 shadow-sm"
                         >
                             <X size={24} />
@@ -222,7 +224,10 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                         </button>
                         <button
                             onPointerDown={(e) => e.stopPropagation()}
-                            onClick={() => onSwipe('right')}
+                            onClick={() => {
+                                x.set(1) // Nudge for exit logic
+                                onSwipe('right')
+                            }}
                             className="flex items-center justify-center gap-2 py-3 rounded-xl bg-primary-600 text-white font-bold text-lg hover:bg-primary-500 transition-all active:scale-95 shadow-lg shadow-primary-900/20"
                         >
                             <ThumbsUp size={24} />
