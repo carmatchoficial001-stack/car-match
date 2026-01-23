@@ -27,16 +27,30 @@ export default function Header() {
         const hasStorage = localStorage.getItem('soft_logout') === 'true'
         const currentSoftLogout = hasCookie || hasStorage
 
-        // 🔥 AUTO-UNLOCK: Si ya hay sesión y estamos dentro de la app (no en landing),
-        // pero la UI cree que estamos en soft_logout, limpiamos el rastro.
-        if (session && currentSoftLogout && pathname !== '/') {
+        // 🔥 AUTO-UNLOCK: Solo restauramos la sesión automáticamente si el usuario 
+        // intenta entrar a secciones privadas (perfil, mensajes, publicar, etc.)
+        const protectedPaths = ['/profile', '/settings', '/messages', '/my-businesses', '/publish', '/admin', '/favorites', '/credits'];
+        const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
+
+        if (session && currentSoftLogout && isProtectedPath) {
             document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
             localStorage.removeItem('soft_logout')
             setIsSoftLogout(false)
         } else {
             setIsSoftLogout(currentSoftLogout)
         }
+
     }, [pathname, session])
+
+    // 🔥 ESCUCHAR RESTAURACIÓN MANUAL
+    useEffect(() => {
+        const handleRestore = () => {
+            setIsSoftLogout(false)
+        }
+        window.addEventListener('session-restored', handleRestore)
+        return () => window.removeEventListener('session-restored', handleRestore)
+    }, [])
+
 
     const [ctaIndex, setCtaIndex] = useState(0)
     const ctas = useMemo(() => {

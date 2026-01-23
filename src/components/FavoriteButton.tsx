@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 interface FavoriteButtonProps {
+
     vehicleId?: string
     businessId?: string
     initialIsFavorited?: boolean
@@ -28,6 +30,7 @@ export default function FavoriteButton({
     const [isLoading, setIsLoading] = useState(false)
     const [animate, setAnimate] = useState(false)
     const router = useRouter()
+    const { data: session } = useSession()
 
     // Sincronizar con cambios en props (importante para refrescos de servidor)
     useEffect(() => {
@@ -58,6 +61,16 @@ export default function FavoriteButton({
         e.stopPropagation()
 
         if (isLoading) return
+
+        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos en silencio
+        const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
+        if (session && isSoftLogout) {
+            document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+            localStorage.removeItem('soft_logout')
+            window.dispatchEvent(new Event('session-restored'))
+        }
+
+
 
         // Proactive check for guest users
         // Since we don't have useSession here, we check if the interaction fails with 401

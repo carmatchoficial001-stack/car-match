@@ -1,14 +1,19 @@
 // 🔒 FEATURE LOCKED: CARMATCH SWIPE. DO NOT EDIT WITHOUT EXPLICIT USER OVERRIDE.
 import { auth } from "@/lib/auth"
+import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+
 import { prisma } from "@/lib/db"
 import SwipeClient from "./SwipeClient"
 import { serializeDecimal } from "@/lib/serialize"
 
 export default async function SwipePage() {
     const session = await auth()
+    const cookieStore = await cookies()
+    const isSoftLogout = cookieStore.get('soft_logout')?.value === 'true'
 
     const currentUser = session?.user?.email
+
         ? await prisma.user.findUnique({
             where: { email: session.user.email },
             select: { id: true, isAdmin: true }
@@ -33,11 +38,13 @@ export default async function SwipePage() {
     }
 
     // Si NO es admin y hay usuario, ocultar propios. Invitados ven todo.
-    if (!isAdmin && currentUser) {
+    // 🔥 NEW: En Modo Invitado (soft_logout) sí permitimos ver sus propios vehículos
+    if (!isAdmin && currentUser && !isSoftLogout) {
         vehiclesWhere.userId = {
             not: currentUser.id
         }
     }
+
 
     const vehicles = await prisma.vehicle.findMany({
         where: vehiclesWhere,

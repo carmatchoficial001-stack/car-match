@@ -1,5 +1,7 @@
 import { auth } from "@/lib/auth"
+import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+
 import { prisma } from "@/lib/db"
 import MarketClient from "./MarketClient"
 import { getCachedBrands, getCachedVehicleTypes, getCachedColors } from "@/lib/cached-data"
@@ -52,8 +54,11 @@ export default async function MarketPage({
 }) {
     const searchParams = await searchParamsPromise
     const session = await auth()
+    const cookieStore = await cookies()
+    const isSoftLogout = cookieStore.get('soft_logout')?.value === 'true'
 
     // Obtener usuario si está logueado, si no, modo guest
+
     const currentUser = session?.user?.email
         ? await prisma.user.findUnique({
             where: { email: session.user.email },
@@ -70,11 +75,13 @@ export default async function MarketPage({
     }
 
     // Si NO es admin, ocultar propios. Si ES admin, mostrarlos. Invitados ven todo.
-    if (!isAdmin && currentUser) {
+    // 🔥 NEW: Si está en Modo Invitado (soft_logout), sí mostramos sus vehículos para que pueda ver cómo quedaron.
+    if (!isAdmin && currentUser && !isSoftLogout) {
         where.userId = {
             not: currentUser.id
         }
     }
+
 
     // Aplicar filtros manuales
     if (searchParams.brand) {

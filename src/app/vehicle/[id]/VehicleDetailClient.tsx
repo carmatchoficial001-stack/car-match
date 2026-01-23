@@ -92,6 +92,12 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
 
     const isOwner = !!currentUserId && currentUserId === vehicle.userId
     const isGuest = !currentUserId
+    const [isSoftLogout, setIsSoftLogout] = useState(false)
+
+    useEffect(() => {
+        setIsSoftLogout(document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true')
+    }, [])
+
 
     useEffect(() => {
         // Registrar vista real al entrar
@@ -354,7 +360,8 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
 
                     {/* Right Column: Details */}
                     <div className="flex flex-col">
-                        {isOwner && <ManagementPanel />}
+                        {isOwner && !isSoftLogout && <ManagementPanel />}
+
 
                         <div className="bg-surface border border-surface-highlight rounded-3xl p-6 shadow-xl mb-6">
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">

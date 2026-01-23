@@ -191,6 +191,14 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     }
 
     const handleLike = async (id: string) => {
+        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos en silencio
+        const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
+        if (currentUserId !== 'guest' && isSoftLogout) {
+            document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+            localStorage.removeItem('soft_logout')
+            window.dispatchEvent(new Event('session-restored'))
+        }
+
         // Si no hay usuario logueado, redirigir con callback
         if (currentUserId === 'guest') {
             const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/swipe'
@@ -210,7 +218,17 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         } catch (e) { }
     }
 
-    const handleDislike = (id: string) => markAsSeen(id)
+    const handleDislike = (id: string) => {
+        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos en silencio
+        const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
+        if (currentUserId !== 'guest' && isSoftLogout) {
+            document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+            localStorage.removeItem('soft_logout')
+            window.dispatchEvent(new Event('session-restored'))
+        }
+        markAsSeen(id)
+    }
+
 
     const [isSearchingLocation, setIsSearchingLocation] = useState(false)
     const [locationError, setLocationError] = useState<string | null>(null)

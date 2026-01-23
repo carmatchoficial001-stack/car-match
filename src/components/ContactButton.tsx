@@ -30,12 +30,22 @@ export default function ContactButton({
     const [loading, setLoading] = useState(false)
 
     const handleContact = async () => {
+        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos en silencio
+        const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
+        if (session && isSoftLogout) {
+            document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+            localStorage.removeItem('soft_logout')
+            window.dispatchEvent(new Event('session-restored'))
+        }
+
+
         if (!session) {
             // Redirigir a login con callbackUrl para volver aquí
             const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
             router.push(`/auth?callbackUrl=${encodeURIComponent(currentPath)}`)
             return
         }
+
 
         setLoading(true)
         try {
