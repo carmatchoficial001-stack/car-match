@@ -1,7 +1,8 @@
 // ✅ DISEÑO DE TARJETAS VALIDADO - ASÍ DEBE SER
 import { useState, useRef } from 'react'
 import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from 'framer-motion'
-import { X, ThumbsUp, MapPin } from 'lucide-react'
+import { X, ThumbsUp, MapPin, Plus } from 'lucide-react'
+
 import Link from 'next/link'
 import ContactButton from './ContactButton'
 import ShareButton from './ShareButton'
@@ -282,16 +283,21 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
                 <p className="text-text-secondary mb-8 max-w-md">
                     {t('swipe.seen_all_desc')}
                 </p>
-                <button
-                    onClick={onNeedMore}
-                    className="px-8 py-4 bg-primary-700 text-text-primary rounded-xl font-bold text-lg hover:bg-primary-600 transition flex items-center gap-2 shadow-xl hover:shadow-2xl hover:scale-105 transform"
-                >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
                     {t('swipe.expand_btn')}
                 </button>
-            </div>
+
+                <div className="mt-8 pt-8 border-t border-white/10 w-full flex flex-col items-center">
+                    <p className="text-sm text-text-secondary mb-4">{t('market.cant_find_desc')}</p>
+                    <Link
+                        href="/publish"
+                        className="px-8 py-4 bg-white text-primary-900 rounded-xl font-bold text-lg hover:bg-white/90 transition flex items-center gap-2 shadow-xl"
+                    >
+                        <Plus size={20} />
+                        {t('swipe.publish') || t('market.publish_cta')}
+                    </Link>
+                </div>
+            </div >
+
         )
     }
 

@@ -7,8 +7,9 @@ import { useLocation } from '@/contexts/LocationContext'
 import SwipeFeed from '@/components/SwipeFeed'
 import Header from '@/components/Header'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { MapPin, RefreshCw, Search } from 'lucide-react'
+import { MapPin, RefreshCw, Search, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { calculateDistance, searchCity, searchCities, normalizeCountryCode, LocationData } from '@/lib/geolocation'
 
 interface FeedItem {
@@ -303,8 +304,20 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                                 <MapPin size={20} />
                                 {t('market.change_location')}
                             </button>
+
+                            <div className="mt-4 pt-4 border-t border-white/10 w-full flex flex-col items-center">
+                                <p className="text-xs text-text-secondary mb-3 uppercase tracking-wider">{t('market.cant_find_desc')}</p>
+                                <Link
+                                    href="/publish"
+                                    className="w-full py-4 bg-white text-primary-900 rounded-2xl font-bold transition shadow-xl active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    <Plus size={20} />
+                                    {t('swipe.publish') || t('market.publish_cta')}
+                                </Link>
+                            </div>
                         </div>
                     </div>
+
                 ) : (
                     <div className="w-full flex-1 flex flex-col">
                         <SwipeFeed

@@ -2,7 +2,8 @@
 // v1.4 Refactor: Global LocationContext Usage
 
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { MapPin, Search, Loader2 } from 'lucide-react'
+import { MapPin, Search, Loader2, Plus } from 'lucide-react'
+
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
@@ -562,7 +563,19 @@ export default function MarketClient({
                                             <span className="text-sm text-primary-200 mt-2">
                                                 {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search_desc') : t('market.expand_search_desc')}
                                             </span>
+
+                                            <div className="mt-6 pt-6 border-t border-white/10 w-full flex flex-col items-center">
+                                                <p className="text-xs text-primary-300 font-medium mb-3 uppercase tracking-wider">{t('market.cant_find_desc')}</p>
+                                                <Link
+                                                    href="/publish"
+                                                    className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary-900 rounded-xl hover:bg-white/90 transition font-bold shadow-lg"
+                                                >
+                                                    <Plus size={18} />
+                                                    {t('market.publish_cta')}
+                                                </Link>
+                                            </div>
                                         </button>
+
                                     )}
                                 </div>
                             ) : (
@@ -613,8 +626,18 @@ export default function MarketClient({
                                             </svg>
                                             {t('market.change_location')}
                                         </button>
+
+                                        {/* Botón de publicar vehículo en estado vacío */}
+                                        <Link
+                                            href="/publish"
+                                            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary-900 rounded-xl hover:bg-white/90 transition font-bold shadow-lg justify-center whitespace-nowrap"
+                                        >
+                                            <Plus size={20} />
+                                            {t('market.publish_cta')}
+                                        </Link>
                                     </div>
                                 </div>
+
                             )}
                         </>
                     )}
