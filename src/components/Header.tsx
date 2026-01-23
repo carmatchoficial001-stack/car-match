@@ -36,6 +36,19 @@ export default function Header() {
             setIsSoftLogout(currentSoftLogout)
         }
     }, [pathname, session])
+
+    const [dynamicCta, setDynamicCta] = useState("")
+
+    useEffect(() => {
+        if (!session && t && locale) {
+            const ctas = t('common.dynamic_ctas.vehicles', { returnObjects: true })
+            if (Array.isArray(ctas) && ctas.length > 0) {
+                const randomIndex = Math.floor(Math.random() * ctas.length)
+                setDynamicCta(ctas[randomIndex])
+            }
+        }
+    }, [locale, session])
+
     const [unreadMessages, setUnreadMessages] = useState(0)
     const [unreadNotifications, setUnreadNotifications] = useState(0)
     const [favoritesCount, setFavoritesCount] = useState(0)
@@ -524,12 +537,13 @@ export default function Header() {
                             <Link
                                 href="/auth"
                                 replace
-                                className="px-3 py-2 bg-primary-700 text-text-primary rounded-lg font-bold text-sm hover:bg-primary-600 transition shadow-lg animate-pulse-slow"
+                                className="px-3 py-2 bg-gradient-to-r from-primary-600 to-primary-800 text-text-primary rounded-xl font-bold text-[10px] sm:text-xs hover:from-primary-500 hover:to-primary-700 transition-all shadow-lg hover:scale-105 active:scale-95 flex items-center gap-2 whitespace-nowrap"
                             >
+                                <CarFront className="w-4 h-4 hidden sm:block" />
                                 {pathname?.includes('/map') || pathname?.includes('/business')
                                     ? t('common.login_business')
                                     : (pathname?.includes('/market') || pathname?.includes('/swipe') || pathname?.includes('/vehicle'))
-                                        ? t('common.login_vehicle')
+                                        ? (dynamicCta || t('common.login_vehicle'))
                                         : t('common.login')
                                 }
                             </Link>
