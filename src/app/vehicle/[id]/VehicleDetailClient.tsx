@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import Header from '@/components/Header'
-import { ArrowLeft, MapPin, MessageCircle, Calendar, Gauge, Fuel, CheckCircle2, Zap, Activity, Wind, CircleDot, BatteryCharging, Route, Weight, Truck, ShieldCheck, Settings2, Pipette, Container } from 'lucide-react'
+import { ArrowLeft, MapPin, MessageCircle, Calendar, Gauge, Fuel, CheckCircle2, Zap, Activity, Wind, CircleDot, BatteryCharging, Route, Weight, Truck, ShieldCheck, Settings2, Container } from 'lucide-react'
 import FavoriteButton from '@/components/FavoriteButton'
 import ContactButton from '@/components/ContactButton'
 import ShareButton from '@/components/ShareButton'
@@ -464,7 +464,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                     {/* 🏎️ ESPECIFICACIONES AVANZADAS (NUEVAS) */}
                                     {vehicle.displacement && (
                                         <DetailItem
-                                            icon={<Pipette size={18} />}
+                                            icon={<Settings2 size={18} />}
                                             label="Cilindraje"
                                             value={vehicle.displacement > 100 ? `${vehicle.displacement} cc` : `${vehicle.displacement}L`}
                                         />

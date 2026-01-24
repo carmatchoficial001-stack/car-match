@@ -10,6 +10,7 @@ import { generateDeviceFingerprint } from '@/lib/fingerprint'
 import PortalAnimation from '@/components/PortalAnimation'
 import VehicleTypeSelector from '@/components/VehicleTypeSelector'
 import SearchableSelect from '@/components/SearchableSelect'
+import { Settings2, BatteryCharging, Truck } from 'lucide-react'
 import {
     VEHICLE_CATEGORIES,
     BRANDS,
@@ -917,7 +918,7 @@ export default function PublishClient() {
                                 {/* 🔬 Detalles Técnicos Avanzados (NUEVOS) */}
                                 <div className="pt-6 border-t border-surface-highlight/50 space-y-4">
                                     <h4 className="text-sm font-bold text-primary-400 uppercase tracking-wider flex items-center gap-2">
-                                        <Pipette size={16} />
+                                        <Settings2 size={16} />
                                         Motor y Potencia
                                     </h4>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
