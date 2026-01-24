@@ -1,6 +1,6 @@
 
 import { geminiModel } from "./geminiClient";
-import { VEHICLE_CATEGORIES, BRANDS } from "../vehicleTaxonomy";
+import { VEHICLE_CATEGORIES, BRANDS, COLORS, TRANSMISSIONS, FUELS } from "../vehicleTaxonomy";
 
 interface SearchIntent {
   category?: string;
@@ -30,19 +30,21 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
   const prompt = `
     Actúa como un ASESOR ESTRATÉGICO AUTOMOTRIZ DE NIVEL EMPRESARIAL con acceso a una base de datos de MILLONES de vehículos reales. Tu precisión es crítica para el rendimiento del sistema.
 
-    CONTEXTO DE ESCALA:
+    CONTEXTO DE ESCALA Y TAXONOMÍA ESTRICTA:
     - Base de Datos de Categorías: ${categoriesStr}
-    - La DB contiene millones de registros: DEBES extraer la MARCA y MODELO exactos para que las consultas sean instantáneas.
-    - Ejemplo: "RAM" es la marca para la camioneta, no "Dodge RAM" (a menos que sea antigua).
+    - Colores Válidos (Taxonomía): ${JSON.stringify(COLORS)}
+    - Transmisiones: ${JSON.stringify(TRANSMISSIONS)}
+    - Combustibles: ${JSON.stringify(FUELS)}
 
-    TUS OBJETIVOS DE ALTA PRECISIÓN:
-    1. 🕵️‍♂️ **Modo Descubrimiento (Vagos)**: Si el usuario no sabe qué buscar ("recomiéndame algo", "busco algo barato", "hola"), actúe como un CONSULTOR PROACTIVO. 
-       - Genera filtros para un "Coche de Entrada Ideal": maxPrice: 250000, category: "Automóvil", vehicleType: "Sedán" o "Hatchback", condition: "Usado".
-    2. 🎯 **Extracción Quirúrgica**: Si detectas una marca o modelo, identifícalo con precisión milimétrica. "Ram 2500 negra" -> brand: "RAM", model: "2500", color: "Negro".
-    3. 🚜 **Clasificación de Carga/Utility**:
-       - Si es para transporte de carga pesada, tractocamión o maquinaria -> Camión o Maquinaria.
-       - Si es pickup ligera/recreativa -> Automóvil (Subtipo: Pickup).
-    4. 💰 **Inteligencia de Precios**: Con millones de autos, "barato" (<250k) o "lujo" (>800k) deben disparar rangos lógicos.
+    TUS OBJETIVOS DE ALTA PRECISIÓN Y TRADUCCIÓN:
+    1. 🗣️ **Traductor Semántico Multilingüe**: El usuario puede buscar en CUALQUIERA de los 21 idiomas (Español, Inglés, Chino, Árabe, etc.). TU TRABAJO es mapear su intención a los VALORES EXACTOS de la taxonomía anterior en Español.
+       - "Ram negra" (Español) -> color: "Negro"
+       - "Black Ram" (Inglés) -> color: "Negro"
+       - "Ram noir" (Francés) -> color: "Negro"
+       - "Camioneta" / "Troca" / "Pickup" -> vehicleType: "Pickup" (Categoría: Automóvil)
+
+    2. 🎯 **Extracción Quirúrgica**: Si detectas una marca o modelo, identifícalo con precisión milimétrica.
+    3. 💰 **Inteligencia de Precios**: "Barato" (<250k), "Lujo" (>800k).
 
     RESPONDE SOLO JSON (Sin markdown):
     {
