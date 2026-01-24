@@ -39,7 +39,7 @@ export default function MarketFiltersAdvanced({
     onClose
 }: MarketFiltersAdvancedProps & { onClose?: () => void }) {
     const { t } = useLanguage()
-    const { setManualLocation, location } = useLocation()
+    const { setManualLocation, manualLocation, location } = useLocation()
     const router = useRouter()
     const searchParams = useSearchParams()
     const availableYears = getYears()
@@ -62,8 +62,14 @@ export default function MarketFiltersAdvanced({
     const [city, setCity] = useState(currentFilters.city || userCity)
 
     // 📍 Location Search State
-    // PREFERENCIA: 1. Filtro actual URl -> 2. Prop usuario -> 3. Contexto Global (GPS)
-    const [locationInput, setLocationInput] = useState(currentFilters.city || userCity || location?.city || '')
+    // PREFERENCIA: 1. Filtro actual URL -> 2. Prop usuario -> 3. Manual (Contexto) -> 4. GPS (Contexto)
+    const [locationInput, setLocationInput] = useState(
+        currentFilters.city ||
+        userCity ||
+        manualLocation?.city ||
+        location?.city ||
+        ''
+    )
     const [isSearchingLocation, setIsSearchingLocation] = useState(false)
     const [locationCandidates, setLocationCandidates] = useState<LocationData[]>([])
     const [showCandidates, setShowCandidates] = useState(false)
@@ -165,6 +171,7 @@ export default function MarketFiltersAdvanced({
                 if (filters.category) params.set('category', filters.category)
                 if (filters.brand) params.set('brand', filters.brand)
                 if (filters.model) params.set('model', filters.model)
+                if (filters.subType || filters.vehicleType) params.set('vehicleType', filters.subType || filters.vehicleType)
                 if (filters.minPrice) params.set('minPrice', filters.minPrice.toString())
                 if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString())
                 if (filters.minYear) params.set('minYear', filters.minYear.toString())
@@ -230,7 +237,7 @@ export default function MarketFiltersAdvanced({
         keys.forEach(k => params.delete(k))
 
         if (category) params.set('category', category)
-        if (subType) params.set('vehicleType', subType)
+        if (subType) params.set('vehicleType', subType) // Standardized key
         if (brand) params.set('brand', brand)
         if (model) params.set('model', model)
         if (minPrice) params.set('minPrice', minPrice)
@@ -276,6 +283,8 @@ export default function MarketFiltersAdvanced({
         setCountry(userCountry)
         setState(userState)
         setCity(userCity)
+        setLocationInput(userCity || location?.city || '')
+        setManualLocation(null)
         setTransmission([])
         setFuel([])
         setTraction('')
