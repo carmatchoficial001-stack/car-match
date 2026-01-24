@@ -19,12 +19,12 @@ export default function MobileNav() {
     const [isSoftLogout, setIsSoftLogout] = useState(false)
     const [isVisible, setIsVisible] = useState(true)
 
+    // 🔥 SESIÓN Y SOFT LOGOUT
     useEffect(() => {
         const hasCookie = document.cookie.includes('soft_logout=true')
         const hasStorage = localStorage.getItem('soft_logout') === 'true'
         const currentSoftLogout = hasCookie || hasStorage
 
-        // 🔥 AUTO-UNLOCK
         const protectedPaths = ['/profile', '/settings', '/messages', '/my-businesses', '/publish', '/admin', '/favorites', '/credits'];
         const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
 
@@ -35,27 +35,44 @@ export default function MobileNav() {
         } else {
             setIsSoftLogout(currentSoftLogout)
         }
+    }, [pathname, session])
 
-        // ⌨️ SMART HIDE (Only for Keyboard/Input)
-        // No escuchamos resize general para evitar el rebote del scroll
-        const handleFocus = (e: Event) => {
+    // ⌨️ SMART KEYBOARD HIDE (Detección Ultra-Robusta)
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.visualViewport) {
+                // Si la altura del viewport se reduce significativamente, es el teclado
+                const isKeyboardOpen = window.visualViewport.height < window.innerHeight * 0.75;
+                setIsVisible(!isKeyboardOpen);
+            }
+        };
+
+        const handleFocus = (e: FocusEvent) => {
             const target = e.target as HTMLElement;
             if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
                 setIsVisible(false);
             }
         };
+
         const handleBlur = () => {
-            setIsVisible(true);
+            // Pequeño delay para checar si el foco pasó a otro input o se cerró realmente
+            setTimeout(handleResize, 100);
         };
 
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleResize);
+        }
         document.addEventListener('focusin', handleFocus);
         document.addEventListener('focusout', handleBlur);
 
         return () => {
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', handleResize);
+            }
             document.removeEventListener('focusin', handleFocus);
             document.removeEventListener('focusout', handleBlur);
         };
-    }, [pathname, session]);
+    }, []);
 
     // 🔥 ESCUCHAR RESTAURACIÓN MANUAL
     useEffect(() => {
@@ -66,10 +83,6 @@ export default function MobileNav() {
         return () => window.removeEventListener('session-restored', handleRestore)
     }, [])
 
-
-    // if (!session || isSoftLogout) return null // ❌ REMOVIDO: Ahora se muestra siempre
-
-    // Ocultar en admin
     if (pathname?.startsWith('/admin')) {
         return null
     }
@@ -90,18 +103,17 @@ export default function MobileNav() {
 
     return (
         <nav
-            className={`md:hidden fixed bottom-0 left-0 right-0 z-[9999] bg-[#0f172a]/95 border-t border-white/5 backdrop-blur-sm ${isVisible ? 'flex' : 'hidden'}`}
+            className={`md:hidden fixed bottom-0 left-0 right-0 z-[9999] bg-[#0f172a] border-t border-white/5 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] ${isVisible ? 'flex' : 'hidden'}`}
             style={{
                 height: 'calc(64px + env(safe-area-inset-bottom))',
                 paddingBottom: 'env(safe-area-inset-bottom)',
+                // 🚀 ESTABILIDAD ULTRA: Forzar renderizado en capa independiente (GPU)
                 transform: 'translate3d(0, 0, 0)',
                 WebkitTransform: 'translate3d(0, 0, 0)',
                 WebkitBackfaceVisibility: 'hidden',
                 backfaceVisibility: 'hidden',
-                perspective: '1000px',
-                contain: 'layout paint',
-                transformStyle: 'preserve-3d',
-                position: 'fixed'
+                willChange: 'transform',
+                contain: 'layout paint'
             }}
         >
             <div className="flex items-center justify-around h-16 px-2 w-full">
@@ -113,11 +125,18 @@ export default function MobileNav() {
                         <Link
                             key={item.href || index}
                             href={item.href}
-                            className={`flex flex-col items-center justify-center w-full gap-1 transition-transform ${active ? 'text-primary-500 scale-105' : 'text-text-secondary'
-                                }`}
+                            className={`flex flex-col items-center justify-center w-full gap-0.5 transition-transform active:scale-90 ${active ? 'text-primary-500' : 'text-text-secondary'}`}
                         >
-                            <Icon className={`w-6 h-6 ${active ? item.color : ''}`} />
-                            <span className="text-[10px] font-medium truncate max-w-[60px]">
+                            <div className="relative p-1">
+                                <Icon className={`w-6 h-6 ${active ? item.color : 'opacity-70'}`} />
+                                {active && (
+                                    <motion.div
+                                        layoutId="nav-active"
+                                        className="absolute inset-0 bg-primary-500/10 rounded-full blur-md"
+                                    />
+                                )}
+                            </div>
+                            <span className={`text-[10px] font-bold truncate max-w-[64px] ${active ? 'text-white' : 'opacity-60'}`}>
                                 {item.label}
                             </span>
                         </Link>
