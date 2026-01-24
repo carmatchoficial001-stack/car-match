@@ -16,16 +16,15 @@ export default function MobileNav() {
     const pathname = usePathname()
     const { t } = useLanguage()
     const { data: session } = useSession()
-    const [isVisible, setIsVisible] = useState(true)
     const [isSoftLogout, setIsSoftLogout] = useState(false)
+    const [isVisible, setIsVisible] = useState(true)
 
     useEffect(() => {
         const hasCookie = document.cookie.includes('soft_logout=true')
         const hasStorage = localStorage.getItem('soft_logout') === 'true'
         const currentSoftLogout = hasCookie || hasStorage
 
-        // 🔥 AUTO-UNLOCK: Solo restauramos la sesión automáticamente si el usuario 
-        // intenta entrar a secciones privadas (perfil, mensajes, publicar, etc.)
+        // 🔥 AUTO-UNLOCK
         const protectedPaths = ['/profile', '/settings', '/messages', '/my-businesses', '/publish', '/admin', '/favorites', '/credits'];
         const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
 
@@ -37,33 +36,8 @@ export default function MobileNav() {
             setIsSoftLogout(currentSoftLogout)
         }
 
-
-        // Función simplificada y robusta para detectar teclado
-        const handleResize = () => {
-            // Si el viewport es mucho más chico que la pantalla, es probable que esté el teclado
-            // Usamos window.screen.height como referencia absoluta que no cambia (usualmente)
-            const isKeyboardOpen = window.visualViewport
-                ? window.visualViewport.height < window.screen.height * 0.6 // 60% de la pantalla
-                : window.innerHeight < window.screen.height * 0.75;
-
-            // Verificación adicional por foco (la más confiable para inputs)
-            const activeTag = document.activeElement?.tagName;
-            const isInputFocused = activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT';
-
-            if (isKeyboardOpen || isInputFocused) {
-                setIsVisible(false);
-            } else {
-                setIsVisible(true);
-            }
-        };
-
-        // Listeners
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', handleResize);
-        }
-        window.addEventListener('resize', handleResize);
-
-        // Focus listeners con capture para asegurar que los atrapamos
+        // ⌨️ SMART HIDE (Only for Keyboard/Input)
+        // No escuchamos resize general para evitar el rebote del scroll
         const handleFocus = (e: Event) => {
             const target = e.target as HTMLElement;
             if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
@@ -71,21 +45,13 @@ export default function MobileNav() {
             }
         };
         const handleBlur = () => {
-            // Pequeño delay para verificar si el foco pasó a otro input o se cerró el teclado
-            setTimeout(handleResize, 100);
+            setIsVisible(true);
         };
 
         document.addEventListener('focusin', handleFocus);
         document.addEventListener('focusout', handleBlur);
 
-        // Chequeo inicial
-        handleResize();
-
         return () => {
-            if (window.visualViewport) {
-                window.visualViewport.removeEventListener('resize', handleResize);
-            }
-            window.removeEventListener('resize', handleResize);
             document.removeEventListener('focusin', handleFocus);
             document.removeEventListener('focusout', handleBlur);
         };
@@ -123,8 +89,7 @@ export default function MobileNav() {
     ]
 
     return (
-        <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-[9999] glass-effect pb-safe transition-all duration-300 ${isVisible ? 'flex opacity-100 translate-y-0' : 'flex opacity-0 translate-y-full pointer-events-none'
-            }`}>
+        <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-[9999] glass-effect pb-safe ${isVisible ? 'flex' : 'hidden'}`}>
             <div className="flex items-center justify-around h-16 px-2 w-full">
                 {navItems.map((item, index) => {
                     const Icon = item.icon
@@ -134,7 +99,7 @@ export default function MobileNav() {
                         <Link
                             key={item.href || index}
                             href={item.href}
-                            className={`flex flex-col items-center justify-center w-full gap-1 transition ${active ? 'text-primary-500 scale-110' : 'text-text-secondary'
+                            className={`flex flex-col items-center justify-center w-full gap-1 transition-transform ${active ? 'text-primary-500 scale-105' : 'text-text-secondary'
                                 }`}
                         >
                             <Icon className={`w-6 h-6 ${active ? item.color : ''}`} />
