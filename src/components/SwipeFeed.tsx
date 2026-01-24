@@ -177,10 +177,14 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     </div>
 
                     {/* 3. Ubicación */}
-                    <div className="px-6 mb-3 flex items-center gap-2 text-text-secondary text-sm">
+                    <Link
+                        href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className="px-6 mb-3 flex items-center gap-2 text-text-secondary text-sm hover:text-primary-400 transition"
+                    >
                         <MapPin size={16} className="text-primary-500" />
                         <span className="font-medium">{item.city}</span>
-                    </div>
+                    </Link>
 
                     {/* 4. Galería de Fotos (Miniaturas) */}
                     {item.images && item.images.length > 1 && (

@@ -456,23 +456,40 @@ export default function MarketClient({
 
                                                     <div className="flex flex-wrap gap-1 mb-1.5 mt-1">
                                                         {!isBusiness && item.transmission && (
-                                                            <div className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded">
+                                                            <Link
+                                                                href={isBusiness
+                                                                    ? `/map-store?id=${item.id}`
+                                                                    : `/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                                }
+                                                                className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded hover:bg-surface-highlight/80 transition"
+                                                            >
                                                                 {item.transmission}
-                                                            </div>
+                                                            </Link>
                                                         )}
-                                                        <div className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded">
+                                                        <Link
+                                                            href={isBusiness
+                                                                ? `/map-store?id=${item.id}`
+                                                                : `/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                            }
+                                                            className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded hover:bg-surface-highlight/80 transition"
+                                                        >
                                                             {/* 📍 ADMIN DYNAMIC LOCATION: Override city if it's an admin post */}
                                                             {item.isBoosted && activeLocation?.city ? activeLocation.city : item.city}
-                                                        </div>
+                                                        </Link>
                                                     </div>
 
                                                     <div className="flex items-center justify-between mt-auto">
                                                         <div className="flex flex-col">
                                                             {!isBusiness ? (
                                                                 <>
-                                                                    <p className="font-bold text-sm md:text-xl text-primary-400" suppressHydrationWarning>
-                                                                        {formatPrice(item.price || 0, item.currency || 'MXN', locale)}
-                                                                    </p>
+                                                                    <Link
+                                                                        href={`/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`}
+                                                                        className="block group/price"
+                                                                    >
+                                                                        <p className="font-bold text-sm md:text-xl text-primary-400 group-hover/price:text-primary-300 transition" suppressHydrationWarning>
+                                                                            {formatPrice(item.price || 0, item.currency || 'MXN', locale)}
+                                                                        </p>
+                                                                    </Link>
                                                                     <div className="flex items-center gap-2 mt-0.5">
                                                                         <Link
                                                                             href={`/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`}
