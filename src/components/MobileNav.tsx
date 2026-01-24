@@ -104,18 +104,7 @@ export default function MobileNav() {
 
     return (
         <nav
-            className={`md:hidden fixed bottom-0 left-0 right-0 z-[9999] bg-[#0f172a] border-t border-white/5 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] ${isVisible ? 'flex' : 'hidden'}`}
-            style={{
-                height: 'calc(64px + env(safe-area-inset-bottom))',
-                paddingBottom: 'env(safe-area-inset-bottom)',
-                // 🚀 ESTABILIDAD ULTRA: Forzar renderizado en capa independiente (GPU)
-                transform: 'translate3d(0, 0, 0)',
-                WebkitTransform: 'translate3d(0, 0, 0)',
-                WebkitBackfaceVisibility: 'hidden',
-                backfaceVisibility: 'hidden',
-                willChange: 'transform',
-                contain: 'layout paint'
-            }}
+            className={`md:hidden fixed bottom-0 left-0 right-0 z-[50] bg-slate-900 border-t border-white/5 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] h-[calc(64px+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] ${isVisible ? 'flex' : 'hidden'}`}
         >
             <div className="flex items-center justify-around h-16 px-2 w-full">
                 {navItems.map((item, index) => {
@@ -126,15 +115,12 @@ export default function MobileNav() {
                         <Link
                             key={item.href || index}
                             href={item.href}
-                            className={`flex flex-col items-center justify-center w-full gap-0.5 transition-transform active:scale-90 ${active ? 'text-primary-500' : 'text-text-secondary'}`}
+                            className={`flex flex-col items-center justify-center w-full gap-0.5 transition-colors active:scale-95 ${active ? 'text-primary-500' : 'text-text-secondary'}`}
                         >
                             <div className="relative p-1">
                                 <Icon className={`w-6 h-6 ${active ? item.color : 'opacity-70'}`} />
                                 {active && (
-                                    <motion.div
-                                        layoutId="nav-active"
-                                        className="absolute inset-0 bg-primary-500/10 rounded-full blur-md"
-                                    />
+                                    <div className="absolute inset-0 bg-primary-500/10 rounded-full blur-md" />
                                 )}
                             </div>
                             <span className={`text-[10px] font-bold truncate max-w-[64px] ${active ? 'text-white' : 'opacity-60'}`}>

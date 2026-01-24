@@ -65,7 +65,6 @@ export const viewport: Viewport = {
     userScalable: false,
     viewportFit: "cover",
     colorScheme: "dark",
-    interactiveWidget: "resizes-content",
 };
 
 import PushNotificationRequest from "@/components/PushNotificationRequest";

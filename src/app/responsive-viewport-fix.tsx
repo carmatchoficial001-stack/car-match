@@ -13,7 +13,8 @@ export function ResponsiveViewportFix() {
     useEffect(() => {
         const updateViewport = () => {
             let meta = document.querySelector('meta[name="viewport"]');
-            const content = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover, interactive-widget=resizes-content";
+            // Remove interactive-widget=resizes-content to avoid layout jumps during keyboard/address bar shifts
+            const content = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover";
 
             if (!meta) {
                 meta = document.createElement("meta");
@@ -26,43 +27,19 @@ export function ResponsiveViewportFix() {
             }
         };
 
-        // Initial check and immediate reinforcement
         updateViewport();
 
-        // Prevent zooming on iOS double tap/pinch
+        // Prevent zooming on touch gestures
         const preventZoom = (e: TouchEvent) => {
             if (e.touches.length > 1) {
                 e.preventDefault();
             }
         };
 
-        // Additional reinforcement for Safari
-        const handleGestureStart = (e: Event) => e.preventDefault();
-
-        document.addEventListener('gesturestart', handleGestureStart);
         document.addEventListener('touchstart', preventZoom as any, { passive: false });
 
-        // Hydration check and periodic reinforcement
-        const timer = setTimeout(updateViewport, 500);
-        const interval = setInterval(updateViewport, 2000);
-
-        // Safari iOS 100vh Fix
-        const handleResize = () => {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-        };
-
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        window.addEventListener('orientationchange', handleResize);
-
         return () => {
-            clearTimeout(timer);
-            clearInterval(interval);
-            document.removeEventListener('gesturestart', handleGestureStart);
             document.removeEventListener('touchstart', preventZoom as any);
-            window.removeEventListener('resize', handleResize);
-            window.removeEventListener('orientationchange', handleResize);
         };
     }, []);
 

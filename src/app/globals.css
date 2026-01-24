@@ -144,8 +144,11 @@ body {
 }
 
 .min-h-screen-safe {
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
+  min-height: 100dvh;
+}
+
+body {
+  overscroll-behavior-y: none;
 }
 
 /* Glassmorphism Premium */
