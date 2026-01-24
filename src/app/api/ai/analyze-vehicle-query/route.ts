@@ -43,12 +43,20 @@ export async function POST(req: NextRequest) {
         "maxPrice": number (opcional),
         "minYear": number (opcional),
         "maxYear": number (opcional),
-        "color": "string (opcional)",
-        "transmission": "string (opcional)",
-        "fuel": "string (opcional)"
+        "color": "string (opcional, ej. 'Rojo', 'Blanco')",
+        "transmission": "string (opcional, ej. 'Automático', 'Manual')",
+        "fuel": "string (opcional, ej. 'Gasolina', 'Diesel')"
     },
-    "explanation": "Breve frase motivadora o explicativa de qué estás buscando (ej. '¡Claro! Aquí tienes las mejores SUVs familiares en el rango de precio que buscas.')"
+    "explanation": "Breve frase motivadora o explicativa de qué estás buscando."
 }
+
+**LÓGICA ESPECIAL:**
+- Si dice "Camaro", Brand: "Chevrolet", Model: "Camaro".
+- Si dice "Mustang", Brand: "Ford", Model: "Mustang".
+- "Troca" es Pickup o SUV.
+- Colores deben empezar con Mayúscula (Rojo, Negro).
+- "Barato" para autos < 200k, para pickups < 300k.
+- "Caro/Lujo" > 800k.
 
 **QUERY DEL USUARIO:**
 "${query}"

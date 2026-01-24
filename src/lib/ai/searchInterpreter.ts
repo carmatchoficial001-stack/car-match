@@ -10,6 +10,9 @@ interface SearchIntent {
   minPrice?: number;
   maxPrice?: number;
   minYear?: number;
+  color?: string;
+  transmission?: string;
+  fuel?: string;
   query_language?: string; // Just for logging/debugging
   keywords?: string[]; // Extra keywords like "roja", "4x4"
   isBusinessSearch?: boolean; // If user is looking for a shop/mechanic instead of a car
@@ -47,15 +50,21 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
 
     RESPONDE SOLO JSON (Sin markdown):
     {
-      "category": "String (Exact match from DB)",
-      "subType": "String",
-      "brand": "String (Normalized, e.g. 'Chevrolet')",
+      "category": "String (Exact match from DB categories)",
+      "subType": "String (Normalized style)",
+      "brand": "String (Normalized name, e.g. 'Chevrolet')",
+      "model": "String (Specific model, e.g. 'Camaro', 'Silverado')",
       "minPrice": Number,
-      "maxPrice": Number,
+      "maxPrice": Number, 
       "minYear": Number,
+      "color": "String (E.g. 'Rojo', 'Blanco')",
+      "transmission": "String (E.g. 'Automático', 'Manual')",
+      "fuel": "String (E.g. 'Gasolina', 'Diesel')",
       "isBusinessSearch": Boolean,
-      "keywords": ["Array", "Of", "Extra", "Terms"]
+      "keywords": ["Array", "Of", "Semantic", "Tokens"]
     }
+
+    NOTA: Colores deben ser capitalizados (Rojo, Azul). Si dice "barato" busca precios razonables según la categoría.
   `;
 
   try {

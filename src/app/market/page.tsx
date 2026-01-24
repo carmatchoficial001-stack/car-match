@@ -23,6 +23,7 @@ export const metadata = {
 interface SearchParams {
     search?: string
     brand?: string
+    model?: string
     minPrice?: string
     maxPrice?: string
     minYear?: string
@@ -85,7 +86,11 @@ export default async function MarketPage({
 
     // Aplicar filtros manuales
     if (searchParams.brand) {
-        where.brand = searchParams.brand
+        where.brand = { contains: searchParams.brand, mode: 'insensitive' }
+    }
+
+    if (searchParams.model) {
+        where.model = { contains: searchParams.model, mode: 'insensitive' }
     }
 
     if (searchParams.minPrice || searchParams.maxPrice) {
@@ -127,7 +132,12 @@ export default async function MarketPage({
     }
 
     if (searchParams.color) {
-        where.color = { in: searchParams.color.split(',') }
+        const colors = searchParams.color.split(',')
+        if (colors.length === 1) {
+            where.color = { contains: colors[0], mode: 'insensitive' }
+        } else {
+            where.color = { in: colors }
+        }
     }
 
     if (searchParams.doors) {
@@ -191,12 +201,19 @@ export default async function MarketPage({
 
     // Búsqueda por texto en título y descripción
     if (searchParams.search) {
+        const searchTerms = searchParams.search.split(' ').filter(t => t.length > 2)
         where.OR = [
             { title: { contains: searchParams.search, mode: 'insensitive' } },
             { description: { contains: searchParams.search, mode: 'insensitive' } },
             { brand: { contains: searchParams.search, mode: 'insensitive' } },
             { model: { contains: searchParams.search, mode: 'insensitive' } }
         ]
+
+        // Búsqueda más flexible por palabras clave individuales
+        searchTerms.forEach(term => {
+            where.OR.push({ title: { contains: term, mode: 'insensitive' } })
+            where.OR.push({ description: { contains: term, mode: 'insensitive' } })
+        })
     }
 
     // Filtros de Características (Premium)
