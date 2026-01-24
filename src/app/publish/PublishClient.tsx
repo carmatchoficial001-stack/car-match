@@ -1242,12 +1242,12 @@ export default function PublishClient() {
                                     <button
                                         type="button"
                                         onClick={handleNext}
-                                        disabled={loading || isAnalyzing || !(() => {
-                                            if (currentStep === 1) return canProceedFromStep1;
-                                            if (currentStep === 2) return canProceedFromStep2;
-                                            if (currentStep === 3) return canProceedFromStep3;
-                                            return true;
-                                        })()}
+                                        disabled={loading || isAnalyzing || !(
+                                            currentStep === 1 ? canProceedFromStep1 :
+                                                currentStep === 2 ? canProceedFromStep2 :
+                                                    currentStep === 3 ? canProceedFromStep3 :
+                                                        true
+                                        )}
                                         className="flex-1 px-6 py-3 bg-primary-700 text-text-primary rounded-xl font-bold hover:bg-primary-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95"
                                     >
                                         {t('publish.actions.next')}
