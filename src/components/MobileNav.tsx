@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { useSession } from "next-auth/react"
+import { motion } from "framer-motion"
 import {
     Flame,
     Car,
