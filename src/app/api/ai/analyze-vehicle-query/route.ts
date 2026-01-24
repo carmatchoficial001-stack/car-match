@@ -36,27 +36,22 @@ export async function POST(req: NextRequest) {
 **FORMATO DE RESPUESTA (JSON PURO):**
 {
     "filters": {
-        "category": "string (opcional)",
-        "brand": "string (opcional)",
-        "model": "string (opcional)",
-        "minPrice": number (opcional),
-        "maxPrice": number (opcional),
-        "minYear": number (opcional),
-        "maxYear": number (opcional),
-        "color": "string (opcional, ej. 'Rojo', 'Blanco')",
-        "transmission": "string (opcional, ej. 'Automático', 'Manual')",
-        "fuel": "string (opcional, ej. 'Gasolina', 'Diesel')"
+        "category": "string (Exacto: 'Automóvil', 'Motocicleta', 'Camión', 'Maquinaria', 'Especial')",
+        "brand": "string", "model": "string",
+        "minPrice": number, "maxPrice": number, 
+        "minYear": number, "maxYear": number,
+        "color": "string (Capitalizado)", "transmission": "string", "fuel": "string",
+        "passengers": number
     },
-    "explanation": "Breve frase motivadora o explicativa de qué estás buscando."
+    "explanation": "Breve frase profesional sobre la búsqueda."
 }
 
-**LÓGICA ESPECIAL:**
-- Si dice "Camaro", Brand: "Chevrolet", Model: "Camaro".
-- Si dice "Mustang", Brand: "Ford", Model: "Mustang".
-- "Troca" es Pickup o SUV.
-- Colores deben empezar con Mayúscula (Rojo, Negro).
-- "Barato" para autos < 200k, para pickups < 300k.
-- "Caro/Lujo" > 800k.
+**CONOCIMIENTO UNIVERSAL CARMATCH:**
+- Sabe todo sobre: Autos de lujo, deportivos, utilitarios.
+- Motos: Deportivas, Scooters, ATVs, RZRs.
+- Pesados: Tractocamiones, Torton, Autobuses.
+- Maquinaria: Retroexcavadoras (Mano de chango), Tractores agrícolas, Montacargas.
+- Slang: "Troca" es Pickup. "Barato" es <200k (autos) o <350k (pickups/maquinaria). "Nuevo" es >= 2024.
 
 **QUERY DEL USUARIO:**
 "${query}"

@@ -13,6 +13,7 @@ interface SearchIntent {
   color?: string;
   transmission?: string;
   fuel?: string;
+  passengers?: number;
   query_language?: string; // Just for logging/debugging
   keywords?: string[]; // Extra keywords like "roja", "4x4"
   isBusinessSearch?: boolean; // If user is looking for a shop/mechanic instead of a car
@@ -50,21 +51,24 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
 
     RESPONDE SOLO JSON (Sin markdown):
     {
-      "category": "String (Exact match from DB categories)",
-      "subType": "String (Normalized style)",
-      "brand": "String (Normalized name, e.g. 'Chevrolet')",
-      "model": "String (Specific model, e.g. 'Camaro', 'Silverado')",
-      "minPrice": Number,
-      "maxPrice": Number, 
-      "minYear": Number,
-      "color": "String (E.g. 'Rojo', 'Blanco')",
-      "transmission": "String (E.g. 'Automático', 'Manual')",
-      "fuel": "String (E.g. 'Gasolina', 'Diesel')",
+      "category": "String (Exact match: 'Automóvil', 'Motocicleta', 'Camión', 'Maquinaria', 'Especial')",
+      "subType": "String (Normalized style, e.g. 'Sedán', 'Excavadora', 'Tractocamión')",
+      "brand": "String (Normalized brand)",
+      "model": "String (Specific model name)",
+      "minPrice": Number, "maxPrice": Number, "minYear": Number,
+      "color": "String (Capitalized, e.g. 'Blanco')",
+      "transmission": "String ('Automático', 'Manual')",
+      "fuel": "String ('Gasolina', 'Diesel', 'Eléctrico')",
+      "passengers": Number,
       "isBusinessSearch": Boolean,
       "keywords": ["Array", "Of", "Semantic", "Tokens"]
     }
 
-    NOTA: Colores deben ser capitalizados (Rojo, Azul). Si dice "barato" busca precios razonables según la categoría.
+    CONOCIMIENTO UNIVERSAL CARMATCH:
+    - CATEGORÍAS: Automóvil, Motocicleta, Camión (Tractocamiones), Autobús, Maquinaria (Excavadoras, Tractores), Especial (RZRs, Remolques).
+    - SLANG: "Troca/Mamalona" -> Pickup, "Nave/Fierro" -> Auto, "Burrita/Moto" -> Motocicleta, "Mano de chango" -> Retroexcavadora.
+    - FAMILIAR: SUV/Minivan 5+ personas. TRABAJO: Pickup/Camión. CAMPO: Maquinaria/4x4.
+    - PRECIOS: Barato (Autos <200k, Maquinaria <500k), Caro/Lujo (>800k).
   `;
 
   try {
