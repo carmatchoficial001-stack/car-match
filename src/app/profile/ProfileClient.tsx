@@ -25,7 +25,6 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
 
     return (
         <div className="min-h-screen bg-background">
-            <Header />
             <div className="container mx-auto px-4 pt-8 pb-24 max-w-5xl">
                 {/* Header del Perfil */}
                 <div className="bg-surface rounded-2xl shadow-xl p-8 mb-8 border border-surface-highlight">

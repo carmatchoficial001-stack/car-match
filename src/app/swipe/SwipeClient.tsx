@@ -5,7 +5,6 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { useLocation } from '@/contexts/LocationContext'
 import SwipeFeed from '@/components/SwipeFeed'
-import Header from '@/components/Header'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { MapPin, RefreshCw, Search, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -350,8 +349,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
     return (
         <div className="flex flex-col min-h-screen bg-background text-text-primary">
-            <Header />
-            <main className="flex-1 max-w-4xl mx-auto w-full px-4 pt-10 pb-24 flex flex-col items-center justify-center">
+            <div className="flex-1 max-w-4xl mx-auto w-full px-4 pb-24 flex flex-col items-center justify-center">
 
                 {/* El indicador de radio se movió dentro de los estados específicos */}
 
@@ -416,7 +414,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                         />
                     </div>
                 )}
-            </main>
+            </div>
 
             {/* 🌍 LOCATION MODAL */}
             {showLocationModal && (

@@ -214,10 +214,8 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
     }
 
     return (
-        <div className="min-h-screen bg-background pb-32">
-            <Header />
-
-            <div className="container mx-auto px-4 pt-6">
+        <div className="min-h-screen bg-background pb-20 pt-8 px-4">
+            <div className="max-w-4xl mx-auto space-y-8">
                 {/* Back Button */}
                 <Link href="/map" className="inline-flex items-center text-text-secondary hover:text-primary-400 mb-6 transition">
                     <ArrowLeft className="mr-2" size={20} />

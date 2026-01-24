@@ -60,8 +60,7 @@ export default function FavoritesClient({ favorites }: { favorites: FavoriteVehi
     }
 
     return (
-        <div className="min-h-screen bg-background">
-            <Header />
+        <div className="min-h-screen bg-background pb-20 pt-8 px-4">
             <div className="container mx-auto px-4 pt-8 pb-32">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-text-primary mb-2">{t('favorites.title')}</h1>

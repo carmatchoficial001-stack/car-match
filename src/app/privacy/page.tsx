@@ -1,9 +1,9 @@
+```
 import Header from '@/components/Header'
 
 export default function PrivacyPage() {
     return (
         <div className="min-h-screen bg-background pb-32">
-            <Header />
             <div className="container mx-auto px-4 pt-8 pb-8 max-w-4xl text-text-primary">
                 <h1 className="text-3xl font-bold mb-6">Política de Privacidad</h1>
 

@@ -46,6 +46,7 @@ interface SearchParams {
     traction?: string
     passengers?: string
     hours?: string
+    cylinders?: string;
 }
 
 export default async function MarketPage({
@@ -197,6 +198,10 @@ export default async function MarketPage({
         }
     }
 
+    if (searchParams.cylinders) {
+        where.cylinders = parseInt(searchParams.cylinders)
+    }
+
 
 
     // Búsqueda por texto en título y descripción
@@ -285,6 +290,8 @@ export default async function MarketPage({
                 color: searchParams.color || null,
                 transmission: searchParams.transmission || null,
                 fuel: searchParams.fuel || null,
+                cylinders: searchParams.cylinders ? parseInt(searchParams.cylinders) : null,
+                features: searchParams.features ? searchParams.features.split(',') : [],
                 userId: currentUser?.id || null,
                 latitude: currentUser?.lastLatitude || 0,
                 longitude: currentUser?.lastLongitude || 0

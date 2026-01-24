@@ -168,6 +168,9 @@ export default function MarketFiltersAdvanced({
                 if (state) params.set('state', state)
                 if (city) params.set('city', city)
 
+                // ⚓ PRIMARY ANCHOR: Preserve user query for fallback OR search
+                params.set('search', aiQuery)
+
                 // Add AI filters
                 if (filters.category) params.set('category', filters.category)
                 if (filters.brand) params.set('brand', filters.brand)
@@ -179,6 +182,10 @@ export default function MarketFiltersAdvanced({
                 if (filters.maxYear) params.set('maxYear', filters.maxYear.toString())
                 if (filters.color) params.set('color', filters.color)
                 if (filters.passengers) params.set('passengers', filters.passengers.toString())
+                if (filters.cylinders) params.set('cylinders', filters.cylinders.toString())
+                if (filters.features && Array.isArray(filters.features)) {
+                    params.set('features', filters.features.join(','))
+                }
 
                 if (filters.transmission) {
                     const trans = Array.isArray(filters.transmission) ? filters.transmission.join(',') : filters.transmission

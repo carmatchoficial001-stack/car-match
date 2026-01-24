@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
-import Header from '@/components/Header'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { BUSINESS_CATEGORIES as CATEGORIES } from '@/lib/businessCategories'
 import { useLocation } from '@/contexts/LocationContext'
@@ -298,7 +297,6 @@ export default function MapClient({ businesses, user }: MapClientProps) {
     if (loading) {
         return (
             <div className="flex flex-col min-h-screen bg-background">
-                <Header />
                 <div className="flex-1 flex flex-col items-center justify-center p-8">
                     <div className="max-w-md text-center space-y-6">
                         <div className="w-20 h-20 mx-auto bg-primary-700 rounded-full flex items-center justify-center animate-pulse">
@@ -326,7 +324,6 @@ export default function MapClient({ businesses, user }: MapClientProps) {
     if (error || !location) {
         return (
             <div className="flex flex-col min-h-screen bg-background">
-                <Header />
                 <div className="flex-1 flex flex-col items-center justify-center p-8">
                     <div className="max-w-md text-center space-y-6">
                         <div className="w-20 h-20 mx-auto bg-red-500/20 rounded-full flex items-center justify-center">
@@ -391,8 +388,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
 
     return (
-        <div className="flex flex-col h-[calc(100dvh-5rem)] md:h-screen bg-background overflow-hidden pb-safe">
-            <Header />
+        <div className="flex flex-col h-full bg-background overflow-hidden pb-safe">
 
             <div className="flex-1 relative flex overflow-hidden">
 

@@ -9,7 +9,6 @@ import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useLocation } from '@/contexts/LocationContext'
 import { searchCity, searchCities, calculateDistance, normalizeCountryCode, LocationData } from '@/lib/geolocation'
-import Header from '@/components/Header'
 import MarketFilters from '@/components/MarketFilters'
 import FavoriteButton from '@/components/FavoriteButton'
 import ShareButton from '@/components/ShareButton'
@@ -284,6 +283,10 @@ export default function MarketClient({
             if (filters.transmission) params.set('transmission', filters.transmission)
             if (filters.fuel) params.set('fuel', filters.fuel)
             if (filters.passengers) params.set('passengers', filters.passengers.toString())
+            if (filters.cylinders) params.set('cylinders', filters.cylinders.toString())
+            if (filters.features && Array.isArray(filters.features)) {
+                params.set('features', filters.features.join(','))
+            }
             router.push(`/market?${params.toString()}`)
         } catch (error) {
             router.push(`/market?search=${encodeURIComponent(searchText)}`)
@@ -348,7 +351,6 @@ export default function MarketClient({
 
     return (
         <div className="min-h-screen bg-background">
-            <Header />
             <div className="container mx-auto px-4 pt-8 pb-24">
                 {/* Header */}
                 <header className="mb-8">
