@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -613,37 +613,42 @@ export default function PublishClient() {
     return (
         <div className="min-h-screen bg-background pb-safe">
             <PortalAnimation show={showPortal} />
-            {[1, 2, 3, 4].map((step) => (
-                <div key={step} className="flex items-center flex-1">
-                    <div
-                        className={`flex flex-col items-center flex-1 ${step < currentStep ? 'cursor-pointer group' : ''}`}
-                        onClick={() => {
-                            if (step < currentStep) {
-                                setCurrentStep(step as FormStep)
-                            }
-                        }}
-                    >
-                        <div className={`
+
+            <div className="container mx-auto px-4 py-8 pb-32 max-w-4xl">
+                {/* Progress Bar */}
+                <div className="mb-8">
+                    <div className="flex items-center justify-between mb-4">
+                        {[1, 2, 3, 4].map((step) => (
+                            <div key={step} className="flex items-center flex-1">
+                                <div
+                                    className={`flex flex-col items-center flex-1 ${step < currentStep ? 'cursor-pointer group' : ''}`}
+                                    onClick={() => {
+                                        if (step < currentStep) {
+                                            setCurrentStep(step as FormStep)
+                                        }
+                                    }}
+                                >
+                                    <div className={`
                                         w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all relative
                                         ${step < currentStep ? 'bg-green-500 text-white group-hover:bg-green-600' : step === currentStep ? 'bg-primary-700 text-text-primary' : 'bg-surface border-2 border-surface-highlight text-text-secondary'}
                                     `}>
-                            {step < currentStep ? (
-                                <>
-                                    <span className="group-hover:hidden">✓</span>
-                                    <span className="hidden group-hover:block text-xs">Edit</span>
-                                </>
-                            ) : step}
-                        </div>
-                        <span className={`text-xs mt-2 hidden md:block ${step === currentStep ? 'text-primary-400' : 'text-text-secondary'}`}>{getStepName(step)}</span>
+                                        {step < currentStep ? (
+                                            <>
+                                                <span className="group-hover:hidden">✓</span>
+                                                <span className="hidden group-hover:block text-xs">Edit</span>
+                                            </>
+                                        ) : step}
+                                    </div>
+                                    <span className={`text-xs mt-2 hidden md:block ${step === currentStep ? 'text-primary-400' : 'text-text-secondary'}`}>{getStepName(step)}</span>
+                                </div>
+                                {step < 4 && <div className={`h-0.5 flex-1 mx-2 ${step < currentStep ? 'bg-green-500' : 'bg-surface-highlight'}`}></div>}
+                            </div>
+                        ))}
                     </div>
-                    {step < 4 && <div className={`h-0.5 flex-1 mx-2 ${step < currentStep ? 'bg-green-500' : 'bg-surface-highlight'}`}></div>}
                 </div>
-            ))}
-        </div>
-                </div >
 
-        <div className="bg-surface border border-surface-highlight rounded-2xl p-6 md:p-8 shadow-xl relative min-h-[400px]">
-            {isAnalyzing && (
+                <div className="bg-surface border border-surface-highlight rounded-2xl p-6 md:p-8 shadow-xl relative min-h-[400px]">
+                    {isAnalyzing && (
                 <div className="absolute inset-0 z-40 bg-surface/90 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl">
                     <h3 className="text-2xl font-bold text-text-primary animate-pulse text-center px-6">
                         Subiendo fotos...
@@ -777,9 +782,8 @@ export default function PublishClient() {
                                 strict={true}
                             />
                         </div>
-                    </div>
 
-                    {/* Precio */}
+                        {/* Precio */}
                     <div className="pt-8 border-t border-surface-highlight">
                         <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
                             <span className="w-8 h-8 bg-primary-700/20 text-primary-400 rounded-lg flex items-center justify-center text-sm">3</span>
@@ -1109,9 +1113,8 @@ export default function PublishClient() {
                                 </div>
                             </div>
                         )}
-                    </div>
 
-                    {/* Equipamiento y Características */}
+                        {/* Equipamiento y Características */}
                     <div className="pt-8 border-t border-surface-highlight">
                         <h3 className="text-xl font-bold text-text-primary mb-2">{t('publish.labels.features_title')}</h3>
                         <p className="text-sm text-text-secondary mb-6">
@@ -1289,7 +1292,7 @@ export default function PublishClient() {
                 )}
             </div>
         </div>
-            </div >
-        </div >
+    </div>
+</div>
     )
 }
