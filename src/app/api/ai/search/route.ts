@@ -15,9 +15,9 @@ export async function POST(req: Request) {
 
         const filters = await interpretSearchQuery(query, context || 'MARKET');
 
-        return NextResponse.json({ filters });
+        return NextResponse.json(filters);
     } catch (error) {
         console.error("API Search Error:", error);
-        return NextResponse.json({ filters: {} }, { status: 500 });
+        return NextResponse.json({}, { status: 500 });
     }
 }

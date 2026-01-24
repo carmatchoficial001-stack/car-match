@@ -35,14 +35,13 @@ export async function POST(req: NextRequest) {
 
 **FORMATO DE RESPUESTA (JSON PURO):**
 {
-    "filters": {
-        "category": "string (Exacto: 'Automóvil', 'Motocicleta', 'Camión', 'Maquinaria', 'Especial')",
-        "brand": "string", "model": "string",
-        "minPrice": number, "maxPrice": number, 
-        "minYear": number, "maxYear": number,
-        "color": "string (Capitalizado)", "transmission": "string", "fuel": "string",
-        "passengers": number
-    },
+    "category": "string (Exacto: 'Automóvil', 'Motocicleta', 'Camión', 'Maquinaria', 'Especial')",
+    "vehicleType": "string (Estilo/Carrocería, ej. 'Sedán', 'SUV', 'Pickup', 'Coupe')",
+    "brand": "string", "model": "string",
+    "minPrice": number, "maxPrice": number, 
+    "minYear": number, "maxYear": number,
+    "color": "string (Capitalizado)", "transmission": "string", "fuel": "string",
+    "passengers": number,
     "explanation": "Breve frase profesional sobre la búsqueda."
 }
 

@@ -270,20 +270,20 @@ export default function MarketClient({
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ query: searchText, context: 'MARKET' })
             })
-            const data = await res.json()
-            const filters = data.filters || {}
+            const filters = await res.json()
             const params = new URLSearchParams()
             params.set('search', searchText)
             if (filters.category) params.set('category', filters.category)
             if (filters.brand) params.set('brand', filters.brand)
             if (filters.model) params.set('model', filters.model)
-            if (filters.subType || filters.vehicleType) params.set('vehicleType', filters.subType || filters.vehicleType)
+            if (filters.vehicleType) params.set('vehicleType', filters.vehicleType)
             if (filters.minPrice) params.set('minPrice', filters.minPrice.toString())
             if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString())
             if (filters.minYear) params.set('minYear', filters.minYear.toString())
             if (filters.color) params.set('color', filters.color)
             if (filters.transmission) params.set('transmission', filters.transmission)
             if (filters.fuel) params.set('fuel', filters.fuel)
+            if (filters.passengers) params.set('passengers', filters.passengers.toString())
             router.push(`/market?${params.toString()}`)
         } catch (error) {
             router.push(`/market?search=${encodeURIComponent(searchText)}`)

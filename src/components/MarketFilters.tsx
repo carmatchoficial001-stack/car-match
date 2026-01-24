@@ -156,7 +156,8 @@ export default function MarketFiltersAdvanced({
             if (!res.ok) throw new Error('AI Search Failed')
 
             const data = await res.json()
-            const { filters, explanation } = data
+            const filters = data // Now flat with explanation included
+            const { explanation } = filters
 
             if (filters) {
                 // 🚀 DIRECT EXECUTION: Construct URL based on AI filters
@@ -171,12 +172,13 @@ export default function MarketFiltersAdvanced({
                 if (filters.category) params.set('category', filters.category)
                 if (filters.brand) params.set('brand', filters.brand)
                 if (filters.model) params.set('model', filters.model)
-                if (filters.subType || filters.vehicleType) params.set('vehicleType', filters.subType || filters.vehicleType)
+                if (filters.vehicleType) params.set('vehicleType', filters.vehicleType)
                 if (filters.minPrice) params.set('minPrice', filters.minPrice.toString())
                 if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString())
                 if (filters.minYear) params.set('minYear', filters.minYear.toString())
                 if (filters.maxYear) params.set('maxYear', filters.maxYear.toString())
                 if (filters.color) params.set('color', filters.color)
+                if (filters.passengers) params.set('passengers', filters.passengers.toString())
 
                 if (filters.transmission) {
                     const trans = Array.isArray(filters.transmission) ? filters.transmission.join(',') : filters.transmission

@@ -4,7 +4,7 @@ import { VEHICLE_CATEGORIES, BRANDS } from "../vehicleTaxonomy";
 
 interface SearchIntent {
   category?: string;
-  subType?: string;
+  vehicleType?: string;
   brand?: string;
   model?: string;
   minPrice?: number;
@@ -52,7 +52,7 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
     RESPONDE SOLO JSON (Sin markdown):
     {
       "category": "String (Exact match: 'Automóvil', 'Motocicleta', 'Camión', 'Maquinaria', 'Especial')",
-      "subType": "String (Normalized style, e.g. 'Sedán', 'Excavadora', 'Tractocamión')",
+      "vehicleType": "String (Normalized style, e.g. 'Sedán', 'Excavadora', 'Tractocamión')",
       "brand": "String (Normalized brand)",
       "model": "String (Specific model name)",
       "minPrice": Number, "maxPrice": Number, "minYear": Number,
