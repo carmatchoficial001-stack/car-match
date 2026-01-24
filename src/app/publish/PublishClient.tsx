@@ -828,472 +828,445 @@ export default function PublishClient() {
                                     </div>
                                 </div>
                             </div>
-            )}
+                        </div>
+                    )}
 
-                            {currentStep === 3 && (
-                                <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    {/* Kilometraje y Transmisión */}
-                                    <div className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-2">
-                                                <label className="block text-text-primary font-bold">
-                                                    {t('publish.labels.mileage')} <span className="text-xs font-normal text-text-secondary">({t('common.optional')})</span>
-                                                </label>
-                                                <div className="relative">
-                                                    <input
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        value={mileage ? Number(mileage).toLocaleString(locale === 'es' ? 'es-MX' : 'en-US') : ''}
-                                                        onChange={(e) => {
-                                                            const val = e.target.value;
-                                                            const onlyNums = val.replace(/[^0-9]/g, '');
-                                                            const sanitized = onlyNums.replace(/^0+(?=\d)/, '');
-                                                            setMileage(sanitized);
-                                                            setUserEditedFields(prev => new Set(prev).add('mileage'));
-                                                        }}
-                                                        placeholder="0"
-                                                        className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none pr-24 transition-all"
-                                                    />
-                                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 bg-surface-highlight p-1 rounded-lg">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setMileageUnit('km')}
-                                                            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mileageUnit === 'km' ? 'bg-primary-700 text-white' : 'text-text-secondary hover:bg-surface'}`}
-                                                        >KM</button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setMileageUnit('mi')}
-                                                            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mileageUnit === 'mi' ? 'bg-primary-700 text-white' : 'text-text-secondary hover:bg-surface'}`}
-                                                        >MI</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <SearchableSelect
-                                                label={t('publish.labels.transmission')}
-                                                value={transmission}
-                                                onChange={(value) => {
-                                                    setTransmission(value)
-                                                    setUserEditedFields(prev => new Set(prev).add('transmission'))
+                    {currentStep === 3 && (
+                        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {/* Kilometraje y Transmisión */}
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="block text-text-primary font-bold">
+                                            {t('publish.labels.mileage')} <span className="text-xs font-normal text-text-secondary">({t('common.optional')})</span>
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                value={mileage ? Number(mileage).toLocaleString(locale === 'es' ? 'es-MX' : 'en-US') : ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    const onlyNums = val.replace(/[^0-9]/g, '');
+                                                    const sanitized = onlyNums.replace(/^0+(?=\d)/, '');
+                                                    setMileage(sanitized);
+                                                    setUserEditedFields(prev => new Set(prev).add('mileage'));
                                                 }}
-                                                options={TRANSMISSIONS}
-                                                strict={true}
+                                                placeholder="0"
+                                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none pr-24 transition-all"
                                             />
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <SearchableSelect
-                                                label={t('publish.labels.fuel')}
-                                                value={fuel}
-                                                onChange={(value) => {
-                                                    setFuel(value)
-                                                    setUserEditedFields(prev => new Set(prev).add('fuel'))
-                                                }}
-                                                options={FUELS}
-                                                strict={true}
-                                            />
-                                            <SearchableSelect
-                                                label={t('publish.labels.condition')}
-                                                value={condition}
-                                                onChange={(value) => {
-                                                    setCondition(value)
-                                                    setUserEditedFields(prev => new Set(prev).add('condition'))
-                                                }}
-                                                options={CONDITIONS}
-                                                strict={true}
-                                            />
-                                            <SearchableSelect
-                                                label={t('publish.labels.doors')}
-                                                value={doors}
-                                                onChange={(value) => {
-                                                    setDoors(value)
-                                                    setUserEditedFields(prev => new Set(prev).add('doors'))
-                                                }}
-                                                options={['2', '3', '4', '5', '6']}
-                                                strict={true}
-                                            />
-                                        </div>
-
-                                        {/* 🔬 Detalles Técnicos Avanzados (NUEVOS) */}
-                                        <div className="pt-6 border-t border-surface-highlight/50 space-y-4">
-                                            <h4 className="text-sm font-bold text-primary-400 uppercase tracking-wider flex items-center gap-2">
-                                                <Settings2 size={16} />
-                                                Motor y Potencia
-                                            </h4>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className="block text-xs font-medium text-text-secondary uppercase">Cilindraje</label>
-                                                    <input
-                                                        type="text"
-                                                        value={displacement}
-                                                        onChange={(e) => {
-                                                            setDisplacement(e.target.value)
-                                                            setUserEditedFields(prev => new Set(prev).add('displacement'))
-                                                        }}
-                                                        placeholder="Ej: 2.5 (L) o 600 (cc)"
-                                                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="block text-xs font-medium text-text-secondary uppercase">Potencia (HP)</label>
-                                                    <input
-                                                        type="text"
-                                                        value={hp}
-                                                        onChange={(e) => {
-                                                            setHp(e.target.value)
-                                                            setUserEditedFields(prev => new Set(prev).add('hp'))
-                                                        }}
-                                                        placeholder="Ej: 250"
-                                                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="block text-xs font-medium text-text-secondary uppercase">Torque</label>
-                                                    <input
-                                                        type="text"
-                                                        value={torque}
-                                                        onChange={(e) => {
-                                                            setTorque(e.target.value)
-                                                            setUserEditedFields(prev => new Set(prev).add('torque'))
-                                                        }}
-                                                        placeholder="Ej: 300 lb-pie"
-                                                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="block text-xs font-medium text-text-secondary uppercase">Cilindros</label>
-                                                    <input
-                                                        type="text"
-                                                        value={cylinders}
-                                                        onChange={(e) => {
-                                                            setCylinders(e.target.value)
-                                                            setUserEditedFields(prev => new Set(prev).add('cylinders'))
-                                                        }}
-                                                        placeholder="Ej: 4, 6, 8"
-                                                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className="block text-xs font-medium text-text-secondary uppercase">Tipo de Motor / Descripción</label>
-                                                    <input
-                                                        type="text"
-                                                        value={engine}
-                                                        onChange={(e) => {
-                                                            setEngine(e.target.value)
-                                                            setUserEditedFields(prev => new Set(prev).add('engine'))
-                                                        }}
-                                                        placeholder="Ej: 2.0L Turbo, V6 i-VTEC, Eléctrico Dual Motor"
-                                                        className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
-                                                    />
-                                                </div>
-                                                <SearchableSelect
-                                                    label="Tracción"
-                                                    value={traction}
-                                                    onChange={(value) => {
-                                                        setTraction(value)
-                                                        setUserEditedFields(prev => new Set(prev).add('traction'))
-                                                    }}
-                                                    options={['FWD (Delantera)', 'RWD (Trasera)', 'AWD (Integral)', '4WD (4x4)', '2WD', '4x2', '6x4', '8x4']}
-                                                    strict={false}
-                                                />
-                                            </div>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                <SearchableSelect
-                                                    label="Aspiración"
-                                                    value={aspiration}
-                                                    onChange={(value) => {
-                                                        setAspiration(value)
-                                                        setUserEditedFields(prev => new Set(prev).add('aspiration'))
-                                                    }}
-                                                    options={['Atmosférico', 'Turbo', 'Bi-Turbo', 'Supercargado', 'Aspirado Natural']}
-                                                    strict={false}
-                                                />
-                                                <div className="space-y-1">
-                                                    <label className="block text-xs font-medium text-text-secondary uppercase">Nº Pasajeros</label>
-                                                    <input
-                                                        type="text"
-                                                        value={passengers}
-                                                        onChange={(e) => {
-                                                            setPassengers(e.target.value)
-                                                            setUserEditedFields(prev => new Set(prev).add('passengers'))
-                                                        }}
-                                                        placeholder="Ej: 5"
-                                                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="block text-xs font-medium text-text-secondary uppercase">Peso (kg)</label>
-                                                    <input
-                                                        type="text"
-                                                        value={weight}
-                                                        onChange={(e) => {
-                                                            setWeight(e.target.value)
-                                                            setUserEditedFields(prev => new Set(prev).add('weight'))
-                                                        }}
-                                                        placeholder="Ej: 1540"
-                                                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* 🔌 Campo Eléctrico (Opcional) */}
-                                        {fuel?.toLowerCase().includes('electric') || fuel?.toLowerCase().includes('hibrid') || engine?.toLowerCase().includes('electri') ? (
-                                            <div className="pt-6 border-t border-surface-highlight/50 space-y-4 animate-in slide-in-from-left-2 duration-300">
-                                                <h4 className="text-sm font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
-                                                    <BatteryCharging size={16} />
-                                                    Detalles Eléctricos
-                                                </h4>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-1">
-                                                        <label className="block text-xs font-medium text-text-secondary uppercase">Capacidad Batería (kWh)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={batteryCapacity}
-                                                            onChange={(e) => setBatteryCapacity(e.target.value)}
-                                                            placeholder="Ej: 75"
-                                                            className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <label className="block text-xs font-medium text-text-secondary uppercase">Rango Eléctrico (km)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={range}
-                                                            onChange={(e) => setRange(e.target.value)}
-                                                            placeholder="Ej: 450"
-                                                            className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ) : null}
-
-                                        {/* 🚚 Campos Específicos por Tipo (Carga / Industrial / Pesados) */}
-                                        {(vehicleCategory === 'comercial' || vehicleCategory === 'transporte' || vehicleCategory === 'industrial') && (
-                                            <div className="pt-6 border-t border-surface-highlight/50 space-y-4 animate-in slide-in-from-left-2 duration-300">
-                                                <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
-                                                    <Truck size={16} />
-                                                    Detalles de Carga y Pesados
-                                                </h4>
-                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                    <div className="space-y-1">
-                                                        <label className="block text-xs font-medium text-text-secondary uppercase">Capacidad de Carga (kg)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={cargoCapacity}
-                                                            onChange={(e) => setCargoCapacity(e.target.value)}
-                                                            placeholder="Ej: 3500"
-                                                            className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <label className="block text-xs font-medium text-text-secondary uppercase">Ejes</label>
-                                                        <input
-                                                            type="text"
-                                                            value={axles}
-                                                            onChange={(e) => setAxles(e.target.value)}
-                                                            placeholder="Ej: 2, 3, 4"
-                                                            className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
-                                                        />
-                                                    </div>
-                                                    {vehicleCategory === 'industrial' && (
-                                                        <div className="space-y-1 col-span-2 md:col-span-1">
-                                                            <label className="block text-xs font-medium text-text-secondary uppercase">Horas de Operación</label>
-                                                            <input
-                                                                type="text"
-                                                                value={operatingHours}
-                                                                onChange={(e) => setOperatingHours(e.target.value)}
-                                                                placeholder="Ej: 1200"
-                                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Equipamiento y Características */}
-                                        <div className="pt-8 border-t border-surface-highlight">
-                                            <h3 className="text-xl font-bold text-text-primary mb-2">{t('publish.labels.features_title')}</h3>
-                                            <p className="text-sm text-text-secondary mb-6">
-                                                Revisa, edita o elimina lo que un asesor detectó automáticamente, o agrega nuevas características manuales.
-                                            </p>
-
-                                            {/* 1. Lista de Equipamiento Seleccionado (Editable) */}
-                                            <div className="space-y-3 mb-8">
-                                                <div className="flex flex-wrap gap-2">
-                                                    {selectedFeatures.length === 0 ? (
-                                                        <p className="text-sm text-text-secondary italic bg-surface-highlight/20 px-4 py-2 rounded-lg border border-dashed border-surface-highlight">
-                                                            No hay equipamiento seleccionado. Usa las sugerencias o agrega uno nuevo.
-                                                        </p>
-                                                    ) : (
-                                                        selectedFeatures.map((feature, index) => (
-                                                            <div
-                                                                key={`selected-${index}`}
-                                                                className="flex items-center bg-primary-700/10 border border-primary-700/30 rounded-xl px-3 py-1.5 gap-2 group hover:bg-primary-700/20 transition-all max-w-full"
-                                                            >
-                                                                <input
-                                                                    type="text"
-                                                                    value={feature}
-                                                                    onChange={(e) => updateFeature(index, e.target.value)}
-                                                                    className="bg-transparent border-none focus:ring-0 text-sm font-medium text-text-primary p-0 min-w-[60px] max-w-[240px] flex-1"
-                                                                />
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => removeFeature(index)}
-                                                                    className="text-text-secondary hover:text-red-400 p-0.5 rounded-md hover:bg-red-400/10 transition flex-shrink-0"
-                                                                >
-                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                                    </svg>
-                                                                </button>
-                                                            </div>
-                                                        ))
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* 2. Agregar Característica Personalizada */}
-                                            <div className="flex gap-2 max-w-md mb-8">
-                                                <div className="relative flex-1">
-                                                    <input
-                                                        type="text"
-                                                        value={newFeature}
-                                                        onChange={(e) => setNewFeature(e.target.value)}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === 'Enter') {
-                                                                e.preventDefault()
-                                                                addCustomFeature()
-                                                            }
-                                                        }}
-                                                        placeholder={'Ej: Rines deportivos 20", GPS...'}
-                                                        className="w-full bg-surface-highlight border border-surface-highlight p-3 rounded-xl pr-10 text-sm focus:ring-1 focus:ring-primary-700 outline-none"
-                                                    />
-                                                </div>
+                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 bg-surface-highlight p-1 rounded-lg">
                                                 <button
                                                     type="button"
-                                                    onClick={addCustomFeature}
-                                                    disabled={!newFeature.trim()}
-                                                    className="bg-primary-700 hover:bg-primary-600 disabled:opacity-50 text-white font-bold px-4 rounded-xl transition-all flex items-center gap-2"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                    </svg>
-                                                    <span className="hidden sm:inline">Agregar</span>
-                                                </button>
+                                                    onClick={() => setMileageUnit('km')}
+                                                    className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mileageUnit === 'km' ? 'bg-primary-700 text-white' : 'text-text-secondary hover:bg-surface'}`}
+                                                >KM</button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMileageUnit('mi')}
+                                                    className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${mileageUnit === 'mi' ? 'bg-primary-700 text-white' : 'text-text-secondary hover:bg-surface'}`}
+                                                >MI</button>
                                             </div>
-
-
                                         </div>
+                                    </div>
+                                    <SearchableSelect
+                                        label={t('publish.labels.transmission')}
+                                        value={transmission}
+                                        onChange={(value) => {
+                                            setTransmission(value)
+                                            setUserEditedFields(prev => new Set(prev).add('transmission'))
+                                        }}
+                                        options={TRANSMISSIONS}
+                                        strict={true}
+                                    />
+                                </div>
 
-                                        {/* Descripción */}
-                                        <div className="pt-8 border-t border-surface-highlight">
-                                            <label className="block text-xl font-bold text-text-primary mb-4">
-                                                {t('publish.labels.description')} <span className="text-xs font-normal text-text-secondary">({t('common.optional')})</span>
-                                            </label>
-                                            <textarea
-                                                value={description}
-                                                onChange={(e) => setDescription(e.target.value)}
-                                                placeholder="Comentarios adicionales, estado de llantas, mantenimiento, etc..."
-                                                rows={4}
-                                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg resize-none focus:ring-2 focus:ring-primary-700 outline-none transition-all"
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <SearchableSelect
+                                        label={t('publish.labels.fuel')}
+                                        value={fuel}
+                                        onChange={(value) => {
+                                            setFuel(value)
+                                            setUserEditedFields(prev => new Set(prev).add('fuel'))
+                                        }}
+                                        options={FUELS}
+                                        strict={true}
+                                    />
+                                    <SearchableSelect
+                                        label={t('publish.labels.condition')}
+                                        value={condition}
+                                        onChange={(value) => {
+                                            setCondition(value)
+                                            setUserEditedFields(prev => new Set(prev).add('condition'))
+                                        }}
+                                        options={CONDITIONS}
+                                        strict={true}
+                                    />
+                                    <SearchableSelect
+                                        label={t('publish.labels.doors')}
+                                        value={doors}
+                                        onChange={(value) => {
+                                            setDoors(value)
+                                            setUserEditedFields(prev => new Set(prev).add('doors'))
+                                        }}
+                                        options={['2', '3', '4', '5', '6']}
+                                        strict={true}
+                                    />
+                                </div>
+
+                                {/* 🔬 Detalles Técnicos Avanzados (NUEVOS) */}
+                                <div className="pt-6 border-t border-surface-highlight/50 space-y-4">
+                                    <h4 className="text-sm font-bold text-primary-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Settings2 size={16} />
+                                        Motor y Potencia
+                                    </h4>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Cilindraje</label>
+                                            <input
+                                                type="text"
+                                                value={displacement}
+                                                onChange={(e) => {
+                                                    setDisplacement(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('displacement'))
+                                                }}
+                                                placeholder="Ej: 2.5 (L) o 600 (cc)"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Potencia (HP)</label>
+                                            <input
+                                                type="text"
+                                                value={hp}
+                                                onChange={(e) => {
+                                                    setHp(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('hp'))
+                                                }}
+                                                placeholder="Ej: 250"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Torque</label>
+                                            <input
+                                                type="text"
+                                                value={torque}
+                                                onChange={(e) => {
+                                                    setTorque(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('torque'))
+                                                }}
+                                                placeholder="Ej: 300 lb-pie"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Cilindros</label>
+                                            <input
+                                                type="text"
+                                                value={cylinders}
+                                                onChange={(e) => {
+                                                    setCylinders(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('cylinders'))
+                                                }}
+                                                placeholder="Ej: 4, 6, 8"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
                                             />
                                         </div>
                                     </div>
-            )}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Tipo de Motor / Descripción</label>
+                                            <input
+                                                type="text"
+                                                value={engine}
+                                                onChange={(e) => {
+                                                    setEngine(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('engine'))
+                                                }}
+                                                placeholder="Ej: 2.0L Turbo, V6 i-VTEC, Eléctrico Dual Motor"
+                                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <SearchableSelect
+                                            label="Tracción"
+                                            value={traction}
+                                            onChange={(value) => {
+                                                setTraction(value)
+                                                setUserEditedFields(prev => new Set(prev).add('traction'))
+                                            }}
+                                            options={['FWD (Delantera)', 'RWD (Trasera)', 'AWD (Integral)', '4WD (4x4)', '2WD', '4x2', '6x4', '8x4']}
+                                            strict={false}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <SearchableSelect
+                                            label="Aspiración"
+                                            value={aspiration}
+                                            onChange={(value) => {
+                                                setAspiration(value)
+                                                setUserEditedFields(prev => new Set(prev).add('aspiration'))
+                                            }}
+                                            options={['Atmosférico', 'Turbo', 'Bi-Turbo', 'Supercargado', 'Aspirado Natural']}
+                                            strict={false}
+                                        />
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Nº Pasajeros</label>
+                                            <input
+                                                type="text"
+                                                value={passengers}
+                                                onChange={(e) => {
+                                                    setPassengers(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('passengers'))
+                                                }}
+                                                placeholder="Ej: 5"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Peso (kg)</label>
+                                            <input
+                                                type="text"
+                                                value={weight}
+                                                onChange={(e) => {
+                                                    setWeight(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('weight'))
+                                                }}
+                                                placeholder="Ej: 1540"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
 
-                                    {currentStep === 4 && (
-                                        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                            {/* Ubicación */}
-                                            <GPSCaptureStep onLocationChange={handleLocationChange} latitude={latitude} longitude={longitude} city={city} />
-
-                                            {/* Resumen Final para Revisión */}
-                                            <div className="pt-8 border-t border-surface-highlight">
-                                                <div className="p-6 bg-surface-highlight/20 border border-surface-highlight rounded-2xl relative overflow-hidden">
-                                                    {/* Sello de Calidad IA */}
-                                                    {/* Sello de Calidad IA REMOVIDO */}
-
-                                                    <div className="flex flex-col md:flex-row gap-6">
-                                                        {images[0] && (
-                                                            <div className="w-full md:w-1/3 aspect-video rounded-xl overflow-hidden shadow-lg border-2 border-primary-700/30">
-                                                                <img src={images[0]} alt="Portada" className="w-full h-full object-cover" />
-                                                            </div>
-                                                        )}
-                                                        <div className="flex-1">
-                                                            <h3 className="text-2xl font-black text-text-primary uppercase tracking-tight">{brand} {model} {year}</h3>
-                                                            <div className="flex items-center gap-3 mt-2">
-                                                                <span className="text-3xl font-black text-primary-400">
-                                                                    {formatPrice(parseFloat(price || '0'), currency, locale)}
-                                                                </span>
-                                                            </div>
-                                                            <div className="grid grid-cols-2 gap-2 mt-4 text-xs font-bold uppercase text-text-secondary">
-                                                                <div className="flex items-center gap-2">📍 {city}</div>
-                                                                <div className="flex items-center gap-2">🛣️ {mileage} {mileageUnit}</div>
-                                                                <div className="flex items-center gap-2">⚙️ {transmission}</div>
-                                                                <div className="flex items-center gap-2">⛽ {fuel}</div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                {/* 🔌 Campo Eléctrico (Opcional) */}
+                                {fuel?.toLowerCase().includes('electric') || fuel?.toLowerCase().includes('hibrid') || engine?.toLowerCase().includes('electri') ? (
+                                    <div className="pt-6 border-t border-surface-highlight/50 space-y-4 animate-in slide-in-from-left-2 duration-300">
+                                        <h4 className="text-sm font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                                            <BatteryCharging size={16} />
+                                            Detalles Eléctricos
+                                        </h4>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="block text-xs font-medium text-text-secondary uppercase">Capacidad Batería (kWh)</label>
+                                                <input
+                                                    type="text"
+                                                    value={batteryCapacity}
+                                                    onChange={(e) => setBatteryCapacity(e.target.value)}
+                                                    placeholder="Ej: 75"
+                                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                />
                                             </div>
+                                            <div className="space-y-1">
+                                                <label className="block text-xs font-medium text-text-secondary uppercase">Rango Eléctrico (km)</label>
+                                                <input
+                                                    type="text"
+                                                    value={range}
+                                                    onChange={(e) => setRange(e.target.value)}
+                                                    placeholder="Ej: 450"
+                                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : null}
 
-                                            {/* Alertas de Validación */}
-                                            {(!brand || !model || !year || !price || images.length === 0 || !city) && (
-                                                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl space-y-2">
-                                                    <p className="text-red-500 font-bold text-sm">⚠️ {t('publish.validation.review_required')}</p>
-                                                    <ul className="text-xs text-red-400 space-y-1">
-                                                        {!brand && <li>• {t('publish.validation.missing_brand')}</li>}
-                                                        {!model && <li>• {t('publish.validation.missing_model')}</li>}
-                                                        {!year && <li>• {t('publish.validation.missing_year')}</li>}
-                                                        {(!price || parseFloat(price) <= 0) && <li>• {t('publish.validation.invalid_price')}</li>}
-                                                        {images.length === 0 && <li>• {t('publish.validation.missing_images')}</li>}
-                                                        {!city && <li>• {t('publish.validation.missing_city')}</li>}
-                                                    </ul>
+                                {/* 🚚 Campos Específicos por Tipo (Carga / Industrial / Pesados) */}
+                                {(vehicleCategory === 'comercial' || vehicleCategory === 'transporte' || vehicleCategory === 'industrial') && (
+                                    <div className="pt-6 border-t border-surface-highlight/50 space-y-4 animate-in slide-in-from-left-2 duration-300">
+                                        <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                                            <Truck size={16} />
+                                            Detalles de Carga y Pesados
+                                        </h4>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="block text-xs font-medium text-text-secondary uppercase">Capacidad de Carga (kg)</label>
+                                                <input
+                                                    type="text"
+                                                    value={cargoCapacity}
+                                                    onChange={(e) => setCargoCapacity(e.target.value)}
+                                                    placeholder="Ej: 3500"
+                                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="block text-xs font-medium text-text-secondary uppercase">Ejes</label>
+                                                <input
+                                                    type="text"
+                                                    value={axles}
+                                                    onChange={(e) => setAxles(e.target.value)}
+                                                    placeholder="Ej: 2, 3, 4"
+                                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                />
+                                            </div>
+                                            {vehicleCategory === 'industrial' && (
+                                                <div className="space-y-1 col-span-2 md:col-span-1">
+                                                    <label className="block text-xs font-medium text-text-secondary uppercase">Horas de Operación</label>
+                                                    <input
+                                                        type="text"
+                                                        value={operatingHours}
+                                                        onChange={(e) => setOperatingHours(e.target.value)}
+                                                        placeholder="Ej: 1200"
+                                                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                    />
                                                 </div>
                                             )}
                                         </div>
-                                    )}
-
-                                    <div className="mt-8 flex gap-4">
-                                        {currentStep > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={handleBack}
-                                                className="px-6 py-3 bg-surface border border-surface-highlight text-text-primary rounded-xl font-medium hover:bg-surface-highlight transition-all"
-                                            >
-                                                {t('publish.actions.back')}
-                                            </button>
-                                        )}
-                                        {currentStep < 4 ? (
-                                            <button
-                                                type="button"
-                                                onClick={handleNext}
-                                                disabled={loading || isAnalyzing || !(() => {
-                                                    if (currentStep === 1) return canProceedFromStep1;
-                                                    if (currentStep === 2) return canProceedFromStep2;
-                                                    if (currentStep === 3) return canProceedFromStep3;
-                                                    return true;
-                                                })()}
-                                                className="flex-1 px-6 py-3 bg-primary-700 text-text-primary rounded-xl font-bold hover:bg-primary-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95"
-                                            >
-                                                {t('publish.actions.next')}
-                                            </button>
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                onClick={handlePublish}
-                                                disabled={loading || !canProceedFromStep4}
-                                                className="flex-1 px-6 py-3 bg-green-600 text-text-primary rounded-xl font-bold hover:bg-green-500 disabled:opacity-50 transition-all shadow-lg active:scale-95"
-                                            >
-                                                {loading ? t('publish.actions.publishing') : t('publish.actions.publish')}
-                                            </button>
-                                        )}
                                     </div>
+                                )}
+
+                                {/* Equipamiento y Características */}
+                                <div className="pt-8 border-t border-surface-highlight">
+                                    <h3 className="text-xl font-bold text-text-primary mb-2">{t('publish.labels.features_title')}</h3>
+                                    <p className="text-sm text-text-secondary mb-6">
+                                        Revisa, edita o elimina lo que un asesor detectó automáticamente, o agrega nuevas características manuales.
+                                    </p>
+
+                                    {/* 1. Lista de Equipamiento Seleccionado (Editable) */}
+                                    <div className="space-y-3 mb-8">
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedFeatures.length === 0 ? (
+                                                <p className="text-sm text-text-secondary italic bg-surface-highlight/20 px-4 py-2 rounded-lg border border-dashed border-surface-highlight">
+                                                    No hay equipamiento seleccionado. Usa las sugerencias o agrega uno nuevo.
+                                                </p>
+                                            ) : (
+                                                selectedFeatures.map((feature, index) => (
+                                                    <div
+                                                        key={`selected-${index}`}
+                                                        className="flex items-center bg-primary-700/10 border border-primary-700/30 rounded-xl px-3 py-1.5 gap-2 group hover:bg-primary-700/20 transition-all max-w-full"
+                                                    >
+                                                        <input
+                                                            type="text"
+                                                            value={feature}
+                                                            onChange={(e) => updateFeature(index, e.target.value)}
+                                                            className="bg-transparent border-none focus:ring-0 text-sm font-medium text-text-primary p-0 min-w-[60px] max-w-[240px] flex-1"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeFeature(index)}
+                                                            className="text-text-secondary hover:text-red-400 p-0.5 rounded-md hover:bg-red-400/10 transition flex-shrink-0"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* 2. Agregar Característica Personalizada */}
+                                    <div className="flex gap-2 max-w-md mb-8">
+                                        <div className="relative flex-1">
+                                            <input
+                                                type="text"
+                                                value={newFeature}
+                                                onChange={(e) => setNewFeature(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault()
+                                                        addCustomFeature()
+                                                    }
+                                                }}
+                                                placeholder={'Ej: Rines deportivos 20", GPS...'}
+                                                className="w-full bg-surface-highlight border border-surface-highlight p-3 rounded-xl pr-10 text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={addCustomFeature}
+                                            disabled={!newFeature.trim()}
+                                            className="bg-primary-700 hover:bg-primary-600 disabled:opacity-50 text-white font-bold px-4 rounded-xl transition-all flex items-center gap-2"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                            </svg>
+                                            <span className="hidden sm:inline">Agregar</span>
+                                        </button>
+                                    </div>
+
+
                                 </div>
-    </div>
-</div>
-                )
+
+                                {/* Descripción */}
+                                <div className="pt-8 border-t border-surface-highlight">
+                                    <label className="block text-xl font-bold text-text-primary mb-4">
+                                        {t('publish.labels.description')} <span className="text-xs font-normal text-text-secondary">({t('common.optional')})</span>
+                                    </label>
+                                    <textarea
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Comentarios adicionales, estado de llantas, mantenimiento, etc..."
+                                        rows={4}
+                                        className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg resize-none focus:ring-2 focus:ring-primary-700 outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {currentStep === 4 && (
+                        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {/* Ubicación */}
+                            <GPSCaptureStep onLocationChange={handleLocationChange} latitude={latitude} longitude={longitude} city={city} />
+
+                            {/* Resumen Final para Revisión */}
+                            <div className="pt-8 border-t border-surface-highlight">
+                                {(!brand || !model || !year || !price || images.length === 0 || !city) && (
+                                    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl space-y-2">
+                                        <p className="text-red-500 font-bold text-sm">⚠️ {t('publish.validation.review_required')}</p>
+                                        <ul className="text-xs text-red-400 space-y-1">
+                                            {!brand && <li>• {t('publish.validation.missing_brand')}</li>}
+                                            {!model && <li>• {t('publish.validation.missing_model')}</li>}
+                                            {!year && <li>• {t('publish.validation.missing_year')}</li>}
+                                            {(!price || parseFloat(price) <= 0) && <li>• {t('publish.validation.invalid_price')}</li>}
+                                            {images.length === 0 && <li>• {t('publish.validation.missing_images')}</li>}
+                                            {!city && <li>• {t('publish.validation.missing_city')}</li>}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                            <div className="mt-8 flex gap-4">
+                                {currentStep > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={handleBack}
+                                        className="px-6 py-3 bg-surface border border-surface-highlight text-text-primary rounded-xl font-medium hover:bg-surface-highlight transition-all"
+                                    >
+                                        {t('publish.actions.back')}
+                                    </button>
+                                )}
+                                {currentStep < 4 ? (
+                                    <button
+                                        type="button"
+                                        onClick={handleNext}
+                                        disabled={loading || isAnalyzing || !(() => {
+                                            if (currentStep === 1) return canProceedFromStep1;
+                                            if (currentStep === 2) return canProceedFromStep2;
+                                            if (currentStep === 3) return canProceedFromStep3;
+                                            return true;
+                                        })()}
+                                        className="flex-1 px-6 py-3 bg-primary-700 text-text-primary rounded-xl font-bold hover:bg-primary-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95"
+                                    >
+                                        {t('publish.actions.next')}
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={handlePublish}
+                                        className="flex-1 px-6 py-3 bg-green-600 text-text-primary rounded-xl font-bold hover:bg-green-500 disabled:opacity-50 transition-all shadow-lg active:scale-95"
+                                    >
+                                        {loading ? t('publish.actions.publishing') : t('publish.actions.publish')}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+        </div >
+    )
 }
-                ```

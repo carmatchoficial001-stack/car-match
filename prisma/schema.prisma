@@ -178,6 +178,7 @@ model Vehicle {
   @@index([status, createdAt])
   @@index([status, price])
   @@index([status, year])
+  @@index([model])
   @@index([status, brand])
   @@index([status, vehicleType])
 }
@@ -662,6 +663,8 @@ model SearchMetric {
   color     String?
   transmission String?
   fuel      String?
+  cylinders Int?
+  features  String[]
   latitude  Float
   longitude Float
   userId    String?
@@ -671,6 +674,8 @@ model SearchMetric {
   @@index([createdAt])
   @@index([brand])
   @@index([category])
+  @@index([vehicleType])
+  @@index([model])
 }
 
 model OpportunityLog {
