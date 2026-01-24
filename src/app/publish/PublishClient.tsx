@@ -1227,7 +1227,6 @@ export default function PublishClient() {
                                     </div>
                                 )}
                             </div>
-                        )}
 
                             <div className="mt-8 flex gap-4">
                                 {currentStep > 1 && (
@@ -1257,6 +1256,7 @@ export default function PublishClient() {
                                     <button
                                         type="button"
                                         onClick={handlePublish}
+                                        disabled={loading || !canProceedFromStep4}
                                         className="flex-1 px-6 py-3 bg-green-600 text-text-primary rounded-xl font-bold hover:bg-green-500 disabled:opacity-50 transition-all shadow-lg active:scale-95"
                                     >
                                         {loading ? t('publish.actions.publishing') : t('publish.actions.publish')}
@@ -1264,7 +1264,8 @@ export default function PublishClient() {
                                 )}
                             </div>
                         </div>
-                    </div>
+                    )}
+                </div>
             </div>
         </div>
         </div >
