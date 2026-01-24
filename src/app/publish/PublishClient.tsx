@@ -1268,6 +1268,5 @@ export default function PublishClient() {
                 </div>
             </div>
         </div>
-        </div >
     )
 }
