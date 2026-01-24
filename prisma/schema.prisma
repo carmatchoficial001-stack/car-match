@@ -675,7 +675,7 @@ model OpportunityLog {
 
 model Report {
   id           String       @id @default(cuid())
-  reporterId   String
+  reporterId   String?
   reason       String
   description  String?
   status       ReportStatus @default(PENDING)
@@ -686,7 +686,7 @@ model Report {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   business     Business?    @relation(fields: [businessId], references: [id])
-  reporter     User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reporter     User?        @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
   targetUser   User?        @relation("ReportedUser", fields: [targetUserId], references: [id])
   vehicle      Vehicle?     @relation(fields: [vehicleId], references: [id])
   messages     ReportMessage[]
@@ -699,11 +699,11 @@ model Report {
 model ReportMessage {
   id        String   @id @default(cuid())
   reportId  String
-  senderId  String
+  senderId  String?
   content   String
   createdAt DateTime @default(now())
   report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  sender    User      @relation(fields: [senderId], references: [id])
+  sender    User?     @relation(fields: [senderId], references: [id])
 
   @@index([reportId])
   @@index([senderId])

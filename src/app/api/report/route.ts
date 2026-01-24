@@ -5,9 +5,8 @@ import { prisma } from '@/lib/db'
 export async function POST(request: NextRequest) {
     try {
         const session = await auth()
-        if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Debes iniciar sesión para reportar' }, { status: 401 })
-        }
+        // Reporter ID is optional for guest reports
+        const reporterId = session?.user?.id || null
 
         const body = await request.json()
         const { reason, description, imageUrl, vehicleId, businessId, targetUserId } = body
@@ -20,7 +19,7 @@ export async function POST(request: NextRequest) {
         const report = await prisma.$transaction(async (tx) => {
             const newReport = await tx.report.create({
                 data: {
-                    reporterId: session.user.id,
+                    reporterId: reporterId,
                     reason,
                     description,
                     imageUrl: imageUrl || null,
