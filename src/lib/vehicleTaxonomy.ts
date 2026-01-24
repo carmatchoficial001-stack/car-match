@@ -525,6 +525,30 @@ export const TRACTIONS = ['Delantera (FWD)', 'Trasera (RWD)', '4x4 (4WD)', 'Inte
 export const COLORS = ['Blanco', 'Negro', 'Gris', 'Plata', 'Rojo', 'Azul', 'Verde', 'Amarillo', 'Naranja', 'Café', 'Beige', 'Oro', 'Bronce', 'Morado', 'Rosa', 'Bicolor', 'Mate', 'Otro']
 export const CONDITIONS = ['Nuevo', 'Seminuevo (Casi Nuevo)', 'Usado', 'Para Restaurar', 'Para Piezas']
 
+// 🌍 DICCIONARIO GLOBAL DE SINÓNIMOS (Base de Conocimiento para Inteligencia Artificial)
+// Mapea términos coloquiales e internacionales a la taxonomía oficial de la BD
+export const GLOBAL_SYNONYMS: Record<string, string> = {
+    // Categorías
+    'Carro': 'Automóvil', 'Coche': 'Automóvil', 'Auto': 'Automóvil', 'Nave': 'Automóvil', 'Fierro': 'Automóvil',
+    'Voiture': 'Automóvil', 'Car': 'Automóvil', 'Vehicle': 'Automóvil',
+    'Troca': 'Automóvil', 'Pickup': 'Automóvil', 'Camioneta': 'Automóvil', 'Truck': 'Automóvil',
+    'Moto': 'Motocicleta', 'Burra': 'Motocicleta', 'Bike': 'Motocicleta', 'Motorcycle': 'Motocicleta',
+    'Mano de chango': 'Maquinaria', 'Retro': 'Maquinaria', 'Excavator': 'Maquinaria',
+    'Tracto': 'Camión', 'Trailer': 'Camión', 'Mula': 'Camión', 'Semi': 'Camión', 'Lorry': 'Camión',
+
+    // Colores
+    'Negra': 'Negro', 'Black': 'Negro', 'Noir': 'Negro', 'Dark': 'Negro', 'Preto': 'Negro',
+    'Blanca': 'Blanco', 'White': 'Blanco', 'Blanc': 'Blanco', 'Branco': 'Blanco',
+    'Roja': 'Rojo', 'Red': 'Rojo', 'Rouge': 'Rojo', 'Vermelho': 'Rojo',
+    'Azul Oscuro': 'Azul', 'Blue': 'Azul', 'Bleu': 'Azul',
+    'Gris rata': 'Gris', 'Grey': 'Gris', 'Silver': 'Plata', 'Plateado': 'Plata',
+
+    // Marcas / Modelos (Slang)
+    'Chevy': 'Chevrolet', 'Bimmer': 'BMW', 'Beema': 'BMW', 'Merc': 'Mercedes-Benz', 'Meche': 'Mercedes-Benz',
+    'Lambo': 'Lamborghini', 'Rari': 'Ferrari', 'Vw': 'Volkswagen', 'Vocho': 'Volkswagen', 'Fusca': 'Volkswagen',
+    'Mamalona': 'RAM', 'Yota': 'Toyota'
+}
+
 // 🧠 Helper to get features by category
 export const getFeaturesByCategory = (category: VehicleCategory) => {
     const common = ['Alarma', 'GPS', 'Luces LED', 'Frenos ABS', 'Bluetooth', 'USB', 'Pantalla Touch']

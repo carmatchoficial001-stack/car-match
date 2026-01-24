@@ -284,6 +284,7 @@ export default function MarketClient({
             if (filters.fuel) params.set('fuel', filters.fuel)
             if (filters.passengers) params.set('passengers', filters.passengers.toString())
             if (filters.cylinders) params.set('cylinders', filters.cylinders.toString())
+            if (filters.sort) params.set('sort', filters.sort)
             if (filters.features && Array.isArray(filters.features)) {
                 params.set('features', filters.features.join(','))
             }

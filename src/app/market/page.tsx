@@ -85,13 +85,23 @@ export default async function MarketPage({
     }
 
 
-    // Aplicar filtros manuales
+    // Aplicar filtros manuales (Soporte para múltiples valores con coma)
     if (searchParams.brand) {
-        where.brand = { contains: searchParams.brand, mode: 'insensitive' }
+        const brands = searchParams.brand.split(',').map(b => b.trim())
+        if (brands.length > 1) {
+            where.brand = { in: brands, mode: 'insensitive' }
+        } else {
+            where.brand = { contains: brands[0], mode: 'insensitive' }
+        }
     }
 
     if (searchParams.model) {
-        where.model = { contains: searchParams.model, mode: 'insensitive' }
+        const models = searchParams.model.split(',').map(m => m.trim())
+        if (models.length > 1) {
+            where.model = { in: models, mode: 'insensitive' }
+        } else {
+            where.model = { contains: models[0], mode: 'insensitive' }
+        }
     }
 
     if (searchParams.minPrice || searchParams.maxPrice) {
