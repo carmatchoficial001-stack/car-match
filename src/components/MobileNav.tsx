@@ -89,7 +89,21 @@ export default function MobileNav() {
     ]
 
     return (
-        <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-[9999] glass-effect pb-safe ${isVisible ? 'flex' : 'hidden'}`}>
+        <nav
+            className={`md:hidden fixed bottom-0 left-0 right-0 z-[9999] bg-[#0f172a]/95 border-t border-white/5 backdrop-blur-sm ${isVisible ? 'flex' : 'hidden'}`}
+            style={{
+                height: 'calc(64px + env(safe-area-inset-bottom))',
+                paddingBottom: 'env(safe-area-inset-bottom)',
+                transform: 'translate3d(0, 0, 0)',
+                WebkitTransform: 'translate3d(0, 0, 0)',
+                WebkitBackfaceVisibility: 'hidden',
+                backfaceVisibility: 'hidden',
+                perspective: '1000px',
+                contain: 'layout paint',
+                transformStyle: 'preserve-3d',
+                position: 'fixed'
+            }}
+        >
             <div className="flex items-center justify-around h-16 px-2 w-full">
                 {navItems.map((item, index) => {
                     const Icon = item.icon
