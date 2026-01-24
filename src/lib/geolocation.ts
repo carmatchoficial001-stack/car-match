@@ -264,6 +264,7 @@ export const EXPANSION_TIERS = [12, 50, 100, 250, 500, 1000, 5000, 10000]
 export function normalizeCountryCode(country?: string | null): string {
     if (!country) return 'MX' // Default to MX if undefined
 
+    const upper = country.toUpperCase()
     // Limpiar caracteres no alfanuméricos (evita corruptos como M\0 o M%0)
     const clean = upper.replace(/[^A-Z]/g, '')
 
