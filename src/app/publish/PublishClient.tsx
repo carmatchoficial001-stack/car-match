@@ -610,6 +610,20 @@ export default function PublishClient() {
         }
     }
 
+    // Validaciones de cada paso (calculadas antes del JSX para evitar problemas de TypeScript)
+    const canProceedFromStep1 = images.length > 0
+    const canProceedFromStep2 = !!(brand && model && year && price && parseFloat(price) > 0)
+    const canProceedFromStep3 = true // Paso 3 es opcional
+    const canProceedFromStep4 = !!(brand && model && year && price && images.length > 0 && city)
+
+    // Validación dinámica basada en el paso actual
+    const canProceed =
+        currentStep === 1 ? canProceedFromStep1 :
+            currentStep === 2 ? canProceedFromStep2 :
+                currentStep === 3 ? canProceedFromStep3 :
+                    currentStep === 4 ? canProceedFromStep4 :
+                        true
+
     return (
         <div className="min-h-screen bg-background pb-safe">
             <PortalAnimation show={showPortal} />
@@ -1242,12 +1256,7 @@ export default function PublishClient() {
                                     <button
                                         type="button"
                                         onClick={handleNext}
-                                        disabled={loading || isAnalyzing || !(
-                                            currentStep === 1 ? canProceedFromStep1 :
-                                                currentStep === 2 ? canProceedFromStep2 :
-                                                    currentStep === 3 ? canProceedFromStep3 :
-                                                        true
-                                        )}
+                                        disabled={loading || isAnalyzing || !canProceed}
                                         className="flex-1 px-6 py-3 bg-primary-700 text-text-primary rounded-xl font-bold hover:bg-primary-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95"
                                     >
                                         {t('publish.actions.next')}
@@ -1270,3 +1279,4 @@ export default function PublishClient() {
         </div>
     )
 }
+
