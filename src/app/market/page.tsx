@@ -269,14 +269,23 @@ export default async function MarketPage({
     }
 
     // Registrar métrica de búsqueda para Inteligencia (Océanos Azules)
-    if (searchParams.search || searchParams.brand || searchParams.vehicleType || searchParams.category) {
+    if (searchParams.search || searchParams.brand || searchParams.vehicleType || searchParams.category || searchParams.model) {
         // Ejecutar en segundo plano para no bloquear el renderizado
         prisma.searchMetric.create({
             data: {
                 query: searchParams.search || null,
-                category: (searchParams.category as string) || (searchParams.vehicleType as string) || null,
+                category: searchParams.category || null,
+                vehicleType: searchParams.vehicleType || null,
+                brand: searchParams.brand || null,
+                model: searchParams.model || null,
+                minPrice: searchParams.minPrice ? parseFloat(searchParams.minPrice) : null,
+                maxPrice: searchParams.maxPrice ? parseFloat(searchParams.maxPrice) : null,
+                minYear: searchParams.minYear ? parseInt(searchParams.minYear) : null,
+                maxYear: searchParams.maxYear ? parseInt(searchParams.maxYear) : null,
+                color: searchParams.color || null,
+                transmission: searchParams.transmission || null,
+                fuel: searchParams.fuel || null,
                 userId: currentUser?.id || null,
-                // Tomamos la ubicación del usuario si está disponible, si no, intentamos por ciudad filter
                 latitude: currentUser?.lastLatitude || 0,
                 longitude: currentUser?.lastLongitude || 0
             }

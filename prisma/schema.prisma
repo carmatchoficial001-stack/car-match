@@ -652,6 +652,16 @@ model SearchMetric {
   id        String   @id @default(cuid())
   query     String?
   category  String?
+  brand     String?
+  model     String?
+  minPrice  Float?
+  maxPrice  Float?
+  minYear   Int?
+  maxYear   Int?
+  vehicleType String?
+  color     String?
+  transmission String?
+  fuel      String?
   latitude  Float
   longitude Float
   userId    String?
@@ -659,6 +669,8 @@ model SearchMetric {
 
   @@index([latitude, longitude])
   @@index([createdAt])
+  @@index([brand])
+  @@index([category])
 }
 
 model OpportunityLog {

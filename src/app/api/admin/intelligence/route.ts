@@ -19,29 +19,44 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
         }
 
-        const stats = await Promise.all([
-            // Coordenadas de búsquedas recientes (Demanda)
+        const [recentSearches, activeVehicles, allBusinesses] = await Promise.all([
             prisma.searchMetric.findMany({
-                where: {
-                    createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
-                },
-                select: { latitude: true, longitude: true, category: true, query: true }
+                where: { createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
+                select: { latitude: true, longitude: true, category: true, brand: true, model: true, maxPrice: true, color: true, transmission: true, fuel: true, query: true }
             }),
-            // Coordenadas de vehículos (Oferta de inventario)
             prisma.vehicle.findMany({
                 where: { status: 'ACTIVE' },
-                select: { latitude: true, longitude: true, title: true }
+                select: { latitude: true, longitude: true, title: true, vehicleType: true, brand: true, model: true, price: true }
             }),
-            // Coordenadas de negocios actuales (Competencia)
             prisma.business.findMany({
                 select: { latitude: true, longitude: true, name: true, category: true }
             })
         ])
 
+        // 🧠 Data Aggregation for Professional Dashboard
+        const aggregate = (arr: any[], key: string) => {
+            const counts = arr.reduce((acc: any, item) => {
+                const val = item[key]
+                if (val) acc[val] = (acc[val] || 0) + 1
+                return acc
+            }, {})
+            return Object.entries(counts).sort((a: any, b: any) => b[1] - a[1]).slice(0, 10)
+        }
+
         return NextResponse.json({
-            searches: stats[0],
-            vehicles: stats[1],
-            businesses: stats[2]
+            searches: recentSearches,
+            vehicles: activeVehicles,
+            businesses: allBusinesses,
+            stats: {
+                topBrands: aggregate(recentSearches, 'brand'),
+                topModels: aggregate(recentSearches, 'model'),
+                topCategories: aggregate(recentSearches, 'category'),
+                techTrends: {
+                    transmissions: aggregate(recentSearches, 'transmission'),
+                    fuels: aggregate(recentSearches, 'fuel'),
+                    colors: aggregate(recentSearches, 'color'),
+                }
+            }
         })
 
     } catch (error) {
