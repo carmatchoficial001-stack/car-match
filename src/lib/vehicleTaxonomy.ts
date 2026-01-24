@@ -535,6 +535,8 @@ export const GLOBAL_SYNONYMS: Record<string, string> = {
     'Moto': 'Motocicleta', 'Burra': 'Motocicleta', 'Bike': 'Motocicleta', 'Motorcycle': 'Motocicleta',
     'Mano de chango': 'Maquinaria', 'Retro': 'Maquinaria', 'Excavator': 'Maquinaria',
     'Tracto': 'Camión', 'Trailer': 'Camión', 'Mula': 'Camión', 'Semi': 'Camión', 'Lorry': 'Camión',
+    'Ute': 'Automóvil', 'Bakkie': 'Automóvil', 'Estate': 'Automóvil', 'Saloon': 'Automóvil', 'Wagon': 'Automóvil',
+    'Camineta': 'Automóvil', 'Hondita': 'Motocicleta', 'Ranfla': 'Automóvil', 'Mueble': 'Automóvil',
 
     // Colores
     'Negra': 'Negro', 'Black': 'Negro', 'Noir': 'Negro', 'Dark': 'Negro', 'Preto': 'Negro',
@@ -546,7 +548,7 @@ export const GLOBAL_SYNONYMS: Record<string, string> = {
     // Marcas / Modelos (Slang)
     'Chevy': 'Chevrolet', 'Bimmer': 'BMW', 'Beema': 'BMW', 'Merc': 'Mercedes-Benz', 'Meche': 'Mercedes-Benz',
     'Lambo': 'Lamborghini', 'Rari': 'Ferrari', 'Vw': 'Volkswagen', 'Vocho': 'Volkswagen', 'Fusca': 'Volkswagen',
-    'Mamalona': 'RAM', 'Yota': 'Toyota'
+    'Mamalona': 'RAM', 'Yota': 'Toyota', 'Ramona': 'RAM'
 }
 
 // 🧠 Helper to get features by category

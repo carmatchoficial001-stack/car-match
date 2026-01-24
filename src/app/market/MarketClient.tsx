@@ -288,6 +288,18 @@ export default function MarketClient({
             if (filters.features && Array.isArray(filters.features)) {
                 params.set('features', filters.features.join(','))
             }
+
+            // 🧠 SMART CLEANUP: Si la IA encontró filtros útiles (Marca, Modelo, Color), 
+            // eliminamos el texto de búsqueda para evitar que el filtro de texto estricto oculte resultados.
+            // Ej: "Ram negra" -> Brand: RAM, Color: Negro. Si dejamos "search=Ram negra", el backend buscará texto exacto y fallará.
+            const hasKeyFilters = filters.brand || filters.model || filters.category || filters.vehicleType || filters.color;
+            if (hasKeyFilters) {
+                params.delete('search')
+            } else {
+                // Si no encontró nada estructurado, mantenemos la búsqueda de texto como fallback
+                params.set('search', searchText)
+            }
+
             router.push(`/market?${params.toString()}`)
         } catch (error) {
             router.push(`/market?search=${encodeURIComponent(searchText)}`)

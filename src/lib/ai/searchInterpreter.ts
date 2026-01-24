@@ -107,7 +107,38 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
     const text = response.text();
     const jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();
 
-    return JSON.parse(jsonString);
+    const aiOutput = JSON.parse(jsonString) as SearchIntent;
+
+    // 🛡️ REFUERZO DE TAXONOMÍA: Corrección post-IA
+    // Aunque el prompt lo pide, a veces la IA alucina (ej: "Negra" vs "Negro").
+    // Aquí forzamos la coincidencia exacta con nuestros arrays.
+
+    if (aiOutput.color) {
+      const outputColor = aiOutput.color;
+      // 1. Busqueda exacta
+      const exact = COLORS.find(c => c.toLowerCase() === outputColor.toLowerCase());
+      if (exact) {
+        aiOutput.color = exact;
+      } else {
+        // 2. Busqueda parcial (ej: "Negra" -> "Negro", "Azul marino" -> "Azul")
+        const partial = COLORS.find(c => outputColor.toLowerCase().includes(c.toLowerCase()) || c.toLowerCase().includes(outputColor.toLowerCase().substring(0, 4)));
+        if (partial) aiOutput.color = partial;
+      }
+    }
+
+    if (aiOutput.fuel) {
+      const outputFuel = aiOutput.fuel;
+      const exact = FUELS.find(f => f.toLowerCase() === outputFuel.toLowerCase());
+      if (exact) aiOutput.fuel = exact;
+    }
+
+    if (aiOutput.transmission) {
+      const outputTrans = aiOutput.transmission;
+      const exact = TRANSMISSIONS.find(t => t.toLowerCase() === outputTrans.toLowerCase());
+      if (exact) aiOutput.transmission = exact;
+    }
+
+    return aiOutput;
   } catch (error) {
     console.error("❌ Error interpretando búsqueda:", error);
     return {}; // Return empty filter if AI fails (fallback to text search)
