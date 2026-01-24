@@ -358,6 +358,6 @@ export default function Header() {
                     onClose={() => setShowInstallModal(false)}
                     platform={selectedPlatform}
                 />
-        </header >
+        </header>
     )
 }
