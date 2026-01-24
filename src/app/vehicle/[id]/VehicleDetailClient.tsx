@@ -247,10 +247,13 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
             <div className="container mx-auto px-4 pt-6">
                 {/* Back Button */}
                 <div className="flex justify-between items-center mb-6">
-                    <Link href="/market" className="inline-flex items-center text-text-secondary hover:text-primary-400 transition">
+                    <button
+                        onClick={() => router.back()}
+                        className="inline-flex items-center text-text-secondary hover:text-primary-400 transition cursor-pointer"
+                    >
                         <ArrowLeft className="mr-2" size={20} />
                         {t('vehicle.back_market')}
-                    </Link>
+                    </button>
 
                     {isOwner && (
                         <div className="bg-primary-700/10 text-primary-400 px-4 py-1.5 rounded-xl border border-primary-700/30 flex items-center gap-2 lg:hidden">

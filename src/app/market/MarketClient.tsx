@@ -114,7 +114,7 @@ export default function MarketClient({
     const searchRadius = RADIUS_TIERS[tierIndex]
 
     const [items, setItems] = useState<FeedItem[]>(initialItems)
-    const [filteredItems, setFilteredItems] = useState<FeedItem[]>([])
+    const [filteredItems, setFilteredItems] = useState<FeedItem[]>(initialItems)
     const [showFilters, setShowFilters] = useState(false)
 
     // Modal UI State
@@ -136,12 +136,38 @@ export default function MarketClient({
     const [visibleCount, setVisibleCount] = useState(CARS_PER_PAGE)
 
     useEffect(() => {
+        // Try to restore state from sessionStorage
+        const savedCount = sessionStorage.getItem('market_visible_count')
+        if (savedCount) setVisibleCount(parseInt(savedCount))
+
+        const savedItemsOrder = sessionStorage.getItem('market_items_order')
+        if (savedItemsOrder && !searchParams.sort) {
+            try {
+                const orderedIds = JSON.parse(savedItemsOrder)
+                const orderedItems = orderedIds.map((id: string) => initialItems.find(it => it.id === id)).filter(Boolean)
+                if (orderedItems.length === initialItems.length) {
+                    setItems(orderedItems)
+                    return // Skip initial shuffle
+                }
+            } catch (e) {
+                console.error("Failed to restore items order", e)
+            }
+        }
+
         // Shuffle only on first load if no specific sort
         const shouldShuffle = !searchParams.sort || searchParams.sort === 'newest'
         if (shouldShuffle) {
-            setItems(boostShuffleArray(initialItems))
+            const shuffled = boostShuffleArray(initialItems)
+            setItems(shuffled)
+            // Save order for next time
+            sessionStorage.setItem('market_items_order', JSON.stringify(shuffled.map(it => it.id)))
         }
     }, [initialItems, searchParams.sort])
+
+    // Save visibleCount whenever it changes
+    useEffect(() => {
+        sessionStorage.setItem('market_visible_count', visibleCount.toString())
+    }, [visibleCount])
 
     // --- INFINITE SCROLL LOGIC ---
     const observer = useRef<IntersectionObserver | null>(null)
@@ -378,7 +404,7 @@ export default function MarketClient({
 
                 {/* Grid de Vehículos */}
                 <div>
-                    {(isFiltering || (locationLoading && !activeLocation)) ? (
+                    {(isFiltering && items.length === 0) ? (
                         <div className="flex items-center justify-center py-20">
                             <div className="text-center">
                                 <div className="w-12 h-12 border-4 border-primary-700 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
