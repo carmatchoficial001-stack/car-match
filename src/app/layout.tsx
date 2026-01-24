@@ -125,10 +125,17 @@ export default function RootLayout({
                     <OpenInBrowserBanner />
                     <ResponsiveViewportFix />
                     <RestoringSessionOverlay />
-                    <main className="pt-[72px] md:pt-[88px] pb-[80px] md:pb-0">
-                        {children}
-                    </main>
-                    <MobileNav />
+
+                    {/* App Shell Architecture: Fixed Viewport + Internal Scroll */}
+                    <div className="flex flex-col h-[100dvh] w-full overflow-hidden relative">
+                        <Header />
+
+                        <main className="flex-1 overflow-y-auto overflow-x-hidden pb-[80px] md:pb-0 scroll-smooth overscroll-behavior-y-contain">
+                            {children}
+                        </main>
+
+                        <MobileNav />
+                    </div>
                 </Providers>
             </body>
         </html>

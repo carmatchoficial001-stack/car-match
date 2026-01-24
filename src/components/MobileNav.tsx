@@ -88,18 +88,13 @@ export default function MobileNav() {
 
     return (
         <nav
-            className={`md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#0f172a] border-t border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.6)] ${isVisible ? 'block' : 'hidden'}`}
+            className={`md:hidden fixed bottom-0 left-0 right-0 z-[50] bg-[#0f172a] border-t border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.6)] ${isVisible ? 'flex' : 'hidden'}`}
             style={{
-                // Usamos height fijo + margen de seguridad nativo
                 height: 'calc(68px + env(safe-area-inset-bottom))',
-                // Forzamos que se quede pegado al fondo sin NINGUNA transformación
-                transform: 'none',
-                transition: 'none',
-                position: 'fixed',
-                bottom: '0px'
+                paddingBottom: 'env(safe-area-inset-bottom)'
             }}
         >
-            <div className="flex items-center justify-around h-[68px] px-2 w-full" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+            <div className="flex items-center justify-around h-[68px] px-2 w-full">
                 {navItems.map((item, index) => {
                     const Icon = item.icon
                     const active = isActive(item.href)
