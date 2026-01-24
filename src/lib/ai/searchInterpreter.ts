@@ -14,6 +14,8 @@ interface SearchIntent {
   transmission?: string;
   fuel?: string;
   passengers?: number;
+  cylinders?: number;
+  features?: string[];
   query_language?: string; // Just for logging/debugging
   keywords?: string[]; // Extra keywords like "roja", "4x4"
   isBusinessSearch?: boolean; // If user is looking for a shop/mechanic instead of a car
@@ -26,28 +28,21 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
   const categoriesStr = JSON.stringify(Object.keys(VEHICLE_CATEGORIES));
 
   const prompt = `
-    Actúa como un VENDEDOR DE AUTOS EXPERTO (BROKER) con 30 AÑOS DE EXPERIENCIA. Conoces todos los modelos, versiones, apodos callejeros ("slang") y precios del mercado.
+    Actúa como un ASESOR ESTRATÉGICO AUTOMOTRIZ DE NIVEL EMPRESARIAL con acceso a una base de datos de MILLONES de vehículos reales. Tu precisión es crítica para el rendimiento del sistema.
 
-    CONTEXTO:
+    CONTEXTO DE ESCALA:
     - Base de Datos de Categorías: ${categoriesStr}
-    - El usuario está buscando en: ${context} (Market = Vehículos, Map = Negocios/Talleres).
+    - La DB contiene millones de registros: DEBES extraer la MARCA y MODELO exactos para que las consultas sean instantáneas.
+    - Ejemplo: "RAM" es la marca para la camioneta, no "Dodge RAM" (a menos que sea antigua).
 
-    QUERY DEL USUARIO: "${query}"
-
-    TUS OBJETIVOS:
-    1. 🕵️‍♂️ **Interpretar Intención**: ¿Busca comprar un auto o buscar un taller?
-       - Si dice "cambio de aceite", "me falla", "taller": isBusinessSearch: true.
-    2. 🚗 **Entender Slang y Modelos**:
-       - "Troca" / "Mamalona" -> Categoría: "Camioneta" o "Pickup".
-       - "Nave" -> Automóvil.
-       - "Vocho" -> Volkswagen Sedan.
-       - "Cheyenne" -> Marca: Chevrolet (Corrige si dice "Ford Cheyenne").
-    3. 💰 **Interpretar "Barato/Lujo"**:
-       - "Barato" para un Sedan: maxPrice ~80,000.
-       - "Barato" para una SUV: maxPrice ~150,000.
-       - "De lujo": BMW, Mercedes, Audi (Marca) o minPrice alto.
-    4. 🌍 **Multilenguaje**: Traduce cualquier idioma al Español de nuestra DB.
-       - "I need a cheap truck" -> Category: "Automóvil" (Subtipo Pickup), maxPrice: 150000.
+    TUS OBJETIVOS DE ALTA PRECISIÓN:
+    1. 🕵️‍♂️ **Modo Descubrimiento (Vagos)**: Si el usuario no sabe qué buscar ("recomiéndame algo", "busco algo barato", "hola"), actúe como un CONSULTOR PROACTIVO. 
+       - Genera filtros para un "Coche de Entrada Ideal": maxPrice: 250000, category: "Automóvil", vehicleType: "Sedán" o "Hatchback", condition: "Usado".
+    2. 🎯 **Extracción Quirúrgica**: Si detectas una marca o modelo, identifícalo con precisión milimétrica. "Ram 2500 negra" -> brand: "RAM", model: "2500", color: "Negro".
+    3. 🚜 **Clasificación de Carga/Utility**:
+       - Si es para transporte de carga pesada, tractocamión o maquinaria -> Camión o Maquinaria.
+       - Si es pickup ligera/recreativa -> Automóvil (Subtipo: Pickup).
+    4. 💰 **Inteligencia de Precios**: Con millones de autos, "barato" (<250k) o "lujo" (>800k) deben disparar rangos lógicos.
 
     RESPONDE SOLO JSON (Sin markdown):
     {
@@ -60,6 +55,8 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
       "transmission": "String ('Automático', 'Manual')",
       "fuel": "String ('Gasolina', 'Diesel', 'Eléctrico')",
       "passengers": Number,
+      "cylinders": Number,
+      "features": ["String", "Array", "Of", "Features", "like", "'Bluetooth'", "'Pantalla'", "'Piel'"],
       "isBusinessSearch": Boolean,
       "keywords": ["Array", "Of", "Semantic", "Tokens"]
     }
