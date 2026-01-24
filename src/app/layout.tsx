@@ -5,6 +5,7 @@ import Providers from "@/components/Providers";
 import MobileNav from "@/components/MobileNav";
 import OpenInBrowserBanner from "@/components/OpenInBrowserBanner";
 import { ResponsiveViewportFix } from "./responsive-viewport-fix";
+import Header from "@/components/Header";
 import RestoringSessionOverlay from "@/components/RestoringSessionOverlay";
 
 
