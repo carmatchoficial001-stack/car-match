@@ -66,6 +66,9 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
     - SLANG: "Troca/Mamalona" -> Pickup, "Nave/Fierro" -> Auto, "Burrita/Moto" -> Motocicleta, "Mano de chango" -> Retroexcavadora.
     - FAMILIAR: SUV/Minivan 5+ personas. TRABAJO: Pickup/Camión. CAMPO: Maquinaria/4x4.
     - PRECIOS: Barato (Autos <200k, Maquinaria <500k), Caro/Lujo (>800k).
+
+    INPUT DEL USUARIO A INTERPRETAR:
+    "${query}"
   `;
 
   try {
