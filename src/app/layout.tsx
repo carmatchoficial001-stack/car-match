@@ -125,8 +125,7 @@ export default function RootLayout({
                     <OpenInBrowserBanner />
                     <ResponsiveViewportFix />
                     <RestoringSessionOverlay />
-                    <main className="min-h-screen-safe">
-
+                    <main className="pt-[72px] md:pt-[88px] pb-[80px] md:pb-0">
                         {children}
                     </main>
                     <MobileNav />

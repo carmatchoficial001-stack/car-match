@@ -5,7 +5,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { useSession } from "next-auth/react"
-import { motion } from "framer-motion"
 import {
     Flame,
     Car,
@@ -38,16 +37,8 @@ export default function MobileNav() {
         }
     }, [pathname, session])
 
-    // ⌨️ SMART KEYBOARD HIDE (Detección Ultra-Robusta)
+    // ⌨️ SMART KEYBOARD HIDE (Detección por Eventos Puros)
     useEffect(() => {
-        const handleResize = () => {
-            if (window.visualViewport) {
-                // Si la altura del viewport se reduce significativamente, es el teclado
-                const isKeyboardOpen = window.visualViewport.height < window.innerHeight * 0.75;
-                setIsVisible(!isKeyboardOpen);
-            }
-        };
-
         const handleFocus = (e: FocusEvent) => {
             const target = e.target as HTMLElement;
             if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
@@ -56,20 +47,13 @@ export default function MobileNav() {
         };
 
         const handleBlur = () => {
-            // Pequeño delay para checar si el foco pasó a otro input o se cerró realmente
-            setTimeout(handleResize, 100);
+            setIsVisible(true);
         };
 
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', handleResize);
-        }
         document.addEventListener('focusin', handleFocus);
         document.addEventListener('focusout', handleBlur);
 
         return () => {
-            if (window.visualViewport) {
-                window.visualViewport.removeEventListener('resize', handleResize);
-            }
             document.removeEventListener('focusin', handleFocus);
             document.removeEventListener('focusout', handleBlur);
         };
@@ -104,9 +88,18 @@ export default function MobileNav() {
 
     return (
         <nav
-            className={`md:hidden fixed bottom-0 left-0 right-0 z-[50] bg-slate-900 border-t border-white/5 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] h-[calc(64px+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] ${isVisible ? 'flex' : 'hidden'}`}
+            className={`md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#0f172a] border-t border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.6)] ${isVisible ? 'block' : 'hidden'}`}
+            style={{
+                // Usamos height fijo + margen de seguridad nativo
+                height: 'calc(68px + env(safe-area-inset-bottom))',
+                // Forzamos que se quede pegado al fondo sin NINGUNA transformación
+                transform: 'none',
+                transition: 'none',
+                position: 'fixed',
+                bottom: '0px'
+            }}
         >
-            <div className="flex items-center justify-around h-16 px-2 w-full">
+            <div className="flex items-center justify-around h-[68px] px-2 w-full" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
                 {navItems.map((item, index) => {
                     const Icon = item.icon
                     const active = isActive(item.href)
@@ -115,15 +108,10 @@ export default function MobileNav() {
                         <Link
                             key={item.href || index}
                             href={item.href}
-                            className={`flex flex-col items-center justify-center w-full gap-0.5 transition-colors active:scale-95 ${active ? 'text-primary-500' : 'text-text-secondary'}`}
+                            className={`flex flex-col items-center justify-center w-full gap-0.5 active:scale-95 transition-transform ${active ? 'text-primary-500' : 'text-slate-400'}`}
                         >
-                            <div className="relative p-1">
-                                <Icon className={`w-6 h-6 ${active ? item.color : 'opacity-70'}`} />
-                                {active && (
-                                    <div className="absolute inset-0 bg-primary-500/10 rounded-full blur-md" />
-                                )}
-                            </div>
-                            <span className={`text-[10px] font-bold truncate max-w-[64px] ${active ? 'text-white' : 'opacity-60'}`}>
+                            <Icon className={`w-6 h-6 ${active ? item.color : 'opacity-80'}`} />
+                            <span className={`text-[10px] font-bold truncate max-w-[64px] ${active ? 'text-white' : 'text-slate-500'}`}>
                                 {item.label}
                             </span>
                         </Link>
