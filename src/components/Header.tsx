@@ -56,13 +56,22 @@ export default function Header() {
     const ctas = useMemo(() => {
         if (!t || !locale) return []
 
-        // 🗺️ MAPSTORE CONTEXT: Show Business Onboarding CTAs
+        // 🗺️ MAPSTORE CONTEXT: Show Category-Specific Business Onboarding CTAs
         if (pathname?.startsWith('/map') || pathname?.startsWith('/map-store')) {
+            // Mix generic + specific category hooks
+            const categories = [
+                'TALLER MECÁNICO', 'CAR WASH', 'NEGOCIO DE LLANTAS', 'DESPONCHADORA',
+                'SERVICIO DE GRÚAS', 'NEGOCIO DE POLARIZADO', 'YONKE', 'REFACCIONARIA'
+            ];
+
+            // Randomize or cycle through them
+            const specific = categories.map(cat => `¿TIENES UN ${cat}? | SÚBELO GRATIS`);
+
             return [
-                "¿TIENES UN TALLER? | SÚBELO GRATIS",
+                "¿TIENES UN NEGOCIO? | SÚBELO AL MAPA",
                 "MÁS CLIENTES | REGISTRA TU NEGOCIO",
-                "¿ERES MECÁNICO? | ÚNETE AL MAPA"
-            ]
+                ...specific
+            ].sort(() => Math.random() - 0.5); // Shuffle for variety on each mount
         }
 
         const raw = t('common.dynamic_ctas.vehicles', { returnObjects: true })
