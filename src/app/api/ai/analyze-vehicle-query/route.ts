@@ -10,6 +10,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Query is required' }, { status: 400 })
         }
 
+        console.log('🔍 [AI Search] Query recibido:', query)
+
+
         const prompt = `Actúa como un ASISTENTE DE COMPRAS AUTOMOTRIZ SUPER-INTELIGENTE. Tu misión es traducir el lenguaje natural del usuario a filtros técnicos para una base de datos de vehículos TERRÉSTRES MOTORIZADOS.
 
 **CONTEXTO TÉCNICO:**
@@ -59,10 +62,14 @@ Responde SOLO con el JSON válido.`
 
         // ✅ Flash para búsquedas (rápido y eficiente)
         const { geminiFlash } = await import('@/lib/ai/geminiClient');
+        console.log('🤖 [AI Search] Enviando a Gemini Flash...')
         const response = await safeGenerateContent(prompt, 5, geminiFlash);
         const responseText = response.text()
+        console.log('✅ [AI Search] Respuesta Raw:', responseText.substring(0, 500))
 
         const aiResponse = safeExtractJSON<any>(responseText)
+        console.log('📊 [AI Search] Parsed Filters:', JSON.stringify(aiResponse, null, 2))
+
 
         if (!aiResponse) {
             return NextResponse.json({ error: 'AI Error: Invalid filters' }, { status: 500 })
@@ -71,7 +78,7 @@ Responde SOLO con el JSON válido.`
         return NextResponse.json(aiResponse)
 
     } catch (error: any) {
-        console.error('❌ Error en Marketplace AI:', error)
+        console.error('❌ [AI Search Crash]:', error)
         return NextResponse.json({ error: 'AI Error' }, { status: 500 })
     }
 }
