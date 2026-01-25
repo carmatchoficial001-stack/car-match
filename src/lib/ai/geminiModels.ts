@@ -30,7 +30,7 @@ const SHARED_SAFETY_SETTINGS = [
  * - Descubrimiento de marcas/modelos (requiere conocimiento profundo)
  */
 export const geminiPro = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro-002", // ✅ Versión estable
+    model: "gemini-1.5-pro", // ✅ Versión estándar (más segura)
     safetySettings: SHARED_SAFETY_SETTINGS,
     generationConfig: {
         temperature: 0.2, // Baja para precisión técnica
@@ -49,7 +49,7 @@ export const geminiPro = genAI.getGenerativeModel({
  * - Análisis de texto
  */
 export const geminiFlash = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash-002", // ✅ Versión estable
+    model: "gemini-1.5-flash", // ✅ Versión estándar (más segura)
     safetySettings: SHARED_SAFETY_SETTINGS,
     generationConfig: {
         temperature: 0.3, // Moderada para balance precisión/creatividad
@@ -64,7 +64,7 @@ export const geminiFlash = genAI.getGenerativeModel({
  * Temperatura más alta para respuestas más naturales
  */
 export const geminiFlashConversational = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash-002",
+    model: "gemini-1.5-flash",
     safetySettings: SHARED_SAFETY_SETTINGS,
     generationConfig: {
         temperature: 0.7, // Alta para conversación natural
@@ -79,7 +79,7 @@ export const geminiFlashConversational = genAI.getGenerativeModel({
  * Temperatura muy baja
  */
 export const geminiFlashPrecise = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash-002",
+    model: "gemini-1.5-flash",
     safetySettings: SHARED_SAFETY_SETTINGS,
     generationConfig: {
         temperature: 0.1, // Muy baja para máxima precisión

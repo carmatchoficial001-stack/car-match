@@ -61,9 +61,16 @@ export async function POST(req: NextRequest) {
 Responde SOLO con el JSON válido.`
 
         // ✅ Flash para búsquedas (rápido y eficiente)
-        const { geminiFlash } = await import('@/lib/ai/geminiClient');
-        console.log('🤖 [AI Search] Enviando a Gemini Flash...')
-        const response = await safeGenerateContent(prompt, 5, geminiFlash);
+        // Usamos importación dinámica compatible o fallback a estática si es necesario
+        // Pero para asegurar que no sea undefined, mejor importamos arriba o usamos el default de safeGenerateContent
+
+        console.log('🤖 [AI Search] Preparando llamada a Gemini...')
+
+        // safeGenerateContent usa geminiFlash por defecto si no se pasa modelo
+        // Así que podemos simplificar y evitar problemas de importación
+        const response = await safeGenerateContent(prompt, 5);
+        // const { geminiFlash } = await import('@/lib/ai/geminiClient'); // Eliminado por riesgo de undefined
+
         const responseText = response.text()
         console.log('✅ [AI Search] Respuesta Raw:', responseText.substring(0, 500))
 
