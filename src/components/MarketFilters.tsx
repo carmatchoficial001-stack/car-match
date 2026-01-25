@@ -216,16 +216,15 @@ export default function MarketFiltersAdvanced({
 
                 // 🚀 CLOSE MODAL AFTER NAVIGATION START
                 if (onClose) onClose()
-            } else {
-                alert('La IA no devolvió filtros válidos.')
+                // Silencio: Fallback a búsqueda de texto si no hay filtros estructurados
+                window.location.href = `/market?search=${encodeURIComponent(aiQuery)}`
             }
         } catch (error: any) {
             console.error('Error in AI Search:', error)
-            alert('Error en búsqueda inteligente: ' + (error.message || JSON.stringify(error)))
-
-            // Fallback to simple text search with forced reload
+            // Silencio: Fallback a búsqueda de texto normal sin asustar al usuario ni interrumpir el flujo
             window.location.href = `/market?search=${encodeURIComponent(aiQuery)}`
-        } finally {
+        }
+        finally {
             setIsAnalyzing(false)
         }
     }

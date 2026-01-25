@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db"
 import MarketClient from "./MarketClient"
 import { getCachedBrands, getCachedVehicleTypes, getCachedColors } from "@/lib/cached-data"
 import { serializeDecimal } from "@/lib/serialize"
-import { VEHICLE_CATEGORIES } from "@/lib/vehicleTaxonomy"
+import { VEHICLE_CATEGORIES, COLORS, GLOBAL_SYNONYMS, BRANDS } from "@/lib/vehicleTaxonomy"
 
 export const metadata = {
     title: "MarketCar | Venta de Autos, Motos, Tractores y Maquinaria Pesada",
@@ -214,24 +214,52 @@ export default async function MarketPage({
 
 
 
-    // Búsqueda por texto en título y descripción
+    // Intelligent Broad Text Search (Fallback if AI doesn't run)
     if (searchParams.search) {
-        const searchTerms = searchParams.search.split(' ').filter(t => t.length > 2)
+        const query = searchParams.search.toLowerCase()
+        const searchTerms = query.split(' ').filter(t => t.length >= 2)
+
+        // 🧠 Proactive Filter Extraction: Avoid "Green trucks for 'Ram negra'"
+        const extractedColors: string[] = []
+        const extractedBrands: string[] = []
+        const allBrands = Array.from(new Set(Object.values(BRANDS).flat()))
+
+        searchTerms.forEach(term => {
+            // Check direct colors
+            const exactColor = COLORS.find(c => c.toLowerCase() === term)
+            if (exactColor) extractedColors.push(exactColor)
+
+            // Check brands (RAM, Toyota, etc)
+            const exactBrand = allBrands.find(b => b.toLowerCase() === term)
+            if (exactBrand) extractedBrands.push(exactBrand)
+
+            // Check global synonyms (e.g. "negra" -> "Negro", "vocho" -> "Volkswagen")
+            Object.keys(GLOBAL_SYNONYMS).forEach(syn => {
+                if (syn.toLowerCase() === term) {
+                    const destination = GLOBAL_SYNONYMS[syn]
+                    if (COLORS.includes(destination)) extractedColors.push(destination)
+                    if (allBrands.includes(destination)) extractedBrands.push(destination)
+                }
+            })
+        })
+
+        // If specific attributes are mentioned, enforce them as restrictive filters
+        if (extractedColors.length > 0) where.color = { in: extractedColors }
+        if (extractedBrands.length > 0) where.brand = { in: extractedBrands, mode: 'insensitive' }
+
+        // Build OR conditions for terms that are NOT specific filters
         where.OR = [
             { title: { contains: searchParams.search, mode: 'insensitive' } },
             { description: { contains: searchParams.search, mode: 'insensitive' } },
             { brand: { contains: searchParams.search, mode: 'insensitive' } },
-            { model: { contains: searchParams.search, mode: 'insensitive' } },
-            { color: { contains: searchParams.search, mode: 'insensitive' } }
+            { model: { contains: searchParams.search, mode: 'insensitive' } }
         ]
 
-        // Búsqueda más flexible por palabras clave individuales
+        // Add matches for individual terms
         searchTerms.forEach(term => {
             where.OR.push({ title: { contains: term, mode: 'insensitive' } })
-            where.OR.push({ description: { contains: term, mode: 'insensitive' } })
             where.OR.push({ brand: { contains: term, mode: 'insensitive' } })
             where.OR.push({ model: { contains: term, mode: 'insensitive' } })
-            where.OR.push({ color: { contains: term, mode: 'insensitive' } })
         })
     }
 

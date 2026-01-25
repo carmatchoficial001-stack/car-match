@@ -25,7 +25,7 @@ const SHARED_SAFETY_SETTINGS = [
 
 // 🎨 MODELO PRO - Para tareas complejas y críticas
 export const geminiPro = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro-latest", // ✅ Using latest for widest compatibility
+    model: "gemini-1.5-pro", // ✅ Standard base name
     safetySettings: SHARED_SAFETY_SETTINGS,
     generationConfig: {
         temperature: 0.2,
@@ -57,7 +57,7 @@ export const geminiLegacy = genAI.getGenerativeModel({
  * - Análisis de texto
  */
 export const geminiFlash = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash-latest", // ✅ Using latest for widest compatibility
+    model: "gemini-1.5-flash", // ✅ Standard base name
     safetySettings: SHARED_SAFETY_SETTINGS,
     generationConfig: {
         temperature: 0.3,
