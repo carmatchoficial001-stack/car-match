@@ -13,6 +13,7 @@ import { usePWAInstall } from '@/hooks/usePWAInstall'
 import { getWeightedHomePath } from "@/lib/navigation"
 import { ThumbsUp, Headset, Flame, CarFront, Map, Bell, BellOff, Settings } from "lucide-react"
 import { usePushNotifications } from "@/hooks/usePushNotifications"
+import { BUSINESS_CATEGORIES } from "@/lib/businessCategories"
 
 export default function Header() {
     const pathname = usePathname()
@@ -58,20 +59,23 @@ export default function Header() {
 
         // 🗺️ MAPSTORE CONTEXT: Show Category-Specific Business Onboarding CTAs
         if (pathname?.startsWith('/map') || pathname?.startsWith('/map-store')) {
-            // Mix generic + specific category hooks
-            const categories = [
-                'TALLER MECÁNICO', 'CAR WASH', 'NEGOCIO DE LLANTAS', 'DESPONCHADORA',
-                'SERVICIO DE GRÚAS', 'NEGOCIO DE POLARIZADO', 'YONKE', 'REFACCIONARIA'
-            ];
+            // 1. Identificar servicios públicos para excluir
+            const publicIds = ['caseta', 'hospital', 'policia', 'aeropuerto', 'estacion_tren'];
 
-            // Randomize or cycle through them
-            const specific = categories.map(cat => `¿TIENES UN ${cat}? | SÚBELO GRATIS`);
+            // 2. Filtrar y mapear TODAS las categorías de negocio
+            const businessCats = BUSINESS_CATEGORIES
+                .filter(cat => !publicIds.includes(cat.id))
+                .map(cat => cat.label.toUpperCase()); // "TALLER MECÁNICO", "LLANTERA", etc.
 
+            // 3. Generar mensajes específicos
+            const specific = businessCats.map(cat => `¿TIENES UN ${cat}? | SÚBELO GRATIS`);
+
+            // 4. Combinar con genéricos y mezclar
             return [
                 "¿TIENES UN NEGOCIO? | SÚBELO AL MAPA",
                 "MÁS CLIENTES | REGISTRA TU NEGOCIO",
                 ...specific
-            ].sort(() => Math.random() - 0.5); // Shuffle for variety on each mount
+            ].sort(() => Math.random() - 0.5);
         }
 
         const raw = t('common.dynamic_ctas.vehicles', { returnObjects: true })
