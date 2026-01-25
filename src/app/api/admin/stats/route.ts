@@ -48,8 +48,8 @@ export async function GET(request: NextRequest) {
                 include: {
                     reporter: { select: { name: true, email: true } },
                     targetUser: { select: { name: true, email: true } },
-                    vehicle: { select: { title: true } },
-                    business: { select: { name: true } }
+                    vehicle: { select: { id: true, title: true } },
+                    business: { select: { id: true, name: true } }
                 }
             }),
             prisma.user.findMany({

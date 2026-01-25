@@ -751,15 +751,17 @@ function ReportsTab({ reports }: { reports: any[] }) {
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {/* Link to Publication */}
-                            {(selectedReport.vehicleId || selectedReport.businessId) && (
-                                <Link
-                                    href={selectedReport.vehicleId ? `/vehicle/${selectedReport.vehicleId}` : `/map-store?id=${selectedReport.businessId}`}
+                            {(selectedReport.vehicleId || selectedReport.vehicle?.id || selectedReport.businessId || selectedReport.business?.id) && (
+                                <a
+                                    href={selectedReport.vehicleId || selectedReport.vehicle?.id ? `/vehicle/${selectedReport.vehicleId || selectedReport.vehicle?.id}` : `/map-store?id=${selectedReport.businessId || selectedReport.business?.id}`}
                                     target="_blank"
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-white/5 text-text-secondary hover:bg-white/10 hover:text-white transition-all border border-white/5"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-white/10 text-white hover:bg-primary-600 transition-all border border-white/10 shadow-lg active:scale-95"
                                 >
-                                    <ArrowUpRight className="w-3 h-3 text-primary-400" />
+                                    <ArrowUpRight className="w-3 h-3 text-white" />
                                     Ver Publicación
-                                </Link>
+                                </a>
                             )}
                             <AdminReportAction2 reportId={selectedReport.id} action="RESTORE" label="APROBAR" primary />
                             <AdminReportAction2 reportId={selectedReport.id} action="RESOLVE" label="ELIMINAR" danger />
