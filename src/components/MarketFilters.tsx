@@ -359,6 +359,7 @@ export default function MarketFiltersAdvanced({
             {/* 🚪 Close Button */}
             {onClose && (
                 <button
+                    type="button"
                     onClick={onClose}
                     className="absolute top-4 right-4 p-2 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
                     aria-label="Cerrar filtros"
@@ -369,7 +370,7 @@ export default function MarketFiltersAdvanced({
 
             <div className="flex items-center justify-between mb-2 pr-8">
                 <h2 className="text-lg font-bold text-text-primary">{t('market.filters.title')}</h2>
-                <button onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
+                <button type="button" onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
             </div>
 
             {/* 📍 NEW LOCATION SEARCH BAR */}
@@ -454,6 +455,7 @@ export default function MarketFiltersAdvanced({
                             disabled={isAnalyzing}
                         />
                         <button
+                            type="button" // 🚀 Crucial: Prevents form submission refresh
                             onClick={handleAiSearch}
                             disabled={isAnalyzing || !aiQuery.trim()}
                             className="w-full py-4 md:py-3 bg-primary-700 hover:bg-primary-600 active:scale-95 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary-900/20"
@@ -602,6 +604,7 @@ export default function MarketFiltersAdvanced({
 
             {/* ADVANCED TOGGLE */}
             <button
+                type="button"
                 onClick={() => setShowAdvanced(!showAdvanced)}
                 className="w-full py-4 md:py-2 bg-surface-highlight/50 hover:bg-surface-highlight text-text-primary rounded-xl transition text-sm font-bold flex items-center justify-center gap-2"
             >
