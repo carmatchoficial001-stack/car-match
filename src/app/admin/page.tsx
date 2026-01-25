@@ -749,9 +749,20 @@ function ReportsTab({ reports }: { reports: any[] }) {
                                 <p className="text-[10px] text-red-400 font-bold uppercase tracking-widest">{selectedReport.reason}</p>
                             </div>
                         </div>
-                        <div className="flex gap-2">
-                            <AdminReportAction2 reportId={selectedReport.id} action="RESTORE" label="RESTAURAR" primary />
-                            <AdminReportAction2 reportId={selectedReport.id} action="RESOLVE" label="BORRAR PERMANENTE" danger />
+                        <div className="flex flex-wrap gap-2">
+                            {/* Link to Publication */}
+                            {(selectedReport.vehicleId || selectedReport.businessId) && (
+                                <Link
+                                    href={selectedReport.vehicleId ? `/vehicle/${selectedReport.vehicleId}` : `/map-store?id=${selectedReport.businessId}`}
+                                    target="_blank"
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-white/5 text-text-secondary hover:bg-white/10 hover:text-white transition-all border border-white/5"
+                                >
+                                    <ArrowUpRight className="w-3 h-3 text-primary-400" />
+                                    Ver Publicación
+                                </Link>
+                            )}
+                            <AdminReportAction2 reportId={selectedReport.id} action="RESTORE" label="APROBAR" primary />
+                            <AdminReportAction2 reportId={selectedReport.id} action="RESOLVE" label="ELIMINAR" danger />
                         </div>
                     </div>
 
