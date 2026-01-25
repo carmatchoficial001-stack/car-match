@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { MessageCircle, ThumbsUp, Star, Search, Eye, CheckCircle, Handshake, Calendar, RefreshCw, X, Bell } from 'lucide-react'
 
 interface Notification {
     id: string
@@ -61,35 +62,36 @@ export default function NotificationsDropdown({ isOpen, onClose }: Notifications
     }
 
     const getIcon = (type: string) => {
+        const iconClass = "w-5 h-5";
         switch (type) {
             case 'NEW_MESSAGE':
-                return '💬'
+                return <MessageCircle className={iconClass + " text-blue-400"} />
             case 'ENGAGEMENT_FAVORITES':
             case 'FAVORITE':
             case 'VEHICLE_FAVORITED':
-                return '👍'
+                return <ThumbsUp className={iconClass + " text-primary-400"} />
             case 'BUSINESS_FAVORITED':
-                return '👍'
+                return <ThumbsUp className={iconClass + " text-primary-400"} />
             case 'BUSINESS_VIEWED':
-                return '⭐'
+                return <Star className={iconClass + " text-yellow-400"} />
             case 'BUSINESS_SEARCHED':
-                return '🔍'
+                return <Search className={iconClass + " text-primary-400"} />
             case 'VEHICLE_VIEWED':
-                return '👀'
+                return <Eye className={iconClass + " text-cyan-400"} />
             case 'VEHICLE_REACTIVATED':
-                return '✅'
+                return <CheckCircle className={iconClass + " text-green-400"} />
             case 'VEHICLE_SOLD':
-                return '🤝'
+                return <Handshake className={iconClass + " text-green-500"} />
             case 'APPOINTMENT_REQUEST':
-                return '📅'
+                return <Calendar className={iconClass + " text-purple-400"} />
             case 'APPOINTMENT_MODIFIED':
-                return '🔄'
+                return <RefreshCw className={iconClass + " text-amber-400"} />
             case 'APPOINTMENT_ACCEPTED':
-                return '✅'
+                return <CheckCircle className={iconClass + " text-green-400"} />
             case 'APPOINTMENT_REJECTED':
-                return '❌'
+                return <X className={iconClass + " text-red-400"} />
             default:
-                return '🔔'
+                return <Bell className={iconClass + " text-primary-400"} />
         }
     }
 
@@ -159,7 +161,7 @@ export default function NotificationsDropdown({ isOpen, onClose }: Notifications
                                     onClick={() => handleNotificationClick(notification)}
                                     className="w-full p-4 hover:bg-surface-highlight transition text-left flex gap-3"
                                 >
-                                    <div className="text-2xl flex-shrink-0">
+                                    <div className="flex-shrink-0 p-2 bg-surface-highlight rounded-lg">
                                         {getIcon(notification.type)}
                                     </div>
                                     <div className="flex-1 min-w-0">

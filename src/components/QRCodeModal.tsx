@@ -89,7 +89,7 @@ export default function QRCodeModal({ isOpen, onClose }: QRCodeModalProps) {
         const fullNumber = cleanNumber.startsWith('52') ? cleanNumber : `52${cleanNumber}`
 
         // Mensaje personalizado
-        const message = `¡Hola! 👋 Te comparto CarMatch, la mejor app para comprar y vender vehículos:\n\n${appUrl}\n\n¡Descarga la app y encuentra tu carro ideal! 🚗`
+        const message = `¡Hola! Te comparto CarMatch, la mejor app para comprar y vender vehículos:\n\n${appUrl}\n\n¡Descarga la app y encuentra tu carro ideal!`
 
         // URL de WhatsApp con el mensaje pre-cargado
         const whatsappUrl = `https://wa.me/${fullNumber}?text=${encodeURIComponent(message)}`

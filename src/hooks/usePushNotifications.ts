@@ -58,7 +58,7 @@ export function usePushNotifications() {
             setIsSubscribed(true)
             setSubscription(sub)
             setPermission('granted')
-            alert('¡Notificaciones Activadas! 🔔')
+            alert('¡Notificaciones Activadas!')
 
         } catch (error) {
             console.error('Error suscribiendo a push:', error)
