@@ -150,7 +150,7 @@ export default function MarketFiltersAdvanced({
         if (!aiQuery.trim()) return
 
         setIsAnalyzing(true)
-        setAiExplanation('')
+        setIsAnalyzing(true)
 
         try {
             const res = await fetch('/api/ai/analyze-vehicle-query', {
@@ -204,7 +204,7 @@ export default function MarketFiltersAdvanced({
                     params.set('fuel', f)
                 }
 
-                setAiExplanation(explanation || 'Buscando...')
+
 
                 // Execute Search
                 router.push(`/market?${params.toString()}`)
@@ -215,7 +215,7 @@ export default function MarketFiltersAdvanced({
         } catch (error) {
             console.error('Error in AI Search:', error)
             // Don't show error to user, just log it
-            setAiExplanation(t('smart_search.error') || 'Error')
+            // Don't show error to user, just log it
         } finally {
             setIsAnalyzing(false)
         }
@@ -472,13 +472,7 @@ export default function MarketFiltersAdvanced({
                                 t('smart_search.ask_advisor')
                             )}
                         </button>
-                        {aiExplanation && (
-                            <div className="mt-2 bg-primary-900/20 border border-primary-500/10 rounded-lg p-3 animate-fade-in-up">
-                                <p className="text-xs text-primary-200 italic">
-                                    "{t('smart_search.understood')}"
-                                </p>
-                            </div>
-                        )}
+
                     </div>
                 </div>
             </div>

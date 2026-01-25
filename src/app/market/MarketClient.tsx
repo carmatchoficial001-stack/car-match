@@ -136,7 +136,6 @@ export default function MarketClient({
 
     useEffect(() => {
         // 🔄 URL -> Context Synchronization
-        // If a city is in URL but not in manual context, sync it so distances are calculated from there
         const syncUrlCity = async () => {
             if (searchParams.city && (!manualLocation || manualLocation.city !== searchParams.city)) {
                 try {
@@ -152,33 +151,49 @@ export default function MarketClient({
         }
         syncUrlCity()
 
-        // Try to restore state from sessionStorage
-        const savedCount = sessionStorage.getItem('market_visible_count')
-        if (savedCount) setVisibleCount(parseInt(savedCount))
+        // 🚀 CRITICAL FIX: Always default to server-provided items first
+        let currentItems = [...initialItems]
 
-        const savedItemsOrder = sessionStorage.getItem('market_items_order')
-        if (savedItemsOrder && !searchParams.sort) {
-            try {
-                const orderedIds = JSON.parse(savedItemsOrder)
-                const orderedItems = orderedIds.map((id: string) => initialItems.find(it => it.id === id)).filter(Boolean)
-                if (orderedItems.length === initialItems.length) {
-                    setItems(orderedItems)
-                    return // Skip initial shuffle
+        // Only try to restore order/shuffle if we are NOT in a specific search context that dictates order/filtering
+        // If initialItems changed drastically (different length/content), server knows best.
+        const isDefaultView = !searchParams.search && !searchParams.brand && !searchParams.category
+
+        if (isDefaultView) {
+            const savedItemsOrder = sessionStorage.getItem('market_items_order')
+            if (savedItemsOrder && !searchParams.sort) {
+                try {
+                    const orderedIds = JSON.parse(savedItemsOrder)
+                    const orderedItems = orderedIds.map((id: string) => initialItems.find(it => it.id === id)).filter(Boolean)
+                    // Only restore if we have roughly the same content
+                    if (orderedItems.length > 0 && orderedItems.length === initialItems.length) {
+                        currentItems = orderedItems
+                    } else {
+                        // Reshuffle if mismatch
+                        currentItems = boostShuffleArray(initialItems)
+                        sessionStorage.setItem('market_items_order', JSON.stringify(currentItems.map(it => it.id)))
+                    }
+                } catch (e) {
+                    // Fallback shuffle
+                    currentItems = boostShuffleArray(initialItems)
                 }
-            } catch (e) {
-                console.error("Failed to restore items order", e)
+            } else if (!searchParams.sort || searchParams.sort === 'newest') {
+                // Initial shuffle
+                currentItems = boostShuffleArray(initialItems)
+                sessionStorage.setItem('market_items_order', JSON.stringify(currentItems.map(it => it.id)))
             }
+        } else {
+            // 🧠 SEARCH MODE: Trust server order absolutely
+            // Do NOT shuffle or restore old order when user is searching specific things
+            // But we might want to prioritize boosted in search too? usually server handles sort.
+            // If sort is default (newest), maybe we still want admin boost logic?
+            // Actually boostShuffleArray handles admin logic nicely.
+            // But for "Ram negra", we just want the results.
+            // Let's trust use server order for filtered views to avoid confusion.
         }
 
-        // Shuffle only on first load if no specific sort
-        const shouldShuffle = !searchParams.sort || searchParams.sort === 'newest'
-        if (shouldShuffle) {
-            const shuffled = boostShuffleArray(initialItems)
-            setItems(shuffled)
-            // Save order for next time
-            sessionStorage.setItem('market_items_order', JSON.stringify(shuffled.map(it => it.id)))
-        }
-    }, [initialItems, searchParams.sort])
+        setItems(currentItems)
+
+    }, [initialItems, searchParams.sort, searchParams.city, searchParams.search, searchParams.brand, searchParams.category])
 
     // Save visibleCount whenever it changes
     useEffect(() => {
