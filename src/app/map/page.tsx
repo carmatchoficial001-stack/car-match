@@ -70,11 +70,11 @@ export default async function MapPage() {
     })
 
     return (
-        <main className="min-h-screen bg-background">
+        <div className="h-full w-full bg-background">
             <MapClient
                 businesses={serializeDecimal(businesses) as any}
                 user={serializeDecimal(user) as any}
             />
-        </main>
+        </div>
     )
 }
