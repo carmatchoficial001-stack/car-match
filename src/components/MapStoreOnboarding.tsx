@@ -27,49 +27,44 @@ export default function MapStoreOnboarding() {
     if (!isVisible) return null
 
     return (
-        <div className="absolute top-24 left-4 right-4 md:left-auto md:right-8 md:w-96 z-20 animate-in slide-in-from-top-4 fade-in duration-700">
-            <div className="bg-surface/95 backdrop-blur-xl border border-primary-500/30 rounded-2xl shadow-2xl overflow-hidden relative group">
+        <div className="absolute top-4 left-4 right-4 z-20 animate-in slide-in-from-top-2 fade-in duration-700 flex justify-center">
+            <div className="bg-surface/95 backdrop-blur-md border border-primary-500/30 rounded-full shadow-lg overflow-hidden relative group max-w-4xl w-full">
                 {/* Decorative gradients */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600"></div>
-                <div className="absolute -left-10 -top-10 w-32 h-32 bg-primary-500/10 rounded-full blur-2xl group-hover:bg-primary-500/20 transition-all duration-500"></div>
+                <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600"></div>
 
-                <button
-                    onClick={handleClose}
-                    className="absolute top-2 right-2 p-1.5 text-text-secondary hover:text-white bg-black/20 hover:bg-black/40 rounded-full transition-all z-10"
-                >
-                    <X size={14} />
-                </button>
-
-                <div className="p-5 relative">
-                    <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-600 to-primary-800 flex items-center justify-center shadow-lg shadow-primary-900/50 shrink-0">
-                            <Store className="text-white" size={24} />
+                <div className="flex items-center justify-between px-2 py-1.5 md:p-2 gap-3">
+                    {/* Icon & Text Section */}
+                    <div className="flex items-center gap-3 pl-2 overflow-hidden">
+                        <div className="w-8 h-8 rounded-full bg-primary-600/20 flex items-center justify-center shrink-0">
+                            <Store className="text-primary-400" size={16} />
                         </div>
 
-                        <div className="flex-1">
-                            <h3 className="text-lg font-black text-white leading-tight mb-1">
+                        <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-2 overflow-hidden">
+                            <span className="text-xs md:text-sm font-bold text-white whitespace-nowrap">
                                 ¿Tienes un Negocio?
-                            </h3>
-                            <p className="text-xs text-text-secondary font-medium leading-relaxed mb-4">
-                                Únete a la red más grande de servicios automotrices. <br />
-                                <span className="text-primary-300">¡Sube tu taller, refaccionaria o servicio mecánico al MapStore!</span>
-                            </p>
-
-                            <div className="flex flex-wrap gap-2 mb-4">
-                                {['Talleres', 'Llanteras', 'Grúas', 'Car Wash'].map((item) => (
-                                    <span key={item} className="px-2 py-0.5 bg-surface-highlight/50 border border-white/5 rounded-md text-[10px] text-text-secondary font-bold uppercase tracking-wider">
-                                        {item}
-                                    </span>
-                                ))}
-                            </div>
-
-                            <Link
-                                href="/my-businesses?action=new"
-                                className="block w-full py-2.5 bg-white text-primary-950 text-center rounded-lg font-black text-xs uppercase tracking-widest hover:bg-primary-50 active:scale-[0.98] transition-all shadow-lg"
-                            >
-                                ¡Súbelo Gratis Aquí!
-                            </Link>
+                            </span>
+                            <span className="hidden md:inline text-text-secondary text-xs">•</span>
+                            <span className="text-[10px] md:text-xs text-text-secondary truncate">
+                                Sube tu taller o servicio al MapStore
+                            </span>
                         </div>
+                    </div>
+
+                    {/* Actions Section */}
+                    <div className="flex items-center gap-3 shrink-0">
+                        <Link
+                            href="/my-businesses?action=new"
+                            className="px-4 py-1.5 bg-primary-600 text-white rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wide hover:bg-primary-500 transition-all shadow-md whitespace-nowrap"
+                        >
+                            ¡Subir Gratis!
+                        </Link>
+
+                        <button
+                            onClick={handleClose}
+                            className="p-1.5 text-text-secondary hover:text-white hover:bg-white/10 rounded-full transition-all"
+                        >
+                            <X size={14} />
+                        </button>
                     </div>
                 </div>
             </div>
