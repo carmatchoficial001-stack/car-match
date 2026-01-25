@@ -14,6 +14,7 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { formatPrice, formatNumber } from '@/lib/vehicleTaxonomy'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Edit3, Sparkles, CreditCard, Play, Pause, BadgeCheck, AlertTriangle, Share2, X, Trash2 } from 'lucide-react'
+import { generateVehicleSlug } from '@/lib/slug'
 import ConfirmationModal from '@/components/ConfirmationModal'
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 
@@ -77,9 +78,10 @@ interface VehicleDetailProps {
     }
     currentUserEmail?: string | null
     currentUserId?: string | null
+    relatedVehicles?: any[]
 }
 
-export default function VehicleDetailClient({ vehicle, currentUserEmail, currentUserId }: VehicleDetailProps) {
+export default function VehicleDetailClient({ vehicle, currentUserEmail, currentUserId, relatedVehicles }: VehicleDetailProps) {
     const { t, locale } = useLanguage()
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -636,6 +638,40 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 🔄 RELATED VEHICLES (Cross-linking UI) */}
+                            {relatedVehicles && relatedVehicles.length > 0 && (
+                                <div className="border-t border-surface-highlight pt-12 mt-8">
+                                    <h3 className="text-2xl font-black text-text-primary mb-6 font-outfit flex items-center gap-3">
+                                        <Sparkles size={24} className="text-primary-400" />
+                                        También te podría interesar
+                                    </h3>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                        {relatedVehicles.map((rv: any) => (
+                                            <Link
+                                                key={rv.id}
+                                                href={`/comprar/${generateVehicleSlug(rv.brand || rv.title, rv.model || '', rv.year, rv.city)}-${rv.id}`}
+                                                className="group bg-surface-highlight/10 border border-white/5 rounded-2xl overflow-hidden hover:bg-surface-highlight/20 transition-all hover:scale-[1.02]"
+                                            >
+                                                <div className="aspect-video relative overflow-hidden bg-black/40">
+                                                    {rv.images?.[0] ? (
+                                                        <img src={rv.images[0]} alt={rv.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-primary-500/20 font-black text-xl">CM</div>
+                                                    )}
+                                                </div>
+                                                <div className="p-3">
+                                                    <p className="text-xs font-bold text-primary-400 uppercase tracking-tighter mb-1 truncate">{rv.title}</p>
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-sm font-black text-text-primary">{formatPrice(rv.price, 'MXN', locale)}</span>
+                                                        <span className="text-[10px] text-text-secondary">{rv.year}</span>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))}
                                     </div>
                                 </div>
                             )}

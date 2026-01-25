@@ -74,15 +74,15 @@ export default function ReportBusinessModal({ businessId, businessName, onClose,
                         <AlertTriangle size={24} />
                     </div>
                     <div>
-                        <h3 className="text-xl font-bold text-text-primary">Reportar Negocio</h3>
+                        <h3 className="text-xl font-bold text-text-primary">{t('map_store.report.title')}</h3>
                         <p className="text-xs text-text-secondary">{businessName}</p>
                     </div>
                 </div>
-
+                [truncated]
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-3">
                         <label className="block text-xs font-black uppercase tracking-widest text-text-secondary">
-                            Motivo del Reporte
+                            {t('map_store.report.reason_label')}
                         </label>
                         <div className="grid grid-cols-1 gap-2">
                             {reasons.map((r) => (
@@ -106,12 +106,12 @@ export default function ReportBusinessModal({ businessId, businessName, onClose,
 
                     <div className="space-y-3">
                         <label className="block text-xs font-black uppercase tracking-widest text-text-secondary">
-                            Descripción Adicional
+                            {t('map_store.report.description_label')}
                         </label>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Proporciona más detalles para ayudarnos a revisar..."
+                            placeholder={t('map_store.report.description_placeholder')}
                             className="w-full bg-surface-highlight/20 border border-surface-highlight/50 rounded-xl p-3 text-sm text-text-primary focus:border-red-500 outline-none h-24 resize-none transition-all"
                         />
                     </div>
@@ -124,7 +124,7 @@ export default function ReportBusinessModal({ businessId, businessName, onClose,
 
                     <div className="pt-2">
                         <p className="text-[10px] text-text-secondary italic mb-4 text-center">
-                            * El negocio será ocultado inmediatamente mientras el administrador revisa tu reporte.
+                            {t('map_store.report.helper_text')}
                         </p>
                         <button
                             type="submit"
@@ -137,7 +137,7 @@ export default function ReportBusinessModal({ businessId, businessName, onClose,
                                 }
                             `}
                         >
-                            {loading ? 'Enviando...' : 'Enviar Reporte'}
+                            {loading ? t('map_store.report.sending') : t('map_store.report.submit')}
                         </button>
                     </div>
                 </form>

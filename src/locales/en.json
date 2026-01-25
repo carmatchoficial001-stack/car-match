@@ -797,7 +797,23 @@
             "transparency_title": "Transparency:",
             "transparency_desc": "A clear description of the maintenance performed helps sell faster."
         },
-        "search_placeholder": "🔍 Search street, neighborhood or place..."
+        "search_placeholder": "🔍 Search street, neighborhood or place...",
+        "report": {
+            "title": "Report Business",
+            "reason_label": "Reason for Report",
+            "wrong_category": "Wrong category",
+            "fake_business": "Fake business / Doesn't exist",
+            "incorrect_info": "Incorrect info",
+            "duplicate": "Duplicate business",
+            "offensive": "Offensive content",
+            "other": "Other reason",
+            "description_label": "Additional Description",
+            "description_placeholder": "Provide more details to help us review...",
+            "submit": "Send Report",
+            "sending": "Sending...",
+            "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
+            "success_msg": "Thank you for your report. The business has been hidden for review."
+        }
     },
     "business_details": {
         "website": "Website",

@@ -5,6 +5,7 @@ import Header from '@/components/Header'
 import { MapPin, Star, Phone, Navigation } from 'lucide-react'
 import { Metadata } from 'next'
 import { getBusinessStatus } from '@/lib/businessTimeUtils'
+import { generateBusinessSlug } from '@/lib/slug'
 
 interface Props {
     params: Promise<{ city: string; category: string }>
@@ -105,7 +106,7 @@ export default async function LocalDirectoryPage({ params }: Props) {
                         return (
                             <Link
                                 key={business.id}
-                                href={`/business/${business.id}`}
+                                href={`/negocio/${generateBusinessSlug(business.name, business.city)}-${business.id}`}
                                 className="group bg-surface border border-surface-highlight rounded-[32px] overflow-hidden hover:border-primary-500/50 transition-all hover:scale-[1.02] shadow-xl hover:shadow-primary-900/20"
                             >
                                 <div className="aspect-video w-full bg-surface-highlight relative overflow-hidden">

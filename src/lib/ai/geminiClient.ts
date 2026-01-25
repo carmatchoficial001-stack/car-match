@@ -42,8 +42,8 @@ export async function safeGenerateContent(prompt: string, maxRetries = 3, model?
             // 🚨 CRITICAL PRODUCTION FIX: Model Not Found (404) Handling
             // Si el modelo 1.5 Flash falla (por región, API key, versión), cambiamos AUTOMÁTICAMENTE a 1.0 Pro (Legacy Stable)
             if ((msg.includes("404") || msg.includes("not found")) && !usingFallback) {
-                console.warn("⚠️ [AI WARN] Modelo principal no encontrado/soportado. Cambiando a FALLBACK (gemini-pro)...");
-                currentModel = geminiPro; // Switch to Pro (Legacy/Stable)
+                console.warn("⚠️ [AI WARN] Modelo principal no encontrado/soportado. Cambiando a FALLBACK (gemini-1.5-pro)...");
+                currentModel = geminiPro; // Switch to Pro (1.5)
                 usingFallback = true;
                 continue; // Retry immediately with new model
             }

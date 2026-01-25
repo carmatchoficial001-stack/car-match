@@ -19,7 +19,22 @@ export const metadata: Metadata = {
     },
     description: "CarMatch es la red social líder para comprar, vender y descubrir vehículos en México. MarketCar oficial con Modo CarMatch y MapStore 24/7 de servicios automotrices.",
     alternates: {
-        canonical: "/",
+        canonical: "https://carmatchapp.net",
+        languages: {
+            'es': 'https://carmatchapp.net',
+            'en': 'https://carmatchapp.net/en',
+            'ar': 'https://carmatchapp.net/ar',
+            'de': 'https://carmatchapp.net/de',
+            'fr': 'https://carmatchapp.net/fr',
+            'hi': 'https://carmatchapp.net/hi',
+            'it': 'https://carmatchapp.net/it',
+            'ja': 'https://carmatchapp.net/ja',
+            'ko': 'https://carmatchapp.net/ko',
+            'pt': 'https://carmatchapp.net/pt',
+            'ru': 'https://carmatchapp.net/ru',
+            'zh': 'https://carmatchapp.net/zh',
+            'x-default': 'https://carmatchapp.net',
+        },
     },
     verification: {
         google: "u4BWC_7mrWziSal62PD0Jv6grcjI6Pl2zHOnc0Jcdxg",

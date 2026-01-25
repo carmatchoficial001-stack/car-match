@@ -30,7 +30,7 @@ const SHARED_SAFETY_SETTINGS = [
  * - Descubrimiento de marcas/modelos (requiere conocimiento profundo)
  */
 export const geminiPro = genAI.getGenerativeModel({
-    model: "gemini-pro", // ✅ LEGACY STABLE (The most compatible model ever)
+    model: "gemini-1.5-pro", // ✅ Current Stable Pro
     safetySettings: SHARED_SAFETY_SETTINGS,
     generationConfig: {
         temperature: 0.2, // Baja para precisión técnica

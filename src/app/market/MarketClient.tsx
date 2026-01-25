@@ -14,6 +14,7 @@ import FavoriteButton from '@/components/FavoriteButton'
 import ShareButton from '@/components/ShareButton'
 import ReportImageButton from '@/components/ReportImageButton'
 import { formatPrice, formatNumber } from '@/lib/vehicleTaxonomy'
+import { generateVehicleSlug } from '@/lib/slug'
 
 interface FeedItem {
     id: string
@@ -478,14 +479,14 @@ export default function MarketClient({
                                                 <Link
                                                     href={isBusiness
                                                         ? `/map-store?id=${item.id}`
-                                                        : `/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                        : `/comprar/${generateVehicleSlug(item.brand || item.title, item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
                                                     }
                                                     className="block relative aspect-[4/3] bg-gray-800 group-hover:opacity-95 transition-opacity"
                                                 >
                                                     {item.images && item.images[0] ? (
                                                         <img
                                                             src={item.images[0]}
-                                                            alt={item.title}
+                                                            alt={isBusiness ? `Negocio: ${item.title}` : `Venta de ${item.brand || item.title} ${item.model || ''} ${item.year || ''} en ${item.city} - CarMatch`}
                                                             className="w-full h-full object-contain bg-black/40"
                                                         />
                                                     ) : (
@@ -514,7 +515,7 @@ export default function MarketClient({
                                                     <Link
                                                         href={isBusiness
                                                             ? `/map-store?id=${item.id}`
-                                                            : `/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                            : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
                                                         }
                                                         className="block mb-0.5 group-hover:text-primary-400 transition"
                                                     >
@@ -550,7 +551,7 @@ export default function MarketClient({
                                                         <Link
                                                             href={isBusiness
                                                                 ? `/map-store?id=${item.id}`
-                                                                : `/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                                : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
                                                             }
                                                             className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded hover:bg-surface-highlight/80 transition"
                                                         >
@@ -564,7 +565,7 @@ export default function MarketClient({
                                                             {!isBusiness ? (
                                                                 <>
                                                                     <Link
-                                                                        href={`/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`}
+                                                                        href={`/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`}
                                                                         className="block group/price"
                                                                     >
                                                                         <p className="font-bold text-sm md:text-xl text-primary-400 group-hover/price:text-primary-300 transition" suppressHydrationWarning>
@@ -573,7 +574,7 @@ export default function MarketClient({
                                                                     </Link>
                                                                     <div className="flex items-center gap-2 mt-0.5">
                                                                         <Link
-                                                                            href={`/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`}
+                                                                            href={`/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`}
                                                                             className="text-[10px] font-bold text-primary-400 uppercase group-hover:text-primary-300"
                                                                         >
                                                                             {t('common.view_more') || 'Ver más'}
@@ -607,7 +608,7 @@ export default function MarketClient({
                                                                 <ShareButton
                                                                     title={item.title}
                                                                     text={t('market.interest_text').replace('{title}', item.title)}
-                                                                    url={typeof window !== 'undefined' ? `${window.location.origin}${isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}` : (isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`)}
+                                                                    url={typeof window !== 'undefined' ? `${window.location.origin}${isBusiness ? `/map-store?id=${item.id}` : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}`}` : (isBusiness ? `/map-store?id=${item.id}` : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}`)}
                                                                     variant="minimal"
                                                                 />
                                                             </div>

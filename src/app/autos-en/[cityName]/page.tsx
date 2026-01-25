@@ -3,21 +3,25 @@ import { serializeDecimal } from "@/lib/serialize"
 import MarketClient from "../../market/MarketClient"
 import { getCachedBrands, getCachedVehicleTypes, getCachedColors } from "@/lib/cached-data"
 import { auth } from "@/lib/auth"
-import { redirect } from "next/navigation"
+import { Metadata } from 'next'
 
 export async function generateMetadata({
     params,
-    searchParams
+    searchParams: _searchParams
 }: {
     params: Promise<{ cityName: string }>,
     searchParams: Promise<any>
-}) {
+}): Promise<Metadata> {
     const { cityName } = await params
     const city = decodeURIComponent(cityName)
+    // 🚀 High-Intent SEO Title
+    const title = `✓ Venta de Autos, Motos y Maquinaria en ${city} | CarMatch®`
+    const description = `Explora el marketplace más grande de ${city}. Autos usados, motocicletas y maquinaria pesada con trato directo. ¡Compra o vende hoy mismo en CarMatch!`
+
     return {
-        title: `Autos, Motos y Talleres en ${city} | CarMatch`,
-        description: `Encuentra los mejores vehículos y servicios automotrices en ${city}. Explora el marketplace y el mapa de negocios en tiempo real.`,
-        keywords: [`autos en ${city}`, `talleres en ${city}`, `comprar carro en ${city}`, `mecánicos ${city}`]
+        title,
+        description,
+        keywords: [`autos en ${city}`, `venta de autos ${city}`, `carros usados ${city}`, `motos en ${city}`, `John Deere ${city}`]
     }
 }
 
@@ -32,18 +36,16 @@ export default async function CityPage({
     const city = decodeURIComponent(cityName)
     const session = await auth()
 
-    if (!session?.user) {
-        redirect("/auth")
-    }
+    // 🔓 Wikipedia Mode: Guests allowed
+    const currentUser = session?.user?.email
+        ? await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { id: true, isAdmin: true }
+        })
+        : null
 
-    const currentUser = await prisma.user.findUnique({
-        where: { email: session.user.email! },
-        select: { id: true, isAdmin: true }
-    })
-
-    if (!currentUser) {
-        redirect("/auth")
-    }
+    const isAdmin = currentUser?.isAdmin || false
+    const currentUserId = currentUser?.id || 'guest'
 
     // Obtener vehículos activos en esa ciudad
     const vehicles = await prisma.vehicle.findMany({
@@ -55,9 +57,12 @@ export default async function CityPage({
             user: {
                 select: { name: true, image: true, isAdmin: true }
             },
-            favorites: {
+            favorites: currentUser ? {
                 where: { userId: currentUser.id },
                 select: { id: true }
+            } : {
+                where: { id: 'none' },
+                take: 0
             }
         },
         take: 20,
@@ -80,18 +85,18 @@ export default async function CityPage({
 
     return (
         <div className="min-h-screen bg-background">
-            <div className="pt-24 px-6 max-w-7xl mx-auto">
-                <h1 className="text-4xl font-black mb-2 text-text-primary uppercase">
-                    CARMATCH EN <span className="text-primary-500">{city}</span>
+            <div className="pt-24 px-6 max-w-7xl mx-auto text-center md:text-left">
+                <h1 className="text-4xl md:text-6xl font-black mb-2 text-text-primary uppercase tracking-tighter">
+                    COMPRA Y VENTA EN <span className="text-primary-500">{city}</span>
                 </h1>
-                <p className="text-gray-400 mb-8">
-                    Explorando los vehículos más recientes publicados cerca de {city}.
+                <p className="text-xl text-gray-400 mb-8 max-w-3xl">
+                    Los vehículos más buscados por la comunidad de CarMatch en {city}. Trato directo, sin comisiones.
                 </p>
             </div>
 
             <MarketClient
                 initialItems={serializeDecimal(items) as any}
-                currentUserId={currentUser.id}
+                currentUserId={currentUserId}
                 brands={brands}
                 vehicleTypes={vehicleTypes}
                 colors={colors}

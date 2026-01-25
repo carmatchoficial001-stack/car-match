@@ -37,91 +37,28 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 import { auth } from '@/lib/auth'
 
-export default async function BusinessDetailPage({ params, searchParams }: Props) {
-    const { id } = await params
+import { prisma } from '@/lib/db'
+import { notFound, permanentRedirect } from 'next/navigation'
+import { generateBusinessSlug } from '@/lib/slug'
 
-    // Fetch business data
+interface Props {
+    params: Promise<{ id: string }>
+}
+
+export default async function BusinessDetailPage({ params }: Props) {
+    const { id } = await params
     const business = await prisma.business.findUnique({
         where: { id },
-        include: {
-            user: {
-                select: {
-                    name: true,
-                    image: true
-                }
-            }
-        }
+        select: { id: true, name: true, city: true }
     })
 
     if (!business) {
         notFound()
     }
 
-    // JSON-LD para Google e IAs (Mapeo Inteligente por Categoría)
-    const getSchemaType = (cat: string) => {
-        const repair = ['mecanico', 'frenos', 'suspension', 'aire_acondicionado', 'inyectores', 'transmisiones', 'radiadores', 'rectificadora', 'diesel', 'electrico'];
-        const body = ['hojalateria', 'polarizado', 'rotulacion', 'blindaje'];
-        const parts = ['refacciones', 'audio', 'iluminacion', 'llantera', 'cristales', 'mofles', 'performance', 'motos', 'yonke', 'importadoras'];
-        const wash = ['estetica', 'detallado'];
+    const slug = generateBusinessSlug(business.name, business.city)
 
-        if (cat === 'gasolinera') return "GasStation";
-        if (repair.includes(cat)) return "AutoRepair";
-        if (body.includes(cat)) return "AutoBodyShop";
-        if (parts.includes(cat)) return "AutoPartsStore";
-        if (wash.includes(cat)) return "AutoWash";
-        if (cat === 'estacionamiento') return "ParkingFacility";
-        return "LocalBusiness";
-    };
-
-    const jsonLd = {
-        "@context": "https://schema.org",
-        "@type": getSchemaType(business.category),
-        "name": business.name,
-        "description": business.description || `Servicio profesional de ${business.category} en ${business.city}.`,
-        "image": business.images.length > 0 ? business.images[0] : undefined,
-        "address": {
-            "@type": "PostalAddress",
-            "streetAddress": business.address,
-            "addressLocality": business.city,
-            "addressRegion": business.state || undefined,
-            "addressCountry": business.country || "MX"
-        },
-        "geo": {
-            "@type": "GeoCoordinates",
-            "latitude": business.latitude,
-            "longitude": business.longitude
-        },
-        "url": `https://carmatchapp.net/business/${business.id}`,
-        "telephone": business.phone || undefined
-    }
-
-    // Obtener sesión para saber si es el dueño
-    const session = await auth()
-
-    const safeBusiness = {
-        ...business,
-        user: {
-            ...business.user,
-            name: business.user.name || 'Usuario CarMatch',
-            image: business.user.image || ''
-        },
-        // Campos para gestión
-        isActive: business.isActive,
-        expiresAt: business.expiresAt,
-        userId: business.userId,
-        isFreePublication: business.isFreePublication
-    }
-
-    return (
-        <>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
-            <BusinessDetailClient
-                business={safeBusiness as any}
-                currentUserId={session?.user?.id}
-            />
-        </>
-    )
+    // 🚀 REDIRECCIÓN 301 (Business SEO Supremacy)
+    permanentRedirect(`/negocio/${slug}-${business.id}`)
 }
+
