@@ -56,10 +56,12 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
        - 👪 "Para Familia / Viajar": Espacio y seguridad.
          -> category: "Automóvil", vehicleType: "SUV" o "Minivan", passengers: 7 (o 5+).
 
-       - 👪 "Para Familia / Viajar": Espacio y seguridad.
-         -> category: "Automóvil", vehicleType: "SUV" o "Minivan", passengers: 7 (o 5+).
+    3. 🕵️‍♂️ **DETECTIVES DE MARCA (CASOS ESPECIALES)**:
+       - "Ram" / "Ramona" / "Mamalona" -> brand: "RAM,Dodge" (Busca en ambas marcas para cubrir modelos viejos y nuevos).
+       - "Chevy" -> brand: "Chevrolet".
+       - "Vw" / "Vocho" -> brand: "Volkswagen".
 
-    3. 📉 **ORDENAMIENTO INTELIGENTE**: Detecta si el usuario prioriza precio, año o uso.
+    4. 📉 **ORDENAMIENTO INTELIGENTE**: Detecta si el usuario prioriza precio, año o uso.
        - "El más barato", "Económico" -> sort: "price_asc"
        - "El más nuevo", "Reciente" -> sort: "year_desc"
        - "Poco kilometraje", "Casi nuevo" -> sort: "mileage_asc"
