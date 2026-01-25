@@ -15,6 +15,7 @@ const MapBoxStoreLocator = dynamic(() => import('@/components/MapBoxStoreLocator
 
 const BusinessDetailsModal = dynamic(() => import('@/components/BusinessDetailsModal'), { ssr: false })
 const BusinessListCard = dynamic(() => import('@/components/BusinessListCard'), { ssr: false })
+const MapStoreOnboarding = dynamic(() => import('@/components/MapStoreOnboarding'), { ssr: false })
 
 interface MapClientProps {
     businesses: any[]
@@ -402,6 +403,9 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                         onBoundsChange={handleBoundsChange}
                     />
                 </div>
+
+                {/* 🆕 ONBOARDING OVERLAY FOR NEW USERS */}
+                <MapStoreOnboarding />
 
                 {/* 📱 BOTÓN MOSTRAR FILTROS (FLOTANTE) */}
                 {!showSidebar && (
