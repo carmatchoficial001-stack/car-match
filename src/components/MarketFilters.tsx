@@ -206,15 +206,15 @@ export default function MarketFiltersAdvanced({
 
 
 
-                // Execute Search
-                router.push(`/market?${params.toString()}`)
+                // Execute Search with FORCE RELOAD to guarantee results appear
+                // Using window.location.href ensures clean state and server re-fetch
+                window.location.href = `/market?${params.toString()}`
 
                 // 🚀 CLOSE MODAL AFTER NAVIGATION START
                 if (onClose) onClose()
             }
         } catch (error) {
             console.error('Error in AI Search:', error)
-            // Don't show error to user, just log it
             // Don't show error to user, just log it
         } finally {
             setIsAnalyzing(false)
