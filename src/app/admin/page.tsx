@@ -170,7 +170,7 @@ export default function AdminDashboard() {
         { id: 'inventory', icon: Car, label: 'Inventario' },
         { id: 'map-store', icon: Store, label: 'MapStore' },
         { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
-        { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports.filter(r => r.status === 'PENDING').length },
+        { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports?.filter(r => r.status === 'PENDING').length || 0 },
         { id: 'logs', icon: Terminal, label: 'Registros' },
     ]
 
@@ -698,11 +698,11 @@ function ReportsTab({ reports }: { reports: any[] }) {
                         <Flag className="w-5 h-5 text-red-500" /> Moderación
                     </h3>
                     <span className="text-[10px] font-black bg-red-500/10 text-red-500 px-2 py-1 rounded">
-                        {reports.filter(r => r.status === 'PENDING').length} PENDIENTES
+                        {reports?.filter(r => r.status === 'PENDING').length || 0} PENDIENTES
                     </span>
                 </div>
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
-                    {reports.length === 0 ? (
+                    {!reports || reports.length === 0 ? (
                         <div className="p-12 text-center opacity-30 italic text-sm">No hay reportes hoy</div>
                     ) : (
                         <div className="divide-y divide-white/5">
