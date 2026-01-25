@@ -11,7 +11,7 @@ import PWAInstallModal from "@/components/PWAInstallModal"
 import NotificationsDropdown from "@/components/NotificationsDropdown"
 import { usePWAInstall } from '@/hooks/usePWAInstall'
 import { getWeightedHomePath } from "@/lib/navigation"
-import { ThumbsUp, Headset, Flame, CarFront, Map, Bell, BellOff, Settings } from "lucide-react"
+import { ThumbsUp, Headset, Flame, CarFront, Map, Bell, BellOff, Settings, ShieldCheck, Coins, Heart, MessageSquare, Briefcase } from "lucide-react"
 import { usePushNotifications } from "@/hooks/usePushNotifications"
 import { BUSINESS_CATEGORIES } from "@/lib/businessCategories"
 
@@ -20,6 +20,7 @@ export default function Header() {
     const router = useRouter()
     const { data: session, status, update } = useSession()
     const { t, locale, setLocale } = useLanguage()
+    const isAdmin = (session?.user as any)?.isAdmin
     const [showMenu, setShowMenu] = useState<boolean | 'lang' | 'notifications' | 'user' | 'lang_inner'>(false)
     const [isSoftLogout, setIsSoftLogout] = useState(false)
 
@@ -337,14 +338,74 @@ export default function Header() {
                                     <>
                                         <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
                                         <div className="absolute right-0 mt-2 w-64 bg-surface rounded-xl shadow-2xl border border-surface-highlight overflow-hidden z-50 py-2">
-                                            <Link href="/profile" className="flex items-center gap-3 px-4 py-3 hover:bg-surface-highlight" onClick={() => setShowMenu(false)}>
+                                            {/* Profile */}
+                                            <Link href="/profile" className="flex items-center gap-3 px-4 py-3 hover:bg-surface-highlight transition-colors" onClick={() => setShowMenu(false)}>
                                                 <CarFront className="w-5 h-5 text-primary-500" />
                                                 <span className="font-medium">{t('nav.profile')}</span>
                                             </Link>
-                                            <div className="border-t border-surface-highlight my-1" />
-                                            <button onClick={() => handleSignOut()} className="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-red-500/10 text-red-400">
+
+                                            {/* Admin Panel */}
+                                            {isAdmin && (
+                                                <Link href="/admin" className="flex items-center gap-3 px-4 py-3 hover:bg-primary-500/10 text-primary-400 font-bold transition-colors" onClick={() => setShowMenu(false)}>
+                                                    <ShieldCheck className="w-5 h-5" />
+                                                    <span>{t('nav.admin_panel')}</span>
+                                                </Link>
+                                            )}
+
+                                            <div className="border-t border-surface-highlight/50 my-1" />
+
+                                            {/* Messages */}
+                                            <Link href="/messages" className="flex items-center justify-between px-4 py-3 hover:bg-surface-highlight transition-colors" onClick={() => setShowMenu(false)}>
+                                                <div className="flex items-center gap-3">
+                                                    <MessageSquare className="w-5 h-5 text-blue-500" />
+                                                    <span className="font-medium">{t('nav.messages')}</span>
+                                                </div>
+                                                {unreadMessages > 0 && (
+                                                    <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                                                        {unreadMessages}
+                                                    </span>
+                                                )}
+                                            </Link>
+
+                                            {/* Favorites */}
+                                            <Link href="/favorites" className="flex items-center justify-between px-4 py-3 hover:bg-surface-highlight transition-colors" onClick={() => setShowMenu(false)}>
+                                                <div className="flex items-center gap-3">
+                                                    <Heart className="w-5 h-5 text-red-500" />
+                                                    <span className="font-medium">{t('nav.favorites')}</span>
+                                                </div>
+                                                {favoritesCount > 0 && (
+                                                    <span className="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                                                        {favoritesCount}
+                                                    </span>
+                                                )}
+                                            </Link>
+
+                                            {/* My Businesses */}
+                                            <Link href="/my-businesses" className="flex items-center gap-3 px-4 py-3 hover:bg-surface-highlight transition-colors" onClick={() => setShowMenu(false)}>
+                                                <Briefcase className="w-5 h-5 text-green-500" />
+                                                <span className="font-medium">{t('nav.my_businesses')}</span>
+                                            </Link>
+
+                                            {/* Credits */}
+                                            <Link href="/credits" className="flex items-center gap-3 px-4 py-3 hover:bg-surface-highlight transition-colors" onClick={() => setShowMenu(false)}>
+                                                <Coins className="w-5 h-5 text-amber-500" />
+                                                <span className="font-medium">{t('nav.credits')}</span>
+                                            </Link>
+
+                                            <div className="border-t border-surface-highlight/50 my-1" />
+
+                                            {/* Settings */}
+                                            <Link href="/settings" className="flex items-center gap-3 px-4 py-3 hover:bg-surface-highlight transition-colors" onClick={() => setShowMenu(false)}>
+                                                <Settings className="w-5 h-5 text-slate-400" />
+                                                <span className="font-medium">{t('nav.settings' as any) || 'Configuración'}</span>
+                                            </Link>
+
+                                            <div className="border-t border-surface-highlight/50 my-1" />
+
+                                            {/* Sign Out */}
+                                            <button onClick={() => handleSignOut()} className="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-red-500/10 text-red-400 transition-colors">
                                                 <ThumbsUp className="w-5 h-5" />
-                                                <span>{t('common.logout')}</span>
+                                                <span className="font-bold">{t('common.logout')}</span>
                                             </button>
                                         </div>
                                     </>
