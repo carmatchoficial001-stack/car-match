@@ -73,25 +73,25 @@ export default function Header() {
             // 4. Agregar ganchos genéricos y de marketing para superar los 50
             const marketingHooks = [
                 "¿TIENES UN NEGOCIO? | SÚBELO AL MAPA",
-                "MÁS CLIENTES LOCALES | REGISTRA TU NEGOCIO",
+                "RED SOCIAL ABIERTA | REGÍSTRATE GRATIS",
+                "¡TODOS SON BIENVENIDOS! | ÚNETE AL MAPA",
                 "GANA VISIBILIDAD | ÚNETE AL MAPSTORE",
-                "¿ERES MECÁNICO? | REGÍSTRATE HOY",
-                "TU TALLER EN EL MAPA | ¡SÚBELO YA!",
-                "MÁS VENTAS POR ZONA | REGISTRA TU LOCAL",
-                "¿BUSCAS MÁS CLIENTES? | ¡SÚBETE AL MAPA!",
+                "UNA RED PARA TODOS | REGISTRA TU LOCAL",
+                "MÁS CLIENTES LOCALES | REGISTRA TU NEGOCIO",
+                "EL MAPA DE MÉXICO | SÚBETE YA",
+                "PARA TODO SERVICIO | REGÍSTRATE HOY",
+                "ÚNETE AL MOVIMIENTO | SÚBELO AL MAPA",
+                "¡NO SOMOS EXCLUSIVOS! | TODOS CABEN AQUÍ",
+                "PÁL QUE TRABAJA | REGISTRA TU TALLER",
                 "TU NEGOCIO 24/7 | SÚBELO GRATIS",
-                "EL MAPA DE MÉXICO | REGISTRA TU TALLER",
-                "SOLO PARA EXPERTOS | SÚBETE AL MAPSTORE",
-                "¿TU NEGOCIO ES EL MEJOR? | ¡DEMUÉSTRALO!",
+                "PARA TODOS LOS NICHOS | SÚBETE AL MAPSTORE",
+                "¿BUSCAS MÁS CLIENTES? | ¡SÚBETE AL MAPA!",
                 "POSICIONA TU MARCA | SÚBELO AQUÍ",
                 "CLIENTES CERCA DE TI | ÚNETE AL MAPA",
                 "NO TE QUEDES FUERA | REGISTRA TU SERVICIO",
-                "¿ERES UN PROFESIONAL? | SÚBETE YA",
                 "EL TOP DEL MAPA | REGISTRA TU NEGOCIO",
-                "SOLO PROFESIONALES | SÚBELO AL MAPSTORE",
                 "IMPULSA TU TALLER | ¡SÚBELO GRATIS!",
-                "ATRAE CLIENTES HOY | REGISTRA TU LOCAL",
-                "¡SÚBETE AL ÉXITO! | REGISTRA TU NEGOCIO"
+                "ATRAE CLIENTES HOY | REGISTRA TU LOCAL"
             ];
 
             return [
