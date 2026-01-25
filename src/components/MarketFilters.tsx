@@ -212,10 +212,15 @@ export default function MarketFiltersAdvanced({
 
                 // 🚀 CLOSE MODAL AFTER NAVIGATION START
                 if (onClose) onClose()
+            } else {
+                alert('La IA no devolvió filtros válidos.')
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error in AI Search:', error)
-            // Don't show error to user, just log it
+            alert('Error en búsqueda inteligente: ' + (error.message || JSON.stringify(error)))
+
+            // Fallback to simple text search with forced reload
+            window.location.href = `/market?search=${encodeURIComponent(aiQuery)}`
         } finally {
             setIsAnalyzing(false)
         }
