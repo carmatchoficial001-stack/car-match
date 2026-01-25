@@ -724,9 +724,9 @@ function ReportsTab({ reports }: { reports: any[] }) {
                                     <p className="text-[10px] text-text-secondary truncate mt-0.5">{report.reason}</p>
                                     <div className="flex items-center gap-2 mt-3">
                                         <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[9px] font-bold">
-                                            {report.reporter.name[0]}
+                                            {report.reporter?.name?.[0] || 'I'}
                                         </div>
-                                        <span className="text-[9px] text-text-secondary truncate">por {report.reporter.name}</span>
+                                        <span className="text-[9px] text-text-secondary truncate">por {report.reporter?.name || 'Invitado'}</span>
                                     </div>
                                 </button>
                             ))}
@@ -776,8 +776,8 @@ function ReportsTab({ reports }: { reports: any[] }) {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
                                         <label className="text-[9px] font-black text-text-secondary uppercase block mb-1">Reportero</label>
-                                        <p className="text-sm font-bold">{selectedReport.reporter.name}</p>
-                                        <p className="text-[10px] text-text-secondary truncate">{selectedReport.reporter.email}</p>
+                                        <p className="text-sm font-bold">{selectedReport.reporter?.name || 'Invitado'}</p>
+                                        <p className="text-[10px] text-text-secondary truncate">{selectedReport.reporter?.email || 'Sin correo'}</p>
                                     </div>
                                     <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
                                         <label className="text-[9px] font-black text-text-secondary uppercase block mb-1">Objetivo del reporte</label>
@@ -879,7 +879,7 @@ function ReportChat({ reportId }: { reportId: string }) {
                     </div>
                 ) : (
                     messages.map((msg) => {
-                        const isMe = msg.sender.isAdmin // En esta vista admin, "Me" son los admins
+                        const isMe = msg.sender?.isAdmin // En esta vista admin, "Me" son los admins
                         return (
                             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`max-w-[85%] p-3 rounded-2xl text-xs ${isMe
@@ -887,7 +887,7 @@ function ReportChat({ reportId }: { reportId: string }) {
                                     : 'bg-white/5 border border-white/10 text-text-primary rounded-tl-none'
                                     }`}>
                                     <div className="flex items-center gap-2 mb-1 opacity-70">
-                                        <span className="font-black uppercase text-[8px]">{msg.sender.name}</span>
+                                        <span className="font-black uppercase text-[8px]">{msg.sender?.name || 'Invitado'}</span>
                                         <span className="text-[8px]">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                     </div>
                                     <p className="leading-relaxed">{msg.content}</p>
