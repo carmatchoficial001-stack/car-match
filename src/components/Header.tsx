@@ -65,15 +65,37 @@ export default function Header() {
             // 2. Filtrar y mapear TODAS las categorías de negocio
             const businessCats = BUSINESS_CATEGORIES
                 .filter(cat => !publicIds.includes(cat.id))
-                .map(cat => cat.label.toUpperCase()); // "TALLER MECÁNICO", "LLANTERA", etc.
+                .map(cat => cat.label.toUpperCase());
 
-            // 3. Generar mensajes específicos
+            // 3. Generar mensajes específicos (~33 mensajes)
             const specific = businessCats.map(cat => `¿TIENES UN ${cat}? | SÚBELO GRATIS`);
 
-            // 4. Combinar con genéricos y mezclar
-            return [
+            // 4. Agregar ganchos genéricos y de marketing para superar los 50
+            const marketingHooks = [
                 "¿TIENES UN NEGOCIO? | SÚBELO AL MAPA",
-                "MÁS CLIENTES | REGISTRA TU NEGOCIO",
+                "MÁS CLIENTES LOCALES | REGISTRA TU NEGOCIO",
+                "GANA VISIBILIDAD | ÚNETE AL MAPSTORE",
+                "¿ERES MECÁNICO? | REGÍSTRATE HOY",
+                "TU TALLER EN EL MAPA | ¡SÚBELO YA!",
+                "MÁS VENTAS POR ZONA | REGISTRA TU LOCAL",
+                "¿BUSCAS MÁS CLIENTES? | ¡SÚBETE AL MAPA!",
+                "TU NEGOCIO 24/7 | SÚBELO GRATIS",
+                "EL MAPA DE MÉXICO | REGISTRA TU TALLER",
+                "SOLO PARA EXPERTOS | SÚBETE AL MAPSTORE",
+                "¿TU NEGOCIO ES EL MEJOR? | ¡DEMUÉSTRALO!",
+                "POSICIONA TU MARCA | SÚBELO AQUÍ",
+                "CLIENTES CERCA DE TI | ÚNETE AL MAPA",
+                "NO TE QUEDES FUERA | REGISTRA TU SERVICIO",
+                "¿ERES UN PROFESIONAL? | SÚBETE YA",
+                "EL TOP DEL MAPA | REGISTRA TU NEGOCIO",
+                "SOLO PROFESIONALES | SÚBELO AL MAPSTORE",
+                "IMPULSA TU TALLER | ¡SÚBELO GRATIS!",
+                "ATRAE CLIENTES HOY | REGISTRA TU LOCAL",
+                "¡SÚBETE AL ÉXITO! | REGISTRA TU NEGOCIO"
+            ];
+
+            return [
+                ...marketingHooks,
                 ...specific
             ].sort(() => Math.random() - 0.5);
         }
@@ -86,7 +108,7 @@ export default function Header() {
         if (ctas.length > 0 && !session) {
             const interval = setInterval(() => {
                 setCtaIndex((prev) => (prev + 1) % ctas.length)
-            }, 15000) // Cambiar cada 15 segundos (más pausado)
+            }, 10000) // ✅ 10 segundos (6 mensajes por minuto)
             return () => clearInterval(interval)
         }
     }, [ctas, session])
