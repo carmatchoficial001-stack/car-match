@@ -689,10 +689,14 @@ function ReportsTab({ reports }: { reports: any[] }) {
     const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
     const selectedReport = reports.find(r => r.id === selectedReportId)
 
+    useEffect(() => {
+        if (selectedReportId) window.scrollTo({ top: 0, behavior: 'smooth' })
+    }, [selectedReportId])
+
     return (
         <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-280px)]">
             {/* Lista de Reportes */}
-            <div className={`bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl flex flex-col ${selectedReportId ? 'w-full lg:w-1/3' : 'w-full'}`}>
+            <div className={`bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl flex flex-col ${selectedReportId ? 'hidden lg:flex lg:w-1/3' : 'w-full h-full'}`}>
                 <div className="p-6 border-b border-white/5 flex items-center justify-between shrink-0">
                     <h3 className="font-bold text-lg flex items-center gap-2">
                         <Flag className="w-5 h-5 text-red-500" /> Moderación
@@ -752,16 +756,20 @@ function ReportsTab({ reports }: { reports: any[] }) {
                         <div className="flex flex-wrap gap-2">
                             {/* Link to Publication */}
                             {(selectedReport.vehicleId || selectedReport.vehicle?.id || selectedReport.businessId || selectedReport.business?.id) && (
-                                <a
-                                    href={selectedReport.vehicleId || selectedReport.vehicle?.id ? `/vehicle/${selectedReport.vehicleId || selectedReport.vehicle?.id}` : `/map-store?id=${selectedReport.businessId || selectedReport.business?.id}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-white/10 text-white hover:bg-primary-600 transition-all border border-white/10 shadow-lg active:scale-95"
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        const id = selectedReport.vehicleId || selectedReport.vehicle?.id;
+                                        const bizId = selectedReport.businessId || selectedReport.business?.id;
+                                        const url = id ? `/vehicle/${id}` : `/map-store?id=${bizId}`;
+                                        window.open(url, '_blank', 'noopener,noreferrer');
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white text-black hover:bg-primary-500 hover:text-white transition-all shadow-xl active:scale-95 z-50 pointer-events-auto"
                                 >
-                                    <ArrowUpRight className="w-3 h-3 text-white" />
+                                    <ArrowUpRight className="w-4 h-4" />
                                     Ver Publicación
-                                </a>
+                                </button>
                             )}
                             <AdminReportAction2 reportId={selectedReport.id} action="RESTORE" label="APROBAR" primary />
                             <AdminReportAction2 reportId={selectedReport.id} action="RESOLVE" label="ELIMINAR" danger />
