@@ -86,6 +86,11 @@ Responde SOLO con el JSON válido.`
 
     } catch (error: any) {
         console.error('❌ [AI Search Crash]:', error)
-        return NextResponse.json({ error: 'AI Error' }, { status: 500 })
+        // 🚨 DEBUG: Exposing error details to client to diagnose production issue
+        return NextResponse.json({
+            error: 'AI Search Failed',
+            details: error.message || String(error),
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        }, { status: 500 })
     }
 }

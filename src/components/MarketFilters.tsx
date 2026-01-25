@@ -150,7 +150,7 @@ export default function MarketFiltersAdvanced({
         if (!aiQuery.trim()) return
 
         setIsAnalyzing(true)
-        setIsAnalyzing(true)
+
 
         try {
             const res = await fetch('/api/ai/analyze-vehicle-query', {
@@ -159,7 +159,11 @@ export default function MarketFiltersAdvanced({
                 body: JSON.stringify({ query: aiQuery })
             })
 
-            if (!res.ok) throw new Error('AI Search Failed')
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}))
+                console.error('AI Server Error:', errorData)
+                throw new Error(errorData.details || errorData.error || 'AI Search Failed')
+            }
 
             const data = await res.json()
             const filters = data // Now flat with explanation included
