@@ -20,20 +20,34 @@ export {
  * @param maxRetries Número máximo de reintentos
  * @param model Modelo específico a usar (por defecto geminiFlash)
  */
-export async function safeGenerateContent(prompt: string, maxRetries = 5, model?: any) {
+export async function safeGenerateContent(prompt: string, maxRetries = 3, model?: any) {
     // Importar dinámicamente para evitar circular dependency
-    const { geminiFlash } = await import('./geminiModels');
-    const modelToUse = model || geminiFlash;
+    const { geminiFlash, geminiPro, geminiModel } = await import('./geminiModels');
+
+    // Default to Flash, but allow override
+    let currentModel = model || geminiFlash;
+    let usingFallback = false;
 
     let lastError: any;
 
     for (let i = 0; i < maxRetries; i++) {
         try {
-            const result = await modelToUse.generateContent(prompt);
+            console.log(`🤖 [AI] Intentando generar con ${usingFallback ? 'FALLBACK (Pro)' : 'Principal'} (Intento ${i + 1}/${maxRetries})...`);
+            const result = await currentModel.generateContent(prompt);
             return result.response;
         } catch (error: any) {
             lastError = error;
             const msg = error.message?.toLowerCase() || '';
+
+            // 🚨 CRITICAL PRODUCTION FIX: Model Not Found (404) Handling
+            // Si el modelo 1.5 Flash falla (por región, API key, versión), cambiamos AUTOMÁTICAMENTE a 1.0 Pro (Legacy Stable)
+            if ((msg.includes("404") || msg.includes("not found")) && !usingFallback) {
+                console.warn("⚠️ [AI WARN] Modelo principal no encontrado/soportado. Cambiando a FALLBACK (gemini-pro)...");
+                currentModel = geminiPro; // Switch to Pro (Legacy/Stable)
+                usingFallback = true;
+                continue; // Retry immediately with new model
+            }
+
             const isRetryable =
                 msg.includes("429") ||
                 msg.includes("500") ||
@@ -46,7 +60,7 @@ export async function safeGenerateContent(prompt: string, maxRetries = 5, model?
 
             if (isRetryable && i < maxRetries - 1) {
                 const waitTime = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                console.warn(`⚠️ IA Ocupada (Intento ${i + 1}/${maxRetries}). Reintentando en ${Math.round(waitTime)}ms...`);
+                console.warn(`⚠️ [AI] Reintentando en ${Math.round(waitTime)}ms...`);
                 await new Promise(resolve => setTimeout(resolve, waitTime));
                 continue;
             }
