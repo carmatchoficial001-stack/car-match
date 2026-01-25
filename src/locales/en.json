@@ -55,6 +55,7 @@
             "payment_generic": "Payment error.",
             "payment_not_final": "Payment status is not final."
         },
+        "accept": "Accept",
         "step_count": "Step {current} of {total}",
         "chars": "characters",
         "doors_count": "doors",
@@ -812,6 +813,7 @@
             "submit": "Send Report",
             "sending": "Sending...",
             "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
+            "success_title": "Report Sent!",
             "success_msg": "Thank you for your report. The business has been hidden for review."
         }
     },

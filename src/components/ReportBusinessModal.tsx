@@ -13,6 +13,7 @@ interface ReportBusinessModalProps {
 
 export default function ReportBusinessModal({ businessId, businessName, onClose, onSuccess }: ReportBusinessModalProps) {
     const { t } = useLanguage()
+    const [submitted, setSubmitted] = useState(false)
     const [reason, setReason] = useState('')
     const [description, setDescription] = useState('')
     const [loading, setLoading] = useState(false)
@@ -50,12 +51,40 @@ export default function ReportBusinessModal({ businessId, businessName, onClose,
                 throw new Error(data.error || 'Error al enviar reporte')
             }
 
-            onSuccess()
+            setSubmitted(true)
         } catch (err: any) {
             setError(err.message)
         } finally {
             setLoading(false)
         }
+    }
+
+    if (submitted) {
+        return (
+            <div className="fixed inset-0 z-[11000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                <div className="bg-surface border border-surface-highlight rounded-2xl w-full max-w-md p-8 relative shadow-2xl animate-scale-up text-center">
+                    <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 mx-auto mb-6">
+                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+
+                    <h3 className="text-2xl font-bold text-text-primary mb-4">
+                        {t('map_store.report.success_title') || '¡Reporte Enviado!'}
+                    </h3>
+                    <p className="text-text-secondary mb-8">
+                        {t('map_store.report.success_msg') || 'Gracias por tu reporte. El negocio ha sido ocultado para revisión.'}
+                    </p>
+
+                    <button
+                        onClick={onSuccess}
+                        className="w-full py-4 bg-primary-700 hover:bg-primary-600 text-white rounded-xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary-900/20"
+                    >
+                        {t('common.accept') || 'ACEPTAR'}
+                    </button>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -78,7 +107,7 @@ export default function ReportBusinessModal({ businessId, businessName, onClose,
                         <p className="text-xs text-text-secondary">{businessName}</p>
                     </div>
                 </div>
-                [truncated]
+
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-3">
                         <label className="block text-xs font-black uppercase tracking-widest text-text-secondary">

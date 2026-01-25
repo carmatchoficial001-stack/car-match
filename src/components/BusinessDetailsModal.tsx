@@ -384,8 +384,6 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                             onClose={() => setShowReportModal(false)}
                             onSuccess={() => {
                                 setShowReportModal(false)
-                                // Notificar al usuario que ya se ocultó
-                                alert("Gracias por tu reporte. El negocio ha sido ocultado para revisión.")
                                 onClose() // Cerrar detalles
                             }}
                         />

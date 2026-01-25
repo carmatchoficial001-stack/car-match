@@ -99,6 +99,7 @@
             "payment_generic": "Error en el pago.",
             "payment_not_final": "El estado del pago no es definitivo."
         },
+        "accept": "Aceptar",
         "step_count": "Paso {current} de {total}",
         "chars": "caracteres",
         "doors_count": "puertas",
@@ -914,6 +915,7 @@
             "submit": "Enviar Reporte",
             "sending": "Enviando...",
             "helper_text": "* El negocio será ocultado inmediatamente mientras el administrador revisa tu reporte.",
+            "success_title": "¡Reporte Enviado!",
             "success_msg": "Gracias por tu reporte. El negocio ha sido ocultado para revisión."
         }
     },
