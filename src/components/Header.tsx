@@ -55,9 +55,19 @@ export default function Header() {
     const [ctaIndex, setCtaIndex] = useState(0)
     const ctas = useMemo(() => {
         if (!t || !locale) return []
+
+        // 🗺️ MAPSTORE CONTEXT: Show Business Onboarding CTAs
+        if (pathname?.startsWith('/map') || pathname?.startsWith('/map-store')) {
+            return [
+                "¿TIENES UN TALLER? | SÚBELO GRATIS",
+                "MÁS CLIENTES | REGISTRA TU NEGOCIO",
+                "¿ERES MECÁNICO? | ÚNETE AL MAPA"
+            ]
+        }
+
         const raw = t('common.dynamic_ctas.vehicles', { returnObjects: true })
         return Array.isArray(raw) ? raw : []
-    }, [t, locale])
+    }, [t, locale, pathname])
 
     useEffect(() => {
         if (ctas.length > 0 && !session) {
@@ -323,7 +333,7 @@ export default function Header() {
                                 </AnimatePresence>
 
                                 <Link
-                                    href="/auth"
+                                    href={(pathname?.startsWith('/map') || pathname?.startsWith('/map-store')) ? "/my-businesses?action=new" : "/auth"}
                                     className="relative group shrink-0 flex items-center"
                                 >
                                     {/* The "Action" Button */}

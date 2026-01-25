@@ -391,33 +391,6 @@ export default function MapClient({ businesses, user }: MapClientProps) {
     return (
         <div className="flex flex-col h-full bg-background overflow-hidden pb-safe">
 
-            {/* 📢 BANNER DE INVITACIÓN (Solo Guest) */}
-            {true && ( // TODO: Cambiar a isGuest cuando estemos listos en prod
-                <div className="bg-gradient-to-r from-slate-900 to-slate-800 border-b border-white/10 px-4 py-3 flex items-center justify-between shadow-lg relative z-20 shrink-0">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="w-8 h-8 rounded-full bg-primary-600/20 flex items-center justify-center shrink-0 animate-pulse">
-                            <Store className="text-primary-400" size={16} />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-xs font-bold text-white leading-tight">
-                                ¿Tienes un Negocio Automotriz?
-                            </span>
-                            <span className="text-[10px] text-gray-400 truncate">
-                                Talleres, Llanteras, Grúas... ¡Súbelos gratis!
-                            </span>
-                        </div>
-                    </div>
-
-                    <a
-                        href="/my-businesses?action=new"
-                        className="px-4 py-1.5 bg-primary-600 hover:bg-primary-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg transition-all active:scale-95 whitespace-nowrap ml-2 flex items-center gap-1"
-                    >
-                        <Plus size={12} strokeWidth={4} />
-                        Subir Ya
-                    </a>
-                </div>
-            )}
-
             <div className="flex-1 relative flex overflow-hidden">
 
                 {/* 🗺️ MAP (FULL SCREEN) */}
