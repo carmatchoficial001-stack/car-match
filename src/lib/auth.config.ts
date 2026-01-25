@@ -29,8 +29,34 @@ export const authConfig: NextAuthConfig = {
     },
 
     callbacks: {
-        async authorized({ auth }) {
-            return !!auth
+        async authorized({ auth, request: { nextUrl } }) {
+            const isLoggedIn = !!auth
+            const pathname = nextUrl.pathname
+
+            // 🔓 RUTAS PÚBLICAS (Wikipedia Mode): Accesibles para Google y Guests
+            const publicPaths = [
+                '/',
+                '/market',
+                '/swipe',
+                '/map',
+                '/map-store',
+                '/vehicle/',
+                '/negocios/',
+                '/business/',
+                '/auth',
+                '/privacy',
+                '/terms'
+            ]
+
+            const isPublicPath = publicPaths.some(path =>
+                pathname === path || pathname.startsWith(path)
+            )
+
+            // Si es ruta pública, permitimos siempre (para SEO)
+            if (isPublicPath) return true
+
+            // Si no es pública, requerimos login
+            return isLoggedIn
         },
         async signIn() {
             return true

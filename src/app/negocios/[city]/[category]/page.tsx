@@ -15,12 +15,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const decodedCity = decodeURIComponent(city)
     const decodedCat = decodeURIComponent(category).replace('_', ' ')
 
-    const title = `Los mejores ${decodedCat} en ${decodedCity} | CarMatch®`
-    const description = `Directorio de ${decodedCat} en ${decodedCity}. Encuentra servicios verificados, horarios, teléfonos y ubicaciones en el MapStore de CarMatch.`
+    // 🚀 SEO Wikipedia-Style Title: Force Authority
+    const title = `✓ Los mejores ${decodedCat} en ${decodedCity} (Directorio ${new Date().getFullYear()}) | CarMatch®`
+    const description = `Directorio verificado de ${decodedCat} en ${decodedCity}. Encuentra servicios de confianza, mapas en tiempo real, teléfonos y horarios actualizados hoy. ¡Todos los servicios automotrices en un solo lugar!`
 
     return {
         title,
         description,
+        keywords: [
+            `${decodedCat} en ${decodedCity}`,
+            `mejor ${decodedCat}`,
+            `servicios automotrices ${decodedCity}`,
+            `taller mecánico ${decodedCity}`,
+            `car match ${decodedCity}`
+        ],
         openGraph: {
             title,
             description,

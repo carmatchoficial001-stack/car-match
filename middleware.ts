@@ -22,11 +22,12 @@ export default auth((req) => {
     // Rutas de autenticación (no permitidas si ya está logueado y NO es soft_logout)
     const authRoutes = ["/auth", "/auth/login", "/auth/register"]
 
-    // 1. Si está en soft logout o no está logueado, y trata de entrar a rutas protegidas
-    if ((protectedRoutes.some(route => pathname.startsWith(route))) && (!isLoggedIn || isSoftLogout)) {
+    // 🚀 REDIRECCIÓN PARA RUTAS PROTEGIDAS (Solo si no está logueado)
+    if (protectedRoutes.some(route => pathname.startsWith(route)) && !isLoggedIn) {
         const callbackUrl = encodeURIComponent(req.nextUrl.pathname + req.nextUrl.search)
+
         // Si es soft logout, lo mandamos a la landing (/) para que vea el "fake logout"
-        // Si no está logueado, a /auth
+        // Si es guest puro, a /auth
         const dest = isSoftLogout ? '/' : `/auth?callbackUrl=${callbackUrl}`
         return Response.redirect(new URL(dest, req.url))
     }

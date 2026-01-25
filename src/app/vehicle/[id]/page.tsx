@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db"
 import { notFound } from "next/navigation"
 import VehicleDetailClient from "./VehicleDetailClient"
 import { auth } from '@/lib/auth'
+import { serializeDecimal } from "@/lib/serialize"
 
 interface Props {
     params: Promise<{ id: string }>
@@ -106,7 +107,7 @@ export default async function VehicleDetailPage({ params, searchParams }: Props)
         notFound()
     }
 
-    // JSON-LD for AI and Google (Schema.org)
+    // 🚗 JSON-LD for AI and Google (Schema.org Car)
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "Car",
@@ -155,7 +156,64 @@ export default async function VehicleDetailPage({ params, searchParams }: Props)
         }
     }
 
-    // Calcular isAdmin correctamente corectamente
+    // 🔗 BREADCRUMBS JSON-LD (Wikipedia Style Hierarchy)
+    const breadcrumbLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "CarMatch",
+                "item": "https://carmatchapp.net"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "MarketCar",
+                "item": "https://carmatchapp.net/market"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": vehicle.brand,
+                "item": `https://carmatchapp.net/market?brand=${encodeURIComponent(vehicle.brand)}`
+            },
+            {
+                "@type": "ListItem",
+                "position": 4,
+                "name": vehicle.model,
+                "item": `https://carmatchapp.net/vehicle/${vehicle.id}`
+            }
+        ]
+    }
+
+    // 🔄 RELATED VEHICLES (Cross-linking for Googlebot discovery)
+    const relatedVehicles = await prisma.vehicle.findMany({
+        where: {
+            AND: [
+                { id: { not: vehicle.id } },
+                { status: 'ACTIVE' },
+                {
+                    OR: [
+                        { brand: vehicle.brand },
+                        { vehicleType: vehicle.vehicleType }
+                    ]
+                }
+            ]
+        },
+        take: 6,
+        select: {
+            id: true,
+            title: true,
+            price: true,
+            year: true,
+            images: true,
+            city: true
+        }
+    })
+
+    // Calcular isAdmin correctamente
     const vehicleData = {
         ...vehicle,
         price: vehicle.price.toNumber(),
@@ -178,10 +236,15 @@ export default async function VehicleDetailPage({ params, searchParams }: Props)
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+            />
             <VehicleDetailClient
                 vehicle={vehicleData as any}
                 currentUserEmail={session?.user?.email}
                 currentUserId={session?.user?.id}
+                relatedVehicles={serializeDecimal(relatedVehicles)}
             />
         </>
     )
