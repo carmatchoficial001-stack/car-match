@@ -1,5 +1,5 @@
 
-import { geminiModel } from "./geminiClient";
+import { geminiFlashPrecise } from "./geminiClient"; // ✅ Flash preciso para parsing
 
 interface ParsedAddress {
     street?: string;
@@ -37,7 +37,7 @@ export async function parseAddressWithAI(rawQuery: string, biasLat?: number, bia
         }
         `;
 
-        const result = await geminiModel.generateContent(prompt);
+        const result = await geminiFlashPrecise.generateContent(prompt); // ✅ Flash preciso
         const response = await result.response;
         const text = response.text();
         const jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();

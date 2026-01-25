@@ -49,7 +49,9 @@ ${categories.map((cat: any) => `- [${cat.id}] "${cat.label}": Enfocado a ${cat.k
 Responde UNICAMENTE con el JSON solicitado.`
 
         console.log('🤖 Analizando query:', query)
-        const response = await safeGenerateContent(prompt)
+        // ✅ Flash para análisis de problemas (rápido)
+        const { geminiFlash } = await import('@/lib/ai/geminiClient');
+        const response = await safeGenerateContent(prompt, 5, geminiFlash);
         const responseText = response.text()
         console.log('✅ Respuesta de IA:', responseText)
 

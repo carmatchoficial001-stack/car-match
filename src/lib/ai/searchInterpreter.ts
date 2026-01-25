@@ -1,5 +1,5 @@
 
-import { geminiModel } from "./geminiClient";
+import { geminiFlash } from "./geminiClient"; // ✅ Flash estable con temp 0.3
 import { VEHICLE_CATEGORIES, BRANDS, COLORS, TRANSMISSIONS, FUELS, GLOBAL_SYNONYMS } from "../vehicleTaxonomy";
 
 interface SearchIntent {
@@ -104,7 +104,7 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
   `;
 
   try {
-    const result = await geminiModel.generateContent(prompt);
+    const result = await geminiFlash.generateContent(prompt); // ✅ Flash estable con temp 0.3
     const response = await result.response;
     const text = response.text();
     const jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();

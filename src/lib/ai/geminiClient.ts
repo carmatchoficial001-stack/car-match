@@ -1,39 +1,35 @@
+/**
+ * 🔧 GEMINI CLIENT - Funciones helper para interactuar con Gemini AI
+ * Los modelos específicos ahora están en geminiModels.ts
+ */
 
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
-
-const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
-
-if (!apiKey) {
-    console.warn("⚠️ Advertencia: Ni GEMINI_API_KEY ni GOOGLE_API_KEY están definidas.");
-}
-
-const genAI = new GoogleGenerativeAI(apiKey);
-
-export const geminiModel = genAI.getGenerativeModel({
-    model: "gemini-flash-latest",
-    safetySettings: [
-        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-    ],
-    generationConfig: {
-        temperature: 0.1,
-        topP: 0.95,
-        topK: 40,
-        maxOutputTokens: 2048,
-    }
-});
+// Exportar modelos desde la configuración centralizada
+export {
+    geminiModel,
+    geminiPro,
+    geminiFlash,
+    geminiFlashConversational,
+    geminiFlashPrecise,
+    getModelForUseCase,
+    AI_USE_CASES
+} from './geminiModels';
 
 /**
  * Wrapper robusto para llamar a Gemini con reintentos automáticos
+ * @param prompt El prompt a enviar
+ * @param maxRetries Número máximo de reintentos
+ * @param model Modelo específico a usar (por defecto geminiFlash)
  */
-export async function safeGenerateContent(prompt: string, maxRetries = 5) {
+export async function safeGenerateContent(prompt: string, maxRetries = 5, model?: any) {
+    // Importar dinámicamente para evitar circular dependency
+    const { geminiFlash } = await import('./geminiModels');
+    const modelToUse = model || geminiFlash;
+
     let lastError: any;
 
     for (let i = 0; i < maxRetries; i++) {
         try {
-            const result = await geminiModel.generateContent(prompt);
+            const result = await modelToUse.generateContent(prompt);
             return result.response;
         } catch (error: any) {
             lastError = error;

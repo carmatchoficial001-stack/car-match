@@ -1,5 +1,5 @@
 
-import { geminiModel } from "./geminiClient";
+import { geminiPro } from "./geminiClient"; // ✅ Pro para análisis de imágenes complejo
 
 
 interface ImageAnalysisResult {
@@ -172,7 +172,7 @@ REGLA CRÍTICA DE FORMATO:
         },
       };
 
-      const result = await geminiModel.generateContent([prompt, imagePart]);
+      const result = await geminiPro.generateContent([prompt, imagePart]); // ✅ Pro para visión
       const response = await result.response;
       const text = response.text();
 
@@ -430,7 +430,7 @@ export async function analyzeMultipleImages(
         inlineData: { data: img, mimeType: "image/jpeg" }
       }));
 
-      const galleryResultRaw = await geminiModel.generateContent([galleryPrompt, ...imageParts]);
+      const galleryResultRaw = await geminiPro.generateContent([galleryPrompt, ...imageParts]); // ✅ Pro
       const galleryResponse = await galleryResultRaw.response;
       const galleryText = galleryResponse.text();
 
@@ -486,7 +486,7 @@ export async function analyzeMultipleImages(
         inlineData: { data: img, mimeType: "image/jpeg" }
       }));
 
-      const result = await geminiModel.generateContent([prompt, ...imageParts]);
+      const result = await geminiPro.generateContent([prompt, ...imageParts]); // ✅ Pro
       const response = await result.response;
 
       return await processGeminiResponse(response); // Moviendo lógica a una función auxiliar para limpieza
@@ -612,7 +612,7 @@ export async function moderateUserContent(imageBase64: string): Promise<ContentM
   `;
 
   try {
-    const result = await geminiModel.generateContent([
+    const result = await geminiPro.generateContent([ // ✅ Pro para moderación
       prompt,
       {
         inlineData: {

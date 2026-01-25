@@ -40,7 +40,9 @@ ${history?.map((h: any) => `${h.sender === 'user' ? 'Usuario' : 'Asesor'}: ${h.t
 
 Responde ÚNICAMENTE con el JSON solicitado.`
 
-        const response = await safeGenerateContent(prompt)
+        // ✅ Flash Conversacional para respuestas naturales (temp 0.7)
+        const { geminiFlashConversational } = await import('@/lib/ai/geminiClient');
+        const response = await safeGenerateContent(prompt, 5, geminiFlashConversational);
         const responseText = response.text()
 
         const aiResponse = safeExtractJSON<{ response: string, actionLink?: string, actionText?: string }>(responseText)

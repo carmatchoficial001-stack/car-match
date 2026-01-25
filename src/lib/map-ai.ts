@@ -20,7 +20,9 @@ export async function interpretMapQuery(query: string): Promise<string[]> {
             Respuesta (JSON Array puro):
         `;
 
-        const response = await safeGenerateContent(prompt);
+        // ✅ Flash Preciso para clasificación de categorías (temp 0.2)
+        const { geminiFlashPrecise } = await import("./ai/geminiClient");
+        const response = await safeGenerateContent(prompt, 5, geminiFlashPrecise);
         const responseText = response.text();
 
         const categories = safeExtractJSON<string[]>(responseText);

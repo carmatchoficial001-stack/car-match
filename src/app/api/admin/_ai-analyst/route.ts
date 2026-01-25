@@ -85,7 +85,9 @@ CarMatch es una red social automotriz que rastrea lo que los usuarios buscan (De
 
 Responde SOLO con el JSON válido, sin explicaciones adicionales fuera del JSON.`
 
-        const response = await safeGenerateContent(prompt)
+        // ✅ Flash para análisis de datos de negocio (rápido)
+        const { geminiFlash } = await import('@/lib/ai/geminiClient');
+        const response = await safeGenerateContent(prompt, 5, geminiFlash);
         const responseText = response.text()
         const aiResponse = safeExtractJSON<any>(responseText)
 

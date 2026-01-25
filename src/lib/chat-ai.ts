@@ -55,7 +55,9 @@ export async function processChatMessage(chatId: string, messageContent: string,
     `
 
     try {
-        const response = await safeGenerateContent(prompt)
+        // ✅ Flash Preciso para detección de intención (temp 0.2)
+        const { geminiFlashPrecise } = await import('./ai/geminiClient');
+        const response = await safeGenerateContent(prompt, 5, geminiFlashPrecise);
         const responseText = response.text()
 
         const aiResponse = safeExtractJSON<{ detectado: boolean, sugerencia: string }>(responseText)

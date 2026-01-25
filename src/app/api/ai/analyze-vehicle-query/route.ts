@@ -57,7 +57,9 @@ export async function POST(req: NextRequest) {
 
 Responde SOLO con el JSON válido.`
 
-        const response = await safeGenerateContent(prompt)
+        // ✅ Flash para búsquedas (rápido y eficiente)
+        const { geminiFlash } = await import('@/lib/ai/geminiClient');
+        const response = await safeGenerateContent(prompt, 5, geminiFlash);
         const responseText = response.text()
 
         const aiResponse = safeExtractJSON<any>(responseText)
