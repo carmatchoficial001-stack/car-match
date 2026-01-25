@@ -149,9 +149,6 @@ export default function MarketFiltersAdvanced({
     const handleAiSearch = async () => {
         if (!aiQuery.trim()) return
 
-        // 🚀 CLOSE MODAL IMMEDIATELY - No waiting
-        if (onClose) onClose()
-
         setIsAnalyzing(true)
         setAiExplanation('')
 
@@ -211,6 +208,9 @@ export default function MarketFiltersAdvanced({
 
                 // Execute Search
                 router.push(`/market?${params.toString()}`)
+
+                // 🚀 CLOSE MODAL AFTER NAVIGATION START
+                if (onClose) onClose()
             }
         } catch (error) {
             console.error('Error in AI Search:', error)
