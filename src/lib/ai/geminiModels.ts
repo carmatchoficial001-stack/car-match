@@ -23,20 +23,28 @@ const SHARED_SAFETY_SETTINGS = [
     { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
 ];
 
-/**
- * 🎨 MODELO PRO - Para tareas complejas y críticas
- * Casos de uso:
- * - Análisis de imágenes (visión multimodal compleja)
- * - Descubrimiento de marcas/modelos (requiere conocimiento profundo)
- */
+// 🎨 MODELO PRO - Para tareas complejas y críticas
 export const geminiPro = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro-002", // ✅ Fixed Stable Pro
+    model: "gemini-1.5-pro-latest", // ✅ Using latest for widest compatibility
     safetySettings: SHARED_SAFETY_SETTINGS,
     generationConfig: {
-        temperature: 0.2, // Baja para precisión técnica
+        temperature: 0.2,
         topP: 0.95,
         topK: 40,
-        maxOutputTokens: 3000, // Respuestas detalladas
+        maxOutputTokens: 3000,
+    }
+});
+
+/**
+ * 🏛️ MODELO LEGACY - Fallback absoluto (v1.0)
+ * Este modelo es extremadamente estable y casi nunca da error 404.
+ */
+export const geminiLegacy = genAI.getGenerativeModel({
+    model: "gemini-pro", // ✅ Legacy stable 1.0
+    safetySettings: SHARED_SAFETY_SETTINGS,
+    generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 1000,
     }
 });
 
@@ -49,10 +57,10 @@ export const geminiPro = genAI.getGenerativeModel({
  * - Análisis de texto
  */
 export const geminiFlash = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash-002", // ✅ Fixed Stable Flash
+    model: "gemini-1.5-flash-latest", // ✅ Using latest for widest compatibility
     safetySettings: SHARED_SAFETY_SETTINGS,
     generationConfig: {
-        temperature: 0.3, // Moderada para balance precisión/creatividad
+        temperature: 0.3,
         topP: 0.95,
         topK: 40,
         maxOutputTokens: 1000,

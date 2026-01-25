@@ -221,13 +221,17 @@ export default async function MarketPage({
             { title: { contains: searchParams.search, mode: 'insensitive' } },
             { description: { contains: searchParams.search, mode: 'insensitive' } },
             { brand: { contains: searchParams.search, mode: 'insensitive' } },
-            { model: { contains: searchParams.search, mode: 'insensitive' } }
+            { model: { contains: searchParams.search, mode: 'insensitive' } },
+            { color: { contains: searchParams.search, mode: 'insensitive' } }
         ]
 
         // Búsqueda más flexible por palabras clave individuales
         searchTerms.forEach(term => {
             where.OR.push({ title: { contains: term, mode: 'insensitive' } })
             where.OR.push({ description: { contains: term, mode: 'insensitive' } })
+            where.OR.push({ brand: { contains: term, mode: 'insensitive' } })
+            where.OR.push({ model: { contains: term, mode: 'insensitive' } })
+            where.OR.push({ color: { contains: term, mode: 'insensitive' } })
         })
     }
 

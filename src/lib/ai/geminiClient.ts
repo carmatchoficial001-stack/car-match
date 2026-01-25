@@ -22,7 +22,7 @@ export {
  */
 export async function safeGenerateContent(prompt: string, maxRetries = 3, model?: any) {
     // Importar dinámicamente para evitar circular dependency
-    const { geminiFlash, geminiPro, geminiModel } = await import('./geminiModels');
+    const { geminiFlash, geminiPro, geminiLegacy } = await import('./geminiModels');
 
     // Default to Flash, but allow override
     let currentModel = model || geminiFlash;
@@ -40,12 +40,18 @@ export async function safeGenerateContent(prompt: string, maxRetries = 3, model?
             const msg = error.message?.toLowerCase() || '';
 
             // 🚨 CRITICAL PRODUCTION FIX: Model Not Found (404) Handling
-            // Si el modelo 1.5 Flash falla (por región, API key, versión), cambiamos AUTOMÁTICAMENTE a 1.0 Pro (Legacy Stable)
-            if ((msg.includes("404") || msg.includes("not found")) && !usingFallback) {
-                console.warn("⚠️ [AI WARN] Modelo principal no encontrado/soportado. Cambiando a FALLBACK (gemini-1.5-pro)...");
-                currentModel = geminiPro; // Switch to Pro (1.5)
-                usingFallback = true;
-                continue; // Retry immediately with new model
+            // Triple Blindaje: Flash -> Pro -> Legacy (1.0)
+            if (msg.includes("404") || msg.includes("not found")) {
+                if (!usingFallback) {
+                    console.warn("⚠️ [AI WARN] Modelo Flash no encontrado. Cambiando a PRO...");
+                    currentModel = geminiPro;
+                    usingFallback = true;
+                    continue;
+                } else if (currentModel !== geminiLegacy) {
+                    console.warn("⚠️ [AI WARN] Modelo Pro no encontrado. Cambiando a LEGACY (1.0)...");
+                    currentModel = geminiLegacy;
+                    continue;
+                }
             }
 
             const isRetryable =
