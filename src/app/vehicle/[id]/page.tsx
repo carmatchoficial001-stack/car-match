@@ -1,14 +1,14 @@
-
 import { Metadata } from 'next'
 import { prisma } from "@/lib/db"
-import { notFound } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 import VehicleDetailClient from "./VehicleDetailClient"
 import { auth } from '@/lib/auth'
 import { serializeDecimal } from "@/lib/serialize"
+import { generateVehicleSlug } from '@/lib/slug'
 
 interface Props {
     params: Promise<{ id: string }>
-    searchParams: Promise<any>
+    searchParams?: Promise<any>
 }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
@@ -64,14 +64,6 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
             'vehicle:price': vehicle.price.toString(),
         }
     }
-}
-
-import { prisma } from "@/lib/db"
-import { notFound, permanentRedirect } from "next/navigation"
-import { generateVehicleSlug } from '@/lib/slug'
-
-interface Props {
-    params: Promise<{ id: string }>
 }
 
 export default async function VehicleDetailPage({ params }: Props) {
