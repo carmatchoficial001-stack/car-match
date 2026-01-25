@@ -149,6 +149,9 @@ export default function MarketFiltersAdvanced({
     const handleAiSearch = async () => {
         if (!aiQuery.trim()) return
 
+        // 🚀 CLOSE MODAL IMMEDIATELY - No waiting
+        if (onClose) onClose()
+
         setIsAnalyzing(true)
         setAiExplanation('')
 
@@ -206,12 +209,12 @@ export default function MarketFiltersAdvanced({
 
                 setAiExplanation(explanation || 'Buscando...')
 
-                // Execute Search & Close
+                // Execute Search
                 router.push(`/market?${params.toString()}`)
-                if (onClose) onClose()
             }
         } catch (error) {
             console.error('Error in AI Search:', error)
+            // Don't show error to user, just log it
             setAiExplanation(t('smart_search.error') || 'Error')
         } finally {
             setIsAnalyzing(false)
