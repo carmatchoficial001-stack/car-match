@@ -44,19 +44,25 @@ export default function MarketFiltersAdvanced({
     const searchParams = useSearchParams()
     const availableYears = getYears()
 
-    // Estados de filtros
-    const [category, setCategory] = useState<VehicleCategory | ''>((currentFilters.category as VehicleCategory) || '')
-    const [subType, setSubType] = useState(currentFilters.vehicleType || currentFilters.subType || '')
-    const [brand, setBrand] = useState(currentFilters.brand || '')
-    const [model, setModel] = useState(currentFilters.model || '')
-    const [minPrice, setMinPrice] = useState(currentFilters.minPrice || '')
-    const [maxPrice, setMaxPrice] = useState(currentFilters.maxPrice || '')
-    const [minYear, setMinYear] = useState(currentFilters.minYear || '')
-    const [maxYear, setMaxYear] = useState(currentFilters.maxYear || '')
-    const [color, setColor] = useState(currentFilters.color || '')
-    const [condition, setCondition] = useState(currentFilters.condition || '')
+    // 🧠 DECOUPLING LOGIC:
+    // If we are in "AI Advisor Mode" (indicated by ?ai_mode=true in URL),
+    // we do NOT want to overwrite the manual filter dropdowns with the AI results.
+    // We want the manual UI to remain clean so the user can switch back to manual filtering easily.
+    const isAiMode = currentFilters.ai_mode === 'true'
 
-    // Ubicación
+    // Estados de filtros (Solo inicializar desde URL si NO estamos en modo AI)
+    const [category, setCategory] = useState<VehicleCategory | ''>(!isAiMode ? (currentFilters.category as VehicleCategory) || '' : '')
+    const [subType, setSubType] = useState(!isAiMode ? (currentFilters.vehicleType || currentFilters.subType || '') : '')
+    const [brand, setBrand] = useState(!isAiMode ? (currentFilters.brand || '') : '')
+    const [model, setModel] = useState(!isAiMode ? (currentFilters.model || '') : '')
+    const [minPrice, setMinPrice] = useState(!isAiMode ? (currentFilters.minPrice || '') : '')
+    const [maxPrice, setMaxPrice] = useState(!isAiMode ? (currentFilters.maxPrice || '') : '')
+    const [minYear, setMinYear] = useState(!isAiMode ? (currentFilters.minYear || '') : '')
+    const [maxYear, setMaxYear] = useState(!isAiMode ? (currentFilters.maxYear || '') : '')
+    const [color, setColor] = useState(!isAiMode ? (currentFilters.color || '') : '')
+    const [condition, setCondition] = useState(!isAiMode ? (currentFilters.condition || '') : '')
+
+    // Ubicación (Siempre sincronizar porque es global)
     const [country, setCountry] = useState(currentFilters.country || userCountry)
     const [state, setState] = useState(currentFilters.state || userState)
     const [city, setCity] = useState(currentFilters.city || userCity)
@@ -170,6 +176,7 @@ export default function MarketFiltersAdvanced({
 
                 // ⚓ PRIMARY ANCHOR: Preserve user query for fallback OR search
                 params.set('search', aiQuery)
+                params.set('ai_mode', 'true') // 🧠 SIGNAL: This is an AI search, do not mess with manual UI
 
                 // Add AI filters
                 if (filters.category) params.set('category', filters.category)
