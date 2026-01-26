@@ -46,7 +46,90 @@
         "copied": "복사되었습니다!",
         "view_more": "더 보기",
         "seats": "인승",
-        "currency": "통화"
+        "currency": "통화",
+        "login_vehicle": "차량 판매",
+        "login_business": "비즈니스 등록",
+        "dynamic_ctas": {
+            "vehicles": [
+                "급하게 돈이 필요하세요? | 여기에 게시하세요!",
+                "더 이상 마음에 안 드시나요? | 오늘 판매하세요!",
+                "새로 바꾸고 싶으세요? | 무료로 올리세요!",
+                "현금이 필요하세요? | 지금 판매하세요!",
+                "주차 공간이 꽉 찼나요? | 여기에 게시하세요!",
+                "바꿀 시간인가요? | 오늘 올리세요!",
+                "남는 차가 있으세요? | 여기에 판매하세요!",
+                "다른 차를 알아보고 계신가요? | 지금 게시하세요!",
+                "자본이 필요하신가요? | 돈으로 만드세요!",
+                "새 차를 원하세요? | 지금 판매하세요!",
+                "주차 공간이 꽉 찼나요? | 오늘 올리세요!",
+                "차 때문에 불편하신가요? | 여기에 판매하세요!",
+                "최고를 원하세요? | 이 차를 파세요!",
+                "돈 쓸 일이 많으세요? | 돈으로 만드세요!",
+                "계약금을 위해서인가요? | 지금 판매하세요!",
+                "여행 가시나요? | 오늘 올리세요!",
+                "곧 이사 가시나요? | 지금 판매하세요!",
+                "작은 차인가요? | 여기에 게시하세요!",
+                "힘을 원하세요? | 당신의 차를 파세요!",
+                "대 가족이신가요? | 지금 올리세요!",
+                "수명이 다 되었나요? | 오늘 판매하세요!",
+                "빠른 돈이 필요하신가요? | 여기에 게시하세요!",
+                "남는 타이어가 있으세요? | 돈으로 만드세요!",
+                "새로운 프로젝트인가요? | 지금 판매하세요!",
+                "새 차를 갖고 싶으세요? | 여기에 게시하세요!",
+                "세워둔 차인가요? | 지금 판매하세요!",
+                "업그레이드하고 싶으세요? | 당신의 차를 바꾸세요!",
+                "새로운 것을 찾으세요? | 이 차를 게시하세요!",
+                "길에 방해되나요? | 현금으로 만드세요!",
+                "공간이 필요하세요? | 빨리 판매하세요!",
+                "더 이상 사용하지 않으세요? | 돈을 벌어보세요!",
+                "다른 차가 끌리나요? | 지금 이 차를 파세요!",
+                "연비를 찾으세요? | 당신의 SUV를 파세요!",
+                "오래된 냄새가 나나요? | 오늘 새 차를 뽑으세요!",
+                "주행 거리가 많나요? | 다음 사람에게 넘기세요!",
+                "모험을 찾으세요? | 차를 바꾸세요!",
+                "계약금이 준비되었나요? | 이것만 팔면 돼요!",
+                "전기차를 찾으세요? | 당신의 가솔린 차를 파세요!",
+                "유지비가 비싼가요? | 오늘 판매하세요!",
+                "가족이 늘었나요? | 세단을 파세요!",
+                "서류가 제대로 준비되었나요? | 지금 게시하세요!",
+                "거의 사용하지 않으세요? | 다른 사람에게 주세요!",
+                "럭셔리를 찾으세요? | 판매부터 시작하세요!",
+                "클래식을 원하세요? | 당신의 현대차를 파세요!",
+                "실린더가 남나요? | 연비를 줄이세요!",
+                "4x4를 찾으세요? | 당신의 시티카를 파세요!",
+                "자녀들이 대학에 가나요? | 차를 바꾸세요!",
+                "스포츠카를 원하세요? | 지붕을 여세요!",
+                "신뢰성을 찾으세요? | 당신의 차를 업데이트하세요!",
+                "급하게 현금이 필요하세요? | 오늘 바로 판매하세요!",
+                "모두를 위한 소셜 네트워크 | 여기에 게시하세요!",
+                "우리는 독점적이지 않습니다! | 운동에 참여하세요",
+                "가장 큰 커뮤니티 | 지금 탑승하세요!",
+                "진짜 사람, 진짜 거래 | 오늘 게시하세요!",
+                "모두 환영합니다! | 당신의 차를 파세요",
+                "사람들을 위한 네트워크 | 무료로 올리세요!",
+                "메가 트렌드에 참여하세요 | 여기에서 판매하세요!",
+                "멕시코 전역에 당신의 차를 | 지금 탑승하세요!",
+                "게시할 자유 | 돈으로 만드세요!",
+                "당신을 지지하는 네트워크 | 오늘 판매하세요!"
+            ]
+        },
+        "city": "도시",
+        "change_language": "언어 변경",
+        "install_on_ios": "iOS에 설치",
+        "install_on_android": "Android에 설치",
+        "user": "사용자",
+        "sold": "판매 완료",
+        "unavailable": "사용 불가",
+        "seller": "판매자",
+        "buyer": "구매자",
+        "accept": "수락",
+        "time": {
+            "now": "지금",
+            "m": "분",
+            "h": "시간",
+            "d": "일",
+            "sem": "주"
+        }
     },
     "share": {
         "share_in": "공유할 플랫폼 선택...",
@@ -76,7 +159,8 @@
         "favorites": "관심 목록",
         "credits": "크레딧",
         "admin_panel": "관리자 패널",
-        "exit_portal": "포털 나가기"
+        "exit_portal": "포털 나가기",
+        "settings": "설정"
     },
     "swipe": {
         "expand_search": "다른 지점까지 검색 범위 확대",
@@ -223,7 +307,10 @@
             "images": "이미지",
             "features": "옵션",
             "location": "위치",
-            "review": "검토 및 완료"
+            "review": "검토 및 완료",
+            "identity_price": "신원 및 가격",
+            "specs_features": "사양 및 기능",
+            "location_review": "위치 및 게시"
         },
         "titles": {
             "what_type": "판매하실 차량의 종류를 선택해주세요",
@@ -380,7 +467,8 @@
             "sold": "판매 완료",
             "inactive": "비활성화"
         },
-        "user_id": "사용자 ID"
+        "user_id": "사용자 ID",
+        "edit_profile": "프로필 편집"
     },
     "business": {
         "title": "내 비즈니스",
@@ -508,6 +596,30 @@
             "pesados": {
                 "name": "대형 차량",
                 "services": "트럭 정비|에어 서스펜션|유압 시스템|플릿 관리"
+            },
+            "electrolinera": {
+                "name": "충전소",
+                "services": "급속 충전|Tesla 충전기|타입 1 및 2 커넥터|공용 충전소|무료 충전 지점"
+            },
+            "caseta": {
+                "name": "통행료 부스",
+                "services": "현금 결제|자동 요금 징수|화장실|청구"
+            },
+            "hospital": {
+                "name": "병원",
+                "services": "응급실|진료|약국|구급차"
+            },
+            "policia": {
+                "name": "경찰서",
+                "services": "응급 상황|신고|교통|순찰차"
+            },
+            "aeropuerto": {
+                "name": "공항",
+                "services": "항공편|택시|렌터카|환전"
+            },
+            "estacion_tren": {
+                "name": "기차역",
+                "services": "티켓|플랫폼|대기실|카페"
             }
         }
     },
@@ -707,7 +819,12 @@
         "placeholder_active": "어드바이저가 분석 중입니다...",
         "placeholder_default": "원하시는 점을 입력하세요 (예: '연비 좋은 시내용 차가 필요해')",
         "btn_analyzing": "분석 중...",
-        "btn_search": "상담하기"
+        "btn_search": "상담하기",
+        "title": "스마트 검색",
+        "placeholder": "찾으시는 내용을 알려주세요: '저렴한 4기통 빨간색 가족용 밴이 필요합니다...'",
+        "ask_advisor": "상담사에게 문의",
+        "consulting": "전문가 상담 중...",
+        "understood": "알겠습니다! 검색에 따라 필터를 조정했습니다."
     },
     "map_store": {
         "search_placeholder": "🔍 거리, 지역, 장소 검색...",
@@ -805,7 +922,8 @@
             "submit": "Send Report",
             "sending": "Sending...",
             "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
-            "success_msg": "Thank you for your report. The business has been hidden for review."
+            "success_msg": "Thank you for your report. The business has been hidden for review.",
+            "success_title": "보고서가 전송되었습니다!"
         }
     },
     "business_details": {
@@ -907,7 +1025,8 @@
             "safety_desc": "현차 확인이나 서류 검토는 가급적 안전한 공공장소에서 진행하시길 권장합니다.",
             "transparency_title": "투명성:",
             "transparency_desc": "정비 이력을 상세히 공개하면 거래가 더 빠르게 성사될 수 있습니다."
-        }
+        },
+        "creative_examples": "예시: '{name}의 차고', '북부 자동차', '{name}의 컬렉션'"
     },
     "taxonomy": {
         "categories": {
@@ -1015,7 +1134,86 @@
             "Remolque": "트레일러/피견인차",
             "Lowboy": "저상 트레일러",
             "Remolque Frigorífico": "냉동 트레일러",
-            "Plataforma Porta-contenedor": "컨테이너 샤시"
+            "Plataforma Porta-contenedor": "컨테이너 샤시",
+            "Alarma": "경보기",
+            "GPS": "GPS",
+            "Luces LED": "LED 조명",
+            "Frenos ABS": "ABS 브레이크",
+            "Bluetooth": "Bluetooth",
+            "USB": "USB",
+            "Pantalla Touch": "터치 스크린",
+            "Aire Acondicionado": "에어컨",
+            "Climatizador Automático": "자동 온도 조절 장치",
+            "Asientos de Piel": "가죽 시트",
+            "Asientos Eléctricos": "전동 시트",
+            "Asientos Calefactables": "열선 시트",
+            "Asientos Ventilados": "통풍 시트",
+            "Quemacocos": "선루프",
+            "Techo Panorámico": "파노라마 루프",
+            "Vidrios Eléctricos": "전동 윈도우",
+            "Espejos Eléctricos": "전동 거울",
+            "Volante Multifuncional": "다기능 스티어링 휠",
+            "Cajuela Eléctrica": "전동 트렁크",
+            "Android Auto/CarPlay": "Android Auto/CarPlay",
+            "Cargador Inalámbrico": "무선 충전기",
+            "Head-Up Display": "헤드업 디스플레이",
+            "Sistema de Sonido Premium": "프리미엄 사운드",
+            "Tablero Digital": "디지털 계기판",
+            "Llave Inteligente (Keyless)": "스마트 키(Keyless)",
+            "Cámara de Reversa": "후방 카메라",
+            "Cámara 360°": "360° 카메라",
+            "Bolsas de Aire (Airbags)": "에어백",
+            "Sensores de Estacionamiento": "주차 센서",
+            "Monitor de Punto Ciego": "사각 지대 모니터",
+            "Alerta de Cambio de Carril": "차선 이탈 경고",
+            "Frenado Autónomo de Emergencia": "자동 긴급 제동",
+            "Control Crucero Adaptativo": "어댑티브 크루즈 컨트롤",
+            "Rines de Aluminio": "알루미늄 휠",
+            "Faros de Niebla": "안개등",
+            "Barras de Techo": "루프랙",
+            "Kit Deportivo": "스포츠 키트",
+            "Frenos de Disco": "디스크 브레이크",
+            "ABS en Curva": "커브 ABS",
+            "Control de Tracción": "트랙션 컨트롤",
+            "Quickshifter": "퀵시프터",
+            "Modos de Manejo": "주행 모드",
+            "Suspensión Electrónica": "전자 제어 서스펜션",
+            "Amortiguador de Dirección": "스티어링 댐퍼",
+            "Maletas Laterales": "사이드 케이스",
+            "Top Case": "탑 케이스",
+            "Parabrisas": "윈드스크린",
+            "Defensas/Sliders": "범퍼/슬라이더",
+            "Puños Calefactables": "열선 그립",
+            "Asiento Comfort": "컴포트 시트",
+            "Luces Auxiliares (Exploradoras)": "보조 라이트 (서치 라이트)",
+            "Freno de Motor": "엔진 브레이크",
+            "Retardador": "감속기",
+            "Camarote": "선실",
+            "Ejes Retráctiles": "개폐식 액슬",
+            "Suspensión de Aire": "에어 서스펜션",
+            "Toma de Fuerza (PTO)": "동력인출장치 (PTO)",
+            "Deflector de Aire": "에어 디플렉터",
+            "Tanque Auxiliar": "보조 탱크",
+            "Visera Exterior": "외부 바이저",
+            "Asiento Neumático": "에어 시트",
+            "Eje Elevable": "리프트 액슬",
+            "Cabina Cerrada (ROPS/FOPS)": "밀폐형 캐빈",
+            "Calefacción": "난방",
+            "Joystick Control": "조이스틱 컨트롤",
+            "Estabilizadores": "안정 장치",
+            "Cucharon 4en1": "4-in-1 버킷",
+            "Línea Hidráulica Auxiliar": "유압 라인",
+            "Ripper (Desgarrador)": "리퍼",
+            "Zapatas Anchas": "넓은 슈",
+            "Llantas Sólidas": "솔리드 타이어",
+            "Winch (Cabrestante)": "윈치",
+            "Roll Cage (Jaula)": "롤 케이지",
+            "Snorkel": "스노클",
+            "Suspensión Lift Kit": "리프트 키트",
+            "Llantas All-Terrain/Mud-Terrain": "올 터레인/머드 타이어",
+            "Luces LED Bar": "LED 바",
+            "Techo Rígido": "하드탑",
+            "Medios Puertas": "하프 도어"
         },
         "transmission": {
             "Manual": "수동",
@@ -1131,6 +1329,11 @@
         "completed": "Completed",
         "accept_btn": "Accept",
         "reject_btn": "Reject",
-        "cancel_btn": "Cancel"
+        "cancel_btn": "Cancel",
+        "past": "완료됨"
+    },
+    "chat": {
+        "welcome": "안녕하세요! 저는 당신의 CarMatch 어드바이저입니다. 👨‍💻 오늘 무엇을 도와드릴까요?",
+        "title": "CarMatch 어드바이저"
     }
 }

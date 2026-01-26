@@ -25,6 +25,8 @@ const LANGUAGES = [
     { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
     { code: 'ur', name: 'اردو', flag: '🇵🇰' },
     { code: 'he', name: 'עברית', flag: '🇮🇱' },
+    { code: 'nah', name: 'Náhuatl', flag: '🦅' },
+    { code: 'myn', name: 'Maya', flag: '🐆' },
 ]
 
 export default function LanguageSelectorPublic() {

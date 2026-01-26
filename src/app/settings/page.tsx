@@ -62,6 +62,8 @@ export default function SettingsPage() {
         { code: 'vi', flag: '🇻🇳', name: 'Tiếng Việt' },
         { code: 'ur', flag: '🇵🇰', name: 'اردو' },
         { code: 'he', flag: '🇮🇱', name: 'עברית' },
+        { code: 'nah', flag: '🦅', name: 'Náhuatl' },
+        { code: 'myn', flag: '🐆', name: 'Maya' },
     ]
 
     return (

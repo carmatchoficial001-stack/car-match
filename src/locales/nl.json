@@ -46,7 +46,90 @@
         "copied": "Gekopieerd!",
         "view_more": "Meer bekijken",
         "seats": "zitplaatsen",
-        "currency": "Valuta"
+        "currency": "Valuta",
+        "login_vehicle": "Verkoop Voertuig",
+        "login_business": "Upload uw Bedrijf",
+        "dynamic_ctas": {
+            "vehicles": [
+                "Dringend geld nodig? | Publiceer het hier!",
+                "Ben je het beu? | Verkoop het vandaag nog!",
+                "Wil je vernieuwen? | Upload het gratis!",
+                "Cash nodig? | Verkoop het nu!",
+                "Garage vol? | Publiceer hier!",
+                "Tijd voor verandering? | Upload het vandaag nog!",
+                "Auto over? | Verkoop het hier!",
+                "Op weg naar een andere? | Publiceer het nu!",
+                "Kapitaal nodig? | Maak er geld van!",
+                "Wil je het nieuwste? | Verkoop het nu!",
+                "Garage vol? | Upload het vandaag nog!",
+                "Auto in de weg? | Verkoop het hier!",
+                "Wil je het beste? | Verkoop deze!",
+                "Kosten bovenop? | Maak er geld van!",
+                "Voor de aanbetaling? | Verkoop het nu!",
+                "Ga je op reis? | Upload het vandaag nog!",
+                "Binnenkort verhuizen? | Verkoop het nu!",
+                "Kleine auto? | Publiceer het hier!",
+                "Wil je vermogen? | Verkoop die van jou!",
+                "Groot gezin? | Upload het nu!",
+                "Is het klaar? | Verkoop het vandaag nog!",
+                "Snel geld? | Publiceer het hier!",
+                "Banden over? | Maak er geld van!",
+                "Nieuw project? | Verkoop het nu!",
+                "Wil je een nieuwe? | Publiceer hier!",
+                "Auto stilstaand? | Verkoop het nu!",
+                "Wil je een upgrade? | Vervang die van jou!",
+                "Op zoek naar iets nieuws? | Publiceer deze!",
+                "Staat het in de straat? | Maak het effectief!",
+                "Ruimte nodig? | Verkoop het snel!",
+                "Gebruik je het niet meer? | Verdien wat geld!",
+                "Voel je je aangetrokken tot een ander? | Laat deze nu los!",
+                "Op zoek naar economie? | Verkoop je SUV!",
+                "Ruikt het oud? | Begin vandaag nog!",
+                "Veel kilometers? | Geef het door aan de volgende!",
+                "Op zoek naar avontuur? | Verander van auto!",
+                "Aanbetaling klaar? | Alleen deze ontbreekt nog!",
+                "Op zoek naar elektrisch? | Verkoop je benzine!",
+                "Duur onderhoud? | Verkoop het vandaag nog!",
+                "Gezin gegroeid? | Verkoop de sedan!",
+                "Papieren in orde? | Publiceer het nu!",
+                "Weinig gebruikt? | Geef het aan iemand anders!",
+                "Op zoek naar luxe? | Begin met verkopen!",
+                "Wil je een klassieker? | Verkoop je moderne!",
+                "Cilinders over? | Verlaag het verbruik!",
+                "Op zoek naar een 4x4? | Verkoop je stad!",
+                "Kinderen naar de universiteit? | Verander van schip!",
+                "Wil je een sportwagen? | Laat het dak los!",
+                "Op zoek naar betrouwbaarheid? | Update je auto!",
+                "Dringende liquiditeit? | Verkoop het vandaag nog!",
+                "SOCIAAL NETWERK VOOR IEDEREEN | PUBLICEER HIER!",
+                "WIJ ZIJN NIET EXCLUSIEF! | SLUIT JE AAN BIJ DE BEWEGING",
+                "DE GROOTSTE GEMEENSCHAP | KOM NU BINNEN!",
+                "ECHTE MENSEN, ECHTE DEALS | PUBLICEER VANDAAG!",
+                "IEDEREEN IS WELKOM! | VERKOOP UW AUTO",
+                "EEN NETWERK VOOR HET VOLK | UPLOAD HET GRATIS!",
+                "SLUIT JE AAN BIJ DE MEGASTROOM | VERKOOP HIER!",
+                "UW AUTO IN HEEL MEXICO | KOM NU BINNEN!",
+                "VRIJHEID OM TE PUBLICEREN | MAAK ER GELD VAN!",
+                "HET NETWERK DAT U WEL ONDERSTEUNT | VERKOOP VANDAAG!"
+            ]
+        },
+        "city": "Stad",
+        "change_language": "Verander taal",
+        "install_on_ios": "Installeer op iOS",
+        "install_on_android": "Installeer op Android",
+        "user": "Gebruiker",
+        "sold": "Verkocht",
+        "unavailable": "Niet beschikbaar",
+        "seller": "Verkoper",
+        "buyer": "Koper",
+        "accept": "Accepteren",
+        "time": {
+            "now": "Nu",
+            "m": "m",
+            "h": "u",
+            "d": "d",
+            "sem": "week"
+        }
     },
     "share": {
         "share_in": "Delen op...",
@@ -76,7 +159,8 @@
         "favorites": "Favorieten",
         "credits": "Credits",
         "admin_panel": "Admin Paneel",
-        "exit_portal": "Portal verlaten"
+        "exit_portal": "Portal verlaten",
+        "settings": "Configuratie"
     },
     "swipe": {
         "expand_search": "Zoekopdracht uitbreiden naar andere locaties",
@@ -223,7 +307,10 @@
             "images": "Afbeeldingen",
             "features": "Opties",
             "location": "Locatie",
-            "review": "Controleren"
+            "review": "Controleren",
+            "identity_price": "Identiteit en Waarde",
+            "specs_features": "Ziel en Uitrusting",
+            "location_review": "Locatie en Lancering"
         },
         "titles": {
             "what_type": "Wat voor voertuig verkoop je?",
@@ -380,7 +467,8 @@
             "sold": "Verkocht",
             "inactive": "Advertentie ingetrokken"
         },
-        "user_id": "Gebruikers-ID"
+        "user_id": "Gebruikers-ID",
+        "edit_profile": "Bewerk profiel"
     },
     "business": {
         "title": "Mijn Bedrijven",
@@ -508,6 +596,30 @@
             "pesados": {
                 "name": "Zware voertuigen",
                 "services": "Vrachtwagenonderhoud|Luchtvering|Hydraulische systemen|Wagenparkonderhoud"
+            },
+            "electrolinera": {
+                "name": "Oplaadstations",
+                "services": "Snel laden|Tesla-opladers|Type 1- en 2-connectoren|Openbare laadstations|Gratis oplaadpunten"
+            },
+            "caseta": {
+                "name": "Tolhokjes",
+                "services": "Betaling in contanten|Tolheffing|Badkamers|Facturering"
+            },
+            "hospital": {
+                "name": "Ziekenhuizen",
+                "services": "Noodgevallen|Consultatie|Apotheek|Ambulance"
+            },
+            "policia": {
+                "name": "Politiebureau",
+                "services": "Noodgevallen|Aangiften|Verkeer|Patrouilles"
+            },
+            "aeropuerto": {
+                "name": "Luchthavens",
+                "services": "Vluchten|Taxi's|Autoverhuur|Geldwisselen"
+            },
+            "estacion_tren": {
+                "name": "Treinstation",
+                "services": "Tickets|Perrons|Wachtkamer|Cafetaria"
             }
         }
     },
@@ -707,7 +819,12 @@
         "placeholder_active": "Adviseur analyseert verzoek...",
         "placeholder_default": "Schrijf wat je zoekt (bijv: «Ik wil een zuinige auto voor in de stad»)",
         "btn_analyzing": "Aan het denken...",
-        "btn_search": "Vraag stellen"
+        "btn_search": "Vraag stellen",
+        "title": "Slim Zoeken",
+        "placeholder": "Vertel ons wat je zoekt: 'Ik heb een rode, goedkope, 4-cilinder gezinswagen nodig...'",
+        "ask_advisor": "Vraag het aan de Adviseur",
+        "consulting": "Expert aan het raadplegen...",
+        "understood": "Begrepen! Ik heb de filters aangepast aan uw zoekopdracht."
     },
     "map_store": {
         "search_placeholder": "🔍 Zoek straat, wijk, plaats...",
@@ -805,7 +922,8 @@
             "submit": "Send Report",
             "sending": "Sending...",
             "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
-            "success_msg": "Thank you for your report. The business has been hidden for review."
+            "success_msg": "Thank you for your report. The business has been hidden for review.",
+            "success_title": "Rapport verzonden!"
         }
     },
     "business_details": {
@@ -907,7 +1025,8 @@
             "safety_desc": "Controleer auto en documenten enkel in veilige openbare ruimtes.",
             "transparency_title": "Transparantie:",
             "transparency_desc": "Een gedetailleerde beschrijving van de onderhoudshistorie helpt bij een snellere verkoop."
-        }
+        },
+        "creative_examples": "Voorbeelden: 'De Garage van {name}', 'Auto's van het Noorden', 'De Collectie van {name}'"
     },
     "taxonomy": {
         "categories": {
@@ -1015,7 +1134,86 @@
             "Remolque": "Aanhangwagen",
             "Lowboy": "Dieplader",
             "Remolque Frigorífico": "Koeltrailer",
-            "Plataforma Porta-contenedor": "Containercarrier"
+            "Plataforma Porta-contenedor": "Containercarrier",
+            "Alarma": "Alarm",
+            "GPS": "GPS",
+            "Luces LED": "LED-verlichting",
+            "Frenos ABS": "ABS-remmen",
+            "Bluetooth": "Bluetooth",
+            "USB": "USB",
+            "Pantalla Touch": "Touchscreen",
+            "Aire Acondicionado": "Airconditioning",
+            "Climatizador Automático": "Automatische klimaatregeling",
+            "Asientos de Piel": "Lederen Bekleding",
+            "Asientos Eléctricos": "Elektrische Stoelen",
+            "Asientos Calefactables": "Verwarmde Stoelen",
+            "Asientos Ventilados": "Ventilatie in de Stoelen",
+            "Quemacocos": "Schuifdak",
+            "Techo Panorámico": "Panoramadak",
+            "Vidrios Eléctricos": "Elektrische Ramen",
+            "Espejos Eléctricos": "Elektrische Spiegels",
+            "Volante Multifuncional": "Multifunctioneel Stuurwiel",
+            "Cajuela Eléctrica": "Elektrische achterklep",
+            "Android Auto/CarPlay": "Android Auto/CarPlay",
+            "Cargador Inalámbrico": "Draadloze oplader",
+            "Head-Up Display": "Head-Up Display",
+            "Sistema de Sonido Premium": "Premium geluidssysteem",
+            "Tablero Digital": "Digitaal dashboard",
+            "Llave Inteligente (Keyless)": "Slimme sleutel (Keyless)",
+            "Cámara de Reversa": "Achteruitrijcamera",
+            "Cámara 360°": "360°-camera",
+            "Bolsas de Aire (Airbags)": "Airbags",
+            "Sensores de Estacionamiento": "Parkeersensoren",
+            "Monitor de Punto Ciego": "Dodehoekmonitor",
+            "Alerta de Cambio de Carril": "Waarschuwing voor het verlaten van de rijstrook",
+            "Frenado Autónomo de Emergencia": "Autonoom noodremsysteem",
+            "Control Crucero Adaptativo": "Adaptieve cruisecontrol",
+            "Rines de Aluminio": "Aluminium velgen",
+            "Faros de Niebla": "Mistlampen",
+            "Barras de Techo": "Dakrails",
+            "Kit Deportivo": "Sportpakket",
+            "Frenos de Disco": "Schijfremmen",
+            "ABS en Curva": "ABS in bochten",
+            "Control de Tracción": "Tractiecontrole",
+            "Quickshifter": "Quickshifter",
+            "Modos de Manejo": "Rijmodi",
+            "Suspensión Electrónica": "Elektronische ophanging",
+            "Amortiguador de Dirección": "Stuurdemper",
+            "Maletas Laterales": "Zijkoffers",
+            "Top Case": "Topkoffer",
+            "Parabrisas": "Voorruit",
+            "Defensas/Sliders": "Beschermers/Sliders",
+            "Puños Calefactables": "Verwarmde handgrepen",
+            "Asiento Comfort": "Comfortstoel",
+            "Luces Auxiliares (Exploradoras)": "Extra verlichting (mistlampen)",
+            "Freno de Motor": "Motorrem",
+            "Retardador": "Retarder",
+            "Camarote": "Hut",
+            "Ejes Retráctiles": "Intrekbare assen",
+            "Suspensión de Aire": "Luchtvering",
+            "Toma de Fuerza (PTO)": "Krachtafnemer (PTO)",
+            "Deflector de Aire": "Windgeleider",
+            "Tanque Auxiliar": "Auxiliaire tank",
+            "Visera Exterior": "Zonnekap",
+            "Asiento Neumático": "Luchtgeveerde stoel",
+            "Eje Elevable": "Hefas",
+            "Cabina Cerrada (ROPS/FOPS)": "Gesloten cabine (ROPS/FOPS)",
+            "Calefacción": "Verwarming",
+            "Joystick Control": "Joystickbediening",
+            "Estabilizadores": "Stabilisatoren",
+            "Cucharon 4en1": "4-in-1-bak",
+            "Línea Hidráulica Auxiliar": "Extra hydraulische leiding",
+            "Ripper (Desgarrador)": "Ripper",
+            "Zapatas Anchas": "Brede rupsplaten",
+            "Llantas Sólidas": "Massieve banden",
+            "Winch (Cabrestante)": "Winch (lier)",
+            "Roll Cage (Jaula)": "Rollkooi",
+            "Snorkel": "Snorkel",
+            "Suspensión Lift Kit": "Lift Kit",
+            "Llantas All-Terrain/Mud-Terrain": "All-Terrain/Mud-Terrain banden",
+            "Luces LED Bar": "LED-bar",
+            "Techo Rígido": "Hardtop",
+            "Medios Puertas": "Halve Deuren"
         },
         "transmission": {
             "Manual": "Handgeschakeld",
@@ -1131,6 +1329,11 @@
         "completed": "Completed",
         "accept_btn": "Accept",
         "reject_btn": "Reject",
-        "cancel_btn": "Cancel"
+        "cancel_btn": "Cancel",
+        "past": "Afgerond"
+    },
+    "chat": {
+        "welcome": "Hallo! Ik ben je CarMatch adviseur. 👨‍💻 Waarmee kan ik je vandaag helpen?",
+        "title": "CarMatch Adviseur"
     }
 }

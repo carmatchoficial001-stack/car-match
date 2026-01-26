@@ -46,7 +46,90 @@
         "copied": "Kopioitu!",
         "view_more": "Näytä lisää",
         "seats": "istuinta",
-        "currency": "Valuutta"
+        "currency": "Valuutta",
+        "login_vehicle": "Myy ajoneuvo",
+        "login_business": "Lataa yrityksesi",
+        "dynamic_ctas": {
+            "vehicles": [
+                "Tarvitsetko rahaa nopeasti? | Julkaise se täällä!",
+                "Etkö pidä siitä enää? | Myy se tänään!",
+                "Haluatko uusia? | Lataa se ilmaiseksi!",
+                "Tarvitsetko käteistä? | Myy se nyt!",
+                "Autotalli täynnä? | Julkaise täällä!",
+                "Aika vaihtaa? | Lataa se tänään!",
+                "Onko sinulla auto ylimääräisenä? | Myy se täällä!",
+                "Oletko hankkimassa toista? | Julkaise se nyt!",
+                "Tarvitsetko pääomaa? | Tee siitä rahaa!",
+                "Haluatko uuden? | Myy se nyt!",
+                "Autotalli täynnä? | Lataa se tänään!",
+                "Auto tiellä? | Myy se täällä!",
+                "Haluatko parasta? | Myy tämä!",
+                "Kuluja tulossa? | Tee siitä rahaa!",
+                "Käsirahaa varten? | Myy se nyt!",
+                "Oletko lähdössä matkalle? | Lataa se tänään!",
+                "Oletko muuttamassa pian? | Myy se nyt!",
+                "Pieni auto? | Julkaise se täällä!",
+                "Haluatko tehoa? | Myy omasi!",
+                "Iso perhe? | Lataa se nyt!",
+                "Onko se jo palvellut? | Myy se tänään!",
+                "Nopeaa rahaa? | Julkaise se täällä!",
+                "Onko sinulla renkaita ylimääräisenä? | Tee niistä rahaa!",
+                "Uusi projekti? | Myy se nyt!",
+                "Haluatko uuden auton? | Julkaise täällä!",
+                "Auto seisoo? | Myy se nyt!",
+                "Haluatko päivittää? | Vaihda omasi!",
+                "Etsitkö jotain uutta? | Julkaise tämä!",
+                "Onko se tiellä? | Tee siitä rahaa!",
+                "Tarvitsetko tilaa? | Myy se nopeasti!",
+                "Etkö käytä sitä enää? | Ansaitse rahaa!",
+                "Vetääkö toinen puoleensa? | Luovu tästä nyt!",
+                "Etsitkö taloudellisuutta? | Myy katumaasturisi!",
+                "Hajuaako vanhalle? | Ota uusi käyttöön tänään!",
+                "Paljon kilometrejä? | Anna se seuraavalle!",
+                "Etsitkö seikkailua? | Vaihda autoa!",
+                "Käsiraha valmiina? | Enää tämä puuttuu!",
+                "Etsitkö sähköautoa? | Myy bensiinikäyttöisesi!",
+                "Kallis huolto? | Myy se tänään!",
+                "Perhe kasvoi? | Myy sedan!",
+                "Paperit kunnossa? | Julkaise se nyt!",
+                "Vähän käytetty? | Anna se toiselle!",
+                "Etsitkö luksusta? | Aloita myymällä!",
+                "Haluatko klassikon? | Myy modernisi!",
+                "Onko sylintereitä liikaa? | Vähennä kulutusta!",
+                "Etsitkö nelivetoa? | Myy kaupunkiautosi!",
+                "Lapset yliopistoon? | Vaihda autoa!",
+                "Haluatko urheiluauton? | Päästä katto irti!",
+                "Etsitkö luotettavuutta? | Päivitä autosi!",
+                "Tarvitsetko nopeasti rahaa? | Myy se heti tänään!",
+                "SOSIAALINEN VERKOSTO KAIKILLE | JULKAISE SE TÄÄLLÄ!",
+                "EMME OLE AINOITA! | LIITY LIIKKEESEEN",
+                "SUURIN YHTEISÖ | LIITY MUKAAN NYT!",
+                "OIKEITA IHMISIÄ, OIKEITA KAUPPOJA | JULKAISE TÄNÄÄN!",
+                "KAIKKI OVAT TERVETULLEITA! | MYY AUTOSI",
+                "VERKOSTO KANSALLE | LATAA SE ILMAISEKSI!",
+                "LIITY MEGAVIRTAUKSEEN | MYY TÄÄLLÄ!",
+                "AUTOSI KOKO MEKSIKOSSA | LIITY MUKAAN NYT!",
+                "VAPAUTTA JULKAISTA | TEE SIITÄ RAHAA!",
+                "VERKOSTO, JOKA TUKEE SINUA | MYY TÄNÄÄN!"
+            ]
+        },
+        "city": "Kaupunki",
+        "change_language": "Vaihda kieli",
+        "install_on_ios": "Asenna iOS:ään",
+        "install_on_android": "Asenna Androidiin",
+        "user": "Käyttäjä",
+        "sold": "Myyty",
+        "unavailable": "Ei saatavilla",
+        "seller": "Myyjä",
+        "buyer": "Ostaja",
+        "accept": "Hyväksy",
+        "time": {
+            "now": "Nyt",
+            "m": "m",
+            "h": "h",
+            "d": "d",
+            "sem": "sem"
+        }
     },
     "share": {
         "share_in": "Jaa kohteessa...",
@@ -76,7 +159,8 @@
         "favorites": "Suosikit",
         "credits": "Krediitit",
         "admin_panel": "Ylläpitopaneeli",
-        "exit_portal": "Poistu portaalista"
+        "exit_portal": "Poistu portaalista",
+        "settings": "Asetukset"
     },
     "swipe": {
         "expand_search": "Laajenna hakua muihin sijainteihin",
@@ -223,7 +307,10 @@
             "images": "Kuvat",
             "features": "Valinnat",
             "location": "Sijainti",
-            "review": "Esikatselu"
+            "review": "Esikatselu",
+            "identity_price": "Identiteetti ja Arvo",
+            "specs_features": "Sielu ja Varusteet",
+            "location_review": "Sijainti ja Julkaisu"
         },
         "titles": {
             "what_type": "Minkä tyyppistä ajoneuvoa myyt?",
@@ -380,7 +467,8 @@
             "sold": "Myyty",
             "inactive": "Ilmoitus poistettu"
         },
-        "user_id": "Käyttäjä-ID"
+        "user_id": "Käyttäjä-ID",
+        "edit_profile": "Muokkaa profiilia"
     },
     "business": {
         "title": "Omat yritykset",
@@ -508,6 +596,30 @@
             "pesados": {
                 "name": "Raskas kalusto",
                 "services": "Kuorma-autohuolto|Ilmajousitukset|Hydrauliikkajärjestelmät|Kaluston hallinta"
+            },
+            "electrolinera": {
+                "name": "Latausasemat",
+                "services": "Pikalataus|Tesla-laturit|Tyypin 1 ja 2 liittimet|Julkiset latausasemat|Ilmaiset latauspisteet"
+            },
+            "caseta": {
+                "name": "Tiemaksut",
+                "services": "Käteismaksu|Sähköinen tiemaksu|WC:t|Laskutus"
+            },
+            "hospital": {
+                "name": "Sairaalat",
+                "services": "Päivystys|Konsultaatio|Apteekki|Ambulanssi"
+            },
+            "policia": {
+                "name": "Poliisiasema",
+                "services": "Hätätilanteet|Ilmoitukset|Liikenne|Partiot"
+            },
+            "aeropuerto": {
+                "name": "Lentokentät",
+                "services": "Lennot|Taksit|Autonvuokraus|Valuutanvaihto"
+            },
+            "estacion_tren": {
+                "name": "Rautatieasema",
+                "services": "Liput|Laiturit|Odotushuone|Kahvila"
             }
         }
     },
@@ -707,7 +819,12 @@
         "placeholder_active": "Neuvonantaja analysoi pyyntöä...",
         "placeholder_default": "Kirjoita mitä etsit (esim: «Haluan taloudellisen auton kaupunkiin»)",
         "btn_analyzing": "Mietitään...",
-        "btn_search": "Esitä kysymys"
+        "btn_search": "Esitä kysymys",
+        "title": "Älykäs Haku",
+        "placeholder": "Kerro meille, mitä etsit: 'Tarvitsen punaisen, halvan, 4-sylinterisen perheauton...'",
+        "ask_advisor": "Kysy Neuvojalta",
+        "consulting": "Konsultoidaan asiantuntijaa...",
+        "understood": "Selvä! Olen säätänyt suodattimia hakusi mukaan."
     },
     "map_store": {
         "search_placeholder": "🔍 Hae katu, alue, paikka...",
@@ -805,7 +922,8 @@
             "submit": "Send Report",
             "sending": "Sending...",
             "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
-            "success_msg": "Thank you for your report. The business has been hidden for review."
+            "success_msg": "Thank you for your report. The business has been hidden for review.",
+            "success_title": "Raportti Lähetetty!"
         }
     },
     "business_details": {
@@ -907,7 +1025,8 @@
             "safety_desc": "Tarkista auto ja asiakirjat vain turvallisella julkisella paikalla.",
             "transparency_title": "Läpinäkyvyys:",
             "transparency_desc": "Yksityiskohtainen kuvaus huoltohistoriasta auttaa myymään nopeammin."
-        }
+        },
+        "creative_examples": "Esimerkkejä: '{name}in Autotalli', 'Pohjoisen Autot', '{name}in Kokoelma'"
     },
     "taxonomy": {
         "categories": {
@@ -1015,7 +1134,86 @@
             "Remolque": "Perävaunu",
             "Lowboy": "Lavettiperävaunu",
             "Remolque Frigorífico": "Kylmäperävaunu",
-            "Plataforma Porta-contenedor": "Konttikärry"
+            "Plataforma Porta-contenedor": "Konttikärry",
+            "Alarma": "Hälytin",
+            "GPS": "GPS",
+            "Luces LED": "LED-valot",
+            "Frenos ABS": "ABS-jarrut",
+            "Bluetooth": "Bluetooth",
+            "USB": "USB",
+            "Pantalla Touch": "Kosketusnäyttö",
+            "Aire Acondicionado": "Ilmastointi",
+            "Climatizador Automático": "Automaattinen Ilmastointi",
+            "Asientos de Piel": "Nahkaistuimet",
+            "Asientos Eléctricos": "Sähköistuimet",
+            "Asientos Calefactables": "Lämmitettävät Istuimet",
+            "Asientos Ventilados": "Tuuletetut Istuimet",
+            "Quemacocos": "Kattoluukku",
+            "Techo Panorámico": "Panoraamakatto",
+            "Vidrios Eléctricos": "Sähköikkunat",
+            "Espejos Eléctricos": "Sähköpeilit",
+            "Volante Multifuncional": "Monitoimiohjauspyörä",
+            "Cajuela Eléctrica": "Cajuela Eléctrica",
+            "Android Auto/CarPlay": "Android Auto/CarPlay",
+            "Cargador Inalámbrico": "Cargador Inalámbrico",
+            "Head-Up Display": "Head-Up Display",
+            "Sistema de Sonido Premium": "Premium-äänentoistojärjestelmä",
+            "Tablero Digital": "Digitaalinen mittaristo",
+            "Llave Inteligente (Keyless)": "Älyavain (Keyless)",
+            "Cámara de Reversa": "Peruutuskamera",
+            "Cámara 360°": "360° Kamera",
+            "Bolsas de Aire (Airbags)": "Turvatyynyt (Airbags)",
+            "Sensores de Estacionamiento": "Pysäköintitunnistimet",
+            "Monitor de Punto Ciego": "Kuolleen kulman varoitin",
+            "Alerta de Cambio de Carril": "Kaistavaroitin",
+            "Frenado Autónomo de Emergencia": "Automaattinen hätäjarrutus",
+            "Control Crucero Adaptativo": "Mukautuva vakionopeudensäädin",
+            "Rines de Aluminio": "Alumiinivanteet",
+            "Faros de Niebla": "Sumuvalot",
+            "Barras de Techo": "Kattokaiteet",
+            "Kit Deportivo": "Urheilullinen varustepaketti",
+            "Frenos de Disco": "Levyjarrut",
+            "ABS en Curva": "ABS-jarrut kaarteissa",
+            "Control de Tracción": "Luistonesto",
+            "Quickshifter": "Quickshifter",
+            "Modos de Manejo": "Ajo-ohjelmat",
+            "Suspensión Electrónica": "Elektroninen jousitus",
+            "Amortiguador de Dirección": "Ohjausiskunvaimennin",
+            "Maletas Laterales": "Sivulaukut",
+            "Top Case": "Takalaukku",
+            "Parabrisas": "Tuulilasi",
+            "Defensas/Sliders": "Puskurit/Liukusäätimet",
+            "Puños Calefactables": "Lämmitettävät kädensijat",
+            "Asiento Comfort": "Comfort-istuin",
+            "Luces Auxiliares (Exploradoras)": "Lisävalot (sumuvalot)",
+            "Freno de Motor": "Moottorijarru",
+            "Retardador": "Hidastin",
+            "Camarote": "Hytti",
+            "Ejes Retráctiles": "Nostettavat akselit",
+            "Suspensión de Aire": "Ilmajousitus",
+            "Toma de Fuerza (PTO)": "Voimanotto (PTO)",
+            "Deflector de Aire": "Ilmanohjain",
+            "Tanque Auxiliar": "Lisäsäiliö",
+            "Visera Exterior": "Ulkosermi",
+            "Asiento Neumático": "Pneumaattinen istuin",
+            "Eje Elevable": "Nostettava akseli",
+            "Cabina Cerrada (ROPS/FOPS)": "Suljettu ohjaamo (ROPS/FOPS)",
+            "Calefacción": "Lämmitys",
+            "Joystick Control": "Joystick-ohjaus",
+            "Estabilizadores": "Stabilisaattorit",
+            "Cucharon 4en1": "4-in-1 kauha",
+            "Línea Hidráulica Auxiliar": "Hydraulinen lisälinja",
+            "Ripper (Desgarrador)": "Ripperi (repijä)",
+            "Zapatas Anchas": "Leveät telaketjut",
+            "Llantas Sólidas": "Massiivirenkaat",
+            "Winch (Cabrestante)": "Vinssi (Cabrestante)",
+            "Roll Cage (Jaula)": "Turvakaari (Häkki)",
+            "Snorkel": "Snorkkeli",
+            "Suspensión Lift Kit": "Korkeussarja",
+            "Llantas All-Terrain/Mud-Terrain": "All-Terrain/Mud-Terrain renkaat",
+            "Luces LED Bar": "LED-palkki",
+            "Techo Rígido": "Kova katto",
+            "Medios Puertas": "Puolikkaat ovet"
         },
         "transmission": {
             "Manual": "Manuaali",
@@ -1131,6 +1329,11 @@
         "completed": "Completed",
         "accept_btn": "Accept",
         "reject_btn": "Reject",
-        "cancel_btn": "Cancel"
+        "cancel_btn": "Cancel",
+        "past": "Valmis"
+    },
+    "chat": {
+        "welcome": "Hei! Olen CarMatch-neuvojasi. 👨‍💻 Missä voin auttaa sinua tänään?",
+        "title": "CarMatch-neuvoja"
     }
 }

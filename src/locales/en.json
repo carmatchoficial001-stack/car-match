@@ -78,7 +78,23 @@
         "copied": "Copied!",
         "view_more": "View more",
         "seats": "Seats",
-        "currency": "Currency"
+        "currency": "Currency",
+        "city": "City",
+        "change_language": "Change language",
+        "install_on_ios": "Install on iOS",
+        "install_on_android": "Install on Android",
+        "user": "User",
+        "sold": "Sold",
+        "unavailable": "Unavailable",
+        "seller": "Seller",
+        "buyer": "Buyer",
+        "time": {
+            "now": "Now",
+            "m": "m",
+            "h": "h",
+            "d": "d",
+            "sem": "sem"
+        }
     },
     "share": {
         "share_in": "Share on...",
@@ -416,7 +432,8 @@
             "sold": "Sold",
             "inactive": "Inactive"
         },
-        "user_id": "User ID"
+        "user_id": "User ID",
+        "edit_profile": "Edit Profile"
     },
     "business": {
         "title": "My Businesses",
@@ -544,6 +561,30 @@
             "pesados": {
                 "name": "Heavy Vehicles",
                 "services": "Truck workshops|Pneumatic suspension|Hydraulic systems|Fleet maintenance"
+            },
+            "electrolinera": {
+                "name": "Charging Stations",
+                "services": "Fast charging|Tesla Chargers|Type 1 and 2 Connectors|Public charging stations|Free charging points"
+            },
+            "caseta": {
+                "name": "Toll Booths",
+                "services": "Cash Payment|Electronic Toll Collection|Bathrooms|Billing"
+            },
+            "hospital": {
+                "name": "Hospitals",
+                "services": "Emergency|Consultation|Pharmacy|Ambulance"
+            },
+            "policia": {
+                "name": "Police Station",
+                "services": "Emergencies|Complaints|Transit|Patrols"
+            },
+            "aeropuerto": {
+                "name": "Airports",
+                "services": "Flights|Taxis|Car Rental|Currency Exchange"
+            },
+            "estacion_tren": {
+                "name": "Train Station",
+                "services": "Tickets|Platforms|Waiting Room|Cafeteria"
             }
         }
     },
@@ -850,7 +891,12 @@
         "placeholder_active": "Consulting with your personal advisor...",
         "placeholder_default": "Tell your advisor what you're looking for: \"I need an economical car...\"",
         "btn_analyzing": "Consulting...",
-        "btn_search": "Ask advisor"
+        "btn_search": "Ask advisor",
+        "title": "Smart Search",
+        "placeholder": "Tell us what you are looking for: 'I need a red, cheap, 4-cylinder family van...'",
+        "ask_advisor": "Ask the Advisor",
+        "consulting": "Consulting expert...",
+        "understood": "Understood! I have adjusted the filters according to your search."
     },
     "appointment": {
         "modal_title": "🛡️ Schedule Safe Meeting",
@@ -1239,7 +1285,8 @@
         "completed": "Completed",
         "accept_btn": "Accept",
         "reject_btn": "Reject",
-        "cancel_btn": "Cancel"
+        "cancel_btn": "Cancel",
+        "past": "Finished"
     },
     "chat": {
         "welcome": "Hello! I am your CarMatch Advisor. 👨‍💻 How can I advise you today?",

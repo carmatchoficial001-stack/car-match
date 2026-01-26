@@ -46,7 +46,90 @@
         "copied": "Đã sao chép!",
         "view_more": "Xem thêm",
         "seats": "chỗ ngồi",
-        "currency": "Tiền tệ"
+        "currency": "Tiền tệ",
+        "login_vehicle": "Bán Xe",
+        "login_business": "Đăng ký Doanh nghiệp của bạn",
+        "dynamic_ctas": {
+            "vehicles": [
+                "Bạn đang cần tiền gấp? | Đăng ngay tại đây!",
+                "Bạn không còn thích nó nữa? | Bán ngay hôm nay!",
+                "Bạn muốn đổi mới? | Đăng miễn phí!",
+                "Bạn cần tiền mặt? | Bán ngay!",
+                "Nhà để xe đầy? | Đăng tại đây!",
+                "Đến lúc thay đổi? | Đăng ngay hôm nay!",
+                "Bạn có một chiếc xe hơi thừa? | Bán tại đây!",
+                "Bạn muốn mua chiếc khác? | Đăng ngay!",
+                "Bạn cần vốn? | Biến nó thành tiền!",
+                "Bạn muốn cái mới? | Bán ngay!",
+                "Nhà để xe đầy? | Đăng ngay hôm nay!",
+                "Xe hơi cản trở? | Bán tại đây!",
+                "Bạn muốn cái tốt nhất? | Bán cái này!",
+                "Chi phí phát sinh? | Kiếm tiền từ nó!",
+                "Để trả trước? | Bán ngay!",
+                "Bạn sẽ đi du lịch? | Đăng ngay hôm nay!",
+                "Bạn sẽ sớm chuyển đi? | Bán ngay!",
+                "Xe hơi nhỏ? | Đăng tại đây!",
+                "Bạn muốn sức mạnh? | Bán xe của bạn!",
+                "Gia đình lớn? | Bán ngay!",
+                "Nó đã hoàn thành nhiệm vụ? | Bán ngay hôm nay!",
+                "Tiền nhanh? | Đăng tại đây!",
+                "Bạn có lốp xe thừa? | Biến chúng thành tiền!",
+                "Dự án mới? | Bán ngay!",
+                "Bạn muốn ra mắt? | Đăng tại đây!",
+                "Xe hơi dừng hoạt động? | Bán ngay!",
+                "Bạn muốn nâng cấp? | Thay đổi xe của bạn!",
+                "Bạn đang tìm kiếm một cái gì đó mới? | Đăng cái này!",
+                "Cản trở trên đường phố? | Biến nó thành tiền mặt!",
+                "Bạn cần không gian? | Bán nhanh chóng!",
+                "Bạn không còn sử dụng nó nữa? | Kiếm tiền!",
+                "Bạn bị thu hút bởi cái khác? | Hãy bỏ cái này ngay!",
+                "Bạn đang tìm kiếm sự tiết kiệm? | Bán chiếc SUV của bạn!",
+                "Có mùi cũ? | Hãy ra mắt ngay hôm nay!",
+                "Nhiều km? | Chuyển nó cho người tiếp theo!",
+                "Bạn đang tìm kiếm cuộc phiêu lưu? | Thay đổi xe hơi!",
+                "Trả trước đã sẵn sàng? | Chỉ còn thiếu cái này!",
+                "Bạn đang tìm kiếm xe điện? | Bán xe xăng của bạn!",
+                "Bảo trì đắt tiền? | Bán ngay hôm nay!",
+                "Gia đình lớn hơn? | Bán chiếc sedan!",
+                "Giấy tờ đầy đủ? | Đăng ngay!",
+                "Ít sử dụng? | Hãy cho người khác!",
+                "Bạn đang tìm kiếm sự sang trọng? | Bắt đầu bằng cách bán!",
+                "Bạn muốn một chiếc xe cổ điển? | Bán chiếc xe hiện đại của bạn!",
+                "Thừa xi lanh? | Giảm mức tiêu thụ!",
+                "Bạn đang tìm kiếm một chiếc 4x4? | Bán chiếc xe thành phố của bạn!",
+                "Con cái đến trường đại học? | Thay đổi con tàu!",
+                "Bạn muốn một chiếc xe thể thao? | Thả mái!",
+                "Bạn đang tìm kiếm độ tin cậy? | Cập nhật xe của bạn!",
+                "Cần tiền gấp? | Bán ngay hôm nay!",
+                "MẠNG XÃ HỘI CHO TẤT CẢ MỌI NGƯỜI | ĐĂNG TẠI ĐÂY!",
+                "CHÚNG TÔI KHÔNG ĐỘC QUYỀN! | THAM GIA PHONG TRÀO",
+                "CỘNG ĐỒNG LỚN NHẤT | HÃY THAM GIA NGAY!",
+                "NGƯỜI THẬT, GIAO DỊCH THẬT | ĐĂNG HÔM NAY!",
+                "MỌI NGƯỜI ĐỀU ĐƯỢC CHÀO ĐÓN! | BÁN XE CỦA BẠN",
+                "MỘT MẠNG LƯỚI CHO NGƯỜI DÂN | ĐĂNG MIỄN PHÍ!",
+                "THAM GIA VÀO DÒNG CHẢY LỚN | BÁN TẠI ĐÂY!",
+                "XE CỦA BẠN TRÊN TOÀN MEXICO | HÃY THAM GIA NGAY!",
+                "TỰ DO ĐĂNG BÀI | KIẾM TIỀN!",
+                "MẠNG LƯỚI HỖ TRỢ BẠN | BÁN HÔM NAY!"
+            ]
+        },
+        "city": "Thành phố",
+        "change_language": "Thay đổi ngôn ngữ",
+        "install_on_ios": "Cài đặt trên iOS",
+        "install_on_android": "Cài đặt trên Android",
+        "user": "Người dùng",
+        "sold": "Đã bán",
+        "unavailable": "Không có sẵn",
+        "seller": "Người bán",
+        "buyer": "Người mua",
+        "accept": "Chấp nhận",
+        "time": {
+            "now": "Bây giờ",
+            "m": "m",
+            "h": "h",
+            "d": "d",
+            "sem": "sem"
+        }
     },
     "share": {
         "share_in": "Chia sẻ lên...",
@@ -76,7 +159,8 @@
         "favorites": "Yêu thích",
         "credits": "Tín dụng",
         "admin_panel": "Bảng quản trị",
-        "exit_portal": "Thoát cổng thông tin"
+        "exit_portal": "Thoát cổng thông tin",
+        "settings": "Cài đặt"
     },
     "swipe": {
         "expand_search": "Mở rộng tìm kiếm sang các khu vực khác",
@@ -223,7 +307,10 @@
             "images": "Hình ảnh",
             "features": "Tùy chọn",
             "location": "Vị trí",
-            "review": "Xem lại"
+            "review": "Xem lại",
+            "identity_price": "Giá trị và Thông tin xe",
+            "specs_features": "Thông số và Tính năng",
+            "location_review": "Vị trí và Đăng bán"
         },
         "titles": {
             "what_type": "Bạn đang bán loại xe nào?",
@@ -380,7 +467,8 @@
             "sold": "Đã bán",
             "inactive": "Tin đăng đã rút"
         },
-        "user_id": "ID người dùng"
+        "user_id": "ID người dùng",
+        "edit_profile": "Chỉnh sửa hồ sơ"
     },
     "business": {
         "title": "Doanh nghiệp của tôi",
@@ -508,6 +596,30 @@
             "pesados": {
                 "name": "Xe hạng nặng",
                 "services": "Bảo dưỡng xe tải|Túi khí hệ thống treo|Hệ thống thủy lực|Bảo dưỡng đội xe"
+            },
+            "electrolinera": {
+                "name": "Trạm sạc điện",
+                "services": "Sạc nhanh|Bộ sạc Tesla|Đầu nối Loại 1 và 2|Trạm sạc công cộng|Điểm sạc miễn phí"
+            },
+            "caseta": {
+                "name": "Trạm thu phí",
+                "services": "Thanh toán bằng tiền mặt|Thu phí tự động|Nhà vệ sinh|Xuất hóa đơn"
+            },
+            "hospital": {
+                "name": "Bệnh viện",
+                "services": "Cấp cứu|Tư vấn|Hiệu thuốc|Xe cứu thương"
+            },
+            "policia": {
+                "name": "Đồn cảnh sát",
+                "services": "Cứu hộ khẩn cấp|Khiếu nại|Giao thông|Tuần tra"
+            },
+            "aeropuerto": {
+                "name": "Sân bay",
+                "services": "Chuyến bay|Taxi|Thuê xe|Đổi tiền tệ"
+            },
+            "estacion_tren": {
+                "name": "Nhà ga xe lửa",
+                "services": "Vé|Sân ga|Phòng chờ|Quán cà phê"
             }
         }
     },
@@ -707,7 +819,12 @@
         "placeholder_active": "Cố vấn đang phân tích yêu cầu...",
         "placeholder_default": "Viết những gì bạn đang tìm (VD: «Tôi muốn một chiếc xe tiết kiệm cho thành phố»)",
         "btn_analyzing": "Đang suy nghĩ...",
-        "btn_search": "Hỏi câu hỏi"
+        "btn_search": "Hỏi câu hỏi",
+        "title": "Tìm kiếm thông minh",
+        "placeholder": "Hãy cho chúng tôi biết bạn đang tìm gì: 'Tôi cần một chiếc xe tải gia đình màu đỏ, giá rẻ, 4 xi-lanh...'",
+        "ask_advisor": "Hỏi cố vấn",
+        "consulting": "Đang tham khảo ý kiến chuyên gia...",
+        "understood": "Đã hiểu! Tôi đã điều chỉnh các bộ lọc theo tìm kiếm của bạn."
     },
     "map_store": {
         "search_placeholder": "🔍 Tìm phố, khu vực, địa điểm...",
@@ -805,7 +922,8 @@
             "submit": "Send Report",
             "sending": "Sending...",
             "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
-            "success_msg": "Thank you for your report. The business has been hidden for review."
+            "success_msg": "Thank you for your report. The business has been hidden for review.",
+            "success_title": "Đã gửi báo cáo!"
         }
     },
     "business_details": {
@@ -907,7 +1025,8 @@
             "safety_desc": "Chỉ kiểm tra xe và giấy tờ ở những nơi công cộng an toàn.",
             "transparency_title": "Minh bạch:",
             "transparency_desc": "Mô tả chi tiết lịch sử bảo dưỡng giúp bán xe nhanh hơn."
-        }
+        },
+        "creative_examples": "Ví dụ: 'Gara của {name}', 'Ô tô miền Bắc', 'Bộ sưu tập của {name}'"
     },
     "taxonomy": {
         "categories": {
@@ -1015,7 +1134,86 @@
             "Remolque": "Rơ moóc",
             "Lowboy": "Sơ mi rơ moóc sàn thấp",
             "Remolque Frigorífico": "Rơ moóc đông lạnh",
-            "Plataforma Porta-contenedor": "Rơ moóc chở container"
+            "Plataforma Porta-contenedor": "Rơ moóc chở container",
+            "Alarma": "Báo động",
+            "GPS": "GPS",
+            "Luces LED": "Đèn LED",
+            "Frenos ABS": "Phanh ABS",
+            "Bluetooth": "Bluetooth",
+            "USB": "USB",
+            "Pantalla Touch": "Màn hình cảm ứng",
+            "Aire Acondicionado": "Điều hòa không khí",
+            "Climatizador Automático": "Bộ điều nhiệt tự động",
+            "Asientos de Piel": "Ghế da",
+            "Asientos Eléctricos": "Ghế chỉnh điện",
+            "Asientos Calefactables": "Ghế sưởi",
+            "Asientos Ventilados": "Ghế thông gió",
+            "Quemacocos": "Cửa sổ trời",
+            "Techo Panorámico": "Mái che toàn cảnh",
+            "Vidrios Eléctricos": "Cửa sổ điện",
+            "Espejos Eléctricos": "Gương điện",
+            "Volante Multifuncional": "Vô lăng đa chức năng",
+            "Cajuela Eléctrica": "Cajuela Eléctrica",
+            "Android Auto/CarPlay": "Android Auto/CarPlay",
+            "Cargador Inalámbrico": "Cargador Inalámbrico",
+            "Head-Up Display": "Head-Up Display",
+            "Sistema de Sonido Premium": "Âm thanh Premium",
+            "Tablero Digital": "Bảng điều khiển kỹ thuật số",
+            "Llave Inteligente (Keyless)": "Chìa khóa thông minh (Keyless)",
+            "Cámara de Reversa": "Camera lùi",
+            "Cámara 360°": "Camera 360°",
+            "Bolsas de Aire (Airbags)": "Túi khí (Airbags)",
+            "Sensores de Estacionamiento": "Cảm biến đỗ xe",
+            "Monitor de Punto Ciego": "Điểm mù",
+            "Alerta de Cambio de Carril": "Cảnh báo chuyển làn",
+            "Frenado Autónomo de Emergencia": "Phanh khẩn cấp tự động",
+            "Control Crucero Adaptativo": "Kiểm soát hành trình thích ứng",
+            "Rines de Aluminio": "Vành nhôm",
+            "Faros de Niebla": "Đèn sương mù",
+            "Barras de Techo": "Thanh mái",
+            "Kit Deportivo": "Bộ thể thao",
+            "Frenos de Disco": "Phanh đĩa",
+            "ABS en Curva": "ABS khi vào cua",
+            "Control de Tracción": "Kiểm soát lực kéo",
+            "Quickshifter": "Quickshifter",
+            "Modos de Manejo": "Chế độ lái",
+            "Suspensión Electrónica": "Hệ thống treo điện tử",
+            "Amortiguador de Dirección": "Bộ giảm xóc lái",
+            "Maletas Laterales": "Thùng bên",
+            "Top Case": "Thùng trên",
+            "Parabrisas": "Kính chắn gió",
+            "Defensas/Sliders": "Thanh trượt/Bảo vệ",
+            "Puños Calefactables": "Tay nắm sưởi",
+            "Asiento Comfort": "Ghế thoải mái",
+            "Luces Auxiliares (Exploradoras)": "Đèn phụ trợ (đèn sương mù)",
+            "Freno de Motor": "Phanh động cơ",
+            "Retardador": "Bộ làm chậm",
+            "Camarote": "Cabin ngủ",
+            "Ejes Retráctiles": "Trục có thể thu vào",
+            "Suspensión de Aire": "Hệ thống treo khí",
+            "Toma de Fuerza (PTO)": "Bộ trích công suất (PTO)",
+            "Deflector de Aire": "Tấm chắn gió",
+            "Tanque Auxiliar": "Bình nhiên liệu phụ",
+            "Visera Exterior": "Tấm che nắng bên ngoài",
+            "Asiento Neumático": "Ghế hơi",
+            "Eje Elevable": "Trục nâng",
+            "Cabina Cerrada (ROPS/FOPS)": "Cabin kín (ROPS/FOPS)",
+            "Calefacción": "Hệ thống sưởi",
+            "Joystick Control": "Điều khiển bằng cần điều khiển",
+            "Estabilizadores": "Bộ ổn định",
+            "Cucharon 4en1": "Gầu 4 trong 1",
+            "Línea Hidráulica Auxiliar": "Đường thủy lực phụ trợ",
+            "Ripper (Desgarrador)": "Ripper (Máy xới đất)",
+            "Zapatas Anchas": "Guốc xích rộng",
+            "Llantas Sólidas": "Lốp đặc",
+            "Winch (Cabrestante)": "Winch (Tời)",
+            "Roll Cage (Jaula)": "Khung chống lật",
+            "Snorkel": "Ống thở",
+            "Suspensión Lift Kit": "Bộ nâng hệ thống treo",
+            "Llantas All-Terrain/Mud-Terrain": "Lốp địa hình/Lốp bùn lầy",
+            "Luces LED Bar": "Thanh đèn LED",
+            "Techo Rígido": "Mái cứng",
+            "Medios Puertas": "Nửa Cửa"
         },
         "transmission": {
             "Manual": "Số sàn",
@@ -1131,6 +1329,11 @@
         "completed": "Completed",
         "accept_btn": "Accept",
         "reject_btn": "Reject",
-        "cancel_btn": "Cancel"
+        "cancel_btn": "Cancel",
+        "past": "Đã hoàn thành"
+    },
+    "chat": {
+        "welcome": "Xin chào! Tôi là Cố vấn CarMatch của bạn. 👨‍💻 Tôi có thể giúp gì cho bạn hôm nay?",
+        "title": "Cố vấn CarMatch"
     }
 }

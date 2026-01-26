@@ -46,7 +46,90 @@
         "copied": "Copiado!",
         "view_more": "Ver mais",
         "seats": "Assentos",
-        "currency": "Moeda"
+        "currency": "Moeda",
+        "login_vehicle": "Vender Veículo",
+        "login_business": "Publique o seu Negócio",
+        "dynamic_ctas": {
+            "vehicles": [
+                "Precisa de dinheiro urgente? | Publique aqui!",
+                "Já não gosta mais? | Venda hoje!",
+                "Quer renovar? | Publique grátis!",
+                "Precisa de dinheiro? | Venda já!",
+                "Garagem cheia? | Publique aqui!",
+                "Hora de trocar? | Publique hoje!",
+                "Tem um carro sobrando? | Venda aqui!",
+                "Vai comprar outro? | Publique já!",
+                "Precisa de capital? | Transforme em dinheiro!",
+                "Quer o novo? | Venda já!",
+                "Garagem cheia? | Publique hoje!",
+                "Carro atrapalhando? | Venda aqui!",
+                "Quer o melhor? | Venda este!",
+                "Despesas chegando? | Transforme em dinheiro!",
+                "Para a entrada? | Venda já!",
+                "Vai viajar? | Publique hoje!",
+                "Vai se mudar em breve? | Venda já!",
+                "Carro pequeno? | Publique aqui!",
+                "Quer potência? | Venda o seu!",
+                "Família grande? | Publique já!",
+                "Já cumpriu o ciclo? | Venda hoje!",
+                "Dinheiro rápido? | Publique aqui!",
+                "Tem pneus sobrando? | Transforme-os em dinheiro!",
+                "Novo projeto? | Venda já!",
+                "Quer um carro novo? | Publique aqui!",
+                "Carro parado? | Venda já!",
+                "Quer um upgrade? | Troque o seu!",
+                "Procura algo novo? | Publique este!",
+                "Atrapalha na rua? | Transforme-o em dinheiro!",
+                "Precisa de espaço? | Venda rápido!",
+                "Já não usa mais? | Ganhe dinheiro!",
+                "Outro te atrai? | Livre-se deste já!",
+                "Procura economia? | Venda seu SUV!",
+                "Cheira a velho? | Estreie hoje!",
+                "Muitos quilômetros? | Passe para o próximo!",
+                "Procura aventura? | Troque de carro!",
+                "Entrada pronta? | Só falta este!",
+                "Procura um elétrico? | Venda seu a gasolina!",
+                "Manutenção cara? | Venda hoje!",
+                "Família cresceu? | Venda o sedã!",
+                "Documentos em ordem? | Publique já!",
+                "Pouco uso? | Dê para outro!",
+                "Procura luxo? | Comece vendendo!",
+                "Quer um clássico? | Venda seu moderno!",
+                "Sobram cilindros? | Abaixe o consumo!",
+                "Procura um 4x4? | Venda seu citadino!",
+                "Filhos na faculdade? | Mude de nave!",
+                "Quer um esportivo? | Livre-se do teto!",
+                "Procura confiabilidade? | Atualize seu carro!",
+                "Precisa de liquidez urgente? | Venda hoje mesmo!",
+                "REDE SOCIAL PARA TODOS | PUBLIQUE AQUI!",
+                "NÃO SOMOS EXCLUSIVOS! | JUNTE-SE AO MOVIMENTO",
+                "A MAIOR COMUNIDADE | ENTRE JÁ!",
+                "PESSOAS REAIS, NEGÓCIOS REAIS | PUBLIQUE HOJE!",
+                "TODOS SÃO BEM-VINDOS! | VENDA SEU CARRO",
+                "UMA REDE PARA O POVO | PUBLIQUE GRÁTIS!",
+                "JUNTE-SE À MEGAPOTÊNCIA | VENDA AQUI!",
+                "SEU CARRO EM TODO O MÉXICO | ENTRE JÁ!",
+                "LIBERDADE PARA PUBLICAR | TRANSFORME EM DINHEIRO!",
+                "A REDE QUE TE APOIA | VENDA HOJE!"
+            ]
+        },
+        "city": "Cidade",
+        "change_language": "Mudar idioma",
+        "install_on_ios": "Instalar no iOS",
+        "install_on_android": "Instalar no Android",
+        "user": "Usuário",
+        "sold": "Vendido",
+        "unavailable": "Não disponível",
+        "seller": "Vendedor",
+        "buyer": "Comprador",
+        "accept": "Aceitar",
+        "time": {
+            "now": "Agora",
+            "m": "m",
+            "h": "h",
+            "d": "d",
+            "sem": "sem"
+        }
     },
     "share": {
         "share_in": "Compartilhar em...",
@@ -76,7 +159,8 @@
         "favorites": "Favoritos",
         "credits": "Créditos",
         "admin_panel": "Painel de Controle",
-        "exit_portal": "Sair para o Portal"
+        "exit_portal": "Sair para o Portal",
+        "settings": "Configurações"
     },
     "swipe": {
         "expand_search": "Expandir busca para mais lugares",
@@ -223,7 +307,10 @@
             "images": "Imagens",
             "features": "Equipamento",
             "location": "Localização",
-            "review": "Revisão e Publicar"
+            "review": "Revisão e Publicar",
+            "identity_price": "Identidade e Valor",
+            "specs_features": "Alma e Equipamentos",
+            "location_review": "Localização e Lançamento"
         },
         "titles": {
             "what_type": "Que tipo de veículo você vai publicar?",
@@ -380,7 +467,8 @@
             "sold": "Vendido",
             "inactive": "Inativo"
         },
-        "user_id": "ID de Usuário"
+        "user_id": "ID de Usuário",
+        "edit_profile": "Editar Perfil"
     },
     "business": {
         "title": "Meus Negócios",
@@ -508,6 +596,30 @@
             "pesados": {
                 "name": "Veículos Pesados",
                 "services": "Oficinas para caminhões|Suspensão pneumática|Sistemas hidráulicos|Manutenção de frotas"
+            },
+            "electrolinera": {
+                "name": "Estações de Carregamento",
+                "services": "Carga rápida|Carregadores Tesla|Conectores Tipo 1 e 2|Estações de carregamento público|Pontos de recarga gratuita"
+            },
+            "caseta": {
+                "name": "Praças de Pedágio",
+                "services": "Pagamento em Dinheiro|Telepedágio|Banheiros|Faturamento"
+            },
+            "hospital": {
+                "name": "Hospitais",
+                "services": "Emergências|Consulta|Farmácia|Ambulância"
+            },
+            "policia": {
+                "name": "Delegacia de Polícia",
+                "services": "Emergências|Denúncias|Trânsito|Patrulhas"
+            },
+            "aeropuerto": {
+                "name": "Aeroportos",
+                "services": "Voos|Táxis|Aluguel de Carros|Câmbio de Moeda"
+            },
+            "estacion_tren": {
+                "name": "Estação de Trem",
+                "services": "Bilhetes|Plataformas|Sala de Espera|Cafeteria"
             }
         }
     },
@@ -707,7 +819,12 @@
         "placeholder_active": "Consultando seu consultor pessoal...",
         "placeholder_default": "Conte ao seu consultor o que busca: \"Preciso de um carro econômico...\"",
         "btn_analyzing": "Consultando...",
-        "btn_search": "Perguntar ao Consultor"
+        "btn_search": "Perguntar ao Consultor",
+        "title": "Busca Inteligente",
+        "placeholder": "Conte-nos o que procura: 'Preciso de uma caminhonete familiar vermelha, barata, de 4 cilindros...'",
+        "ask_advisor": "Perguntar ao Consultor",
+        "consulting": "Consultando especialista...",
+        "understood": "Entendido! Ajustei os filtros de acordo com sua busca."
     },
     "map_store": {
         "search_placeholder": "🔍 Buscar rua, bairro ou lugar...",
@@ -805,7 +922,8 @@
             "submit": "Send Report",
             "sending": "Sending...",
             "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
-            "success_msg": "Thank you for your report. The business has been hidden for review."
+            "success_msg": "Thank you for your report. The business has been hidden for review.",
+            "success_title": "Relatório Enviado!"
         }
     },
     "business_details": {
@@ -907,7 +1025,8 @@
             "safety_desc": "Recomendamos combinar a revisão de documentos e do veículo em um lugar público e seguro.",
             "transparency_title": "Transparência:",
             "transparency_desc": "Uma descrição clara sobre as manutenções realizadas ajuda a vender mais rápido."
-        }
+        },
+        "creative_examples": "Exemplos: 'A Garagem de {name}', 'Carros do Norte', 'A Coleção de {name}'"
     },
     "taxonomy": {
         "categories": {
@@ -1015,7 +1134,86 @@
             "Remolque": "Reboque",
             "Lowboy": "Prancha Lowboy",
             "Remolque Frigorífico": "Reboque Frigorífico",
-            "Plataforma Porta-contenedor": "Porta-contêiner"
+            "Plataforma Porta-contenedor": "Porta-contêiner",
+            "Alarma": "Alarme",
+            "GPS": "GPS",
+            "Luces LED": "Luzes LED",
+            "Frenos ABS": "Freios ABS",
+            "Bluetooth": "Bluetooth",
+            "USB": "USB",
+            "Pantalla Touch": "Tela Touch",
+            "Aire Acondicionado": "Ar Condicionado",
+            "Climatizador Automático": "Climatizador Automático",
+            "Asientos de Piel": "Bancos de Couro",
+            "Asientos Eléctricos": "Bancos Elétricos",
+            "Asientos Calefactables": "Bancos Aquecidos",
+            "Asientos Ventilados": "Bancos Ventilados",
+            "Quemacocos": "Teto Solar",
+            "Techo Panorámico": "Teto Panorâmico",
+            "Vidrios Eléctricos": "Vidros Elétricos",
+            "Espejos Eléctricos": "Retrovisores Elétricos",
+            "Volante Multifuncional": "Volante Multifuncional",
+            "Cajuela Eléctrica": "Porta-malas Elétrico",
+            "Android Auto/CarPlay": "Android Auto/CarPlay",
+            "Cargador Inalámbrico": "Carregador Sem Fio",
+            "Head-Up Display": "Head-Up Display",
+            "Sistema de Sonido Premium": "Sistema de Som Premium",
+            "Tablero Digital": "Painel Digital",
+            "Llave Inteligente (Keyless)": "Chave Inteligente (Keyless)",
+            "Cámara de Reversa": "Câmera de Ré",
+            "Cámara 360°": "Câmera 360°",
+            "Bolsas de Aire (Airbags)": "Airbags",
+            "Sensores de Estacionamiento": "Sensores de Estacionamento",
+            "Monitor de Punto Ciego": "Monitor de Ponto Cego",
+            "Alerta de Cambio de Carril": "Alerta de Mudança de Faixa",
+            "Frenado Autónomo de Emergencia": "Frenagem Autônoma de Emergência",
+            "Control Crucero Adaptativo": "Piloto Automático Adaptativo",
+            "Rines de Aluminio": "Rodas de Alumínio",
+            "Faros de Niebla": "Faróis de Neblina",
+            "Barras de Techo": "Barras de Teto",
+            "Kit Deportivo": "Kit Esportivo",
+            "Frenos de Disco": "Freios a Disco",
+            "ABS en Curva": "ABS em Curva",
+            "Control de Tracción": "Controle de Tração",
+            "Quickshifter": "Quickshifter",
+            "Modos de Manejo": "Modos de Condução",
+            "Suspensión Electrónica": "Suspensão Eletrônica",
+            "Amortiguador de Dirección": "Amortecedor de Direção",
+            "Maletas Laterales": "Malas Laterais",
+            "Top Case": "Top Case",
+            "Parabrisas": "Para-brisa",
+            "Defensas/Sliders": "Protetores Laterais/Sliders",
+            "Puños Calefactables": "Punhos Aquecidos",
+            "Asiento Comfort": "Assento Conforto",
+            "Luces Auxiliares (Exploradoras)": "Faróis Auxiliares",
+            "Freno de Motor": "Freio Motor",
+            "Retardador": "Retardador",
+            "Camarote": "Camarote",
+            "Ejes Retráctiles": "Eixos Retráteis",
+            "Suspensión de Aire": "Suspensão a Ar",
+            "Toma de Fuerza (PTO)": "Tomada de Força (PTO)",
+            "Deflector de Aire": "Defletor de Ar",
+            "Tanque Auxiliar": "Tanque Auxiliar",
+            "Visera Exterior": "Viseira Exterior",
+            "Asiento Neumático": "Assento Pneumático",
+            "Eje Elevable": "Eixo Elevável",
+            "Cabina Cerrada (ROPS/FOPS)": "Cabine Fechada (ROPS/FOPS)",
+            "Calefacción": "Aquecimento",
+            "Joystick Control": "Controle Joystick",
+            "Estabilizadores": "Estabilizadores",
+            "Cucharon 4en1": "Caçamba 4em1",
+            "Línea Hidráulica Auxiliar": "Linha Hidráulica Auxiliar",
+            "Ripper (Desgarrador)": "Ripper",
+            "Zapatas Anchas": "Sapatas Largas",
+            "Llantas Sólidas": "Pneus Sólidos",
+            "Winch (Cabrestante)": "Winch (Guincho)",
+            "Roll Cage (Jaula)": "Roll Cage (Gaiola)",
+            "Snorkel": "Snorkel",
+            "Suspensión Lift Kit": "Lift Kit",
+            "Llantas All-Terrain/Mud-Terrain": "Pneus Todo-Terreno/Mud-Terrain",
+            "Luces LED Bar": "Barra de LED",
+            "Techo Rígido": "Teto Rígido",
+            "Medios Puertas": "Meias Portas"
         },
         "transmission": {
             "Manual": "Manual",
@@ -1131,6 +1329,11 @@
         "completed": "Completed",
         "accept_btn": "Accept",
         "reject_btn": "Reject",
-        "cancel_btn": "Cancel"
+        "cancel_btn": "Cancel",
+        "past": "Finalizada"
+    },
+    "chat": {
+        "welcome": "Olá! Sou seu Consultor CarMatch. 👨‍💻 Em que posso te ajudar hoje?",
+        "title": "Consultor CarMatch"
     }
 }

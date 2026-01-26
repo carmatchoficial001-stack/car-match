@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 
 type Locale = 'es' | 'en' | 'pt' | 'fr' | 'de' | 'it' | 'zh' | 'ja' | 'ru' | 'ko' | 'ar' | 'hi'
-    | 'tr' | 'nl' | 'pl' | 'sv' | 'id' | 'th' | 'vi' | 'ur' | 'he'
+    | 'tr' | 'nl' | 'pl' | 'sv' | 'id' | 'th' | 'vi' | 'ur' | 'he' | 'nah' | 'myn'
 
 interface LanguageContextType {
     locale: Locale
@@ -52,7 +52,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             if (!initialLocale) {
                 // 2. Check Browser Languages
                 const browserLangs = navigator.languages ? navigator.languages : [navigator.language]
-                const supportedLocales: Locale[] = ['es', 'en', 'pt', 'fr', 'de', 'it', 'zh', 'ja', 'ru', 'ko', 'ar', 'hi', 'tr', 'nl', 'pl', 'sv', 'id', 'th', 'vi', 'ur', 'he']
+                const supportedLocales: Locale[] = ['es', 'en', 'pt', 'fr', 'de', 'it', 'zh', 'ja', 'ru', 'ko', 'ar', 'hi', 'tr', 'nl', 'pl', 'sv', 'id', 'th', 'vi', 'ur', 'he', 'nah', 'myn']
 
                 for (const lang of browserLangs) {
                     if (!lang) continue

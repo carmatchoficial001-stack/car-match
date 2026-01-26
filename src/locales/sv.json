@@ -46,7 +46,90 @@
         "copied": "Kopierad!",
         "view_more": "Visa mer",
         "seats": "säten",
-        "currency": "Valuta"
+        "currency": "Valuta",
+        "login_vehicle": "Sälj fordon",
+        "login_business": "Ladda upp ditt företag",
+        "dynamic_ctas": {
+            "vehicles": [
+                "Behöver du pengar snabbt? | Lägg upp den här!",
+                "Gillar du den inte längre? | Sälj den idag!",
+                "Vill du förnya? | Ladda upp den gratis!",
+                "Behöver du cash? | Sälj den nu!",
+                "Fullt garage? | Publicera här!",
+                "Dags för byte? | Ladda upp den idag!",
+                "Har du en bil över? | Sälj den här!",
+                "Siktar du på en annan? | Publicera den nu!",
+                "Behöver du kapital? | Gör den till pengar!",
+                "Vill du ha det nya? | Sälj den nu!",
+                "Fullt garage? | Ladda upp den idag!",
+                "Bil i vägen? | Sälj den här!",
+                "Vill du ha det bästa? | Sälj den här!",
+                "Utgifter på gång? | Gör den till pengar!",
+                "För handpenningen? | Sälj den nu!",
+                "Ska du resa bort? | Ladda upp den idag!",
+                "Flyttar du snart? | Sälj den nu!",
+                "Liten bil? | Publicera den här!",
+                "Vill du ha kraft? | Sälj din!",
+                "Stor familj? | Ladda upp den nu!",
+                "Har den gjort sitt? | Sälj den idag!",
+                "Snabba pengar? | Publicera den här!",
+                "Har du däck över? | Gör dem till pengar!",
+                "Nytt projekt? | Sälj den nu!",
+                "Vill du ha något nytt? | Publicera här!",
+                "Bil stillastående? | Sälj den nu!",
+                "Vill du ha en uppgradering? | Byt din!",
+                "Letar du efter något nytt? | Publicera den här!",
+                "Är den i vägen på gatan? | Gör den till pengar!",
+                "Behöver du utrymme? | Sälj den snabbt!",
+                "Använder du den inte längre? | Tjäna pengar!",
+                "Lockas du av en annan? | Släpp den här nu!",
+                "Letar du efter ekonomi? | Sälj din SUV!",
+                "Luktar den gammalt? | Använd den idag!",
+                "Många kilometer? | Skicka den vidare!",
+                "Letar du efter äventyr? | Byt bil!",
+                "Handpenning redo? | Bara den här saknas!",
+                "Letar du efter elbil? | Sälj din bensin!",
+                "Dyr underhåll? | Sälj den idag!",
+                "Familjen växte? | Sälj sedanen!",
+                "Papper i ordning? | Publicera den nu!",
+                "Lite användning? | Ge den till någon annan!",
+                "Letar du efter lyx? | Börja med att sälja!",
+                "Vill du ha en klassiker? | Sälj din moderna!",
+                "Cylindrar över? | Sänk förbrukningen!",
+                "Letar du efter en 4x4? | Sälj din stad!",
+                "Barn till universitetet? | Byt bil!",
+                "Vill du ha en sportbil? | Släpp taket!",
+                "Letar du efter pålitlighet? | Uppdatera din bil!",
+                "Brådskande likviditet? | Sälj den idag!",
+                "SOCIALT NÄTVERK FÖR ALLA | PUBLICERA DEN HÄR!",
+                "VI ÄR INTE EXKLUSIVA! | GÅ MED I RÖRELSEN",
+                "DEN STÖRSTA GEMENSKAPEN | HOPPA PÅ NU!",
+                "VERKLIGA MÄNNISKOR, VERKLIGA AFFÄRER | PUBLICERA IDAG!",
+                "ALLA ÄR VÄLKOMNA! | SÄLJ DIN BIL",
+                "ETT NÄTVERK FÖR FOLKET | LADDA UPP DEN GRATIS!",
+                "GÅ MED I MEGASTRÖMMEN | SÄLJ HÄR!",
+                "DIN BIL I HELA MEXIKO | HOPPA PÅ NU!",
+                "FRIHET ATT PUBLICERA | GÖR DEN TILL PENGAR!",
+                "NÄTVERKET SOM VERKLIGEN STÖDER DIG | SÄLJ IDAG!"
+            ]
+        },
+        "city": "Stad",
+        "change_language": "Ändra språk",
+        "install_on_ios": "Installera på iOS",
+        "install_on_android": "Installera på Android",
+        "user": "Användare",
+        "sold": "Såld",
+        "unavailable": "Ej tillgänglig",
+        "seller": "Säljare",
+        "buyer": "Köpare",
+        "accept": "Acceptera",
+        "time": {
+            "now": "Nu",
+            "m": "m",
+            "h": "h",
+            "d": "d",
+            "sem": "sem"
+        }
     },
     "share": {
         "share_in": "Dela i...",
@@ -76,7 +159,8 @@
         "favorites": "Favoriter",
         "credits": "Krediter",
         "admin_panel": "Adminpanel",
-        "exit_portal": "Lämna portalen"
+        "exit_portal": "Lämna portalen",
+        "settings": "Inställningar"
     },
     "swipe": {
         "expand_search": "Utöka sökningen till andra platser",
@@ -223,7 +307,10 @@
             "images": "Bilder",
             "features": "Alternativ",
             "location": "Plats",
-            "review": "Granskning"
+            "review": "Granskning",
+            "identity_price": "Identitet och värde",
+            "specs_features": "Själ och utrustning",
+            "location_review": "Plats och lansering"
         },
         "titles": {
             "what_type": "Vilken typ av fordon säljer du?",
@@ -380,7 +467,8 @@
             "sold": "Såld",
             "inactive": "Annons borttagen"
         },
-        "user_id": "Användar-ID"
+        "user_id": "Användar-ID",
+        "edit_profile": "Redigera profil"
     },
     "business": {
         "title": "Mina företag",
@@ -508,6 +596,30 @@
             "pesados": {
                 "name": "Tunga fordon",
                 "services": "Lastbilsservice|Luftfjädring|Hydrauliska system|Flottunderhåll"
+            },
+            "electrolinera": {
+                "name": "Laddstationer",
+                "services": "Snabb laddning|Tesla-laddare|Typ 1- och 2-kontakter|Offentliga laddstationer|Gratis laddpunkter"
+            },
+            "caseta": {
+                "name": "Tullstationer",
+                "services": "Betalning med kontanter|Elektronisk vägtull|Toaletter|Fakturering"
+            },
+            "hospital": {
+                "name": "Sjukhus",
+                "services": "Akutmottagning|Konsultation|Apotek|Ambulans"
+            },
+            "policia": {
+                "name": "Polisstation",
+                "services": "Akut|Anmälningar|Trafik|Patruller"
+            },
+            "aeropuerto": {
+                "name": "Flygplatser",
+                "services": "Flyg|Taxi|Biluthyrning|Valutaväxling"
+            },
+            "estacion_tren": {
+                "name": "Tågstation",
+                "services": "Biljetter|Plattformar|Väntrum|Cafeteria"
             }
         }
     },
@@ -707,7 +819,12 @@
         "placeholder_active": "Rådgivaren analyserar förfrågan...",
         "placeholder_default": "Skriv vad du söker (t.ex: «Jag vill ha en bränslesnål bil för stadskörning»)",
         "btn_analyzing": "Tänker...",
-        "btn_search": "Ställ fråga"
+        "btn_search": "Ställ fråga",
+        "title": "Smart Sökning",
+        "placeholder": "Berätta vad du letar efter: 'Jag behöver en röd, billig familjebuss med 4 cylindrar...'",
+        "ask_advisor": "Fråga Rådgivaren",
+        "consulting": "Konsulterar expert...",
+        "understood": "Förstått! Jag har justerat filtren enligt din sökning."
     },
     "map_store": {
         "search_placeholder": "🔍 Sök gata, område, plats...",
@@ -805,7 +922,8 @@
             "submit": "Send Report",
             "sending": "Sending...",
             "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
-            "success_msg": "Thank you for your report. The business has been hidden for review."
+            "success_msg": "Thank you for your report. The business has been hidden for review.",
+            "success_title": "Rapport skickad!"
         }
     },
     "business_details": {
@@ -907,7 +1025,8 @@
             "safety_desc": "Kontrollera bil och dokument endast på säkra offentliga platser.",
             "transparency_title": "Transparens:",
             "transparency_desc": "En detaljerad beskrivning av servicehistoriken hjälper till att sälja snabbare."
-        }
+        },
+        "creative_examples": "Exempel: '{name}s Garage', 'Bilar från Norr', '{name}s Samling'"
     },
     "taxonomy": {
         "categories": {
@@ -1015,7 +1134,86 @@
             "Remolque": "Släp",
             "Lowboy": "Maskintrailer",
             "Remolque Frigorífico": "Kylsläp",
-            "Plataforma Porta-contenedor": "Containerchassi"
+            "Plataforma Porta-contenedor": "Containerchassi",
+            "Alarma": "Larm",
+            "GPS": "GPS",
+            "Luces LED": "LED-lampor",
+            "Frenos ABS": "ABS-bromsar",
+            "Bluetooth": "Bluetooth",
+            "USB": "USB",
+            "Pantalla Touch": "Pekskärm",
+            "Aire Acondicionado": "Luftkonditionering",
+            "Climatizador Automático": "Automatisk Klimatanläggning",
+            "Asientos de Piel": "Läderstolar",
+            "Asientos Eléctricos": "Elektriska Stolar",
+            "Asientos Calefactables": "Uppvärmda Stolar",
+            "Asientos Ventilados": "Ventilerade Stolar",
+            "Quemacocos": "Soltak",
+            "Techo Panorámico": "Panoramaglastak",
+            "Vidrios Eléctricos": "Elektriska Fönsterhissar",
+            "Espejos Eléctricos": "Elektriska Speglar",
+            "Volante Multifuncional": "Multifunktionsratt",
+            "Cajuela Eléctrica": "Elektrisk bagagelucka",
+            "Android Auto/CarPlay": "Android Auto/CarPlay",
+            "Cargador Inalámbrico": "Trådlös laddare",
+            "Head-Up Display": "Head-Up Display",
+            "Sistema de Sonido Premium": "Premiumljudsystem",
+            "Tablero Digital": "Digital instrumentpanel",
+            "Llave Inteligente (Keyless)": "Smartnyckel (Keyless)",
+            "Cámara de Reversa": "Backkamera",
+            "Cámara 360°": "360°-kamera",
+            "Bolsas de Aire (Airbags)": "Airbags",
+            "Sensores de Estacionamiento": "Parksensorer",
+            "Monitor de Punto Ciego": "Dödvinkelövervakning",
+            "Alerta de Cambio de Carril": "Varning för filbyte",
+            "Frenado Autónomo de Emergencia": "Autonom nödbromsning",
+            "Control Crucero Adaptativo": "Adaptiv farthållare",
+            "Rines de Aluminio": "Aluminiumfälgar",
+            "Faros de Niebla": "Dimljus",
+            "Barras de Techo": "Takräcken",
+            "Kit Deportivo": "Sportkit",
+            "Frenos de Disco": "Skivbromsar",
+            "ABS en Curva": "ABS i kurvor",
+            "Control de Tracción": "Antispinn",
+            "Quickshifter": "Quickshifter",
+            "Modos de Manejo": "Körlägen",
+            "Suspensión Electrónica": "Elektronisk fjädring",
+            "Amortiguador de Dirección": "Styrdämpare",
+            "Maletas Laterales": "Sidoväskor",
+            "Top Case": "Top Case",
+            "Parabrisas": "Vindruta",
+            "Defensas/Sliders": "Defensas/Sliders",
+            "Puños Calefactables": "Uppvärmda handtag",
+            "Asiento Comfort": "Komfortsäte",
+            "Luces Auxiliares (Exploradoras)": "Extraljus",
+            "Freno de Motor": "Motorbroms",
+            "Retardador": "Retarder",
+            "Camarote": "Sovhytt",
+            "Ejes Retráctiles": "Infällbara axlar",
+            "Suspensión de Aire": "Luftfjädring",
+            "Toma de Fuerza (PTO)": "Kraftuttag (PTO)",
+            "Deflector de Aire": "Vindavvisare",
+            "Tanque Auxiliar": "Extra tank",
+            "Visera Exterior": "Yttre solskydd",
+            "Asiento Neumático": "Luftfjädrad sits",
+            "Eje Elevable": "Lyftbar axel",
+            "Cabina Cerrada (ROPS/FOPS)": "Stängd hytt",
+            "Calefacción": "Värmare",
+            "Joystick Control": "Joystick-styrning",
+            "Estabilizadores": "Stödben",
+            "Cucharon 4en1": "4-i-1 skopa",
+            "Línea Hidráulica Auxiliar": "Extra hydraulledning",
+            "Ripper (Desgarrador)": "Rivare",
+            "Zapatas Anchas": "Breda band",
+            "Llantas Sólidas": "Massiva däck",
+            "Winch (Cabrestante)": "Vinsch",
+            "Roll Cage (Jaula)": "Störtbur",
+            "Snorkel": "Snorkel",
+            "Suspensión Lift Kit": "Höjningssats",
+            "Llantas All-Terrain/Mud-Terrain": "Terrängdäck",
+            "Luces LED Bar": "LED-ramp",
+            "Techo Rígido": "Hårt tak",
+            "Medios Puertas": "Halvdörrar"
         },
         "transmission": {
             "Manual": "Manuell",
@@ -1131,6 +1329,11 @@
         "completed": "Completed",
         "accept_btn": "Accept",
         "reject_btn": "Reject",
-        "cancel_btn": "Cancel"
+        "cancel_btn": "Cancel",
+        "past": "Avslutad"
+    },
+    "chat": {
+        "welcome": "Hej! Jag är din CarMatch-rådgivare. 👨‍💻 Hur kan jag hjälpa dig idag?",
+        "title": "CarMatch-rådgivare"
     }
 }
