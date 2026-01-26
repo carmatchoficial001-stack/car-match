@@ -974,10 +974,10 @@ export default function MarketFiltersAdvanced({
                     />
                 </div>
             </div>
-        </div >
+        </div>
 
-        {/* Transmisión Chips */ }
-    < div >
+                        {/* Transmisión Chips */ }
+    <div>
         <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.transmission')}</label>
         <div className="flex flex-wrap gap-3">
             {TRANSMISSIONS.map(trans => (
@@ -993,11 +993,10 @@ export default function MarketFiltersAdvanced({
                 </button>
             ))}
         </div>
-    </div >
-
+    </div>
 
     {/* Tracción y Pasajeros */ }
-    < div className="grid grid-cols-2 gap-4" >
+    <div className="grid grid-cols-2 gap-4">
         <div>
             <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.traction')}</label>
             <select
@@ -1027,7 +1026,7 @@ export default function MarketFiltersAdvanced({
                 <option value="12">12+</option>
             </select>
         </div>
-    </div >
+    </div>
 
     {/* Horas (Maquinaria/Barcos) */ }
     {
