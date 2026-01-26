@@ -300,15 +300,17 @@ export default function MarketClient({
             if (filters.fuel) params.set('fuel', filters.fuel)
             if (filters.passengers) params.set('passengers', filters.passengers.toString())
             if (filters.cylinders) params.set('cylinders', filters.cylinders.toString())
+            if (filters.hp) params.set('hp', filters.hp.toString())
+            if (filters.cargoCapacity) params.set('maxCargoCapacity', filters.cargoCapacity.toString())
+            if (filters.operatingHours) params.set('hours', filters.operatingHours.toString())
             if (filters.sort) params.set('sort', filters.sort)
             if (filters.features && Array.isArray(filters.features)) {
                 params.set('features', filters.features.join(','))
             }
 
-            // 🧠 SMART CLEANUP: Si la IA encontró filtros útiles (Marca, Modelo, Color), 
+            // 🧠 SMART CLEANUP: Si la IA encontró filtros útiles (Marca, Modelo, Color, Cilindros...), 
             // eliminamos el texto de búsqueda para evitar que el filtro de texto estricto oculte resultados.
-            // Ej: "Ram negra" -> Brand: RAM, Color: Negro. Si dejamos "search=Ram negra", el backend buscará texto exacto y fallará.
-            const hasKeyFilters = filters.brand || filters.model || filters.category || filters.vehicleType || filters.color;
+            const hasKeyFilters = filters.brand || filters.model || filters.category || filters.vehicleType || filters.color || filters.cylinders || filters.hp || filters.cargoCapacity;
             if (hasKeyFilters) {
                 params.delete('search')
             } else {

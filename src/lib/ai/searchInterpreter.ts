@@ -56,7 +56,15 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
        - 👪 "Para Familia / Viajar": Espacio y seguridad.
          -> category: "Automóvil", vehicleType: "SUV" o "Minivan", passengers: 7 (o 5+).
 
-    3. 🕵️‍♂️ **DETECTIVES DE MARCA (CASOS ESPECIALES)**:
+    3. ⚙️ **MODO TÉCNICO (EXTRACCIÓN DE ATRIBUTOS)**: Extrae con precisión de cirujano valores numéricos de ingeniería:
+       - "V6", "6 cil", "6 cilindros" -> cylinders: 6
+       - "V8", "8 cilindros" -> cylinders: 8
+       - "3 toneladas", "3 ton", "capacidad de 3000kg" -> cargoCapacity: 3.0
+       - "Motor 2.0", "2.0 litros", "2000 cc" -> displacement: 2000 (o el valor en litros si la taxonomía lo pide)
+       - "450 hp", "450 caballos" -> hp: 450
+       - "Cero horas", "0 horas" -> operatingHours: 0 (Maquinaria)
+
+    4. 🕵️‍♂️ **DETECTIVES DE MARCA (CASOS ESPECIALES)**:
        - "Ram" / "Ramona" / "Mamalona" -> brand: "RAM,Dodge" (Busca en ambas marcas para cubrir modelos viejos y nuevos).
        - "Chevy" -> brand: "Chevrolet".
        - "Vw" / "Vocho" -> brand: "Volkswagen".

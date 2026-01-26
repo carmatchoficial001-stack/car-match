@@ -46,7 +46,10 @@ interface SearchParams {
     traction?: string
     passengers?: string
     hours?: string
-    cylinders?: string;
+    passengers?: string
+    hours?: string
+    cylinders?: string
+    hp?: string
 }
 
 export default async function MarketPage({
@@ -210,6 +213,16 @@ export default async function MarketPage({
 
     if (searchParams.cylinders) {
         where.cylinders = parseInt(searchParams.cylinders)
+    }
+
+    if (searchParams.hp) {
+        // Búsqueda de rango flexible (+/- 10%) o valor mínimo si la IA lo sugiere
+        // Por simplicidad para "450 hp", buscamos que tenga al menos esa potencia o un rango cercano
+        const hpVal = parseInt(searchParams.hp)
+        where.hp = {
+            gte: hpVal - 20, // Rango de tolerancia
+            lte: hpVal + 50
+        }
     }
 
 
