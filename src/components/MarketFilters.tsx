@@ -1069,20 +1069,16 @@ export default function MarketFiltersAdvanced({
 
 
 
+            {/* ACTION BUTTONS */}
+            <div className="pt-6 border-t border-surface-highlight flex gap-3">
+                <button
+                    onClick={applyFilters}
+                    className="flex-1 py-4 bg-primary-700 hover:bg-primary-600 text-white rounded-xl font-bold transition shadow-lg shadow-primary-900/20 active:scale-95"
+                >
+                    {t('market.filters.apply')}
+                </button>
+            </div>
         </div>
-    )
-}
-
-{/* ACTION BUTTONS */ }
-<div className="pt-6 border-t border-surface-highlight flex gap-3">
-    <button
-        onClick={applyFilters}
-        className="flex-1 py-4 bg-primary-700 hover:bg-primary-600 text-white rounded-xl font-bold transition shadow-lg shadow-primary-900/20 active:scale-95"
-    >
-        {t('market.filters.apply')}
-    </button>
-</div>
-        </div >
     )
 }
 
