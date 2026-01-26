@@ -469,7 +469,11 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                             <div className="px-6 py-6 space-y-8 flex-1">
                                 {/* 2. PREGUNTAR AL EXPERTO (ESTILO SENCILLO) */}
                                 <div className="space-y-4">
-                                    <p className="text-sm text-white/60">{t('map_store.how_to_diagnose') || 'Cuéntale a tu asesor qué falla tiene tu auto...'}</p>
+                                    <p className="text-sm text-white/60">
+                                        {t('map_store.how_to_diagnose') === 'map_store.how_to_diagnose'
+                                            ? 'Cuéntale a tu asesor qué falla tiene tu auto...'
+                                            : t('map_store.how_to_diagnose')}
+                                    </p>
                                     <div className="relative group">
                                         <textarea
                                             value={searchQuery}

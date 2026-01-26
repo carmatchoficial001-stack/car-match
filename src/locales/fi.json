@@ -924,7 +924,8 @@
             "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
             "success_msg": "Thank you for your report. The business has been hidden for review.",
             "success_title": "Raportti Lähetetty!"
-        }
+        },
+        "how_to_diagnose": "Tell your advisor what's wrong with your car..."
     },
     "business_details": {
         "website": "Verkkosivusto",
