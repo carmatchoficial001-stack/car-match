@@ -521,7 +521,7 @@ export default function MarketFiltersAdvanced({
 
             {/* CONTENEDOR COLAPSABLE DE FILTROS MANUALES */}
             <div className={`space-y-6 overflow-hidden transition-all duration-500 ${showManualFilters ? 'max-h-[3000px] opacity-100 pb-4' : 'max-h-0 opacity-0'}`}>
-                
+
                 {/* A. CATEGORÍA Y FILTROS BÁSICOS */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* 1. Categoría Principal */}
@@ -890,21 +890,6 @@ export default function MarketFiltersAdvanced({
                         </svg>
                     </button>
                 </div>
-                </select>
-            </div>
-            <div>
-                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.condition')}</label>
-                <select
-                    value={condition}
-                    onChange={(e) => setCondition(e.target.value)}
-                    className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary"
-                >
-                    <option value="">{t('common.any')}</option>
-                    {CONDITIONS.map(c => <option key={c} value={c}>{t(`taxonomy.condition.${c}`)}</option>)}
-                </select>
-            </div>
-            <div>
-                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.traction')}</label>
                 <select
                     value={traction}
                     onChange={(e) => setTraction(e.target.value)}
@@ -928,71 +913,71 @@ export default function MarketFiltersAdvanced({
             </div>
 
 
-            {/* Pasajeros y Puertas */ }
-    <div className="col-span-2 md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-surface-highlight pt-4 mt-2">
-        <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                {category === 'Maquinaria' ? 'Operadores' : t('market.filters.passengers')}
-            </label>
-            <input
-                type="number"
-                min="1"
-                value={passengers}
-                onChange={(e) => setPassengers(e.target.value)}
-                placeholder="Ej. 5"
-                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
-            />
-        </div>
-        <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.doors')}</label>
-            <input
-                type="number"
-                min="2"
-                max="5"
-                value={doors}
-                onChange={(e) => setDoors(e.target.value)}
-                placeholder="Ej. 4"
-                disabled={category === 'Motocicleta' || category === 'Maquinaria'}
-                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary disabled:opacity-50"
-            />
-        </div>
-    </div>
+            {/* Pasajeros y Puertas */}
+            <div className="col-span-2 md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-surface-highlight pt-4 mt-2">
+                <div>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
+                        {category === 'Maquinaria' ? 'Operadores' : t('market.filters.passengers')}
+                    </label>
+                    <input
+                        type="number"
+                        min="1"
+                        value={passengers}
+                        onChange={(e) => setPassengers(e.target.value)}
+                        placeholder="Ej. 5"
+                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.doors')}</label>
+                    <input
+                        type="number"
+                        min="2"
+                        max="5"
+                        value={doors}
+                        onChange={(e) => setDoors(e.target.value)}
+                        placeholder="Ej. 4"
+                        disabled={category === 'Motocicleta' || category === 'Maquinaria'}
+                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary disabled:opacity-50"
+                    />
+                </div>
+            </div>
 
-    {/* Motor / Potencia Dinámico */ }
-    <div className="col-span-2 md:col-span-4 grid grid-cols-2 gap-4 border-t border-surface-highlight pt-4 mt-2">
-        <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                {category === 'Motocicleta' ? t('market.filters.displacement') + ' ' + t('common.min') + ' (cc)' :
-                    category === 'Camión' || category === 'Maquinaria' ? t('market.filters.power') + ' ' + t('common.min') + ' (HP)' :
-                        t('market.filters.displacement') + ' ' + t('common.min') + ' (L)'}
-            </label>
-            <input
-                type="number"
-                value={minEngine}
-                onChange={(e) => setMinEngine(e.target.value)}
-                placeholder={category === 'Motocicleta' ? 'Ej. 250' : category === 'Camión' ? 'Ej. 300' : 'Ej. 1.6'}
-                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
-            />
-        </div>
-        <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                {category === 'Motocicleta' ? t('market.filters.displacement') + ' ' + t('common.max') + ' (cc)' :
-                    category === 'Camión' || category === 'Maquinaria' ? t('market.filters.power') + ' ' + t('common.max') + ' (HP)' :
-                        t('market.filters.displacement') + ' ' + t('common.max') + ' (L)'}
-            </label>
-            <input
-                type="number"
-                value={maxEngine}
-                onChange={(e) => setMaxEngine(e.target.value)}
-                placeholder={category === 'Motocicleta' ? t('taxonomy.units.cc') : category === 'Camión' ? t('taxonomy.units.hp') : t('taxonomy.units.l')}
-                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
-            />
-        </div>
-    </div>
+            {/* Motor / Potencia Dinámico */}
+            <div className="col-span-2 md:col-span-4 grid grid-cols-2 gap-4 border-t border-surface-highlight pt-4 mt-2">
+                <div>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
+                        {category === 'Motocicleta' ? t('market.filters.displacement') + ' ' + t('common.min') + ' (cc)' :
+                            category === 'Camión' || category === 'Maquinaria' ? t('market.filters.power') + ' ' + t('common.min') + ' (HP)' :
+                                t('market.filters.displacement') + ' ' + t('common.min') + ' (L)'}
+                    </label>
+                    <input
+                        type="number"
+                        value={minEngine}
+                        onChange={(e) => setMinEngine(e.target.value)}
+                        placeholder={category === 'Motocicleta' ? 'Ej. 250' : category === 'Camión' ? 'Ej. 300' : 'Ej. 1.6'}
+                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
+                        {category === 'Motocicleta' ? t('market.filters.displacement') + ' ' + t('common.max') + ' (cc)' :
+                            category === 'Camión' || category === 'Maquinaria' ? t('market.filters.power') + ' ' + t('common.max') + ' (HP)' :
+                                t('market.filters.displacement') + ' ' + t('common.max') + ' (L)'}
+                    </label>
+                    <input
+                        type="number"
+                        value={maxEngine}
+                        onChange={(e) => setMaxEngine(e.target.value)}
+                        placeholder={category === 'Motocicleta' ? t('taxonomy.units.cc') : category === 'Camión' ? t('taxonomy.units.hp') : t('taxonomy.units.l')}
+                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
+                    />
+                </div>
+            </div>
         </div >
 
         {/* Transmisión Chips */ }
-        < div >
+    < div >
         <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.transmission')}</label>
         <div className="flex flex-wrap gap-3">
             {TRANSMISSIONS.map(trans => (
@@ -1011,8 +996,8 @@ export default function MarketFiltersAdvanced({
     </div >
 
 
-        {/* Tracción y Pasajeros */ }
-        < div className = "grid grid-cols-2 gap-4" >
+    {/* Tracción y Pasajeros */ }
+    < div className="grid grid-cols-2 gap-4" >
         <div>
             <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.traction')}</label>
             <select
@@ -1044,7 +1029,7 @@ export default function MarketFiltersAdvanced({
         </div>
     </div >
 
-        {/* Horas (Maquinaria/Barcos) */ }
+    {/* Horas (Maquinaria/Barcos) */ }
     {
         (category === 'Maquinaria' || category === 'Especial') && (
             <div>
