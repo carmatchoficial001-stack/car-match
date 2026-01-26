@@ -31,9 +31,7 @@ const LANGUAGE_NAMES = {
     'vi': 'Vietnamese',
     'id': 'Indonesian',
     'he': 'Hebrew',
-    'ur': 'Urdu',
-    'nah': 'Nahuatl',
-    'myn': 'Mayan'
+    'ur': 'Urdu'
 };
 
 // Inicializar Gemini AI
