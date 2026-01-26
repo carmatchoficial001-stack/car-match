@@ -33,6 +33,8 @@ ${categories.map((cat: any) => `- [${cat.id}] "${cat.label}": Enfocado a ${cat.k
     - "Marcha/Burro de arranque" → [ELECTRICO].
 - 🚛 **Especialización Diesel**: Si detectas términos como "cabezal", "quinta rueda", "compresor de aire de frenado" o "suspensión de aire", PRIORIZA [DIESEL] y [ACCESORIOS_PESADOS].
 - 🚜 **Maquinaria Pesada**: Si menciona "hidráulicos", "mando final" o "orugas", el especialista es [MAQUINARIA].
+- 💨 **Presión/Aire**: Si menciona "aire", "inflar" o "presión" de llantas, el especialista es [LLANTERA] y [GASOLINERA].
+- 🛢️ **Mantenimiento**: Si menciona "aceite", "afinar" o "revisión", el especialista es [MECANICO].
 - 🌡️ **Termodinámica**: 
     - Humo azul = Aceite siendo quemado (Sellos de válvula o anillos). → [TALLER].
     - Humo negro = Exceso de combustible (Sensores o inyectores). → [TALLER].

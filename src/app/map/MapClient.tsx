@@ -65,7 +65,8 @@ export default function MapClient({ businesses, user }: MapClientProps) {
     const [dynamicBusinesses, setDynamicBusinesses] = useState<any[]>(businesses)
     const [isLoadingBounds, setIsLoadingBounds] = useState(false)
     const debounceTimer = useRef<NodeJS.Timeout | null>(null)
-    const lastBounds = useRef<string>('')
+    const currentBoundsRef = useRef<any>(null) // 🔥 Guardar bounds actuales
+    const lastBoundsKeyRef = useRef<string>('')
 
     const isGuest = !user
 
@@ -89,11 +90,13 @@ export default function MapClient({ businesses, user }: MapClientProps) {
         }
     }, [dynamicBusinesses])
 
-    // 🗺️ Dynamic Bounds Fetch
-    const handleBoundsChange = (bounds: any) => {
+    // 🗺️ Dynamic Bounds Fetch (Centralized)
+    const refreshVisibleBusinesses = async (bounds: any, force = false) => {
         const boundsKey = JSON.stringify(bounds)
-        if (boundsKey === lastBounds.current) return
-        lastBounds.current = boundsKey
+        if (!force && boundsKey === lastBoundsKeyRef.current) return
+
+        lastBoundsKeyRef.current = boundsKey
+        currentBoundsRef.current = bounds
 
         if (debounceTimer.current) clearTimeout(debounceTimer.current)
 
@@ -111,12 +114,10 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                 const res = await fetch(`/api/businesses/bounds?${params}`)
                 if (res.ok) {
                     const data = await res.json()
-                    // Merge with existing to avoid flickering, or replace to satisfy "only what is seen"
-                    // Additive is usually better for mobile UX so items don't disappear from list while panning slightly
                     setDynamicBusinesses(prev => {
                         const existingIds = new Set(prev.map(b => b.id))
                         const newOnes = data.businesses.filter((b: any) => !existingIds.has(b.id))
-                        return [...prev, ...newOnes].slice(-1000) // Keep a reasonable pool
+                        return [...prev, ...newOnes].slice(-1000)
                     })
                 }
             } catch (err) {
@@ -124,8 +125,19 @@ export default function MapClient({ businesses, user }: MapClientProps) {
             } finally {
                 setIsLoadingBounds(false)
             }
-        }, 800)
+        }, 300) // Reduced debounce for snappier AI response
     }
+
+    const handleBoundsChange = (bounds: any) => {
+        refreshVisibleBusinesses(bounds)
+    }
+
+    // 🔥 REFRESH BUSSINESSES ON CATEGORY CHANGE (AI or Manual)
+    useEffect(() => {
+        if (currentBoundsRef.current) {
+            refreshVisibleBusinesses(currentBoundsRef.current, true)
+        }
+    }, [selectedCategories])
 
     const handleSmartSearch = async () => {
         if (!searchQuery.trim()) return
