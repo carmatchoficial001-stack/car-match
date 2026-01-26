@@ -157,8 +157,14 @@ export default function MapClient({ businesses, user }: MapClientProps) {
             const data = await response.json()
 
             if (data.categories && data.categories.length > 0) {
+                // 🔥 CLEAR PREVIOUS MANUAL FILTERS AS REQUESTED
                 setSelectedCategories(data.categories)
                 setSearchSuccess(true)
+
+                // 🪄 AUTO-CLOSE SIDEBAR TO SHOW "ILLUMINATED" MAP
+                setTimeout(() => {
+                    setShowSidebar(false)
+                }, 1500)
             } else {
                 setSelectedCategories([])
             }
@@ -199,6 +205,10 @@ export default function MapClient({ businesses, user }: MapClientProps) {
         } finally {
             setIsAnalyzing(false)
             setHasSearched(true)
+            // If fallback also succeeded, close sidebar
+            if (searchSuccess) {
+                setTimeout(() => setShowSidebar(false), 1500)
+            }
         }
     }
 
@@ -401,6 +411,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                         categoryEmojis={CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.icon }), {})}
                         initialLocation={location ? { latitude: location.latitude, longitude: location.longitude } : undefined}
                         onBoundsChange={handleBoundsChange}
+                        highlightCategories={searchSuccess ? selectedCategories : []}
                     />
                 </div>
 

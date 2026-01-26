@@ -23,6 +23,7 @@ interface MapBoxStoreLocatorProps {
     categoryColors: Record<string, string>
     categoryEmojis: Record<string, string>
     initialLocation?: { latitude: number; longitude: number }
+    highlightCategories?: string[]
     onBoundsChange?: (bounds: { minLat: number; maxLat: number; minLng: number; maxLng: number }) => void
 }
 
@@ -31,7 +32,8 @@ export default function MapBoxStoreLocator({
     categoryColors,
     categoryEmojis,
     initialLocation,
-    onBoundsChange
+    onBoundsChange,
+    highlightCategories = []
 }: MapBoxStoreLocatorProps) {
     const { t } = useLanguage()
     const mapContainer = useRef<HTMLDivElement>(null)
@@ -192,6 +194,26 @@ export default function MapBoxStoreLocator({
                 cluster: false,
             })
 
+            // 🌟 GLOWING / PULSING LAYER FOR AI HIGHLIGHTS
+            mapInstance.addLayer({
+                id: 'point-highlight-glow',
+                type: 'circle',
+                source: sourceId,
+                paint: {
+                    'circle-radius': 10,
+                    'circle-color': [
+                        'match',
+                        ['get', 'category'],
+                        ...Object.entries(categoryColors).flat(),
+                        '#ffffff'
+                    ],
+                    'circle-opacity': 0,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#ffffff',
+                    'circle-stroke-opacity': 0
+                }
+            })
+
             // 3. UNCLUSTERED POINTS LAYER (The Pin Shape)
             mapInstance.addLayer({
                 id: 'unclustered-point-bg',
@@ -309,21 +331,68 @@ export default function MapBoxStoreLocator({
             mapInstance.on('mouseleave', 'unclustered-point-icon', resetPointer);
         }
 
-    }, [businesses, mapLoaded, categoryColors, categoryEmojis, t]) // Added t dependency
+    }
 
-    return (
-        <div className="w-full h-full relative bg-gray-900">
-            <div ref={mapContainer} className="w-full h-full" />
+    }, [businesses, mapLoaded, categoryColors, categoryEmojis, t])
 
-            {/* Loading Overlay */}
-            {!mapLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10 backdrop-blur-sm">
-                    <div className="flex flex-col items-center gap-2">
-                        <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-xs text-white">{t('map_locator.loading_3d')}</span>
-                    </div>
+// 🔥 PULSING ANIMATION FOR HIGHLIGHTS
+useEffect(() => {
+    if (!map.current || !mapLoaded) return
+    const mapInstance = map.current
+
+    if (highlightCategories.length === 0) {
+        if (mapInstance.getLayer('point-highlight-glow')) {
+            mapInstance.setFilter('point-highlight-glow', ['==', ['get', 'id'], 'none'])
+        }
+        return
+    }
+
+    // Apply filter to glow layer
+    if (mapInstance.getLayer('point-highlight-glow')) {
+        mapInstance.setFilter('point-highlight-glow', ['in', ['get', 'category'], ['literal', highlightCategories]])
+    }
+
+    let start: number | null = null
+    const duration = 2000
+
+    const animateGlow = (timestamp: number) => {
+        if (!start) start = timestamp
+        const progress = (timestamp - start) % duration
+        const ratio = progress / duration
+
+        // Pulse radius and opacity
+        const opacity = 1 - ratio
+        const radius = 10 + ratio * 30
+
+        if (mapInstance.getLayer('point-highlight-glow')) {
+            mapInstance.setPaintProperty('point-highlight-glow', 'circle-radius', radius)
+            mapInstance.setPaintProperty('point-highlight-glow', 'circle-opacity', opacity * 0.5)
+            mapInstance.setPaintProperty('point-highlight-glow', 'circle-stroke-opacity', opacity)
+        }
+
+        if (highlightCategories.length > 0) {
+            requestAnimationFrame(animateGlow)
+        }
+    }
+
+    const animId = requestAnimationFrame(animateGlow)
+    return () => cancelAnimationFrame(animId)
+
+}, [highlightCategories, mapLoaded])
+
+return (
+    <div className="w-full h-full relative bg-gray-900">
+        <div ref={mapContainer} className="w-full h-full" />
+
+        {/* Loading Overlay */}
+        {!mapLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10 backdrop-blur-sm">
+                <div className="flex flex-col items-center gap-2">
+                    <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-xs text-white">{t('map_locator.loading_3d')}</span>
                 </div>
-            )}
-        </div>
-    )
+            </div>
+        )}
+    </div>
+)
 }
