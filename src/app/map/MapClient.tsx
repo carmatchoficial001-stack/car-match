@@ -133,6 +133,8 @@ export default function MapClient({ businesses, user }: MapClientProps) {
         setIsAnalyzing(true)
         setSearchSuccess(false)
         setHasSearched(false)
+        setSelectedCategories([]) // 🔥 RESET MAP IMMEDIATELY ON NEW SEARCH
+        let successFound = false
 
         try {
             const response = await fetch('/api/ai/analyze-problem', {
@@ -148,51 +150,38 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                 })
             })
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}))
-                console.warn('⚠️ IA Smart Search no disponible:', errorData.error || response.statusText)
-                throw new Error('FALLBACK_MODE')
-            }
+            if (!response.ok) throw new Error('FALLBACK_MODE')
 
             const data = await response.json()
 
             if (data.categories && data.categories.length > 0) {
-                // 🔥 CLEAR PREVIOUS MANUAL FILTERS AS REQUESTED
+                // 🔥 CLEAR PREVIOUS MANUAL FILTERS
                 setSelectedCategories(data.categories)
                 setSearchSuccess(true)
-
-                // 🪄 AUTO-CLOSE SIDEBAR TO SHOW "ILLUMINATED" MAP
-                setTimeout(() => {
-                    setShowSidebar(false)
-                }, 1500)
+                successFound = true
             } else {
                 setSelectedCategories([])
             }
         } catch (error: any) {
-            // Solently handle all errors to enforce fallback
-            if (error.message !== 'FALLBACK_MODE') {
-                console.warn('⚠️ Error de conexión con IA, usando búsqueda local:', error.message)
-            }
             // Fallback a búsqueda básica mejorada
             const query = searchQuery.toLowerCase()
             const detectedCats: string[] = []
 
-            // Detectar si menciona "carro", "auto", "vehículo" → excluir motos
             const isCarRelated = /\b(carro|auto|automovil|vehiculo|sedan|suv|pick.*up|camioneta)\b/i.test(searchQuery)
             const isMotorcycleRelated = /\b(moto|motocicleta|scooter|cuatrimoto)\b/i.test(searchQuery)
 
             CATEGORIES.forEach(cat => {
-                // Excluir motos si habla de carros
                 if (isCarRelated && cat.id === 'MOTOS') return
-                // Excluir categorías de carros si habla de motos
                 if (isMotorcycleRelated && !['MOTOS', 'LLANTAS', 'GRUAS'].includes(cat.id)) return
 
                 if (cat.keywords.some(k => {
-                    // Fix: Evitar que 'moto' haga match con 'motor'
-                    if (k === 'moto') {
-                        return new RegExp(`\\b${k}\\b`, 'i').test(query)
-                    }
-                    return query.includes(k)
+                    const normalizedK = k.toLowerCase()
+                    if (normalizedK === 'moto') return new RegExp(`\\b${normalizedK}\\b`, 'i').test(query)
+
+                    // 🧠 FLEXIBLE MATCHING: If the query contains any significant word from the keyword
+                    // e.g., "llantas" matches "Venta de Llantas"
+                    const kWords = normalizedK.split(' ').filter(w => w.length > 3)
+                    return kWords.some(word => query.includes(word)) || query.includes(normalizedK)
                 })) {
                     detectedCats.push(cat.id)
                 }
@@ -201,13 +190,17 @@ export default function MapClient({ businesses, user }: MapClientProps) {
             setSelectedCategories(detectedCats)
             if (detectedCats.length > 0) {
                 setSearchSuccess(true)
+                successFound = true
             }
         } finally {
             setIsAnalyzing(false)
             setHasSearched(true)
-            // If fallback also succeeded, close sidebar
-            if (searchSuccess) {
-                setTimeout(() => setShowSidebar(false), 1500)
+
+            // 🪄 AUTO-CLOSE SIDEBAR IF SUCCESSFUL (Using local variable to avoid stale state)
+            if (successFound) {
+                setTimeout(() => {
+                    setShowSidebar(false)
+                }, 1500)
             }
         }
     }

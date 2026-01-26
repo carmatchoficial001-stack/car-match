@@ -330,69 +330,66 @@ export default function MapBoxStoreLocator({
             mapInstance.on('mouseenter', 'unclustered-point-icon', setPointer);
             mapInstance.on('mouseleave', 'unclustered-point-icon', resetPointer);
         }
-
-    }
-
     }, [businesses, mapLoaded, categoryColors, categoryEmojis, t])
 
-// 🔥 PULSING ANIMATION FOR HIGHLIGHTS
-useEffect(() => {
-    if (!map.current || !mapLoaded) return
-    const mapInstance = map.current
+    // 🔥 PULSING ANIMATION FOR HIGHLIGHTS
+    useEffect(() => {
+        if (!map.current || !mapLoaded) return
+        const mapInstance = map.current
 
-    if (highlightCategories.length === 0) {
+        if (highlightCategories.length === 0) {
+            if (mapInstance.getLayer('point-highlight-glow')) {
+                mapInstance.setFilter('point-highlight-glow', ['==', ['get', 'id'], 'none'])
+            }
+            return
+        }
+
+        // Apply filter to glow layer
         if (mapInstance.getLayer('point-highlight-glow')) {
-            mapInstance.setFilter('point-highlight-glow', ['==', ['get', 'id'], 'none'])
-        }
-        return
-    }
-
-    // Apply filter to glow layer
-    if (mapInstance.getLayer('point-highlight-glow')) {
-        mapInstance.setFilter('point-highlight-glow', ['in', ['get', 'category'], ['literal', highlightCategories]])
-    }
-
-    let start: number | null = null
-    const duration = 2000
-
-    const animateGlow = (timestamp: number) => {
-        if (!start) start = timestamp
-        const progress = (timestamp - start) % duration
-        const ratio = progress / duration
-
-        // Pulse radius and opacity
-        const opacity = 1 - ratio
-        const radius = 10 + ratio * 30
-
-        if (mapInstance.getLayer('point-highlight-glow')) {
-            mapInstance.setPaintProperty('point-highlight-glow', 'circle-radius', radius)
-            mapInstance.setPaintProperty('point-highlight-glow', 'circle-opacity', opacity * 0.5)
-            mapInstance.setPaintProperty('point-highlight-glow', 'circle-stroke-opacity', opacity)
+            mapInstance.setFilter('point-highlight-glow', ['in', ['get', 'category'], ['literal', highlightCategories]])
         }
 
-        if (highlightCategories.length > 0) {
-            requestAnimationFrame(animateGlow)
+        let start: number | null = null
+        const duration = 2000
+
+        const animateGlow = (timestamp: number) => {
+            if (!start) start = timestamp
+            const progress = (timestamp - start) % duration
+            const ratio = progress / duration
+
+            // Pulse radius and opacity
+            const opacity = 1 - ratio
+            const radius = 10 + ratio * 30
+
+            if (mapInstance.getLayer('point-highlight-glow')) {
+                mapInstance.setPaintProperty('point-highlight-glow', 'circle-radius', radius)
+                mapInstance.setPaintProperty('point-highlight-glow', 'circle-opacity', opacity * 0.5)
+                mapInstance.setPaintProperty('point-highlight-glow', 'circle-stroke-opacity', opacity)
+            }
+
+            if (highlightCategories.length > 0) {
+                requestAnimationFrame(animateGlow)
+            }
         }
-    }
 
-    const animId = requestAnimationFrame(animateGlow)
-    return () => cancelAnimationFrame(animId)
+        const animId = requestAnimationFrame(animateGlow)
+        return () => cancelAnimationFrame(animId)
 
-}, [highlightCategories, mapLoaded])
+    }, [highlightCategories, mapLoaded])
 
-return (
-    <div className="w-full h-full relative bg-gray-900">
-        <div ref={mapContainer} className="w-full h-full" />
+    return (
+        <div className="w-full h-full relative bg-gray-900">
+            <div ref={mapContainer} className="w-full h-full" />
 
-        {/* Loading Overlay */}
-        {!mapLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10 backdrop-blur-sm">
-                <div className="flex flex-col items-center gap-2">
-                    <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-xs text-white">{t('map_locator.loading_3d')}</span>
+            {/* Loading Overlay */}
+            {!mapLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-xs text-white">{t('map_locator.loading_3d')}</span>
+                    </div>
                 </div>
-            </div>
-        )}
-    </div>
-)
+            )}
+        </div>
+    )
 }
