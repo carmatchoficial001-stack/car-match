@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { safeGenerateContent, safeExtractJSON } from '@/lib/ai/geminiClient'
+import aiCache from '@/lib/ai/aiCache' // 💰 Sistema de caché para reducir costos
 
 export async function POST(req: NextRequest) {
     try {
@@ -10,6 +11,13 @@ export async function POST(req: NextRequest) {
                 { error: 'Query y categories son requeridos' },
                 { status: 400 }
             )
+        }
+
+        // 🚀 PASO 1: Intentar obtener del caché
+        const cachedResult = aiCache.get(query, 'MAP_PROBLEM');
+        if (cachedResult) {
+            console.log(`⚡ [CACHE HIT] Diagnóstico recuperado del caché. $0 gastados.`);
+            return NextResponse.json(cachedResult);
         }
 
         // Prompt de análisis automático (backend - no visible para usuario)
@@ -26,6 +34,16 @@ export async function POST(req: NextRequest) {
 **DATOS TÉCNICOS DE APOYO (Categorías CarMatch):**
 ${categories.map((cat: any) => `- [${cat.id}] "${cat.label}": Enfocado a ${cat.keywords.join(', ')}`).join('\n')}
 
+**🔤 TOLERANCIA MÁXIMA A ERRORES ORTOGRÁFICOS (CRUCIAL):**
+Tu sistema DEBE interpretar correctamente búsquedas con:
+- Faltas de ortografía ("gasolna" → gasolina, "mecaniko" → mecánico, "llantra" → llantera)
+- Errores de dedo ("freons" → frenos, "aceiet" → aceite, "gruas" → grúas)
+- Omisión de acentos ("gasolineria" → gasolinera, "mecanica" → mecánica, "electrico" → eléctrico)
+- Términos mal escritos ("ponchao" → ponchado, "cheke" → check, "caboio" → cambio)
+- Números como texto ("llanta desinflada" → llantera, "sin gas" → gasolinera)
+
+JAMÁS rechaces una consulta por gramática imperfecta. El 80% de usuarios escribe desde móvil con errores. Debes ADIVINAR la intención correcta.
+
 **LÓGICA DE PROCESAMIENTO SUPER-INTELIGENTE:**
 - ⚙️ **Diferenciación Semántica**: 
     - "Motor" ≠ "Moto". Si el usuario busca "reparar motor", el especialista es [mecanico] o [refacciones]. No sugieras [motos] a menos que mencione explícitamente un vehículo de 2 o 3 ruedas.
@@ -41,6 +59,11 @@ ${categories.map((cat: any) => `- [${cat.id}] "${cat.label}": Enfocado a ${cat.k
     - Humo negro = Exceso de combustible (Sensores o inyectores). → [mecanico].
     - Humo blanco (dulce) = Anticongelante (Junta de cabeza). → [radiadores] y [mecanico].
 
+    **CASOS ESPECIALES PRIORITARIOS (SEGÚN REGLAS DE NEGOCIO):**
+    - ⛽ **GASOLINERAS**: Si el usuario menciona CUALQUIER variante de "gas", "gasolina", "diesel", "magna", "premium", "cargar", "echar", "combustible", "tanque vacio", "bomba", "hidrocarburo" o incluso marcas como "pemex", "mobil", "shell" -> DEBES devolver ["gasolinera"]. ES CRÍTICO.
+    - 🚗 **LAVADO/ESTÉTICA**: "Lavar", "Sucio", "Mancha", "Pulir", "Cera", "Aspirar", "Carwash", "Autolavado" -> ["carwash", "pintura"].
+    - 🆘 **EMERGENCIAS EN RUTA**: "Ponchado", "Llanta baja", "Cambiar llanta", "Grua", "Remolque", "Me quedé tirado" -> ["llantera", "gruas"].
+
 **FORMATO DE RESPUESTA (ESTRICTO JSON):**
 {
     "categories": ["ID_MAS_RELEVANTE", "ID_SECUNDARIO"]
@@ -52,17 +75,24 @@ ${categories.map((cat: any) => `- [${cat.id}] "${cat.label}": Enfocado a ${cat.k
 Responde UNICAMENTE con el JSON solicitado.`
 
         console.log('🤖 Analizando query:', query)
-        // ✅ Flash para análisis de problemas (rápido)
-        const { geminiFlash } = await import('@/lib/ai/geminiClient');
-        const response = await safeGenerateContent(prompt, 5, geminiFlash);
+        // 🚀 UPGRADE: Usamos Gemini PRO para máxima comprensión del "Concepto Mundial"
+        // Aunque sea unos milisegundos más lento, la "Perfección" requiere el modelo más capaz.
+        const { geminiPro } = await import('@/lib/ai/geminiModels');
+
+        // Usamos geminiPro en lugar de flash para el análisis
+        const response = await safeGenerateContent(prompt, 3, geminiPro);
         const responseText = response.text()
-        console.log('✅ Respuesta de IA:', responseText)
+        console.log('✅ [AI Expert] Respuesta:', responseText)
 
         const aiResponse = safeExtractJSON<any>(responseText)
 
         if (!aiResponse) {
             throw new Error('Invalid AI response format')
         }
+
+        // 💾 PASO FINAL: Guardar en caché para futuras consultas idénticas
+        aiCache.set(query, aiResponse, 'MAP_PROBLEM');
+        console.log(`💰 [CACHE SAVE] Próximo diagnóstico idéntico será gratis.`);
 
         return NextResponse.json(aiResponse)
 

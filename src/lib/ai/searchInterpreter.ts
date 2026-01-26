@@ -1,6 +1,7 @@
 
-import { geminiFlash } from "./geminiClient"; // ✅ Flash estable con temp 0.3
+import { geminiPro } from "./geminiModels"; // 🚀 UPGRADE: Usamos PRO para "Entendimiento Humano" perfecto
 import { VEHICLE_CATEGORIES, BRANDS, COLORS, TRANSMISSIONS, FUELS, GLOBAL_SYNONYMS } from "../vehicleTaxonomy";
+import aiCache from "./aiCache"; // 💰 Sistema de caché para reducir costos
 
 interface SearchIntent {
   category?: string;
@@ -20,10 +21,18 @@ interface SearchIntent {
   query_language?: string; // Just for logging/debugging
   keywords?: string[]; // Extra keywords like "roja", "4x4"
   isBusinessSearch?: boolean; // If user is looking for a shop/mechanic instead of a car
+  aiReasoning?: string; // 🗣️ Mensaje de la IA explicando su lógica al usuario
 }
 
 export async function interpretSearchQuery(query: string, context: 'MARKET' | 'MAP'): Promise<SearchIntent> {
   console.log(`🧠 Interpretando búsqueda (${context}): "${query}"`);
+
+  // 🚀 PASO 1: Intentar obtener del caché
+  const cachedResult = aiCache.get(query, context);
+  if (cachedResult) {
+    console.log(`⚡ [CACHE HIT] Respuesta recuperada del caché. $0 gastados.`);
+    return cachedResult;
+  }
 
   // We inject the taxonomy context so Gemini knows our exact valid values
   const categoriesStr = JSON.stringify(Object.keys(VEHICLE_CATEGORIES));
@@ -37,6 +46,15 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
     - Transmisiones: ${JSON.stringify(TRANSMISSIONS)}
     - Combustibles: ${JSON.stringify(FUELS)}
     - 🌍 DICCIONARIO GLOBAL DE SINÓNIMOS (APRENDIZAJE): ${JSON.stringify(GLOBAL_SYNONYMS)}
+
+    🔤 **NIVEL 0 - TOLERANCIA ORTOGRÁFICA MÁXIMA (PRIORIDAD ABSOLUTA):**
+    El usuario puede escribir con CUALQUIER error ortográfico debido a velocidad, autocorrector o nivel educativo. NUNCA penalices esto:
+    - Marcas mal escritas: "chevi" → Chevrolet, "volksw" → Volkswagen, "toyot" → Toyota, "nissn" → Nissan
+    - Colores con errores: "negr", "nwgra", "negrao" → Negro, "roj", "rrojo" → Rojo, "azull" → Azul
+    - Tipos de vehículo: "pico", "pikap", "pickup" → Pickup, "camionta" → Camioneta
+    - Términos técnicos: "diessel" → Diesel, "gasolna" → Gasolina, "automatico" → Automático, "4x4" (escrito "4 por 4", "cuatro equis cuatro") → 4x4
+    
+    Tu trabajo es INTERPRETAR la intención real ignorando completamente la ortografía. Usa similitud fonética y contextual.
 
     TUS OBJETIVOS DE ALTA PRECISIÓN Y TRADUCCIÓN:
     1. 🗣️ **Traductor Semántico Multilingüe**: El usuario puede buscar en CUALQUIERA de los 21 idiomas (Español, Inglés, Chino, Árabe, etc.). TU TRABAJO es mapear su intención a los VALORES EXACTOS de la taxonomía anterior en Español.
@@ -69,6 +87,13 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
        - "Chevy" -> brand: "Chevrolet".
        - "Vw" / "Vocho" -> brand: "Volkswagen".
 
+    5. 🗣️ **FEEDBACK HUMANO ('ALIVE AI')**: 
+       Genera un campo "aiReasoning" con un mensaje corto (máx 15 palabras) y con EMOCIÓN/EMOJIS explicando qué estás buscando. ¡Que se sienta vivo!
+       - "¡Entendido! Buscando bestias V8 de 450hp 🏎️💨"
+       - "Perfecto para el rancho. Filtrando 4x4 de trabajo pesado 🚜"
+       - "Buscando autos ahorradores para plataforma ⛽📉"
+       - "¡Claro! Mostrando solo trocas blindadas 🛡️"
+
     4. 📉 **ORDENAMIENTO INTELIGENTE**: Detecta si el usuario prioriza precio, año o uso.
        - "El más barato", "Económico" -> sort: "price_asc"
        - "El más nuevo", "Reciente" -> sort: "year_desc"
@@ -98,7 +123,8 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
       "features": ["String", "Array", "Of", "Features", "like", "'Bluetooth'", "'Pantalla'", "'Piel'"],
       "sort": "String ('price_asc', 'price_desc', 'year_desc', 'mileage_asc')",
       "isBusinessSearch": Boolean,
-      "keywords": ["Array", "Of", "Semantic", "Tokens"]
+      "keywords": ["Array", "Of", "Semantic", "Tokens"],
+      "aiReasoning": "String (Mensaje corto y carismático para el usuario)"
     }
 
     CONOCIMIENTO UNIVERSAL CARMATCH:
@@ -112,7 +138,7 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
   `;
 
   try {
-    const result = await geminiFlash.generateContent(prompt); // ✅ Flash estable con temp 0.3
+    const result = await geminiPro.generateContent(prompt); // 🚀 Usando modelo PRO para máxima precisión semántica
     const response = await result.response;
     const text = response.text();
     const jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();
@@ -147,6 +173,10 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
       const exact = TRANSMISSIONS.find(t => t.toLowerCase() === outputTrans.toLowerCase());
       if (exact) aiOutput.transmission = exact;
     }
+
+    // 💾 PASO FINAL: Guardar en caché para futuras consultas
+    aiCache.set(query, aiOutput, context);
+    console.log(`💰 [CACHE SAVE] Próxima búsqueda idéntica será gratis.`);
 
     return aiOutput;
   } catch (error) {
