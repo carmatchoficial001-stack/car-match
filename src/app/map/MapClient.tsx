@@ -451,22 +451,22 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
                     {/* Filter Panel (SIDEBAR STYLE) */}
                     <div className={`
-                        relative h-full w-full md:w-[450px] bg-surface/90 backdrop-blur-2xl border-r border-surface-highlight shadow-[20px_0_50px_rgba(0,0,0,0.5)] flex flex-col transition-transform duration-500 ease-out transform
+                        relative h-full w-[85%] max-w-[340px] bg-[#1a243d]/95 backdrop-blur-2xl border-r border-white/10 shadow-[20px_0_50px_rgba(0,0,0,0.4)] flex flex-col transition-transform duration-500 ease-out transform
                         ${showSidebar ? 'translate-x-0' : '-translate-x-full'}
                     `}>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-0 flex flex-col h-full bg-[#1a243d]">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-0 flex flex-col h-full bg-transparent">
                             {/* 1. HEADER SENCILLO */}
-                            <div className="flex items-center justify-between p-5 border-b border-white/5">
+                            <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
                                 <h2 className="text-xl font-bold text-white tracking-tight">Filtros</h2>
                                 <button
                                     onClick={() => setShowSidebar(false)}
-                                    className="p-2 text-white/60 hover:text-white transition-colors"
+                                    className="p-1 text-white/40 hover:text-white transition-colors"
                                 >
                                     <Plus size={24} className="rotate-45" />
                                 </button>
                             </div>
 
-                            <div className="p-5 space-y-6 flex-1">
+                            <div className="px-6 py-6 space-y-8 flex-1">
                                 {/* 2. PREGUNTAR AL EXPERTO (ESTILO SENCILLO) */}
                                 <div className="space-y-4">
                                     <p className="text-sm text-white/60">{t('map_store.how_to_diagnose') || 'Cuéntale a tu asesor qué falla tiene tu auto...'}</p>
