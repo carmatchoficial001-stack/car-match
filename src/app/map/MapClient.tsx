@@ -167,31 +167,37 @@ export default function MapClient({ businesses, user }: MapClientProps) {
             const data = await response.json()
 
             if (data.categories && data.categories.length > 0) {
-                // 🔥 CLEAR PREVIOUS MANUAL FILTERS
-                setSelectedCategories(data.categories)
+                // 🔥 Ensure all IDs are lowercase to match taxonomy
+                const normalizedCats = data.categories.map((c: string) => c.toLowerCase())
+                setSelectedCategories(normalizedCats)
                 setSearchSuccess(true)
                 successFound = true
             } else {
-                setSelectedCategories([])
+                throw new Error('NO_CATEGORIES_FOUND')
             }
         } catch (error: any) {
             // Fallback a búsqueda básica mejorada
             const query = searchQuery.toLowerCase()
             const detectedCats: string[] = []
 
+            // 🔥 MEJORA CRÍTICA: Detección ultra-agresiva de gasolineras para Ruben
+            if (/\b(gas|gaso|gasol|gasolina|gasolinera|gasolineria|magna|premium|diesel|combustible|echar|cargar)\b/i.test(query)) {
+                detectedCats.push('gasolinera')
+            }
+
             const isCarRelated = /\b(carro|auto|automovil|vehiculo|sedan|suv|pick.*up|camioneta)\b/i.test(searchQuery)
             const isMotorcycleRelated = /\b(moto|motocicleta|scooter|cuatrimoto)\b/i.test(searchQuery)
 
             CATEGORIES.forEach(cat => {
-                if (isCarRelated && cat.id === 'MOTOS') return
-                if (isMotorcycleRelated && !['MOTOS', 'LLANTAS', 'GRUAS'].includes(cat.id)) return
+                if (detectedCats.includes(cat.id)) return // Skip if already detected
+
+                if (isCarRelated && cat.id === 'motos') return
+                if (isMotorcycleRelated && !['motos', 'llantera', 'gruas'].includes(cat.id)) return
 
                 if (cat.keywords.some(k => {
                     const normalizedK = k.toLowerCase()
                     if (normalizedK === 'moto') return new RegExp(`\\b${normalizedK}\\b`, 'i').test(query)
 
-                    // 🧠 FLEXIBLE MATCHING: If the query contains any significant word from the keyword
-                    // e.g., "llantas" matches "Venta de Llantas"
                     const kWords = normalizedK.split(' ').filter(w => w.length > 3)
                     return kWords.some(word => query.includes(word)) || query.includes(normalizedK)
                 })) {
@@ -208,11 +214,11 @@ export default function MapClient({ businesses, user }: MapClientProps) {
             setIsAnalyzing(false)
             setHasSearched(true)
 
-            // 🪄 AUTO-CLOSE SIDEBAR IF SUCCESSFUL (Using local variable to avoid stale state)
+            // 🪄 AUTO-CLOSE SIDEBAR IF SUCCESSFUL
             if (successFound) {
                 setTimeout(() => {
                     setShowSidebar(false)
-                }, 1500)
+                }, 2000) // 2s para que Ruben vea las categorías marcadas
             }
         }
     }
@@ -496,10 +502,19 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                     </button>
 
                                     {searchSuccess && !isAnalyzing && (
-                                        <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-xl animate-in fade-in zoom-in duration-300">
-                                            <p className="text-[10px] text-green-400 font-bold text-center leading-relaxed">
+                                        <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-xl animate-in fade-in zoom-in duration-300 text-center">
+                                            <p className="text-[10px] text-green-400 font-bold leading-relaxed">
                                                 Ya te seleccioné los negocios indicados, <br />
-                                                dale click en <span className="text-white underline">VER EN EL MAPA</span>
+                                                dale click en <span className="text-white underline font-black">VER EN EL MAPA</span>
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {hasSearched && !searchSuccess && !isAnalyzing && (
+                                        <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl animate-in fade-in zoom-in duration-300 text-center">
+                                            <p className="text-[10px] text-red-400 font-black leading-relaxed">
+                                                Híjole... el Experto no encontró nada. <br />
+                                                Intenta con otras palabras o selecciona abajo.
                                             </p>
                                         </div>
                                     )}

@@ -108,7 +108,7 @@ export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
     diesel: ['Bombas de Inyección', 'Inyectores Diesel', 'Turbos Diesel', 'Filtros de Partículas'],
     offroad: ['Suspensión 4x4', 'Snorkel', 'Winches', 'Barras LED', 'Llantas Todo Terreno'],
     cerrajeria: ['Duplicado de Llaves', 'Programación de Llaves', 'Apertura de Autos', 'Reparación de Chapas'],
-    gasolinera: ['Magna', 'Premium', 'Diesel', 'Baños', 'Tienda de Conveniencia'],
+    gasolinera: ['Gasolina', 'Magna', 'Premium', 'Diesel', 'Baños', 'Tienda de Conveniencia', 'Cargar Gas', 'Echar Gas', 'Combustible'],
     yonke: ['Venta de Partes Usadas', 'Compra de Chatarra', 'Motores Usados', 'Transmisiones Usadas'],
     estacionamiento: ['Por Hora', 'Pensión Mensual', 'Techado', 'Valet Parking', '24 Horas'],
     frenos: ['Balatas', 'Discos', 'Rectificado', 'ABS', 'Líquido de Frenos'],

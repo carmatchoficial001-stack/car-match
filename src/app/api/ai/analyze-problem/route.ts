@@ -28,17 +28,18 @@ ${categories.map((cat: any) => `- [${cat.id}] "${cat.label}": Enfocado a ${cat.k
 
 **LÓGICA DE PROCESAMIENTO SUPER-INTELIGENTE:**
 - ⚙️ **Diferenciación Semántica**: 
-    - "Motor" ≠ "Moto". Si el usuario busca "reparar motor", el especialista es [TALLER] o [REFACCIONES]. No sugieras [MOTOS] a menos que mencione explícitamente un vehículo de 2 o 3 ruedas.
-    - "Cuerpo de aceleración" → [TALLER] (Mecánica) o [ELECTRICO].
-    - "Marcha/Burro de arranque" → [ELECTRICO].
-- 🚛 **Especialización Diesel**: Si detectas términos como "cabezal", "quinta rueda", "compresor de aire de frenado" o "suspensión de aire", PRIORIZA [DIESEL] y [ACCESORIOS_PESADOS].
-- 🚜 **Maquinaria Pesada**: Si menciona "hidráulicos", "mando final" o "orugas", el especialista es [MAQUINARIA].
-- 💨 **Presión/Aire**: Si menciona "aire", "inflar" o "presión" de llantas, el especialista es [LLANTERA] y [GASOLINERA].
-- 🛢️ **Mantenimiento**: Si menciona "aceite", "afinar" o "revisión", el especialista es [MECANICO].
+    - "Motor" ≠ "Moto". Si el usuario busca "reparar motor", el especialista es [mecanico] o [refacciones]. No sugieras [motos] a menos que mencione explícitamente un vehículo de 2 o 3 ruedas.
+    - "Cuerpo de aceleración" → [mecanico] o [electrico].
+    - "Marcha/Burro de arranque" → [electrico].
+- ⛽ **Combustible y Gasolina**: Si el usuario dice "gas", "gasolina", "donde echo", "combustible", "magna", "premium", "diesel", "gasolinera" o "perdí una manguera", el especialista es [gasolinera]. SÉ EXTREMADAMENTE PERMISIVO CON ERRORES DE DEDO (ej: "gasolna", "gasoilna", "gasolineria"). Es prioridad máxima para este experto.
+- 🚛 **Especialización Diesel**: Si detectas términos como "cabezal", "quinta rueda", "compresor de aire de frenado" o "suspensión de aire", PRIORIZA [diesel] y [pesados].
+- 🚜 **Maquinaria Pesada**: Si menciona "hidráulicos", "mando final" o "orugas", el especialista es [mecanico].
+- 💨 **Presión/Aire**: Si menciona "aire", "inflar" o "presión" de llantas, el especialista es [llantera] y [gasolinera].
+- 🛢️ **Mantenimiento**: Si menciona "aceite", "afinar" o "revisión", el especialista es [mecanico].
 - 🌡️ **Termodinámica**: 
-    - Humo azul = Aceite siendo quemado (Sellos de válvula o anillos). → [TALLER].
-    - Humo negro = Exceso de combustible (Sensores o inyectores). → [TALLER].
-    - Humo blanco (dulce) = Anticongelante (Junta de cabeza). → [RADIADORES] y [TALLER].
+    - Humo azul = Aceite siendo quemado (Sellos de válvula o anillos). → [mecanico].
+    - Humo negro = Exceso de combustible (Sensores o inyectores). → [mecanico].
+    - Humo blanco (dulce) = Anticongelante (Junta de cabeza). → [radiadores] y [mecanico].
 
 **FORMATO DE RESPUESTA (ESTRICTO JSON):**
 {
