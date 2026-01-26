@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { BUSINESS_CATEGORIES as CATEGORIES } from '@/lib/businessCategories'
@@ -427,16 +428,28 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                 </div>
 
 
-                {/* 📱 BOTÓN MOSTRAR FILTROS (FLOTANTE) */}
-                {!showSidebar && (
-                    <button
-                        onClick={() => setShowSidebar(true)}
-                        className="absolute top-6 left-6 z-30 px-8 py-4 bg-primary-700 text-white rounded-full shadow-[0_15px_30px_rgba(0,0,0,0.5)] font-black uppercase tracking-[0.15em] border-2 border-primary-500/50 flex items-center gap-3 active:scale-95 hover:bg-primary-600 transition-all animate-in fade-in slide-in-from-left-4 duration-500"
-                    >
-                        <Settings2 size={24} />
-                        {t('map_store.show_filters')}
-                    </button>
-                )}
+                {/* 📱 BOTONES FLOTANTES (MAPA) */}
+                <div className="absolute top-6 left-6 z-30 flex flex-col gap-3">
+                    {!showSidebar && (
+                        <>
+                            <Link
+                                href="/my-businesses?action=new"
+                                className="px-6 py-3 bg-accent-600 text-white rounded-full shadow-[0_15px_30px_rgba(249,115,22,0.4)] font-black uppercase tracking-[0.1em] border-2 border-accent-500/50 flex items-center gap-2 active:scale-95 hover:bg-accent-500 transition-all animate-in fade-in slide-in-from-left-4 duration-500"
+                            >
+                                <Plus size={20} />
+                                <span className="text-sm md:text-base">{t('map_store.publish_business')}</span>
+                            </Link>
+
+                            <button
+                                onClick={() => setShowSidebar(true)}
+                                className="w-fit px-5 py-2.5 bg-[#1a243d]/90 backdrop-blur-md text-white/80 rounded-full shadow-xl font-bold uppercase tracking-wider border border-white/10 flex items-center gap-2 active:scale-95 hover:bg-[#1a243d] transition-all"
+                            >
+                                <Settings2 size={18} />
+                                <span className="text-xs">{t('map_store.show_filters')}</span>
+                            </button>
+                        </>
+                    )}
+                </div>
 
                 {/* 🗂️ PANEL DE FILTROS (OVERLAY PANAL) */}
                 <div className={`
@@ -455,12 +468,18 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                         ${showSidebar ? 'translate-x-0' : '-translate-x-full'}
                     `}>
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-0 flex flex-col h-full bg-transparent">
-                            {/* 1. HEADER SENCILLO */}
-                            <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
-                                <h2 className="text-xl font-bold text-white tracking-tight">Filtros</h2>
+                            {/* 1. HEADER CON BOTÓN DE PUBLICAR */}
+                            <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 gap-4">
+                                <Link
+                                    href="/my-businesses?action=new"
+                                    className="flex-1 py-2.5 bg-accent-600 text-white rounded-lg shadow-lg font-black uppercase tracking-wider border border-accent-500/50 flex items-center justify-center gap-2 active:scale-95 hover:bg-accent-500 transition-all text-xs"
+                                >
+                                    <Plus size={16} />
+                                    <span>{t('map_store.publish_business')}</span>
+                                </Link>
                                 <button
                                     onClick={() => setShowSidebar(false)}
-                                    className="p-1 text-white/40 hover:text-white transition-colors"
+                                    className="p-1 text-white/40 hover:text-white transition-colors flex-shrink-0"
                                 >
                                     <Plus size={24} className="rotate-45" />
                                 </button>
@@ -474,26 +493,32 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                             ? 'Cuéntale a tu asesor qué falla tiene tu auto...'
                                             : t('map_store.how_to_diagnose')}
                                     </p>
-                                    <div className="relative group">
-                                        <textarea
-                                            value={searchQuery}
-                                            onChange={(e) => {
-                                                setSearchQuery(e.target.value)
-                                                setSearchSuccess(false)
-                                                setHasSearched(false)
-                                            }}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:border-primary-500/50 focus:outline-none transition-all resize-none h-24"
-                                            disabled={isAnalyzing}
-                                        />
+                                    <div className="space-y-3">
+                                        <div className="relative">
+                                            <textarea
+                                                value={searchQuery}
+                                                onChange={(e) => {
+                                                    setSearchQuery(e.target.value)
+                                                    setSearchSuccess(false)
+                                                    setHasSearched(false)
+                                                }}
+                                                placeholder={t('map_store.smart_search_placeholder')}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:border-primary-500/50 focus:outline-none transition-all resize-none h-24"
+                                                disabled={isAnalyzing}
+                                            />
+                                        </div>
                                         <button
                                             onClick={handleSmartSearch}
                                             disabled={isAnalyzing || !searchQuery.trim()}
-                                            className="absolute bottom-3 right-3 p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-500 disabled:opacity-30 transition-all shadow-lg"
+                                            className="w-full py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-500 disabled:opacity-30 transition-all shadow-lg flex items-center justify-center gap-2 font-bold uppercase tracking-wide text-xs"
                                         >
                                             {isAnalyzing ? (
                                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                             ) : (
-                                                <Sparkles size={18} />
+                                                <>
+                                                    <Sparkles size={16} />
+                                                    Preguntar al Asesor
+                                                </>
                                             )}
                                         </button>
                                     </div>
