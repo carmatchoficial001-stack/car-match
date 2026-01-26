@@ -535,7 +535,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                 {/* 3. LISTA DE CATEGORÍAS SENCILLA */}
                                 <div className="space-y-4">
                                     <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/40 mb-6">
-                                        Categorías ({filteredBusinesses.length})
+                                        Categorías
                                     </h3>
 
                                     <div className="space-y-1">
