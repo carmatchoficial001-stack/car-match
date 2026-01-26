@@ -70,7 +70,8 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 opacity,
                 position: 'absolute',
                 width: '100%',
-                height: '100%',
+                height: 'auto',
+                maxHeight: '100%',
                 zIndex: isTop ? 10 : 0,
             }}
             exit={{
@@ -79,9 +80,9 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 rotate: x.get() <= 0 ? -45 : 45,
                 transition: { duration: 0.4, ease: "easeOut" }
             }}
-            className={`touch-none flex flex-col h-full ${!isTop && 'pointer-events-none'}`}
+            className={`touch-none flex flex-col h-auto max-h-full ${!isTop && 'pointer-events-none'}`}
         >
-            <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-full sm:h-auto">
+            <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-auto max-h-full">
                 {/* Imagen Principal (Original Size Restored) */}
                 <div className="relative w-full h-[45vh] sm:h-[45vh] lg:h-[50vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden">
                     <Link
