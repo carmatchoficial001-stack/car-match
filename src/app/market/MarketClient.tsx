@@ -604,11 +604,14 @@ export default function MarketClient({
                                                         </div>
 
                                                         <div className="flex items-center gap-2">
-                                                            <div className="hidden md:block">
+                                                            <div>
                                                                 <ShareButton
-                                                                    title={item.title}
-                                                                    text={t('market.interest_text').replace('{title}', item.title)}
-                                                                    url={typeof window !== 'undefined' ? `${window.location.origin}${isBusiness ? `/map-store?id=${item.id}` : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}`}` : (isBusiness ? `/map-store?id=${item.id}` : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}`)}
+                                                                    title={item.brand ? `${item.brand} ${item.model}` : item.title}
+                                                                    text={t('market.interest_text').replace('{title}', item.brand ? `${item.brand} ${item.model}` : item.title)}
+                                                                    url={isBusiness
+                                                                        ? `/map?id=${item.id}`
+                                                                        : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}`
+                                                                    }
                                                                     variant="minimal"
                                                                 />
                                                             </div>

@@ -416,7 +416,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                         <ShareButton
                                             title={vehicle.title}
                                             text={t('vehicle.share_text').replace('{title}', vehicle.title)}
-                                            url={typeof window !== 'undefined' ? `${window.location.origin}/vehicle/${vehicle.id}` : `/vehicle/${vehicle.id}`}
+                                            url={`/comprar/${generateVehicleSlug(vehicle.brand, vehicle.model, vehicle.year, vehicle.city)}-${vehicle.id}`}
                                             variant="full"
                                             className="mt-0"
                                         />

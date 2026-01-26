@@ -292,7 +292,7 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                             <ShareButton
                                 title={business.name}
                                 text={`${business.name} - ${business.description || (t(`map_store.categories.${business.category.toLowerCase()}`) || business.category)} en ${business.city}, ${business.state || ''}`}
-                                url={`${typeof window !== 'undefined' ? window.location.origin : 'https://carmatchapp.net'}/map?id=${business.id}`}
+                                url={`/map?id=${business.id}`}
                             />
                         </div>
                     </div>

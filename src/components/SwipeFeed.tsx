@@ -9,6 +9,7 @@ import ShareButton from './ShareButton'
 import ReportImageButton from './ReportImageButton'
 import { formatPrice } from '@/lib/vehicleTaxonomy'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { generateVehicleSlug } from '@/lib/slug'
 
 interface FeedItem {
     id: string
@@ -120,12 +121,23 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                         </div>
                     )}
 
-                    <ReportImageButton
-                        imageUrl={item.images?.[activeImage] || ''}
-                        vehicleId={!isBusiness ? item.id : undefined}
-                        businessId={isBusiness ? item.id : undefined}
-                        className="absolute top-4 right-4 z-30"
-                    />
+                    <div className="absolute top-4 right-4 z-30 flex flex-col gap-2">
+                        <ReportImageButton
+                            imageUrl={item.images?.[activeImage] || ''}
+                            vehicleId={!isBusiness ? item.id : undefined}
+                            businessId={isBusiness ? item.id : undefined}
+                        />
+                        <ShareButton
+                            title={item.title}
+                            text={isBusiness ? `¡Mira este negocio en CarMatch! ${item.title}` : `¡Mira este ${item.title} en CarMatch!`}
+                            url={isBusiness
+                                ? `/map?id=${item.id}`
+                                : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}`
+                            }
+                            variant="minimal"
+                            className="bg-black/50 text-white rounded-full backdrop-blur-md"
+                        />
+                    </div>
 
                     {/* Indicadores de swipe (Overlay en la imagen) */}
                     <motion.div
