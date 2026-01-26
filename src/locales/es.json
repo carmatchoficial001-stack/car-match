@@ -891,7 +891,18 @@
             "estacionamiento": "Estacionamiento",
             "suspension": "Suspensión",
             "aire_acondicionado": "Aire Acondicionado",
-            "importadoras": "Importadoras de Vehículos"
+            "importadoras": "Importadoras de Vehículos",
+            "llantera": "Llantera / Vulcanizadora",
+            "polarizado": "Polarizado / Vinil",
+            "iluminacion": "Iluminación / Faros",
+            "inyectores": "Laboratorio de Inyectores",
+            "rotulacion": "Rotulación / Wrap",
+            "electrolinera": "Carga Eléctrica",
+            "caseta": "Casetas de Peaje",
+            "hospital": "Hospitales / Clínicas",
+            "policia": "Estación de Policía",
+            "aeropuerto": "Aeropuertos",
+            "estacion_tren": "Estación de Tren"
         },
         "tips": {
             "title": "Consejos para tu publicación",
