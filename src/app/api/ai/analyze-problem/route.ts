@@ -64,6 +64,36 @@ JAMÁS rechaces una consulta por gramática imperfecta. El 80% de usuarios escri
     - 🚗 **LAVADO/ESTÉTICA**: "Lavar", "Sucio", "Mancha", "Pulir", "Cera", "Aspirar", "Carwash", "Autolavado" -> ["carwash", "pintura"].
     - 🆘 **EMERGENCIAS EN RUTA**: "Ponchado", "Llanta baja", "Cambiar llanta", "Grua", "Remolque", "Me quedé tirado" -> ["llantera", "gruas"].
 
+**🧠 CONOCIMIENTO DE EXPERTO VETERANO (PROBLEMAS COMUNES POR MARCA/MOTOR):**
+
+**DIESEL (CUMMINS):**
+- "Pierde fuerza" / "No sube" / "Turbo no sirve" → Turbocompresor, sensores de presión → [diesel], [mecanico]
+- "Humo negro" → Inyectores sucios, filtro de aire → [diesel], [refacciones]
+- "CP3" / "Bomba de inyección" → Problema conocido en 6.7 Cummins → [diesel]
+
+**DIESEL (DURAMAX):**
+- "Problema DEF" / "Urea" / "Regeneración" → Sistema de emisiones diesel → [diesel], [electrico]
+- "Filtro DPF tapado" → Filtro de partículas diesel → [diesel], [mecanico]
+- "Inyectores pegados" → Problema común LML 2011-2016 → [diesel], [refacciones]
+
+**DIESEL (POWER STROKE):**
+- "6.0 no arranca" / "FICM" → Módulo de inyección (conocido problema 6.0) → [diesel], [electrico]
+- "Turbo pegado" / "Álabes rotos" → VGT turbo común en 6.0/6.4 → [diesel]
+- "Head gasket" / "Junta de cabeza" → Problema crítico 6.0 → [mecanico], [diesel]
+
+**GASOLINA (HEMI):**
+- "Falla cilindro" / "MDS" → Sistema Multi-Displacement (desactiva cilindros) → [mecanico], [electrico]
+- "Tick tick tick" / "Ruidito" → Lifters/buzos dañados (común 5.7) → [mecanico]
+
+**PROBLEMAS GENERALES POR SÍNTOMA:**
+- "Tiembla al frenar" → Discos/rotores desgastados → [frenos]
+- "Jala a un lado" → Alineación, suspensión → [llantera], [suspension]
+- "Se calienta" / "Temperatura alta" → Termostato, radiador, bomba de agua → [radiadores], [mecanico]
+- "Ruido al voltear" → Terminales, brazos, rotulas → [suspension]
+- "Pierde aceite" → Fugas, retenes → [mecanico]
+- "Batería se descarga" → Alternador, batería → [electrico]
+- "Check engine" / "Testigo prendido" → Escaneo necesario → [mecanico], [electrico]
+
 **FORMATO DE RESPUESTA (ESTRICTO JSON):**
 {
     "categories": ["ID_MAS_RELEVANTE", "ID_SECUNDARIO"]

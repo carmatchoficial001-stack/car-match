@@ -209,8 +209,22 @@ export default async function MarketPage({
         }
     }
 
+    // 🔧 Filtro Inteligente de Cilindros (Tolerante a datos legacy)
     if (searchParams.cylinders) {
-        where.cylinders = parseInt(searchParams.cylinders)
+        const cyl = parseInt(searchParams.cylinders)
+
+        // Buscar en TRES lugares:
+        // 1. Campo cylinders (vehículos nuevos/editados)
+        // 2. Campo engine (puede tener "V6", "6 cil", etc.)
+        // 3. Título/descripción (vehículos antiguos con "V6" en texto)
+        where.OR = where.OR || []
+        where.OR.push(
+            { cylinders: cyl }, // Exacto
+            { engine: { contains: `V${cyl}`, mode: 'insensitive' } }, // "V6", "v6"
+            { engine: { contains: `${cyl} cil`, mode: 'insensitive' } }, // "6 cilindros", "6 cil"
+            { title: { contains: `V${cyl}`, mode: 'insensitive' } }, // "RAM V6" en título
+            { description: { contains: `V${cyl}`, mode: 'insensitive' } } // "motor V6" en descripción
+        )
     }
 
     if (searchParams.hp) {
