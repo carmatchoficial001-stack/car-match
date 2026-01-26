@@ -83,8 +83,8 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
             className={`touch-none flex flex-col h-auto max-h-full ${!isTop && 'pointer-events-none'}`}
         >
             <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-auto max-h-full">
-                {/* Imagen Principal (Original Size Restored) */}
-                <div className="relative w-full h-[45vh] sm:h-[45vh] lg:h-[50vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden">
+                {/* Imagen Principal (Compressed to preserve button visibility) */}
+                <div className="relative w-full h-[38vh] sm:h-[45vh] lg:h-[50vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden shrink-0">
                     <Link
                         href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
                         onPointerDown={(e) => e.stopPropagation()}
@@ -152,7 +152,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     {/* 1. Nombre y Año */}
                     <div className="px-6 mb-1">
                         <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} onPointerDown={(e) => e.stopPropagation()}>
-                            <h2 className="text-2xl font-bold text-text-primary hover:text-primary-400 transition cursor-pointer leading-tight line-clamp-2">
+                            <h2 className="text-xl sm:text-2xl font-bold text-text-primary hover:text-primary-400 transition cursor-pointer leading-tight line-clamp-2">
                                 {item.title}
                             </h2>
                         </Link>
@@ -195,7 +195,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                                         key={idx}
                                         onPointerDown={(e) => e.stopPropagation()}
                                         onClick={() => setActiveImage(idx)}
-                                        className={`relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${activeImage === idx ? 'border-primary-500 scale-105 shadow-glow-sm' : 'border-surface-highlight opacity-60 hover:opacity-100'
+                                        className={`relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${activeImage === idx ? 'border-primary-500 scale-105 shadow-glow-sm' : 'border-surface-highlight opacity-60 hover:opacity-100'
                                             }`}
                                     >
                                         <img src={img} className="w-full h-full object-cover" alt={`Gallery ${idx}`} draggable={false} />
@@ -205,11 +205,11 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                                     <Link
                                         href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
                                         onPointerDown={(e) => e.stopPropagation()}
-                                        className="w-16 h-16 flex-shrink-0 rounded-lg bg-surface-highlight flex items-center justify-center text-xs font-bold text-text-secondary border border-surface-highlight hover:bg-surface-highlight/80 transition"
+                                        className="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 rounded-lg bg-surface-highlight flex items-center justify-center text-xs font-bold text-text-secondary border border-surface-highlight hover:bg-surface-highlight/80 transition"
                                     >
                                         +{item.images.length - 5}
                                     </Link>
-                                )}
+                                ) || null}
                             </div>
                         </div>
                     )}
