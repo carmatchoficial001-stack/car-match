@@ -46,8 +46,6 @@ interface SearchParams {
     traction?: string
     passengers?: string
     hours?: string
-    passengers?: string
-    hours?: string
     cylinders?: string
     hp?: string
 }
