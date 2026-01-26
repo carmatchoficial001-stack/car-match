@@ -348,8 +348,8 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     const isLoading = locationLoading || isInternalLoading
 
     return (
-        <div className="flex flex-col min-h-screen bg-background text-text-primary">
-            <div className="flex-1 max-w-4xl mx-auto w-full px-4 pb-24 flex flex-col items-center justify-center">
+        <div className="fixed inset-0 flex flex-col bg-background text-text-primary overflow-hidden overscroll-none">
+            <div className="flex-1 w-full max-w-4xl mx-auto px-4 flex flex-col items-center justify-center relative">
 
                 {/* El indicador de radio se movió dentro de los estados específicos */}
 

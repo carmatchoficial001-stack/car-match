@@ -81,9 +81,9 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
             }}
             className={`touch-none flex flex-col h-full ${!isTop && 'pointer-events-none'}`}
         >
-            <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-full">
-                {/* Imagen Principal (Max height para asegurar que botones sean visibles) */}
-                <div className="relative w-full h-[45vh] md:h-[50vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden">
+            <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-full max-h-[85vh] sm:max-h-none">
+                {/* Imagen Principal (Optimized for no-scroll) */}
+                <div className="relative w-full h-[40vh] sm:h-[45vh] lg:h-[50vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden shrink-0">
                     <Link
                         href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
                         onPointerDown={(e) => e.stopPropagation()}
@@ -176,13 +176,12 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                         </Link>
                     </div>
 
-                    {/* 3. Ubicación */}
                     <Link
                         href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
                         onPointerDown={(e) => e.stopPropagation()}
-                        className="px-6 mb-3 flex items-center gap-2 text-text-secondary text-sm hover:text-primary-400 transition"
+                        className="px-6 mb-2 flex items-center gap-2 text-text-secondary text-xs sm:text-sm hover:text-primary-400 transition"
                     >
-                        <MapPin size={16} className="text-primary-500" />
+                        <MapPin size={14} className="text-primary-500" />
                         <span className="font-medium">{item.city}</span>
                     </Link>
 
@@ -226,16 +225,16 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     </div>
 
                     {/* 6. Botones de Acción */}
-                    <div className="grid grid-cols-2 gap-4 px-6 pb-6">
+                    <div className="grid grid-cols-2 gap-3 px-6 pb-4 sm:pb-6 mt-auto">
                         <button
                             onPointerDown={(e) => e.stopPropagation()}
                             onClick={() => {
                                 x.set(-1) // Nudge for exit logic
                                 onSwipe('left')
                             }}
-                            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-surface-highlight border-2 border-surface-highlight text-red-400 font-bold text-lg hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 shadow-sm"
+                            className="flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-xl bg-surface-highlight border-2 border-surface-highlight text-red-400 font-bold text-base sm:text-lg hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 shadow-sm"
                         >
-                            <X size={24} />
+                            <X size={20} className="sm:w-6 sm:h-6" />
                             <span>{t('swipe.nope_btn')}</span>
                         </button>
                         <button
@@ -244,9 +243,9 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                                 x.set(1) // Nudge for exit logic
                                 onSwipe('right')
                             }}
-                            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-primary-600 text-white font-bold text-lg hover:bg-primary-500 transition-all active:scale-95 shadow-lg shadow-primary-900/20"
+                            className="flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-xl bg-primary-600 text-white font-bold text-base sm:text-lg hover:bg-primary-500 transition-all active:scale-95 shadow-lg shadow-primary-900/20"
                         >
-                            <ThumbsUp size={24} />
+                            <ThumbsUp size={20} className="sm:w-6 sm:h-6" />
                             <span>{t('swipe.like_btn')}</span>
                         </button>
                     </div>
