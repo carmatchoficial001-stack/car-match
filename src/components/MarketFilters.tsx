@@ -382,7 +382,63 @@ export default function MarketFiltersAdvanced({
                 <button type="button" onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
             </div>
 
-            {/* 🧠 SMART SEARCH AI - ASESOR PERSONAL (Always Visible & Prominent) */}
+            {/* 1. 📍 BARRA DE UBICACIÓN (Ahora PRIORIDAD #1 - Separada arriba) */}
+            <div className="relative mb-6">
+                <label className="block text-xs font-bold text-text-secondary uppercase mb-1 flex items-center gap-1">
+                    <MapPin size={12} className="text-primary-500" />
+                    Ubicación de Búsqueda ({t('common.city')})
+                </label>
+                <div className="relative group z-30"> {/* High Z-index para el dropdown */}
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-500">
+                        <MapPin size={18} />
+                    </div>
+                    <input
+                        type="text"
+                        value={locationInput}
+                        onChange={(e) => {
+                            setLocationInput(e.target.value)
+                            setShowCandidates(false)
+                        }}
+                        onKeyDown={(e) => e.key === 'Enter' && handleLocationSearch(e)}
+                        placeholder="Ciudad o Código Postal..."
+                        className="w-full h-12 pl-10 pr-12 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-500 transition-colors shadow-sm"
+                    />
+                    <button
+                        onClick={handleLocationSearch}
+                        disabled={isSearchingLocation}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-primary-500/10 hover:bg-primary-500/20 text-primary-500 rounded-lg transition"
+                    >
+                        {isSearchingLocation ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
+                    </button>
+
+                    {/* Candidates Dropdown (Fix de posición) */}
+                    {showCandidates && locationCandidates.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-surface border border-primary-500/30 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 z-50">
+                            <div className="px-3 py-2 bg-primary-900/20 border-b border-primary-500/10">
+                                <p className="text-xs font-bold text-primary-300">¿A cuál te refieres?</p>
+                            </div>
+                            <div className="max-h-48 overflow-y-auto">
+                                {locationCandidates.map((loc, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => selectLocation(loc)}
+                                        className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors flex items-center gap-3 border-b border-white/5 last:border-0"
+                                    >
+                                        <MapPin size={16} className="text-text-secondary shrink-0" />
+                                        <div>
+                                            <p className="font-bold text-sm text-text-primary">{loc.city}</p>
+                                            <p className="text-xs text-text-secondary">{loc.state}, {loc.country}</p>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {locationError && <p className="text-xs text-red-400 mt-1 absolute">{locationError}</p>}
+                </div>
+            </div>
+
+            {/* 2. 🧠 ASESOR INTELIGENTE (Prioridad #2) */}
             <div className="p-1 bg-gradient-to-br from-primary-900/50 to-purple-900/30 border border-primary-500/30 rounded-2xl shadow-lg relative overflow-hidden mb-6 group">
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
                     <svg className="w-48 h-48 text-primary-400" fill="currentColor" viewBox="0 0 24 24">
@@ -445,7 +501,7 @@ export default function MarketFiltersAdvanced({
                 </div>
             </div>
 
-            {/* 🔽 MANUAL FILTERS TOGGLE */}
+            {/* 3. 🔽 FILTROS MANUALES (Ocultos por defecto) */}
             <button
                 onClick={() => setShowManualFilters(!showManualFilters)}
                 className="w-full py-3 px-4 bg-surface-highlight/30 hover:bg-surface-highlight/50 border border-surface-highlight rounded-xl flex items-center justify-between text-text-primary transition-all group mb-4"
@@ -463,64 +519,10 @@ export default function MarketFiltersAdvanced({
                 <ChevronDown className={`w-5 h-5 text-text-secondary transition-transform duration-300 ${showManualFilters ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* 🎛️ MANUAL FILTERS SECTION (Collapsible) */}
-            <div className={`space-y-6 overflow-hidden transition-all duration-500 ${showManualFilters ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+            {/* CONTENEDOR COLAPSABLE DE FILTROS MANUALES */}
+            <div className={`space-y-6 overflow-hidden transition-all duration-500 ${showManualFilters ? 'max-h-[2000px] opacity-100 pb-4' : 'max-h-0 opacity-0'}`}>
 
-                {/* 📍 Location Search (Moved Inside Manual Filters) */}
-                <div className="relative">
-                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                        Ubicación ({t('common.city')})
-                    </label>
-                    <div className="relative group">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-500">
-                            <MapPin size={18} />
-                        </div>
-                        <input
-                            type="text"
-                            value={locationInput}
-                            onChange={(e) => {
-                                setLocationInput(e.target.value)
-                                setShowCandidates(false)
-                            }}
-                            onKeyDown={(e) => e.key === 'Enter' && handleLocationSearch(e)}
-                            placeholder="Ciudad o Código Postal..."
-                            className="w-full h-12 pl-10 pr-12 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-500 transition-colors"
-                        />
-                        <button
-                            onClick={handleLocationSearch}
-                            disabled={isSearchingLocation}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-primary-500/10 hover:bg-primary-500/20 text-primary-500 rounded-lg transition"
-                        >
-                            {isSearchingLocation ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
-                        </button>
-                    </div>
-
-                    {/* Candidates Dropdown Logic (Same as before) */}
-                    {showCandidates && locationCandidates.length > 0 && (
-                        <div className="absolute z-50 left-0 right-0 mt-2 bg-surface border border-primary-500/30 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
-                            {/* ... candidates list ... */}
-                            <div className="px-3 py-2 bg-primary-900/20 border-b border-primary-500/10">
-                                <p className="text-xs font-bold text-primary-300">¿A cuál te refieres?</p>
-                            </div>
-                            <div className="max-h-48 overflow-y-auto">
-                                {locationCandidates.map((loc, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => selectLocation(loc)}
-                                        className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors flex items-center gap-3 border-b border-white/5 last:border-0"
-                                    >
-                                        <MapPin size={16} className="text-text-secondary shrink-0" />
-                                        <div>
-                                            <p className="font-bold text-sm text-text-primary">{loc.city}</p>
-                                            <p className="text-xs text-text-secondary">{loc.state}, {loc.country}</p>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    {locationError && <p className="text-xs text-red-400 mt-1">{locationError}</p>}
-                </div>
+                {/* NOTA: Ubicación movida arriba, ya no está aquí dentro */}
 
                 {/* MAIN FILTERS GRID */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -639,13 +641,16 @@ export default function MarketFiltersAdvanced({
                     </div>
                 </div>
 
-                {/* BOTÓN APLICAR FILTROS (Solo visible si manual filters están abiertos) */}
+                {/* BOTÓN APLICAR FILTROS MANUALES - INTEGRADO AQUÍ DENTRO */}
                 <div className="pt-4 border-t border-surface-highlight flex justify-end">
                     <button
                         onClick={applyFilters}
-                        className="px-8 py-3 bg-white text-primary-900 font-bold rounded-xl hover:bg-gray-100 transition shadow-lg active:scale-95"
+                        className="w-full md:w-auto px-8 py-3 bg-white text-primary-900 font-bold rounded-xl hover:bg-gray-100 transition shadow-lg active:scale-95 flex items-center justify-center gap-2"
                     >
-                        {t('market.filters.apply')}
+                        <span>{t('market.filters.apply')}</span>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
                     </button>
                 </div>
             </div>
