@@ -431,23 +431,13 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                 {/* 📱 BOTONES FLOTANTES (MAPA) */}
                 <div className="absolute top-6 left-6 z-30 flex flex-col gap-3">
                     {!showSidebar && (
-                        <>
-                            <Link
-                                href="/my-businesses?action=new"
-                                className="px-6 py-3 bg-accent-600 text-white rounded-full shadow-[0_15px_30px_rgba(249,115,22,0.4)] font-black uppercase tracking-[0.1em] border-2 border-accent-500/50 flex items-center gap-2 active:scale-95 hover:bg-accent-500 transition-all animate-in fade-in slide-in-from-left-4 duration-500"
-                            >
-                                <Plus size={20} />
-                                <span className="text-sm md:text-base">{t('map_store.publish_business')}</span>
-                            </Link>
-
-                            <button
-                                onClick={() => setShowSidebar(true)}
-                                className="w-fit px-5 py-2.5 bg-[#1a243d]/90 backdrop-blur-md text-white/80 rounded-full shadow-xl font-bold uppercase tracking-wider border border-white/10 flex items-center gap-2 active:scale-95 hover:bg-[#1a243d] transition-all"
-                            >
-                                <Settings2 size={18} />
-                                <span className="text-xs">{t('map_store.show_filters')}</span>
-                            </button>
-                        </>
+                        <button
+                            onClick={() => setShowSidebar(true)}
+                            className="w-fit px-5 py-2.5 bg-[#1a243d]/90 backdrop-blur-md text-white/80 rounded-full shadow-xl font-bold uppercase tracking-wider border border-white/10 flex items-center gap-2 active:scale-95 hover:bg-[#1a243d] transition-all"
+                        >
+                            <Settings2 size={18} />
+                            <span className="text-xs">{t('map_store.show_filters')}</span>
+                        </button>
                     )}
                 </div>
 
