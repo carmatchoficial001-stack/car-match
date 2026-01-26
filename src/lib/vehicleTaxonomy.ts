@@ -543,12 +543,14 @@ export const GLOBAL_SYNONYMS: Record<string, string> = {
     'Blanca': 'Blanco', 'White': 'Blanco', 'Blanc': 'Blanco', 'Branco': 'Blanco',
     'Roja': 'Rojo', 'Red': 'Rojo', 'Rouge': 'Rojo', 'Vermelho': 'Rojo',
     'Azul Oscuro': 'Azul', 'Blue': 'Azul', 'Bleu': 'Azul',
-    'Gris rata': 'Gris', 'Grey': 'Gris', 'Silver': 'Plata', 'Plateado': 'Plata',
+    'Gris rata': 'Gris', 'Gris obscuro': 'Gris', 'Gris claro': 'Gris', 'Grey': 'Gris', 'Silver': 'Plata', 'Plateado': 'Plata',
+    'Verde limon': 'Verde', 'Verde militar': 'Verde', 'Green': 'Verde',
+    'Naranja': 'Naranja', 'Orange': 'Naranja',
 
     // Marcas / Modelos (Slang)
     'Chevy': 'Chevrolet', 'Bimmer': 'BMW', 'Beema': 'BMW', 'Merc': 'Mercedes-Benz', 'Meche': 'Mercedes-Benz',
     'Lambo': 'Lamborghini', 'Rari': 'Ferrari', 'Vw': 'Volkswagen', 'Vocho': 'Volkswagen', 'Fusca': 'Volkswagen',
-    'Mamalona': 'RAM', 'Yota': 'Toyota', 'Ramona': 'RAM'
+    'Mamalona': 'RAM', 'Yota': 'Toyota', 'Ramona': 'RAM', 'Panchita': 'Ford'
 }
 
 // 🧠 Helper to get features by category

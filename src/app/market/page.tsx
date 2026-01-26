@@ -244,8 +244,28 @@ export default async function MarketPage({
         })
 
         // If specific attributes are mentioned, enforce them as restrictive filters
-        if (extractedColors.length > 0) where.color = { in: extractedColors }
-        if (extractedBrands.length > 0) where.brand = { in: extractedBrands, mode: 'insensitive' }
+        // Using 'OR' with 'contains' to match variants (e.g. "Gris" matches "Gris obscuro")
+        if (extractedColors.length > 0) {
+            if (extractedColors.length === 1) {
+                where.color = { contains: extractedColors[0], mode: 'insensitive' }
+            } else {
+                where.AND = where.AND || []
+                where.AND.push({
+                    OR: extractedColors.map(c => ({ color: { contains: c, mode: 'insensitive' } }))
+                })
+            }
+        }
+
+        if (extractedBrands.length > 0) {
+            if (extractedBrands.length === 1) {
+                where.brand = { contains: extractedBrands[0], mode: 'insensitive' }
+            } else {
+                where.AND = where.AND || []
+                where.AND.push({
+                    OR: extractedBrands.map(b => ({ brand: { contains: b, mode: 'insensitive' } }))
+                })
+            }
+        }
 
         // Build OR conditions for terms that are NOT specific filters
         where.OR = [
