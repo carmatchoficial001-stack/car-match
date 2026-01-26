@@ -66,8 +66,10 @@ class AICache {
 
         // Si llegamos al límite, eliminar la entrada más antigua
         if (this.cache.size >= this.MAX_CACHE_SIZE) {
-            const oldestKey = this.cache.keys().next().value;
-            this.cache.delete(oldestKey);
+            const oldestKey = this.cache.keys().next().value as string | undefined;
+            if (oldestKey !== undefined) {
+                this.cache.delete(oldestKey);
+            }
         }
 
         this.cache.set(key, {

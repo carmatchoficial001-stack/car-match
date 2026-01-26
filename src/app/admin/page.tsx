@@ -76,6 +76,11 @@ interface SystemStats {
         revenue: number[]
         totalRevenue: number
     }
+    registrations?: {
+        today: number
+        thisMonth: number
+        total: number
+    }
 }
 
 type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub'
@@ -389,9 +394,9 @@ function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) 
 
             {/* Quick Stats Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard2 icon={Car} label="Inventario" value={stats.vehicles.active} trend="+5%" color="purple" simple />
-                <StatCard2 icon={Activity} label="Citas Activas" value={stats.appointments.active} trend="+8%" color="green" simple />
-                <StatCard2 icon={Store} label="Negocios" value={stats.businesses.total} trend="Nuevo" color="blue" simple />
+                <StatCard2 icon={Users} label="Usuarios Registrados" value={stats.registrations?.total || stats.users.total} trend="Total" color="purple" simple />
+                <StatCard2 icon={TrendingUp} label="Registros Este Mes" value={stats.registrations?.thisMonth || 0} trend="+12%" color="green" simple />
+                <StatCard2 icon={Car} label="Inventario" value={stats.vehicles.active} trend="+5%" color="blue" simple />
                 <StatCard2 icon={Flag} label="Reportes" value={stats.reports.filter((r: any) => r.status === 'PENDING').length} trend="Atención" color="red" simple />
             </div>
 
