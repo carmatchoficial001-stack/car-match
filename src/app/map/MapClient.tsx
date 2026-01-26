@@ -454,147 +454,99 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                         relative h-full w-full md:w-[450px] bg-surface/90 backdrop-blur-2xl border-r border-surface-highlight shadow-[20px_0_50px_rgba(0,0,0,0.5)] flex flex-col transition-transform duration-500 ease-out transform
                         ${showSidebar ? 'translate-x-0' : '-translate-x-full'}
                     `}>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-4 pb-20">
-                            {/* 1. REGISTRAR NEGOCIO Y CERRAR */}
-                            <div className="flex gap-2">
-                                <a
-                                    href="/my-businesses?action=new"
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-br from-primary-600 to-primary-800 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-primary-600/20 transition-all active:scale-[0.97] border border-white/10"
-                                >
-                                    <Plus size={16} strokeWidth={4} />
-                                    Registrar Negocio
-                                </a>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-0 flex flex-col h-full bg-[#1a243d]">
+                            {/* 1. HEADER SENCILLO */}
+                            <div className="flex items-center justify-between p-5 border-b border-white/5">
+                                <h2 className="text-xl font-bold text-white tracking-tight">Filtros</h2>
                                 <button
                                     onClick={() => setShowSidebar(false)}
-                                    className="w-12 h-12 flex items-center justify-center rounded-xl bg-surface-highlight text-text-primary hover:bg-red-500/20 hover:text-red-500 transition-all border border-surface-highlight"
+                                    className="p-2 text-white/60 hover:text-white transition-colors"
                                 >
                                     <Plus size={24} className="rotate-45" />
                                 </button>
                             </div>
 
-                            {/* 2. PREGUNTAR AL EXPERTO (SMART SEARCH) */}
-                            <div className="bg-surface-highlight/20 rounded-2xl p-4 border border-surface-highlight/50">
-                                <div className="space-y-3">
-                                    <textarea
-                                        value={searchQuery}
-                                        onChange={(e) => {
-                                            setSearchQuery(e.target.value)
-                                            setSearchSuccess(false)
-                                            setHasSearched(false)
-                                        }}
-                                        placeholder={t('map_store.smart_search_placeholder')}
-                                        className="w-full bg-background/40 border border-surface-highlight rounded-xl p-3 text-xs text-text-primary focus:border-primary-600 focus:outline-none resize-none h-20 transition-all"
-                                        disabled={isAnalyzing}
-                                    />
-                                    <button
-                                        onClick={handleSmartSearch}
-                                        disabled={isAnalyzing || !searchQuery.trim()}
-                                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-primary-700 text-white rounded-lg shadow-md hover:bg-primary-600 transition-all disabled:opacity-30 text-[10px] font-black uppercase tracking-wider"
-                                    >
-                                        {isAnalyzing ? (
-                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        ) : (
-                                            <>
-                                                <Sparkles size={14} />
-                                                Preguntar al experto
-                                            </>
-                                        )}
-                                    </button>
+                            <div className="p-5 space-y-6 flex-1">
+                                {/* 2. PREGUNTAR AL EXPERTO (ESTILO SENCILLO) */}
+                                <div className="space-y-4">
+                                    <p className="text-sm text-white/60">{t('map_store.how_to_diagnose') || 'Cuéntale a tu asesor qué falla tiene tu auto...'}</p>
+                                    <div className="relative group">
+                                        <textarea
+                                            value={searchQuery}
+                                            onChange={(e) => {
+                                                setSearchQuery(e.target.value)
+                                                setSearchSuccess(false)
+                                                setHasSearched(false)
+                                            }}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:border-primary-500/50 focus:outline-none transition-all resize-none h-24"
+                                            disabled={isAnalyzing}
+                                        />
+                                        <button
+                                            onClick={handleSmartSearch}
+                                            disabled={isAnalyzing || !searchQuery.trim()}
+                                            className="absolute bottom-3 right-3 p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-500 disabled:opacity-30 transition-all shadow-lg"
+                                        >
+                                            {isAnalyzing ? (
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <Sparkles size={18} />
+                                            )}
+                                        </button>
+                                    </div>
 
                                     {searchSuccess && !isAnalyzing && (
-                                        <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-xl animate-in fade-in zoom-in duration-300 text-center">
-                                            <p className="text-[10px] text-green-400 font-bold leading-relaxed">
-                                                Ya te seleccioné los negocios indicados, <br />
-                                                dale click en <span className="text-white underline font-black">VER EN EL MAPA</span>
+                                        <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-xl animate-in fade-in zoom-in">
+                                            <p className="text-xs text-green-400 font-medium text-center">
+                                                Expertos seleccionados. Dale click en <span className="underline font-bold">VER EN EL MAPA</span>
                                             </p>
                                         </div>
                                     )}
 
                                     {hasSearched && !searchSuccess && !isAnalyzing && (
-                                        <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl animate-in fade-in zoom-in duration-300 text-center">
-                                            <p className="text-[10px] text-red-400 font-black leading-relaxed">
-                                                Híjole... el Experto no encontró nada. <br />
-                                                Intenta con otras palabras o selecciona abajo.
+                                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl animate-in fade-in zoom-in text-center">
+                                            <p className="text-xs text-red-400 font-medium leading-relaxed">
+                                                No encontré nada. Intenta con otras palabras.
                                             </p>
                                         </div>
                                     )}
                                 </div>
-                            </div>
 
-                            {/* 3. LISTA DE FILTROS */}
-                            <div className="space-y-2">
-                                <div className="grid grid-cols-1 gap-2">
-                                    {(() => {
-                                        const publicIds = ['caseta', 'hospital', 'policia', 'aeropuerto', 'estacion_tren'];
+                                <div className="h-[1px] bg-white/5 w-full my-6"></div>
 
-                                        // Helper to sort by translated name
-                                        const sortByLabel = (a: any, b: any) => {
-                                            const labelA = t(`map_store.categories.${a.id}`) || a.label;
-                                            const labelB = t(`map_store.categories.${b.id}`) || b.label;
-                                            return labelA.localeCompare(labelB);
-                                        };
+                                {/* 3. LISTA DE CATEGORÍAS SENCILLA */}
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/40 mb-6">
+                                        Categorías ({filteredBusinesses.length})
+                                    </h3>
 
-                                        const commercial = CATEGORIES.filter(c => !publicIds.includes(c.id)).sort(sortByLabel);
-                                        const publicServices = CATEGORIES.filter(c => publicIds.includes(c.id)).sort(sortByLabel);
-
-                                        const renderCategory = (cat: any) => {
+                                    <div className="space-y-1">
+                                        {CATEGORIES.map((cat) => {
                                             const isSelected = selectedCategories.includes(cat.id);
                                             return (
                                                 <button
                                                     key={cat.id}
                                                     onClick={() => toggleCategory(cat.id)}
                                                     className={`
-                                                        w-full flex items-center gap-3 p-3 rounded-xl border transition-all duration-300 group
-                                                        ${isSelected
-                                                            ? 'bg-primary-700/20 border-primary-600 text-white shadow-glow-sm scale-[1.01]'
-                                                            : 'bg-surface/30 border-surface-highlight/30 hover:border-surface-highlight hover:bg-surface/50'
-                                                        }
+                                                        w-full flex items-center gap-4 py-3 px-2 rounded-lg transition-all
+                                                        ${isSelected ? 'bg-white/5' : 'hover:bg-white/5'}
                                                     `}
-                                                    style={{
-                                                        borderColor: isSelected ? cat.color : undefined,
-                                                    }}
                                                 >
-                                                    <span className={`text-xl transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>
-                                                        {cat.icon}
-                                                    </span>
-                                                    <div className="flex-1 text-left">
-                                                        <span className={`text-[10px] font-bold uppercase tracking-widest ${isSelected ? 'text-text-primary' : 'text-text-secondary'}`}>
-                                                            {t(`map_store.categories.${cat.id}`) || cat.label}
-                                                        </span>
+                                                    <div
+                                                        className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center`}
+                                                        style={{
+                                                            borderColor: cat.color,
+                                                            backgroundColor: isSelected ? cat.color : 'transparent'
+                                                        }}
+                                                    >
+                                                        {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                                                     </div>
-                                                    {isSelected ? (
-                                                        <div
-                                                            className="w-4 h-4 rounded-full shadow-glow-sm"
-                                                            style={{ backgroundColor: cat.color }}
-                                                        />
-                                                    ) : (
-                                                        <div className="w-4 h-4 rounded-full border border-surface-highlight opacity-30" />
-                                                    )}
+                                                    <span className={`text-[15px] font-medium transition-colors ${isSelected ? 'text-white' : 'text-white/60'}`}>
+                                                        {t(`map_store.categories.${cat.id}`) || cat.label}
+                                                    </span>
                                                 </button>
                                             );
-                                        };
-
-                                        return (
-                                            <>
-                                                {/* Commercial Categories */}
-                                                {commercial.map(renderCategory)}
-
-                                                {/* Divider */}
-                                                <div className="pt-4 pb-2">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <div className="h-[1px] flex-1 bg-surface-highlight/30"></div>
-                                                        <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">
-                                                            Servicios Públicos
-                                                        </span>
-                                                        <div className="h-[1px] flex-1 bg-surface-highlight/30"></div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Public Services */}
-                                                {publicServices.map(renderCategory)}
-                                            </>
-                                        );
-                                    })()}
+                                        })}
+                                    </div>
                                 </div>
                             </div>
                         </div>
