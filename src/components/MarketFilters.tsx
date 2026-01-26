@@ -140,6 +140,7 @@ export default function MarketFiltersAdvanced({
     const [features, setFeatures] = useState<string[]>(currentFilters.features ? currentFilters.features.split(',') : [])
 
     const [showAdvanced, setShowAdvanced] = useState(false)
+    const [showManualFilters, setShowManualFilters] = useState(false) // 🔽 Estado para colapsar filtros manuales
 
     // 🧠 AI SEARCH STATE
     const [aiQuery, setAiQuery] = useState('')
@@ -381,226 +382,271 @@ export default function MarketFiltersAdvanced({
                 <button type="button" onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
             </div>
 
-            {/* 📍 NEW LOCATION SEARCH BAR */}
-            <div className="relative">
-                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                    Ubicación ({t('common.city')})
-                </label>
-                <div className="relative group">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-500">
-                        <MapPin size={18} />
-                    </div>
-                    <input
-                        type="text"
-                        value={locationInput}
-                        onChange={(e) => {
-                            setLocationInput(e.target.value)
-                            setShowCandidates(false)
-                        }}
-                        onKeyDown={(e) => e.key === 'Enter' && handleLocationSearch(e)}
-                        placeholder="Ciudad o Código Postal..."
-                        className="w-full h-12 pl-10 pr-12 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-500 transition-colors"
-                    />
-                    <button
-                        onClick={handleLocationSearch}
-                        disabled={isSearchingLocation}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-primary-500/10 hover:bg-primary-500/20 text-primary-500 rounded-lg transition"
-                    >
-                        {isSearchingLocation ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
-                    </button>
-                </div>
-
-                {/* Candidates Dropdown */}
-                {showCandidates && locationCandidates.length > 0 && (
-                    <div className="absolute z-50 left-0 right-0 mt-2 bg-surface border border-primary-500/30 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
-                        <div className="px-3 py-2 bg-primary-900/20 border-b border-primary-500/10">
-                            <p className="text-xs font-bold text-primary-300">¿A cuál te refieres?</p>
-                        </div>
-                        <div className="max-h-48 overflow-y-auto">
-                            {locationCandidates.map((loc, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => selectLocation(loc)}
-                                    className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors flex items-center gap-3 border-b border-white/5 last:border-0"
-                                >
-                                    <MapPin size={16} className="text-text-secondary shrink-0" />
-                                    <div>
-                                        <p className="font-bold text-sm text-text-primary">{loc.city}</p>
-                                        <p className="text-xs text-text-secondary">{loc.state}, {loc.country}</p>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {locationError && (
-                    <p className="text-xs text-red-400 mt-1">{locationError}</p>
-                )}
-            </div>
-
-            {/* 🧠 SMART SEARCH AI - REBRANDED TO ASESOR PERSONAL */}
-            <div className="p-4 bg-gradient-to-br from-gray-900 to-primary-950/30 border border-primary-700/30 rounded-xl space-y-3 mb-4 relative overflow-hidden">
-                {/* Background Decor */}
-                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                    <svg className="w-32 h-32 text-primary-400" fill="currentColor" viewBox="0 0 24 24">
+            {/* 🧠 SMART SEARCH AI - ASESOR PERSONAL (Always Visible & Prominent) */}
+            <div className="p-1 bg-gradient-to-br from-primary-900/50 to-purple-900/30 border border-primary-500/30 rounded-2xl shadow-lg relative overflow-hidden mb-6 group">
+                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+                    <svg className="w-48 h-48 text-primary-400" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
                     </svg>
                 </div>
 
-                <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-2">
-                        <label className="text-sm font-bold text-primary-300 uppercase tracking-wider">
-                            {t('smart_search.title')}
-                        </label>
+                <div className="bg-surface/90 backdrop-blur-sm rounded-xl p-4 md:p-6 relative z-10">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center shadow-lg shadow-primary-600/40">
+                            <span className="text-lg">🤖</span>
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-white text-lg leading-tight">{t('smart_search.title') || 'Asesor Inteligente'}</h3>
+                            <p className="text-xs text-primary-200">{t('smart_search.subtitle') || 'Pregúntame o describe lo que buscas'}</p>
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <textarea
-                            value={aiQuery}
-                            onChange={(e) => setAiQuery(e.target.value)}
-                            placeholder={t('smart_search.placeholder')}
-                            className="w-full bg-black/40 border border-primary-900/50 rounded-xl p-3 text-base md:text-sm text-gray-200 placeholder-gray-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all resize-none h-24 shadow-inner"
-                            disabled={isAnalyzing}
-                        />
+
+                    <div className="space-y-3">
+                        <div className="relative">
+                            <textarea
+                                value={aiQuery}
+                                onChange={(e) => setAiQuery(e.target.value)}
+                                placeholder={t('smart_search.placeholder') || "¿Qué vehículo me recomiendas para..."}
+                                className="w-full bg-black/50 border border-primary-500/30 rounded-xl p-4 text-base text-white placeholder-gray-400 focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-all resize-none h-28 shadow-inner"
+                                disabled={isAnalyzing}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleAiSearch();
+                                    }
+                                }}
+                            />
+                            <div className="absolute bottom-3 right-3 text-[10px] text-gray-500 hidden md:block">
+                                Enter para enviar
+                            </div>
+                        </div>
+
                         <button
-                            type="button" // 🚀 Crucial: Prevents form submission refresh
+                            type="button"
                             onClick={handleAiSearch}
                             disabled={isAnalyzing || !aiQuery.trim()}
-                            className="w-full py-4 md:py-3 bg-primary-700 hover:bg-primary-600 active:scale-95 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary-900/20"
+                            className="w-full py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary-900/30 active:scale-[0.98]"
                         >
                             {isAnalyzing ? (
                                 <>
-                                    <svg className="w-4 h-4 animate-spin text-primary-200" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    <span>{t('smart_search.consulting')}</span>
+                                    <Loader2 size={18} className="animate-spin text-white" />
+                                    <span>{t('smart_search.consulting') || 'Analizando...'}</span>
                                 </>
                             ) : (
-                                t('smart_search.ask_advisor')
+                                <>
+                                    <span>{t('smart_search.ask_advisor') || 'Preguntar al Asesor'}</span>
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                    </svg>
+                                </>
                             )}
                         </button>
-
                     </div>
                 </div>
             </div>
 
-            {/* MAIN FILTERS GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* 1. Categoría Principal */}
-                <div>
-                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.category')}</label>
-                    <select
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value as VehicleCategory)}
-                        className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
-                    >
-                        <option value="">{t('common.all')}</option>
-                        {Object.keys(VEHICLE_CATEGORIES).map(cat => (
-                            <option key={cat} value={cat}>{t(`taxonomy.categories.${cat}`)}</option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* 2. Subtipo (Dinámico) */}
-                <div>
-                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.style')}</label>
-                    <select
-                        value={subType}
-                        onChange={(e) => setSubType(e.target.value)}
-                        disabled={!category}
-                        className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 disabled:opacity-50 text-base md:text-sm"
-                    >
-                        <option value="">{t('common.all')}</option>
-                        {category && VEHICLE_CATEGORIES[category]?.map(subtype => (
-                            <option key={subtype} value={subtype}>{t(`taxonomy.subtypes.${subtype}`)}</option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* 3. Marca (Dinámica 'Global') */}
-                {/* 3. Marca (Autocompletado Intake) */}
-                <div>
-                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.brand')}</label>
-                    <AutocompleteDropdown
-                        value={brand}
-                        onChange={setBrand}
-                        options={availableBrands}
-                        placeholder={t('market.filters.brand_placeholder')}
-                        emptyMessage="No encontramos esa marca"
-                    />
-                </div>
-
-                {/* 4. Modelo */}
-                {/* 4. Modelo (Autocompletado Intake) */}
-                <div>
-                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.model')}</label>
-                    <AutocompleteDropdown
-                        value={model}
-                        onChange={setModel}
-                        options={filteredModels}
-                        placeholder={brand ? t('market.filters.model_placeholder') : "Selecciona una marca primero"}
-                        emptyMessage={brand ? "No listado (escríbelo manual)" : "Selecciona marca..."}
-                        onManualInput={setModel}
-                    />
-                </div>
-
-                {/* 5. Precio Rango */}
-                <div className="flex gap-2">
-                    <div className="flex-1">
-                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.price_min')}</label>
-                        <input
-                            type="number"
-                            min="0"
-                            onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
-                            value={minPrice}
-                            onChange={(e) => setMinPrice(Math.max(0, parseFloat(e.target.value)).toString())}
-                            placeholder={t('taxonomy.units.prices.placeholder_min')}
-                            className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-700"
-                        />
+            {/* 🔽 MANUAL FILTERS TOGGLE */}
+            <button
+                onClick={() => setShowManualFilters(!showManualFilters)}
+                className="w-full py-3 px-4 bg-surface-highlight/30 hover:bg-surface-highlight/50 border border-surface-highlight rounded-xl flex items-center justify-between text-text-primary transition-all group mb-4"
+            >
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-surface-highlight rounded-lg text-text-secondary group-hover:text-primary-400 transition-colors">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
                     </div>
-                    <div className="flex-1">
-                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Max</label>
+                    <span className="font-bold text-sm uppercase tracking-wide">
+                        {showManualFilters ? t('market.hide_filters') || 'Ocultar Filtros Manuales' : t('market.show_filters') || 'Mostrar Filtros Manuales'}
+                    </span>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-text-secondary transition-transform duration-300 ${showManualFilters ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* 🎛️ MANUAL FILTERS SECTION (Collapsible) */}
+            <div className={`space-y-6 overflow-hidden transition-all duration-500 ${showManualFilters ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+
+                {/* 📍 Location Search (Moved Inside Manual Filters) */}
+                <div className="relative">
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
+                        Ubicación ({t('common.city')})
+                    </label>
+                    <div className="relative group">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-500">
+                            <MapPin size={18} />
+                        </div>
                         <input
-                            type="number"
-                            min="0"
-                            onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
-                            value={maxPrice}
-                            onChange={(e) => setMaxPrice(Math.max(0, parseFloat(e.target.value)).toString())}
-                            placeholder={t('taxonomy.units.prices.placeholder_max')}
-                            className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-700"
+                            type="text"
+                            value={locationInput}
+                            onChange={(e) => {
+                                setLocationInput(e.target.value)
+                                setShowCandidates(false)
+                            }}
+                            onKeyDown={(e) => e.key === 'Enter' && handleLocationSearch(e)}
+                            placeholder="Ciudad o Código Postal..."
+                            className="w-full h-12 pl-10 pr-12 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-500 transition-colors"
                         />
+                        <button
+                            onClick={handleLocationSearch}
+                            disabled={isSearchingLocation}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-primary-500/10 hover:bg-primary-500/20 text-primary-500 rounded-lg transition"
+                        >
+                            {isSearchingLocation ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
+                        </button>
                     </div>
+
+                    {/* Candidates Dropdown Logic (Same as before) */}
+                    {showCandidates && locationCandidates.length > 0 && (
+                        <div className="absolute z-50 left-0 right-0 mt-2 bg-surface border border-primary-500/30 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+                            {/* ... candidates list ... */}
+                            <div className="px-3 py-2 bg-primary-900/20 border-b border-primary-500/10">
+                                <p className="text-xs font-bold text-primary-300">¿A cuál te refieres?</p>
+                            </div>
+                            <div className="max-h-48 overflow-y-auto">
+                                {locationCandidates.map((loc, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => selectLocation(loc)}
+                                        className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors flex items-center gap-3 border-b border-white/5 last:border-0"
+                                    >
+                                        <MapPin size={16} className="text-text-secondary shrink-0" />
+                                        <div>
+                                            <p className="font-bold text-sm text-text-primary">{loc.city}</p>
+                                            <p className="text-xs text-text-secondary">{loc.state}, {loc.country}</p>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {locationError && <p className="text-xs text-red-400 mt-1">{locationError}</p>}
                 </div>
 
-                {/* 6. Año Rango */}
-                <div className="flex gap-2">
-                    <div className="flex-1">
-                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.year_min')}</label>
+                {/* MAIN FILTERS GRID */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* 1. Categoría Principal */}
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.category')}</label>
                         <select
-                            value={minYear}
-                            onChange={(e) => setMinYear(e.target.value)}
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value as VehicleCategory)}
                             className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
                         >
-                            <option value="">Todos</option>
-                            {availableYears.map(y => (
-                                <option key={y} value={y}>{y}</option>
+                            <option value="">{t('common.all')}</option>
+                            {Object.keys(VEHICLE_CATEGORIES).map(cat => (
+                                <option key={cat} value={cat}>{t(`taxonomy.categories.${cat}`)}</option>
                             ))}
                         </select>
                     </div>
-                    <div className="flex-1">
-                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Max</label>
+
+                    {/* 2. Subtipo (Dinámico) */}
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.style')}</label>
                         <select
-                            value={maxYear}
-                            onChange={(e) => setMaxYear(e.target.value)}
-                            className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
+                            value={subType}
+                            onChange={(e) => setSubType(e.target.value)}
+                            disabled={!category}
+                            className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 disabled:opacity-50 text-base md:text-sm"
                         >
-                            <option value="">Todos</option>
-                            {availableYears.map(y => (
-                                <option key={y} value={y}>{y}</option>
+                            <option value="">{t('common.all')}</option>
+                            {category && VEHICLE_CATEGORIES[category]?.map(subtype => (
+                                <option key={subtype} value={subtype}>{t(`taxonomy.subtypes.${subtype}`)}</option>
                             ))}
                         </select>
                     </div>
+
+                    {/* 3. Marca (Autocompletado) */}
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.brand')}</label>
+                        <AutocompleteDropdown
+                            value={brand}
+                            onChange={setBrand}
+                            options={availableBrands}
+                            placeholder={t('market.filters.brand_placeholder')}
+                            emptyMessage="No encontramos esa marca"
+                        />
+                    </div>
+
+                    {/* 4. Modelo (Autocompletado) */}
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.model')}</label>
+                        <AutocompleteDropdown
+                            value={model}
+                            onChange={setModel}
+                            options={filteredModels}
+                            placeholder={brand ? t('market.filters.model_placeholder') : "Selecciona una marca primero"}
+                            emptyMessage={brand ? "No listado (escríbelo manual)" : "Selecciona marca..."}
+                            onManualInput={setModel}
+                        />
+                    </div>
+
+                    {/* 5. Precio Rango */}
+                    <div className="flex gap-2">
+                        <div className="flex-1">
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.price_min')}</label>
+                            <input
+                                type="number"
+                                min="0"
+                                onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
+                                value={minPrice}
+                                onChange={(e) => setMinPrice(Math.max(0, parseFloat(e.target.value)).toString())}
+                                placeholder={t('taxonomy.units.prices.placeholder_min')}
+                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-700"
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Max</label>
+                            <input
+                                type="number"
+                                min="0"
+                                onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
+                                value={maxPrice}
+                                onChange={(e) => setMaxPrice(Math.max(0, parseFloat(e.target.value)).toString())}
+                                placeholder={t('taxonomy.units.prices.placeholder_max')}
+                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary focus:border-primary-700"
+                            />
+                        </div>
+                    </div>
+
+                    {/* 6. Año Rango */}
+                    <div className="flex gap-2">
+                        <div className="flex-1">
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.year_min')}</label>
+                            <select
+                                value={minYear}
+                                onChange={(e) => setMinYear(e.target.value)}
+                                className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
+                            >
+                                <option value="">Todos</option>
+                                {availableYears.map(y => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Max</label>
+                            <select
+                                value={maxYear}
+                                onChange={(e) => setMaxYear(e.target.value)}
+                                className="w-full h-12 md:h-10 px-4 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-700 text-base md:text-sm"
+                            >
+                                <option value="">Todos</option>
+                                {availableYears.map(y => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {/* BOTÓN APLICAR FILTROS (Solo visible si manual filters están abiertos) */}
+                <div className="pt-4 border-t border-surface-highlight flex justify-end">
+                    <button
+                        onClick={applyFilters}
+                        className="px-8 py-3 bg-white text-primary-900 font-bold rounded-xl hover:bg-gray-100 transition shadow-lg active:scale-95"
+                    >
+                        {t('market.filters.apply')}
+                    </button>
                 </div>
             </div>
 

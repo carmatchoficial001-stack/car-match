@@ -22,6 +22,8 @@ interface SearchIntent {
   keywords?: string[]; // Extra keywords like "roja", "4x4"
   isBusinessSearch?: boolean; // If user is looking for a shop/mechanic instead of a car
   aiReasoning?: string; // 🗣️ Mensaje de la IA explicando su lógica al usuario
+  isConversational?: boolean; // 💬 TRUE si la IA necesita más info y está iniciando un cuestionario
+  nextQuestion?: string; // ❓ La pregunta que la IA le hace al usuario para refinar la búsqueda
 }
 
 export async function interpretSearchQuery(query: string, context: 'MARKET' | 'MAP'): Promise<SearchIntent> {
@@ -134,9 +136,30 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
        - "El más nuevo" → sort: "year_desc"
        - "Poco kilometraje" → sort: "mileage_asc"
 
-    7. 🆚 **MODO COMPARACIÓN (A vs B)**:
-       - "Corolla o Civic" -> brand: "Toyota,Honda", model: "Corolla,Civic"
-       - "Duramax vs Cummins" -> brand: "Chevrolet,GMC,RAM,Dodge", fuel: "Diesel"
+    7. 💬 **MODO ASESOR INTERACTIVO (CUESTIONARIO)**:
+       Esta es tu función más importante. Si el usuario hace una pregunta vaga ("¿qué me recomiendas?", "quiero un carro familiar", "carro para uber"), **NO devuelvas filtros finales**. 
+       En su lugar, inicia una CONVERSACIÓN devolviendo `"isConversational": true` y una pregunta de seguimiento en `nextQuestion`.
+
+       **COMPORTAMIENTO REQUERIDO:**
+       
+       - **Caso 1: Recomendación General ("¿Qué me recomiendas?")**
+         → isConversational: true
+         → nextQuestion: "¡Claro! Para darte la mejor recomendación, ¿cuál será el uso principal? (Ej: Familia, Trabajo, Uber, Ciudad, Campo)"
+       
+       - **Caso 2: Uso Específico Detectado pero Faltan Detalles** ("Quiero un carro para Uber")
+         → isConversational: true
+         → nextQuestion: "Excelente opción. ¿Qué presupuesto tienes aproximadamente y prefieres algún tipo de carrocería (Sedán o Hatchback)?"
+       
+       - **Caso 3: Comparación Vaga ("¿Toyota o Nissan?")**
+         → isConversational: true
+         → nextQuestion: "Ambas son excelentes marcas japonesas. ¿Estás buscando un modelo en particular (como Corolla vs Sentra) o quieres ver todo lo disponible de ambas?"
+       
+       - **Caso 4: Pregunta Técnica ("¿Es bueno el motor V6?")**
+         → isConversational: false
+         → aiReasoning: "El V6 ofrece buen equilibrio potencia/consumo. Aquí tienes opciones V6 confiables. 🔧"
+         → Filtros: cylinders: 6
+       
+       **REGLA:** Solo activa `isConversational: true` si realmente necesitas más info para filtrar bien. Si la búsqueda es explícita ("Ram 2020 4x4"), NO preguntes nada, solo busca.
 
     RESPONDE SOLO JSON (Sin markdown):
     {
@@ -155,7 +178,9 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
       "traction": "String",
       "features": ["Array"],
       "sort": "String",
-      "aiReasoning": "String (Mensaje corto y carismático)"
+      "aiReasoning": "String (Si NO es conversacional: Mensaje corto final 'Mostrando X resultados...')",
+      "isConversational": Boolean, // TRUE si haces una pregunta de seguimiento
+      "nextQuestion": "String" // La pregunta que le haces al usuario
     }
 
     CONOCIMIENTO UNIVERSAL CARMATCH:
