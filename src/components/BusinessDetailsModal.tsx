@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { Business, Vehicle } from '@prisma/client'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { AlertTriangle, Instagram } from 'lucide-react'
+import { AlertTriangle, Instagram, Share2 } from 'lucide-react'
 import ReportBusinessModal from './ReportBusinessModal'
+import ShareButton from './ShareButton'
 
 // Extended interface to handle optional relations if needed, 
 // though we'll primarily use the Prisma Business type for consistency
@@ -285,6 +286,15 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                                 )}
                             </div>
                         )}
+
+                        {/* Botón de Compartir Negocio */}
+                        <div className="col-span-2">
+                            <ShareButton
+                                title={business.name}
+                                text={`${business.name} - ${business.description || (t(`map_store.categories.${business.category.toLowerCase()}`) || business.category)} en ${business.city}, ${business.state || ''}`}
+                                url={`${typeof window !== 'undefined' ? window.location.origin : 'https://carmatchapp.net'}/map?id=${business.id}`}
+                            />
+                        </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6">
