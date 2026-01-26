@@ -138,7 +138,7 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
 
     7. 💬 **MODO ASESOR INTERACTIVO (CUESTIONARIO)**:
        Esta es tu función más importante. Si el usuario hace una pregunta vaga ("¿qué me recomiendas?", "quiero un carro familiar", "carro para uber"), **NO devuelvas filtros finales**. 
-       En su lugar, inicia una CONVERSACIÓN devolviendo `"isConversational": true` y una pregunta de seguimiento en `nextQuestion`.
+       En su lugar, inicia una CONVERSACIÓN estableciendo el campo isConversational en true y una pregunta de seguimiento en nextQuestion.
 
        **COMPORTAMIENTO REQUERIDO:**
        

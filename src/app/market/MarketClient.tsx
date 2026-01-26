@@ -288,6 +288,11 @@ export default function MarketClient({
             const filters = await res.json()
             const params = new URLSearchParams()
             params.set('search', searchText)
+
+            // 🧠 AI INSIGHT: Si la IA nos dio una explicación, la pasamos a la URL para mostrarla
+            if (filters.aiReasoning) {
+                params.set('ai_msg', filters.aiReasoning)
+            }
             if (filters.category) params.set('category', filters.category)
             if (filters.brand) params.set('brand', filters.brand)
             if (filters.model) params.set('model', filters.model)
@@ -444,6 +449,39 @@ export default function MarketClient({
                     {/* Mobile Distance Indicator */}
                     {/* El indicador de radio se movió dentro de los estados específicos */}
                 </header>
+
+                {/* 🧠 AI INSIGHT BANNER */}
+                {searchParams.ai_msg && (
+                    <div className="mb-6 animate-fade-in-down">
+                        <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-xl p-4 flex items-start gap-3 relative overflow-hidden group">
+                            {/* Decorative glow */}
+                            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-purple-500" />
+
+                            <div className="mt-0.5 p-2 bg-indigo-500/10 rounded-lg text-indigo-400 group-hover:scale-110 transition-transform">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>
+
+                            <div className="flex-1">
+                                <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-widest text-[10px] mb-0.5 flex items-center gap-2">
+                                    CarMatch AI
+                                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                                </h3>
+                                <p className="text-indigo-100 text-base font-medium leading-tight">
+                                    {searchParams.ai_msg}
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() => router.push('/market')}
+                                className="text-indigo-400/50 hover:text-indigo-300 transition p-1"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Área de Filtros (Full Width) */}
                 {
