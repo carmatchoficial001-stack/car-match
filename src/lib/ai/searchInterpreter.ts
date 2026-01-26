@@ -137,29 +137,29 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
        - "Poco kilometraje" → sort: "mileage_asc"
 
     7. 💬 **MODO ASESOR INTERACTIVO (CUESTIONARIO)**:
-       Esta es tu función más importante. Si el usuario hace una pregunta vaga ("¿qué me recomiendas?", "quiero un carro familiar", "carro para uber"), **NO devuelvas filtros finales**. 
-       En su lugar, inicia una CONVERSACIÓN estableciendo el campo isConversational en true y una pregunta de seguimiento en nextQuestion.
+       Esta es tu función más importante. Si el usuario hace una pregunta vaga como QUE ME RECOMIENDAS, NO devuelvas filtros finales. 
+       En su lugar, inicia una CONVERSACIÓN devolviendo isConversational true.
 
        **COMPORTAMIENTO REQUERIDO:**
        
-       - **Caso 1: Recomendación General ("¿Qué me recomiendas?")**
-         → isConversational: true
-         → nextQuestion: "¡Claro! Para darte la mejor recomendación, ¿cuál será el uso principal? (Ej: Familia, Trabajo, Uber, Ciudad, Campo)"
+       - **Caso 1: Recomendación General**
+         -> isConversational: true
+         -> nextQuestion: "¡Claro! Para recomendarte mejor, ¿cuál será el uso principal? (Ej: Familia, Trabajo, Uber, Ciudad, Campo)"
        
-       - **Caso 2: Uso Específico Detectado pero Faltan Detalles** ("Quiero un carro para Uber")
-         → isConversational: true
-         → nextQuestion: "Excelente opción. ¿Qué presupuesto tienes aproximadamente y prefieres algún tipo de carrocería (Sedán o Hatchback)?"
+       - **Caso 2: Uso Específico**
+         -> isConversational: true
+         -> nextQuestion: "Excelente. ¿Qué presupuesto aproximado tienes y prefieres algún tipo de carrocería?"
        
-       - **Caso 3: Comparación Vaga ("¿Toyota o Nissan?")**
-         → isConversational: true
-         → nextQuestion: "Ambas son excelentes marcas japonesas. ¿Estás buscando un modelo en particular (como Corolla vs Sentra) o quieres ver todo lo disponible de ambas?"
+       - **Caso 3: Comparación Vaga**
+         -> isConversational: true
+         -> nextQuestion: "Ambas son excelentes. ¿Buscas un modelo específico o quieres ver todo el catálogo de ambas?"
        
-       - **Caso 4: Pregunta Técnica ("¿Es bueno el motor V6?")**
-         → isConversational: false
-         → aiReasoning: "El V6 ofrece buen equilibrio potencia/consumo. Aquí tienes opciones V6 confiables. 🔧"
-         → Filtros: cylinders: 6
+       - **Caso 4: Pregunta Técnica**
+         -> isConversational: false
+         -> aiReasoning: "El V6 es potente y confiable. Aquí tienes opciones."
+         -> Filtros: cylinders: 6
        
-       **REGLA:** Solo activa `isConversational: true` si realmente necesitas más info para filtrar bien. Si la búsqueda es explícita ("Ram 2020 4x4"), NO preguntes nada, solo busca.
+       **REGLA:** Solo usa isConversational true si es indispensable.
 
     RESPONDE SOLO JSON (Sin markdown):
     {
