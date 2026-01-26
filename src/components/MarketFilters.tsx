@@ -410,7 +410,7 @@ export default function MarketFiltersAdvanced({
                     >
                         {isSearchingLocation ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
                     </button>
-                    
+
                     {/* Candidates Dropdown */}
                     {showCandidates && locationCandidates.length > 0 && (
                         <div className="absolute top-full left-0 right-0 mt-2 bg-surface border border-primary-500/30 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 z-50">
@@ -456,7 +456,7 @@ export default function MarketFiltersAdvanced({
                             <p className="text-xs text-primary-200">{t('smart_search.subtitle') || 'Pregúntame o describe lo que buscas'}</p>
                         </div>
                     </div>
-                    
+
                     <div className="space-y-3">
                         <div className="relative">
                             <textarea
@@ -476,7 +476,7 @@ export default function MarketFiltersAdvanced({
                                 Enter para enviar
                             </div>
                         </div>
-                        
+
                         <button
                             type="button"
                             onClick={handleAiSearch}
@@ -502,7 +502,7 @@ export default function MarketFiltersAdvanced({
             </div>
 
             {/* 3. 🔽 FILTROS MANUALES (Ocultos por defecto) */}
-            <button 
+            <button
                 onClick={() => setShowManualFilters(!showManualFilters)}
                 className="w-full py-3 px-4 bg-surface-highlight/30 hover:bg-surface-highlight/50 border border-surface-highlight rounded-xl flex items-center justify-between text-text-primary transition-all group mb-4"
             >
@@ -521,7 +521,7 @@ export default function MarketFiltersAdvanced({
 
             {/* CONTENEDOR COLAPSABLE DE FILTROS MANUALES */}
             <div className={`space-y-6 overflow-hidden transition-all duration-500 ${showManualFilters ? 'max-h-[3000px] opacity-100 pb-4' : 'max-h-0 opacity-0'}`}>
-                
+
                 {/* A. CATEGORÍA Y FILTROS BÁSICOS */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* 1. Categoría Principal */}
@@ -890,200 +890,187 @@ export default function MarketFiltersAdvanced({
                         </svg>
                     </button>
                 </div>
-                </select>
-            </div>
-            <div>
-                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{category === 'Maquinaria' ? t('common.hours') : t('common.km') + ' ' + t('common.max')}</label>
-                <input
-                    type="number"
-                    min="0"
-                    onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
-                    value={maxMileage}
-                    onChange={(e) => setMaxMileage(Math.max(0, parseFloat(e.target.value)).toString())}
-                    placeholder="Ej. 50000"
-                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
-                />
-            </div>
 
 
-            {/* Pasajeros y Puertas */ }
-    <div className="col-span-2 md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-surface-highlight pt-4 mt-2">
-        <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                {category === 'Maquinaria' ? 'Operadores' : t('market.filters.passengers')}
-            </label>
-            <input
-                type="number"
-                min="1"
-                value={passengers}
-                onChange={(e) => setPassengers(e.target.value)}
-                placeholder="Ej. 5"
-                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
-            />
-        </div>
-        <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.doors')}</label>
-            <input
-                type="number"
-                min="2"
-                max="5"
-                value={doors}
-                onChange={(e) => setDoors(e.target.value)}
-                placeholder="Ej. 4"
-                disabled={category === 'Motocicleta' || category === 'Maquinaria'}
-                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary disabled:opacity-50"
-            />
-        </div>
-    </div>
 
-    {/* Motor / Potencia Dinámico */ }
-    <div className="col-span-2 md:col-span-4 grid grid-cols-2 gap-4 border-t border-surface-highlight pt-4 mt-2">
-        <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                {category === 'Motocicleta' ? t('market.filters.displacement') + ' ' + t('common.min') + ' (cc)' :
-                    category === 'Camión' || category === 'Maquinaria' ? t('market.filters.power') + ' ' + t('common.min') + ' (HP)' :
-                        t('market.filters.displacement') + ' ' + t('common.min') + ' (L)'}
-            </label>
-            <input
-                type="number"
-                value={minEngine}
-                onChange={(e) => setMinEngine(e.target.value)}
-                placeholder={category === 'Motocicleta' ? 'Ej. 250' : category === 'Camión' ? 'Ej. 300' : 'Ej. 1.6'}
-                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
-            />
-        </div>
-        <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                {category === 'Motocicleta' ? t('market.filters.displacement') + ' ' + t('common.max') + ' (cc)' :
-                    category === 'Camión' || category === 'Maquinaria' ? t('market.filters.power') + ' ' + t('common.max') + ' (HP)' :
-                        t('market.filters.displacement') + ' ' + t('common.max') + ' (L)'}
-            </label>
-            <input
-                type="number"
-                value={maxEngine}
-                onChange={(e) => setMaxEngine(e.target.value)}
-                placeholder={category === 'Motocicleta' ? t('taxonomy.units.cc') : category === 'Camión' ? t('taxonomy.units.hp') : t('taxonomy.units.l')}
-                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
-            />
-        </div>
-    </div>
-        </div >
+                {/* Pasajeros y Puertas */}
+                <div className="col-span-2 md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-surface-highlight pt-4 mt-2">
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
+                            {category === 'Maquinaria' ? 'Operadores' : t('market.filters.passengers')}
+                        </label>
+                        <input
+                            type="number"
+                            min="1"
+                            value={passengers}
+                            onChange={(e) => setPassengers(e.target.value)}
+                            placeholder="Ej. 5"
+                            className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">{t('market.filters.doors')}</label>
+                        <input
+                            type="number"
+                            min="2"
+                            max="5"
+                            value={doors}
+                            onChange={(e) => setDoors(e.target.value)}
+                            placeholder="Ej. 4"
+                            disabled={category === 'Motocicleta' || category === 'Maquinaria'}
+                            className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary disabled:opacity-50"
+                        />
+                    </div>
+                </div>
 
-        {/* Transmisión Chips */ }
-        < div >
-        <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.transmission')}</label>
-        <div className="flex flex-wrap gap-3">
-            {TRANSMISSIONS.map(trans => (
-                <button
-                    key={trans}
-                    onClick={() => handleToggleArray(trans, transmission, setTransmission)}
-                    className={`px-5 py-3 md:px-3 md:py-1 text-sm md:text-xs rounded-full border transition font-medium ${transmission.includes(trans)
-                        ? 'bg-primary-700 text-text-primary border-primary-700'
-                        : 'bg-background text-text-secondary border-surface-highlight'
-                        }`}
-                >
-                    {t(`taxonomy.transmission.${trans}`)}
-                </button>
-            ))}
-        </div>
-    </div >
+                {/* Motor / Potencia Dinámico */}
+                <div className="col-span-2 md:col-span-4 grid grid-cols-2 gap-4 border-t border-surface-highlight pt-4 mt-2">
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
+                            {category === 'Motocicleta' ? t('market.filters.displacement') + ' ' + t('common.min') + ' (cc)' :
+                                category === 'Camión' || category === 'Maquinaria' ? t('market.filters.power') + ' ' + t('common.min') + ' (HP)' :
+                                    t('market.filters.displacement') + ' ' + t('common.min') + ' (L)'}
+                        </label>
+                        <input
+                            type="number"
+                            value={minEngine}
+                            onChange={(e) => setMinEngine(e.target.value)}
+                            placeholder={category === 'Motocicleta' ? 'Ej. 250' : category === 'Camión' ? 'Ej. 300' : 'Ej. 1.6'}
+                            className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
+                            {category === 'Motocicleta' ? t('market.filters.displacement') + ' ' + t('common.max') + ' (cc)' :
+                                category === 'Camión' || category === 'Maquinaria' ? t('market.filters.power') + ' ' + t('common.max') + ' (HP)' :
+                                    t('market.filters.displacement') + ' ' + t('common.max') + ' (L)'}
+                        </label>
+                        <input
+                            type="number"
+                            value={maxEngine}
+                            onChange={(e) => setMaxEngine(e.target.value)}
+                            placeholder={category === 'Motocicleta' ? t('taxonomy.units.cc') : category === 'Camión' ? t('taxonomy.units.hp') : t('taxonomy.units.l')}
+                            className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
+                        />
+                    </div>
+                </div>
+            </div >
 
-        {/* Tracción y Pasajeros */ }
-        < div className = "grid grid-cols-2 gap-4" >
-        <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.traction')}</label>
-            <select
-                value={traction}
-                onChange={(e) => setTraction(e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary text-sm"
-            >
-                <option value="">{t('common.any')}</option>
-                <option value="Delantera (FWD)">{t('taxonomy.traction.Delantera (FWD)')}</option>
-                <option value="Trasera (RWD)">{t('taxonomy.traction.Trasera (RWD)')}</option>
-                <option value="4x4 (4WD)">{t('taxonomy.traction.4x4 (4WD)')}</option>
-                <option value="Integral (AWD)">{t('taxonomy.traction.Integral (AWD)')}</option>
-            </select>
-        </div>
-        <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.passengers') + ' ' + t('common.min')}</label>
-            <select
-                value={passengers}
-                onChange={(e) => setPassengers(e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary text-sm"
-            >
-                <option value="">{t('common.any')}</option>
-                <option value="2">2+</option>
-                <option value="4">4+</option>
-                <option value="5">5+</option>
-                <option value="7">7+</option>
-                <option value="12">12+</option>
-            </select>
-        </div>
-    </div >
-
-        {/* Horas (Maquinaria/Barcos) */ }
-    {
-        (category === 'Maquinaria' || category === 'Especial') && (
-            <div>
-                <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('common.hours') + ' ' + t('common.max')}</label>
-                <input
-                    type="number"
-                    value={hours}
-                    onChange={(e) => setHours(e.target.value)}
-                    placeholder={t('taxonomy.units.hours_placeholder')}
-                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
-                />
-            </div>
-        )
-    }
-
-    {/* Combustible Chips */ }
-    <div>
-        <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.fuel')}</label>
-        <div className="flex flex-wrap gap-3">
-            {FUELS.map(fuelVal => (
-                <button
-                    key={fuelVal}
-                    onClick={() => handleToggleArray(fuelVal, fuel, setFuel)}
-                    className={`px-5 py-3 md:px-3 md:py-1 text-sm md:text-xs rounded-full border transition font-medium ${fuel.includes(fuelVal)
-                        ? 'bg-primary-700 text-text-primary border-primary-700'
-                        : 'bg-background text-text-secondary border-surface-highlight'
-                        }`}
-                >
-                    {t(`taxonomy.fuel.${fuelVal}`)}
-                </button>
-            ))}
-        </div>
-    </div>
-
-    {/* Dynamic Features (Air Cond, GPS, etc) */ }
-    {
-        categoryFeatures.length > 0 && (
-            <div>
-                <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.equipment')}</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {categoryFeatures.map(feat => (
+            {/* Transmisión Chips */}
+            < div >
+                <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.transmission')}</label>
+                <div className="flex flex-wrap gap-3">
+                    {TRANSMISSIONS.map(trans => (
                         <button
-                            key={feat}
-                            onClick={() => handleToggleArray(feat, features, setFeatures)}
-                            className={`flex items-center gap-3 px-4 py-4 md:py-2 text-sm md:text-xs rounded-xl border text-left transition ${features.includes(feat)
-                                ? 'bg-primary-700/20 border-primary-700 text-text-primary font-bold'
-                                : 'bg-background border-surface-highlight text-text-secondary'
+                            key={trans}
+                            onClick={() => handleToggleArray(trans, transmission, setTransmission)}
+                            className={`px-5 py-3 md:px-3 md:py-1 text-sm md:text-xs rounded-full border transition font-medium ${transmission.includes(trans)
+                                ? 'bg-primary-700 text-text-primary border-primary-700'
+                                : 'bg-background text-text-secondary border-surface-highlight'
                                 }`}
                         >
-                            <div className={`w-3 h-3 md:w-2 md:h-2 rounded-full ${features.includes(feat) ? 'bg-primary-500' : 'bg-surface-highlight'}`} />
-                            {t(`taxonomy.subtypes.${feat}`) || feat}
+                            {t(`taxonomy.transmission.${trans}`)}
+                        </button>
+                    ))}
+                </div>
+            </div >
+
+            {/* Tracción y Pasajeros */}
+            < div className="grid grid-cols-2 gap-4" >
+                <div>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.traction')}</label>
+                    <select
+                        value={traction}
+                        onChange={(e) => setTraction(e.target.value)}
+                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary text-sm"
+                    >
+                        <option value="">{t('common.any')}</option>
+                        <option value="Delantera (FWD)">{t('taxonomy.traction.Delantera (FWD)')}</option>
+                        <option value="Trasera (RWD)">{t('taxonomy.traction.Trasera (RWD)')}</option>
+                        <option value="4x4 (4WD)">{t('taxonomy.traction.4x4 (4WD)')}</option>
+                        <option value="Integral (AWD)">{t('taxonomy.traction.Integral (AWD)')}</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.passengers') + ' ' + t('common.min')}</label>
+                    <select
+                        value={passengers}
+                        onChange={(e) => setPassengers(e.target.value)}
+                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary text-sm"
+                    >
+                        <option value="">{t('common.any')}</option>
+                        <option value="2">2+</option>
+                        <option value="4">4+</option>
+                        <option value="5">5+</option>
+                        <option value="7">7+</option>
+                        <option value="12">12+</option>
+                    </select>
+                </div>
+            </div >
+
+            {/* Horas (Maquinaria/Barcos) */}
+            {
+                (category === 'Maquinaria' || category === 'Especial') && (
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('common.hours') + ' ' + t('common.max')}</label>
+                        <input
+                            type="number"
+                            value={hours}
+                            onChange={(e) => setHours(e.target.value)}
+                            placeholder={t('taxonomy.units.hours_placeholder')}
+                            className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-text-primary"
+                        />
+                    </div>
+                )
+            }
+
+            {/* Combustible Chips */}
+            <div>
+                <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.fuel')}</label>
+                <div className="flex flex-wrap gap-3">
+                    {FUELS.map(fuelVal => (
+                        <button
+                            key={fuelVal}
+                            onClick={() => handleToggleArray(fuelVal, fuel, setFuel)}
+                            className={`px-5 py-3 md:px-3 md:py-1 text-sm md:text-xs rounded-full border transition font-medium ${fuel.includes(fuelVal)
+                                ? 'bg-primary-700 text-text-primary border-primary-700'
+                                : 'bg-background text-text-secondary border-surface-highlight'
+                                }`}
+                        >
+                            {t(`taxonomy.fuel.${fuelVal}`)}
                         </button>
                     ))}
                 </div>
             </div>
-        )
-    }
+
+            {/* Dynamic Features (Air Cond, GPS, etc) */}
+            {
+                categoryFeatures.length > 0 && (
+                    <div>
+                        <label className="block text-xs font-bold text-text-secondary uppercase mb-2">{t('market.filters.equipment')}</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {categoryFeatures.map(feat => (
+                                <button
+                                    key={feat}
+                                    onClick={() => handleToggleArray(feat, features, setFeatures)}
+                                    className={`flex items-center gap-3 px-4 py-4 md:py-2 text-sm md:text-xs rounded-xl border text-left transition ${features.includes(feat)
+                                        ? 'bg-primary-700/20 border-primary-700 text-text-primary font-bold'
+                                        : 'bg-background border-surface-highlight text-text-secondary'
+                                        }`}
+                                >
+                                    <div className={`w-3 h-3 md:w-2 md:h-2 rounded-full ${features.includes(feat) ? 'bg-primary-500' : 'bg-surface-highlight'}`} />
+                                    {t(`taxonomy.subtypes.${feat}`) || feat}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )
+            }
 
 
 
-                </div >
-            )
+        </div>
+    )
 }
 
 {/* ACTION BUTTONS */ }
