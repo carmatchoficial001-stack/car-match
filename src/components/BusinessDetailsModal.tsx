@@ -5,6 +5,7 @@ import { Business, Vehicle } from '@prisma/client'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { AlertTriangle, Instagram, Share2 } from 'lucide-react'
 import ReportBusinessModal from './ReportBusinessModal'
+import { generateBusinessSlug } from '@/lib/slug'
 import ShareButton from './ShareButton'
 
 // Extended interface to handle optional relations if needed, 
@@ -292,7 +293,7 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                             <ShareButton
                                 title={business.name}
                                 text={`${business.name} - ${business.description || (t(`map_store.categories.${business.category.toLowerCase()}`) || business.category)} en ${business.city}, ${business.state || ''}`}
-                                url={`/map?id=${business.id}`}
+                                url={`/negocio/${generateBusinessSlug(business.name, business.city)}-${business.id}`}
                             />
                         </div>
                     </div>

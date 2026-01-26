@@ -29,12 +29,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     const title = `✓ ${business.name} | ${business.category} en ${business.city} | CarMatch®`
+    const description = business.description || `Contacta a ${business.name} en ${business.city}. Servicios de ${business.category} verificados en CarMatch.`
+
     return {
         title,
-        description: business.description || `Contacta a ${business.name} en ${business.city}. Servicios de ${business.category} verificados en CarMatch.`,
+        description,
         openGraph: {
             title,
-            images: business.images
+            description,
+            images: business.images.length > 0 ? [business.images[0]] : [],
+            url: `https://carmatchapp.net/negocio/${slug}`,
+            siteName: 'CarMatch',
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: business.images.length > 0 ? [business.images[0]] : [],
+        },
+        alternates: {
+            canonical: `https://carmatchapp.net/negocio/${slug}`,
         }
     }
 }

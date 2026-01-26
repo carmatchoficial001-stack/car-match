@@ -30,12 +30,27 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     }
 
     const title = `✓ ${vehicle.brand} ${vehicle.model} ${vehicle.year} en ${vehicle.city} | CarMatch®`
+    const description = `Venta de ${vehicle.brand} ${vehicle.model} usado en ${vehicle.city}. Motor ${vehicle.engine}, ${vehicle.transmission}. Trato directo en CarMatch.`
+
     return {
         title,
-        description: `Venta de ${vehicle.brand} ${vehicle.model} usado en ${vehicle.city}. Motor ${vehicle.engine}, ${vehicle.transmission}. Trato directo en CarMatch.`,
+        description,
         openGraph: {
             title,
-            images: vehicle.images
+            description,
+            images: vehicle.images.length > 0 ? [vehicle.images[0]] : [],
+            url: `https://carmatchapp.net/comprar/${slug}`,
+            siteName: 'CarMatch',
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: vehicle.images.length > 0 ? [vehicle.images[0]] : [],
+        },
+        alternates: {
+            canonical: `https://carmatchapp.net/comprar/${slug}`,
         }
     }
 }

@@ -9,7 +9,7 @@ import ShareButton from './ShareButton'
 import ReportImageButton from './ReportImageButton'
 import { formatPrice } from '@/lib/vehicleTaxonomy'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { generateVehicleSlug } from '@/lib/slug'
+import { generateVehicleSlug, generateBusinessSlug } from '@/lib/slug'
 
 interface FeedItem {
     id: string
@@ -131,7 +131,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                             title={item.title}
                             text={isBusiness ? `¡Mira este negocio en CarMatch! ${item.title}` : `¡Mira este ${item.title} en CarMatch!`}
                             url={isBusiness
-                                ? `/map?id=${item.id}`
+                                ? `/negocio/${generateBusinessSlug(item.title, item.city)}-${item.id}`
                                 : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}`
                             }
                             variant="minimal"
