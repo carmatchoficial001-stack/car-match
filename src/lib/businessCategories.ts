@@ -3,47 +3,47 @@
 // Updated: Cleanup central_autobus
 
 export const CATEGORY_COLORS: Record<string, string> = {
-    'mecanico': '#ef4444', // Red
-    'frenos': '#991b1b', // Dark Red
-    'electrico': '#facc15', // Yellow
-    'hojalateria': '#a855f7', // Purple
-    'llantera': '#f97316', // Orange
-    'polarizado': '#0f172a', // Dark Navy
-    'estetica': '#3b82f6', // Blue
-    'detallado': '#6366f1', // Indigo
-    'refacciones': '#22c55e', // Green
-    'audio': '#d97706', // Amber
-    'cristales': '#06b6d4', // Cyan
-    'tapiceria': '#92400e', // Brown
-    'transmisiones': '#6b7280', // Cool Gray
-    'gruas': '#e11d48', // Rose
-    'motos': '#171717', // Black
-    'performance': '#ec4899', // Pink
-    'mofles': '#78716c', // Stone
-    'radiadores': '#0ea5e9', // Sky Blue
-    'rectificadora': '#525252', // Neutral Dark
-    'blindaje': '#334155', // Slate
-    'diesel': '#854d0e', // Bronze
-    'offroad': '#4d7c0f', // Olive
-    'cerrajeria': '#eab308', // Gold
-    'gasolinera': '#ea580c', // Red-Orange
-    'yonke': '#713f12', // Rust
-    'estacionamiento': '#475569', // BlueGray
-    'suspension': '#65a30d', // Lime
-    'aire_acondicionado': '#14b8a6', // Teal
-    'importadoras': '#1e3a8a', // Navy Blue
-    'iluminacion': '#fde047', // Yellow-Sun
-    'rotulacion': '#c026d3', // Fuchsia (Distinct from Performance)
-    'inyectores': '#0891b2', // Cyan Dark (Distinct from Radiadores)
-    'electrolinera': '#84cc16', // Lime Green
-    'caseta': '#c2410c', // Dark Orange (Unique)
-    'hospital': '#be123c', // Rose Dark (Unique)
-    'policia': '#1e3a8a', // Navy Dark (Unique)
-    'aeropuerto': '#0284c7', // Deep Sky (Unique)
-    'estacion_tren': '#7c3aed', // Violet (Unique)
-    'taller_ev': '#10b981', // Emerald/EV Green
-    'lubricantes': '#78350f', // Amber/Oil Brown
-    'boutique': '#db2777', // Deep Pink/Boutique
+    'mecanico': '#ef4444', // Red (Vibrant)
+    'frenos': '#991b1b', // Dark Red (Stable)
+    'electrico': '#eab308', // Gold/Deep Yellow (Electric)
+    'hojalateria': '#9333ea', // Purple (Premium)
+    'llantera': '#f97316', // Orange (Industry)
+    'polarizado': '#334155', // Slate/Navy (Shade)
+    'estetica': '#2563eb', // Blue (Water/Clean)
+    'detallado': '#6366f1', // Indigo (Detail/Luxury)
+    'refacciones': '#16a34a', // Green (Product)
+    'audio': '#d97706', // Amber (Sound)
+    'cristales': '#06b6d4', // Cyan (Glass)
+    'tapiceria': '#b45309', // Brown/Leather (Interior)
+    'transmisiones': '#4b5563', // Grey (Mechanical)
+    'gruas': '#dc2626', // Bright Red (Emergency)
+    'motos': '#171717', // Pitch Black (Bike)
+    'performance': '#db2777', // Deep Pink (Fast)
+    'mofles': '#57534e', // Stone (Exhaust)
+    'radiadores': '#0ea5e9', // Sky Blue (Cooling)
+    'rectificadora': '#404040', // Neutral (Machining)
+    'blindaje': '#1e293b', // Deep Slate (Armor)
+    'diesel': '#713f12', // Rust/Bronze (Fuel)
+    'offroad': '#3f6212', // Dark Olive (Forest)
+    'cerrajeria': '#ca8a04', // Yellow/Gold (Key)
+    'gasolinera': '#ea580c', // Dark Orange (Gas)
+    'yonke': '#451a03', // Deep Rust (Scrap)
+    'estacionamiento': '#64748b', // Blue Gray (Parking)
+    'suspension': '#65a30d', // Lime (Action)
+    'aire_acondicionado': '#2dd4bf', // Teal (Fresh)
+    'importadoras': '#1e3a8a', // Midnight Blue (Global)
+    'iluminacion': '#facc15', // Bright Sun (Light)
+    'rotulacion': '#c026d3', // Fuchsia (Art)
+    'inyectores': '#0891b2', // Deep Cyan (Lab)
+    'electrolinera': '#84cc16', // Lime Green (EV)
+    'caseta': '#92400e', // Mud Orange (Road)
+    'hospital': '#be123c', // Crimson (Medical)
+    'policia': '#172554', // Darkest Navy (Police)
+    'aeropuerto': '#0369a1', // Ocean Blue (Sky)
+    'estacion_tren': '#7c3aed', // Violet (Transport)
+    'taller_ev': '#10b981', // Emerald (EV Tech)
+    'lubricantes': '#422006', // Oil Black (Oil)
+    'boutique': '#ec4899', // Pink (Style)
 }
 
 export const CATEGORY_EMOJIS: Record<string, string> = {

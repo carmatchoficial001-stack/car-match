@@ -567,16 +567,18 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                                         `}
                                                     >
                                                         <div
-                                                            className={`w-7 h-7 rounded-lg border-2 transition-all flex items-center justify-center bg-white/5 shadow-inner`}
+                                                            className="w-8 h-8 rounded-xl border flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm"
                                                             style={{
-                                                                borderColor: isSelected ? cat.color : 'rgba(255,255,255,0.1)',
-                                                                backgroundColor: isSelected ? `${cat.color}20` : 'transparent'
+                                                                backgroundColor: `${cat.color}15`,
+                                                                borderColor: isSelected ? cat.color : `${cat.color}40`,
+                                                                boxShadow: isSelected ? `0 0 10px ${cat.color}30` : 'none'
                                                             }}
                                                         >
                                                             <CategoryIcon
                                                                 iconName={cat.icon}
-                                                                size={14}
-                                                                color={isSelected ? cat.color : 'rgba(255,255,255,0.4)'}
+                                                                size={16}
+                                                                color={cat.color}
+                                                                className={isSelected ? 'animate-pulse' : 'opacity-90'}
                                                             />
                                                         </div>
                                                         <span className={`text-[15px] font-medium transition-colors ${isSelected ? 'text-white' : 'text-white/60'}`}>
