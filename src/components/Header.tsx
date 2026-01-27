@@ -23,26 +23,35 @@ export default function Header() {
     const isAdmin = (session?.user as any)?.isAdmin
     const [showMenu, setShowMenu] = useState<boolean | 'lang' | 'notifications' | 'user' | 'lang_inner'>(false)
     const [isSoftLogout, setIsSoftLogout] = useState(false)
+    const [showRestoreModal, setShowRestoreModal] = useState(false)
 
     useEffect(() => {
         const hasCookie = document.cookie.includes('soft_logout=true')
         const hasStorage = localStorage.getItem('soft_logout') === 'true'
         const currentSoftLogout = hasCookie || hasStorage
 
-        // 🔥 AUTO-UNLOCK: Solo restauramos la sesión automáticamente si el usuario 
-        // intenta entrar a secciones privadas (perfil, mensajes, publicar, etc.)
+        // 🔥 MODAL CONFIRMATION: Mostrar modal de confirmación si intenta acceder a rutas protegidas
         const protectedPaths = ['/profile', '/settings', '/messages', '/my-businesses', '/publish', '/admin', '/favorites', '/credits'];
         const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
 
         if (session && currentSoftLogout && isProtectedPath) {
-            document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-            localStorage.removeItem('soft_logout')
-            setIsSoftLogout(false)
+            // En lugar de auto-restaurar, mostrar modal
+            setShowRestoreModal(true)
+            setIsSoftLogout(true)
         } else {
             setIsSoftLogout(currentSoftLogout)
         }
 
     }, [pathname, session])
+
+    // 🔥 FUNCIÓN PARA RESTAURAR SESIÓN
+    const handleRestoreSession = () => {
+        document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+        localStorage.removeItem('soft_logout')
+        setIsSoftLogout(false)
+        setShowRestoreModal(false)
+        window.dispatchEvent(new Event('session-restored'))
+    }
 
     // 🔥 ESCUCHAR RESTAURACIÓN MANUAL
     useEffect(() => {
@@ -446,6 +455,47 @@ export default function Header() {
                     </div>
                 </div>
             </div>
+
+            {/* Session Restore Confirmation Modal */}
+            {showRestoreModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-surface border border-primary-500/30 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in slide-in-from-bottom-4 duration-300">
+                        {/* Icono */}
+                        <div className="w-16 h-16 bg-primary-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <ThumbsUp className="w-8 h-8 text-primary-500" />
+                        </div>
+
+                        {/* Título */}
+                        <h3 className="text-2xl font-bold text-text-primary text-center mb-2">
+                            ¿Volver a iniciar sesión?
+                        </h3>
+
+                        {/* Descripción */}
+                        <p className="text-text-secondary text-center mb-6">
+                            Cerraste sesión hace un momento. ¿Deseas volver a activar tu cuenta?
+                        </p>
+
+                        {/* Botones */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowRestoreModal(false)
+                                    router.push('/') // Redirigir al inicio si cancela
+                                }}
+                                className="flex-1 px-4 py-3 bg-surface-highlight hover:bg-surface-hover text-text-secondary font-medium rounded-lg transition"
+                            >
+                                No, seguir como visitante
+                            </button>
+                            <button
+                                onClick={handleRestoreSession}
+                                className="flex-1 px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg transition shadow-lg shadow-primary-500/20"
+                            >
+                                Sí, volver a entrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* PWA Installation Modal */}
             <PWAInstallModal
