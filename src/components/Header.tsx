@@ -370,7 +370,7 @@ export default function Header() {
                                             {/* Favorites */}
                                             <Link href="/favorites" className="flex items-center justify-between px-4 py-3 hover:bg-surface-highlight transition-colors" onClick={() => setShowMenu(false)}>
                                                 <div className="flex items-center gap-3">
-                                                    <Heart className="w-5 h-5 text-red-500" />
+                                                    <ThumbsUp className="w-5 h-5 text-primary-500" />
                                                     <span className="font-medium">{t('nav.favorites')}</span>
                                                 </div>
                                                 {favoritesCount > 0 && (
@@ -400,13 +400,7 @@ export default function Header() {
                                                 <span className="font-medium">{t('nav.settings' as any) || 'Configuración'}</span>
                                             </Link>
 
-                                            <div className="border-t border-surface-highlight/50 my-1" />
 
-                                            {/* Sign Out */}
-                                            <button onClick={() => handleSignOut()} className="w-full text-left flex items-center gap-3 px-4 py-3 hover:bg-red-500/10 text-red-400 transition-colors">
-                                                <ThumbsUp className="w-5 h-5" />
-                                                <span className="font-bold">{t('common.logout')}</span>
-                                            </button>
                                         </div>
                                     </>
                                 )}
