@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useRestoreSessionModal } from '@/hooks/useRestoreSessionModal'
 
 interface ContactButtonProps {
     vehicleId: string
@@ -28,26 +29,24 @@ export default function ContactButton({
     const { t } = useLanguage()
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const { openModal } = useRestoreSessionModal()
 
     const handleContact = async () => {
-        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos en silencio
+        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos
         const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
         if (session && isSoftLogout) {
-            const wantRestore = window.confirm("¿Deseas reactivar tu sesión para enviar este mensaje? Tu cuenta sigue vinculada.")
-            if (!wantRestore) return
-
-            // 🎬 FEEDBACK VISUAL: Mostramos el overlay y esperamos un poco para la "magia"
-            window.dispatchEvent(new Event('session-restore-start'))
-            await new Promise(resolve => setTimeout(resolve, 2500))
-
-            document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-            localStorage.removeItem('soft_logout')
-            window.dispatchEvent(new Event('session-restored'))
+            openModal(
+                "¿Deseas reactivar tu sesión para enviar este mensaje? Tu cuenta sigue vinculada.",
+                () => executeContact()
+            )
+            return
         }
 
+        await executeContact()
+    }
 
+    const executeContact = async () => {
         if (!session) {
-
             // Redirigir a login con callbackUrl para volver aquí
             const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
             router.push(`/auth?callbackUrl=${encodeURIComponent(currentPath)}`)

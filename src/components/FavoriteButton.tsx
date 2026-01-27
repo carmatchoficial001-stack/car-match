@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { useRestoreSessionModal } from '@/hooks/useRestoreSessionModal'
 
 interface FavoriteButtonProps {
 
@@ -33,6 +34,7 @@ export default function FavoriteButton({
     const [animate, setAnimate] = useState(false)
     const router = useRouter()
     const { data: session } = useSession()
+    const { openModal } = useRestoreSessionModal()
 
     // Sincronizar con cambios en props (importante para refrescos de servidor)
     useEffect(() => {
@@ -65,35 +67,28 @@ export default function FavoriteButton({
         lg: 'w-7 h-7'
     }
 
-    const handleToggle = async (e: React.MouseEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
+    const handleToggle = async (e?: React.MouseEvent) => {
+        if (e) {
+            e.preventDefault()
+            e.stopPropagation()
+        }
 
         if (isLoading) return
 
-        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos en silencio
+        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos
         const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
         if (session && isSoftLogout) {
-            const wantRestore = window.confirm("¿Deseas reactivar tu sesión para guardar este favorito? Tu cuenta sigue vinculada.")
-            if (!wantRestore) return
-
-            // 🎬 FEEDBACK VISUAL: Mostramos el overlay y esperamos un poco para la "magia"
-            window.dispatchEvent(new Event('session-restore-start'))
-            await new Promise(resolve => setTimeout(resolve, 2500))
-
-            document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-            localStorage.removeItem('soft_logout')
-            window.dispatchEvent(new Event('session-restored'))
+            openModal(
+                "¿Deseas reactivar tu sesión para guardar este favorito? Tu cuenta sigue vinculada.",
+                () => executeToggle()
+            )
+            return
         }
 
+        await executeToggle()
+    }
 
-
-
-        // Proactive check for guest users
-        // Since we don't have useSession here, we check if the interaction fails with 401
-        // OR we could pass session as a prop if we want to be proactive.
-        // For now, let's keep the reactive fix but ensure callbackUrl is used.
-
+    const executeToggle = async () => {
         // Optimistic update
         const newState = !isFavorited
         setIsFavorited(newState)

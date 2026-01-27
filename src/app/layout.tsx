@@ -7,6 +7,7 @@ import OpenInBrowserBanner from "@/components/OpenInBrowserBanner";
 import { ResponsiveViewportFix } from "./responsive-viewport-fix";
 import Header from "@/components/Header";
 import RestoringSessionOverlay from "@/components/RestoringSessionOverlay";
+import RestoreSessionModal from "@/components/RestoreSessionModal";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -141,6 +142,7 @@ export default function RootLayout({
                     <OpenInBrowserBanner />
                     <ResponsiveViewportFix />
                     <RestoringSessionOverlay />
+                    <RestoreSessionModal />
 
                     {/* App Shell Architecture: Fixed Viewport + Internal Scroll */}
                     <div className="flex flex-col h-[100dvh] w-full overflow-hidden relative">

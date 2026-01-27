@@ -10,6 +10,7 @@ import { MapPin, RefreshCw, Search, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { calculateDistance, searchCity, searchCities, normalizeCountryCode, LocationData } from '@/lib/geolocation'
+import { useRestoreSessionModal } from '@/hooks/useRestoreSessionModal'
 
 interface FeedItem {
     id: string
@@ -83,6 +84,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     const { t } = useLanguage()
     const { location, loading: locationLoading, setManualLocation } = useLocation()
     const router = useRouter()
+    const { openModal } = useRestoreSessionModal()
 
     const items = initialItems
 
@@ -243,22 +245,20 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     }
 
     const handleLike = async (id: string) => {
-        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos en silencio
-        // NOTA: Se ejecuta en background para no bloquear la animación
+        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos
         const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
         if (currentUserId !== 'guest' && isSoftLogout) {
-            const wantRestore = window.confirm("¿Deseas reactivar tu sesión para guardar este vehículo? Tu cuenta sigue vinculada.")
-            if (wantRestore) {
-                (async () => {
-                    window.dispatchEvent(new Event('session-restore-start'))
-                    await new Promise(resolve => setTimeout(resolve, 2500))
-                    document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-                    localStorage.removeItem('soft_logout')
-                    window.dispatchEvent(new Event('session-restored'))
-                })();
-            }
+            openModal(
+                "¿Deseas reactivar tu sesión para guardar este vehículo? Tu cuenta sigue vinculada.",
+                () => executeLike(id)
+            )
+            return
         }
 
+        await executeLike(id)
+    }
+
+    const executeLike = async (id: string) => {
         // Si no hay usuario logueado, redirigir con callback
         if (currentUserId === 'guest') {
             const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/swipe'
@@ -279,19 +279,14 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     }
 
     const handleDislike = (id: string) => {
-        // 🔥 RESTAURAR SESIÓN (Background)
+        // 🔥 RESTAURAR SESIÓN
         const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
         if (currentUserId !== 'guest' && isSoftLogout) {
-            const wantRestore = window.confirm("¿Deseas reactivar tu sesión para que CarMatch aprenda tus gustos? Tu cuenta sigue vinculada.")
-            if (wantRestore) {
-                (async () => {
-                    window.dispatchEvent(new Event('session-restore-start'))
-                    await new Promise(resolve => setTimeout(resolve, 2500))
-                    document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-                    localStorage.removeItem('soft_logout')
-                    window.dispatchEvent(new Event('session-restored'))
-                })();
-            }
+            openModal(
+                "¿Deseas reactivar tu sesión para que CarMatch aprenda tus gustos? Tu cuenta sigue vinculada.",
+                () => markAsSeen(id)
+            )
+            return
         }
         markAsSeen(id)
     }
