@@ -810,7 +810,7 @@ export default function MyBusinessesClient() {
                                                     <Sparkles size={14} className="text-primary-500 animate-pulse" />
                                                 </div>
                                                 <p className="text-xs text-text-secondary leading-relaxed">
-                                                    Permite que compradores y vendedores usen tu negocio como punto de reunión verificado. 
+                                                    Permite que compradores y vendedores usen tu negocio como punto de reunión verificado.
                                                     <span className="text-primary-400/80 ml-1 font-medium">Esto aumenta la visibilidad de tu local y atrae potenciales clientes.</span>
                                                 </p>
                                             </div>
@@ -926,7 +926,6 @@ export default function MyBusinessesClient() {
                                         </div>
                                     </div>
 
-                                    </div>
                                 </div>
                             </div>
 
@@ -962,154 +961,154 @@ export default function MyBusinessesClient() {
                                 </button>
                             </div>
                         </form>
-        </div >
-    ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {loading ? (
-                <p className="text-text-secondary">{t('business.loading')}</p>
-            ) : businesses.length === 0 ? (
-                <div className="col-span-full text-center py-12 bg-surface rounded-2xl border border-surface-highlight">
-                    <div className="w-16 h-16 bg-surface-highlight rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-2xl">🏢</span>
-                    </div>
-                    <h3 className="text-xl font-bold text-text-primary mb-2">{t('business.no_businesses')}</h3>
-                    <p className="text-text-secondary mb-6">{t('business.register_first')}</p>
-                    <button
-                        onClick={() => {
-                            resetForm()
-                            setShowForm(true)
-                        }}
-                        className="px-6 py-3 bg-primary-700 text-text-primary rounded-lg hover:bg-primary-600 transition"
-                    >
-                        {t('business.register_first_btn')}
-                    </button>
-                </div>
-            ) : (
-                businesses.map(business => (
-                    <div key={business.id} className={`rounded-xl border overflow-hidden transition group ${business.status === 'ACTIVE'
-                        ? 'bg-surface border-surface-highlight hover:border-primary-700/50'
-                        : 'bg-surface/50 border-surface-highlight/50 opacity-60'
-                        }`}>
-                        <div className="aspect-video bg-surface-highlight relative overflow-hidden">
-                            {business.images[0] ? (
-                                <>
-                                    <div
-                                        className={`absolute inset-0 bg-cover bg-center blur-md opacity-50 ${business.status !== 'ACTIVE' ? 'grayscale' : ''}`}
-                                        style={{ backgroundImage: `url(${business.images[0]})` }}
-                                    />
-                                    <img
-                                        src={business.images[0]}
-                                        alt={business.name}
-                                        className={`relative w-full h-full object-contain z-10 ${business.status !== 'ACTIVE' ? 'grayscale' : ''}`}
-                                    />
-                                </>
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-text-secondary">
-                                    Sin foto
+                    </div >
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {loading ? (
+                            <p className="text-text-secondary">{t('business.loading')}</p>
+                        ) : businesses.length === 0 ? (
+                            <div className="col-span-full text-center py-12 bg-surface rounded-2xl border border-surface-highlight">
+                                <div className="w-16 h-16 bg-surface-highlight rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span className="text-2xl">🏢</span>
                                 </div>
-                            )}
-                            <div className="flex items-center gap-1.5">
-                                {business.status === 'ACTIVE' ? <CheckCircle size={14} /> : <Pause size={14} />}
-                                {business.status === 'ACTIVE' ? t('business.status_active') : t('business.status_inactive')}
+                                <h3 className="text-xl font-bold text-text-primary mb-2">{t('business.no_businesses')}</h3>
+                                <p className="text-text-secondary mb-6">{t('business.register_first')}</p>
+                                <button
+                                    onClick={() => {
+                                        resetForm()
+                                        setShowForm(true)
+                                    }}
+                                    className="px-6 py-3 bg-primary-700 text-text-primary rounded-lg hover:bg-primary-600 transition"
+                                >
+                                    {t('business.register_first_btn')}
+                                </button>
                             </div>
-                        </div>
-                        <div className="p-4">
-                            <h3 className="font-bold text-text-primary text-lg mb-1">{business.name}</h3>
-                            <p className="text-sm text-text-secondary mb-3 capitalize">{business.category}</p>
-                            <div className="flex items-center gap-2 text-sm text-text-secondary">
-                                <MapPin size={14} className="text-primary-500" />
-                                <span>{business.city}</span>
-                            </div>
-                            {business.expiresAt && (
-                                <div className="mt-2 text-xs font-medium text-text-secondary bg-surface-highlight/30 px-2 py-1 rounded inline-block">
-                                    📅 Vence: {new Date(business.expiresAt).toLocaleDateString('es-MX', {
-                                        day: 'numeric',
-                                        month: 'long',
-                                        year: 'numeric'
-                                    })}
+                        ) : (
+                            businesses.map(business => (
+                                <div key={business.id} className={`rounded-xl border overflow-hidden transition group ${business.status === 'ACTIVE'
+                                    ? 'bg-surface border-surface-highlight hover:border-primary-700/50'
+                                    : 'bg-surface/50 border-surface-highlight/50 opacity-60'
+                                    }`}>
+                                    <div className="aspect-video bg-surface-highlight relative overflow-hidden">
+                                        {business.images[0] ? (
+                                            <>
+                                                <div
+                                                    className={`absolute inset-0 bg-cover bg-center blur-md opacity-50 ${business.status !== 'ACTIVE' ? 'grayscale' : ''}`}
+                                                    style={{ backgroundImage: `url(${business.images[0]})` }}
+                                                />
+                                                <img
+                                                    src={business.images[0]}
+                                                    alt={business.name}
+                                                    className={`relative w-full h-full object-contain z-10 ${business.status !== 'ACTIVE' ? 'grayscale' : ''}`}
+                                                />
+                                            </>
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-text-secondary">
+                                                Sin foto
+                                            </div>
+                                        )}
+                                        <div className="flex items-center gap-1.5">
+                                            {business.status === 'ACTIVE' ? <CheckCircle size={14} /> : <Pause size={14} />}
+                                            {business.status === 'ACTIVE' ? t('business.status_active') : t('business.status_inactive')}
+                                        </div>
+                                    </div>
+                                    <div className="p-4">
+                                        <h3 className="font-bold text-text-primary text-lg mb-1">{business.name}</h3>
+                                        <p className="text-sm text-text-secondary mb-3 capitalize">{business.category}</p>
+                                        <div className="flex items-center gap-2 text-sm text-text-secondary">
+                                            <MapPin size={14} className="text-primary-500" />
+                                            <span>{business.city}</span>
+                                        </div>
+                                        {business.expiresAt && (
+                                            <div className="mt-2 text-xs font-medium text-text-secondary bg-surface-highlight/30 px-2 py-1 rounded inline-block">
+                                                📅 Vence: {new Date(business.expiresAt).toLocaleDateString('es-MX', {
+                                                    day: 'numeric',
+                                                    month: 'long',
+                                                    year: 'numeric'
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="px-4 pb-4 pt-0 flex gap-2">
+                                        <button
+                                            onClick={() => toggleStatus(business.id, business.status)}
+                                            className={`flex-1 py-2 rounded-lg text-sm font-bold transition flex items-center justify-center gap-1 ${business.status === 'ACTIVE'
+                                                ? 'bg-amber-900/20 text-amber-500 hover:bg-amber-900/30 border border-amber-500/20'
+                                                : (business.expiresAt && new Date(business.expiresAt) < new Date()) || !business.expiresAt
+                                                    ? 'bg-amber-600 text-white hover:bg-amber-700 shadow-lg shadow-amber-900/20'
+                                                    : 'bg-green-600 text-white hover:bg-green-700 shadow-lg shadow-green-900/20'
+                                                }`}
+                                        >
+                                            {business.status === 'ACTIVE' ? (
+                                                <><Pause size={16} className="mr-1" /> {t('business.deactivate')}</>
+                                            ) : (
+                                                (business.expiresAt && new Date(business.expiresAt) < new Date()) || !business.expiresAt ? (
+                                                    <><CreditCard size={16} className="mr-1" /> Activar con 1 Crédito</>
+                                                ) : (
+                                                    <><Play size={16} className="mr-1" /> {t('business.activate')}</>
+                                                )
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => handleEdit(business)}
+                                            className="flex-1 py-2 bg-surface-highlight text-text-primary rounded-lg text-sm hover:bg-surface transition"
+                                        >
+                                            Editar
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(business.id)}
+                                            className="px-3 py-2 bg-red-900/20 text-red-400 rounded-lg text-sm hover:bg-red-900/30 transition flex items-center justify-center"
+                                            title="Eliminar"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </div>
-                            )}
-                        </div>
-                        <div className="px-4 pb-4 pt-0 flex gap-2">
-                            <button
-                                onClick={() => toggleStatus(business.id, business.status)}
-                                className={`flex-1 py-2 rounded-lg text-sm font-bold transition flex items-center justify-center gap-1 ${business.status === 'ACTIVE'
-                                    ? 'bg-amber-900/20 text-amber-500 hover:bg-amber-900/30 border border-amber-500/20'
-                                    : (business.expiresAt && new Date(business.expiresAt) < new Date()) || !business.expiresAt
-                                        ? 'bg-amber-600 text-white hover:bg-amber-700 shadow-lg shadow-amber-900/20'
-                                        : 'bg-green-600 text-white hover:bg-green-700 shadow-lg shadow-green-900/20'
-                                    }`}
-                            >
-                                {business.status === 'ACTIVE' ? (
-                                    <><Pause size={16} className="mr-1" /> {t('business.deactivate')}</>
-                                ) : (
-                                    (business.expiresAt && new Date(business.expiresAt) < new Date()) || !business.expiresAt ? (
-                                        <><CreditCard size={16} className="mr-1" /> Activar con 1 Crédito</>
-                                    ) : (
-                                        <><Play size={16} className="mr-1" /> {t('business.activate')}</>
-                                    )
-                                )}
-                            </button>
-                            <button
-                                onClick={() => handleEdit(business)}
-                                className="flex-1 py-2 bg-surface-highlight text-text-primary rounded-lg text-sm hover:bg-surface transition"
-                            >
-                                Editar
-                            </button>
-                            <button
-                                onClick={() => handleDelete(business.id)}
-                                className="px-3 py-2 bg-red-900/20 text-red-400 rounded-lg text-sm hover:bg-red-900/30 transition flex items-center justify-center"
-                                title="Eliminar"
-                            >
-                                <Trash2 size={16} />
-                            </button>
-                        </div>
+                            ))
+                        )}
                     </div>
-                ))
-            )}
-        </div>
-    )
-}
+                )
+                }
             </div >
 
-    {/* Modal de Sin Créditos */ }
-    < ConfirmationModal
-isOpen = { showNoCreditsModal }
-onClose = {() => setShowNoCreditsModal(false)}
-title = "¡Ups! Necesitas Créditos"
-message = "Tu primer negocio es gratis, pero para activar más necesitas créditos. ¡Impulsa tu negocio en CarMatch y llega a miles de clientes!"
-variant = "credit"
-confirmLabel = "Comprar Créditos"
-onConfirm = {() => router.push('/credits')}
+            {/* Modal de Sin Créditos */}
+            < ConfirmationModal
+                isOpen={showNoCreditsModal}
+                onClose={() => setShowNoCreditsModal(false)}
+                title="¡Ups! Necesitas Créditos"
+                message="Tu primer negocio es gratis, pero para activar más necesitas créditos. ¡Impulsa tu negocio en CarMatch y llega a miles de clientes!"
+                variant="credit"
+                confirmLabel="Comprar Créditos"
+                onConfirm={() => router.push('/credits')}
             />
 
-{/* Modal de Éxito */ }
-<ConfirmationModal
-    isOpen={showSuccessModal}
-    onClose={() => setShowSuccessModal(false)}
-    title="¡Negocio Activo!"
-    message={creditsRemaining !== null
-        ? `Tu negocio ya está visible para todos. Te quedan ${creditsRemaining} créditos disponibles.`
-        : "Tu negocio ya está visible para todos en el mapa y la red."
-    }
-    variant="success"
-    confirmLabel="Excelente"
-    showCancel={false}
-    onConfirm={() => setShowSuccessModal(false)}
-/>
+            {/* Modal de Éxito */}
+            <ConfirmationModal
+                isOpen={showSuccessModal}
+                onClose={() => setShowSuccessModal(false)}
+                title="¡Negocio Activo!"
+                message={creditsRemaining !== null
+                    ? `Tu negocio ya está visible para todos. Te quedan ${creditsRemaining} créditos disponibles.`
+                    : "Tu negocio ya está visible para todos en el mapa y la red."
+                }
+                variant="success"
+                confirmLabel="Excelente"
+                showCancel={false}
+                onConfirm={() => setShowSuccessModal(false)}
+            />
 
-{/* Modal de Confirmación de Eliminación */ }
-<ConfirmationModal
-    isOpen={!!businessToDelete}
-    onClose={() => setBusinessToDelete(null)}
-    title="¿Eliminar Negocio?"
-    message="Esta acción no se puede deshacer. ¿Estás seguro de que quieres eliminar este negocio permanentemente?"
-    variant="danger"
-    confirmLabel="Eliminar Definitivamente"
-    cancelLabel="Cancelar"
-    onConfirm={confirmDelete}
-    isLoading={isDeleting}
-/>
+            {/* Modal de Confirmación de Eliminación */}
+            <ConfirmationModal
+                isOpen={!!businessToDelete}
+                onClose={() => setBusinessToDelete(null)}
+                title="¿Eliminar Negocio?"
+                message="Esta acción no se puede deshacer. ¿Estás seguro de que quieres eliminar este negocio permanentemente?"
+                variant="danger"
+                confirmLabel="Eliminar Definitivamente"
+                cancelLabel="Cancelar"
+                onConfirm={confirmDelete}
+                isLoading={isDeleting}
+            />
         </div >
     )
 }
