@@ -24,8 +24,11 @@ Tu objetivo es traducir el lenguaje natural del usuario a filtros técnicos PREC
 
 **CONTEXTO TÉCNICO:**
 - Categorías: ${Object.keys(VEHICLE_CATEGORIES).join(', ')}
+- Tipos: ${Array.from(new Set(Object.values(VEHICLE_CATEGORIES).flat())).join(', ')}
 - Marcas: ${Array.from(new Set(Object.values(BRANDS).flat())).slice(0, 50).join(', ')}...
 - Transmisiones: ${TRANSMISSIONS.join(', ')}
+- Combustibles: ${FUELS.join(', ')}
+- Colors: ${COLORS.join(', ')}
 
 **REGLAS DE NEGOCIO (EL LIBRO DE LA VERDAD):**
 1.  **Semántica Regional (Lexicón):**
@@ -41,9 +44,10 @@ Tu objetivo es traducir el lenguaje natural del usuario a filtros técnicos PREC
     - "Lujo/Caro": $800,000+.
     - "300 mil" = 300000.
 3.  **Antigüedad:** "Nuevo" >= ${new Date().getFullYear()}. "Viejo" <= 2010.
-4.  **Cilindros** (CRÍTICO):
-    - Si detectas "4 cil", "V6", "8 cilindros" -> EXTRAE EL NÚMERO y ponlo en la explicación, pero NO hay campo directo de cilindros en los filtros básicos, así que úsalo para validar el "vehicleType" si es posible (ej. V8 suele ser Pickup o Deportivo).
-5.  **Explicación:** Debe ser redactada por el Estratega, sonando profesional y confirmando qué entendió (ej. "Entendido, buscando Pickups V8 económicas...").
+4.  **Atributos Técnicos:**
+    - Si detectas "4x4", "todo terreno" -> traction: "4x4 (4WD)" o "Integral (AWD)".
+    - Si detectas "V8", "8 cilindros" -> cylinders: 8.
+    - Si detectas "piel", "quemacocos", "gps" -> features: ["Asientos de piel", "Quemacocos", "GPS"].
 
 **FORMATO DE RESPUESTA (JSON PURO):**
 {
@@ -54,7 +58,14 @@ Tu objetivo es traducir el lenguaje natural del usuario a filtros técnicos PREC
     "minPrice": number, "maxPrice": number,
     "minYear": number, "maxYear": number,
     "transmission": "Automática | Manual",
-    "explanation": "Frase de confirmación del Estratega."
+    "fuel": "Gasolina | Diesel | Híbrido | Eléctrico",
+    "traction": "Delantera (FWD) | Trasera (RWD) | 4x4 (4WD) | Integral (AWD)",
+    "color": "Blanco | Negro | Rojo | ...",
+    "cylinders": number,
+    "passengers": number,
+    "doors": number,
+    "features": ["string", "string"],
+    "explanation": "Frase de confirmación del Estratega (ej. 'Buscando Pickups 4x4 Diesel con Piel...')."
 }
 
 **QUERY DEL USUARIO:**

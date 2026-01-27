@@ -209,6 +209,10 @@ export default function MarketFiltersAdvanced({
                     params.set('fuel', f)
                 }
 
+                if (filters.traction) params.set('traction', filters.traction)
+                if (filters.doors) params.set('doors', filters.doors.toString())
+
+
 
 
                 // Execute Search with FORCE RELOAD to guarantee results appear
