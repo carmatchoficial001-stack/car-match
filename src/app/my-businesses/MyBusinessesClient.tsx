@@ -10,7 +10,7 @@ import dynamic from 'next/dynamic'
 import { CATEGORY_COLORS, CATEGORY_EMOJIS, SERVICES_BY_CATEGORY, BUSINESS_CATEGORIES } from '@/lib/businessCategories'
 import { generateDeviceFingerprint } from '@/lib/fingerprint'
 import ConfirmationModal from '@/components/ConfirmationModal'
-import { AlertTriangle, Clock, MapPin, Phone, Globe, Trash2, Edit, AlertCircle, Plus, Sparkles, ChevronRight, X, Image as ImageIcon, Briefcase, Info, CheckCircle, Pause, CreditCard, Play } from 'lucide-react'
+import { AlertTriangle, Clock, MapPin, Phone, Globe, Trash2, Edit, AlertCircle, Plus, Sparkles, ChevronRight, X, Image as ImageIcon, Briefcase, Info, CheckCircle, Pause, CreditCard, Play, ShieldCheck } from 'lucide-react'
 import CategoryIcon from '@/components/CategoryIcon'
 
 // Modified: MapBox Component replacement
