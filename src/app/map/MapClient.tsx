@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef, Fragment } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -544,30 +544,41 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                     </h3>
 
                                     <div className="space-y-1">
-                                        {CATEGORIES.map((cat) => {
+                                        {CATEGORIES.map((cat, index) => {
                                             const isSelected = selectedCategories.includes(cat.id);
+                                            const showDivider = cat.isPublic && (index === 0 || !CATEGORIES[index - 1].isPublic);
+
                                             return (
-                                                <button
-                                                    key={cat.id}
-                                                    onClick={() => toggleCategory(cat.id)}
-                                                    className={`
-                                                        w-full flex items-center gap-4 py-3 px-2 rounded-lg transition-all
-                                                        ${isSelected ? 'bg-white/5' : 'hover:bg-white/5'}
-                                                    `}
-                                                >
-                                                    <div
-                                                        className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center`}
-                                                        style={{
-                                                            borderColor: cat.color,
-                                                            backgroundColor: isSelected ? cat.color : 'transparent'
-                                                        }}
+                                                <Fragment key={cat.id}>
+                                                    {showDivider && (
+                                                        <div className="py-6 flex flex-col gap-6">
+                                                            <div className="h-[1px] bg-white/5 w-full"></div>
+                                                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/40">
+                                                                Servicios Públicos
+                                                            </h3>
+                                                        </div>
+                                                    )}
+                                                    <button
+                                                        onClick={() => toggleCategory(cat.id)}
+                                                        className={`
+                                                            w-full flex items-center gap-4 py-3 px-2 rounded-lg transition-all
+                                                            ${isSelected ? 'bg-white/5' : 'hover:bg-white/5'}
+                                                        `}
                                                     >
-                                                        {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-                                                    </div>
-                                                    <span className={`text-[15px] font-medium transition-colors ${isSelected ? 'text-white' : 'text-white/60'}`}>
-                                                        {t(`map_store.categories.${cat.id}`) || cat.label}
-                                                    </span>
-                                                </button>
+                                                        <div
+                                                            className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center`}
+                                                            style={{
+                                                                borderColor: cat.color,
+                                                                backgroundColor: isSelected ? cat.color : 'transparent'
+                                                            }}
+                                                        >
+                                                            {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                                        </div>
+                                                        <span className={`text-[15px] font-medium transition-colors ${isSelected ? 'text-white' : 'text-white/60'}`}>
+                                                            {t(`map_store.categories.${cat.id}`) || cat.label}
+                                                        </span>
+                                                    </button>
+                                                </Fragment>
                                             );
                                         })}
                                     </div>

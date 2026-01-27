@@ -132,25 +132,21 @@ export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
 export const BUSINESS_CATEGORIES = Object.keys(CATEGORY_COLORS)
     .map(id => {
         const label = id.charAt(0).toUpperCase() + id.slice(1).replace('_', ' ');
+        const publicServices = ['caseta', 'hospital', 'policia', 'aeropuerto', 'estacion_tren'];
+
         return {
             id,
             label,
             color: CATEGORY_COLORS[id],
             icon: CATEGORY_EMOJIS[id] || '🔧',
+            isPublic: publicServices.includes(id),
             keywords: [id, ...SERVICES_BY_CATEGORY[id]?.map(s => s.toLowerCase()) || []]
-
         };
-
     })
     .sort((a, b) => {
         // Public Services Logic: Put them at the end
-        const publicServices = ['caseta', 'hospital', 'policia', 'aeropuerto', 'estacion_tren'];
-        const isPublicA = publicServices.includes(a.id);
-        const isPublicB = publicServices.includes(b.id);
-
-
-        if (isPublicA && !isPublicB) return 1; // A (Public) goes after B (Business)
-        if (!isPublicA && isPublicB) return -1; // B (Public) goes after A (Business)
+        if (a.isPublic && !b.isPublic) return 1; // A (Public) goes after B (Business)
+        if (!a.isPublic && b.isPublic) return -1; // B (Public) goes after A (Business)
 
         // If both are same type, sort alphabetically
         return a.label.localeCompare(b.label);
