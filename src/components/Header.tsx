@@ -427,9 +427,20 @@ export default function Header() {
                                     )}
                                 </AnimatePresence>
 
-                                <Link
-                                    href={(pathname?.startsWith('/map') || pathname?.startsWith('/map-store')) ? "/my-businesses?action=new" : "/auth"}
-                                    className="relative group shrink-0 flex items-center"
+                                <div
+                                    onClick={(e) => {
+                                        const targetPath = (pathname?.startsWith('/map') || pathname?.startsWith('/map-store')) ? "/my-businesses?action=new" : "/auth"
+                                        if (session && isSoftLogout) {
+                                            e.preventDefault()
+                                            openModal(
+                                                "Cerraste sesión hace un momento. ¿Deseas volver a activar tu cuenta?",
+                                                () => { /* La lógica ya está en el modal */ }
+                                            )
+                                        } else {
+                                            router.push(targetPath)
+                                        }
+                                    }}
+                                    className="relative group shrink-0 flex items-center cursor-pointer"
                                 >
                                     {/* The "Action" Button */}
                                     <div className="px-3 py-2 sm:px-5 sm:py-3 bg-accent-600 rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.3)] group-hover:bg-accent-500 transition-all active:scale-95 ring-2 ring-accent-500/20">
@@ -445,7 +456,7 @@ export default function Header() {
                                             </motion.span>
                                         </AnimatePresence>
                                     </div>
-                                </Link>
+                                </div>
                             </div>
                         )}
                     </div>

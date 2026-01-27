@@ -11,11 +11,15 @@ import {
     Map as MapIcon,
     User
 } from "lucide-react"
+import { useRestoreSessionModal } from "@/hooks/useRestoreSessionModal"
+import { useRouter } from "next/navigation"
 
 export default function MobileNav() {
     const pathname = usePathname()
     const { t } = useLanguage()
     const { data: session } = useSession()
+    const router = useRouter()
+    const { openModal } = useRestoreSessionModal()
     const [isSoftLogout, setIsSoftLogout] = useState(false)
     const [isVisible, setIsVisible] = useState(true)
 
@@ -99,10 +103,22 @@ export default function MobileNav() {
                     const Icon = item.icon
                     const active = isActive(item.href)
 
+                    const handleClick = (e: React.MouseEvent) => {
+                        // Si es el ítem de auth y hay sesión con soft logout
+                        if (item.href === "/auth" && session && isSoftLogout) {
+                            e.preventDefault()
+                            openModal(
+                                "Cerraste sesión hace un momento. ¿Deseas volver a activar tu cuenta?",
+                                () => { /* Logica en modal */ }
+                            )
+                        }
+                    }
+
                     return (
                         <Link
                             key={item.href || index}
                             href={item.href}
+                            onClick={handleClick}
                             className={`flex flex-col items-center justify-center w-full gap-0.5 active:scale-95 transition-transform ${active ? 'text-primary-500' : 'text-slate-400'}`}
                         >
                             <Icon className={`w-6 h-6 ${active ? item.color : 'opacity-80'}`} />
