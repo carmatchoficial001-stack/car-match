@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { safeGenerateContent, safeExtractJSON } from '@/lib/ai/geminiClient'
 import { VEHICLE_CATEGORIES, BRANDS, COLORS, TRANSMISSIONS, FUELS } from '@/lib/vehicleTaxonomy'
+import { DIAGNOSTICS_DB } from '@/lib/ai/diagnosticsDB'
 
 export async function POST(req: NextRequest) {
     try {
@@ -27,7 +28,14 @@ Tu objetivo es traducir el lenguaje natural del usuario a filtros técnicos PREC
 - Transmisiones: ${TRANSMISSIONS.join(', ')}
 
 **REGLAS DE NEGOCIO (EL LIBRO DE LA VERDAD):**
-1.  **Semántica Regional:** "Troca/Pickap" -> Pickup. "Mueble" -> Automóvil. "Mami van" -> Minivan.
+1.  **Semántica Regional (Lexicón):**
+    Usa este diccionario para traducir términos antes de filtrar:
+    ${JSON.stringify(DIAGNOSTICS_DB.SLANG_MAP, null, 2)}
+    *Si el término no está aquí, usa tu mejor juicio inferido.*
+    
+    Tambien considera las **FALLAS COMUNES** para entender el contexto (ej. si buscan "sin fallas", evita estos):
+    ${JSON.stringify(DIAGNOSTICS_DB.COMMON_FAILURES.slice(0, 20), null, 2)} // Muestra parcial para contexto
+
 2.  **Precios Inteligentes:**
     - "Barato/Económico": $0 - $200,000.
     - "Lujo/Caro": $800,000+.

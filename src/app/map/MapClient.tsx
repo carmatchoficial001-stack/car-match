@@ -190,7 +190,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
             const isMotorcycleRelated = /\b(moto|motocicleta|scooter|cuatrimoto)\b/i.test(searchQuery)
 
             // 🔥 MEJORA: Detectar ruidos/fallas genéricas -> Mecánico
-            if (/\b(ruido|suena|sonido|traqueteo|golpeteo|falla|vibracion|tiembla|jalonea|cascabelea)\b/i.test(query)) {
+            if (/\b(ruido|suena|sonido|traqueteo|golpeteo|falla|vibracion|tiembla|jalonea|cascabelea|escucha|oye|trona|cruje)\b/i.test(query)) {
                 detectedCats.push('mecanico')
             }
 

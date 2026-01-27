@@ -439,67 +439,52 @@ export default function MarketFiltersAdvanced({
             </div>
 
             {/* 2. 🧠 ASESOR INTELIGENTE (Prioridad #2) */}
-            <div className="p-1 bg-gradient-to-br from-primary-900/50 to-purple-900/30 border border-primary-500/30 rounded-2xl shadow-lg relative overflow-hidden mb-6 group">
-                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
-                    <svg className="w-48 h-48 text-primary-400" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
-                    </svg>
-                </div>
+            <div className="bg-surface/90 backdrop-blur-sm rounded-xl p-4 md:p-6 relative z-10">
+                {/* Header removed to save space as per user request */}
 
-                <div className="bg-surface/90 backdrop-blur-sm rounded-xl p-4 md:p-6 relative z-10">
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center shadow-lg shadow-primary-600/40">
-                            <span className="text-lg">🤖</span>
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-white text-lg leading-tight">{t('smart_search.title') || 'Asesor Inteligente'}</h3>
-                            <p className="text-xs text-primary-200">{t('smart_search.subtitle') || 'Pregúntame o describe lo que buscas'}</p>
+                <div className="space-y-3">
+                    <div className="relative">
+                        <textarea
+                            value={aiQuery}
+                            onChange={(e) => setAiQuery(e.target.value)}
+                            placeholder={t('smart_search.placeholder') || "¿Qué vehículo me recomiendas para..."}
+                            className="w-full bg-black/50 border border-primary-500/30 rounded-xl p-4 text-base text-white placeholder-gray-400 focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-all resize-none h-28 shadow-inner"
+                            disabled={isAnalyzing}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleAiSearch();
+                                }
+                            }}
+                        />
+                        <div className="absolute bottom-3 right-3 text-[10px] text-gray-500 hidden md:block">
+                            Enter para enviar
                         </div>
                     </div>
 
-                    <div className="space-y-3">
-                        <div className="relative">
-                            <textarea
-                                value={aiQuery}
-                                onChange={(e) => setAiQuery(e.target.value)}
-                                placeholder={t('smart_search.placeholder') || "¿Qué vehículo me recomiendas para..."}
-                                className="w-full bg-black/50 border border-primary-500/30 rounded-xl p-4 text-base text-white placeholder-gray-400 focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-all resize-none h-28 shadow-inner"
-                                disabled={isAnalyzing}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleAiSearch();
-                                    }
-                                }}
-                            />
-                            <div className="absolute bottom-3 right-3 text-[10px] text-gray-500 hidden md:block">
-                                Enter para enviar
-                            </div>
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={handleAiSearch}
-                            disabled={isAnalyzing || !aiQuery.trim()}
-                            className="w-full py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary-900/30 active:scale-[0.98]"
-                        >
-                            {isAnalyzing ? (
-                                <>
-                                    <Loader2 size={18} className="animate-spin text-white" />
-                                    <span>{t('smart_search.consulting') || 'Analizando...'}</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span>{t('smart_search.ask_advisor') || 'Preguntar al Asesor'}</span>
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                    </svg>
-                                </>
-                            )}
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={handleAiSearch}
+                        disabled={isAnalyzing || !aiQuery.trim()}
+                        className="w-full py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary-900/30 active:scale-[0.98]"
+                    >
+                        {isAnalyzing ? (
+                            <>
+                                <Loader2 size={18} className="animate-spin text-white" />
+                                <span>{t('smart_search.consulting') || 'Analizando...'}</span>
+                            </>
+                        ) : (
+                            <>
+                                <span>{t('smart_search.ask_advisor') || 'Preguntar al Asesor'}</span>
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
+
 
             {/* 3. 🔽 FILTROS MANUALES (Ocultos por defecto) */}
             <button
@@ -871,7 +856,7 @@ export default function MarketFiltersAdvanced({
 
 
             </div>
-        </div>
+        </div >
     )
 }
 
