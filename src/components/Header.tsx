@@ -11,7 +11,7 @@ import PWAInstallModal from "@/components/PWAInstallModal"
 import NotificationsDropdown from "@/components/NotificationsDropdown"
 import { usePWAInstall } from '@/hooks/usePWAInstall'
 import { getWeightedHomePath } from "@/lib/navigation"
-import { ThumbsUp, Headset, Flame, CarFront, Map, Bell, BellOff, Settings, ShieldCheck, Coins, Heart, MessageSquare, Briefcase } from "lucide-react"
+import { ThumbsUp, Headset, Flame, CarFront, Map, Bell, BellOff, Settings, ShieldCheck, Coins, Heart, MessageSquare, Briefcase, Smartphone } from "lucide-react"
 import { usePushNotifications } from "@/hooks/usePushNotifications"
 import { BUSINESS_CATEGORIES } from "@/lib/businessCategories"
 import { useRestoreSessionModal } from "@/hooks/useRestoreSessionModal"
@@ -404,6 +404,20 @@ export default function Header() {
                                                 <Settings className="w-5 h-5 text-slate-400" />
                                                 <span className="font-medium">{t('nav.settings' as any) || 'Configuración'}</span>
                                             </Link>
+
+                                            {/* Install App - Only if not standalone */}
+                                            {!isStandalone && (
+                                                <button
+                                                    onClick={() => {
+                                                        setShowMenu(false)
+                                                        handleAndroidClick()
+                                                    }}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-500/10 text-primary-400 transition-colors border-t border-surface-highlight/50"
+                                                >
+                                                    <Smartphone className="w-5 h-5" />
+                                                    <span className="font-bold">{t('common.install_app') || 'Instalar App'}</span>
+                                                </button>
+                                            )}
 
 
                                         </div>
