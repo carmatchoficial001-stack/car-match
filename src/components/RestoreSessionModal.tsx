@@ -28,7 +28,6 @@ export default function RestoreSessionModal() {
 
     const handleCancel = () => {
         closeModal()
-        router.push('/') // Redirigir al inicio si cancela
     }
 
     return (

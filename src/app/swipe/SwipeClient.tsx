@@ -279,15 +279,6 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     }
 
     const handleDislike = (id: string) => {
-        // 🔥 RESTAURAR SESIÓN
-        const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
-        if (currentUserId !== 'guest' && isSoftLogout) {
-            openModal(
-                "¿Deseas reactivar tu sesión para que CarMatch aprenda tus gustos? Tu cuenta sigue vinculada.",
-                () => markAsSeen(id)
-            )
-            return
-        }
         markAsSeen(id)
     }
 

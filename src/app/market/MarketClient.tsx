@@ -117,6 +117,12 @@ export default function MarketClient({
     const [filteredItems, setFilteredItems] = useState<FeedItem[]>(initialItems)
     const [showFilters, setShowFilters] = useState(false)
 
+    // --- PULL TO REFRESH STATE ---
+    const [pullProgress, setPullProgress] = useState(0)
+    const [isRefreshing, setIsRefreshing] = useState(false)
+    const [startY, setStartY] = useState(0)
+    const pullThreshold = 100
+
     // Modal UI State
     const [showLocationModal, setShowLocationModal] = useState(false)
 
@@ -215,6 +221,59 @@ export default function MarketClient({
 
         if (node) observer.current.observe(node)
     }, [isFiltering, visibleCount, filteredItems.length])
+
+    // --- PULL TO REFRESH HANDLERS ---
+    const handleTouchStart = (e: React.TouchEvent) => {
+        if (window.scrollY === 0 && !isRefreshing) {
+            setStartY(e.touches[0].pageY)
+        }
+    }
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (startY === 0 || isRefreshing || window.scrollY > 0) return
+
+        const currentY = e.touches[0].pageY
+        const diff = currentY - startY
+
+        if (diff > 0) {
+            // Apply resistance
+            const progress = Math.min(diff / 2.5, pullThreshold + 20)
+            setPullProgress(progress)
+
+            // Prevent scroll when pulling
+            if (diff > 10 && e.cancelable) {
+                // e.preventDefault() // Can't easily prevent default on passive listeners in React, but we check scrollY
+            }
+        }
+    }
+
+    const handleTouchEnd = async () => {
+        if (pullProgress > pullThreshold) {
+            await triggerRefresh()
+        }
+        setPullProgress(0)
+        setStartY(0)
+    }
+
+    const triggerRefresh = async () => {
+        setIsRefreshing(true)
+
+        // 1. Force immediate local shuffle for "perceived" randomness
+        sessionStorage.removeItem('market_items_order')
+        const freshOrder = boostShuffleArray(initialItems)
+        setItems(freshOrder)
+        sessionStorage.setItem('market_items_order', JSON.stringify(freshOrder.map(it => it.id)))
+
+        // 2. Refresh from server (Next.js server actions / router.refresh)
+        router.refresh()
+
+        // 3. Fake delay for visual feedback
+        await new Promise(resolve => setTimeout(resolve, 800))
+        setIsRefreshing(false)
+
+        // 4. Ensure we show results from top
+        setVisibleCount(CARS_PER_PAGE)
+    }
 
     // --- LÓGICA DE FILTRADO Y DISTANCIA ---
     useEffect(() => {
@@ -386,7 +445,28 @@ export default function MarketClient({
     }
 
     return (
-        <div className="min-h-screen bg-background">
+        <div
+            className="min-h-screen bg-background"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+        >
+            {/* Pull to Refresh Indicator */}
+            <div
+                className="fixed top-0 left-0 w-full z-[60] flex justify-center pointer-events-none transition-transform duration-200"
+                style={{
+                    transform: `translateY(${pullProgress > 0 ? pullProgress : (isRefreshing ? 60 : -40)}px)`,
+                    opacity: pullProgress > 0 || isRefreshing ? 1 : 0
+                }}
+            >
+                <div className="bg-surface border border-surface-highlight rounded-full p-2 shadow-xl flex items-center justify-center">
+                    <RefreshCw
+                        className={`w-6 h-6 text-primary-500 ${isRefreshing ? 'animate-spin' : ''}`}
+                        style={{ transform: !isRefreshing ? `rotate(${pullProgress * 3}deg)` : 'none' }}
+                    />
+                </div>
+            </div>
+
             <div className="container mx-auto px-4 pt-8 pb-24">
                 {/* Header */}
                 <header className="mb-8">
