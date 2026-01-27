@@ -7,6 +7,7 @@ import { AlertTriangle, Instagram, Share2 } from 'lucide-react'
 import ReportBusinessModal from './ReportBusinessModal'
 import { generateBusinessSlug } from '@/lib/slug'
 import ShareButton from './ShareButton'
+import CategoryIcon from './CategoryIcon'
 
 // Extended interface to handle optional relations if needed, 
 // though we'll primarily use the Prisma Business type for consistency
@@ -137,8 +138,8 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                             )}
                         </>
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-500 bg-gray-800">
-                            <span className="text-6xl">{categoryEmoji}</span>
+                        <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                            <CategoryIcon iconName={categoryEmoji} size={64} className="text-gray-500" />
                         </div>
                     )}
 
@@ -148,7 +149,7 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                             className="px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-lg flex items-center gap-2 backdrop-blur-md bg-black/30 border border-white/20"
                             style={{ borderColor: categoryColor }}
                         >
-                            <span className="text-lg">{categoryEmoji}</span>
+                            <CategoryIcon iconName={categoryEmoji} size={18} color={categoryColor} />
                             <span className="tracking-wider">{(t(`map_store.categories.${business.category.toLowerCase()}`) || business.category).toUpperCase()}</span>
                         </span>
                     </div>

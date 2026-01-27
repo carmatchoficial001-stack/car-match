@@ -12,7 +12,8 @@ import {
     Bell,
     BellOff,
     LogOut,
-    Check
+    Check,
+    FileText
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -126,6 +127,21 @@ export default function SettingsPage() {
                                 <p className="font-bold">{t('settings.support_title')}</p>
                                 <p className="text-xs text-text-secondary">
                                     {t('settings.support_desc')}
+                                </p>
+                            </div>
+                        </button>
+
+                        <button
+                            onClick={() => router.push('/terms')}
+                            className="w-full flex items-center gap-4 p-5 rounded-2xl border border-surface-highlight bg-surface text-text-primary hover:border-text-secondary/30 transition-all"
+                        >
+                            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
+                                <FileText size={22} />
+                            </div>
+                            <div className="text-left">
+                                <p className="font-bold">{t('settings.terms_title')}</p>
+                                <p className="text-xs text-text-secondary">
+                                    {t('settings.terms_desc')}
                                 </p>
                             </div>
                         </button>

@@ -235,27 +235,8 @@ export default function MapBoxStoreLocator({
                 }
             })
 
-            // 4. UNCLUSTERED POINTS LAYER (The Emoji on top)
-            mapInstance.addLayer({
-                id: 'unclustered-point-icon',
-                type: 'symbol',
-                source: sourceId,
-                layout: {
-                    'text-field': [
-                        'match',
-                        ['get', 'category'],
-                        ...Object.entries(categoryEmojis).flat(),
-                        '📍'
-                    ],
-                    'text-size': 14,
-                    'text-allow-overlap': true,
-                    'text-anchor': 'bottom',
-                    'text-offset': [0, -2.2]
-                },
-                paint: {
-                    'text-color': '#ffffff'
-                }
-            })
+            // 4. REMOVED UNCLUSTERED POINTS EMOJI LAYER
+            // We only keep the background pin with category color for a professional look.
 
             // --- CLICK HANDLERS ---
 
@@ -317,18 +298,10 @@ export default function MapBoxStoreLocator({
 
             // Bind click to both layers
             mapInstance.on('click', 'unclustered-point-bg', handlePointClick);
-            mapInstance.on('click', 'unclustered-point-icon', handlePointClick);
 
             // Cursor pointers
-            const setPointer = () => mapInstance.getCanvas().style.cursor = 'pointer';
-            const resetPointer = () => mapInstance.getCanvas().style.cursor = '';
-
-
             mapInstance.on('mouseenter', 'unclustered-point-bg', setPointer);
             mapInstance.on('mouseleave', 'unclustered-point-bg', resetPointer);
-
-            mapInstance.on('mouseenter', 'unclustered-point-icon', setPointer);
-            mapInstance.on('mouseleave', 'unclustered-point-icon', resetPointer);
         }
     }, [businesses, mapLoaded, categoryColors, categoryEmojis, t])
 

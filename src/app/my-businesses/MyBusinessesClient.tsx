@@ -10,6 +10,8 @@ import dynamic from 'next/dynamic'
 import { CATEGORY_COLORS, CATEGORY_EMOJIS, SERVICES_BY_CATEGORY, BUSINESS_CATEGORIES } from '@/lib/businessCategories'
 import { generateDeviceFingerprint } from '@/lib/fingerprint'
 import ConfirmationModal from '@/components/ConfirmationModal'
+import { AlertTriangle, Clock, MapPin, Phone, Globe, Trash2, Edit, AlertCircle, Plus, Sparkles, ChevronRight, X, Image as ImageIcon, Briefcase, Info, CheckCircle, Pause, CreditCard, Play } from 'lucide-react'
+import CategoryIcon from '@/components/CategoryIcon'
 
 // Modified: MapBox Component replacement
 const MapBoxAddressPicker = dynamic(() => import('@/components/MapBoxAddressPicker'), {
@@ -563,7 +565,7 @@ export default function MyBusinessesClient() {
                                             .sort((a, b) => (t(`map_store.categories.${a.id}`) || a.label).localeCompare(t(`map_store.categories.${b.id}`) || b.label))
                                             .map(cat => (
                                                 <option key={cat.id} value={cat.id}>
-                                                    {cat.icon} {t(`map_store.categories.${cat.id}`) || cat.label}
+                                                    {t(`map_store.categories.${cat.id}`) || cat.label}
                                                 </option>
                                             ))}
                                     </select>
@@ -1017,18 +1019,17 @@ export default function MyBusinessesClient() {
                                                 Sin foto
                                             </div>
                                         )}
-                                        <div className={`absolute top-2 right-2 px-3 py-1.5 backdrop-blur-sm rounded-lg text-xs font-bold ${business.status === 'ACTIVE'
-                                            ? 'bg-green-500/90 text-white'
-                                            : 'bg-gray-500/90 text-white'
-                                            }`}>
-                                            {business.status === 'ACTIVE' ? `✅ ${t('business.status_active')}` : `⏸️ ${t('business.status_inactive')}`}
+                                        <div className="flex items-center gap-1.5">
+                                            {business.status === 'ACTIVE' ? <CheckCircle size={14} /> : <Pause size={14} />}
+                                            {business.status === 'ACTIVE' ? t('business.status_active') : t('business.status_inactive')}
                                         </div>
                                     </div>
                                     <div className="p-4">
                                         <h3 className="font-bold text-text-primary text-lg mb-1">{business.name}</h3>
                                         <p className="text-sm text-text-secondary mb-3 capitalize">{business.category}</p>
                                         <div className="flex items-center gap-2 text-sm text-text-secondary">
-                                            <span>📍 {business.city}</span>
+                                            <MapPin size={14} className="text-primary-500" />
+                                            <span>{business.city}</span>
                                         </div>
                                         {business.expiresAt && (
                                             <div className="mt-2 text-xs font-medium text-text-secondary bg-surface-highlight/30 px-2 py-1 rounded inline-block">
@@ -1051,12 +1052,12 @@ export default function MyBusinessesClient() {
                                                 }`}
                                         >
                                             {business.status === 'ACTIVE' ? (
-                                                <><span>⏸️</span> {t('business.deactivate')}</>
+                                                <><Pause size={16} className="mr-1" /> {t('business.deactivate')}</>
                                             ) : (
                                                 (business.expiresAt && new Date(business.expiresAt) < new Date()) || !business.expiresAt ? (
-                                                    <><span>💳</span> Activar con 1 Crédito</>
+                                                    <><CreditCard size={16} className="mr-1" /> Activar con 1 Crédito</>
                                                 ) : (
-                                                    <><span>▶️</span> {t('business.activate')}</>
+                                                    <><Play size={16} className="mr-1" /> {t('business.activate')}</>
                                                 )
                                             )}
                                         </button>
@@ -1068,9 +1069,10 @@ export default function MyBusinessesClient() {
                                         </button>
                                         <button
                                             onClick={() => handleDelete(business.id)}
-                                            className="px-3 py-2 bg-red-900/20 text-red-400 rounded-lg text-sm hover:bg-red-900/30 transition"
+                                            className="px-3 py-2 bg-red-900/20 text-red-400 rounded-lg text-sm hover:bg-red-900/30 transition flex items-center justify-center"
+                                            title="Eliminar"
                                         >
-                                            🗑️
+                                            <Trash2 size={16} />
                                         </button>
                                     </div>
                                 </div>

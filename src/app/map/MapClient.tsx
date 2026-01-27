@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { BUSINESS_CATEGORIES as CATEGORIES } from '@/lib/businessCategories'
 import { useLocation } from '@/contexts/LocationContext'
 import { Star, Sparkles, MapPin, Settings2, Plus } from 'lucide-react'
+import CategoryIcon from '@/components/CategoryIcon'
 
 const MapBoxStoreLocator = dynamic(() => import('@/components/MapBoxStoreLocator'), {
     ssr: false,
@@ -566,13 +567,17 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                                         `}
                                                     >
                                                         <div
-                                                            className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center`}
+                                                            className={`w-7 h-7 rounded-lg border-2 transition-all flex items-center justify-center bg-white/5 shadow-inner`}
                                                             style={{
-                                                                borderColor: cat.color,
-                                                                backgroundColor: isSelected ? cat.color : 'transparent'
+                                                                borderColor: isSelected ? cat.color : 'rgba(255,255,255,0.1)',
+                                                                backgroundColor: isSelected ? `${cat.color}20` : 'transparent'
                                                             }}
                                                         >
-                                                            {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                                            <CategoryIcon
+                                                                iconName={cat.icon}
+                                                                size={14}
+                                                                color={isSelected ? cat.color : 'rgba(255,255,255,0.4)'}
+                                                            />
                                                         </div>
                                                         <span className={`text-[15px] font-medium transition-colors ${isSelected ? 'text-white' : 'text-white/60'}`}>
                                                             {t(`map_store.categories.${cat.id}`) || cat.label}

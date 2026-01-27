@@ -2,6 +2,9 @@
 
 import { MapPin, Phone, Globe, Navigation, MessageCircle, Star } from 'lucide-react'
 import { getBusinessStatus } from '@/lib/businessTimeUtils'
+import CategoryIcon from './CategoryIcon'
+import { BUSINESS_CATEGORIES } from '@/lib/businessCategories'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface BusinessListCardProps {
     business: {
@@ -24,7 +27,9 @@ interface BusinessListCardProps {
 }
 
 export default function BusinessListCard({ business, isActive, onClick }: BusinessListCardProps) {
+    const { t } = useLanguage()
     const status = getBusinessStatus(business.hours || null, business.is24Hours)
+    const categoryData = BUSINESS_CATEGORIES.find(c => c.id === business.category)
 
     // Simular rating para estética tipo Google
     const rating = (Math.random() * (5 - 4) + 4).toFixed(1)
@@ -68,7 +73,8 @@ export default function BusinessListCard({ business, isActive, onClick }: Busine
                     </div>
 
                     <p className="text-sm text-text-secondary mt-1 flex items-center gap-1">
-                        <span className="capitalize">{business.category.replace('_', ' ')}</span>
+                        <CategoryIcon iconName={categoryData?.icon || 'Wrench'} size={14} className="opacity-70" />
+                        <span className="capitalize">{t(`map_store.categories.${business.category}`) || business.category.replace('_', ' ')}</span>
                         <span>•</span>
                         <span className={status.isOpen ? 'text-green-500 font-bold' : 'text-red-500'}>
                             {status.statusText}
@@ -121,7 +127,7 @@ export default function BusinessListCard({ business, isActive, onClick }: Busine
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-primary-700/10 text-primary-400 font-black text-2xl">
-                            {business.name.substring(0, 1)}
+                            <CategoryIcon iconName={categoryData?.icon || 'Wrench'} size={32} />
                         </div>
                     )}
                 </div>

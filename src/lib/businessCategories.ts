@@ -41,49 +41,53 @@ export const CATEGORY_COLORS: Record<string, string> = {
     'policia': '#1e3a8a', // Navy Dark (Unique)
     'aeropuerto': '#0284c7', // Deep Sky (Unique)
     'estacion_tren': '#7c3aed', // Violet (Unique)
-
+    'taller_ev': '#10b981', // Emerald/EV Green
+    'lubricantes': '#78350f', // Amber/Oil Brown
+    'boutique': '#db2777', // Deep Pink/Boutique
 }
 
 export const CATEGORY_EMOJIS: Record<string, string> = {
-    'mecanico': '🔧',
-    'frenos': '🛑',
-    'electrico': '⚡',
-    'hojalateria': '🎨',
-    'llantera': '🛞',
-    'polarizado': '🕶️',
-    'estetica': '🚿',
-    'detallado': '✨',
-    'refacciones': '📦',
-    'audio': '🔊',
-    'cristales': '💎',
-    'tapiceria': '💺',
-    'transmisiones': '🕹️',
-    'gruas': '🆘',
-    'motos': '🏍️',
-    'performance': '🏎️',
-    'mofles': '💨',
-    'radiadores': '🌡️',
-    'rectificadora': '⚙️',
-    'blindaje': '🛡️',
-    'diesel': '⛽',
-    'offroad': '⛰️',
-    'cerrajeria': '🔑',
-    'gasolinera': '⛽',
-    'yonke': '♻️',
-    'estacionamiento': '🅿️',
-    'suspension': '🔩',
-    'aire_acondicionado': '❄️',
-    'importadoras': '🚢',
-    'iluminacion': '💡',
-    'rotulacion': '🖌️',
-    'inyectores': '🧪',
-    'electrolinera': '🔌',
-    'caseta': '🛂',
-    'hospital': '🏥',
-    'policia': '🚓',
-    'aeropuerto': '✈️',
-
-    'estacion_tren': '🚆',
+    'mecanico': 'Wrench',
+    'frenos': 'CircleDot',
+    'electrico': 'Zap',
+    'hojalateria': 'Paintbrush',
+    'llantera': 'Disc',
+    'polarizado': 'Glasses',
+    'estetica': 'Droplets',
+    'detallado': 'Sparkles',
+    'refacciones': 'Package',
+    'audio': 'Speaker',
+    'cristales': 'Square',
+    'tapiceria': 'Armchair',
+    'transmisiones': 'Settings2',
+    'gruas': 'Truck',
+    'motos': 'Bike',
+    'performance': 'Gauge',
+    'mofles': 'Wind',
+    'radiadores': 'Thermometer',
+    'rectificadora': 'Hammer',
+    'blindaje': 'ShieldCheck',
+    'diesel': 'Fuel',
+    'offroad': 'Mountain',
+    'cerrajeria': 'Key',
+    'gasolinera': 'Fuel',
+    'yonke': 'Recycle',
+    'estacionamiento': 'SquareParking',
+    'suspension': 'Activity',
+    'aire_acondicionado': 'Snowflake',
+    'importadoras': 'Ship',
+    'iluminacion': 'Lightbulb',
+    'rotulacion': 'PenTool',
+    'inyectores': 'Syringe',
+    'electrolinera': 'PlugZap',
+    'caseta': 'Wallet',
+    'hospital': 'Hospital',
+    'policia': 'ShieldAlert',
+    'aeropuerto': 'Plane',
+    'estacion_tren': 'TrainFront',
+    'taller_ev': 'Zap',
+    'lubricantes': 'Droplet',
+    'boutique': 'ShoppingBag',
 }
 
 export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
@@ -124,14 +128,57 @@ export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
     hospital: ['Urgencias', 'Consulta General', 'Farmacia', 'Ambulancia', 'Laboratorio'],
     policia: ['Denuncias', 'Tránsito', 'Emergencias', 'Patrullas', 'Asistencia Vial'],
     aeropuerto: ['Vuelos Nacionales', 'Vuelos Internacionales', 'Taxis', 'Renta de Autos', 'Cambio de Divisa'],
-    estacion_tren: ['Venta de Boletos', 'Andenes', 'Sala de Espera', 'Cafetería', 'Taxis']
+    estacion_tren: ['Venta de Boletos', 'Andenes', 'Sala de Espera', 'Cafetería', 'Taxis'],
+    taller_ev: ['Diagnóstico de Batería', 'Motores Eléctricos', 'Sistemas Híbridos', 'Carga de Batería', 'Mantenimiento Preventivo EV', 'Software Update'],
+    lubricantes: ['Cambio de Aceite', 'Filtro de Aceite', 'Filtro de Aire', 'Filtro de Cabina', 'Engrasado de Chasis', 'Niveles de Fluidos'],
+    boutique: ['Accesorios de Lujo', 'Fundas para Asientos', 'Fragancias', 'Cuidado Exterior', 'Regalos Automotrices', 'Equipamiento Interior']
 
 }
 
 // Helper for Map & Search
 export const BUSINESS_CATEGORIES = Object.keys(CATEGORY_COLORS)
     .map(id => {
-        const label = id.charAt(0).toUpperCase() + id.slice(1).replace('_', ' ');
+        let label = id.charAt(0).toUpperCase() + id.slice(1).replace('_', ' ');
+
+        // Basic fallback mapping for clearer default labels
+        const fallbackLabels: Record<string, string> = {
+            mecanico: 'Taller Mecánico',
+            frenos: 'Taller de Frenos',
+            electrico: 'Taller Eléctrico',
+            hojalateria: 'Hojalatería y Pintura',
+            llantera: 'Llantera / Vulcanizadora',
+            estetica: 'Autolavado / Estética',
+            detallado: 'Detallado Prof. / Cerámico',
+            refacciones: 'Refaccionaria (Partes)',
+            audio: 'Audio, Alarmas y GPS',
+            cristales: 'Cristales para Autos',
+            tapiceria: 'Tapicería Automotriz',
+            transmisiones: 'Taller de Transmisiones',
+            gruas: 'Servicio de Grúas',
+            motos: 'Taller de Motos / Refacciones',
+            performance: 'Modificaciones / Tuning',
+            mofles: 'Taller de Mofles y Escapes',
+            radiadores: 'Taller de Radiadores',
+            rectificadora: 'Rectificadora de Motores',
+            blindaje: 'Taller de Blindaje Automotriz',
+            diesel: 'Taller Diesel (Motores)',
+            offroad: 'Taller Offroad / 4x4',
+            cerrajeria: 'Cerrajería Automotriz',
+            yonke: 'Yonke / Partes Usadas',
+            suspension: 'Taller de Suspensión',
+            aire_acondicionado: 'Aire Acondicionado Automotriz',
+            importadoras: 'Importación de Vehículos',
+            iluminacion: 'Iluminación y Faros LED',
+            inyectores: 'Inyectores / Laboratorio',
+            rotulacion: 'Rotulación / Wrap / Vinil',
+            electrolinera: 'Cargador Eléctrico',
+            taller_ev: 'Taller Eléctrico e Híbrido',
+            lubricantes: 'Cambio de Aceite y Filtros',
+            boutique: 'Auto Boutique / Accesorios'
+        };
+
+        if (fallbackLabels[id]) label = fallbackLabels[id];
+
         const publicServices = ['caseta', 'hospital', 'policia', 'aeropuerto', 'estacion_tren'];
 
         return {
