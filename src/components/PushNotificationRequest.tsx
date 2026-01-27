@@ -71,6 +71,9 @@ export default function PushNotificationRequest() {
                 return
             }
 
+            // ✅ CERRAR MODAL INMEDIATAMENTE después de que usuario acepta
+            setShowPrompt(false)
+
             // Crear suscripción
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
@@ -88,8 +91,6 @@ export default function PushNotificationRequest() {
                 throw new Error('Error al guardar la suscripción')
             }
 
-            // Ocultar el prompt inmediatamente después del éxito
-            setShowPrompt(false)
 
         } catch (error: any) {
             console.error('Push Error:', error)
