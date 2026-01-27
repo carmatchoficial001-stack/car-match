@@ -189,6 +189,11 @@ export default function MapClient({ businesses, user }: MapClientProps) {
             const isCarRelated = /\b(carro|auto|automovil|vehiculo|sedan|suv|pick.*up|camioneta)\b/i.test(searchQuery)
             const isMotorcycleRelated = /\b(moto|motocicleta|scooter|cuatrimoto)\b/i.test(searchQuery)
 
+            // 🔥 MEJORA: Detectar ruidos/fallas genéricas -> Mecánico
+            if (/\b(ruido|suena|sonido|traqueteo|golpeteo|falla|vibracion|tiembla|jalonea|cascabelea)\b/i.test(query)) {
+                detectedCats.push('mecanico')
+            }
+
             CATEGORIES.forEach(cat => {
                 if (detectedCats.includes(cat.id)) return // Skip if already detected
 

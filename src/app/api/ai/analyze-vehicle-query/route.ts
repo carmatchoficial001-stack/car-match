@@ -13,52 +13,51 @@ export async function POST(req: NextRequest) {
         console.log('🔍 [AI Search] Query recibido:', query)
 
 
-        const prompt = `Actúa como un ASISTENTE DE COMPRAS AUTOMOTRIZ SUPER-INTELIGENTE. Tu misión es traducir el lenguaje natural del usuario a filtros técnicos para una base de datos de vehículos TERRÉSTRES MOTORIZADOS.
+        const prompt = `Actúa como un COMITÉ DE EXPERTOS EN AUTOMOCIÓN ("The CarMatch Brain Trust").
+Tu objetivo es traducir el lenguaje natural del usuario a filtros técnicos PRECISOS, usando un proceso de pensamiento de 3 pasos (Cadena de Pensamiento).
+
+**TU EQUIPO INTERNO:**
+1.  🕵️ **EL ANALISTA (Agente 1):** Extrae datos crudos ("Troca", "Barata").
+2.  ⚖️ **EL SUPERVISOR (Agente 2):** Critica y corrige según reglas de negocio (ej. "Troca" = Pickup, "Barata" < $250k).
+3.  ✅ **EL ESTRATEGA (Agente 3):** Genera el JSON final validado.
 
 **CONTEXTO TÉCNICO:**
 - Categorías: ${Object.keys(VEHICLE_CATEGORIES).join(', ')}
-- Marcas: ${Array.from(new Set(Object.values(BRANDS).flat())).slice(0, 100).join(', ')} (Y muchas más)
-- Colores: ${COLORS.join(', ')}
+- Marcas: ${Array.from(new Set(Object.values(BRANDS).flat())).slice(0, 50).join(', ')}...
 - Transmisiones: ${TRANSMISSIONS.join(', ')}
-- Combustibles: ${FUELS.join(', ')}
 
-**INSTRUCCIONES:**
-1.  **Interpretación de Precios**: 
-    - Si dice "barato", asume un rango de $0 a $250,000 MXN.
-    - Si dice "caro" o "lujo", asume minPrice $800,000+.
-    - Si menciona una cifra como "300 mil" o "300k", interpreta como 300000.
-2.  **Mapeo de Categorías**: 
-    - "Troca" o "Camioneta de carga" -> Pickup.
-    - "Camioneta familiar" -> SUV o Minivan.
-    - "Moto" -> Motocicleta.
-3.  **Antigüedad**:
-    - "Nuevo" -> Año >= 2024.
-    - "Viejo" o "Clásico" -> Año <= 2000.
-    - "Reciente" -> Año >= 2020.
+**REGLAS DE NEGOCIO (EL LIBRO DE LA VERDAD):**
+1.  **Semántica Regional:** "Troca/Pickap" -> Pickup. "Mueble" -> Automóvil. "Mami van" -> Minivan.
+2.  **Precios Inteligentes:**
+    - "Barato/Económico": $0 - $200,000.
+    - "Lujo/Caro": $800,000+.
+    - "300 mil" = 300000.
+3.  **Antigüedad:** "Nuevo" >= ${new Date().getFullYear()}. "Viejo" <= 2010.
+4.  **Cilindros** (CRÍTICO):
+    - Si detectas "4 cil", "V6", "8 cilindros" -> EXTRAE EL NÚMERO y ponlo en la explicación, pero NO hay campo directo de cilindros en los filtros básicos, así que úsalo para validar el "vehicleType" si es posible (ej. V8 suele ser Pickup o Deportivo).
+5.  **Explicación:** Debe ser redactada por el Estratega, sonando profesional y confirmando qué entendió (ej. "Entendido, buscando Pickups V8 económicas...").
 
 **FORMATO DE RESPUESTA (JSON PURO):**
 {
-    "category": "string (Exacto: 'Automóvil', 'Motocicleta', 'Camión', 'Maquinaria', 'Especial')",
-    "vehicleType": "string (Estilo/Carrocería, ej. 'Sedán', 'SUV', 'Pickup', 'Coupe')",
-    "brand": "string", "model": "string",
-    "minPrice": number, "maxPrice": number, 
+    "category": "Automóvil | Motocicleta | Camión | Maquinaria | Especial",
+    "vehicleType": "Sedán | SUV | Pickup | Coupe | Hatchback | ...",
+    "brand": "Toyota | Ford | ...",
+    "model": "Camry | Lobo | ...",
+    "minPrice": number, "maxPrice": number,
     "minYear": number, "maxYear": number,
-    "color": "string (Capitalizado)", "transmission": "string", "fuel": "string",
-    "passengers": number,
-    "explanation": "Breve frase profesional sobre la búsqueda."
+    "transmission": "Automática | Manual",
+    "explanation": "Frase de confirmación del Estratega."
 }
-
-**CONOCIMIENTO UNIVERSAL CARMATCH:**
-- Sabe todo sobre: Autos de lujo, deportivos, utilitarios.
-- Motos: Deportivas, Scooters, ATVs, RZRs.
-- Pesados: Tractocamiones, Torton, Autobuses.
-- Maquinaria: Retroexcavadoras (Mano de chango), Tractores agrícolas, Montacargas.
-- Slang: "Troca" es Pickup. "Barato" es <200k (autos) o <350k (pickups/maquinaria). "Nuevo" es >= 2024.
 
 **QUERY DEL USUARIO:**
 "${query}"
 
-Responde SOLO con el JSON válido.`
+**PROCESO DE PENSAMIENTO (Invisible):**
+1. Analista: Detecta...
+2. Supervisor: Corrige...
+3. Estratega: JSON Final...
+
+Responde SOLO con el JSON del Estratega.`
 
         // ✅ Flash para búsquedas (rápido y eficiente)
         // Usamos importación dinámica compatible o fallback a estática si es necesario

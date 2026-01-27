@@ -87,7 +87,7 @@ export const CATEGORY_EMOJIS: Record<string, string> = {
 }
 
 export const SERVICES_BY_CATEGORY: Record<string, string[]> = {
-    mecanico: ['Afinación', 'Frenos', 'Suspensión', 'Motor', 'Transmisión', 'Cambio de Aceite', 'Diagnóstico por Computadora', 'Clutch'],
+    mecanico: ['Afinación', 'Frenos', 'Suspensión', 'Motor', 'Transmisión', 'Cambio de Aceite', 'Diagnóstico por Computadora', 'Clutch', 'Ruidos', 'Diagnóstico de Fallas', 'Reparación General'],
     electrico: ['Baterías', 'Alternadores', 'Marchas', 'Luces', 'Alarmas', 'Sensores', 'Aire Acondicionado', 'Computadoras', 'Fusibles'],
     hojalateria: ['Hojalatería', 'Pintura', 'Pintura General', 'Pintura de Piezas', 'Pulido', 'Restauración de Choques', 'Enderezado de Chasis', 'Soldadura', 'Pintura Automotriz', 'Igualado de Color', 'Repintado', 'Sopleteo'],
     llantera: ['Venta de Llantas', 'Reparación de Ponchaduras', 'Alineación', 'Balanceo', 'Suspensión', 'Frenos', 'Inflado con Nitrógeno'],
