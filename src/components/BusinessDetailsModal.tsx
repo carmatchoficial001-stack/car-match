@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Business, Vehicle } from '@prisma/client'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { AlertTriangle, Instagram, Share2 } from 'lucide-react'
+import { AlertTriangle, Instagram, Share2, Clock, AlertCircle, Briefcase, ShieldCheck } from 'lucide-react'
 import ReportBusinessModal from './ReportBusinessModal'
 import { generateBusinessSlug } from '@/lib/slug'
 import ShareButton from './ShareButton'
