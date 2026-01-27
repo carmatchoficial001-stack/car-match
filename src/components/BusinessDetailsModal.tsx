@@ -179,23 +179,27 @@ export default function BusinessDetailsModal({ business, onClose, categoryColor 
                         {/* [NEW] Feature Badges */}
                         <div className="flex flex-wrap gap-2 mt-3">
                             {business.is24Hours && (
-                                <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-xs font-bold rounded-full border border-blue-500/30 flex items-center gap-1">
+                                <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-xs font-bold rounded-full border border-blue-500/30 flex items-center gap-1.5 shadow-sm">
+                                    <Clock size={12} strokeWidth={3} />
                                     {t('business_details.features.24_hours')}
                                 </span>
                             )}
                             {business.hasEmergencyService && (
-                                <span className="px-3 py-1 bg-red-500/10 text-red-400 text-xs font-bold rounded-full border border-red-500/30 flex items-center gap-1">
+                                <span className="px-3 py-1 bg-red-500/10 text-red-400 text-xs font-bold rounded-full border border-red-500/30 flex items-center gap-1.5 shadow-sm">
+                                    <AlertCircle size={12} strokeWidth={3} />
                                     {t('business_details.features.emergency')}
                                 </span>
                             )}
                             {business.hasHomeService && (
-                                <span className="px-3 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded-full border border-green-500/30 flex items-center gap-1">
+                                <span className="px-3 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded-full border border-green-500/30 flex items-center gap-1.5 shadow-sm">
+                                    <Briefcase size={12} strokeWidth={3} />
                                     {t('business_details.features.home_service')}
                                 </span>
                             )}
                             {business.isSafeMeetingPoint && (
-                                <span className="px-3 py-1 bg-primary-500/10 text-primary-400 text-xs font-bold rounded-full border border-primary-500/30 flex items-center gap-1">
-                                    🤝 {t('business_details.features.safe_meeting_point' as any) || 'Punto de Encuentro Seguro'}
+                                <span className="px-3 py-1 bg-primary-500/10 text-primary-400 text-xs font-bold rounded-full border border-primary-500/30 flex items-center gap-1.5 shadow-sm">
+                                    <ShieldCheck size={12} strokeWidth={3} />
+                                    {t('business_details.features.safe_meeting_point')}
                                 </span>
                             )}
                         </div>

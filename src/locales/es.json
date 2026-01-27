@@ -944,9 +944,10 @@
         "hours": "Horario de Atención",
         "services": "🛠️ Servicios Ofrecidos",
         "features": {
-            "24_hours": "🕒 24 Horas",
-            "emergency": "🚑 Emergencia",
-            "home_service": "🏠 Servicio a Domicilio"
+            "24_hours": "24 Horas",
+            "emergency": "Emergencia",
+            "home_service": "Servicio a Domicilio",
+            "safe_meeting_point": "Punto de Encuentro Seguro"
         }
     },
     "map_locator": {
