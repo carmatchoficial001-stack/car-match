@@ -300,6 +300,9 @@ export default function MapBoxStoreLocator({
             mapInstance.on('click', 'unclustered-point-bg', handlePointClick);
 
             // Cursor pointers
+            const setPointer = () => mapInstance.getCanvas().style.cursor = 'pointer';
+            const resetPointer = () => mapInstance.getCanvas().style.cursor = '';
+
             mapInstance.on('mouseenter', 'unclustered-point-bg', setPointer);
             mapInstance.on('mouseleave', 'unclustered-point-bg', resetPointer);
         }
