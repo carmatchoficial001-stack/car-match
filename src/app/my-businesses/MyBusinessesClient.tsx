@@ -559,6 +559,7 @@ export default function MyBusinessesClient() {
                                         <option value="">Selecciona una categoría...</option>
                                         {/* Dynamic category list from taxonomy - Sorted Alphabetically by Translation */}
                                         {[...BUSINESS_CATEGORIES]
+                                            .filter(cat => !cat.isPublic)
                                             .sort((a, b) => (t(`map_store.categories.${a.id}`) || a.label).localeCompare(t(`map_store.categories.${b.id}`) || b.label))
                                             .map(cat => (
                                                 <option key={cat.id} value={cat.id}>
