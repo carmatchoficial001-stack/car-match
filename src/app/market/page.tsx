@@ -299,6 +299,19 @@ export default async function MarketPage({
             { model: { contains: searchParams.search, mode: 'insensitive' } }
         ]
 
+        // 🧠 Intelligent Cylinder Detection (e.g. "6cilindros", "V6", "4 cil")
+        const cylinderRegex = /(\d+)\s*cilindros?|\b[vV]-?(\d+)\b|(\d+)\s*cil/i
+        const cylinderMatch = query.match(cylinderRegex)
+        if (cylinderMatch) {
+            const num = parseInt(cylinderMatch[1] || cylinderMatch[2] || cylinderMatch[3])
+            if (num && !isNaN(num) && num > 0 && num < 20) {
+                where.OR.push({ cylinders: num })
+                where.OR.push({ engine: { contains: `V${num}`, mode: 'insensitive' } })
+                where.OR.push({ engine: { contains: `${num} cil`, mode: 'insensitive' } })
+                where.OR.push({ description: { contains: `${num} cil`, mode: 'insensitive' } })
+            }
+        }
+
         // Add matches for individual terms
         searchTerms.forEach(term => {
             where.OR.push({ title: { contains: term, mode: 'insensitive' } })
