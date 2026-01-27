@@ -819,46 +819,46 @@ export default function MyBusinessesClient() {
 
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <label className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${is24Hours ? 'bg-blue-500/10 border-blue-500/30' : 'bg-surface border-surface-highlight hover:border-blue-500/40'}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={is24Hours}
+                                                onChange={(e) => setIs24Hours(e.target.checked)}
+                                                className="w-5 h-5 rounded border-surface-highlight text-blue-600 focus:ring-blue-500 bg-background"
+                                            />
                                             <div className={`p-2 rounded-lg ${is24Hours ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-text-secondary opacity-50'}`}>
                                                 <Clock size={16} />
                                             </div>
                                             <div className="flex-1">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={is24Hours}
-                                                    onChange={(e) => setIs24Hours(e.target.checked)}
-                                                    className="hidden"
-                                                />
-                                                <span className={`text-xs font-bold uppercase tracking-tight ${is24Hours ? 'text-blue-400' : 'text-text-secondary'}`}>24 Horas</span>
+                                                <span className={`text-xs font-bold uppercase tracking-tight ${is24Hours ? 'text-blue-400' : 'text-text-secondary'}`}>Servicio 24 Horas</span>
                                             </div>
                                         </label>
 
                                         <label className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${hasEmergencyService ? 'bg-red-500/10 border-red-500/30' : 'bg-surface border-surface-highlight hover:border-red-500/40'}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={hasEmergencyService}
+                                                onChange={(e) => setHasEmergencyService(e.target.checked)}
+                                                className="w-5 h-5 rounded border-surface-highlight text-red-600 focus:ring-red-500 bg-background"
+                                            />
                                             <div className={`p-2 rounded-lg ${hasEmergencyService ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-text-secondary opacity-50'}`}>
                                                 <AlertCircle size={16} />
                                             </div>
                                             <div className="flex-1">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={hasEmergencyService}
-                                                    onChange={(e) => setHasEmergencyService(e.target.checked)}
-                                                    className="hidden"
-                                                />
                                                 <span className={`text-xs font-bold uppercase tracking-tight ${hasEmergencyService ? 'text-red-400' : 'text-text-secondary'}`}>Emergencia</span>
                                             </div>
                                         </label>
 
                                         <label className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${hasHomeService ? 'bg-green-500/10 border-green-500/30' : 'bg-surface border-surface-highlight hover:border-green-500/40'}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={hasHomeService}
+                                                onChange={(e) => setHasHomeService(e.target.checked)}
+                                                className="w-5 h-5 rounded border-surface-highlight text-green-600 focus:ring-green-500 bg-background"
+                                            />
                                             <div className={`p-2 rounded-lg ${hasHomeService ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-text-secondary opacity-50'}`}>
                                                 <Briefcase size={16} />
                                             </div>
                                             <div className="flex-1">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={hasHomeService}
-                                                    onChange={(e) => setHasHomeService(e.target.checked)}
-                                                    className="hidden"
-                                                />
                                                 <span className={`text-xs font-bold uppercase tracking-tight ${hasHomeService ? 'text-green-400' : 'text-text-secondary'}`}>A domicilio</span>
                                             </div>
                                         </label>
