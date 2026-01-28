@@ -42,7 +42,7 @@ export const metadata: Metadata = {
         google: "u4BWC_7mrWziSal62PD0Jv6grcjI6Pl2zHOnc0Jcdxg",
     },
     keywords: ["CarMatch", "CarMatch App", "compra venta autos", "marketplace autos mexico", "talleres mecanicos 24 horas", "auxilio vial", "refacciones juarez"],
-    manifest: "/manifest.json",
+    manifest: "/manifest.webmanifest",
     authors: [{ name: "CarMatch" }],
     creator: "CarMatch",
     publisher: "CarMatch",
