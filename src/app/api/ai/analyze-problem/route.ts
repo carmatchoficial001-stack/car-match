@@ -40,7 +40,7 @@ ${JSON.stringify(DIAGNOSTICS_DB.COMMON_FAILURES, null, 2)}
 --- FIN BASE DE DATOS ---
 
 **DICCIONARIO DE SLANG:**
-${JSON.stringify(DIAGNOSTICS_DB.SLANG_MAP, null, 2)}
+${JSON.stringify(DIAGNOSTICS_DB.SLANG_MAPPING, null, 2)}
 
 **REGLAS DE DERIVACIÓN (Protocolo del Jefe de Taller):**
 - ⚙️ **Mecánica General:** Si es motor, humo, calentamiento, afinación, fugas de aceite o "algo suena mal" internamente -> [mecanico].

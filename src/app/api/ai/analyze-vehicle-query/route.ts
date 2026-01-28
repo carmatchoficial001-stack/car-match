@@ -33,7 +33,7 @@ Tu objetivo es traducir el lenguaje natural del usuario a filtros técnicos PREC
 **REGLAS DE NEGOCIO (EL LIBRO DE LA VERDAD):**
 1.  **Semántica Regional (Lexicón):**
     Usa este diccionario para traducir términos antes de filtrar:
-    ${JSON.stringify(DIAGNOSTICS_DB.SLANG_MAP, null, 2)}
+    ${JSON.stringify(DIAGNOSTICS_DB.SLANG_MAPPING, null, 2)}
     *Si el término no está aquí, usa tu mejor juicio inferido.*
     
     Tambien considera las **FALLAS COMUNES** para entender el contexto (ej. si buscan "sin fallas", evita estos):
