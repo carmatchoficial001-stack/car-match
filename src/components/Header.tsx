@@ -111,13 +111,13 @@ export default function Header() {
     }, [t, locale, pathname])
 
     useEffect(() => {
-        if (ctas.length > 0 && !session) {
+        if (ctas.length > 0) {
             const interval = setInterval(() => {
                 setCtaIndex((prev) => (prev + 1) % ctas.length)
             }, 10000) // ✅ 10 segundos (6 mensajes por minuto)
             return () => clearInterval(interval)
         }
-    }, [ctas, session])
+    }, [ctas])
 
     const [unreadMessages, setUnreadMessages] = useState(0)
     const [unreadNotifications, setUnreadNotifications] = useState(0)
@@ -283,51 +283,86 @@ export default function Header() {
 
                     {/* RIGHT GROUP: Navigation & Profile/CTA */}
                     <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end min-w-0">
-                        {/* Dynamic CTA - Text Based Style (Optimized Space) */}
-                        <div
-                            onClick={(e) => {
-                                const isMapContext = pathname?.startsWith('/map') || pathname?.startsWith('/map-store')
-                                const publishVehiclePath = "/publish"
-                                const publishBusinessPath = "/my-businesses?action=new"
-                                const targetPath = isMapContext ? publishBusinessPath : (session ? publishVehiclePath : "/auth")
+                        {/* 🚀 DYNAMIC CTA: Adaptive Layout */}
+                        {session && !isSoftLogout ? (
+                            /* COMPACT STYLE: For Authenticated Users (Less Space) */
+                            <div
+                                onClick={(e) => {
+                                    const isMapContext = pathname?.startsWith('/map') || pathname?.startsWith('/map-store')
+                                    const publishVehiclePath = "/publish"
+                                    const publishBusinessPath = "/my-businesses?action=new"
+                                    const targetPath = isMapContext ? publishBusinessPath : publishVehiclePath
 
-                                if (session && isSoftLogout) {
-                                    e.preventDefault()
-                                    openModal(
-                                        "Cerraste sesión hace un momento. ¿Deseas volver a activar tu cuenta?",
-                                        () => { }
-                                    )
-                                } else {
                                     router.push(targetPath)
-                                }
-                            }}
-                            className="flex flex-col items-end cursor-pointer group active:scale-95 transition-transform"
-                        >
-                            <AnimatePresence mode="wait">
-                                {(ctas[ctaIndex] || "").includes(' | ') && (
-                                    <div className="flex flex-col items-end">
-                                        <motion.span
-                                            key={`hook-${ctaIndex}`}
-                                            initial={{ opacity: 0, y: -5 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 5 }}
-                                            className="text-[9px] sm:text-[11px] text-slate-300 font-bold uppercase tracking-wider leading-none"
+                                }}
+                                className="flex flex-col items-end cursor-pointer group active:scale-95 transition-transform"
+                            >
+                                <AnimatePresence mode="wait">
+                                    {(ctas[ctaIndex] || "").includes(' | ') && (
+                                        <div className="flex flex-col items-end">
+                                            <motion.span
+                                                key={`hook-auth-${ctaIndex}`}
+                                                initial={{ opacity: 0, y: -5 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: 5 }}
+                                                className="text-[9px] sm:text-[11px] text-slate-300 font-bold uppercase tracking-wider leading-none"
+                                            >
+                                                {(ctas[ctaIndex] || "").split(' | ')[0]}
+                                            </motion.span>
+                                            <motion.span
+                                                key={`action-auth-${ctaIndex}`}
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                className="text-[13px] sm:text-lg font-black text-accent-500 uppercase tracking-tighter leading-tight drop-shadow-[0_0_15px_rgba(249,115,22,0.3)] group-hover:text-accent-400 transition-colors"
+                                            >
+                                                {(ctas[ctaIndex] || "").split(' | ')[1]}
+                                            </motion.span>
+                                        </div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        ) : (
+                            /* PROMINENT BUTTON STYLE: For Guests (More Space) */
+                            <div className="flex items-center gap-3 md:gap-5 justify-end overflow-visible">
+                                <AnimatePresence mode="wait">
+                                    {(ctas[ctaIndex] || "").includes(' | ') && (
+                                        <motion.div
+                                            key={`hook-guest-${ctaIndex}`}
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: 10 }}
+                                            className="text-white font-black text-[11px] sm:text-lg lg:text-xl uppercase tracking-tight leading-tight max-w-[140px] sm:max-w-none text-right drop-shadow-lg hidden xs:block"
                                         >
                                             {(ctas[ctaIndex] || "").split(' | ')[0]}
-                                        </motion.span>
-                                        <motion.span
-                                            key={`action-${ctaIndex}`}
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            exit={{ opacity: 0, scale: 0.95 }}
-                                            className="text-[13px] sm:text-lg font-black text-accent-500 uppercase tracking-tighter leading-tight drop-shadow-[0_0_15px_rgba(249,115,22,0.3)] group-hover:text-accent-400 transition-colors"
-                                        >
-                                            {(ctas[ctaIndex] || "").split(' | ')[1]}
-                                        </motion.span>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                <div
+                                    onClick={() => {
+                                        const isMapContext = pathname?.startsWith('/map') || pathname?.startsWith('/map-store')
+                                        const targetPath = isMapContext ? "/my-businesses?action=new" : "/auth"
+                                        router.push(targetPath)
+                                    }}
+                                    className="relative group shrink-0 flex items-center cursor-pointer"
+                                >
+                                    <div className="px-3 py-2 sm:px-5 sm:py-3 bg-accent-600 rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.3)] group-hover:bg-accent-500 transition-all active:scale-95 ring-2 ring-accent-500/20">
+                                        <AnimatePresence mode="wait">
+                                            <motion.span
+                                                key={`action-guest-${ctaIndex}`}
+                                                initial={{ opacity: 0, scale: 0.9 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.9 }}
+                                                className="text-white font-black text-[13px] sm:text-lg lg:text-xl whitespace-nowrap drop-shadow-md inline-block uppercase"
+                                            >
+                                                {(ctas[ctaIndex] || t('common.login_vehicle')).split(' | ')[1] || t('common.login_vehicle')}
+                                            </motion.span>
+                                        </AnimatePresence>
                                     </div>
-                                )}
-                            </AnimatePresence>
-                        </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Navegación - Oculta en móvil */}
                         <nav className="hidden lg:flex items-center gap-2">
