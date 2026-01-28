@@ -77,6 +77,12 @@ export const metadata: Metadata = {
         ],
         shortcut: "/icon-192-v19.png",
         apple: "/icon-192-v19.png",
+        other: [
+            {
+                rel: 'maskable-icon',
+                url: '/maskable-192-v19.png',
+            },
+        ],
     }
 };
 
