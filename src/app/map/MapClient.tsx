@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { BUSINESS_CATEGORIES as CATEGORIES } from '@/lib/businessCategories'
 import { useLocation } from '@/contexts/LocationContext'
-import { Star, Sparkles, MapPin, Settings2, Plus } from 'lucide-react'
+import { Star, Sparkles, MapPin, Settings2, Plus, Check } from 'lucide-react'
 import CategoryIcon from '@/components/CategoryIcon'
 
 const MapBoxStoreLocator = dynamic(() => import('@/components/MapBoxStoreLocator'), {
@@ -562,16 +562,16 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                                     <button
                                                         onClick={() => toggleCategory(cat.id)}
                                                         className={`
-                                                            w-full flex items-center gap-4 py-3 px-2 rounded-lg transition-all
-                                                            ${isSelected ? 'bg-white/5' : 'hover:bg-white/5'}
+                                                            w-full flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all group
+                                                            ${isSelected ? 'bg-white/10 ring-1 ring-white/10' : 'hover:bg-white/5'}
                                                         `}
                                                     >
                                                         <div
-                                                            className="w-8 h-8 rounded-xl border flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm"
+                                                            className="w-8 h-8 rounded-xl border flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm shrink-0"
                                                             style={{
-                                                                backgroundColor: `${cat.color}15`,
+                                                                backgroundColor: `${cat.color}20`,
                                                                 borderColor: isSelected ? cat.color : `${cat.color}40`,
-                                                                boxShadow: isSelected ? `0 0 10px ${cat.color}30` : 'none'
+                                                                boxShadow: isSelected ? `0 0 15px ${cat.color}30` : 'none'
                                                             }}
                                                         >
                                                             <CategoryIcon
@@ -581,9 +581,17 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                                                 className={isSelected ? 'animate-pulse' : 'opacity-90'}
                                                             />
                                                         </div>
-                                                        <span className={`text-[15px] font-medium transition-colors ${isSelected ? 'text-white' : 'text-white/60'}`}>
+                                                        <span className={`text-[13px] font-bold transition-colors truncate flex-1 text-left ${isSelected ? 'text-white' : 'text-white/50'}`}>
                                                             {t(`map_store.categories.${cat.id}`) || cat.label}
                                                         </span>
+
+                                                        {/* Checkbox Indicator */}
+                                                        <div className={`
+                                                            w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all shrink-0
+                                                            ${isSelected ? 'bg-primary-600 border-primary-600 shadow-lg shadow-primary-900/40' : 'border-white/10 bg-white/5'}
+                                                        `}>
+                                                            {isSelected && <Check size={12} strokeWidth={4} className="text-white" />}
+                                                        </div>
                                                     </button>
                                                 </Fragment>
                                             );
