@@ -21,10 +21,6 @@
     "start_url": "/",
     "id": "/?pwa=true",
     "display": "standalone",
-    "display_override": [
-        "standalone",
-        "browser"
-    ],
     "background_color": "#0f172a",
     "theme_color": "#0f172a",
     "orientation": "portrait-primary",

@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     appleWebApp: {
         capable: true,
         statusBarStyle: "black-translucent",
-        title: "CarMatch®",
+        title: "CarMatch",
     },
     icons: {
         icon: [
