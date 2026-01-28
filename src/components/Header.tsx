@@ -349,6 +349,20 @@ export default function Header() {
                                                 <span className="font-medium">{t('nav.profile')}</span>
                                             </Link>
 
+                                            {/* Install App - Prominent positioning */}
+                                            {!isStandalone && (
+                                                <button
+                                                    onClick={() => {
+                                                        setShowMenu(false)
+                                                        handleAndroidClick()
+                                                    }}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-500/10 text-primary-400 transition-colors animate-pulse"
+                                                >
+                                                    <Smartphone className="w-5 h-5" />
+                                                    <span className="font-black uppercase tracking-tight text-sm">{t('common.install_app') || 'Instalar CarMatch App'}</span>
+                                                </button>
+                                            )}
+
                                             {/* Admin Panel */}
                                             {isAdmin && (
                                                 <Link href="/admin" className="flex items-center gap-3 px-4 py-3 hover:bg-primary-500/10 text-primary-400 font-bold transition-colors" onClick={() => setShowMenu(false)}>
@@ -404,20 +418,6 @@ export default function Header() {
                                                 <Settings className="w-5 h-5 text-slate-400" />
                                                 <span className="font-medium">{t('nav.settings' as any) || 'Configuración'}</span>
                                             </Link>
-
-                                            {/* Install App - Only if not standalone */}
-                                            {!isStandalone && (
-                                                <button
-                                                    onClick={() => {
-                                                        setShowMenu(false)
-                                                        handleAndroidClick()
-                                                    }}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-500/10 text-primary-400 transition-colors border-t border-surface-highlight/50"
-                                                >
-                                                    <Smartphone className="w-5 h-5" />
-                                                    <span className="font-bold">{t('common.install_app') || 'Instalar App'}</span>
-                                                </button>
-                                            )}
 
 
                                         </div>
