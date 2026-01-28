@@ -283,8 +283,62 @@ export default function Header() {
 
                     {/* RIGHT GROUP: Navigation & Profile/CTA */}
                     <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end min-w-0">
+                        {/* Dynamic CTA - Always Visible for Sales! */}
+                        <div className="flex items-center gap-3 md:gap-5 justify-end overflow-visible">
+                            <AnimatePresence mode="wait">
+                                {(ctas[ctaIndex] || "").includes(' | ') && (
+                                    <motion.div
+                                        key={`hook-${ctaIndex}`}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 10 }}
+                                        className="text-white font-black text-[11px] sm:text-lg lg:text-xl uppercase tracking-tight leading-tight max-w-[140px] sm:max-w-none text-right drop-shadow-lg hidden xs:block"
+                                    >
+                                        {(ctas[ctaIndex] || "").split(' | ')[0]}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            <div
+                                onClick={(e) => {
+                                    // Default paths based on context
+                                    const isMapContext = pathname?.startsWith('/map') || pathname?.startsWith('/map-store')
+                                    const publishVehiclePath = "/publish"
+                                    const publishBusinessPath = "/my-businesses?action=new"
+
+                                    const targetPath = isMapContext ? publishBusinessPath : (session ? publishVehiclePath : "/auth")
+
+                                    if (session && isSoftLogout) {
+                                        e.preventDefault()
+                                        openModal(
+                                            "Cerraste sesión hace un momento. ¿Deseas volver a activar tu cuenta?",
+                                            () => { /* Global modal handles this */ }
+                                        )
+                                    } else {
+                                        router.push(targetPath)
+                                    }
+                                }}
+                                className="relative group shrink-0 flex items-center cursor-pointer"
+                            >
+                                {/* The "Action" Button */}
+                                <div className="px-3 py-2 sm:px-5 sm:py-3 bg-accent-600 rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.3)] group-hover:bg-accent-500 transition-all active:scale-95 ring-2 ring-accent-500/20">
+                                    <AnimatePresence mode="wait">
+                                        <motion.span
+                                            key={`action-${ctaIndex}`}
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.9 }}
+                                            className="text-white font-black text-[13px] sm:text-xl whitespace-nowrap drop-shadow-md inline-block uppercase"
+                                        >
+                                            {(ctas[ctaIndex] || t('common.login_vehicle')).split(' | ')[1] || t('common.login_vehicle')}
+                                        </motion.span>
+                                    </AnimatePresence>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Navegación - Oculta en móvil */}
-                        <nav className="hidden md:flex items-center gap-2">
+                        <nav className="hidden lg:flex items-center gap-2">
                             <Link
                                 href="/swipe"
                                 className={`px-4 py-2 rounded-lg font-medium transition ${isActive("/swipe") ? "bg-primary-700 text-white" : "text-text-secondary hover:text-white"}`}
@@ -323,8 +377,8 @@ export default function Header() {
                             </div>
                         )}
 
-                        {/* User or Large CTA */}
-                        {status === 'authenticated' && !isSoftLogout ? (
+                        {/* User Profile */}
+                        {status === 'authenticated' && !isSoftLogout && (
                             <div className="relative">
                                 <button
                                     onClick={() => setShowMenu(showMenu === 'user' ? false : 'user')}
@@ -337,7 +391,7 @@ export default function Header() {
                                             {session.user?.name?.[0]?.toUpperCase()}
                                         </div>
                                     )}
-                                    <span className="text-text-primary font-medium hidden md:block">{session.user?.name}</span>
+                                    <span className="text-text-primary font-medium hidden xl:block">{session.user?.name}</span>
                                 </button>
                                 {showMenu === 'user' && (
                                     <>
@@ -423,54 +477,6 @@ export default function Header() {
                                         </div>
                                     </>
                                 )}
-                            </div>
-                        ) : (
-                            /* 🚀 REFACTORED CTA: EMPOWERING THE PUBLIC CLASSIFIED Slogan */
-                            <div className="flex items-center gap-3 md:gap-5 justify-end overflow-visible">
-                                <AnimatePresence mode="wait">
-                                    {(ctas[ctaIndex] || "").includes(' | ') && (
-                                        <motion.div
-                                            key={`hook-${ctaIndex}`}
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: 10 }}
-                                            className="text-white font-black text-[11px] sm:text-lg lg:text-xl uppercase tracking-tight leading-tight max-w-[140px] sm:max-w-none text-right drop-shadow-lg"
-                                        >
-                                            {(ctas[ctaIndex] || "").split(' | ')[0]}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-
-                                <div
-                                    onClick={(e) => {
-                                        const targetPath = (pathname?.startsWith('/map') || pathname?.startsWith('/map-store')) ? "/my-businesses?action=new" : "/auth"
-                                        if (session && isSoftLogout) {
-                                            e.preventDefault()
-                                            openModal(
-                                                "Cerraste sesión hace un momento. ¿Deseas volver a activar tu cuenta?",
-                                                () => { /* La lógica ya está en el modal */ }
-                                            )
-                                        } else {
-                                            router.push(targetPath)
-                                        }
-                                    }}
-                                    className="relative group shrink-0 flex items-center cursor-pointer"
-                                >
-                                    {/* The "Action" Button */}
-                                    <div className="px-3 py-2 sm:px-5 sm:py-3 bg-accent-600 rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.3)] group-hover:bg-accent-500 transition-all active:scale-95 ring-2 ring-accent-500/20">
-                                        <AnimatePresence mode="wait">
-                                            <motion.span
-                                                key={`action-${ctaIndex}`}
-                                                initial={{ opacity: 0, scale: 0.9 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.9 }}
-                                                className="text-white font-black text-[13px] sm:text-xl whitespace-nowrap drop-shadow-md inline-block uppercase"
-                                            >
-                                                {(ctas[ctaIndex] || t('common.login_vehicle')).split(' | ')[1] || t('common.login_vehicle')}
-                                            </motion.span>
-                                        </AnimatePresence>
-                                    </div>
-                                </div>
                             </div>
                         )}
                     </div>
