@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-    title: "MapStore | Servicios Automotrices 24/7 y Emergencias Mecánicas",
+    title: "MapStore | CarMatch",
     description: "Servicios automotrices 24/7 con servicio a domicilio. Localiza mecánicos, desponchadoras, refaccionarias con entrega y auxilio vial inmediato en Juárez y todo México. CarMatch te salva en el camino.",
     keywords: [
         "servicio a domicilio", "mecánico a domicilio Juárez", "refacciones a domicilio",
