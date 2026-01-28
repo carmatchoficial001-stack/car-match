@@ -1243,39 +1243,39 @@ export default function PublishClient() {
                                     </div>
                                 )}
                             </div>
-
-                            <div className="mt-8 flex gap-4">
-                                {currentStep > 1 && (
-                                    <button
-                                        type="button"
-                                        onClick={handleBack}
-                                        className="px-6 py-3 bg-surface border border-surface-highlight text-text-primary rounded-xl font-medium hover:bg-surface-highlight transition-all"
-                                    >
-                                        {t('publish.actions.back')}
-                                    </button>
-                                )}
-                                {currentStep < 4 ? (
-                                    <button
-                                        type="button"
-                                        onClick={handleNext}
-                                        disabled={loading || isAnalyzing || !canProceed}
-                                        className="flex-1 px-6 py-3 bg-primary-700 text-text-primary rounded-xl font-bold hover:bg-primary-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95"
-                                    >
-                                        {t('publish.actions.next')}
-                                    </button>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={handlePublish}
-                                        disabled={loading || !canProceedFromStep4}
-                                        className="flex-1 px-6 py-3 bg-green-600 text-text-primary rounded-xl font-bold hover:bg-green-500 disabled:opacity-50 transition-all shadow-lg active:scale-95"
-                                    >
-                                        {loading ? t('publish.actions.publishing') : t('publish.actions.publish')}
-                                    </button>
-                                )}
-                            </div>
                         </div>
                     )}
+
+                    <div className="mt-8 flex gap-4">
+                        {currentStep > 1 && (
+                            <button
+                                type="button"
+                                onClick={handleBack}
+                                className="px-6 py-3 bg-surface border border-surface-highlight text-text-primary rounded-xl font-medium hover:bg-surface-highlight transition-all"
+                            >
+                                {t('publish.actions.back')}
+                            </button>
+                        )}
+                        {currentStep < 4 ? (
+                            <button
+                                type="button"
+                                onClick={handleNext}
+                                disabled={loading || isAnalyzing || !canProceed}
+                                className="flex-1 px-6 py-3 bg-primary-700 text-text-primary rounded-xl font-bold hover:bg-primary-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95"
+                            >
+                                {t('publish.actions.next')}
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={handlePublish}
+                                disabled={loading || !canProceedFromStep4}
+                                className="flex-1 px-6 py-3 bg-green-600 text-text-primary rounded-xl font-bold hover:bg-green-500 disabled:opacity-50 transition-all shadow-lg active:scale-95"
+                            >
+                                {loading ? t('publish.actions.publishing') : t('publish.actions.publish')}
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
