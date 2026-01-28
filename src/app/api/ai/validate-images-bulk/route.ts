@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Convertir URLs de Cloudinary a base64
-        console.log('🔄 Convirtiendo', images.length, 'URLs a base64...')
+        console.log('🔄 Convirtiendo', images.length, 'URLs a base64 para análisis bulk...')
         const base64Images = await Promise.all(
             images.map(url => urlToBase64(url))
         )
@@ -54,11 +54,17 @@ export async function POST(request: NextRequest) {
             body.context
         )
 
+        console.log('🤖 Resultado Gemini AI:', {
+            valid: result.valid,
+            hasDetails: !!result.details && Object.keys(result.details).length > 0,
+            invalidCount: result.invalidIndices?.length || 0
+        })
+
         return NextResponse.json(result)
 
-    } catch (error) {
-        console.error('Error en validación bulk:', error)
-        console.warn('⚠️ ERROR EN VALIDACIÓN BULK - APROBANDO POR DEFECTO (Fail-Open)')
+    } catch (error: any) {
+        console.error('❌ Error CRÍTICO en validación bulk:', error)
+        console.warn('⚠️ FAIL-OPEN ACTIVADO - El usuario no verá el autollenado, pero podrá publicar.')
 
         // ✅ FAIL-OPEN: En caso de error técnico, aprobar todas las imágenes
         // Esto previene que vehículos legítimos sean rechazados por problemas temporales

@@ -168,6 +168,8 @@ export default function PublishClient() {
         setAiError('')
         setAiConfidence(50)
 
+        console.log('🧪 Iniciando validación de imágenes con IA...', images.length, 'fotos')
+
         // 🎯 Validamos TODAS las imágenes (Portada + Galería)
         try {
             const res = await fetch('/api/ai/validate-images-bulk', {
@@ -180,9 +182,11 @@ export default function PublishClient() {
                 })
             })
 
+            const validation = await res.json()
+            console.log('🤖 Respuesta del Asesor IA:', validation)
+
             if (!res.ok) throw new Error('Error en validación de imágenes')
 
-            const validation = await res.json()
             setAiConfidence(100)
 
             // 1. 🛡️ APLICAR DETALLES DE IA (Si la portada es válida)

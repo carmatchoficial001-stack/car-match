@@ -1,5 +1,5 @@
 
-import { geminiPro } from "./geminiClient"; // ✅ Pro para análisis de imágenes complejo
+import { geminiPro, geminiFlash } from "./geminiClient"; // ✅ Modelos para análisis
 
 
 interface ImageAnalysisResult {
@@ -172,7 +172,14 @@ REGLA CRÍTICA DE FORMATO:
         },
       };
 
-      const result = await geminiPro.generateContent([prompt, imagePart]); // ✅ Pro para visión
+      let result;
+      try {
+        result = await geminiPro.generateContent([prompt, imagePart]);
+      } catch (proError) {
+        console.warn("⚠️ Gemini Pro falló, intentando con Flash como fallback...");
+        result = await geminiFlash.generateContent([prompt, imagePart]);
+      }
+
       const response = await result.response;
       const text = response.text();
 
@@ -402,35 +409,42 @@ export async function analyzeMultipleImages(
           "analysis": [
             { "index": number, "isValid": boolean, "reason": "OK" }
           ],
-              "model": "Confirmar modelo",
-              "version": "Detectar versión específica (Ej: King Ranch, Raptor R, TRX)",
-              "transmission": "Manual|Automática",
-
-             "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-             "engine": "Ej: 2.0L Turbo",
-             "displacement": "Cilindrada",
-             "traction": "FWD|RWD|4x4|AWD",
-             "doors": 5,
-             "passengers": 5,
-             "hp": number,
-             "torque": "string",
-             "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged",
-             "cylinders": number,
-             "batteryCapacity": number,
-             "range": number,
-             "weight": number,
-             "axles": number,
-             "cargoCapacity": number,
-             "operatingHours": number
-           }
-         }
+          "details": {
+            "version": "Detectar versión específica (Ej: King Ranch, Lariat, Denali)",
+            "transmission": "Manual|Automática",
+            "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
+            "engine": "Ej: 2.0L Turbo",
+            "displacement": "Cilindrada",
+            "traction": "FWD|RWD|4x4|AWD",
+            "doors": 2|3|4|5,
+            "passengers": 5,
+            "hp": 250,
+            "torque": "300 lb-pie",
+            "aspiration": "Natural|Turbo|Supercharged",
+            "cylinders": 4,
+            "batteryCapacity": null,
+            "range": null,
+            "weight": null,
+            "axles": null,
+            "cargoCapacity": null,
+            "operatingHours": null
+          }
+        }
       `;
 
       const imageParts = galleryImages.map(img => ({
         inlineData: { data: img, mimeType: "image/jpeg" }
       }));
 
-      const galleryResultRaw = await geminiPro.generateContent([galleryPrompt, ...imageParts]); // ✅ Pro
+      let galleryResultRaw;
+      try {
+        // ⚡ USAMOS FLASH PARA LA GALERÍA: Es mucho más rápido y suficiente para verificar consistencia
+        galleryResultRaw = await geminiFlash.generateContent([galleryPrompt, ...imageParts]);
+      } catch (galleryError) {
+        console.warn("⚠️ Falló análisis de galería con Flash, reintentando una vez con Pro...");
+        galleryResultRaw = await geminiPro.generateContent([galleryPrompt, ...imageParts]);
+      }
+
       const galleryResponse = await galleryResultRaw.response;
       const galleryText = galleryResponse.text();
 
