@@ -362,5 +362,6 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
                     })}
                 </AnimatePresence>
             </div>
-            )
+        </div>
+    )
 }
