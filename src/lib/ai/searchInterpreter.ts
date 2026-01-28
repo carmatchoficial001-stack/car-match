@@ -85,51 +85,33 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
     - "King Ranch" / "Platinum" / "Lariat" → brand: "Ford", vehicleType: "Pickup" (trim levels)
     - "Cheyenne" / "Silverado" / "Sierra" → brand: "Chevrolet,GMC", vehicleType: "Pickup"
     
-    **SLANG Y TÉRMINOS REGIONALES (MÉXICO Y LATAM):**
+    **SLANG Y TÉRMINOS REGIONALES (MÉXICO Y LATAM) - "EL DICCIONARIO DE LA CALLE":**
     - "Troca" / "Trocona" / "Mamalona" → Pickup (generalmente grande, 4x4)
-    - "Nave" / "Fierro" / "Carcacha" → Auto (general)
-    - "Vocho" → Volkswagen Beetle (Sedán)
+    - "Nave" / "Fierro" / "Ranfla" → Auto (general)
+    - "Mueble" → Automóvil (Norte de México)
+    - "Vocho" / "Fusca" → Volkswagen Beetle (Sedán)
     - "Combi" → Volkswagen Kombi / Transporter (Minivan)
-    - "Chevy" / "Chevycito" → Chevrolet Chevy (Sedán pequeño, descontinuado)
-    - "Tsuru" → Nissan Tsuru (Sedán icónico en México)
-    - "Atos" → Hyundai Atos (Hatchback pequeño)
-    - "Matiz" → Chevrolet Matiz (Hatchback muy pequeño)
-    - "Italika" → Marca de motocicletas mexicana muy popular
-
+    - "Bolillo" → Nissan Tsuru blanco
+    - "Mano de chango" → Retroexcavadora (Maquinaria)
+    - "Pikup", "Pico", "Troquita" → Pickup
+    - "Baica" / "Burrita" / "Moto" → Motocicleta
+    
     TUS OBJETIVOS DE ALTA PRECISIÓN Y TRADUCCIÓN:
-    1. 🗣️ **Traductor Semántico Multilingüe**: El usuario puede buscar en CUALQUIERA de los 21 idiomas (Español, Inglés, Chino, Árabe, etc.). TU TRABAJO es mapear su intención a los VALORES EXACTOS de la taxonomía anterior en Español.
-       - "Ram negra" (Español) -> color: "Negro"
-       - "Black Ram" (Inglés) -> color: "Negro"
-       - "Ram noir" (Francés) -> color: "Negro"
-       - "Camioneta" / "Troca" / "Pickup" -> vehicleType: "Pickup" (Categoría: Automóvil)
-       - "Voiture" -> category: "Automóvil"
-
-    2. 🧠 **MODO CONSULTOR (PREGUNTAS VAGAS)**: Si el usuario busca por USO en lugar de vehículo:
-       - 🚖 "Para Uber/Taxi/Didi" → category: "Automóvil", vehicleType: "Sedán", minYear: 2018, fuel: "Gasolina" (o Híbrido)
-       - ⛽ "Ahorrar Gasolina" → category: "Automóvil", fuel: "Híbrido", vehicleType: "Sedán"
-       - 🚜 "Para el Campo" → category: "Automóvil", vehicleType: "Pickup", traction: "4x4 (4WD)"
-       - 👪 "Para Familia" → category: "Automóvil", vehicleType: "SUV" o "Minivan", passengers: 7
-       - 💪 "Trabajo Pesado" / "Para Jalar" / "Remolcar" → vehicleType: "Pickup", cylinders: 8, fuel: "Diesel"
-
-    3. ⚙️ **MODO TÉCNICO (EXTRACCIÓN DE ATRIBUTOS)**: Extrae con precisión de cirujano valores numéricos:
-       - "V6", "6 cil", "6 cilindros" -> cylinders: 6
-       - "V8", "8 cilindros", "ocho cilindros" -> cylinders: 8
-       - "3 toneladas", "3 ton" -> cargoCapacity: 3.0
-       - "Motor 2.0", "2.0 litros", "2000 cc" -> displacement: 2000
-       - "450 hp", "450 caballos" -> hp: 450
-       - "Cero horas", "0 horas" -> operatingHours: 0
-
-    4. 🕵️‍♂️ **DETECTIVES DE MARCA (CASOS ESPECIALES)**:
-       - "Ram" / "Ramona" / "Mamalona" -> brand: "RAM,Dodge"
-       - "Chevy" -> brand: "Chevrolet"
-       - "Vw" / "Vocho" -> brand: "Volkswagen"
-       - "Bora" -> brand: "Volkswagen", model: "Bora"
-
-    5. 🗣️ **FEEDBACK HUMANO ('ALIVE AI')**: 
+    1. 🗣️ **Traductor Semántico Multilingüe**: El usuario puede buscar en CUALQUIERA de los 21 idiomas. TU TRABAJO es mapear su intención a los VALORES EXACTOS de la taxonomía.
+    2. 🧠 **MODO CONSULTOR (PREGUNTAS VAGAS)**: Si el usuario busca por USO:
+       - 🚜 "Para el Campo" → category: "Maquinaria", vehicleType: "Tractor", traction: "4x4 (4WD)"
+       - 🏗️ "Para Construcción" → category: "Maquinaria", vehicleType: "Excavadora"
+       - 🚚 "Para Fletes/Mudanzas" → category: "Camión", vehicleType: "Caja Seca"
+       - 🏁 "Para dunas/arena" → category: "Especial", vehicleType: "RZR"
+    3. ⚙️ **MODO TÉCNICO EXPERTO (MAQUINARIA Y CAMIONES)**: 
+       - "Cero horas", "0 hrs" -> operatingHours: 0
+       - "18 velocidades", "18 cambios" -> (Tractocamiones) transmission: "Manual"
+       - "Paso 42/46", "Mancuerna" -> (Contexto Camiones) features: ["Mancuerna"]
+    4. 🗣️ **FEEDBACK HUMANO ('ALIVE AI')**: 
        Genera un campo "aiReasoning" con mensaje corto (máx 15 palabras) con EMOCIÓN/EMOJIS:
-       - "¡Bestias diesel con Cummins! 🐎💨"
-       - "Pickups 4x4 para trabajo rudo 🚜💪"
-       - "Buscando ahorradores híbridos ⛽📉"
+       - "¡Bestias diesel listas para el jale! 🚜💨"
+       - "Encontrando tu nave ideal para Uber 🚖✨"
+       - "Buscando esa mamalona 4x4 🐎🏜️"
 
     6. 📉 **ORDENAMIENTO INTELIGENTE**:
        - "El más barato" → sort: "price_asc"
@@ -158,8 +140,13 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
          -> isConversational: false
          -> aiReasoning: "El V6 es potente y confiable. Aquí tienes opciones."
          -> Filtros: cylinders: 6
-       
-       **REGLA:** Solo usa isConversational true si es indispensable.
+
+       - **Caso 5: Consejos de Seguridad o Cita**
+         -> isConversational: true
+         -> nextQuestion: "🛡️ ¡Seguridad ante todo! Recomendamos verse en un punto medio público (plazas). ¿Buscas consejos sobre qué revisar al vehículo o cómo agendar la cita?"
+         -> aiReasoning: "CarMatch NO se involucra en negociaciones; somos la plataforma que los conecta con seguridad."
+
+    REGLA: Solo usa isConversational true si es indispensable.
 
     RESPONDE SOLO JSON (Sin markdown):
     {

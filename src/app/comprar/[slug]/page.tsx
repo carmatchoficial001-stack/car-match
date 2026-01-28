@@ -104,8 +104,13 @@ export default async function ComprarVehiclePage({ params, searchParams }: Props
         "@type": "Car",
         "name": `${vehicle.brand} ${vehicle.model} ${vehicle.year}`,
         "description": vehicle.description,
-        "image": vehicle.images,
+        "image": vehicle.images.map(img => ({
+            "@type": "ImageObject",
+            "url": img,
+            "caption": `${vehicle.brand} ${vehicle.model} ${vehicle.year} en ${vehicle.city}`
+        })),
         "brand": {
+            "@id": brandEntity || undefined,
             "@type": "Brand",
             "name": vehicle.brand,
             "sameAs": brandEntity || undefined
@@ -124,7 +129,12 @@ export default async function ComprarVehiclePage({ params, searchParams }: Props
             "price": vehicle.price.toNumber(),
             "priceCurrency": vehicle.currency || "MXN",
             "availability": "https://schema.org/InStock",
-            "url": `https://carmatchapp.net/comprar/${slug}`
+            "url": `https://carmatchapp.net/comprar/${slug}`,
+            "offeredBy": {
+                "@type": "Organization",
+                "name": "CarMatch",
+                "url": "https://carmatchapp.net"
+            }
         }
     }
 

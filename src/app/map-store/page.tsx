@@ -50,8 +50,33 @@ export default async function MapStorePage({ searchParams }: { searchParams: any
         }
     })
 
+    // 🤖 FAQ SCHEMA for MapStore Authority
+    const mapStoreFaqLd = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "¿Cómo me ayuda el buscador inteligente de MapStore?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "El buscador de MapStore está diseñado para detectar problemas mecánicos basados en tus síntomas y recomendarte los negocios expertos (talleres, desponchadoras, refaccionarias) más cercanos a tu ubicación en tiempo real."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "¿Hay servicios 24 horas en el MapStore?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sí, el MapStore de CarMatch filtra automáticamente negocios con servicio de emergencia 24/7, incluyendo auxilio vial, grúas y mecánicos a domicilio."
+                }
+            }
+        ]
+    }
+
     return (
         <div className="h-full w-full bg-background">
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(mapStoreFaqLd) }} />
             <MapClient
                 businesses={serializeDecimal(businesses) as any}
                 user={serializeDecimal(user) as any}

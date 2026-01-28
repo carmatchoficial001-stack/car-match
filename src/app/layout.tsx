@@ -55,10 +55,10 @@ export const metadata: Metadata = {
         description: "Desliza, encuentra y conecta. La forma más inteligente y segura de comprar autos y encontrar servicios mecánicos.",
         images: [
             {
-                url: "/logo-v19.png",
-                width: 1200,
-                height: 630,
-                alt: "CarMatch Marketplace Oficial",
+                url: "/icon-512-v19.png", // 🔥 FIX: Using dark-bg high-res icon for better preview
+                width: 512,
+                height: 512,
+                alt: "CarMatch® | Marketplace Oficial",
             },
         ],
     },
@@ -66,15 +66,20 @@ export const metadata: Metadata = {
         card: "summary_large_image",
         title: "CarMatch® | El Marketplace de Autos del Futuro",
         description: "Compra, vende y encuentra servicios mecánicos en tiempo real. La app definitiva para el sector automotriz.",
-        images: ["/logo-v19.png"],
+        images: ["/icon-512-v19.png"], // 🔥 FIX: Dark-bg for Twitter
+    },
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: "black-translucent",
+        title: "CarMatch®",
     },
     icons: {
         icon: [
+            { url: "/icon-192-v19.png", sizes: "192x192" }, // 🔥 FIX: Prioritize high-res for mobile
             { url: "/favicon-v19.png", sizes: "32x32" },
-            { url: "/icon-192-v19.png", sizes: "192x192" },
         ],
         shortcut: "/icon-192-v19.png",
-        apple: "/icon-192-v19.png",
+        apple: "/icon-192-v19.png", // 🔥 FIX: Better iPhone icon
     }
 };
 
@@ -109,12 +114,35 @@ export default function RootLayout({
                                 "name": "CarMatch®",
                                 "alternateName": "CarMatch Official",
                                 "url": "https://carmatchapp.net",
-                                "logo": "https://carmatchapp.net/logo-v19.png",
+                                "logo": "https://carmatchapp.net/icon-512-v19.png", // 🔥 FIX: Dark background for search engines
                                 "sameAs": [
                                     "https://www.facebook.com/share/1AVsMtGGrG/",
                                     "https://www.instagram.com/car.matchoficial?igsh=MWR2cjN5bGVmZzdoeQ=="
                                 ],
                                 "description": "CarMatch es la plataforma líder en México para la compra y venta de piezas y vehículos, conectando usuarios con servicios automotrices 24/7."
+                            },
+                            {
+                                "@context": "https://schema.org",
+                                "@type": "WebSite",
+                                "url": "https://carmatchapp.net",
+                                "potentialAction": [
+                                    {
+                                        "@type": "SearchAction",
+                                        "target": {
+                                            "@type": "EntryPoint",
+                                            "urlTemplate": "https://carmatchapp.net/market?search={search_term_string}"
+                                        },
+                                        "query-input": "required name=search_term_string"
+                                    },
+                                    {
+                                        "@type": "SearchAction",
+                                        "target": {
+                                            "@type": "EntryPoint",
+                                            "urlTemplate": "https://carmatchapp.net/map-store?search={search_term_string}"
+                                        },
+                                        "query-input": "required name=search_term_string"
+                                    }
+                                ]
                             },
                             {
                                 "@context": "https://schema.org",
@@ -124,9 +152,9 @@ export default function RootLayout({
                                 "url": "https://carmatchapp.net",
                                 "applicationCategory": "ShoppingApplication, SocialNetworkingApplication",
                                 "operatingSystem": "iOS, Android, Windows, macOS",
-                                "description": "La aplicación líder para comprar, vender y descubrir vehículos. Incluye Modo CarMatch y MapStore de talleres.",
+                                "description": "La aplicación líder para comprar, vender y descubrir vehículos. Incluye Buscadores Expertos para vehículos y detección de fallas mecánicas.",
                                 "softwareVersion": "1.0.0",
-                                "screenshot": "https://carmatchapp.net/logo-v19.png",
+                                "screenshot": "https://carmatchapp.net/icon-512-v19.png",
                                 "offers": {
                                     "@type": "Offer",
                                     "price": "0",

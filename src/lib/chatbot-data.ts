@@ -1,3 +1,5 @@
+// 🔒 FEATURE LOCKED: CHATBOT KNOWLEDGE BASE. NO EDITAR SIN APROBACIÓN EXPRESA DE RUBEN.
+// Consulte REGLAS_DE_PROTECCION.md en la raíz para más detalles.
 export type ChatIntent = 'GREETING' | 'UPLOAD_VEHICLE' | 'MAP_STORE' | 'MODERATION' | 'PAYMENTS' | 'ADVICE' | 'SAFETY' | 'BUSINESS' | 'UNKNOWN'
 
 export interface ChatResponse {
@@ -20,6 +22,20 @@ export const KNOWLEDGE_BASE: ChatResponse[] = [
         response: '¡Hola! Soy tu Asesor CarMatch. 👨‍💻\n\nEstoy entrenado para ayudarte a:\n✅ Vender tu auto rápido y gratis.\n✅ Encontrar el taller o desponchadora más cercana.\n✅ Darte consejos de mecánica y seguridad.\n✅ Crecer tu negocio automotriz.\n\n¿Qué tienes en mente hoy?' + JOIN_INVITATION,
         actionLink: AUTH_LINK,
         actionText: AUTH_TEXT
+    },
+    {
+        keywords: ['apertura', 'nacional', '300', 'lanzamiento', 'mexico', 'méxico', 'cuantos carros', 'donde hay'],
+        intent: 'ADVICE',
+        response: '🇲🇽 **¡CarMatch ya es Nacional!** Hemos arrancado con más de 300 vehículos premium en todo el país. \n\nNuestro objetivo es que **ninguna ciudad se quede vacía**. Si no ves el carro que buscas en tu pueblo, usa el filtro de ciudad; ¡seguro tenemos una joya cerca esperándote!',
+        actionLink: '/market',
+        actionText: 'Ver Inventario Nacional'
+    },
+    {
+        keywords: ['guia', 'consejos', 'comprar bien', 'pasos para comprar', 'procedimiento'],
+        intent: 'SAFETY',
+        response: '📋 **Pasos para una compra exitosa:**\n1. **Filtra como experto:** Usa nuestro buscador inteligente para encontrar lo que realmente necesitas.\n2. **Pregunta todo:** Usa el chat para pedir el historial de servicios.\n3. **Cita Segura:** Agenda un punto medio público desde la app.\n4. **Revisión Técnica:** Sigue el checklist que nuestro Asesor IA te dará en el chat.',
+        actionLink: AUTH_LINK,
+        actionText: 'Empezar ahora'
     },
 
     // --- SELLING & PUBLISHING ---
@@ -63,13 +79,20 @@ export const KNOWLEDGE_BASE: ChatResponse[] = [
         actionText: 'Ver Autos Disponibles'
     },
 
-    // --- SAFETY ---
+    // --- SAFETY & CITA SEGURA ---
     {
-        keywords: ['seguro', 'robo', 'fraude', 'seguridad', 'cita', 'reunion', 'sos'],
+        keywords: ['seguro', 'robo', 'fraude', 'seguridad', 'cita', 'reunion', 'reunión', 'donde vernos', 'donde encontrarnos', 'punto medio', 'peligro', 'sos'],
         intent: 'SAFETY',
-        response: '👮 **Protocolo de Seguridad CarMatch:**\n\nContamos con **Cita Segura** y botón **SOS**. Siempre te recomendamos:\n1. Verse en lugares públicos (centros comerciales).\n2. No ir solo.\n3. Usar nuestro botón SOS si algo se siente mal; notificaremos a tu contacto y a las autoridades.' + JOIN_INVITATION,
+        response: '🛡️ **Protocolo de Cita Segura CarMatch:**\n\nTu seguridad es #1. Siempre recomendamos:\n1. **Punto Medio:** Búscanos para sugerirte un lugar público y concurrido (Plazas, Estacionamientos de Centros Comerciales).\n2. **Horarios:** Siempre de día, nunca en lugares aislados.\n3. **Cita Segura:** Usa nuestra herramienta de recordatorio para que ambos lleguen puntual.\n4. **No vayas solo:** Siempre avisa a alguien o ve acompañado.\n\n⚠️ **Importante:** CarMatch facilita el encuentro, pero **NO nos involucramos en las negociaciones ni transacciones de dinero**. Eso es trato directo entre ustedes.',
         actionLink: AUTH_LINK,
-        actionText: 'Ver Más de Seguridad'
+        actionText: 'Ver Consejos de Seguridad'
+    },
+    {
+        keywords: ['revisar', 'checar', 'que le checo', 'mecanica', 'probar', 'fallas', 'consejos compra'],
+        intent: 'ADVICE',
+        response: '🔍 **Lista de Inspección Pro:**\n- **Motor:** Ábrelo en frío. Busca fugas de aceite o sonidos de metal (golpeteo).\n- **Transmisión:** Los cambios deben entrar suaves, sin "patadas".\n- **Papeles:** SIEMPRE pide Factura Original o secuencia completa de facturas.\n- **VIN:** Que coincida en motor, chasis y tablero.\n- **Suspensión:** Pasa un tope y escucha que no "troné".\n\n¿Quieres un diagnóstico real? Busca un taller cerca en el MapStore.',
+        actionLink: '/map-store',
+        actionText: 'Ir al MapStore'
     },
 
     // --- BUSINESS GROWTH ---

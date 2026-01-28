@@ -465,14 +465,49 @@ export default async function MarketPage({
         isBoosted: v.user.isAdmin
     }))
 
+    // 🤖 FAQ SCHEMA for Market Authority & Expert Systems
+    const marketFaqLd = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "¿Cómo funciona el buscador experto de CarMatch?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CarMatch cuenta con un buscador experto optimizado para el mercado automotriz que permite encontrar vehículos (autos, motos, maquinaria) filtrando por marca, modelo, precio y ubicación exacta, sin distracciones y con trato directo."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "¿Para qué sirve el buscador del MapStore?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Nuestra tecnología en el MapStore incluye un buscador inteligente diseñado para detectar problemas y recomendarte automáticamente los mejores talleres, gasolineras o servicios de grúa cercanos con una efectividad superior."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "¿Es seguro comprar vehículos en CarMatch?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sí, todas las publicaciones pasan por un proceso de verificación humana. Además, CarMatch sugiere puntos de encuentro seguros para concretar las transacciones."
+                }
+            }
+        ]
+    }
+
     return (
-        <MarketClient
-            initialItems={serializeDecimal(items) as any}
-            currentUserId={currentUserId}
-            brands={brands}
-            vehicleTypes={vehicleTypes}
-            colors={colors}
-            searchParams={searchParams}
-        />
+        <>
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(marketFaqLd) }} />
+            <MarketClient
+                initialItems={serializeDecimal(items) as any}
+                currentUserId={currentUserId}
+                brands={brands}
+                vehicleTypes={vehicleTypes}
+                colors={colors}
+                searchParams={searchParams}
+            />
+        </>
     )
 }

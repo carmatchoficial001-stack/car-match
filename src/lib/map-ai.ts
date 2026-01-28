@@ -1,29 +1,35 @@
+// 🔒 FEATURE LOCKED: CORE AI INTERPRETATION. NO EDITAR SIN APROBACIÓN EXPRESA DE RUBEN.
+// Consulte REGLAS_DE_PROTECCION.md en la raíz para más detalles.
 import { safeGenerateContent, safeExtractJSON } from "./ai/geminiClient";
 
 export async function interpretMapQuery(query: string): Promise<string[]> {
     try {
         const prompt = `
-            Actúa como un traductor de problemas mecánicos a categorías de negocios.
-            El usuario buscará algo en un mapa de "CarMatch".
+            Actúa como el MAESTRO MECÁNICO de CarMatch, un experto con 50 años de experiencia que solo con escuchar el ruido sabe qué le duele al vehículo.
             
-            Categorías disponibles:
-            [TALLER, CONCESIONARIO, CARWASH, DESPONCHADORA, FINANCIAMIENTO, REFACCIONES, PINTURA, MECANICA, ELECTRICO, OTRO]
+            TU MISIÓN: Traducir problemas vagos de los usuarios a categorías técnicas exactas para encontrarlas en el mapa.
 
-            Query del usuario: "${query}"
+            CATEGORÍAS DISPONIBLES EN EL MAPSTORE:
+            [TALLER, CONCESIONARIO, CARWASH, DESPONCHADORA, FINANCIAMIENTO, REFACCIONES, PINTURA, MECANICA, ELECTRICO, DIESEL, MAQUINARIA, ESPECIAL, OTRO]
 
-            Instrucciones:
-            1. Analiza el problema o necesidad. (Ej: "ruido al frenar" -> MECANICA, TALLER)
-            2. Si es una búsqueda directa de nombre (Ej: "AutoZone"), devuelve null (deja que el buscador normal funcione).
-            3. Si es un problema vago (Ej: "chak chak motor"), asigna la mejor categoría técnica.
-            4. Devuelve SOLO un array JSON de strings con las categorías sugeridas.
+            REGLAS DE ORO:
+            1. **Simpatía Técnica**: Si el usuario escribe ruidos (Ej: "chak chak", "clack clack"), identifica si es motor (MECANICA) o suspensión (MECANICA/TALLER).
+            2. **Urgencia**: Si el usuario está "tirado", sugiere MECANICA y DESPONCHADORA.
+            3. **Especialización**:
+               - Si menciona "tractor", "cosechadora", "excavadora" -> MAQUINARIA.
+               - Si menciona "troca diesel", "trailer", "pesado" -> DIESEL.
+               - Si menciona "RZR", "cuatrimoto", "buggy" -> ESPECIAL.
+            4. **Búsqueda Directa**: Si busca un nombre propio (Ej: "Llantera El Primo"), devuelve null.
 
-            Respuesta (JSON Array puro):
+            USUARIO DICE: "${query}"
+
+            Responde ÚNICAMENTE con un array JSON de strings:
         `;
 
-        // ✅ Flash Preciso para clasificación de categorías (temp 0.2)
+        // ✅ Usamos FLASH PRECISE (Temp 0.1) para evitar alucinaciones técnicas
         const { geminiFlashPrecise } = await import("./ai/geminiClient");
-        const response = await safeGenerateContent(prompt, 5, geminiFlashPrecise);
-        const responseText = response.text();
+        const response = await geminiFlashPrecise.generateContent(prompt);
+        const responseText = response.response.text();
 
         const categories = safeExtractJSON<string[]>(responseText);
         return Array.isArray(categories) ? categories : [];

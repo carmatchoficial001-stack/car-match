@@ -83,8 +83,23 @@ export default async function CityPage({
         getCachedColors()
     ])
 
+    // 🔗 ITEM LIST SCHEMA (SEO Authority for City results)
+    const itemListLd = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": `Vehículos disponibles en ${city}`,
+        "description": `Listado de los mejores autos, motos y maquinaria pesada en venta en la ciudad de ${city}.`,
+        "itemListElement": items.map((v, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "url": `https://carmatchapp.net/comprar/${v.brand}-${v.model}-${v.year}-${v.city}-${v.id}`.toLowerCase(),
+            "name": `${v.brand} ${v.model} ${v.year}`
+        }))
+    }
+
     return (
         <div className="min-h-screen bg-background">
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd) }} />
             <div className="pt-24 px-6 max-w-7xl mx-auto text-center md:text-left">
                 <h1 className="text-4xl md:text-6xl font-black mb-2 text-text-primary uppercase tracking-tighter">
                     COMPRA Y VENTA EN <span className="text-primary-500">{city}</span>

@@ -29,6 +29,19 @@ export const BRAND_ENTITIES: Record<string, string> = {
     'land rover': 'https://www.wikidata.org/wiki/Q35891',
     'subaru': 'https://www.wikidata.org/wiki/Q52414',
     'mitsubishi': 'https://www.wikidata.org/wiki/Q183275',
+    'italika': 'https://www.wikidata.org/wiki/Q5922830',
+    'john deere': 'https://www.wikidata.org/wiki/Q483445',
+    'yamaha': 'https://www.wikidata.org/wiki/Q158888',
+    'ktm': 'https://www.wikidata.org/wiki/Q251662',
+    'suzuki': 'https://www.wikidata.org/wiki/Q181644',
+    'kawasaki': 'https://www.wikidata.org/wiki/Q663233',
+    'caterpillar': 'https://www.wikidata.org/wiki/Q28373',
+    'case': 'https://www.wikidata.org/wiki/Q2941031',
+    'massey ferguson': 'https://www.wikidata.org/wiki/Q1140997',
+    'new holland': 'https://www.wikidata.org/wiki/Q1982767',
+    'harley-davidson': 'https://www.wikidata.org/wiki/Q192931',
+    'ducati': 'https://www.wikidata.org/wiki/Q271812',
+    'bmw motorrad': 'https://www.wikidata.org/wiki/Q694154',
 }
 
 export function getBrandEntity(brand: string): string | undefined {

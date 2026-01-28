@@ -146,12 +146,13 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
 
 ═══ REGLAS DE ORO DE IDENTIFICACIÓN ═══
 - SE UN EXPERTO: Si ves una Ford con detalles de lujo y madera, es probablemente una Lariat, King Ranch o Platinum. Si ves suspensión reforzada y guardabarros anchos, es una Raptor.
+- MAQUINARIA Y DIESEL: Si detectas un Tractor o Camión Pesado, intenta identificar las HORAS de uso o los EJES si son visibles. Identifica el motor (Ej: Cummins, Duramax, Caterpillar) si hay insignias visibles.
 - NO TE EQUIVOQUES: Diferencia bien entre versiones. Una "Raptor" es muy distinta a una "FX4".
 - SIEMPRE PRIORIZA LA VERSIÓN: El campo "version" es vital para el valor del vehículo en CarMatch.
 
 
 REGLA CRÍTICA DE FORMATO:
-- En "features": INCLUYE TODO LO QUE SEPAS DE ESE MODELO. Ejemplos: "Frenos ABS", "6 Bolsas de aire", "Control de tracción", "Pantalla táctil", "Asientos de piel", "Quemacocos", "Apple CarPlay", "Faros LED", "Cámara de reversa", "Sensores de estacionamiento". ¡SE GENEROSO Y EXHAUSTIVO!
+- En "features": INCLUYE TODO LO QUE SEPAS DE ESE MODELO. Ejemplos: "Frenos ABS", "6 Bolsas de aire", "Control de tracción", "Pantalla táctil", "Asientos de piel", "Quemacocos", "Apple CarPlay", "Faros LED", "Cámara de reversa", "Sensores de estacionamiento", "Toma de fuerza PTO", "Eje de muelle", "Freno de motor". ¡SE GENEROSO Y EXHAUSTIVO!
 - Si un dato técnico NO es visible en las fotos o es INCIERTO para ese modelo, usa null (sin comillas).
 - NUNCA uses "N/A", "Unknown", "Desconocido", "NA", cadenas vacías "", ni similares.
 - Investiga el modelo identificado y completa TODO lo posible con tu conocimiento técnico.

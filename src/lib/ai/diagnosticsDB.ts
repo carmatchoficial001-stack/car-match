@@ -104,17 +104,29 @@ export const DIAGNOSTICS_DB = {
 
         // SUBARU
         { keywords: ["Subaru", "Head Gasket", "Empaques"], issue: "Fugas de empaque de cabeza (Motores EJ)", category: "mecanico" },
-        { keywords: ["Subaru", "CVT", "Solenoides"], issue: "Cuerpo de válvulas de transmisión falla", category: "transmisiones" }
-    ],
+        // 🚜 MAQUINARIA PESADA / TRACTORES (Expert Level)
+        { keywords: ["John Deere", "Tractor", "Hidraulico"], issue: "Falla en bomba hidráulica / Pérdida de potencia en brazos", category: "maquinaria" },
+        { keywords: ["Case", "Excavadora", "Orugas"], issue: "Desgaste en mandos finales / Tensión de oruga", category: "maquinaria" },
+        { keywords: ["Caterpillar", "CAT", "320", "Motor"], issue: "Falla en inyectores HEUI (Sistema de alta presión de aceite)", category: "maquinaria" },
+        { keywords: ["Massey Ferguson", "Transmision"], issue: "Falla en embrague multipower / Deslizamiento", category: "maquinaria" },
+        { keywords: ["New Holland", "Tractor", "Toma de fuerza"], issue: "Balero de toma de fuerza (PTO) ruidoso o trabado", category: "maquinaria" },
+        { keywords: ["Bobcat", "Mini Cargador", "Brazo"], issue: "Falla en válvulas de control de levante", category: "maquinaria" },
 
-    // 🗣️ DICCIONARIO DE SLANG Y TÉRMINOS REGIONALES
-    SLANG_MAP: {
-        "troca": "Pickup",
-        "mamalona": "Pickup grande/modificada",
-        "ranfla": "Automóvil clásico o Lowrider",
-        "nave": "Automóvil",
-        "mueble": "Automóvil (Norte de México)",
-        "baica": "Bicicleta o Motocicleta",
+        // 🚚 CAMIONES DE CARGA / TRACTOCAMIONES
+        { keywords: ["Kenworth", "T680", "Sensores"], issue: "Falla en sensor de posición de cigüeñal / No arranca", category: "diesel" },
+        { keywords: ["Freightliner", "Cascadia", "EATON"], issue: "Falla en embrague autoajustable (Clutch)", category: "transmisiones" },
+        { keywords: ["Volvo", "VNL", "D13", "Inyectores"], issue: "Fuga de compresión en tazas de inyectores", category: "diesel" },
+        { keywords: ["Mack", "Granite", "Falla"], issue: "Problema con el módulo de post-tratamiento de escape", category: "diesel" },
+
+        // 🏁 ESPECIAL / RZRS
+        { keywords: ["Polaris", "RZR", "Banda"], issue: "Banda de CVT quemada o deshilachada", category: "especial" },
+        { keywords: ["Can-Am", "Maverick", "Diferencial"], issue: "Ruido en diferencial delantero (Visco-Lok)", category: "especial" },
+
+        "baica": "Motocicleta",
+        "mueble": "Automóvil",
+        "mano de chango": "Excavadora/Retroexcavadora",
+        "pala": "Cargador Frontal",
+        "surco": "Maquinaria Agrícola",
         "mami van": "Minivan (Odyssey, Sienna)",
         "vocho": "Volkswagen Sedán",
         "fusca": "Volkswagen Sedán",
