@@ -10,7 +10,7 @@ import { generateDeviceFingerprint } from '@/lib/fingerprint'
 import PortalAnimation from '@/components/PortalAnimation'
 import VehicleTypeSelector from '@/components/VehicleTypeSelector'
 import SearchableSelect from '@/components/SearchableSelect'
-import { Settings2, BatteryCharging, Truck } from 'lucide-react'
+import { Settings2, BatteryCharging, Truck, X } from 'lucide-react'
 import {
     VEHICLE_CATEGORIES,
     BRANDS,
@@ -78,6 +78,7 @@ export default function PublishClient() {
     const [description, setDescription] = useState('')
     const [brand, setBrand] = useState('')
     const [model, setModel] = useState('')
+    const [version, setVersion] = useState('')
     const [year, setYear] = useState('')
     const [price, setPrice] = useState('')
     const [currency, setCurrency] = useState('MXN')
@@ -156,6 +157,7 @@ export default function PublishClient() {
     const [bestCategoryCache, setBestCategoryCache] = useState<string>('')
     const [invalidImageUrls, setInvalidImageUrls] = useState<Set<string>>(new Set())
     const [invalidReasons, setInvalidReasons] = useState<Record<string, string>>({})
+    const [rejectedIndices, setRejectedIndices] = useState<Set<number>>(new Set())
 
     const handleImagesChange = (newImages: string[]) => {
         setImages(newImages)
@@ -195,8 +197,9 @@ export default function PublishClient() {
             }
 
             // 2. 🚨 VALIDAR PORTADA (Index 0)
-            // Solo bloqueamos si la PORTADA misma es basura o no es un vehículo.
-            if (!validation.valid || validation.invalidIndices?.includes(0)) {
+            // Bloqueamos SI Y SOLO SI la PORTADA es inválida.
+            const isCoverInvalid = !validation.valid || validation.invalidIndices?.includes(0)
+            if (isCoverInvalid) {
                 const reason = validation.reason || 'La foto de portada debe ser un vehículo real.'
                 setAiError(reason)
                 setIsAnalyzing(false)
@@ -205,17 +208,19 @@ export default function PublishClient() {
                 return
             }
 
-            // 3. 🧹 FILTRAR GALERÍA (Index > 0)
-            // Si hay fotos malas en la galería, las quitamos silenciosamente y continuamos.
+            // 3. 🧹 MARCAR GALERÍA (Index > 0)
+            // Si hay fotos malas en la galería, las guardamos para filtrarlas al final.
             if (validation.invalidIndices && validation.invalidIndices.length > 0) {
-                const cleanImages = images.filter((_, idx) => !validation.invalidIndices.includes(idx))
-                console.log(`🧹 Limpieza mágica de galería: ${images.length - cleanImages.length} fotos eliminadas por no coincidir.`);
-                setImages(cleanImages)
+                const galleryRejected = validation.invalidIndices.filter((idx: number) => idx > 0)
+                setRejectedIndices(new Set(galleryRejected))
+                console.log(`⚠️ Galería marcada para limpieza: ${galleryRejected.length} fotos no pasaron pero seguimos adelante.`);
+            } else {
+                setRejectedIndices(new Set())
             }
 
             setInvalidImageUrls(new Set())
             setIsAnalyzing(false)
-            handleNextStep() // Proceder al siguiente paso automáticamente si la portada es buena
+            handleNextStep() // Proceder al siguiente paso (el usuario manda)
 
         } catch (error: any) {
             console.error('Error en validación de imágenes:', error)
@@ -266,6 +271,7 @@ export default function PublishClient() {
 
         // 🛡️ REGLA DE AUTORIDAD CARMATCH: Sobrescribir especificaciones técnicas SOLO si el usuario no las corrigió
         if (details.model && !userEditedFields.has('model')) setModel(details.model)
+        if (details.version && !userEditedFields.has('version')) setVersion(details.version)
         if (details.year && !userEditedFields.has('year')) setYear(details.year.toString())
         if (details.color && !userEditedFields.has('color')) setColor(details.color)
         if (details.type && !userEditedFields.has('vehicleType')) setVehicleType(details.type)
@@ -425,6 +431,7 @@ export default function PublishClient() {
                     setDescription(v.description || '')
                     setBrand(v.brand || '')
                     setModel(v.model || '')
+                    setVersion(v.version || '')
                     setYear(v.year?.toString() || '')
                     setPrice(v.price?.toString() || '')
                     setCurrency(v.currency || 'MXN')
@@ -463,30 +470,12 @@ export default function PublishClient() {
         setLoading(true)
         setAiError('')
 
-        // 🛡️ FILTRADO SILENCIOSO DE GALERÍA ANTES DE PUBLICAR
-        // Analizamos todas las fotos para quitar las que no sean vehículos (sin avisar al usuario)
-        let finalImages = [...images]
-        try {
-            const bulkRes = await fetch('/api/ai/validate-images-bulk', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    images,
-                    type: 'VEHICLE',
-                    context: { brand, model, year }
-                })
-            })
+        // 🛡️ FILTRADO SILENCIOSO DEFINITIVO ANTES DE PUBLICAR
+        // Usamos los índices que ya detectamos en el paso 1 para limpiar la lista.
+        let finalImages = images.filter((_, idx) => !rejectedIndices.has(idx))
 
-            if (bulkRes.ok) {
-                const bulkValidation = await bulkRes.json()
-                if (bulkValidation.invalidIndices && bulkValidation.invalidIndices.length > 0) {
-                    // Solo filtramos los índices > 0 (la galería). La portada (0) ya se validó antes.
-                    finalImages = images.filter((_, idx) => !bulkValidation.invalidIndices.includes(idx) || idx === 0)
-                    console.log(`🧹 Limpieza silenciosa: ${images.length - finalImages.length} fotos extras eliminadas por no ser válidas.`)
-                }
-            }
-        } catch (err) {
-            console.warn('Error en validación silenciosa, procediendo con fotos originales:', err)
+        if (finalImages.length < images.length) {
+            console.log(`🚀 CarMatch: Filtrando ${images.length - finalImages.length} imágenes de galería que no pasaron la auditoría IA.`);
         }
 
         try {
@@ -520,15 +509,15 @@ export default function PublishClient() {
             }
 
             const vehicleData = {
-                title: `${brand} ${model} ${year}`,
-                description, brand, model,
+                title: `${brand} ${model} ${version ? version + ' ' : ''}${year}`,
+                description, brand, model, version,
                 year: parsedYear,
                 price: parseFloat(price) || 0,
                 currency,
                 city,
                 state: stateLocation,
                 country: countryLocation,
-                latitude, longitude, images,
+                latitude, longitude, images: finalImages,
                 vehicleType,
                 features: selectedFeatures,
                 mileage: mileage ? parseInt(mileage.replace(/\D/g, '')) : null,
@@ -560,7 +549,7 @@ export default function PublishClient() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         deviceFingerprint: deviceFP,
-                        images,
+                        images: finalImages,
                         vehicleData,
                         gpsLocation: { latitude, longitude },
                         currentVehicleId: editId
@@ -779,6 +768,21 @@ export default function PublishClient() {
                                         options={modelNames}
                                         strict={false}
                                     />
+                                    <div className="space-y-2">
+                                        <label className="block text-text-primary font-medium">
+                                            Versión / Trim <span className="text-xs font-normal text-text-secondary">({t('common.optional')})</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={version}
+                                            onChange={(e) => {
+                                                setVersion(e.target.value)
+                                                setUserEditedFields(prev => new Set(prev).add('version'))
+                                            }}
+                                            placeholder="Ej: Raptor, Denali, GTI..."
+                                            className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all"
+                                        />
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                     <SearchableSelect
@@ -1232,7 +1236,40 @@ export default function PublishClient() {
                             <GPSCaptureStep onLocationChange={handleLocationChange} latitude={latitude} longitude={longitude} city={city} />
 
                             {/* Resumen Final para Revisión */}
-                            <div className="pt-8 border-t border-surface-highlight">
+                            <div className="pt-8 border-t border-surface-highlight space-y-8">
+                                {/* 📸 Resumen de Fotos que pasarán (Limpieza Silenciosa) */}
+                                <div>
+                                    <h3 className="text-sm font-bold text-primary-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse" />
+                                        Fotos confirmadas para publicación
+                                    </h3>
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                                        {images.filter((_, idx) => !rejectedIndices.has(idx)).map((url, index) => (
+                                            <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-surface-highlight bg-surface group">
+                                                <img
+                                                    src={url}
+                                                    alt={`Confirmada ${index}`}
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                />
+                                                {index === 0 && (
+                                                    <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-primary-700 text-[9px] font-black text-white rounded-md shadow-lg border border-primary-600">
+                                                        PORTADA
+                                                    </div>
+                                                )}
+                                                {/* Overlay de calidad sugerido */}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                                            </div>
+                                        ))}
+                                        {/* Placeholder si se borraron muchas */}
+                                        {images.filter((_, idx) => rejectedIndices.has(idx)).length > 0 && (
+                                            <div className="aspect-square rounded-xl border border-dashed border-surface-highlight bg-surface/30 flex flex-col items-center justify-center p-2 text-center opacity-40">
+                                                <X size={16} className="text-text-secondary mb-1" />
+                                                <span className="text-[10px] font-medium leading-tight">Fotos depuradas por la IA</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
                                 {(!brand || !model || !year || !price || images.length === 0 || !city) && (
                                     <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl space-y-2">
                                         <p className="text-red-500 font-bold text-sm">⚠️ {t('publish.validation.review_required')}</p>

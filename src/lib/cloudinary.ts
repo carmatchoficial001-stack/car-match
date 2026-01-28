@@ -73,18 +73,19 @@ export async function uploadMultipleToCloudinary(
     files: File[],
     onProgress?: (completed: number, total: number) => void
 ): Promise<string[]> {
-    const urls: string[] = []
+    let completedCount = 0
+    const total = files.length
 
-    for (let i = 0; i < files.length; i++) {
-        const url = await uploadToCloudinary(files[i])
-        urls.push(url)
-
+    const uploadPromises = files.map(async (file) => {
+        const url = await uploadToCloudinary(file)
+        completedCount++
         if (onProgress) {
-            onProgress(i + 1, files.length)
+            onProgress(completedCount, total)
         }
-    }
+        return url
+    })
 
-    return urls
+    return Promise.all(uploadPromises)
 }
 
 /**

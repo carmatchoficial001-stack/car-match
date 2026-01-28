@@ -403,31 +403,42 @@ export async function analyzeMultipleImages(
         - RECHAZA CONTENIDO NO FOTOGRÁFICO: Dibujos, capturas de pantalla, etc.
         - LA PORTADA NUNCA ES INVÁLIDA POR CULPA DE LA GALERÍA.
 
+        🧞‍♂️ MODO GENIO (AGENCY KNOWLEDGE):
+        Usa las fotos de la galería para confirmar o descubrir equipamiento adicional que no se veía en la portada (quemacocos, pantallas traseras, sensores, etc.).
+
 
         Responde con este JSON:
         {
           "analysis": [
             { "index": number, "isValid": boolean, "reason": "OK" }
           ],
+          "category": "automovil|motocicleta|comercial|industrial|transporte|especial",
           "details": {
+            "brand": "Marca del vehículo (de la portada)",
+            "model": "Modelo del vehículo (de la portada)",
+            "year": number,
             "version": "Detectar versión específica (Ej: King Ranch, Lariat, Denali)",
+            "color": "Color",
+            "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
             "transmission": "Manual|Automática",
             "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-            "engine": "Ej: 2.0L Turbo",
+            "engine": "Especificación motor",
             "displacement": "Cilindrada",
             "traction": "FWD|RWD|4x4|AWD",
             "doors": 2|3|4|5,
-            "passengers": 5,
-            "hp": 250,
-            "torque": "300 lb-pie",
-            "aspiration": "Natural|Turbo|Supercharged",
-            "cylinders": 4,
+            "passengers": 2|5|7|9,
+            "hp": "Potencia",
+            "torque": "Torque",
+            "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged",
+            "cylinders": 3|4|5|6|8|10|12,
             "batteryCapacity": null,
             "range": null,
             "weight": null,
             "axles": null,
             "cargoCapacity": null,
-            "operatingHours": null
+            "operatingHours": null,
+            "condition": "Nuevo|Usado",
+            "features": ["Lista de equipamiento adicional detectado en estas fotos"]
           }
         }
       `;
@@ -461,21 +472,26 @@ export async function analyzeMultipleImages(
           .map((a: any) => a.index)
           .filter((idx: number) => idx !== 0); // PROTECCIÓN: El índice 0 NUNCA es inválido por culpa de la galería
 
-        // BLINDAJE FINAL: Los detalles de identidad (Marca/Modelo/Año/Tipo) NUNCA vienen de la galería.
-        // Solo aceptamos enriquecimiento técnico (motor/transmisión).
+        // 🧠 MEZCLA MAESTRA (MERGE): 
+        // Combinar equipamiento de portada y galería sin duplicados
+        const combinedFeatures = Array.from(new Set([
+          ...(coverResult.details?.features || []),
+          ...(galleryParsed.details?.features || [])
+        ]));
+
         return {
-          valid: coverResult.valid, // La validez general depende de la portada
+          valid: coverResult.valid,
           reason: coverResult.reason || "OK",
           invalidIndices: invalidIndices,
           details: {
-            ...coverResult.details, // Identidad Soberana
-            ...galleryParsed.details, // Enriquecimiento Técnico
-            // Forzamos que la identidad sea la de la portada, sin importar qué dijo la galería
+            ...coverResult.details,
+            ...galleryParsed.details,
             brand: IDENTIDAD_SOBERANA_DE_PORTADA.brand,
             model: IDENTIDAD_SOBERANA_DE_PORTADA.model,
-            version: galleryParsed.details?.version || IDENTIDAD_SOBERANA_DE_PORTADA.version, // Permitimos que la galería mejore la versión detectada
+            version: galleryParsed.details?.version || IDENTIDAD_SOBERANA_DE_PORTADA.version,
             year: IDENTIDAD_SOBERANA_DE_PORTADA.year,
-            type: IDENTIDAD_SOBERANA_DE_PORTADA.type
+            type: IDENTIDAD_SOBERANA_DE_PORTADA.type,
+            features: combinedFeatures
           },
 
           category: coverResult.category,
