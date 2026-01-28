@@ -26,7 +26,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
     if (!vehicle) {
         return {
-            title: 'Vehículo no encontrado | CarMatch',
+            title: 'CarMatch',
         }
     }
 
@@ -43,7 +43,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const description = `CarMatch Verificado: ${vehicle.brand} ${vehicle.model} ${vehicle.year}. ${specs}. ${vehicle.description?.substring(0, 120)}...`
 
     return {
-        title: title,
+        title: 'CarMatch',
         description: description,
         openGraph: {
             title: title,

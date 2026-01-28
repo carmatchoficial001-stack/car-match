@@ -9,7 +9,7 @@ import { serializeDecimal } from "@/lib/serialize"
 import { VEHICLE_CATEGORIES, COLORS, GLOBAL_SYNONYMS, BRANDS } from "@/lib/vehicleTaxonomy"
 
 export const metadata = {
-    title: "MarketCar | CarMatch",
+    title: "CarMatch",
     description: "La mayor variedad de vehículos en un solo lugar. Compra y vende autos (Toyota, Nissan, Ford), motocicletas (Italika, Yamaha), tractores (John Deere), camiones y maquinaria pesada. Filtros profesionales en CarMatch.",
     keywords: [
         "Toyota en venta", "Nissan usados", "Honda Civic", "Ford F-150",

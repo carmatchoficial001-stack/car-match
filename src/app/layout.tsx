@@ -15,10 +15,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
     metadataBase: new URL("https://carmatchapp.net"),
-    title: {
-        default: "CarMatch",
-        template: "%s | CarMatch"
-    },
+    title: "CarMatch",
     description: "CarMatch es la red social líder para comprar, vender y descubrir vehículos en México. MarketCar oficial con Modo CarMatch y MapStore 24/7 de servicios automotrices.",
     alternates: {
         canonical: "https://carmatchapp.net",

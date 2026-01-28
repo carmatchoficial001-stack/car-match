@@ -26,14 +26,14 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     })
 
     if (!vehicle) {
-        return { title: 'Vehículo no encontrado' }
+        return { title: 'CarMatch' }
     }
 
     const title = `✓ ${vehicle.brand} ${vehicle.model} ${vehicle.year} en ${vehicle.city} | CarMatch®`
     const description = `Venta de ${vehicle.brand} ${vehicle.model} usado en ${vehicle.city}. Motor ${vehicle.engine}, ${vehicle.transmission}. Trato directo en CarMatch.`
 
     return {
-        title,
+        title: 'CarMatch',
         description,
         openGraph: {
             title,
