@@ -2,6 +2,14 @@
     "name": "CarMatch",
     "short_name": "CarMatch",
     "description": "Red social para comprar, vender y descubrir vehículos y negocios automotrices en tiempo real",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#0f172a",
+    "orientation": "portrait",
+    "scope": "/",
+    "lang": "es-MX",
+    "prefer_related_applications": false,
     "icons": [
         {
             "src": "/icon-192-v19.png",
@@ -28,29 +36,20 @@
             "purpose": "maskable"
         }
     ],
-    "start_url": "/",
-    "id": "/",
-    "display": "standalone",
-    "background_color": "#0f172a",
-    "theme_color": "#0f172a",
-    "orientation": "portrait-primary",
-    "scope": "/",
-    "lang": "es-MX",
-    "dir": "ltr",
     "screenshots": [
         {
             "src": "/screenshots/swipe.png",
             "sizes": "1080x1920",
             "type": "image/png",
             "form_factor": "narrow",
-            "label": "Swipe Feed - Tinder Style"
+            "label": "Swipe Feed"
         },
         {
             "src": "/screenshots/market.png",
             "sizes": "1080x1920",
             "type": "image/png",
             "form_factor": "narrow",
-            "label": "MarketCar Feed"
+            "label": "MarketCar"
         }
     ],
     "categories": [

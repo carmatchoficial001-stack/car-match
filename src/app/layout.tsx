@@ -75,11 +75,11 @@ export const metadata: Metadata = {
     },
     icons: {
         icon: [
-            { url: "/icon-192-v19.png", sizes: "192x192" }, // 🔥 FIX: Prioritize high-res for mobile
+            { url: "/icon-192-v19.png", sizes: "192x192" },
             { url: "/favicon-v19.png", sizes: "32x32" },
         ],
         shortcut: "/icon-192-v19.png",
-        apple: "/icon-192-v19.png", // 🔥 FIX: Better iPhone icon
+        apple: "/icon-192-v19.png",
     }
 };
 
