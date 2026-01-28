@@ -8,6 +8,7 @@ import { ResponsiveViewportFix } from "./responsive-viewport-fix";
 import Header from "@/components/Header";
 import RestoringSessionOverlay from "@/components/RestoringSessionOverlay";
 import RestoreSessionModal from "@/components/RestoreSessionModal";
+import InstallInvasiveBanner from "@/components/InstallInvasiveBanner";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -141,6 +142,7 @@ export default function RootLayout({
                     }}
                 />
                 <Providers>
+                    <InstallInvasiveBanner />
                     <PushNotificationRequest />
                     <OpenInBrowserBanner />
                     <ResponsiveViewportFix />

@@ -4,14 +4,14 @@
     "description": "Red social para comprar, vender y descubrir vehículos y negocios automotrices en tiempo real",
     "screenshots": [
         {
-            "src": "https://raw.githubusercontent.com/carmatchoficial001-stack/car-match/main/public/screenshots/carMatchSwipe-mobile.png",
+            "src": "/screenshots/swipe.png",
             "sizes": "1080x1920",
             "type": "image/png",
             "form_factor": "narrow",
             "label": "Swipe Feed - Tinder Style"
         },
         {
-            "src": "https://raw.githubusercontent.com/carmatchoficial001-stack/car-match/main/public/screenshots/marketCar-mobile.png",
+            "src": "/screenshots/market.png",
             "sizes": "1080x1920",
             "type": "image/png",
             "form_factor": "narrow",
