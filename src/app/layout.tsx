@@ -68,9 +68,12 @@ export const metadata: Metadata = {
         images: ["/logo-v19.png"],
     },
     icons: {
-        icon: "/maskable-512-v19.png",
-        shortcut: "/maskable-512-v19.png",
-        apple: "/maskable-512-v19.png",
+        icon: [
+            { url: "/favicon-v19.png", sizes: "32x32" },
+            { url: "/icon-192-v19.png", sizes: "192x192" },
+        ],
+        shortcut: "/icon-192-v19.png",
+        apple: "/icon-192-v19.png",
     }
 };
 
