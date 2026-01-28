@@ -348,28 +348,19 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
         <div className="relative w-full sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto flex flex-col h-full min-h-[75vh]">
             <div className="relative flex-1 h-full flex justify-center perspective-1000">
                 <AnimatePresence mode="popLayout">
-                    {currentItem && (
-                        <SwipeCard
-                            key={currentItem.id}
-                            item={currentItem}
-                            onSwipe={handleSwipe}
-                            isTop={true}
-                            exitX={exitX}
-                        />
-                    )}
+                    {items.slice(0, 2).map((item, index) => {
+                        const isTop = index === 0;
+                        return (
+                            <SwipeCard
+                                key={item.id}
+                                item={item}
+                                onSwipe={isTop ? handleSwipe : () => { }}
+                                isTop={isTop}
+                                exitX={isTop ? exitX : undefined}
+                            />
+                        );
+                    })}
                 </AnimatePresence>
-
-                {nextItem && (
-                    <div className="absolute w-full h-full sm:max-w-md md:max-w-xl lg:max-w-2xl pointer-events-none -z-10 scale-[0.98] translate-y-4 opacity-70">
-                        <SwipeCard
-                            key={nextItem.id}
-                            item={nextItem}
-                            onSwipe={() => { }}
-                            isTop={false}
-                        />
-                    </div>
-                )}
             </div>
-        </div>
-    )
+            )
 }

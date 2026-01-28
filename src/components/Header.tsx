@@ -305,7 +305,7 @@ export default function Header() {
                                                 initial={{ opacity: 0, y: -5 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: 5 }}
-                                                className="text-[9px] sm:text-[11px] text-slate-300 font-bold uppercase tracking-wider leading-none"
+                                                className="text-[15px] sm:text-[11px] text-slate-300 font-bold uppercase tracking-wider leading-none"
                                             >
                                                 {(ctas[ctaIndex] || "").split(' | ')[0]}
                                             </motion.span>
@@ -332,7 +332,7 @@ export default function Header() {
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: 10 }}
-                                            className="text-white font-black text-[10px] sm:text-lg lg:text-xl uppercase tracking-tight leading-tight max-w-[120px] sm:max-w-none text-right drop-shadow-lg"
+                                            className="text-white font-black text-[15px] sm:text-lg lg:text-xl uppercase tracking-tight leading-tight max-w-[150px] sm:max-w-none text-right drop-shadow-lg"
                                         >
                                             {(ctas[ctaIndex] || "").split(' | ')[0]}
                                         </motion.div>
