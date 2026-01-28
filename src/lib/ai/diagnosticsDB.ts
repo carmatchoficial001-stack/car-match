@@ -121,7 +121,9 @@ export const DIAGNOSTICS_DB = {
         // 🏁 ESPECIAL / RZRS
         { keywords: ["Polaris", "RZR", "Banda"], issue: "Banda de CVT quemada o deshilachada", category: "especial" },
         { keywords: ["Can-Am", "Maverick", "Diferencial"], issue: "Ruido en diferencial delantero (Visco-Lok)", category: "especial" },
+    ],
 
+    SLANG_MAPPING: {
         "baica": "Motocicleta",
         "mueble": "Automóvil",
         "mano de chango": "Excavadora/Retroexcavadora",
