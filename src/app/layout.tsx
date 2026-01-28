@@ -16,8 +16,8 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     metadataBase: new URL("https://carmatchapp.net"),
     title: {
-        default: "CarMatch® | Red Social y MarketCar Oficial • Compra y Venta de Autos",
-        template: "%s | CarMatch®"
+        default: "CarMatch",
+        template: "%s | CarMatch"
     },
     description: "CarMatch es la red social líder para comprar, vender y descubrir vehículos en México. MarketCar oficial con Modo CarMatch y MapStore 24/7 de servicios automotrices.",
     alternates: {
@@ -50,8 +50,8 @@ export const metadata: Metadata = {
         type: "website",
         locale: "es_MX",
         url: "https://carmatchapp.net",
-        siteName: "CarMatch®",
-        title: "CarMatch® | La Revolución Automotriz",
+        siteName: "CarMatch",
+        title: "CarMatch | La Revolución Automotriz",
         description: "Desliza, encuentra y conecta. La forma más inteligente y segura de comprar autos y encontrar servicios mecánicos.",
         images: [
             {
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary_large_image",
-        title: "CarMatch® | El Marketplace de Autos del Futuro",
+        title: "CarMatch | El Marketplace de Autos del Futuro",
         description: "Compra, vende y encuentra servicios mecánicos en tiempo real. La app definitiva para el sector automotriz.",
         images: ["/icon-512-v19.png"], // 🔥 FIX: Dark-bg for Twitter
     },
