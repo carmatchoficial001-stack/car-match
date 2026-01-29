@@ -9,17 +9,13 @@ export default async function LandingPage() {
     const cookieStore = await cookies()
     const isSoftLogout = cookieStore.get('soft_logout')?.value === 'true'
 
-    // 🔥 Redirección inmediata en el Servidor si ya está logueado
+    // 🔥 Redirección inmediata en el Servidor si ya está logueado y NO es soft logout
     if (session && !isSoftLogout) {
         redirect(getWeightedHomePath())
     }
 
-    // 🎲 REDIRECCIÓN PROBABILÍSTICA PARA INVITADOS (90% MarketCar / 10% MapStore)
-    // Esto elimina la barrera de la landing estática
-    const random = Math.random()
-    if (random < 0.9) {
-        redirect('/market') // 90% MarketCar
-    } else {
-        redirect('/map') // 10% MapStore
-    }
+    // ✅ Restauramos la Landing Page para invitados y bots.
+    // Esto es fundamental para que Google pueda indexar el contenido de la raíz.
+    // Los botones dentro de la landing permiten navegar a /market o /auth según el usuario prefiera.
+    return <LandingPageContent />
 }

@@ -38,8 +38,50 @@ export const metadata: Metadata = {
     verification: {
         google: "u4BWC_7mrWziSal62PD0Jv6grcjI6Pl2zHOnc0Jcdxg",
     },
-    keywords: ["CarMatch", "CarMatch App", "compra venta autos", "marketplace autos mexico", "talleres mecanicos 24 horas", "auxilio vial", "refacciones juarez"],
-    manifest: "/manifest.webmanifest",
+    keywords: [
+        // Core Brand
+        "CarMatch", "CarMatch App", "CarMatch México", "CarMatch Official", "CarMatch Oficial",
+
+        // Compra-Venta General
+        "compra venta autos", "marketplace autos mexico", "vender carro gratis", "comprar autos usados",
+        "compra de carros", "venta de autos", "autos seminuevos", "carros usados baratos",
+
+        // Long-tail Específicos
+        "donde vender mi carro rapido", "comprar auto usado seguro", "marketplace autos confiable",
+        "vender carro sin intermediarios", "comprar carro particular", "autos usados certificados",
+
+        // Tipos de Vehículos
+        "carros", "carros deportivos", "autos usados", "vehiculos", "camionetas usadas",
+        "pickups seminuevos", "SUV usadas mexico", "sedanes economicos", "autos compactos",
+        "carros automaticos", "motos usadas", "autos hibridos usados", "carros electricos",
+
+        // Map Store y Servicios
+        "mapa de negocios", "directorio automotriz", "talleres mecanicos 24 horas",
+        "mecanico cerca de mi", "desponchadora abierta", "servicios automotrices mexico",
+        "taller mecanico confiable", "auxilio vial", "grua 24 horas", "mecanico a domicilio",
+        "refacciones cerca de mi", "carwash cerca", "llantera abierta ahora",
+
+        // Regional y Ciudades
+        "refacciones juarez", "autos usados juarez", "compra venta autos cdmx",
+        "carros usados monterrey", "autos guadalajara", "vender auto tijuana",
+        "marketplace autos mexico", "carros en venta mexico",
+
+        // Engagement y Social
+        "red social autos", "tinder de carros", "swipe autos", "app comprar carros",
+        "app vender auto", "comunidad automotriz", "foro autos mexico",
+
+        // Safety y Trust
+        "compra segura autos", "cita segura vender auto", "verificar auto usado",
+        "como comprar auto usado seguro", "evitar fraude compra auto",
+
+        // Mobile y Tech
+        "app autos mexico", "aplicacion vender carro", "marketplace autos movil",
+        "PWA autos", "instalar CarMatch", "descargar CarMatch",
+
+        // Aliases y Variantes
+        "car match", "match de carros", "encontrar auto ideal", "buscar auto usado"
+    ],
+    manifest: "/app-v1.webmanifest",
     authors: [{ name: "CarMatch" }],
     creator: "CarMatch",
     publisher: "CarMatch",
@@ -49,7 +91,7 @@ export const metadata: Metadata = {
         url: "https://carmatchapp.net",
         siteName: "CarMatch",
         title: "CarMatch | La Revolución Automotriz",
-        description: "Desliza, encuentra y conecta. La forma más inteligente y segura de comprar autos y encontrar servicios mecánicos.",
+        description: "Desliza, encuentra y conecta. La forma más inteligente y segura de comprar autos usados, vender tu carro gratis y encontrar talleres mecánicos 24/7 cerca de ti. CarMatch es la red social automotriz #1 en México.",
         images: [
             {
                 url: "/icon-512-v19.png", // 🔥 FIX: Using dark-bg high-res icon for better preview
@@ -62,7 +104,7 @@ export const metadata: Metadata = {
     twitter: {
         card: "summary_large_image",
         title: "CarMatch | El Marketplace de Autos del Futuro",
-        description: "Compra, vende y encuentra servicios mecánicos en tiempo real. La app definitiva para el sector automotriz.",
+        description: "Descubre autos usados con swipe, vende tu carro gratis y encuentra talleres 24/7 en el mapa. 1er auto gratis 6 meses. La app definitiva del sector automotriz que revoluciona México.",
         images: ["/icon-512-v19.png"], // 🔥 FIX: Dark-bg for Twitter
     },
     appleWebApp: {
@@ -168,6 +210,126 @@ export default function RootLayout({
                                     "ratingValue": "4.9",
                                     "ratingCount": "1250"
                                 }
+                            },
+                            // 🎯 NEW: FAQPage Schema para Rich Snippets
+                            {
+                                "@context": "https://schema.org",
+                                "@type": "FAQPage",
+                                "mainEntity": [
+                                    {
+                                        "@type": "Question",
+                                        "name": "¿Cómo vendo mi carro gratis en CarMatch?",
+                                        "acceptedAnswer": {
+                                            "@type": "Answer",
+                                            "text": "Tu primer vehículo se publica GRATIS por 6 meses completos. Solo regístrate, sube fotos de calidad y describe tu auto. Aparecerá en MarketCar y en el feed CarMatch para máxima visibilidad."
+                                        }
+                                    },
+                                    {
+                                        "@type": "Question",
+                                        "name": "¿Qué es el feed CarMatch estilo Tinder?",
+                                        "acceptedAnswer": {
+                                            "@type": "Answer",
+                                            "text": "Es una forma rápida y divertida de descubrir vehículos. Desliza a la derecha (Like) para guardar en favoritos o a la izquierda (Dislike) para ocultar. Perfecto para explorar mientras esperas el transporte."
+                                        }
+                                    },
+                                    {
+                                        "@type": "Question",
+                                        "name": "¿Cómo encuentro un taller mecánico 24 horas cerca de mí?",
+                                        "acceptedAnswer": {
+                                            "@type": "Answer",
+                                            "text": "Usa nuestro Map Store con búsqueda inteligente por IA. Solo describe tu problema (ej: 'mi carro hace ruido al frenar') y te mostramos talleres especializados cercanos con servicio 24/7 o a domicilio."
+                                        }
+                                    },
+                                    {
+                                        "@type": "Question",
+                                        "name": "¿Es seguro comprar autos en CarMatch?",
+                                        "acceptedAnswer": {
+                                            "@type": "Answer",
+                                            "text": "Sí. CarMatch cuenta con sistema de Cita Segura, recordatorios automáticos, alertas SOS con geolocalización y un Asesor IA que te da consejos de verificación antes de comprar. Nunca vayas solo a una cita."
+                                        }
+                                    },
+                                    {
+                                        "@type": "Question",
+                                        "name": "¿CarMatch cobra comisión por ventas?",
+                                        "acceptedAnswer": {
+                                            "@type": "Answer",
+                                            "text": "NO. CarMatch NUNCA cobra comisión por ventas. Solo cobras créditos si publicas más de un vehículo o después del periodo gratuito. La negociación y pago es 100% directo entre comprador y vendedor."
+                                        }
+                                    }
+                                ]
+                            },
+                            // 🏢 NEW: LocalBusiness Schema para Map Store
+                            {
+                                "@context": "https://schema.org",
+                                "@type": "LocalBusiness",
+                                "name": "CarMatch Map Store",
+                                "description": "Directorio en tiempo real de talleres mecánicos, desponchadoras, refaccionarias y servicios automotrices con filtros de servicio 24/7 y a domicilio",
+                                "url": "https://carmatchapp.net/map-store",
+                                "logo": "https://carmatchapp.net/icon-512-v19.png",
+                                "geo": {
+                                    "@type": "GeoCoordinates",
+                                    "latitude": "31.6904",
+                                    "longitude": "-106.4245"
+                                },
+                                "address": {
+                                    "@type": "PostalAddress",
+                                    "addressCountry": "MX",
+                                    "addressRegion": "Chihuahua"
+                                },
+                                "areaServed": [
+                                    {
+                                        "@type": "Country",
+                                        "name": "México"
+                                    },
+                                    {
+                                        "@type": "City",
+                                        "name": "Ciudad Juárez"
+                                    },
+                                    {
+                                        "@type": "City",
+                                        "name": "Ciudad de México"
+                                    },
+                                    {
+                                        "@type": "City",
+                                        "name": "Monterrey"
+                                    },
+                                    {
+                                        "@type": "City",
+                                        "name": "Guadalajara"
+                                    }
+                                ],
+                                "priceRange": "Gratis",
+                                "openingHours": "Mo-Su 00:00-23:59"
+                            },
+                            // 📋 NEW: ItemList Schema para los tres feeds
+                            {
+                                "@context": "https://schema.org",
+                                "@type": "ItemList",
+                                "name": "Funcionalidades Principales de CarMatch",
+                                "description": "Triple experiencia única para el mercado automotriz",
+                                "itemListElement": [
+                                    {
+                                        "@type": "ListItem",
+                                        "position": 1,
+                                        "name": "MarketCar - Marketplace Tradicional",
+                                        "description": "Busca y compara autos usados con filtros avanzados por marca, modelo, precio, ciudad y características específicas",
+                                        "url": "https://carmatchapp.net/market"
+                                    },
+                                    {
+                                        "@type": "ListItem",
+                                        "position": 2,
+                                        "name": "CarMatch Swipe - Feed Tipo Tinder",
+                                        "description": "Descubre vehículos de forma rápida y divertida con sistema de deslizamiento. Like para guardar, Dislike para ocultar",
+                                        "url": "https://carmatchapp.net/swipe"
+                                    },
+                                    {
+                                        "@type": "ListItem",
+                                        "position": 3,
+                                        "name": "Map Store - Mapa de Negocios 24/7",
+                                        "description": "Encuentra talleres, desponchadoras, refaccionarias y servicios automotrices cerca de ti con búsqueda inteligente por IA",
+                                        "url": "https://carmatchapp.net/map-store"
+                                    }
+                                ]
                             }
                         ])
                     }}

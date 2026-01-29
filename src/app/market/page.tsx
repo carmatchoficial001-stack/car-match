@@ -9,14 +9,33 @@ import { serializeDecimal } from "@/lib/serialize"
 import { VEHICLE_CATEGORIES, COLORS, GLOBAL_SYNONYMS, BRANDS } from "@/lib/vehicleTaxonomy"
 
 export const metadata = {
-    title: "CarMatch",
-    description: "La mayor variedad de vehículos en un solo lugar. Compra y vende autos (Toyota, Nissan, Ford), motocicletas (Italika, Yamaha), tractores (John Deere), camiones y maquinaria pesada. Filtros profesionales en CarMatch.",
+    title: "MarketCar | Compra y Venta de Autos, Motos, Tractores y Maquinaria",
+    description: "La mayor variedad de vehículos en un solo lugar. Compra y vende autos (Toyota, Nissan, Ford), motocicletas (Italika, Yamaha), tractores (John Deere), camiones y maquinaria pesada con filtros profesionales y trato directo sin comisión en CarMatch.",
     keywords: [
-        "Toyota en venta", "Nissan usados", "Honda Civic", "Ford F-150",
-        "venta de motos", "Italika", "Yamaha R6", "KTM",
-        "tractores agrícolas", "John Deere", "Massey Ferguson", "maquinaria pesada",
-        "camiones de carga", "remolques", "semirremolques",
-        "autos baratos Juárez", "camionetas 4x4", "BMW seminuevos", "vender mi auto gratis"
+        // Marcas Populares Autos
+        "Toyota en venta", "Nissan usados", "Honda Civic", "Ford F-150", "Chevrolet Silverado",
+        "BMW seminuevos", "Mercedes Benz usados", "Volkswagen Jetta", "Mazda 3", "Hyundai Accent",
+
+        // Motos
+        "venta de motos", "motos usadas", "Italika 250", "Yamaha R6", "KTM", "Harley Davidson",
+        "motos deportivas", "motos de trabajo", "scooters usados",
+
+        // Maquinaria y Pesados
+        "tractores agrícolas", "John Deere usados", "Massey Ferguson", "maquinaria pesada",
+        "camiones de carga", "camiones torton", "remolques", "semirremolques", "volteos",
+        "excavadoras usadas", "retroexcavadoras", "minicargadores",
+
+        // Long-tail y Regionales
+        "autos baratos Juárez", "camionetas 4x4", "pickups Monterrey", "autos CDMX",
+        "carros deportivos Guadalajara", "SUV familiares", "sedanes economicos",
+
+        // Términos de compra
+        "vender mi auto gratis", "donde vender mi carro", "comprar auto usado confiable",
+        "marketplace autos sin comision", "trato directo vehiculos",
+
+        // Categorías Generales
+        "carros en venta", "autos de lujo", "autos modificados", "carros clasicos",
+        "vehiculos electricos usados", "autos hibridos mexico"
     ]
 }
 

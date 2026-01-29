@@ -28,12 +28,17 @@ export default function PushNotificationRequest() {
     useEffect(() => {
         if (status !== 'authenticated') return
 
+        // Verificar si el usuario ya rechazó las notificaciones antes
+        const hasDeclined = localStorage.getItem('push-notifications-declined')
+        if (hasDeclined === 'true') return
+
         // Solo mostrar si las notificaciones están soportadas y en estado 'default'
         if ('Notification' in window && Notification.permission === 'default') {
             const timer = setTimeout(() => setShowPrompt(true), 2000)
             return () => clearTimeout(timer)
         }
     }, [status])
+
 
     const subscribeUser = async () => {
         if (!session?.user?.id) {
@@ -73,6 +78,8 @@ export default function PushNotificationRequest() {
 
             // ✅ CERRAR MODAL INMEDIATAMENTE después de que usuario acepta
             setShowPrompt(false)
+            // Limpiar el flag de rechazo ya que ahora aceptó
+            localStorage.removeItem('push-notifications-declined')
 
             // Crear suscripción
             const subscription = await registration.pushManager.subscribe({
@@ -103,7 +110,10 @@ export default function PushNotificationRequest() {
 
     const handleDismiss = () => {
         setShowPrompt(false)
+        // Guardar que el usuario rechazó para no volver a mostrar
+        localStorage.setItem('push-notifications-declined', 'true')
     }
+
 
     // No mostrar si no está autenticado o si ya no debe mostrarse
     if (status !== 'authenticated' || !showPrompt) {
