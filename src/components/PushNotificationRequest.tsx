@@ -46,6 +46,8 @@ export default function PushNotificationRequest() {
             return
         }
 
+        // ✅ CERRAR MODAL INMEDIATAMENTE al hacer clic (antes de pedir permiso)
+        setShowPrompt(false)
         setIsLoading(true)
 
         try {
@@ -72,12 +74,10 @@ export default function PushNotificationRequest() {
             const permissionResult = await Notification.requestPermission()
 
             if (permissionResult !== 'granted') {
-                setShowPrompt(false)
+                // Usuario rechazó, pero ya cerramos el modal arriba
                 return
             }
 
-            // ✅ CERRAR MODAL INMEDIATAMENTE después de que usuario acepta
-            setShowPrompt(false)
             // Limpiar el flag de rechazo ya que ahora aceptó
             localStorage.removeItem('push-notifications-declined')
 
@@ -102,7 +102,7 @@ export default function PushNotificationRequest() {
         } catch (error: any) {
             console.error('Push Error:', error)
             alert(error.message || 'Error al activar las notificaciones')
-            setShowPrompt(false)
+            // No es necesario cerrar el modal aquí, ya se cerró al inicio
         } finally {
             setIsLoading(false)
         }
