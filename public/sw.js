@@ -45,8 +45,8 @@ self.addEventListener('push', function (event) {
 
             const options = {
                 body: data.body,
-                icon: data.icon || '/maskable-192-v19.png',
-                badge: '/favicon-v19.png',
+                icon: data.icon || '/maskable-192-v19.png?v=21',
+                badge: '/favicon-v19.png?v=21',
                 vibrate: data.vibrate || (isSafetyCheck ? [500, 100, 500, 100, 500] : [100, 50, 100]),
 
                 data: {

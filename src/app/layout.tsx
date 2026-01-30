@@ -94,7 +94,7 @@ export const metadata: Metadata = {
         description: "Desliza, encuentra y conecta. La forma más inteligente y segura de comprar autos usados, vender tu carro gratis y encontrar talleres mecánicos 24/7 cerca de ti. CarMatch es la red social automotriz #1 en México.",
         images: [
             {
-                url: "/icon-512-v19.png", // 🔥 FIX: Using dark-bg high-res icon for better preview
+                url: "/icon-512-v19.png?v=21", // 🔥 FIX: Using dark-bg high-res icon for better preview
                 width: 512,
                 height: 512,
                 alt: "CarMatch® | Marketplace Oficial",
@@ -105,7 +105,7 @@ export const metadata: Metadata = {
         card: "summary_large_image",
         title: "CarMatch | El Marketplace de Autos del Futuro",
         description: "Descubre autos usados con swipe, vende tu carro gratis y encuentra talleres 24/7 en el mapa. 1er auto gratis 6 meses. La app definitiva del sector automotriz que revoluciona México.",
-        images: ["/icon-512-v19.png"], // 🔥 FIX: Dark-bg for Twitter
+        images: ["/icon-512-v19.png?v=21"], // 🔥 FIX: Dark-bg for Twitter
     },
     appleWebApp: {
         capable: true,
@@ -114,15 +114,15 @@ export const metadata: Metadata = {
     },
     icons: {
         icon: [
-            { url: "/icon-192-v19.png", sizes: "192x192" },
-            { url: "/favicon-v19.png", sizes: "32x32" },
+            { url: "/icon-192-v19.png?v=21", sizes: "192x192" },
+            { url: "/favicon-v19.png?v=21", sizes: "32x32" },
         ],
-        shortcut: "/icon-192-v19.png",
-        apple: "/icon-192-v19.png",
+        shortcut: "/icon-192-v19.png?v=21",
+        apple: "/icon-192-v19.png?v=21",
         other: [
             {
                 rel: 'maskable-icon',
-                url: '/maskable-192-v19.png',
+                url: '/maskable-192-v19.png?v=21',
             },
         ],
     }
@@ -159,7 +159,7 @@ export default function RootLayout({
                                 "name": "CarMatch®",
                                 "alternateName": "CarMatch Official",
                                 "url": "https://carmatchapp.net",
-                                "logo": "https://carmatchapp.net/icon-512-v19.png", // 🔥 FIX: Dark background for search engines
+                                "logo": "https://carmatchapp.net/icon-512-v19.png?v=21", // 🔥 FIX: Dark background for search engines
                                 "sameAs": [
                                     "https://www.facebook.com/share/1AVsMtGGrG/",
                                     "https://www.instagram.com/car.matchoficial?igsh=MWR2cjN5bGVmZzdoeQ=="
@@ -199,7 +199,7 @@ export default function RootLayout({
                                 "operatingSystem": "iOS, Android, Windows, macOS",
                                 "description": "La aplicación líder para comprar, vender y descubrir vehículos. Incluye Buscadores Expertos para vehículos y detección de fallas mecánicas.",
                                 "softwareVersion": "1.0.0",
-                                "screenshot": "https://carmatchapp.net/icon-512-v19.png",
+                                "screenshot": "https://carmatchapp.net/icon-512-v19.png?v=21",
                                 "offers": {
                                     "@type": "Offer",
                                     "price": "0",
@@ -265,7 +265,7 @@ export default function RootLayout({
                                 "name": "CarMatch Map Store",
                                 "description": "Directorio en tiempo real de talleres mecánicos, desponchadoras, refaccionarias y servicios automotrices con filtros de servicio 24/7 y a domicilio",
                                 "url": "https://carmatchapp.net/map-store",
-                                "logo": "https://carmatchapp.net/icon-512-v19.png",
+                                "logo": "https://carmatchapp.net/icon-512-v19.png?v=21",
                                 "geo": {
                                     "@type": "GeoCoordinates",
                                     "latitude": "31.6904",

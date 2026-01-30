@@ -312,8 +312,6 @@ export default function MyBusinessesClient() {
 
         setSelectedServices([])
         setCurrentCategory('')
-        setSelectedServices([])
-        setCurrentCategory('')
 
         // Reset new fields
         setPhone('')
@@ -331,7 +329,12 @@ export default function MyBusinessesClient() {
         setHasEmergencyService(false)
         setHasHomeService(false)
         setIsSafeMeetingPoint(false)
+
+        // 🚀 LIMPIEZA TOTAL:
+        // 1. Cerrar formulario
         setShowForm(false)
+        // 2. Limpiar URL para evitar que se reabra por ?action=new
+        router.replace('/my-businesses')
     }
 
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
