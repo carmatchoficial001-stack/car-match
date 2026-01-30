@@ -217,7 +217,8 @@ REGLA CRÍTICA DE FORMATO:
         errorMsg.includes("deadline");
 
       if (isRetryable && i < maxRetries - 1) {
-        const waitTime = Math.pow(2, i) * 1000 + (Math.random() * 500); // Backoff exponencial con jitter
+        // 🚀 OPTIMIZACIÓN CARMATCH: Cap de 5 segundos máximo por reintento para evitar esperas de 10 min.
+        const waitTime = Math.min(Math.pow(1.5, i) * 1000, 5000) + (Math.random() * 500);
         console.warn(`⚠️ Asesor Real ocupado (${i + 1}/${maxRetries}). Reintentando en ${Math.round(waitTime)}ms...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
@@ -531,7 +532,8 @@ export async function analyzeMultipleImages(
         errorMsg.includes("deadline");
 
       if (isRetryable && i < maxRetries - 1) {
-        const waitTime = Math.pow(2, i) * 1000 + (Math.random() * 800); // Backoff con jitter más amplio
+        // 🚀 OPTIMIZACIÓN CARMATCH: Cap de 5 segundos máximo por reintento.
+        const waitTime = Math.min(Math.pow(1.5, i) * 1000, 5000) + (Math.random() * 800);
         console.warn(`⚠️ Asesor Real ocupado (${i + 1}/${maxRetries}). Reintentando en ${Math.round(waitTime)}ms...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;

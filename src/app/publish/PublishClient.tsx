@@ -660,11 +660,37 @@ export default function PublishClient() {
                     {isAnalyzing && (
                         <div className="absolute inset-0 z-40 bg-surface/90 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl">
                             <h3 className="text-2xl font-bold text-text-primary animate-pulse text-center px-6">
-                                Subiendo fotos...
+                                Analizando tus fotos...
                             </h3>
+                            <p className="text-text-secondary text-sm mt-2 mb-8">Esto puede tardar unos segundos</p>
 
-                            <div className="w-64 h-2 bg-surface-highlight rounded-full mt-6 overflow-hidden">
-                                <div className="h-full bg-green-500 transition-all" style={{ width: `${aiConfidence}%` }}></div>
+                            {/* 💡 Consejos dinámicos para el vendedor */}
+                            <div className="max-w-md w-full px-6 py-4 bg-primary-900/10 border border-primary-500/20 rounded-2xl animate-in fade-in zoom-in duration-500">
+                                <div className="flex items-center gap-2 mb-3 text-primary-400">
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <h4 className="font-bold text-xs uppercase tracking-widest">Consejo CarMatch</h4>
+                                </div>
+                                <div className="h-20 flex items-center">
+                                    <p className="text-sm text-text-secondary italic">
+                                        {(() => {
+                                            const tips = [
+                                                "Sugerencia: Acuerden un punto medio seguro para la entrega o revisión del vehículo.",
+                                                "Tip: Recuerda que CarMatch no se involucra en las negociaciones finales, ¡tú eres el experto!",
+                                                "Seguridad: Te recomendamos revisar papeles originales y número de serie antes de cerrar cualquier trato.",
+                                                "Éxito: Una buena descripción técnica ayuda a que el comprador decida más rápido.",
+                                                "Cita: Una vez que acuerden la reunión, pongan un recordatorio para evitar contratiempos."
+                                            ];
+                                            // Usar el tiempo para rotar el consejo cada vez que carga
+                                            return tips[Math.floor(Date.now() / 5000) % tips.length];
+                                        })()}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="w-64 h-2 bg-surface-highlight rounded-full mt-8 overflow-hidden">
+                                <div className="h-full bg-primary-500 transition-all duration-1000" style={{ width: `${aiConfidence}%` }}></div>
                             </div>
                         </div>
                     )}
