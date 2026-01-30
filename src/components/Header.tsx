@@ -78,26 +78,26 @@ export default function Header() {
 
             // 4. Agregar ganchos genéricos y de marketing para superar los 50
             const marketingHooks = [
-                "¿TIENES UN NEGOCIO? | SÚBELO AL MAPA",
-                "RED SOCIAL ABIERTA | REGÍSTRATE GRATIS",
-                "¡TODOS SON BIENVENIDOS! | ÚNETE AL MAPA",
-                "GANA VISIBILIDAD | ÚNETE AL MAPSTORE",
-                "UNA RED PARA TODOS | REGISTRA TU LOCAL",
-                "MÁS CLIENTES LOCALES | REGISTRA TU NEGOCIO",
-                "EL MAPA DE MÉXICO | SÚBETE YA",
-                "PARA TODO SERVICIO | REGÍSTRATE HOY",
-                "ÚNETE AL MOVIMIENTO | SÚBELO AL MAPA",
-                "¡NO SOMOS EXCLUSIVOS! | TODOS CABEN AQUÍ",
-                "PÁL QUE TRABAJA | REGISTRA TU TALLER",
-                "TU NEGOCIO 24/7 | SÚBELO GRATIS",
-                "PARA TODOS LOS NICHOS | SÚBETE AL MAPSTORE",
-                "¿BUSCAS MÁS CLIENTES? | ¡SÚBETE AL MAPA!",
-                "POSICIONA TU MARCA | SÚBELO AQUÍ",
-                "CLIENTES CERCA DE TI | ÚNETE AL MAPA",
-                "NO TE QUEDES FUERA | REGISTRA TU SERVICIO",
-                "EL TOP DEL MAPA | REGISTRA TU NEGOCIO",
-                "IMPULSA TU TALLER | ¡SÚBELO GRATIS!",
-                "ATRAE CLIENTES HOY | REGISTRA TU LOCAL"
+                "¿NECESITAS CLIENTES? | ¡SÚBETE AL MAPA!",
+                "MÁS CLIENTES = MÁS VENTAS | ¡REGÍSTRATE YA!",
+                "¿QUIERES MÁS DINERO? | ¡SUBE TU NEGOCIO!",
+                "AUMENTA TUS VENTAS | ¡ÚNETE AL MAPSTORE!",
+                "CLIENTES BUSCÁNDOTE | ¡APARECE EN EL MAPA!",
+                "¿TALLER VACÍO? | ¡CONSIGUE CLIENTES YA!",
+                "GENERA MÁS INGRESOS | ¡SÚBELO GRATIS!",
+                "TU NEGOCIO 24/7 | ¡MÁS LLAMADAS HOY!",
+                "CLIENTES CERCA DE TI | ¡REGÍSTRATE YA!",
+                "¿BUSCAS CRECER? | ¡LLÉNATE DE CLIENTES!",
+                "MÁS TRABAJO, MÁS LANA | ¡SÚBETE AL MAPA!",
+                "PARA EL QUE TRABAJA | ¡CONSIGUE JALES!",
+                "¿QUIERES MÁS JALE? | ¡SUBE TU TALLER!",
+                "IMPULSA TUS VENTAS | ¡REGÍSTRATE GRATIS!",
+                "CLIENTES TODO EL DÍA | ¡APARECE AQUÍ!",
+                "¿NECESITAS CHAMBAS? | ¡SÚBELO AL MAPA!",
+                "ATRAE MÁS CLIENTES | ¡ÚNETE HOY!",
+                "¿NEGOCIO LENTO? | ¡LLÉNALO DE TRABAJO!",
+                "POSICIONA TU MARCA | ¡CONSIGUE CLIENTES!",
+                "NO TE QUEDES SIN JALE | ¡REGÍSTRATE YA!"
             ];
 
             return [
