@@ -450,9 +450,8 @@ export async function analyzeMultipleImages(
 
       let galleryResultRaw;
       try {
-        // 🏎️ ROTACIÓN TAMBIÉN EN GALERÍA
-        const galleryModel = i % 2 === 0 ? geminiFlash : geminiPro;
-        galleryResultRaw = await galleryModel.generateContent([galleryPrompt, ...imageParts]);
+        // 🏎️ Usar Flash primero para eficiencia (cascada del orquestador)
+        galleryResultRaw = await geminiFlash.generateContent([galleryPrompt, ...imageParts]);
       } catch (galleryError) {
         console.warn("⚠️ Falló análisis de galería, intentando con respaldo...");
         galleryResultRaw = await geminiPro.generateContent([galleryPrompt, ...imageParts]);
