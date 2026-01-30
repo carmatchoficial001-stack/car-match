@@ -164,7 +164,7 @@ REGLA CRÍTICA DE FORMATO:
   }
 
   let lastError: any;
-  const maxRetries = 7; // 🚀 MÁS reintentos para vehículos legítimos (antes 5)
+  const maxRetries = 10; // 🚀 MÁXIMO BLINDAJE: 10 reintentos obligaorios
 
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -342,7 +342,7 @@ export async function analyzeMultipleImages(
        }`;
 
   let lastError: any;
-  const maxRetries = 7; // 🚀 MÁS reintentos para vehículos legítimos (antes 5)
+  const maxRetries = 10; // 🚀 MÁXIMO BLINDAJE: 10 reintentos obligaorios
 
   // 🚀 REGLA RUBEN: PARA VEHÍCULOS, LA PORTADA SE ANALIZA PRIMERO Y MANDA
   if (type === 'VEHICLE' && images.length > 0) {
