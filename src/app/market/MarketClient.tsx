@@ -94,8 +94,10 @@ function boostShuffleArray(array: FeedItem[]): FeedItem[] {
 
     return result
 }
-
-brands,
+export default function MarketClient({
+    initialItems,
+    currentUserId,
+    brands,
     vehicleTypes,
     colors,
     searchParams,
