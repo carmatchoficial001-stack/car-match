@@ -165,7 +165,7 @@
     "swipe": {
         "expand_search": "Expandir búsqueda a más lugares",
         "no_vehicles": "No hay vehículos cerca",
-        "publish": "Publicar un vehículo",
+        "publish": "Generar dinero ya",
         "subtitle": "Desliza y encuentra tu carro perfecto",
         "no_vehicles_desc": "No hay vehículos en tu zona por el momento",
         "business_badge": "Negocio MapStore",
@@ -362,7 +362,7 @@
             "safety_title": "Punto de encuentro:",
             "safety_desc": "Te recomendamos acordar la revisión de documentos y del vehículo en un lugar público y seguro.",
             "transparency_title": "Transparencia:",
-            "transparency_desc": "Una descripción clara sobre los mantenimientos realizados ayuda a vender más rápido."
+            "transparency_desc": "Una descripción clara sobre los mantenimientos realizados ayuda a generar dinero más rápido."
         },
         "placeholders": {
             "title": "Ej: Toyota Corolla 2020 en excelente estado",

@@ -79,25 +79,25 @@ export default function Header() {
             // 4. Agregar ganchos genéricos y de marketing para superar los 50
             const marketingHooks = [
                 "¿NECESITAS CLIENTES? | ¡SÚBETE AL MAPA!",
-                "MÁS CLIENTES = MÁS VENTAS | ¡REGÍSTRATE YA!",
+                "MÁS CLIENTES = MÁS LANA | ¡REGÍSTRATE YA!",
                 "¿QUIERES MÁS DINERO? | ¡SUBE TU NEGOCIO!",
-                "AUMENTA TUS VENTAS | ¡ÚNETE AL MAPSTORE!",
+                "AUMENTA TUS VENTAS | ¡LLÉNATE DE CLIENTES!",
                 "CLIENTES BUSCÁNDOTE | ¡APARECE EN EL MAPA!",
-                "¿TALLER VACÍO? | ¡CONSIGUE CLIENTES YA!",
+                "¿TALLER VACÍO? | ¡GENERA DINERO YA!",
                 "GENERA MÁS INGRESOS | ¡SÚBELO GRATIS!",
-                "TU NEGOCIO 24/7 | ¡MÁS LLAMADAS HOY!",
-                "CLIENTES CERCA DE TI | ¡REGÍSTRATE YA!",
+                "TU NEGOCIO 24/7 | ¡MÁS LLAMADAS = MÁS DINERO!",
+                "CLIENTES CERCA DE TI | ¡COBRA MÁS HOY!",
                 "¿BUSCAS CRECER? | ¡LLÉNATE DE CLIENTES!",
                 "MÁS TRABAJO, MÁS LANA | ¡SÚBETE AL MAPA!",
-                "PARA EL QUE TRABAJA | ¡CONSIGUE JALES!",
-                "¿QUIERES MÁS JALE? | ¡SUBE TU TALLER!",
-                "IMPULSA TUS VENTAS | ¡REGÍSTRATE GRATIS!",
-                "CLIENTES TODO EL DÍA | ¡APARECE AQUÍ!",
-                "¿NECESITAS CHAMBAS? | ¡SÚBELO AL MAPA!",
-                "ATRAE MÁS CLIENTES | ¡ÚNETE HOY!",
-                "¿NEGOCIO LENTO? | ¡LLÉNALO DE TRABAJO!",
-                "POSICIONA TU MARCA | ¡CONSIGUE CLIENTES!",
-                "NO TE QUEDES SIN JALE | ¡REGÍSTRATE YA!"
+                "PARA EL QUE TRABAJA | ¡GENERA MÁS DINERO!",
+                "¿QUIERES MÁS JALE? | ¡COBRA MÁS!",
+                "IMPULSA TUS VENTAS | ¡MÁS DINERO DIARIO!",
+                "CLIENTES TODO EL DÍA | ¡FACTURA MÁS!",
+                "¿NECESITAS CHAMBAS? | ¡LLÉNATE DE TRABAJO!",
+                "ATRAE MÁS CLIENTES | ¡GENERA MÁS LANA!",
+                "¿NEGOCIO LENTO? | ¡LLÉNALO DE DINERO!",
+                "POSICIONA TU MARCA | ¡VENDE MÁS HOY!",
+                "NO TE QUEDES SIN JALE | ¡GENERA INGRESOS YA!"
             ];
 
             return [
