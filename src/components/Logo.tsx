@@ -12,7 +12,7 @@ export function Logo({ className = "w-12 h-12", showText = false, textClassName 
         <div className="flex items-center gap-2">
             <div className={`relative ${className}`}>
                 <Image
-                    src="/icon-192-v19.png" // 🔥 FIX: Using high-res dark icon to avoid white boxes
+                    src="/icon-192-v20.png" // ✨ NEW: Logo v20 maximizado sin bordes blancos
                     alt="CarMatch® | Marketplace Oficial de Autos y Servicios"
                     fill
                     className="object-contain"
