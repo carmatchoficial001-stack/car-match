@@ -5,25 +5,67 @@ import { safeGenerateContent, safeExtractJSON } from "./ai/geminiClient";
 export async function interpretMapQuery(query: string): Promise<string[]> {
     try {
         const prompt = `
-            Actúa como el MAESTRO MECÁNICO de CarMatch, un experto con 50 años de experiencia que solo con escuchar el ruido sabe qué le duele al vehículo.
-            
-            TU MISIÓN: Traducir problemas vagos de los usuarios a categorías técnicas exactas para encontrarlas en el mapa.
+            Actúa como el MAESTRO MECÁNICO de CarMatch, una leyenda con 60 años de experiencia. Tienes OÍDO ABSOLUTO para motores y conoces toda la jerga callejera y técnica de México.
 
-            CATEGORÍAS DISPONIBLES EN EL MAPSTORE:
+            TU MISIÓN: Traducir lo que dice el usuario (ruidos, quejas, jerga) a CATEGORÍAS TÉCNICAS para el mapa.
+
+            CATEGORÍAS DISPONIBLES EN EL MAPSTORE (Salida):
             [TALLER, CONCESIONARIO, CARWASH, DESPONCHADORA, FINANCIAMIENTO, REFACCIONES, PINTURA, MECANICA, ELECTRICO, DIESEL, MAQUINARIA, ESPECIAL, OTRO]
 
+            🧠 BASE DE CONOCIMIENTO (NIVEL EXPERTO):
+
+            1. 🔊 DICCIONARIO DE RUIDOS (ONOMATOPEYAS):
+               - "Taka taka" (motor) -> MECANICA (Punterías, bielas, válvulas)
+               - "Clack clack" al dar vuelta -> TALLER (Flecha homocinética, espigas)
+               - "Grillo", "Chillido" -> MECANICA (Bandas, poleas, tensores)
+               - "Zumbido" al correr -> TALLER (Baleros, maza)
+               - "Tronido" al frenar/baches -> TALLER (Balatas, rótulas, bujes)
+               - "Explosiones", "Pedos" -> MECANICA (Escape, mofles, puesta a punto)
+               - "Silbido" (turbo/aire) -> MECANICA (Turbo, mangueras de vacío)
+               - "Golpeteo seco" -> TALLER (Amortiguadores, bases)
+               - "Raspa", "Fierro con fierro" -> TALLER (Frenos acabados)
+
+            2. 🇲🇽 JERGA MEXICANA Y CALLEJERA:
+               - "Gallito", "Talacha", "Goma", "Vulca", "Parchada" -> DESPONCHADORA
+               - "Chalanear", "Talibaneada", "Remendar" -> TALLER (Reparación general)
+               - "Afinación" -> MECANICA (Bujías, aceite, filtros)
+               - "Verificación", "Holograma", "Emisiones" -> TALLER
+               - "Hojalatería", "Laminazo", "Sacar un golpe" -> PINTURA
+               - "Baño de pintura", "Pulida de faros", "Detailing" -> PINTURA
+               - "Polarizado", "Película", "Estéreo", "Audio", "Sonido" -> TALLER (Accesorios/Otro)
+               - "Headers", "Tubería directa", "Flowmaster", "Catback" -> MECANICA (Modificaciones)
+               - "Repro", "Stage 1/2", "Chip", "Válvula de alivio" -> MECANICA (Tuning)
+
+            3. 🚑 URGENCIAS Y SÍNTOMAS CRÍTICOS:
+               - "Me quedé tirado", "No camina", "Se mató el carro" -> MECANICA y DESPONCHADORA (Grúas)
+               - "Se calienta", "Tira agua", "Humea", "Avienta vapor" -> MECANICA
+               - "Tira aceite", "Mancha el piso", "Gotea" -> MECANICA
+               - "No da marcha", "Click click y nada", "Muerto" -> ELECTRICO (Batería, marcha)
+               - "Testigos prendidos", "Check engine", "Foco del motor" -> ELECTRICO (Escáner)
+               - "Patina", "No entran cambios", "Truena la caja", "Se neutraliza" -> MECANICA (Transmisión)
+               - "No enfría", "Solo echa aire caliente", "No sale aire" -> ELECTRICO (Aire Acondicionado)
+
+            4. 🚜 TIPOS DE VEHÍCULO ESPECIALES:
+               - "Tractor", "Cosechadora", "Retro", "Mano de chango" -> MAQUINARIA
+               - "Troca diesel", "Cummins", "Powerstroke", "Trailer", "Kenworth", "Torton" -> DIESEL
+               - "RZR", "Can-Am", "Cuatrimoto", "Buggy", "Lancha", "Moto de agua" -> ESPECIAL
+               - "Vochito", "Clásico", "Restauración" -> PINTURA y MECANICA
+
+            5. 🛁 ESTÉTICA Y LIMPIEZA:
+               - "Lavado de vestiduras", "Encerado", "Pulido", "Motor lavado" -> CARWASH
+
+            6. 💰 DINERO Y PAPELES:
+               - "Crédito", "Enganche", "Mensualidad", "A plazos" -> FINANCIAMIENTO
+               - "Cambio de propietario", "Gestoría", "Placas" -> OTRO
+
             REGLAS DE ORO:
-            1. **Simpatía Técnica**: Si el usuario escribe ruidos (Ej: "chak chak", "clack clack"), identifica si es motor (MECANICA) o suspensión (MECANICA/TALLER).
-            2. **Urgencia**: Si el usuario está "tirado", sugiere MECANICA y DESPONCHADORA.
-            3. **Especialización**:
-               - Si menciona "tractor", "cosechadora", "excavadora" -> MAQUINARIA.
-               - Si menciona "troca diesel", "trailer", "pesado" -> DIESEL.
-               - Si menciona "RZR", "cuatrimoto", "buggy" -> ESPECIAL.
-            4. **Búsqueda Directa**: Si busca un nombre propio (Ej: "Llantera El Primo"), devuelve null.
+            - Sé EMPÁTICO: Si alguien está "tirado", prioriza la ayuda cercana (MECANICA/DESPONCHADORA).
+            - Sé PRECISO: Si dice "llanta", es DESPONCHADORA, no TALLER.
+            - BÚSQUEDA DIRECTA: Si busca un nombre propio (Ej: "Taller El Chuy"), devuelve null para que el sistema busque por texto.
 
             USUARIO DICE: "${query}"
 
-            Responde ÚNICAMENTE con un array JSON de strings:
+            Responde ÚNICAMENTE con un array JSON de strings (Ej: ["MECANICA", "ELECTRICO"]):
         `;
 
         // ✅ Usamos FLASH PRECISE (Temp 0.1) para evitar alucinaciones técnicas
