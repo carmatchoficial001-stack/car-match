@@ -197,6 +197,7 @@
         "searching": "Buscando vehículos...",
         "view_more": "Ver más",
         "load_next": "Cargar siguientes",
+        "loading_more": "Cargando más vehículos...",
         "expand_search": "Expandir búsqueda",
         "expand_search_desc": "Busca el siguiente auto disponible",
         "restart_search": "Volver a empezar",
