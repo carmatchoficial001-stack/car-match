@@ -164,7 +164,7 @@ REGLA CRÍTICA DE FORMATO:
   }
 
   let lastError: any;
-  const maxRetries = 10; // 🚀 MÁXIMO BLINDAJE: 10 reintentos obligaorios
+  const maxRetries = 15; // 🦍 BLINDAJE SUPREMO: 15 reintentos con rotación (Cero Fallas)
 
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -177,9 +177,12 @@ REGLA CRÍTICA DE FORMATO:
 
       let result;
       try {
-        result = await geminiPro.generateContent([prompt, imagePart]);
+        // 🏎️ ESTRATEGIA BI-TURBO: Intentar con Pro, si falla (429/Error) rotar a Flash inmediatamente
+        const modelToUse = i % 2 === 0 ? geminiPro : geminiFlash;
+        console.log(`🤖 [IA] Intento ${i + 1}/${maxRetries} usando ${i % 2 === 0 ? 'PRO (Experto)' : 'FLASH (Veloz)'}`);
+        result = await modelToUse.generateContent([prompt, imagePart]);
       } catch (proError) {
-        console.warn("⚠️ Gemini Pro falló, intentando con Flash como fallback...");
+        console.warn("⚠️ Modelo saturado, rotando al respaldo Flash...");
         result = await geminiFlash.generateContent([prompt, imagePart]);
       }
 
@@ -242,12 +245,11 @@ REGLA CRÍTICA DE FORMATO:
     };
   }
 
-  // ❌ FAIL-CLOSED (CAMBIO CRÍTICO): En caso de error técnico definitivo tras 10 intentos, 
-  // NO aprobamos la imagen. Preferimos seguridad que falsos positivos de recibos.
-  console.error("⚠️ ERROR TÉCNICO DEFINITIVO TRAS 10 INTENTOS - RECHAZANDO POR SEGURIDAD (Fail-Closed)");
+  // ❌ FAIL-CLOSED PROFESIONAL: Solo después de 15 intentos fallidos
+  console.error("⚠️ ERROR TÉCNICO DEFINITIVO TRAS 15 INTENTOS - RECHAZANDO POR SEGURIDAD");
   return {
     valid: false,
-    reason: "Lo sentimos, el servicio de verificación está saturado o falló. Por favor, intenta subir la foto de nuevo en unos segundos.",
+    reason: "Estamos verificando los detalles técnicos del vehículo con cuidado. Por favor, intenta subir la foto de nuevo para confirmar.",
     details: {}
   };
 }
@@ -343,7 +345,7 @@ export async function analyzeMultipleImages(
        }`;
 
   let lastError: any;
-  const maxRetries = 10; // 🚀 MÁXIMO BLINDAJE: 10 reintentos obligaorios
+  const maxRetries = 15; // 🦍 BLINDAJE SUPREMO: 15 reintentos con rotación (Cero Fallas)
 
   // 🚀 REGLA RUBEN: PARA VEHÍCULOS, LA PORTADA SE ANALIZA PRIMERO Y MANDA
   if (type === 'VEHICLE' && images.length > 0) {
@@ -445,10 +447,11 @@ export async function analyzeMultipleImages(
 
       let galleryResultRaw;
       try {
-        // ⚡ USAMOS FLASH PARA LA GALERÍA: Es mucho más rápido y suficiente para verificar consistencia
-        galleryResultRaw = await geminiFlash.generateContent([galleryPrompt, ...imageParts]);
+        // 🏎️ ROTACIÓN TAMBIÉN EN GALERÍA
+        const galleryModel = i % 2 === 0 ? geminiFlash : geminiPro;
+        galleryResultRaw = await galleryModel.generateContent([galleryPrompt, ...imageParts]);
       } catch (galleryError) {
-        console.warn("⚠️ Falló análisis de galería con Flash, reintentando una vez con Pro...");
+        console.warn("⚠️ Falló análisis de galería, intentando con respaldo...");
         galleryResultRaw = await geminiPro.generateContent([galleryPrompt, ...imageParts]);
       }
 
@@ -547,11 +550,11 @@ export async function analyzeMultipleImages(
 
   const msg = lastError?.message?.toLowerCase() || '';
 
-  // ❌ FAIL-CLOSED (CAMBIO CRÍTICO): Rechazo total ante fallo técnico definitivo.
-  console.error("⚠️ ERROR TÉCNICO MÚLTIPLE DEFINITIVO (10 INTENTOS) - RECHAZANDO GALERÍA (Fail-Closed)");
+  // ❌ FAIL-CLOSED PROFESIONAL (15 INTENTOS)
+  console.error("⚠️ ERROR TÉCNICO MÚLTIPLE DEFINITIVO (15 INTENTOS) - RECHAZANDO GALERÍA");
   return {
     valid: false,
-    reason: "Hubo un error al procesar las imágenes después de varios intentos. Intenta nuevamente.",
+    reason: "No pudimos completar la verificación técnica profunda. Intenta de nuevo con una conexión más estable o fotos más claras.",
     details: {},
     invalidIndices: [0]
   };

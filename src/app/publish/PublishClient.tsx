@@ -164,32 +164,39 @@ export default function PublishClient() {
         setAiError('')
     }
 
-    const validateImagesAndProceed = async () => {
+    const validateImagesAndProceed = async (retryCount = 0) => {
         if (images.length === 0) return
         setIsAnalyzing(true)
         setAiError('')
-        setAiConfidence(50)
+        setAiConfidence(50 + (retryCount * 10)) // Mostrar progreso visual en reintentos
 
-        console.log('🧪 Iniciando validación de imágenes con IA...', images.length, 'fotos')
+        console.log(`🧪 [Intento ${retryCount + 1}] Iniciando validación de imágenes...`, images.length, 'fotos')
 
-        // 🎯 Validamos TODAS las imágenes (Portada + Galería)
         try {
             const res = await fetch('/api/ai/validate-images-bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    images: images, // Enviamos TODAS
+                    images: images,
                     type: 'VEHICLE',
                     context: { brand, model, year }
                 })
             })
 
             const validation = await res.json()
+
+            // 🔄 REINTENTO AUTOMÁTICO DEL CLIENTE (Si el servidor devuelve error técnico)
+            if (!res.ok && retryCount < 2) {
+                console.warn(`⚠️ Error técnico del servidor. Reintentando automáticamente (${retryCount + 1}/3)...`);
+                return setTimeout(() => validateImagesAndProceed(retryCount + 1), 2000);
+            }
+
             console.log('🤖 Respuesta del Asesor IA:', validation)
 
-            if (!res.ok) throw new Error('Error en validación de imágenes')
+            if (!res.ok) throw new Error('No pudimos completar la verificación técnica. Intenta de nuevo.')
 
             setAiConfidence(100)
+            // ... resto igual ...
 
             // 1. 🛡️ APLICAR DETALLES DE IA (Si la portada es válida)
             if (validation.details && (!validation.invalidIndices || !validation.invalidIndices.includes(0))) {
