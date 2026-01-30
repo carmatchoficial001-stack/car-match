@@ -281,8 +281,30 @@ export default function Header() {
                         )}
                     </div>
 
-                    {/* RIGHT GROUP: Navigation & Profile/CTA */}
-                    <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end min-w-0">
+                    {/* CENTER GROUP: Navegación - Centrada en Desktop */}
+                    <nav className="hidden lg:flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
+                        <Link
+                            href="/swipe"
+                            className={`px-4 py-2 rounded-lg font-medium transition ${isActive("/swipe") ? "bg-primary-700 text-white" : "text-text-secondary hover:text-white"}`}
+                        >
+                            {t('nav.carmatch')}
+                        </Link>
+                        <Link
+                            href="/market"
+                            className={`px-4 py-2 rounded-lg font-medium transition ${isActive("/market") ? "bg-primary-700 text-white" : "text-text-secondary hover:text-white"}`}
+                        >
+                            {t('nav.marketcar')}
+                        </Link>
+                        <Link
+                            href="/map"
+                            className={`px-4 py-2 rounded-lg font-medium transition ${isActive("/map") ? "bg-primary-700 text-white" : "text-text-secondary hover:text-white"}`}
+                        >
+                            {t('nav.mapstore')}
+                        </Link>
+                    </nav>
+
+                    {/* RIGHT GROUP: CTA + Profile/Auth */}
+                    <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end min-w-0 shrink-0">
                         {/* 🚀 DYNAMIC CTA: Adaptive Layout */}
                         {session && !isSoftLogout ? (
                             /* COMPACT STYLE: For Authenticated Users (Less Space) */
@@ -363,28 +385,6 @@ export default function Header() {
                                 </div>
                             </div>
                         )}
-
-                        {/* Navegación - Oculta en móvil */}
-                        <nav className="hidden lg:flex items-center gap-2">
-                            <Link
-                                href="/swipe"
-                                className={`px-4 py-2 rounded-lg font-medium transition ${isActive("/swipe") ? "bg-primary-700 text-white" : "text-text-secondary hover:text-white"}`}
-                            >
-                                {t('nav.carmatch')}
-                            </Link>
-                            <Link
-                                href="/market"
-                                className={`px-4 py-2 rounded-lg font-medium transition ${isActive("/market") ? "bg-primary-700 text-white" : "text-text-secondary hover:text-white"}`}
-                            >
-                                {t('nav.marketcar')}
-                            </Link>
-                            <Link
-                                href="/map"
-                                className={`px-4 py-2 rounded-lg font-medium transition ${isActive("/map") ? "bg-primary-700 text-white" : "text-text-secondary hover:text-white"}`}
-                            >
-                                {t('nav.mapstore')}
-                            </Link>
-                        </nav>
 
                         {/* Notifications Bell */}
                         {session && !isSoftLogout && (
