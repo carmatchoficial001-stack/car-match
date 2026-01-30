@@ -9,7 +9,7 @@ import { serializeDecimal } from "@/lib/serialize"
 
 // 🎯 SEO METADATA (Safe to edit - No afecta lógica locked)
 export const metadata = {
-    title: "CarMatch Swipe | Descubre Autos como en Tinder",
+    title: "CarMatch",
     description: "Desliza para descubrir tu próximo auto. Like para guardar en favoritos, Dislike para ocultar. La forma más rápida y divertida de explorar autos usados, camionetas, motos y más en México.",
     keywords: [
         "swipe autos", "tinder de carros", "descubrir autos", "feed de vehiculos",

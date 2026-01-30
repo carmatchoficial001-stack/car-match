@@ -9,7 +9,7 @@ import { serializeDecimal } from "@/lib/serialize"
 import { VEHICLE_CATEGORIES, COLORS, GLOBAL_SYNONYMS, BRANDS } from "@/lib/vehicleTaxonomy"
 
 export const metadata = {
-    title: "MarketCar | Compra y Venta de Autos, Motos, Tractores y Maquinaria",
+    title: "CarMatch",
     description: "La mayor variedad de vehículos en un solo lugar. Compra y vende autos (Toyota, Nissan, Ford), motocicletas (Italika, Yamaha), tractores (John Deere), camiones y maquinaria pesada con filtros profesionales y trato directo sin comisión en CarMatch.",
     keywords: [
         // Marcas Populares Autos
