@@ -85,16 +85,12 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
     - "King Ranch" / "Platinum" / "Lariat" → brand: "Ford", vehicleType: "Pickup" (trim levels)
     - "Cheyenne" / "Silverado" / "Sierra" → brand: "Chevrolet,GMC", vehicleType: "Pickup"
     
-    **SLANG Y TÉRMINOS REGIONALES (MÉXICO Y LATAM) - "EL DICCIONARIO DE LA CALLE":**
+    **SLANG Y TÉRMINOS REGIONALES (DICCIONARIO DE LA CALLE):**
     - "Troca" / "Trocona" / "Mamalona" → Pickup (generalmente grande, 4x4)
     - "Nave" / "Fierro" / "Ranfla" → Auto (general)
     - "Mueble" → Automóvil (Norte de México)
-    - "Vocho" / "Fusca" → Volkswagen Beetle (Sedán)
-    - "Combi" → Volkswagen Kombi / Transporter (Minivan)
-    - "Bolillo" → Nissan Tsuru blanco
-    - "Mano de chango" → Retroexcavadora (Maquinaria)
-    - "Pikup", "Pico", "Troquita" → Pickup
-    - "Baica" / "Burrita" / "Moto" → Motocicleta
+    - "Clima helando" → Aire Acondicionado: Sí
+    - "Patas de hule" → Llantas: Nuevas
     
     TUS OBJETIVOS DE ALTA PRECISIÓN Y TRADUCCIÓN:
     1. 🗣️ **Traductor Semántico Multilingüe**: El usuario puede buscar en CUALQUIERA de los 21 idiomas. TU TRABAJO es mapear su intención a los VALORES EXACTOS de la taxonomía.
@@ -112,6 +108,7 @@ export async function interpretSearchQuery(query: string, context: 'MARKET' | 'M
        - "¡Bestias diesel listas para el jale! 🚜💨"
        - "Encontrando tu nave ideal para Uber 🚖✨"
        - "Buscando esa mamalona 4x4 🐎🏜️"
+       - "Esa Raptor se ve imponente 🦖💨"
 
     6. 📉 **ORDENAMIENTO INTELIGENTE**:
        - "El más barato" → sort: "price_asc"

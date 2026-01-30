@@ -7,6 +7,7 @@ import MarketClient from "./MarketClient"
 import { getCachedBrands, getCachedVehicleTypes, getCachedColors } from "@/lib/cached-data"
 import { serializeDecimal } from "@/lib/serialize"
 import { VEHICLE_CATEGORIES, COLORS, GLOBAL_SYNONYMS, BRANDS } from "@/lib/vehicleTaxonomy"
+import { interpretSearchQuery } from "@/lib/ai/searchInterpreter"
 
 export const metadata = {
     title: "CarMatch",
@@ -104,6 +105,43 @@ export default async function MarketPage({
         }
     }
 
+
+    // 🧠 MEJORA IA: Interpretación de búsqueda en lenguaje natural
+    // Si el usuario escribió algo en el buscador principal, dejamos que la IA nos diga qué filtros aplicar.
+    let aiReasoning = ""
+    if (searchParams.search && searchParams.search.trim().length > 3) {
+        try {
+            const aiFilters = await interpretSearchQuery(searchParams.search, 'MARKET')
+            aiReasoning = aiFilters.aiReasoning || ""
+
+            // Fusionar filtros de la IA si no están ya en searchParams (searchParams manda sobre IA por ser explícito)
+            if (aiFilters.brand && !searchParams.brand) where.brand = { contains: aiFilters.brand, mode: 'insensitive' }
+            if (aiFilters.model && !searchParams.model) where.model = { contains: aiFilters.model, mode: 'insensitive' }
+            if (aiFilters.vehicleType && !searchParams.vehicleType) where.vehicleType = aiFilters.vehicleType
+            if (aiFilters.color && !searchParams.color) where.color = { contains: aiFilters.color, mode: 'insensitive' }
+            if (aiFilters.transmission && !searchParams.transmission) where.transmission = aiFilters.transmission
+            if (aiFilters.fuel && !searchParams.fuel) where.fuel = aiFilters.fuel
+            if (aiFilters.cylinders && !searchParams.cylinders) where.cylinders = aiFilters.cylinders
+            if (aiFilters.minPrice && !searchParams.minPrice) {
+                if (!where.price) where.price = {}
+                where.price.gte = aiFilters.minPrice
+            }
+            if (aiFilters.maxPrice && !searchParams.maxPrice) {
+                if (!where.price) where.price = {}
+                where.price.lte = aiFilters.maxPrice
+            }
+            if (aiFilters.minYear && !searchParams.minYear) {
+                if (!where.year) where.year = {}
+                where.year.gte = aiFilters.minYear
+            }
+            if (aiFilters.features?.length) {
+                // Solo agregar si hay características sólidas
+                where.features = { hasSome: aiFilters.features }
+            }
+        } catch (error) {
+            console.error("⚠️ Error interpretando búsqueda con IA en el servidor:", error)
+        }
+    }
 
     // Aplicar filtros manuales (Soporte para múltiples valores con coma)
     if (searchParams.brand) {

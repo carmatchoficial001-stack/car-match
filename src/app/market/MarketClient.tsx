@@ -49,6 +49,7 @@ interface MarketClientProps {
     vehicleTypes: string[]
     colors: string[]
     searchParams: any
+    aiReasoning?: string
 }
 
 // Utility: Fisher-Yates Shuffle with 300% Boost Prioritization
@@ -94,15 +95,14 @@ function boostShuffleArray(array: FeedItem[]): FeedItem[] {
     return result
 }
 
-export default function MarketClient({
-    initialItems,
-    currentUserId,
-    brands,
+brands,
     vehicleTypes,
     colors,
-    searchParams
+    searchParams,
+    aiReasoning: initialAiReasoning
 }: MarketClientProps) {
     const { t, locale } = useLanguage()
+    const [aiReasoning, setAiReasoning] = useState(initialAiReasoning)
 
     // 🔥 USANDO CONTEXTO GLOBAL
     const { location, loading: locationLoading, manualLocation, setManualLocation } = useLocation()
@@ -199,8 +199,10 @@ export default function MarketClient({
         }
 
         setItems(currentItems)
+        // Reset AI reasoning on search change
+        setAiReasoning(initialAiReasoning)
 
-    }, [initialItems, searchParams.sort, searchParams.city, searchParams.search, searchParams.brand, searchParams.category])
+    }, [initialItems, searchParams.sort, searchParams.city, searchParams.search, searchParams.brand, searchParams.category, initialAiReasoning])
 
     // Save visibleCount whenever it changes
     useEffect(() => {
@@ -531,7 +533,7 @@ export default function MarketClient({
                 </header>
 
                 {/* 🧠 AI INSIGHT BANNER */}
-                {searchParams.ai_msg && (
+                {(searchParams.ai_msg || aiReasoning) && (
                     <div className="mb-6 animate-fade-in-down">
                         <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-xl p-4 flex items-start gap-3 relative overflow-hidden group">
                             {/* Decorative glow */}
@@ -549,12 +551,15 @@ export default function MarketClient({
                                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
                                 </h3>
                                 <p className="text-indigo-100 text-base font-medium leading-tight">
-                                    {searchParams.ai_msg}
+                                    {searchParams.ai_msg || aiReasoning}
                                 </p>
                             </div>
 
                             <button
-                                onClick={() => router.push('/market')}
+                                onClick={() => {
+                                    setAiReasoning('')
+                                    router.push('/market')
+                                }}
                                 className="text-indigo-400/50 hover:text-indigo-300 transition p-1"
                             >
                                 ✕

@@ -550,7 +550,13 @@ export const GLOBAL_SYNONYMS: Record<string, string> = {
     // Marcas / Modelos (Slang)
     'Chevy': 'Chevrolet', 'Bimmer': 'BMW', 'Beema': 'BMW', 'Merc': 'Mercedes-Benz', 'Meche': 'Mercedes-Benz',
     'Lambo': 'Lamborghini', 'Rari': 'Ferrari', 'Vw': 'Volkswagen', 'Vocho': 'Volkswagen', 'Fusca': 'Volkswagen',
-    'Mamalona': 'RAM', 'Yota': 'Toyota', 'Ramona': 'RAM', 'Panchita': 'Ford'
+    'Mamalona': 'RAM', 'Yota': 'Toyota', 'Ramona': 'RAM', 'Panchita': 'Ford',
+
+    // Términos de motor y estado (Slang)
+    'Cero horas': '0 hrs', '0 km': 'Nuevo', 'Recien llegado': 'Importado', 'Clima helando': 'Aire Acondicionado',
+    'Patas de hule': 'Llantas nuevas', 'Al 100': 'Excelente estado', 'Sin fallas': 'Excelente estado',
+    'Diesel': 'Diésel', 'Poder stroke': 'PowerStroke', 'Cumins': 'Cummins', 'Duramax': 'Duramax',
+    'Hemi': 'Hemi', 'Triton': 'Triton', 'Vortec': 'Vortec'
 }
 
 // 🧠 Helper to get features by category

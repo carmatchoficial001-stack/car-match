@@ -94,14 +94,16 @@ RESPONDE SOLO EL JSON.
 - Vehículos clásicos, antiguos, modificados o de colección
 - **CUALQUIER COSA CON MOTOR Y LLANTAS QUE SE MUEVA EN TIERRA**
 
-❌ RECHAZA SOLO SI VES:
-- NO ES UN VEHÍCULO (muebles, TVs, electrodomésticos, ropa, herramientas manuales)
-- Personas solas SIN vehículo visible en la imagen
-- Juguetes pequeños a escala (Hot Wheels, carrito de control remoto de juguete)
-- Dibujos, ilustraciones, pantallas mostrando vehículos (no vehículos reales)
-- CONTENIDO PROHIBIDO (desnudez, armas, violencia, drogas)
+❌ RECHAZA INMEDIATAMENTE SI LA PORTADA (@Index 0) ES:
+- **DOCUMENTOS O TEXTO**: Comprobantes de transferencia, recibos de luz/agua, facturas, capturas de pantalla de bancos, o puras imágenes de texto.
+- **CONTENIDO NO VEHICULAR**: Muebles, electrodomésticos, comida, ropa, personas solas.
+- **DIBUJOS O JUGUETES**: Ilustraciones, Hot Wheels, maquetas, pantallas de otros dispositivos.
 
-IMPORTANTE: Ante la duda, SI PARECE UN VEHÍCULO REAL → APRUÉBALO.
+❌ RECHAZA EN LA GALERÍA (@Index 1-9) SI:
+- Es un vehículo diferente al de la portada.
+- Es contenido prohibido o no relacionado.
+
+IMPORTANTE: Si la portada NO es un vehículo terrestre motorizado real (con llantas/motor), "valid" debe ser false y el autollenado se cancela.
 
 ═══ PROTOCOLO DE ANÁLISIS (PASO A PASO) ═══
 1. OLVIDA EL TEXTO: Ignora cualquier marca o modelo dado por el usuario.
@@ -304,17 +306,22 @@ export async function analyzeMultipleImages(
          "details": {
             "brand": "Marca REAL identificada",
             "model": "Modelo REAL identificado",
-            "year": "Año/Generación REAL",
+            "version": "Versión/Trim/Edición específica (Ej: King Ranch, Raptor, Denali, GTI, Rubicon, Carbon Edition). ¡SÉ MUY PRECISO!",
+            "year": "Año o generación",
             "color": "Color predominante",
             "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
             "transmission": "Manual|Automática",
             "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-            "engine": "Ej: 2.0L Turbo",
+            "engine": "Especificación motor (ej: 3.5L V6 o Cummins 6.7)",
             "traction": "FWD|RWD|4x4|AWD",
-            "doors": 5,
-            "passengers": 5
-         }
-       }
+            "doors": 2|3|4|5,
+            "passengers": 2|5|7|9,
+            "hp": "Potencia",
+            "cargoCapacity": "Capacidad en toneladas (si aplica)",
+            "operatingHours": "Horas de uso (si aplica)",
+            "features": ["Lista exhaustiva de equipamiento detectado y estándar de esta versión"]
+          }
+        }
        
         REGLA CRÍTICA DE FORMATO: 
         - Para datos técnicos NO visibles o INCIERTOS: usa null (sin comillas).
