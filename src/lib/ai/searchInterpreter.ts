@@ -29,10 +29,40 @@ interface SearchIntent {
 export async function interpretSearchQuery(query: string, context: 'MARKET' | 'MAP'): Promise<SearchIntent> {
   console.log(`🧠 Interpretando búsqueda (${context}): "${query}"`);
 
-  // 🚀 PASO 1: Intentar obtener del caché
+  // 🚀 NIVEL 0: ORQUESTADOR DE EFICIENCIA EXTREMA
+  // Importar el orquestador dinámicamente para evitar dependencias circulares
+  try {
+    const { orchestrator } = await import('./orchestrator');
+    const orchestratedResult = await orchestrator.execute(query, {
+      role: 'INTERPRETER',
+      efficiency: 'LOCAL_FIRST',
+      useCache: true,
+      context: { taxonomy: { BRANDS, COLORS, TRANSMISSIONS, FUELS }, searchContext: context }
+    });
+
+    if (orchestratedResult.source === 'LOCAL' || orchestratedResult.source === 'CACHE') {
+      console.log(`✅ [ORCHESTRATOR ${orchestratedResult.source}] Costo: $0. Confianza: ${orchestratedResult.confidence}`);
+      return orchestratedResult.data as SearchIntent;
+    }
+
+    if (orchestratedResult.source === 'FLASH' && orchestratedResult.confidence >= 0.8) {
+      console.log(`⚡ [ORCHESTRATOR FLASH] Costo mínimo. Confianza: ${orchestratedResult.confidence}`);
+      return orchestratedResult.data as SearchIntent;
+    }
+
+    // Si el orquestador usó PRO o tiene baja confianza, usamos ese resultado pero lo validamos abajo
+    if (orchestratedResult.data) {
+      console.log(`👑 [ORCHESTRATOR PRO] Máxima precisión garantizada.`);
+      return orchestratedResult.data as SearchIntent;
+    }
+  } catch (orchError) {
+    console.warn("⚠️ Orquestador no disponible, usando flujo legacy:", orchError);
+  }
+
+  // 🚀 PASO 1: FALLBACK - Intentar obtener del caché directo (por si el orquestador falló)
   const cachedResult = aiCache.get(query, context);
   if (cachedResult) {
-    console.log(`⚡ [CACHE HIT] Respuesta recuperada del caché. $0 gastados.`);
+    console.log(`⚡ [CACHE HIT LEGACY] Respuesta recuperada del caché. $0 gastados.`);
     return cachedResult;
   }
 

@@ -48,6 +48,9 @@ interface ImageAnalysisResult {
 export async function analyzeImage(imageBase64: string, type: 'VEHICLE' | 'BUSINESS' = 'VEHICLE'): Promise<ImageAnalysisResult> {
   console.log(`🤖 [${type}] Iniciando análisis con Gemini Vision... (Tamaño: ${imageBase64.length} caracteres)`);
 
+  // 🚀 TODO: Integrar orquestador para pre-validación de imágenes con heurísticas visuales básicas
+  // Por ahora mantenemos el sistema de rotación Bi-Turbo (Pro/Flash) que ya funciona en producción
+
   let prompt = '';
 
   if (type === 'BUSINESS') {
