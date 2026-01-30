@@ -241,25 +241,12 @@ REGLA CRÍTICA DE FORMATO:
     };
   }
 
-  // ✅ FAIL-OPEN: Errores técnicos (cuota, timeout, red, sobrecarga)
-  if (msg.includes("429") || msg.includes("quota") || msg.includes("exhausted") ||
-    msg.includes("503") || msg.includes("overloaded") || msg.includes("timeout") ||
-    msg.includes("fetch") || msg.includes("network") || msg.includes("deadline")) {
-    console.warn("⚠️ ERROR TÉCNICO DE GEMINI - APROBANDO IMAGEN POR DEFECTO (Fail-Open)");
-    console.warn("⚠️ Razón:", msg);
-    return {
-      valid: true,  // ✅ FAIL-OPEN: Aprobar por defecto
-      reason: "OK (Aprobado por mantenimiento técnico)",
-      details: {} // Sin detalles específicos
-    };
-  }
-
-  // ✅ FAIL-OPEN: Error técnico desconocido → APROBAR por seguridad del usuario
-  console.warn("⚠️ ERROR TÉCNICO DESCONOCIDO - APROBANDO IMAGEN POR DEFECTO (Fail-Open)");
-  console.warn("⚠️ Error:", lastError);
+  // ❌ FAIL-CLOSED (CAMBIO CRÍTICO): En caso de error técnico definitivo tras 10 intentos, 
+  // NO aprobamos la imagen. Preferimos seguridad que falsos positivos de recibos.
+  console.error("⚠️ ERROR TÉCNICO DEFINITIVO TRAS 10 INTENTOS - RECHAZANDO POR SEGURIDAD (Fail-Closed)");
   return {
-    valid: true,  // ✅ FAIL-OPEN: Aprobar por defecto
-    reason: "OK (Aprobado por mantenimiento técnico)",
+    valid: false,
+    reason: "Lo sentimos, el servicio de verificación está saturado o falló. Por favor, intenta subir la foto de nuevo en unos segundos.",
     details: {}
   };
 }
@@ -558,15 +545,13 @@ export async function analyzeMultipleImages(
 
   const msg = lastError?.message?.toLowerCase() || '';
 
-  // ✅ FAIL-OPEN: En caso de error técnico, aprobar todas las imágenes
-  console.warn("⚠️ ERROR TÉCNICO MÚLTIPLE - APROBANDO TODAS LAS IMÁGENES (Fail-Open)");
-  console.warn("⚠️ Razón:", msg);
-
+  // ❌ FAIL-CLOSED (CAMBIO CRÍTICO): Rechazo total ante fallo técnico definitivo.
+  console.error("⚠️ ERROR TÉCNICO MÚLTIPLE DEFINITIVO (10 INTENTOS) - RECHAZANDO GALERÍA (Fail-Closed)");
   return {
-    valid: true,  // ✅ FAIL-OPEN: Aprobar por defecto en errores técnicos
-    reason: "OK (Aprobado por mantenimiento técnico)",
+    valid: false,
+    reason: "Hubo un error al procesar las imágenes después de varios intentos. Intenta nuevamente.",
     details: {},
-    invalidIndices: []
+    invalidIndices: [0]
   };
 }
 
