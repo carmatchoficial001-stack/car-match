@@ -44,6 +44,7 @@ export default function PublishClient() {
     const [loading, setLoading] = useState(false)
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [aiConfidence, setAiConfidence] = useState(0)
+    const [currentTipIndex, setCurrentTipIndex] = useState(0)
     const [aiError, setAiError] = useState('')
     const [showPortal, setShowPortal] = useState(false)
     const [redirectUrl, setRedirectUrl] = useState('')
@@ -420,6 +421,40 @@ export default function PublishClient() {
         detectRegionalSettings()
     }, [])
 
+    // 🔄 Rotar consejos dinámicamente cada 6 segundos mientras está analizando
+    useEffect(() => {
+        if (!isAnalyzing) return
+
+        const interval = setInterval(() => {
+            setCurrentTipIndex(prev => (prev + 1) % 5) // 5 consejos en total
+        }, 6000) // Cambiar cada 6 segundos
+
+        return () => clearInterval(interval)
+    }, [isAnalyzing])
+
+    // 📊 Animar barra de progreso automáticamente mientras está analizando
+    useEffect(() => {
+        if (!isAnalyzing) {
+            setAiConfidence(0) // Reset al terminar
+            setCurrentTipIndex(0)
+            return
+        }
+
+        // Iniciar desde 0 y llegar gradualmente a 90% (el 100% se alcanza cuando termina realmente)
+        setAiConfidence(0)
+        const startTime = Date.now()
+        const duration = 15000 // 15 segundos para llegar al 90%
+
+        const progressInterval = setInterval(() => {
+            const elapsed = Date.now() - startTime
+            const progress = Math.min((elapsed / duration) * 90, 90) // Max 90%
+            setAiConfidence(Math.floor(progress))
+        }, 100) // Actualizar cada 100ms para animación suave
+
+        return () => clearInterval(progressInterval)
+    }, [isAnalyzing])
+
+
     // ✏️ Edit Mode: Load vehicle data
     useEffect(() => {
         if (editId) {
@@ -667,7 +702,7 @@ export default function PublishClient() {
                     {isAnalyzing && (
                         <div className="absolute inset-0 z-40 bg-surface/90 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl">
                             <h3 className="text-2xl font-bold text-text-primary animate-pulse text-center px-6">
-                                Analizando tus fotos...
+                                Subiendo tus fotos...
                             </h3>
                             <p className="text-text-secondary text-sm mt-2 mb-8">Esto puede tardar unos segundos</p>
 
@@ -681,17 +716,13 @@ export default function PublishClient() {
                                 </div>
                                 <div className="h-20 flex items-center">
                                     <p className="text-sm text-text-secondary italic">
-                                        {(() => {
-                                            const tips = [
-                                                "Sugerencia: Acuerden un punto medio seguro para la entrega o revisión del vehículo.",
-                                                "Tip: Recuerda que CarMatch no se involucra en las negociaciones finales, ¡tú eres el experto!",
-                                                "Seguridad: Te recomendamos revisar papeles originales y número de serie antes de cerrar cualquier trato.",
-                                                "Éxito: Una buena descripción técnica ayuda a que el comprador decida más rápido.",
-                                                "Cita: Una vez que acuerden la reunión, pongan un recordatorio para evitar contratiempos."
-                                            ];
-                                            // Usar el tiempo para rotar el consejo cada vez que carga
-                                            return tips[Math.floor(Date.now() / 5000) % tips.length];
-                                        })()}
+                                        {[
+                                            "Sugerencia: Acuerden un punto medio seguro para la entrega o revisión del vehículo.",
+                                            "Tip: Recuerda que CarMatch no se involucra en las negociaciones finales, ¡tú eres el experto!",
+                                            "Seguridad: Te recomendamos revisar papeles originales y número de serie antes de cerrar cualquier trato.",
+                                            "Éxito: Una buena descripción técnica ayuda a que el comprador decida más rápido.",
+                                            "Cita: Una vez que acuerden la reunión, pongan un recordatorio para evitar contratiempos."
+                                        ][currentTipIndex]}
                                     </p>
                                 </div>
                             </div>
