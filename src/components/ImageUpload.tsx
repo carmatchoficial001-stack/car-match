@@ -4,6 +4,57 @@ import { useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { useLanguage } from '@/contexts/LanguageContext'
 
+// 🚀 Función de compresión de imágenes (nativa, sin dependencias)
+async function compressImage(file: File): Promise<File> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.readAsDataURL(file)
+        reader.onload = (event) => {
+            const img = new (window as any).Image()
+            img.src = event.target?.result
+            img.onload = () => {
+                const canvas = document.createElement('canvas')
+                let width = img.width
+                let height = img.height
+
+                // Máximo 1920px en el lado más largo
+                const maxSize = 1920
+                if (width > height && width > maxSize) {
+                    height = (height * maxSize) / width
+                    width = maxSize
+                } else if (height > maxSize) {
+                    width = (width * maxSize) / height
+                    height = maxSize
+                }
+
+                canvas.width = width
+                canvas.height = height
+                const ctx = canvas.getContext('2d')
+                ctx?.drawImage(img, 0, 0, width, height)
+
+                canvas.toBlob(
+                    (blob) => {
+                        if (blob) {
+                            const compressedFile = new File([blob], file.name, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now(),
+                            })
+                            console.log(`🗜️ Comprimido: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`)
+                            resolve(compressedFile)
+                        } else {
+                            reject(new Error('Error al comprimir imagen'))
+                        }
+                    },
+                    'image/jpeg',
+                    0.85 // Calidad 85%
+                )
+            }
+            img.onerror = reject
+        }
+        reader.onerror = reject
+    })
+}
+
 interface ImageUploadProps {
     images: string[]
     onImagesChange: (images: string[]) => Promise<void> | void
@@ -59,7 +110,13 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
         setUploadError(null)
 
         try {
-            const uploadPromises = files.map(file => uploadToCloudinary(file))
+            // 🚀 COMPRIMIR todas las imágenes ANTES de subir
+            console.log(`🗜️ Comprimiendo ${files.length} imagen(es)...`)
+            const compressedFiles = await Promise.all(
+                files.map(file => compressImage(file))
+            )
+
+            const uploadPromises = compressedFiles.map(file => uploadToCloudinary(file))
             const urls = await Promise.all(uploadPromises)
 
             // Si es max 1, REEMPLAZAR. Si no, AGREGAR.
