@@ -169,7 +169,7 @@ export default function PublishClient() {
         if (images.length === 0) return
         setIsAnalyzing(true)
         setAiError('')
-        setAiConfidence(50 + (retryCount * 10)) // Mostrar progreso visual en reintentos
+        // NO establecer aiConfidence aquí - el useEffect lo manejará desde 0%
 
         console.log(`🧪 [Intento ${retryCount + 1}] Iniciando validación de imágenes...`, images.length, 'fotos')
 
@@ -208,7 +208,14 @@ export default function PublishClient() {
             // Bloqueamos SI Y SOLO SI la PORTADA es inválida.
             const isCoverInvalid = !validation.valid || validation.invalidIndices?.includes(0)
             if (isCoverInvalid) {
-                const reason = validation.reason || 'La foto de portada debe ser un vehículo real.'
+                // Mensaje de error específico y claro
+                let reason = validation.reason || 'La imagen no pasó la verificación.'
+
+                // Si el backend no dio razón específica, dar una genérica útil
+                if (!validation.reason) {
+                    reason = '⚠️ Esta imagen no es un vehículo motorizado terrestre. Por favor, sube una foto clara de un auto, camioneta, motocicleta, o vehículo similar.'
+                }
+
                 setAiError(reason)
                 setIsAnalyzing(false)
                 setInvalidImageUrls(new Set([images[0]]))
