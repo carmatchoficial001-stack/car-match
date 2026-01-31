@@ -167,7 +167,7 @@ REGLA CRÍTICA DE FORMATO:
   }
 
   let lastError: any;
-  const maxRetries = 15; // 🦍 BLINDAJE SUPREMO: 15 reintentos con rotación (Cero Fallas)
+  const maxRetries = 2; // ⚡ OPTIMIZADO: 2 reintentos rápidos (5-10s máximo total)
 
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -223,8 +223,8 @@ REGLA CRÍTICA DE FORMATO:
         errorMsg.includes("deadline");
 
       if (isRetryable && i < maxRetries - 1) {
-        // 🚀 OPTIMIZACIÓN CARMATCH: Cap de 5 segundos máximo por reintento para evitar esperas de 10 min.
-        const waitTime = Math.min(Math.pow(1.5, i) * 1000, 5000) + (Math.random() * 500);
+        // ⚡ Reintento rápido: máximo 2 segundos de espera
+        const waitTime = Math.min(Math.pow(1.5, i) * 1000, 2000) + (Math.random() * 300);
         console.warn(`⚠️ Asesor Real ocupado (${i + 1}/${maxRetries}). Reintentando en ${Math.round(waitTime)}ms...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
@@ -348,7 +348,7 @@ export async function analyzeMultipleImages(
        }`;
 
   let lastError: any;
-  const maxRetries = 15; // 🦍 BLINDAJE SUPREMO: 15 reintentos con rotación (Cero Fallas)
+  const maxRetries = 2; // ⚡ OPTIMIZADO: 2 reintentos rápidos (5-10s máximo total)
 
   // 🚀 REGLA RUBEN: PARA VEHÍCULOS, LA PORTADA SE ANALIZA PRIMERO Y MANDA
   if (type === 'VEHICLE' && images.length > 0) {
