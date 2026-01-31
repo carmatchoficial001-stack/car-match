@@ -39,6 +39,21 @@ export default function PushNotificationRequest() {
         }
     }, [status])
 
+    // 🔄 Monitorear cambios en el permiso de notificaciones
+    useEffect(() => {
+        if (!showPrompt) return
+
+        const checkPermission = () => {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                setShowPrompt(false)
+            }
+        }
+
+        // Verificar cada 500ms mientras el prompt está visible
+        const interval = setInterval(checkPermission, 500)
+        return () => clearInterval(interval)
+    }, [showPrompt])
+
 
     const subscribeUser = async () => {
         if (!session?.user?.id) {
