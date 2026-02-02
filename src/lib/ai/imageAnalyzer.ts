@@ -252,7 +252,7 @@ REGLA CRÍTICA DE FORMATO:
   console.error("⚠️ ERROR TÉCNICO DEFINITIVO TRAS 15 INTENTOS - RECHAZANDO POR SEGURIDAD");
   return {
     valid: false,
-    reason: "Estamos verificando los detalles técnicos del vehículo con cuidado. Por favor, intenta subir la foto de nuevo para confirmar.",
+    reason: "⚠️ No pudimos validar esta imagen. Por favor, intenta subir una foto más clara del vehículo completo con buena iluminación.",
     details: {}
   };
 }
