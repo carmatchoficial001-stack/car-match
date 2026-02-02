@@ -68,6 +68,7 @@ export default async function SwipePage() {
         where: vehiclesWhere,
         select: {
             id: true,
+            userId: true,  // 🆕 Needed to track ownership
             title: true,
             brand: true,
             model: true,

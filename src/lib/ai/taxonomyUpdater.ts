@@ -123,18 +123,39 @@ export async function fetchTaxonomyUpdates() {
     
     CATEGORÍAS ACTUALES: ${JSON.stringify(Object.keys(VEHICLE_CATEGORIES))}
     
+    🌍 ALCANCE COMPLETO: CarMatch NO solo vende autos/motos. Vendemos CUALQUIER VEHÍCULO MOTORIZADO TERRESTRE:
+    - Autos, Motos, Camiones, Autobuses (COMERCIALES) ✅
+    - Maquinaria: Montacargas, Excavadoras, Tractores, Bulldozers ✅
+    - Servicios: Ambulancias, Patrullas, Food Trucks, Grúas ✅
+    - Agrícolas: Tractores, Cosechadoras, Fumigadoras ✅
+    - Recreativos: RVs, ATVs, Carritos Golf, Cuatrimotos ✅
+    - Industriales: Barredoras, Compactadoras, Revolvedoras ✅
+    - Movilidad: Scooters eléctricos, Segways, Triciclos ✅
+    
+    TU TAREA:
+    1. Buscar vehículos NUEVOS 2024-2026 en TODAS estas categorías
+    2. Incluir marcas emergentes (ej: BYD eléctricos, Rivian pickups, nuevos montacargas eléctricos)
+    3. Incluir modelos nuevos de marcas existentes (ej: Toyota Tacoma 2025, Ford E-Transit 2024)
+    4. Incluir subtipos nuevos (ej: "Pickup Eléctrica", "Montacargas Autónomo")
+    
+    EJEMPLOS DE LO QUE DEBES DETECTAR:
+    - newBrands: { "Automóvil": ["BYD", "Rivian", "Lucid"], "Maquinaria": ["Hangcha"] }
+    - newModels: { "Tesla": ["Cybertruck", "Model 3 Highland"], "Caterpillar": ["320 GC"] }
+    - newCategories: { "Automóvil": ["Pickup Eléctrica"], "Maquinaria": ["Montacargas Eléctrico"] }
+    
     FORMATO OBLIGATORIO:
     {
-      "newBrands": { "Automóvil": ["Nombre"], "Motocicleta": [] },
+      "newBrands": { "Automóvil": ["Nombre"], "Motocicleta": [], "Maquinaria": [] },
       "newModels": { "MarcaExistente": ["Modelo1", "Modelo2"] },
-      "newCategories": { "Automóvil": ["Subtipo"] },
+      "newCategories": { "Automóvil": ["Subtipo"], "Maquinaria": ["Subtipo"] },
       "confidence": 0.95
     }
 
     REGLAS DE ORO:
     1. Si no hay nada nuevo, devuelve el objeto con listas vacías.
-    2. NUNCA inventes marcas.
-    3. NO incluyas markdown, NO digas "Aquí tienes", NO expliques nada. Solo el JSON.
+    2. NUNCA inventes marcas (verifica en fuentes oficiales).
+    3. INCLUYE vehículos especializados (no solo autos comerciales).
+    4. NO incluyas markdown, NO digas "Aquí tienes", NO expliques nada. Solo el JSON.
   `;
 
   try {

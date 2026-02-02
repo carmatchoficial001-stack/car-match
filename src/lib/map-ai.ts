@@ -1,10 +1,18 @@
 // 🔒 FEATURE LOCKED: CORE AI INTERPRETATION. NO EDITAR SIN APROBACIÓN EXPRESA DE RUBEN.
 // Consulte REGLAS_DE_PROTECCION.md en la raíz para más detalles.
 import { safeGenerateContent, safeExtractJSON } from "./ai/geminiClient";
+import aiCache from "./ai/aiCache"; // 💰 Sistema de caché para ahorrar $$$
 
 export async function interpretMapQuery(query: string): Promise<string[]> {
-    try {
-        const prompt = `
+   // 💰 PASO 1: Intentar obtener del caché
+   const cached = aiCache.get(query, 'map-ai');
+   if (cached) {
+      console.log(`💰 [MAP AI CACHE HIT] Ahorramos llamada a Gemini para: "${query}"`);
+      return cached;
+   }
+
+   try {
+      const prompt = `
             Actúa como el MAESTRO MECÁNICO de CarMatch, una leyenda con 60 años de experiencia. Tienes OÍDO ABSOLUTO para motores y conoces toda la jerga callejera y técnica de México.
 
             TU MISIÓN: Traducir lo que dice el usuario (ruidos, quejas, jerga) a CATEGORÍAS TÉCNICAS para el mapa.
@@ -68,15 +76,23 @@ export async function interpretMapQuery(query: string): Promise<string[]> {
             Responde ÚNICAMENTE con un array JSON de strings (Ej: ["MECANICA", "ELECTRICO"]):
         `;
 
-        // ✅ Usamos FLASH PRECISE (Temp 0.1) para evitar alucinaciones técnicas
-        const { geminiFlashPrecise } = await import("./ai/geminiClient");
-        const response = await geminiFlashPrecise.generateContent(prompt);
-        const responseText = response.response.text();
+      // ✅ Usamos FLASH PRECISE (Temp 0.1) para evitar alucinaciones técnicas
+      const { geminiFlashPrecise } = await import("./ai/geminiClient");
+      const response = await geminiFlashPrecise.generateContent(prompt);
+      const responseText = response.response.text();
 
-        const categories = safeExtractJSON<string[]>(responseText);
-        return Array.isArray(categories) ? categories : [];
-    } catch (error) {
-        console.error("AI Map Interpretation Error:", error);
-        return [];
-    }
+      const categories = safeExtractJSON<string[]>(responseText);
+      const result = Array.isArray(categories) ? categories : [];
+
+      // 💰 PASO 2: Guardar en caché para la próxima vez
+      if (result.length > 0) {
+         aiCache.set(query, result, 'map-ai');
+         console.log(`💾 [MAP AI CACHED] "${query}" -> ${result.join(', ')}`);
+      }
+
+      return result;
+   } catch (error) {
+      console.error("AI Map Interpretation Error:", error);
+      return [];
+   }
 }

@@ -50,7 +50,7 @@ export default function EmergencyPage({
         }
 
         fetchSOSData()
-        const interval = setInterval(fetchSOSData, 10000) // Actualizar cada 10s
+        const interval = setInterval(fetchSOSData, 30000) // 💰 Optimizado: 30s (antes: 10s)
 
         return () => clearInterval(interval)
     }, [session, status, id])

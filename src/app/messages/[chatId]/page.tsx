@@ -67,8 +67,10 @@ export default function ChatPage({
         }
         fetchMessages()
         fetchChatDetails()
-        const interval = setInterval(() => {
+        const messagesInterval = setInterval(() => {
             fetchMessages()
+        }, 30000) // 💰 Optimizado: 30s (antes: 3s)
+        const chatDetailsInterval = setInterval(() => {
             fetchChatDetails() // Refrescar estado del vehículo periódicamente
         }, 3000)
 

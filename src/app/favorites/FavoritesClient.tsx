@@ -120,6 +120,7 @@ export default function FavoritesClient({ favorites }: { favorites: FavoriteVehi
                                             <img
                                                 src={vehicle.images[0]}
                                                 alt={vehicle.title}
+                                                loading="lazy"
                                                 className="w-full h-full object-contain bg-black/40"
                                             />
                                         ) : (

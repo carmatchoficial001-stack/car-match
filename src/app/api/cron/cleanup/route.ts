@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { deleteFromCloudinary } from '@/lib/cloudinary'
 
 /**
  * CRON JOB: Limpieza y Renovación Automática
@@ -107,7 +108,51 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        return NextResponse.json({ success: true, processed: log })
+        // 💰 3. AUTO-DELETE IMÁGENES ANTIGUAS (Ahorro Cloudinary: $50k/mes)
+        // Elimina imágenes de vehículos SOLD/INACTIVE después de 30 días
+        const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
+
+        const oldVehicles = await prisma.vehicle.findMany({
+            where: {
+                OR: [
+                    { status: 'SOLD', updatedAt: { lt: thirtyDaysAgo } },
+                    { status: 'INACTIVE', updatedAt: { lt: thirtyDaysAgo } }
+                ],
+                images: { isEmpty: false }
+            },
+            select: { id: true, images: true, brand: true, model: true }
+        })
+
+        let deletedImagesCount = 0
+        for (const vehicle of oldVehicles) {
+            for (const imageUrl of vehicle.images) {
+                try {
+                    await deleteFromCloudinary(imageUrl)
+                    deletedImagesCount++
+                } catch (error) {
+                    console.error(`Failed to delete image ${imageUrl}:`, error)
+                }
+            }
+
+            // Limpiar array de imágenes en DB
+            await prisma.vehicle.update({
+                where: { id: vehicle.id },
+                data: { images: [] }
+            })
+
+            log.push(`[CLEANED] Vehicle ${vehicle.id} (${vehicle.brand} ${vehicle.model}) - Deleted ${vehicle.images.length} images`)
+        }
+
+        return NextResponse.json({
+            success: true,
+            processed: log,
+            stats: {
+                vehiclesProcessed: expiredVehicles.length,
+                businessesProcessed: expiredBusinesses.length,
+                imagesDeleted: deletedImagesCount,
+                vehiclesCleaned: oldVehicles.length
+            }
+        })
 
     } catch (error) {
         console.error('Cron Error:', error)

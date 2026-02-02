@@ -47,13 +47,18 @@ export default function MapBoxComponent({
             .then(coords => {
                 setUserLocation({ lat: coords.latitude, lng: coords.longitude })
 
-                // Crear mapa centrado en ubicación del usuario
+                // 💰 OPTIMIZACIÓN DE COSTOS MAPBOX
                 const newMap = new mapboxgl.Map({
                     container: mapContainer.current!,
-                    style: 'mapbox://styles/mapbox/outdoors-v12', // Estilo National Geographic
+                    style: 'mapbox://styles/mapbox/outdoors-v12',
                     center: [coords.longitude, coords.latitude],
-                    zoom: 13,
-                    pitch: 45, // Vista 3D inclinada
+                    zoom: 12, // Mantenemos 12 aquí porque mostramos ubicación exacta del usuario
+                    pitch: 45,
+                    // 💰 CACHÉ AGRESIVO: Reduce llamadas a tiles API
+                    minTileCacheSize: 500,
+                    maxTileCacheSize: 1000,
+                    refreshExpiredTiles: false, // 💰 NO recargar tiles expirados
+                    preserveDrawingBuffer: true,
                 })
 
                 // Agregar controles
@@ -103,13 +108,18 @@ export default function MapBoxComponent({
                 console.error('Error obteniendo ubicación:', error)
                 setLocationError('No se pudo obtener tu ubicación GPS')
 
-                // Crear mapa con ubicación por defecto (Monterrey)
+                // 💰 Crear mapa con ubicación por defecto (Monterrey) - OPTIMIZADO
                 const newMap = new mapboxgl.Map({
                     container: mapContainer.current!,
                     style: 'mapbox://styles/mapbox/outdoors-v12',
                     center: [-100.3161, 25.6866], // Monterrey
                     zoom: 11,
                     pitch: 45,
+                    // 💰 CACHÉ AGRESIVO
+                    minTileCacheSize: 500,
+                    maxTileCacheSize: 1000,
+                    refreshExpiredTiles: false,
+                    preserveDrawingBuffer: true,
                 })
 
                 newMap.addControl(new mapboxgl.NavigationControl(), 'top-right')

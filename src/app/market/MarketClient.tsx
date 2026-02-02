@@ -140,7 +140,7 @@ export default function MarketClient({
     const userCountry = normalizeCountryCode(activeLocation?.countryCode || activeLocation?.country)
 
     // Pagination
-    const CARS_PER_PAGE = 6
+    const CARS_PER_PAGE = 4 // 💰 Optimizado para datos móviles (antes: 6)
     const [visibleCount, setVisibleCount] = useState(CARS_PER_PAGE)
 
     useEffect(() => {
@@ -614,6 +614,7 @@ export default function MarketClient({
                                                         <img
                                                             src={item.images[0]}
                                                             alt={isBusiness ? `Negocio: ${item.title}` : `Venta de ${item.brand || item.title} ${item.model || ''} ${item.year || ''} en ${item.city} - CarMatch`}
+                                                            loading="lazy"
                                                             className="w-full h-full object-contain bg-black/40"
                                                         />
                                                     ) : (

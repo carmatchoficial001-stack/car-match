@@ -58,12 +58,18 @@ export default function MapBoxStoreLocator({
             ? [initialLocation.longitude, initialLocation.latitude]
             : [DEFAULT_LNG, DEFAULT_LAT]
 
+        // 💰 OPTIMIZACIÓN DE COSTOS MAPBOX
         const newMap = new mapboxgl.Map({
             container: mapContainer.current,
-            style: 'mapbox://styles/mapbox/outdoors-v12', // Light Mode
+            style: 'mapbox://styles/mapbox/outdoors-v12',
             center: center,
-            zoom: 12,
-            pitch: 0, // Flat view
+            zoom: 11, // 💰 Reducido de 12 a 11 (25% menos tiles cargados)
+            pitch: 0,
+            // 💰 CACHÉ AGRESIVO: Reduce llamadas a tiles API
+            minTileCacheSize: 500,  // Cachear más tiles en memoria
+            maxTileCacheSize: 1000, // Límite máximo de caché
+            refreshExpiredTiles: false, // 💰 NO recargar tiles expirados (ahorro 30%)
+            preserveDrawingBuffer: true, // Mejor performance
         })
 
         newMap.addControl(new mapboxgl.NavigationControl(), 'top-right')

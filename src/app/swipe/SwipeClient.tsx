@@ -393,7 +393,11 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                     <div className="w-full flex-1 flex flex-col">
                         <SwipeFeed
                             key={`stack-tier-${tierIndex}`}
-                            items={nearbyItems}
+                            items={nearbyItems.map(item => ({
+                                ...item,
+                                // 🚀 ADMIN NACIONAL: Mostrar ciudad del usuario en publicaciones de admin
+                                city: item.isBoosted && location?.city ? location.city : item.city
+                            }))}
                             onLike={handleLike}
                             onDislike={handleDislike}
                             onNeedMore={expandSearch}

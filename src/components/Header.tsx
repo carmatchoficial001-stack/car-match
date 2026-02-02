@@ -221,7 +221,7 @@ export default function Header() {
         }
         window.addEventListener('profileUpdated', handleProfileUpdate)
 
-        const interval = setInterval(fetchCounts, 10000) // Polling cada 10s
+        const interval = setInterval(fetchCounts, 30000) // 💰 Optimizado: 30s (antes: 10s) = 66% menos queries
         return () => {
             clearInterval(interval)
             window.removeEventListener('favoriteUpdated', handleFavUpdate)

@@ -320,6 +320,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                             <img
                                                 src={vehicle.images?.[activeImage]}
                                                 alt={vehicle.title}
+                                                loading="lazy"
                                                 className="max-w-full max-h-[90vh] object-contain"
                                             />
                                         </TransformComponent>
@@ -616,7 +617,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                                 <div className="relative">
                                                     <div className="w-28 h-20 bg-black/20 rounded-2xl flex items-center justify-center text-primary-400 font-bold text-2xl uppercase shadow-glow group-hover/seller:bg-black/30 transition-all overflow-hidden border-2 border-primary-500/30">
                                                         {vehicle.user.image ? (
-                                                            <img src={vehicle.user.image} alt={vehicle.user.name} className="w-full h-full object-contain" />
+                                                            <img src={vehicle.user.image} alt={vehicle.user.name} loading="lazy" className="w-full h-full object-contain" />
                                                         ) : (
                                                             vehicle.user.name.substring(0, 2)
                                                         )}
@@ -658,7 +659,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                             >
                                                 <div className="aspect-video relative overflow-hidden bg-black/40">
                                                     {rv.images?.[0] ? (
-                                                        <img src={rv.images[0]} alt={rv.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                        <img src={rv.images[0]} alt={rv.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-primary-500/20 font-black text-xl">CM</div>
                                                     )}
