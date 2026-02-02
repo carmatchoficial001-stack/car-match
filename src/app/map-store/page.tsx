@@ -17,7 +17,7 @@ const MapClient = dynamic(() => import('../map/MapClient'), {
     )
 })
 
-export const dynamic_route = 'force-dynamic'
+export const dynamic = 'force-dynamic'
 
 export const metadata = {
     title: "CarMatch",
