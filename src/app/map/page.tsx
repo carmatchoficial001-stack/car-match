@@ -1,10 +1,23 @@
 ﻿import { prisma } from '@/lib/db'
-import MapClient from './MapClient'
+import dynamic from 'next/dynamic'
 import { auth } from '@/lib/auth'
 import { serializeDecimal } from '@/lib/serialize'
 import { redirect } from 'next/navigation'
 
-export const dynamic = 'force-dynamic'
+// 💰 OPTIMIZACIÓN: Dynamic import para Mapbox
+const MapClient = dynamic(() => import('./MapClient'), {
+    ssr: false,
+    loading: () => (
+        <div className="h-screen w-full flex items-center justify-center bg-background">
+            <div className="text-center">
+                <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-text-primary font-bold">Cargando mapa...</p>
+            </div>
+        </div>
+    )
+})
+
+export const dynamic_route = 'force-dynamic'
 
 export default async function MapPage() {
     const session = await auth()
