@@ -78,7 +78,8 @@ export default function ChatPage({
         const safetyInterval = setInterval(checkSafetyReminders, 60000) // Check every minute
 
         return () => {
-            clearInterval(interval)
+            clearInterval(messagesInterval)
+            clearInterval(chatDetailsInterval)
             clearInterval(safetyInterval)
         }
     }, [session, status, chatId])
