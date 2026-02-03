@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "rimraf .next && prisma generate && next build",
+    "build": "rimraf .next && prisma generate && cross-env NODE_OPTIONS=--max-old-space-size=4096 next build",
     "clean": "rimraf .next",
     "start": "next start",
     "lint": "next lint",
@@ -44,6 +44,7 @@
     "@types/react-dom": "^18.3",
     "@types/web-push": "^3.6.4",
     "autoprefixer": "^10.0.1",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "^15.1.0",
     "postcss": "^8",
