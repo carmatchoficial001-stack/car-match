@@ -167,7 +167,7 @@ REGLA CRÍTICA DE FORMATO:
   }
 
   let lastError: any;
-  const maxRetries = 2; // ⚡ OPTIMIZADO: 2 reintentos rápidos (5-10s máximo total)
+  const maxRetries = 4; // ⚡ ULTRA ROBUSTEZ: 4 reintentos (Pro->Flash->Pro->Flash)
 
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -180,7 +180,7 @@ REGLA CRÍTICA DE FORMATO:
 
       let result;
       try {
-        // 🏎️ ESTRATEGIA BI-TURBO: Intentar con Pro, si falla (429/Error) rotar a Flash inmediatamente
+        // 🏎️ ESTRATEGIA BI-TURBO 2.0: Alternar modelos para evadir saturación
         const modelToUse = i % 2 === 0 ? geminiPro : geminiFlash;
         console.log(`🤖 [IA] Intento ${i + 1}/${maxRetries} usando ${i % 2 === 0 ? 'PRO (Experto)' : 'FLASH (Veloz)'}`);
         result = await modelToUse.generateContent([prompt, imagePart]);
@@ -200,7 +200,7 @@ REGLA CRÍTICA DE FORMATO:
       // 🧠 MEJORA INTELIGENTE: Si no hay JSON, es probable que la IA rechace con texto plano
       if (firstBrace === -1 || lastBrace === -1) {
         console.warn("⚠️ No se detectó JSON. Extrayendo razón del texto crudo.");
-        if (text.length > 0 && text.length < 2000) { // ⚡ AUMENTADO A 2000 chars
+        if (text.length > 0 && text.length < 2000) {
           return { valid: false, reason: text.replace(/[*_`]/g, '').trim() };
         }
         throw new Error("No JSON found in response");
@@ -208,11 +208,22 @@ REGLA CRÍTICA DE FORMATO:
       const jsonString = text.substring(firstBrace, lastBrace + 1);
 
       try {
-        return JSON.parse(jsonString);
+        // 🧼 SANITIZADOR DE JSON MANUAL
+        // A veces la IA usa comillas simples o deja comas finales. Intentamos limpiarlo.
+        const cleanJson = jsonString
+          .replace(/,\s*}/g, '}') // Quitar comas finales en objetos
+          .replace(/,\s*]/g, ']') // Quitar comas finales en arrays
+          .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2": '); // Asegurar comillas en claves (basico)
+
+        try {
+          return JSON.parse(jsonString); // Primero intentamos el original
+        } catch (e) {
+          return JSON.parse(cleanJson); // Si falla, intentamos el limpio
+        }
       } catch (parseError) {
         console.error("❌ Error parseando JSON de Gemini:", parseError, "Texto recibido:", text);
         // Fallback inteligente: Si la IA respondió texto plano explicando el error, usémoslo
-        if (text.length < 2000 && !text.includes('{')) { // ⚡ AUMENTADO A 2000 chars
+        if (text.length < 2000 && !text.includes('{')) {
           return { valid: false, reason: text.trim() };
         }
         throw new Error("JSON Parse Error"); // 🚀 Lanzar error para que entre al retry
