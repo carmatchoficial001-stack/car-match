@@ -5,6 +5,8 @@ import { serializeDecimal } from '@/lib/serialize'
 import { redirect } from 'next/navigation'
 
 // 💰 OPTIMIZACIÓN: Dynamic import - Mapbox solo se carga cuando se necesita (-500KB JS initial)
+export const dynamic = 'force-dynamic'
+
 const MapClient = nextDynamic(() => import('../map/MapClient'), {
     ssr: false,
     loading: () => (
@@ -16,8 +18,6 @@ const MapClient = nextDynamic(() => import('../map/MapClient'), {
         </div>
     )
 })
-
-export const dynamic = 'force-dynamic'
 
 export const metadata = {
     title: "CarMatch",
