@@ -1,4 +1,7 @@
 import { prisma } from '@/lib/db'
+import { auth } from '@/lib/auth'
+import { serializeDecimal } from '@/lib/serialize'
+import { redirect } from 'next/navigation'
 import MapClient from '../map/MapClient'
 
 // 💰 OPTIMIZACIÓN: Dynamic import - Mapbox solo se carga cuando se necesita (-500KB JS initial)
