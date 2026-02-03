@@ -5,6 +5,8 @@ import { serializeDecimal } from '@/lib/serialize'
 import { redirect } from 'next/navigation'
 
 // 💰 OPTIMIZACIÓN: Dynamic import para Mapbox
+export const dynamic = 'force-dynamic'
+
 const MapClient = nextDynamic(() => import('./MapClient'), {
     ssr: false,
     loading: () => (
@@ -16,8 +18,6 @@ const MapClient = nextDynamic(() => import('./MapClient'), {
         </div>
     )
 })
-
-export const dynamic = 'force-dynamic'
 
 export default async function MapPage() {
     const session = await auth()
