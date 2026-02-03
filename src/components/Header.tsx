@@ -354,7 +354,7 @@ export default function Header() {
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: 10 }}
-                                            className="text-white font-black text-[15px] sm:text-lg lg:text-xl uppercase tracking-tight leading-tight max-w-[150px] sm:max-w-none text-right drop-shadow-lg"
+                                            className="text-white font-black text-[10px] sm:text-sm lg:text-base xl:text-lg uppercase tracking-tight leading-tight hidden xl:block max-w-[200px] text-right drop-shadow-lg truncate"
                                         >
                                             {(ctas[ctaIndex] || "").split(' | ')[0]}
                                         </motion.div>
