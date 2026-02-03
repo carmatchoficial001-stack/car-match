@@ -27,6 +27,16 @@ export default function InstallInvasiveBanner() {
         }
     }, [isInstallable, isStandalone])
 
+    // 🔥 Auto-ocultar después de 1 minuto (60s)
+    useEffect(() => {
+        if (isVisible) {
+            const autoCloseTimer = setTimeout(() => {
+                handleDismiss()
+            }, 60000) // 1 minuto
+            return () => clearTimeout(autoCloseTimer)
+        }
+    }, [isVisible])
+
     const handleInstall = async () => {
         const success = await triggerInstall()
         if (success) {
