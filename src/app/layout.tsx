@@ -97,7 +97,7 @@ export const metadata: Metadata = {
                 url: "/icon-512-v20.png?v=22", // ✨ Logo v20 maximizado
                 width: 512,
                 height: 512,
-                alt: "CarMatch® | Marketplace Oficial",
+                alt: "CarMatch | Marketplace Oficial",
             },
         ],
     },
@@ -156,7 +156,7 @@ export default function RootLayout({
                             {
                                 "@context": "https://schema.org",
                                 "@type": "Organization",
-                                "name": "CarMatch®",
+                                "name": "CarMatch",
                                 "alternateName": "CarMatch Official",
                                 "url": "https://carmatchapp.net",
                                 "logo": "https://carmatchapp.net/icon-512-v20.png?v=22", // ✨ Logo v20 maximizado
