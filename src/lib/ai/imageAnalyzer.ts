@@ -118,7 +118,7 @@ IMPORTANTE: Si la portada NO es un vehículo terrestre motorizado real (con llan
 RESPONDE ÚNICAMENTE CON ESTE JSON:
 {
   "valid": boolean (true si es un vehículo real, false solo si NO es vehículo o contenido prohibido),
-  "reason": "OK o razón de rechazo (Ej: 'Contenido no es un vehículo (TV)' o 'Contenido prohibido (desnudez)')",
+  "reason": "Si valid=false, explica AMABLEMENTE y con DETALLE al usuario por qué. Ej: 'No logramos ver el vehículo completo', 'La foto está muy borrosa', 'Parece una captura de pantalla'. ¡Usa lenguaje natural!",
   "category": "automovil" | "motocicleta" | "comercial" | "industrial" | "transporte" | "especial",
   "details": {
     "brand": "Marca REAL identificada visualmente",
@@ -199,11 +199,16 @@ REGLA CRÍTICA DE FORMATO:
       if (firstBrace === -1 || lastBrace === -1) throw new Error("No JSON found");
       const jsonString = text.substring(firstBrace, lastBrace + 1);
 
+      // 202...
       try {
         return JSON.parse(jsonString);
       } catch (parseError) {
         console.error("❌ Error parseando JSON de Gemini:", parseError, "Texto recibido:", text);
-        return { valid: false, reason: "La IA respondió con un formato incorrecto. Intenta con otra foto." };
+        // Fallback inteligente: Si la IA respondió texto plano explicando el error, usémoslo
+        if (text.length < 200 && !text.includes('{')) {
+          return { valid: false, reason: text.trim() };
+        }
+        return { valid: false, reason: "No pudimos entender la respuesta del sistema. Intenta con una foto más clara." };
       }
 
     } catch (error: any) {
@@ -244,15 +249,15 @@ REGLA CRÍTICA DE FORMATO:
     console.warn("🚫 Imagen bloqueada por políticas de seguridad de Gemini");
     return {
       valid: false,
-      reason: "La imagen no pudo ser analizada por políticas de seguridad. Intenta con una foto más clara del vehículo."
+      reason: "La imagen contiene elementos no permitidos por nuestras políticas de seguridad."
     };
   }
 
-  // ❌ FAIL-CLOSED PROFESIONAL: Solo después de 15 intentos fallidos
-  console.error("⚠️ ERROR TÉCNICO DEFINITIVO TRAS 15 INTENTOS - RECHAZANDO POR SEGURIDAD");
+  // ❌ FAIL-CLOSED PROFESIONAL: Solo después de intentos fallidos
+  console.error("⚠️ ERROR TÉCNICO DEFINITIVO - RECHAZANDO");
   return {
     valid: false,
-    reason: "⚠️ No pudimos validar esta imagen. Por favor, intenta subir una foto más clara del vehículo completo con buena iluminación.",
+    reason: "No logramos identificar el vehículo claramente en esta foto. Asegúrate de que el auto salga completo, con buena luz y sin obstrucciones.",
     details: {}
   };
 }
