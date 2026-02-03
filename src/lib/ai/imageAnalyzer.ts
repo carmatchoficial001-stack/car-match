@@ -118,7 +118,7 @@ IMPORTANTE: Si la portada NO es un vehículo terrestre motorizado real (con llan
 RESPONDE ÚNICAMENTE CON ESTE JSON:
 {
   "valid": boolean (true si es un vehículo real, false solo si NO es vehículo o contenido prohibido),
-  "reason": "Si valid=false, explica AMABLEMENTE y con DETALLE al usuario por qué. Ej: 'No logramos ver el vehículo completo', 'La foto está muy borrosa', 'Parece una captura de pantalla'. ¡Usa lenguaje natural!",
+  "reason": "Si valid=false, DÍ EXACTAMENTE QUÉ ES LO QUE VES. Formato OBLIGATORIO: 'Esto es [OBJETO QUE VES], solo se permiten vehículos motorizados terrestres. Vuelve a intentarlo'. Ej: 'Esto es una mascota, solo se permiten vehículos motorizados terrestres. Vuelve a intentarlo'.",
   "category": "automovil" | "motocicleta" | "comercial" | "industrial" | "transporte" | "especial",
   "details": {
     "brand": "Marca REAL identificada visualmente",
@@ -200,30 +200,29 @@ REGLA CRÍTICA DE FORMATO:
       // 🧠 MEJORA INTELIGENTE: Si no hay JSON, es probable que la IA rechace con texto plano
       if (firstBrace === -1 || lastBrace === -1) {
         console.warn("⚠️ No se detectó JSON. Extrayendo razón del texto crudo.");
-        if (text.length > 0 && text.length < 500) {
+        if (text.length > 0 && text.length < 2000) { // ⚡ AUMENTADO A 2000 chars
           return { valid: false, reason: text.replace(/[*_`]/g, '').trim() };
         }
-        throw new Error("No JSON found");
+        throw new Error("No JSON found in response");
       }
       const jsonString = text.substring(firstBrace, lastBrace + 1);
 
-      // 202...
       try {
         return JSON.parse(jsonString);
       } catch (parseError) {
         console.error("❌ Error parseando JSON de Gemini:", parseError, "Texto recibido:", text);
         // Fallback inteligente: Si la IA respondió texto plano explicando el error, usémoslo
-        if (text.length < 200 && !text.includes('{')) {
+        if (text.length < 2000 && !text.includes('{')) { // ⚡ AUMENTADO A 2000 chars
           return { valid: false, reason: text.trim() };
         }
-        return { valid: false, reason: "No pudimos entender la respuesta del sistema. Intenta con una foto más clara." };
+        throw new Error("JSON Parse Error"); // 🚀 Lanzar error para que entre al retry
       }
 
     } catch (error: any) {
       lastError = error;
       const errorMsg = error.message?.toLowerCase() || '';
 
-      // 🚀 RESILIENCIA CARMATCH: Errores reintentables (Red, Timeouts, Cuotas temporales, Sobrecarga)
+      // 🚀 RESILIENCIA CARMATCH: Errores reintentables (Red, Timeouts, Cuotas, JSON malformado)
       const isRetryable =
         errorMsg.includes("429") ||
         errorMsg.includes("quota") ||
@@ -233,14 +232,20 @@ REGLA CRÍTICA DE FORMATO:
         errorMsg.includes("fetch") ||
         errorMsg.includes("network") ||
         errorMsg.includes("timeout") ||
-        errorMsg.includes("deadline");
+        errorMsg.includes("deadline") ||
+        errorMsg.includes("json") || // ✅ JSON Errors
+        errorMsg.includes("parse") || // ✅ Parse Errors
+        errorMsg.includes("syntax"); // ✅ Syntax Errors
 
       if (isRetryable && i < maxRetries - 1) {
         // ⚡ Reintento rápido: máximo 2 segundos de espera
         const waitTime = Math.min(Math.pow(1.5, i) * 1000, 2000) + (Math.random() * 300);
-        console.warn(`⚠️ Asesor Real ocupado (${i + 1}/${maxRetries}). Reintentando en ${Math.round(waitTime)}ms...`);
+        console.warn(`⚠️ Error recuperable (${errorMsg}). Reintentando (${i + 1}/${maxRetries}) en ${Math.round(waitTime)}ms...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
+      }
+      if (isRetryable && i === maxRetries - 1) {
+        console.warn(`⚠️ Último intento fallido por: ${errorMsg}`);
       }
       break;
     }
@@ -261,11 +266,14 @@ REGLA CRÍTICA DE FORMATO:
     };
   }
 
+  // 🧠 ÚLTIMO RECURSO: Si el error fue "No JSON found" pero tenemos el texto en el error (si lo hubiéramos guardado), podríamos usarlo.
+  // Pero como fallback general, intentaremos ser más descriptivos si es posible.
+
   // ❌ FAIL-CLOSED PROFESIONAL: Solo después de intentos fallidos
   console.error("⚠️ ERROR TÉCNICO DEFINITIVO - RECHAZANDO");
   return {
     valid: false,
-    reason: "No logramos identificar el vehículo claramente en esta foto. Asegúrate de que el auto salga completo, con buena luz y sin obstrucciones.",
+    reason: "No detectamos un vehículo. Solo se permiten vehículos motorizados terrestres. Vuelve a intentarlo.",
     details: {}
   };
 }
