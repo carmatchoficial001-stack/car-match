@@ -113,7 +113,11 @@ IMPORTANTE: Si la portada NO es un vehículo terrestre motorizado real (con llan
 2. ESCANEO VISUAL: Identifica silueta, parrilla, faros y logotipos.
 3. IDENTIFICACIÓN PURA: Determina qué vehículo es basándote *solo* en la imagen. Intenta identificar la VERSIÓN/TRIM específica (ej: Touring, Denali, GTI).
 4. COMPARACIÓN CRÍTICA: Si el contexto dice "Hyundai" pero ves un "Jeep Wrangler", reporte JEEP WRANGLER.
-5. 🧞‍♂️ MODO GENIO (AGENCY KNOWLEDGE): Una vez identificado el modelo y versión, USA TU BASE DE DATOS INTERNA para listar TODO el equipamiento que ese auto tiene de fábrica en el campo "features". NO te limites a lo que ves en la foto. Asume que está completo si es la versión correcta.
+5. 🧞‍♂️ MODO ENCICLOPEDIA (AGENCY KNOWLEDGE):
+   - UNA VEZ IDENTIFICADO EL MODELO EXACTO (Ej: "Mustang GT 2018"), ¡YA SABES TODO SOBRE ÉL!
+   - NO TE LIMITES A LO QUE VES. Tú sabes que un Mustang GT 2018 tiene un V8 5.0L, 460 HP, Tracción Trasera, etc.
+   - ¡LLENA TODOS LOS CAMPOS TÉCNICOS BASÁNDOTE EN TU BASE DE DATOS INTERNA!
+   - Si es una versión específica (ej: "High Country"), usa las specs de ESA versión.
 
 RESPONDE ÚNICAMENTE CON ESTE JSON:
 {
@@ -129,13 +133,13 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
     "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
     "transmission": "Manual|Automática",
     "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-    "engine": "Especificación motor (ej: 3.5L V6 EcoBoost o 6.2L V8)",
+    "engine": "Especificación motor (Ej: 3.5L V6 EcoBoost o 6.2L V8) - ¡USAR DATOS DE CATALOGO!",
     "displacement": "Cilindrada (ej: 3500cc)",
     "traction": "FWD|RWD|4x4|AWD",
     "doors": 2|3|4|5,
     "passengers": 2|5|7|9,
-    "hp": "Potencia aproximada",
-    "torque": "Torque aproximado",
+    "hp": "Potencia (HP) - ¡SACAR DE CATALOGO!",
+    "torque": "Torque - ¡SACAR DE CATALOGO!",
     "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged",
     "cylinders": 3|4|5|6|8|10|12,
     "batteryCapacity": "null",
@@ -158,10 +162,10 @@ RESPONDE ÚNICAMENTE CON ESTE JSON:
 
 REGLA CRÍTICA DE FORMATO:
 - En "features": INCLUYE TODO LO QUE SEPAS DE ESE MODELO. Ejemplos: "Frenos ABS", "6 Bolsas de aire", "Control de tracción", "Pantalla táctil", "Asientos de piel", "Quemacocos", "Apple CarPlay", "Faros LED", "Cámara de reversa", "Sensores de estacionamiento", "Toma de fuerza PTO", "Eje de muelle", "Freno de motor". ¡SE GENEROSO Y EXHAUSTIVO!
-- Si un dato técnico NO es visible en las fotos o es INCIERTO para ese modelo, usa null (sin comillas).
+- SOLO USA null SI DE PLANO NO SABES EL DATO NI SIQUIERA POR CATALOGO GENERAL.
 - NUNCA uses "N/A", "Unknown", "Desconocido", "NA", cadenas vacías "", ni similares.
-- Investiga el modelo identificado y completa TODO lo posible con tu conocimiento técnico.
-- Ejemplo CORRECTO: "hp": null, "transmission": "Automática"
+- ¡LLENA LOS DATOS TÉCNICOS COMO SI FUERAS WIKIPEDIA!
+- Ejemplo CORRECTO: "hp": 450, "transmission": "Automática"
 - Ejemplo INCORRECTO: "hp": "N/A", "transmission": "N/A"
 `;
   }
@@ -417,63 +421,73 @@ export async function analyzeMultipleImages(
 
 
       const galleryImages = images.slice(1, 10); // Analizar las 9 fotos de la galería (Total 10 con portada)
-      const galleryPrompt = `
-        ERES UN AUDITOR DE CONSISTENCIA VISUAL PARA CARMATCH.
-        TU MISIÓN: Validar que cada foto de la galería sea EXACTAMENTE el mismo vehículo que la portada.
 
-        🚗 VEHÍCULO SOBERANO (IDENTIDAD CREADA EN PORTADA):
+      const galleryPrompt = `
+        ERES UN AUDITOR DE CONSISTENCIA Y UN EXPERTO EN CATALOGACIÓN AUTOMOTRIZ.
+        TU MISIÓN: 
+        1. Validar que las fotos de la galería pertenezcan al mismo vehículo que la portada (o sean detalles del mismo).
+        2. EXTRAER CADA DETALLE TÉCNICO VISIBLE en estas fotos para completar la ficha del auto.
+
+        🚗 VEHÍCULO SOBERANO (IDENTIDAD DE PORTADA):
         - Marca: "${IDENTIDAD_SOBERANA_DE_PORTADA.brand || '?'}"
         - Modelo: "${IDENTIDAD_SOBERANA_DE_PORTADA.model || '?'}"
         - Versión/Edición: "${IDENTIDAD_SOBERANA_DE_PORTADA.version || '?'}"
         - Estilo: "${IDENTIDAD_SOBERANA_DE_PORTADA.type || '?'}"
 
-        ESTÁS RECIBIENDO ${galleryImages.length} IMÁGENES DE GALERÍA. 
+        ESTÁS RECIBIENDO ${galleryImages.length} IMÁGENES SECUNDARIAS.
 
-        📋 REGLAS DE AUDITORÍA (MÁXIMA INTELIGENCIA):
-        - SÉ FLEXIBLE CON LAS VERSIONES: Si la portada se identificó como "Ford F-150" y en la galería ves que es una "King Ranch" o "Raptor", APRUÉBALA. Es el mismo vehículo, solo estamos descubriendo más detalles.
-        - CONSISTENCIA DE MARCA Y TIPO: Si la portada es una Pickup Ford, la galería NO puede tener un Sedan Toyota.
-        - RECHAZA SOLO SI ES OBVIAMENTE OTRO CARRO: Diferentes colores, diferentes marcas o tipos de carrocería totalmente distintos.
-        - RECHAZA CONTENIDO NO FOTOGRÁFICO: Dibujos, capturas de pantalla, etc.
-        - LA PORTADA NUNCA ES INVÁLIDA POR CULPA DE LA GALERÍA.
+        📋 REGLAS DE AUDITORÍA (SÉ INTELIGENTE Y TOLERANTE):
+        - ✅ ACEPTA DETALLES: Tableros, motores, asientos, llantas, cajuelas, techos. ¡Son partes del auto! No las rechaces porque no se ve el auto entero.
 
-        🧞‍♂️ MODO GENIO (AGENCY KNOWLEDGE):
-        Usa las fotos de la galería para confirmar o descubrir equipamiento adicional que no se veía en la portada (quemacocos, pantallas traseras, sensores, etc.).
+        - ✅ ACEPTA ÁNGULOS DISTINTOS: Frente, vualta, perfil, desde arriba.
+        - ✅ ACEPTA DIFERENCIAS DE ILUMINACIÓN: Luz de día vs sombra puede cambiar el tono del color.Sé flexible.
+        - ❌ RECHAZA SOLO SI ES OBVIAMENTE OTRO CARRO: Un Ford rojo vs un Toyota blanco.Una camioneta vs un compacto.
+        - ❌ RECHAZA BASURA: Memes, screenshots de celulares, gente posando sola(sin auto), comida, objetos random.
 
+        🕵️‍♂️ MODO DETECTIVE(LLENADO DE DATOS):
+      - Mira las fotos del interior: ¿Es automático o estándar ? ¿Tiene piel ? ¿Quemacocos ? ¿Pantalla ?
+        - Mira el motor: ¿Ves insignias "V8", "Turbo", "Hemi", "EcoBoost" ?
+        🧞‍♂️ MODO ENCICLOPEDIA(AGENCY KNOWLEDGE):
+      - ¡OJO! Ahora que tienes MÁS FOTOS, puedes confirmar la versión exacta(ej: viste la insignia "Limited").
+        - UNA VEZ CONFIRMADA LA VERSIÓN, usa tu base de datos interna para llenar HP, Torque, Motor, etc.
+        - ¡COMPLETA LA FICHA TÉCNICA COMO SI FUERAS EL FABRICANTE!
+        - Mira la parte trasera: ¿Dice "4x4", "Limited", ing "Platinum" ?
+          - USA ESTA INFO PARA CORREGIR O COMPLETAR LOS DATOS DEL VEHÍCULO.
 
         Responde con este JSON:
-        {
-          "analysis": [
-            { "index": number, "isValid": boolean, "reason": "OK" }
-          ],
+      {
+        "analysis": [
+          { "index": number, "isValid": boolean, "reason": "OK" }
+        ],
           "category": "automovil|motocicleta|comercial|industrial|transporte|especial",
-          "details": {
-            "brand": "Marca del vehículo (de la portada)",
-            "model": "Modelo del vehículo (de la portada)",
-            "year": number,
-            "version": "Detectar versión específica (Ej: King Ranch, Lariat, Denali)",
-            "color": "Color",
-            "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
-            "transmission": "Manual|Automática",
-            "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-            "engine": "Especificación motor",
-            "displacement": "Cilindrada",
-            "traction": "FWD|RWD|4x4|AWD",
-            "doors": 2|3|4|5,
-            "passengers": 2|5|7|9,
-            "hp": "Potencia",
-            "torque": "Torque",
-            "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged",
-            "cylinders": 3|4|5|6|8|10|12,
-            "batteryCapacity": null,
-            "range": null,
-            "weight": null,
-            "axles": null,
-            "cargoCapacity": null,
-            "operatingHours": null,
-            "condition": "Nuevo|Usado",
-            "features": ["Lista de equipamiento adicional detectado en estas fotos"]
-          }
+            "details": {
+          "brand": "Marca (Confirmada)",
+            "model": "Modelo (Confirmado)",
+              "year": number,
+                "version": "Versión exacta detectada en conjunto",
+                  "color": "Color",
+                    "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
+                      "transmission": "Manual|Automática (Busca la palanca en fotos interiores)",
+                        "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
+                          "engine": "Especificación motor (¡USAR CONOCIMIENTO DE AGENCIA!)",
+                            "displacement": "Cilindrada",
+                              "traction": "FWD|RWD|4x4|AWD (Busca palancas o botones 4x4)",
+                                "doors": 2 | 3 | 4 | 5,
+                                  "passengers": 2 | 5 | 7 | 9,
+                                    "hp": "Potencia",
+                                      "torque": "Torque",
+                                        "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged",
+                                          "cylinders": 3 | 4 | 5 | 6 | 8 | 10 | 12,
+                                            "batteryCapacity": null,
+                                              "range": null,
+                                                "weight": null,
+                                                  "axles": null,
+                                                    "cargoCapacity": null,
+                                                      "operatingHours": null,
+                                                        "condition": "Nuevo|Usado",
+                                                          "features": ["Lista MUY COMPLETA de equipamiento detectado en TODAS las fotos (portada + galería)"]
         }
+      }
       `;
 
       const imageParts = galleryImages.map(img => ({
@@ -571,7 +585,7 @@ export async function analyzeMultipleImages(
       if (isRetryable && i < maxRetries - 1) {
         // 🚀 OPTIMIZACIÓN CARMATCH: Cap de 5 segundos máximo por reintento.
         const waitTime = Math.min(Math.pow(1.5, i) * 1000, 5000) + (Math.random() * 800);
-        console.warn(`⚠️ Asesor Real ocupado (${i + 1}/${maxRetries}). Reintentando en ${Math.round(waitTime)}ms...`);
+        console.warn(`⚠️ Asesor Real ocupado(${i + 1}/${maxRetries}). Reintentando en ${Math.round(waitTime)}ms...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
       }
@@ -649,26 +663,26 @@ export async function moderateUserContent(imageBase64: string): Promise<ContentM
   console.log('🛡️ Moderando contenido de imagen con Gemini Vision...');
 
   const prompt = `
-    Analiza esta imagen ESTRICTAMENTE para moderación de contenido en una plataforma pública familiar (fotos de perfil de usuario y negocios).
+    Analiza esta imagen ESTRICTAMENTE para moderación de contenido en una plataforma pública familiar(fotos de perfil de usuario y negocios).
     
     Busca CUALQUIERA de las siguientes categorías prohibidas:
     1. VIOLENCIA: Sangre real, heridas, peleas físicas, cadáveres, tortura.
-    2. SEXUAL: Desnudez (total o parcial explícita), actos sexuales, juguetes sexuales, lencería provocativa sin contexto.
-    3. DROGAS: Uso de drogas, parafernalia obvia (pipas, jeringas), sustancias ilegales.
-    4. ARMAS: Armas de fuego reales apuntando o en contextos de amenaza, armas blancas ensangrentadas o agresivas. (Nota: armas en contexto deportivo/histórico claro pueden ser tolerables, pero ante la duda refierelas).
+    2. SEXUAL: Desnudez(total o parcial explícita), actos sexuales, juguetes sexuales, lencería provocativa sin contexto.
+    3. DROGAS: Uso de drogas, parafernalia obvia(pipas, jeringas), sustancias ilegales.
+    4. ARMAS: Armas de fuego reales apuntando o en contextos de amenaza, armas blancas ensangrentadas o agresivas. (Nota: armas en contexto deportivo / histórico claro pueden ser tolerables, pero ante la duda refierelas).
     5. ODIO: Símbolos nazis, kkk, mensajes de odio o racismo visibles.
     6. GORE: Mutilación, imágenes médicas perturbadoras, accidentes graves explícitos.
 
     Responde SOLAMENTE un objeto JSON con este formato exacto:
     {
       "isAppropriate": boolean, // true si NO contiene nada de lo anterior. false si contiene algo prohibido.
-      "category": string, // "VIOLENCE", "SEXUAL", "DRUGS", "WEAPONS", "HATE", "GORE", u "OTHER" (solo si isAppropriate es false)
-      "reason": string // Explicación corta y amable en ESPAÑOL del por qué se rechaza (solo si isAppropriate es false). Ej: "La imagen contiene desnudez no permitida.", "Se detectaron armas reales en la imagen."
+        "category": string, // "VIOLENCE", "SEXUAL", "DRUGS", "WEAPONS", "HATE", "GORE", u "OTHER" (solo si isAppropriate es false)
+          "reason": string // Explicación corta y amable en ESPAÑOL del por qué se rechaza (solo si isAppropriate es false). Ej: "La imagen contiene desnudez no permitida.", "Se detectaron armas reales en la imagen."
     }
 
     IMPORTANTE:
     - Sé estricto con la desnudez y la violencia real.
-    - Sé tolerante con: gente en traje de baño en playa/alberca (si no es provocativo), tatuajes (si no son ofensivos), alcohol (si es social moderado).
+    - Sé tolerante con: gente en traje de baño en playa / alberca(si no es provocativo), tatuajes(si no son ofensivos), alcohol(si es social moderado).
     - Si la imagen es un dibujo infantil inofensivo, un meme sano, o un paisaje, es APROPIADA.
     - Ignora la calidad estética, solo juzga el contenido.
   `;
