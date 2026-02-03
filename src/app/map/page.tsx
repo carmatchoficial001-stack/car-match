@@ -1,11 +1,11 @@
 ﻿import { prisma } from '@/lib/db'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 import { auth } from '@/lib/auth'
 import { serializeDecimal } from '@/lib/serialize'
 import { redirect } from 'next/navigation'
 
 // 💰 OPTIMIZACIÓN: Dynamic import para Mapbox
-const MapClient = dynamic(() => import('./MapClient'), {
+const MapClient = nextDynamic(() => import('./MapClient'), {
     ssr: false,
     loading: () => (
         <div className="h-screen w-full flex items-center justify-center bg-background">
