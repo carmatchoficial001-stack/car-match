@@ -1,23 +1,8 @@
 import { prisma } from '@/lib/db'
-import nextDynamic from 'next/dynamic'
-import { auth } from '@/lib/auth'
-import { serializeDecimal } from '@/lib/serialize'
-import { redirect } from 'next/navigation'
+import MapClient from '../map/MapClient'
 
 // 💰 OPTIMIZACIÓN: Dynamic import - Mapbox solo se carga cuando se necesita (-500KB JS initial)
 export const dynamic = 'force-dynamic'
-
-const MapClient = nextDynamic(() => import('../map/MapClient'), {
-    ssr: false,
-    loading: () => (
-        <div className="h-screen w-full flex items-center justify-center bg-background">
-            <div className="text-center">
-                <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-text-primary font-bold">Cargando mapa...</p>
-            </div>
-        </div>
-    )
-})
 
 export const metadata = {
     title: "CarMatch",
