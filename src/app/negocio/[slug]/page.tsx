@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         return { title: 'Negocio no encontrado' }
     }
 
-    const title = `✓ ${business.name} | ${business.category} en ${business.city} | CarMatch®`
+    const title = `✓ ${business.name} | ${business.category} en ${business.city} | CarMatch`
     const description = business.description || `Contacta a ${business.name} en ${business.city}. Servicios de ${business.category} verificados en CarMatch.`
 
     return {

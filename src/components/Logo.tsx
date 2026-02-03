@@ -20,7 +20,7 @@ export function Logo({ className = "w-12 h-12", showText = false, textClassName 
                 />
             </div>
             {showText && (
-                <span className={`${textClassName} text-text-primary`}>CarMatch<span className="text-primary-500">®</span></span>
+                <span className={`${textClassName} text-text-primary`}>CarMatch</span>
             )}
         </div>
     )

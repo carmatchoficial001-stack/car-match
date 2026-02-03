@@ -94,7 +94,7 @@ export default function TermsPage() {
                         </p>
                     </div>
                     <div className="text-[10px] font-black uppercase tracking-[0.3em] text-text-secondary opacity-30">
-                        CarMatch Legal Department ®
+                        CarMatch Legal Department
                     </div>
                 </div>
             </main>
