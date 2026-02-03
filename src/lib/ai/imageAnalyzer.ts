@@ -196,7 +196,15 @@ REGLA CRÍTICA DE FORMATO:
 
       const firstBrace = text.indexOf('{');
       const lastBrace = text.lastIndexOf('}');
-      if (firstBrace === -1 || lastBrace === -1) throw new Error("No JSON found");
+
+      // 🧠 MEJORA INTELIGENTE: Si no hay JSON, es probable que la IA rechace con texto plano
+      if (firstBrace === -1 || lastBrace === -1) {
+        console.warn("⚠️ No se detectó JSON. Extrayendo razón del texto crudo.");
+        if (text.length > 0 && text.length < 500) {
+          return { valid: false, reason: text.replace(/[*_`]/g, '').trim() };
+        }
+        throw new Error("No JSON found");
+      }
       const jsonString = text.substring(firstBrace, lastBrace + 1);
 
       // 202...
