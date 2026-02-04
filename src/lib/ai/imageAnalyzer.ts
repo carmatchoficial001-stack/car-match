@@ -90,24 +90,37 @@ RESPONDE SOLO EL JSON.
   } else {
     // 🚗 VALIDATION FOR VEHICLES
     prompt = `
-    ERES UN ASISTENTE EXPERTO EN IDENTIFICACIÓN DE VEHÍCULOS PARA CARMATCH.
-    TU OBJETIVO PRINCIPAL: AYUDAR AL USUARIO A VENDER SU VEHÍCULO, NO OBSTACULIZARLO.
+    ERES UN ASISTENTE EXPERTO EN IDENTIFICACIÓN DE CUALQUIER TIPO DE VEHÍCULO MOTORIZADO.
+    TU VISIÓN ES UNIVERSAL: RECONOCES CUALQUIER MÁQUINA QUE TENGA MOTOR Y RUEDAS.
 
     CONTEXTO SUGERIDO POR EL USUARIO: "${contextHint || 'Desconocido'}"
 
-    ═══ REGLAS DE ORO DE VALIDACIÓN (REGLA MOTOR + LLANTAS) ═══
-    PARADIGMA: "¿TIENE MOTOR? ¿TIENE LLANTAS? -> ¡ENTONCES ES UN VEHÍCULO!"
+    ═══ LEY SUPREMA Y UNIVERSAL (LA ÚNICA REGLA QUE IMPORTA) ═══
+    PARADIGMA ABSOLUTO: 
+    "¿ES UN OBJETO FÍSICO CON MOTOR Y CON RUEDAS?"
+    SI LA RESPUESTA ES SÍ -> ¡ENTONCES ES UN VEHÍCULO VÁLIDO!
 
-    ✅ APRUEBA (VALID: TRUE) SI VES CUALQUIERA DE ESTOS:
-    - AUTOMÓVILES (Sedán, Hatchback, Coupe, Convertible, etc.)
-    - CAMIONETAS Y SUVs (De cualquier marca, incluyendo JEEP, Land Rover, etc.)
-    - PICKUPS (Cualquier tamaño)
-    - MOTOCICLETAS (De 2, 3 o 4 ruedas)
-    - VEHÍCULOS TODO TERRENO (Jeeps, Buggies, RZR, Cuatrimotos, 4x4 modificados)
-    - MAQUINARIA PESADA Y CAMIONES (Tractores, Retroexcavadoras, Trailers, Volteos)
-    - VEHÍCULOS CLÁSICOS, MODIFICADOS O DE COLECCIÓN
-    - AUTOBUSES Y VANS
-    - **CUALQUIER COSA CON MOTOR Y LLANTAS QUE SE MUEVA EN TIERRA**
+    NO IMPORTA LA MARCA. NO IMPORTA EL AÑO. NO IMPORTA EL TIPO.
+    TU MISIÓN ES ACEPTAR:
+    - TODO LO QUE SE MUEVA CON MOTOR Y RUEDAS.
+    - CUALQUIER VEHÍCULO MOTORIZADO TERRESTRE QUE EXISTA O HAYA EXISTIDO.
+    - MODIFICADOS, RAROS, VIEJOS, NUEVOS, CON O SIN PUERTAS.
+
+    ✅ TU CRITERIO DE APROBACIÓN ES INFINITO PARA VEHÍCULOS:
+    - ¿Tiene llantas y motor? -> VALID: TRUE.
+    - ¿Es un Jeep sin puertas? -> VALID: TRUE.
+    - ¿Es un camión monstruo? -> VALID: TRUE.
+    - ¿Es una moto de 3 ruedas? -> VALID: TRUE.
+    - ¿Es un tractor oxidado? -> VALID: TRUE.
+
+    (NO TE ENFOQUES EN MARCAS ESPECÍFICAS, ENFÓCATE EN LA FÍSICA: MOTOR + RUEDAS = APROBADO)
+
+    ❌ RECHAZA ÚNICAMENTE LO QUE NO ES UN VEHÍCULO:
+    - Una TV (Aunque tenga cables, no tiene ruedas para transportarse).
+    - Muebles, Ropa, Comida, Animales.
+    - Pantallas, Texto, Documentos.
+
+    SI TIENES DUDA -> APLICA LA LEY SUPREMA: ¿PODRÍA TENER MOTOR Y RUEDAS? -> APRUEBA.
 
     ❌ RECHAZA (VALID: FALSE) ÚNICAMENTE SI ES OBVIO QUE NO ES UN VEHÍCULO:
     - Animales, Personas solas (sin vehículo), Comida, Ropa, Muebles.
