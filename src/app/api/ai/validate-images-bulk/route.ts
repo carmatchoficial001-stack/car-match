@@ -6,7 +6,17 @@ import { analyzeMultipleImages } from '@/lib/ai/imageAnalyzer'
  */
 async function urlToBase64(url: string): Promise<string> {
     try {
-        const response = await fetch(url)
+        // 🚀 OPTIMIZACIÓN CARMATCH: Si es URL de Cloudinary, pedir versión optimizada
+        // Esto reduce drásticamente el peso (ej: 5MB -> 200KB) y evita Timeouts de Gemini
+        let fetchUrl = url
+        if (url.includes('cloudinary.com') && url.includes('/upload/') && !url.includes('q_auto')) {
+            // Inyectar transformación: calidad auto, formato auto, ancho max 1200px
+            fetchUrl = url.replace('/upload/', '/upload/q_auto,f_auto,w_1200/')
+        }
+
+        console.log(`📡 Fetching image: ${fetchUrl === url ? 'Original' : 'Optimized (Gemini Friendly)'}...`)
+
+        const response = await fetch(fetchUrl)
         const arrayBuffer = await response.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
         return buffer.toString('base64')
