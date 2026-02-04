@@ -72,7 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             url: `${BASE_URL}/comprar/${slug}-${vehicle.id}`,
             lastModified: vehicle.updatedAt,
             changeFrequency: 'daily' as const,
-            priority: 0.8,
+            priority: 1.0,
         }
     })
 

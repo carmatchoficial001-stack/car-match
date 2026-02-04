@@ -1,5 +1,4 @@
-'use client'
-
+import { useState } from 'react' // ✅ Importar useState
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
@@ -13,15 +12,18 @@ import {
     BellOff,
     LogOut,
     Check,
-    FileText
+    FileText,
+    ChevronDown, // ✅ Iconos adicionales
+    ChevronUp
 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion' // ✅ AnimatePresence
 
 export default function SettingsPage() {
     const { data: session, status } = useSession()
     const router = useRouter()
     const { locale, setLocale, t } = useLanguage()
     const { isSubscribed, subscribe, permission } = usePushNotifications()
+    const [showLanguages, setShowLanguages] = useState(false) // ✅ Estado local
 
     if (status === 'unauthenticated') {
         router.push('/auth')
@@ -91,7 +93,68 @@ export default function SettingsPage() {
                         <Settings size={18} className="text-primary-500" />
                         <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">{t('settings.preferences_help')}</h2>
                     </div>
+
                     <div className="space-y-2">
+                        {/* 🌐 SELECTOR DE IDIOMA */}
+                        <div className="overflow-hidden rounded-2xl border border-surface-highlight bg-surface transition-all">
+                            <button
+                                onClick={() => setShowLanguages(!showLanguages)}
+                                className="w-full flex items-center justify-between p-5 hover:bg-surface-highlight/30 transition-colors"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="p-2 rounded-xl bg-orange-500/10 text-orange-500">
+                                        <Globe size={22} />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="font-bold flex items-center gap-2">
+                                            {t('common.language') || "Idioma"}
+                                            <span className="text-sm font-normal text-text-secondary opacity-60">
+                                                ({languages.find(l => l.code === locale)?.name})
+                                            </span>
+                                        </p>
+                                        <p className="text-xs text-text-secondary">
+                                            Selecciona tu idioma preferido
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="text-text-secondary">
+                                    {showLanguages ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                </div>
+                            </button>
+
+                            <AnimatePresence>
+                                {showLanguages && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="border-t border-surface-highlight bg-surface-highlight/10"
+                                    >
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-4">
+                                            {languages.map((lang) => (
+                                                <button
+                                                    key={lang.code}
+                                                    onClick={() => {
+                                                        setLocale(lang.code as any)
+                                                        setShowLanguages(false)
+                                                    }}
+                                                    className={`flex items-center gap-3 p-3 rounded-xl transition-all ${locale === lang.code
+                                                            ? 'bg-primary-500/20 border border-primary-500/30 text-primary-400'
+                                                            : 'hover:bg-surface-highlight text-text-secondary hover:text-text-primary'
+                                                        }`}
+                                                >
+                                                    <span className="text-2xl">{lang.flag}</span>
+                                                    <span className="text-sm font-medium">{lang.name}</span>
+                                                    {locale === lang.code && <Check size={16} className="ml-auto" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
                         <button
                             onClick={() => subscribe()}
                             disabled={isSubscribed || permission === 'denied'}

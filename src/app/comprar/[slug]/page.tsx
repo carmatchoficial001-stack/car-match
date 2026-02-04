@@ -29,12 +29,23 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
         return { title: 'CarMatch' }
     }
 
-    const title = `✓ ${vehicle.brand} ${vehicle.model} ${vehicle.year} en ${vehicle.city} | CarMatch®`
-    const description = `Venta de ${vehicle.brand} ${vehicle.model} usado en ${vehicle.city}. Motor ${vehicle.engine}, ${vehicle.transmission}. Trato directo en CarMatch.`
+    // 🚀 SEO AGRESIVO: Título saturado de intención de compra y detalles específicos
+    const title = `${vehicle.model} ${vehicle.brand} ${vehicle.year} ${vehicle.color || ''} en ${vehicle.city} | Comprar con CarMatch`
+
+    // 📝 META DESCRIPTION: Optimizada para CTR (Click Through Rate) en Google
+    const description = `Compra este ${vehicle.brand} ${vehicle.model} ${vehicle.year} en ${vehicle.city}. Motor ${vehicle.engine}, Transmisión ${vehicle.transmission}. Precio: $${vehicle.price?.toLocaleString()} ${vehicle.currency}. Venta directa y segura en CarMatch.`
 
     return {
         title,
         description,
+        keywords: [
+            `comprar ${vehicle.brand} ${vehicle.model}`,
+            `venta de ${vehicle.model} ${vehicle.year}`,
+            `${vehicle.brand} usados en ${vehicle.city}`,
+            `autos en ${vehicle.city}`,
+            `${vehicle.model} precio`,
+            "CarMatch"
+        ],
         openGraph: {
             title,
             description,
@@ -54,7 +65,6 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
         }
     }
 }
-
 export default async function ComprarVehiclePage({ params, searchParams }: Props) {
     const { slug } = await params
     const id = extractIdFromSlug(slug)
@@ -129,7 +139,14 @@ export default async function ComprarVehiclePage({ params, searchParams }: Props
             "price": vehicle.price.toNumber(),
             "priceCurrency": vehicle.currency || "MXN",
             "availability": "https://schema.org/InStock",
+            "itemCondition": "https://schema.org/UsedCondition", // 🟢 VITAL PARA AUTOS USADOS
             "url": `https://carmatchapp.net/comprar/${slug}`,
+            "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0], // 🟢 VÁLIDO POR 1 AÑO
+            "seller": {
+                "@type": "ProfilePage", // Linkeamos al perfil del vendedor si es posible, o usamos la org
+                "name": "CarMatch",
+                "image": "https://carmatchapp.net/icon-192-v20.png"
+            },
             "offeredBy": {
                 "@type": "Organization",
                 "name": "CarMatch",

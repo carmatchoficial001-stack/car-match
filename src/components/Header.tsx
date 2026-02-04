@@ -256,10 +256,10 @@ export default function Header() {
 
                         {/* Download Buttons - Now next to Logo */}
                         {!isStandalone && (
-                            <div className="flex items-center gap-1.5">
+                            <div className="hidden md:flex items-center gap-1.5">
                                 <button
                                     onClick={handleIOSClick}
-                                    className="hidden sm:flex items-center gap-1 px-2 py-1 bg-black/40 border border-white/10 text-white rounded-lg text-[10px] font-bold hover:bg-gray-800 transition active:scale-95"
+                                    className="hidden lg:flex items-center gap-1 px-2 py-1 bg-black/40 border border-white/10 text-white rounded-lg text-[10px] font-bold hover:bg-gray-800 transition active:scale-95"
                                     title="Instalar en iOS"
                                 >
                                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
@@ -346,7 +346,7 @@ export default function Header() {
                             </div>
                         ) : (
                             /* PROMINENT BUTTON STYLE: For Guests (More Space) */
-                            <div className="flex items-center gap-3 md:gap-5 justify-end overflow-visible">
+                            <div className="flex flex-col xl:flex-row items-end xl:items-center gap-1 xl:gap-5 justify-end overflow-visible">
                                 <AnimatePresence mode="wait">
                                     {(ctas[ctaIndex] || "").includes(' | ') && (
                                         <motion.div
@@ -354,7 +354,7 @@ export default function Header() {
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: 10 }}
-                                            className="text-white font-black text-[10px] sm:text-xs lg:text-sm xl:text-base uppercase tracking-tight leading-3 lg:leading-4 hidden xl:block max-w-[200px] text-right drop-shadow-lg"
+                                            className="text-white font-black text-[9px] sm:text-xs lg:text-sm xl:text-base uppercase tracking-tight leading-3 lg:leading-4 block max-w-[200px] text-right drop-shadow-lg"
                                         >
                                             {(ctas[ctaIndex] || "").split(' | ')[0]}
                                         </motion.div>
@@ -369,14 +369,14 @@ export default function Header() {
                                     }}
                                     className="relative group shrink-0 flex items-center cursor-pointer"
                                 >
-                                    <div className="px-3 py-2 sm:px-5 sm:py-3 bg-accent-600 rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.3)] group-hover:bg-accent-500 transition-all active:scale-95 ring-2 ring-accent-500/20">
+                                    <div className="px-3 py-1.5 sm:px-5 sm:py-3 bg-accent-600 rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.3)] group-hover:bg-accent-500 transition-all active:scale-95 ring-2 ring-accent-500/20">
                                         <AnimatePresence mode="wait">
                                             <motion.span
                                                 key={`action-guest-${ctaIndex}`}
                                                 initial={{ opacity: 0, scale: 0.9 }}
                                                 animate={{ opacity: 1, scale: 1 }}
                                                 exit={{ opacity: 0, scale: 0.9 }}
-                                                className="text-white font-black text-[13px] sm:text-lg lg:text-xl whitespace-nowrap drop-shadow-md inline-block uppercase"
+                                                className="text-white font-black text-[11px] sm:text-lg lg:text-xl whitespace-nowrap drop-shadow-md inline-block uppercase"
                                             >
                                                 {(ctas[ctaIndex] || t('common.login_vehicle')).split(' | ')[1] || t('common.login_vehicle')}
                                             </motion.span>
