@@ -219,15 +219,32 @@ REGLA CRÍTICA DE FORMATO:
           .replace(/,\s*]/g, ']') // Quitar comas finales en arrays
           .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2": '); // Asegurar comillas en claves (basico)
 
+        let parsedResult;
         try {
-          return JSON.parse(jsonString); // Primero intentamos el original
+          parsedResult = JSON.parse(jsonString); // Primero intentamos el original
         } catch (e) {
-          return JSON.parse(cleanJson); // Si falla, intentamos el limpio
+          parsedResult = JSON.parse(cleanJson); // Si falla, intentamos el limpio
         }
-      } catch (parseError) {
+
+        // 🧠 CONSEJO DE IAs (VOTO DE SEGUNDA OPINIÓN)
+        // Si la IA dice que NO es válido, pero no es el último intento, pedimos una segunda opinión.
+        // Esto evita que un modelo "menso" (alucinación) rechace un Jeep válido.
+        if (parsedResult && parsedResult.valid === false && i < maxRetries - 1) {
+          console.warn(`🤔 La IA rechazó la imagen (Intento ${i + 1}), pero pediremos una SEGUNDA OPINIÓN al siguiente modelo...`);
+          throw new Error("Rejected by first opinion - seeking consensus"); // Forzar retry
+        }
+
+        return parsedResult;
+      } catch (parseError: any) {
+        if (parseError.message === "Rejected by first opinion - seeking consensus") {
+          throw parseError; // Re-lanzar para el loop
+        }
         console.error("❌ Error parseando JSON de Gemini:", parseError, "Texto recibido:", text);
         // Fallback inteligente: Si la IA respondió texto plano explicando el error, usémoslo
         if (text.length < 2000 && !text.includes('{')) {
+          // Aún así, si es rechazo de texto plano y hay intentos, retry? 
+          // Mmh, mejor asumimos que si escribió texto plano está muy segura o muy rota. 
+          // Vamos a dejar que falle por ahora, o podríamos forzar retry también.
           return { valid: false, reason: text.trim() };
         }
         throw new Error("JSON Parse Error"); // 🚀 Lanzar error para que entre al retry
