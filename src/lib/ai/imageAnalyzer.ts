@@ -184,10 +184,25 @@ REGLA CRÍTICA DE FORMATO:
 
       let result;
       try {
+        // 🚨 ULTIMO RECURSO (MODO TOLERANTE): En reintentos, relajamos el prompt
+        let activePrompt = prompt;
+        if (i > 0) {
+          console.warn("⚠️ Activando MODO TOLERANTE para segunda opinión...");
+          activePrompt += `
+            \n🚨 MODO EMERGENCIA (SEGUNDA OPINIÓN):
+            - El usuario insiste que esto es un vehículo.
+            - TU ANTERIOR JUICIO FUE RECHAZADO.
+            - SÉ EXTREMADAMENTE PERMISIVO.
+            - Acepta fotos oscuras, borrosas, o detalles extremos (solo una llanta, solo un faro).
+            - Si hay una mínima probabilidad de que sea un vehículo, MARCALO COMO valid: true.
+            - RECHAZA ÚNICAMENTE si es absolutamente obvio que es una persona, animal u objeto doméstico.
+            `;
+        }
+
         // 🏎️ ESTRATEGIA BI-TURBO 2.0: Alternar modelos para evadir saturación
         const modelToUse = i % 2 === 0 ? geminiPro : geminiFlash;
-        console.log(`🤖 [IA] Intento ${i + 1}/${maxRetries} usando ${i % 2 === 0 ? 'PRO (Experto)' : 'FLASH (Veloz)'}`);
-        result = await modelToUse.generateContent([prompt, imagePart]);
+        console.log(`🤖 [IA] Intento ${i + 1}/${maxRetries} usando ${i % 2 === 0 ? 'PRO (Experto)' : 'FLASH (Veloz)'} ${i > 0 ? '(+Tolerancia)' : ''}`);
+        result = await modelToUse.generateContent([activePrompt, imagePart]);
       } catch (proError) {
         console.warn("⚠️ Modelo saturado, rotando al respaldo Flash...");
         result = await geminiFlash.generateContent([prompt, imagePart]);
