@@ -90,93 +90,77 @@ RESPONDE SOLO EL JSON.
   } else {
     // 🚗 VALIDATION FOR VEHICLES
     prompt = `
-ERES UN ANALISTA EXPERTO DE VEHÍCULOS.
-CONTEXTO SUGERIDO POR EL USUARIO: "${contextHint || 'Desconocido'}"
+    ERES UN ASISTENTE EXPERTO EN IDENTIFICACIÓN DE VEHÍCULOS PARA CARMATCH.
+    TU OBJETIVO PRINCIPAL: AYUDAR AL USUARIO A VENDER SU VEHÍCULO, NO OBSTACULIZARLO.
 
-═══ REGLAS DE APROBACIÓN (VEHÍCULOS MOTORIZADOS TERRESTRES) ═══
-✅ APRUEBA AUTOMÁTICAMENTE SI VES CUALQUIERA DE ESTOS:
-- Autos (sedanes, hatchbacks, coches deportivos, cupés)
-- Camionetas y SUVs (GMC, Chevrolet, Ford, Toyota, Jeep, etc.)
-- Pickups (F-150, Silverado, Ram, Tundra, etc.)
-- Vans (minivans, furgonetas, vans de pasajeros)
-- Motocicletas, scooters, motonetas, cuatrimotos (ATVs)
-- Camiones (carga, volteo, trailer, tractor-camión)
-- Vehículos comerciales (ambulancias, autobuses, patrullas)
-- Maquinaria pesada CON LLANTAS (excavadoras, grúas, tractores agrícolas)
-- Vehículos clásicos, antiguos, modificados o de colección
-- **CUALQUIER COSA CON MOTOR Y LLANTAS QUE SE MUEVA EN TIERRA**
+    CONTEXTO SUGERIDO POR EL USUARIO: "${contextHint || 'Desconocido'}"
 
-❌ RECHAZA INMEDIATAMENTE SI LA PORTADA (@Index 0) ES:
-- **DOCUMENTOS O TEXTO**: Comprobantes de transferencia, recibos de luz/agua, facturas, capturas de pantalla de bancos, o puras imágenes de texto.
-- **CONTENIDO NO VEHICULAR**: Muebles, electrodomésticos, comida, ropa, personas solas.
-- **DIBUJOS O JUGUETES**: Ilustraciones, Hot Wheels, maquetas, pantallas de otros dispositivos.
+    ═══ REGLAS DE ORO DE VALIDACIÓN (REGLA MOTOR + LLANTAS) ═══
+    PARADIGMA: "¿TIENE MOTOR? ¿TIENE LLANTAS? -> ¡ENTONCES ES UN VEHÍCULO!"
 
-❌ RECHAZA EN LA GALERÍA (@Index 1-9) SI:
-- Es un vehículo diferente al de la portada.
-- Es contenido prohibido o no relacionado.
+    ✅ APRUEBA (VALID: TRUE) SI VES CUALQUIERA DE ESTOS:
+    - AUTOMÓVILES (Sedán, Hatchback, Coupe, Convertible, etc.)
+    - CAMIONETAS Y SUVs (De cualquier marca, incluyendo JEEP, Land Rover, etc.)
+    - PICKUPS (Cualquier tamaño)
+    - MOTOCICLETAS (De 2, 3 o 4 ruedas)
+    - VEHÍCULOS TODO TERRENO (Jeeps, Buggies, RZR, Cuatrimotos, 4x4 modificados)
+    - MAQUINARIA PESADA Y CAMIONES (Tractores, Retroexcavadoras, Trailers, Volteos)
+    - VEHÍCULOS CLÁSICOS, MODIFICADOS O DE COLECCIÓN
+    - AUTOBUSES Y VANS
+    - **CUALQUIER COSA CON MOTOR Y LLANTAS QUE SE MUEVA EN TIERRA**
 
-IMPORTANTE: Si la portada NO es un vehículo terrestre motorizado real (con llantas/motor), "valid" debe ser false y el autollenado se cancela.
+    ❌ RECHAZA (VALID: FALSE) ÚNICAMENTE SI ES OBVIO QUE NO ES UN VEHÍCULO:
+    - Animales, Personas solas (sin vehículo), Comida, Ropa, Muebles.
+    - Documentos, Texto, Capturas de pantalla.
+    - Juguetes, Dibujos, Maquetas.
 
-═══ PROTOCOLO DE ANÁLISIS (PASO A PASO) ═══
-1. 🧠 ANÁLISIS CONTEXTUAL: El usuario dice que es un "${contextHint}". Úsalo como pista fuerte. Si la imagen es borrosa pero coincide con la silueta de un "${contextHint}", APRUÉBALA.
-2. ESCANEO VISUAL: Identifica silueta, parrilla, faros y logotipos.
-3. IDENTIFICACIÓN PURA: Determina qué vehículo es basándote *solo* en la imagen. Intenta identificar la VERSIÓN/TRIM específica (ej: Touring, Denali, GTI).
-4. COMPARACIÓN CRÍTICA: Si el contexto dice "Hyundai" pero ves un "Jeep Wrangler", reporte JEEP WRANGLER.
-5. 🧞‍♂️ MODO ENCICLOPEDIA (AGENCY KNOWLEDGE):
-   - UNA VEZ IDENTIFICADO EL MODELO EXACTO (Ej: "Mustang GT 2018"), ¡YA SABES TODO SOBRE ÉL!
-   - NO TE LIMITES A LO QUE VES. Tú sabes que un Mustang GT 2018 tiene un V8 5.0L, 460 HP, Tracción Trasera, etc.
-   - ¡LLENA TODOS LOS CAMPOS TÉCNICOS BASÁNDOTE EN TU BASE DE DATOS INTERNA!
-   - Si es una versión específica (ej: "High Country"), usa las specs de ESA versión.
+    SI TIENES DUDA (ej: está oscuro, es una parte del carro, ángulo raro):
+    -> ASUME QUE ES VÁLIDO. MEJOR APROBAR DE MÁS QUE RECHAZAR UN VEHÍCULO REAL.
 
-RESPONDE ÚNICAMENTE CON ESTE JSON:
-{
-  "valid": boolean (true si es un vehículo real, false solo si NO es vehículo o contenido prohibido),
-  "reason": "Si valid=false, DÍ EXACTAMENTE QUÉ ES LO QUE VES. Formato OBLIGATORIO: 'Esto es [OBJETO QUE VES], solo se permiten vehículos motorizados terrestres. Vuelve a intentarlo'. Ej: 'Esto es una mascota, solo se permiten vehículos motorizados terrestres. Vuelve a intentarlo'.",
-  "category": "automovil" | "motocicleta" | "comercial" | "industrial" | "transporte" | "especial",
-  "details": {
-    "brand": "Marca REAL identificada visualmente",
-    "model": "Modelo REAL (Ej: F-150, Silverado, Civic)",
-    "version": "Versión/Trim/Edición específica (Ej: King Ranch, Raptor, Laramie, Denali, GTI, Rubicon). ¡MUY IMPORTANTE!",
-    "year": "Año o generación",
-    "color": "Color",
-    "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
-    "transmission": "Manual|Automática",
-    "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-    "engine": "Especificación motor (Ej: 3.5L V6 EcoBoost o 6.2L V8) - ¡USAR DATOS DE CATALOGO!",
-    "displacement": "Cilindrada (ej: 3500cc)",
-    "traction": "FWD|RWD|4x4|AWD",
-    "doors": 2|3|4|5,
-    "passengers": 2|5|7|9,
-    "hp": "Potencia (HP) - ¡SACAR DE CATALOGO!",
-    "torque": "Torque - ¡SACAR DE CATALOGO!",
-    "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged",
-    "cylinders": 3|4|5|6|8|10|12,
-    "batteryCapacity": "null",
-    "range": "null",
-    "weight": "null",
-    "axles": "null",
-    "cargoCapacity": "null",
-    "operatingHours": "null",
-    "condition": "Nuevo|Usado",
-    "features": ["Lista exhaustiva de equipamiento de esta VERSIÓN Específica"]
-  }
-}
+    ═══ GENERACIÓN DE DATOS (AUTOCOMPLETADO INTELIGENTE) ═══
+    UNA VEZ QUE VALIDAS QUE ES UN VEHÍCULO, CONVIÉRTETE EN UNA ENCICLOPEDIA AUTOMOTRIZ.
+    
+    1. IDENTIFICACIÓN:
+       - Marca, Modelo, Año y VERSIÓN EXACTA (Trim).
+       - Usa el contexto del usuario como guía fuerte, pero corrige si es evidente el error.
 
-═══ REGLAS DE ORO DE IDENTIFICACIÓN ═══
-- SE UN EXPERTO: Si ves una Ford con detalles de lujo y madera, es probablemente una Lariat, King Ranch o Platinum. Si ves suspensión reforzada y guardabarros anchos, es una Raptor.
-- MAQUINARIA Y DIESEL: Si detectas un Tractor o Camión Pesado, intenta identificar las HORAS de uso o los EJES si son visibles. Identifica el motor (Ej: Cummins, Duramax, Caterpillar) si hay insignias visibles.
-- NO TE EQUIVOQUES: Diferencia bien entre versiones. Una "Raptor" es muy distinta a una "FX4".
-- SIEMPRE PRIORIZA LA VERSIÓN: El campo "version" es vital para el valor del vehículo en CarMatch.
+    2. DATOS DE AGENCIA (REALES):
+       - Rellena la ficha técnica con DATOS REALES DE FÁBRICA para esa versión específica.
+       - Motor, Caballos de fuerza (HP), Torque, Cilindros, Transmisión, Tracción, etc.
+       - NO INVENTES. Usa tu base de conocimiento.
 
+    3. EQUIPAMIENTO OBSERVADO + DE SERIE:
+       - Lista el equipamiento que VES (quemacocos, piel, pantalla) Y el que SABES que tiene esa versión de serie.
+       - NO REPITAS datos.
 
-REGLA CRÍTICA DE FORMATO:
-- En "features": INCLUYE TODO LO QUE SEPAS DE ESE MODELO. Ejemplos: "Frenos ABS", "6 Bolsas de aire", "Control de tracción", "Pantalla táctil", "Asientos de piel", "Quemacocos", "Apple CarPlay", "Faros LED", "Cámara de reversa", "Sensores de estacionamiento", "Toma de fuerza PTO", "Eje de muelle", "Freno de motor". ¡SE GENEROSO Y EXHAUSTIVO!
-- SOLO USA null SI DE PLANO NO SABES EL DATO NI SIQUIERA POR CATALOGO GENERAL.
-- NUNCA uses "N/A", "Unknown", "Desconocido", "NA", cadenas vacías "", ni similares.
-- ¡LLENA LOS DATOS TÉCNICOS COMO SI FUERAS WIKIPEDIA!
-- Ejemplo CORRECTO: "hp": 450, "transmission": "Automática"
-- Ejemplo INCORRECTO: "hp": "N/A", "transmission": "N/A"
-`;
+    RESPONDE ÚNICAMENTE CON ESTE JSON:
+    {
+      "valid": boolean,
+      "reason": "Solo si valid=false. Razón corta en español.",
+      "category": "automovil" | "motocicleta" | "comercial" | "industrial" | "transporte" | "especial",
+      "details": {
+        "brand": "Marca",
+        "model": "Modelo",
+        "version": "Versión/Trim (Ej: Rubicon, High Country, GTI)",
+        "year": "Año (estimado o del contexto)",
+        "color": "Color",
+        "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
+        "transmission": "Manual|Automática",
+        "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
+        "engine": "Ej: V6 3.6L Pentastar",
+        "displacement": "cc (motos)",
+        "traction": "4x4|AWD|FWD|RWD",
+        "doors": number,
+        "passengers": number,
+        "hp": number,
+        "torque": "Ej: 260 lb-ft",
+        "aspiration": "Natural|Turbo|Supercharged",
+        "cylinders": number,
+        "condition": "Usado|Nuevo",
+        "features": ["Lista de equipamiento real y observado"]
+      }
+    }
+    `;
   }
 
   let lastError: any;
@@ -359,49 +343,50 @@ export async function analyzeMultipleImages(
     : '';
 
   const prompt = type === 'VEHICLE'
-    ? `ERES UN ANALISTA FORENSE TÉCNICO DE VEHÍCULOS.
-       TU MISIÓN: Descubrir fraudes. El usuario puede intentar engañarte con el texto, pero la imagen es la única verdad.
+    ? `ERES UN EXPERTO EN CATALOGACIÓN DE VEHÍCULOS.
+       TU MISIÓN: VALIDAR QUE HAYA UN VEHÍCULO Y EXTRAER TODOS SUS DATOS TÉCNICOS.
 
-       📋 DATOS DEL USUARIO (POSIBLEMENTE FALSOS O ERRÓNEOS):
+       REGLA DE ORO DE VALIDACIÓN: ¿TIENE MOTOR Y LLANTAS? -> ¡ES VÁLIDO!
+       (Autos, Jeeps, Camionetas, Motos, Camiones, Maquinaria -> TODO ES VÁLIDO).
+
+       📋 CONTEXTO DEL USUARIO:
        - Marca: "${context?.brand || '?'}", Modelo: "${context?.model || '?'}", Año: "${context?.year || '?'}"
        
-        🚀 PROTOCOLO DE AUDITORÍA VISUAL:
-        1. VISIÓN SOBERANA (@Index 0): Esta es la FOTO MANDANTE. Identifica el vehículo ignorando el texto del usuario.
-        2. SOBERANÍA ABSOLUTA: Si la portada (@Index 0) es un vehículo, "isValidCover" DEBE SER true, sin importar si las otras fotos (@Index 1, 2...) coinciden o no.
-        3. LIMPIEZA DE GALERÍA: Si las fotos de la galería (@Index 1+) no coinciden con la portada (@Index 0), marca esas fotos de la galería como "isValid": false, pero NUNCA invalides la portada por este motivo.
-        4. CORRECCIÓN: Tu JSON "details" debe basarse ÚNICAMENTE en lo que ves en la portada (@Index 0).
+        🚀 INSTRUCCIONES:
+        1. VALIDEZ (@Index 0): Si la foto 0 es un vehículo, "isValidCover": true.
+        2. IDENTIDAD: Identifica la VERSIÓN EXACTA (ej: Limited, Rubicon, GT).
+        3. DATOS TÉCNICOS: Usa tu CONOCIMIENTO DE AGENCIA para llenar el motor, HP, etc. de esa versión.
+        4. EQUIPAMIENTO: Lista lo que ves Y lo que sabes que tiene de serie.
 
        Responde ÚNICAMENTE este JSON:
        {
          "isValidCover": boolean,
-         "coverReason": "OK" o razón del rechazo,
+         "coverReason": "OK" o razón breve,
          "analysis": [
            { "index": number, "isValid": boolean, "reason": "OK" o "Vehículo diferente" }
          ],
          "details": {
-            "brand": "Marca REAL identificada",
-            "model": "Modelo REAL identificado",
-            "version": "Versión/Trim/Edición específica (Ej: King Ranch, Raptor, Denali, GTI, Rubicon, Carbon Edition). ¡SÉ MUY PRECISO!",
-            "year": "Año o generación",
-            "color": "Color predominante",
+            "brand": "Marca",
+            "model": "Modelo",
+            "version": "Versión Específica (CRÍTICO)",
+            "year": "Año",
+            "color": "Color",
             "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
             "transmission": "Manual|Automática",
             "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-            "engine": "Especificación motor (ej: 3.5L V6 o Cummins 6.7)",
+            "engine": "Especificación motor (ej: 3.5L V6)",
             "traction": "FWD|RWD|4x4|AWD",
-            "doors": 2|3|4|5,
-            "passengers": 2|5|7|9,
-            "hp": "Potencia",
-            "cargoCapacity": "Capacidad en toneladas (si aplica)",
-            "operatingHours": "Horas de uso (si aplica)",
-            "features": ["Lista exhaustiva de equipamiento detectado y estándar de esta versión"]
+            "doors": number,
+            "passengers": number,
+            "hp": number,
+            "torque": "Torque",
+            "cylinders": number,
+            "features": ["Lista completa de equipamiento real y observado"]
           }
         }
        
         REGLA CRÍTICA DE FORMATO: 
-        - Para datos técnicos NO visibles o INCIERTOS: usa null (sin comillas).
-        - NUNCA uses "N/A", "Unknown", "Desconocido", "NA", "", ni similares.
-        - Ejemplo: "hp": null, "torque": null`
+        - NUNCA uses "N/A" o "Desconocido". Si no sabes, usa null.`
     : `ERES UN MODERADOR DE CONTENIDO PARA PERFILES DE NEGOCIO.
        TU MISIÓN: Permitir libertad creativa total, FILTRANDO SOLO CONTENIDO ILEGAL O PELIGROSO.
        
