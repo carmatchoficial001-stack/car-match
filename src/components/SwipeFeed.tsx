@@ -345,7 +345,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
     }
 
     return (
-        <div className="relative w-full sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto flex flex-col h-full min-h-[75vh]">
+        <div className="relative w-full max-w-sm mx-auto flex flex-col h-full min-h-[75vh]">
             <div className="relative flex-1 h-full flex justify-center perspective-1000">
                 <AnimatePresence mode="popLayout">
                     {items.slice(0, 2).map((item, index) => {
