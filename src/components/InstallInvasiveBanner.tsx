@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Sparkles, X, Smartphone, Globe } from 'lucide-react'
 import { usePWAInstall } from '@/hooks/usePWAInstall'
 
@@ -56,8 +57,14 @@ export default function InstallInvasiveBanner() {
             <div className="bg-gradient-to-r from-accent-600/10 via-slate-900 to-accent-600/10 px-4 py-3">
                 <div className="container mx-auto flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="flex-shrink-0 w-12 h-12 bg-accent-500 rounded-xl flex items-center justify-center shadow-lg shadow-accent-500/20 ring-2 ring-accent-500/20">
-                            <Sparkles className="text-white animate-pulse" size={24} />
+                        <div className="flex-shrink-0 w-12 h-12 bg-black rounded-xl flex items-center justify-center shadow-lg ring-2 ring-accent-500/20 overflow-hidden">
+                            <Image
+                                src="/icon-192-v20.png"
+                                alt="CarMatch Logo"
+                                width={48}
+                                height={48}
+                                className="w-full h-full object-cover"
+                            />
                         </div>
                         <div className="min-w-0">
                             <h4 className="font-black text-white text-sm sm:text-base uppercase tracking-tight leading-none mb-1 truncate">
