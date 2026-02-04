@@ -85,7 +85,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
         >
             <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-auto max-h-full">
                 {/* Imagen Principal (Compressed to preserve button visibility) */}
-                <div className="relative w-full h-[38vh] sm:h-[45vh] lg:h-[40vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden shrink-0">
+                <div className="relative w-full h-[38vh] sm:h-[45vh] lg:h-[55vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden shrink-0">
                     <Link
                         href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
                         onPointerDown={(e) => e.stopPropagation()}
@@ -237,8 +237,8 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                         </Link>
                     </div>
 
-                    {/* 6. Botones de Acción */}
-                    <div className="grid grid-cols-2 gap-4 px-6 pb-6 mt-auto">
+                    {/* 6. Botones de Acción (Ocultos en Desktop) */}
+                    <div className="grid grid-cols-2 gap-4 px-6 pb-6 mt-auto lg:hidden">
                         <button
                             onPointerDown={(e) => e.stopPropagation()}
                             onClick={() => {
@@ -362,7 +362,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
                     <X size={32} className="group-hover:rotate-90 transition-transform" />
                 </button>
                 <span className="text-xs font-bold text-text-secondary uppercase tracking-widest bg-surface/80 px-2 py-1 rounded backdrop-blur max-w-[80px] text-center">
-                    {t('swipe.nope_btn')} (←)
+                    {t('swipe.nope_btn')}
                 </span>
             </div>
 
@@ -374,7 +374,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
                     <ThumbsUp size={32} className="group-hover:-rotate-12 transition-transform" />
                 </button>
                 <span className="text-xs font-bold text-text-secondary uppercase tracking-widest bg-surface/80 px-2 py-1 rounded backdrop-blur max-w-[80px] text-center">
-                    {t('swipe.like_btn')} (→)
+                    {t('swipe.like_btn')}
                 </span>
             </div>
 
