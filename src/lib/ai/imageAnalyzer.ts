@@ -122,13 +122,6 @@ RESPONDE SOLO EL JSON.
 
     SI TIENES DUDA -> APLICA LA LEY SUPREMA: ¿PODRÍA TENER MOTOR Y RUEDAS? -> APRUEBA.
 
-    ❌ RECHAZA (VALID: FALSE) ÚNICAMENTE SI ES OBVIO QUE NO ES UN VEHÍCULO:
-    - Animales, Personas solas (sin vehículo), Comida, Ropa, Muebles.
-    - Documentos, Texto, Capturas de pantalla.
-    - Juguetes, Dibujos, Maquetas.
-
-    SI TIENES DUDA (ej: está oscuro, es una parte del carro, ángulo raro):
-    -> ASUME QUE ES VÁLIDO. MEJOR APROBAR DE MÁS QUE RECHAZAR UN VEHÍCULO REAL.
 
     ═══ GENERACIÓN DE DATOS (AUTOCOMPLETADO INTELIGENTE) ═══
     UNA VEZ QUE VALIDAS QUE ES UN VEHÍCULO, CONVIÉRTETE EN UNA ENCICLOPEDIA AUTOMOTRIZ.
@@ -486,10 +479,11 @@ export async function analyzeMultipleImages(
       const galleryImages = images.slice(1, 10); // Analizar las 9 fotos de la galería (Total 10 con portada)
 
       const galleryPrompt = `
-        ERES UN AUDITOR DE CONSISTENCIA Y UN EXPERTO EN CATALOGACIÓN AUTOMOTRIZ.
+        ERES UN ASISTENTE EXPERTO EN ANÁLISIS UNIVERSAL DE VEHÍCULOS.
+        
         TU MISIÓN: 
-        1. Validar que las fotos de la galería pertenezcan al mismo vehículo que la portada (o sean detalles del mismo).
-        2. EXTRAER CADA DETALLE TÉCNICO VISIBLE en estas fotos para completar la ficha del auto.
+        1. Validar que las fotos de la galería sean COHERENTES con el vehículo de la portada.
+        2. EXTRAER CADA DETALLE TÉCNICO VISIBLE (Equipamiento, motor, interior).
 
         🚗 VEHÍCULO SOBERANO (IDENTIDAD DE PORTADA):
         - Marca: "${IDENTIDAD_SOBERANA_DE_PORTADA.brand || '?'}"
@@ -499,17 +493,20 @@ export async function analyzeMultipleImages(
 
         ESTÁS RECIBIENDO ${galleryImages.length} IMÁGENES SECUNDARIAS.
 
-        📋 REGLAS DE AUDITORÍA (SÉ INTELIGENTE Y TOLERANTE):
-        - ✅ ACEPTA DETALLES: Tableros, motores, asientos, llantas, cajuelas, techos. ¡Son partes del auto! No las rechaces porque no se ve el auto entero.
+        ═══ LEY UNIVERSAL PARA GALERÍA (MOTOR + LLANTAS) ═══
+        - ACEPTA (isValid: true) CUALQUIER FOTO QUE MUESTRE PARTE DE UN VEHÍCULO.
+        - ACEPTA detalles (motores, asientos, llantas, tableros, techos).
+        - ACEPTA ángulos raros, fotos oscuras o borrosas si se distingue un vehículo.
+        
+        ❌ RECHAZA (isValid: false) ÚNICAMENTE:
+        - Si es OBVIAMENTE un vehículo totalmente distinto (ej: Portada Ford -> Foto Toyota).
+        - Si NO ES UN VEHÍCULO NI PARTE DE UNO (Basura, selfies solas, mascotas, memes).
 
-        - ✅ ACEPTA ÁNGULOS DISTINTOS: Frente, vualta, perfil, desde arriba.
-        - ✅ ACEPTA DIFERENCIAS DE ILUMINACIÓN: Luz de día vs sombra puede cambiar el tono del color.Sé flexible.
-        - ❌ RECHAZA SOLO SI ES OBVIAMENTE OTRO CARRO: Un Ford rojo vs un Toyota blanco.Una camioneta vs un compacto.
-        - ❌ RECHAZA BASURA: Memes, screenshots de celulares, gente posando sola(sin auto), comida, objetos random.
+        🕵️‍♂️ MODO DETECTIVE (LLENADO DE DATOS):
+        - Busca pistas técnicas: Palanca de cambios (Aut/Man), botones 4x4, quemacocos, piel, motor.
+        - Si ves una insignia (ej: "Z71", "AMG", "M-Sport"), ¡ÚSALA PARA CORREGIR LA VERSIÓN!
 
-        🕵️‍♂️ MODO DETECTIVE(LLENADO DE DATOS):
-      - Mira las fotos del interior: ¿Es automático o estándar ? ¿Tiene piel ? ¿Quemacocos ? ¿Pantalla ?
-        - Mira el motor: ¿Ves insignias "V8", "Turbo", "Hemi", "EcoBoost" ?
+
         🧞‍♂️ MODO ENCICLOPEDIA(AGENCY KNOWLEDGE):
       - ¡OJO! Ahora que tienes MÁS FOTOS, puedes confirmar la versión exacta(ej: viste la insignia "Limited").
         - UNA VEZ CONFIRMADA LA VERSIÓN, usa tu base de datos interna para llenar HP, Torque, Motor, etc.
