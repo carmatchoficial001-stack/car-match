@@ -85,7 +85,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
         >
             <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-auto max-h-full">
                 {/* Imagen Principal (Compressed to preserve button visibility) */}
-                <div className="relative w-full h-[38vh] sm:h-[45vh] lg:h-[50vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden shrink-0">
+                <div className="relative w-full h-[38vh] sm:h-[45vh] lg:h-[40vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden shrink-0">
                     <Link
                         href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
                         onPointerDown={(e) => e.stopPropagation()}
@@ -346,6 +346,38 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
 
     return (
         <div className="relative w-full max-w-sm mx-auto flex flex-col h-full min-h-[75vh]">
+
+            {/* 🖥️ DESKTOP: Botones Flotantes Laterales */}
+            <div className="hidden lg:flex fixed top-1/2 -translate-y-1/2 left-1/2 -ml-[320px] z-10 flex-col items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-700">
+                <button
+                    onClick={() => {
+                        const card = document.querySelector('[data-swipe-card="top"]')
+                        if (card) card.dispatchEvent(new Event('trigger-nope'))
+                        // Fallback si no hay evento directo, usamos ref o props en v2.
+                        // Por ahora, simulamos click en el botón interno si es necesario o pasamos handler
+                        onDislike(items[0].id)
+                    }}
+                    className="w-16 h-16 rounded-full bg-surface border-4 border-surface-highlight text-red-500 shadow-xl hover:bg-red-500 hover:text-white hover:scale-110 hover:border-red-600 transition-all flex items-center justify-center group"
+                >
+                    <X size={32} className="group-hover:rotate-90 transition-transform" />
+                </button>
+                <span className="text-xs font-bold text-text-secondary uppercase tracking-widest bg-surface/80 px-2 py-1 rounded backdrop-blur max-w-[80px] text-center">
+                    {t('swipe.nope_btn')} (←)
+                </span>
+            </div>
+
+            <div className="hidden lg:flex fixed top-1/2 -translate-y-1/2 right-1/2 -mr-[320px] z-10 flex-col items-center gap-2 animate-in fade-in slide-in-from-left-4 duration-700">
+                <button
+                    onClick={() => onLike(items[0].id)}
+                    className="w-16 h-16 rounded-full bg-surface border-4 border-surface-highlight text-primary-500 shadow-xl hover:bg-primary-500 hover:text-white hover:scale-110 hover:border-primary-600 transition-all flex items-center justify-center group"
+                >
+                    <ThumbsUp size={32} className="group-hover:-rotate-12 transition-transform" />
+                </button>
+                <span className="text-xs font-bold text-text-secondary uppercase tracking-widest bg-surface/80 px-2 py-1 rounded backdrop-blur max-w-[80px] text-center">
+                    {t('swipe.like_btn')} (→)
+                </span>
+            </div>
+
             <div className="relative flex-1 h-full flex justify-center perspective-1000">
                 <AnimatePresence mode="popLayout">
                     {items.slice(0, 2).map((item, index) => {
