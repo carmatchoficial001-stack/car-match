@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react' // ✅ Importar useState
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -140,8 +142,8 @@ export default function SettingsPage() {
                                                         setShowLanguages(false)
                                                     }}
                                                     className={`flex items-center gap-3 p-3 rounded-xl transition-all ${locale === lang.code
-                                                            ? 'bg-primary-500/20 border border-primary-500/30 text-primary-400'
-                                                            : 'hover:bg-surface-highlight text-text-secondary hover:text-text-primary'
+                                                        ? 'bg-primary-500/20 border border-primary-500/30 text-primary-400'
+                                                        : 'hover:bg-surface-highlight text-text-secondary hover:text-text-primary'
                                                         }`}
                                                 >
                                                     <span className="text-2xl">{lang.flag}</span>
