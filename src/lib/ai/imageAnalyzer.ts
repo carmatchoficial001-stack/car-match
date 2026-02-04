@@ -45,8 +45,12 @@ interface ImageAnalysisResult {
   analysis?: { index: number; isValid: boolean; reason: string }[];
 }
 
-export async function analyzeImage(imageBase64: string, type: 'VEHICLE' | 'BUSINESS' = 'VEHICLE'): Promise<ImageAnalysisResult> {
-  console.log(`🤖 [${type}] Iniciando análisis con Gemini Vision... (Tamaño: ${imageBase64.length} caracteres)`);
+export async function analyzeImage(
+  imageBase64: string,
+  type: 'VEHICLE' | 'BUSINESS' = 'VEHICLE',
+  contextHint?: string // 🧠 Contexto opcional: "Jeep Wrangler 2020", "Taller Juan", etc.
+): Promise<ImageAnalysisResult> {
+  console.log(`🤖 [${type}] Iniciando análisis con Gemini Vision... (Contexto: ${contextHint || 'Ninguno'})`);
 
   // 🚀 TODO: Integrar orquestador para pre-validación de imágenes con heurísticas visuales básicas
   // Por ahora mantenemos el sistema de rotación Bi-Turbo (Pro/Flash) que ya funciona en producción
@@ -58,6 +62,8 @@ export async function analyzeImage(imageBase64: string, type: 'VEHICLE' | 'BUSIN
     prompt = `
 ERES UN MODERADOR DE CONTENIDO PARA UNA RED SOCIAL DE NEGOCIOS.
 TU TRABAJO ES FILTRAR SOLO EL CONTENIDO PELIGROSO O ILEGAL.
+
+CONTEXTO DEL USUARIO: "${contextHint || 'No especificado'}"
 
 ✅ PERMITIDO (TODO LO QUE NO ESTÉ PROHIBIDO):
 - Logos, Fachadas, Tarjetas de presentación
@@ -84,6 +90,9 @@ RESPONDE SOLO EL JSON.
   } else {
     // 🚗 VALIDATION FOR VEHICLES
     prompt = `
+ERES UN ANALISTA EXPERTO DE VEHÍCULOS.
+CONTEXTO SUGERIDO POR EL USUARIO: "${contextHint || 'Desconocido'}"
+
 ═══ REGLAS DE APROBACIÓN (VEHÍCULOS MOTORIZADOS TERRESTRES) ═══
 ✅ APRUEBA AUTOMÁTICAMENTE SI VES CUALQUIERA DE ESTOS:
 - Autos (sedanes, hatchbacks, coches deportivos, cupés)
@@ -109,7 +118,7 @@ RESPONDE SOLO EL JSON.
 IMPORTANTE: Si la portada NO es un vehículo terrestre motorizado real (con llantas/motor), "valid" debe ser false y el autollenado se cancela.
 
 ═══ PROTOCOLO DE ANÁLISIS (PASO A PASO) ═══
-1. OLVIDA EL TEXTO: Ignora cualquier marca o modelo dado por el usuario.
+1. 🧠 ANÁLISIS CONTEXTUAL: El usuario dice que es un "${contextHint}". Úsalo como pista fuerte. Si la imagen es borrosa pero coincide con la silueta de un "${contextHint}", APRUÉBALA.
 2. ESCANEO VISUAL: Identifica silueta, parrilla, faros y logotipos.
 3. IDENTIFICACIÓN PURA: Determina qué vehículo es basándote *solo* en la imagen. Intenta identificar la VERSIÓN/TRIM específica (ej: Touring, Denali, GTI).
 4. COMPARACIÓN CRÍTICA: Si el contexto dice "Hyundai" pero ves un "Jeep Wrangler", reporte JEEP WRANGLER.
@@ -282,7 +291,9 @@ REGLA CRÍTICA DE FORMATO:
         errorMsg.includes("deadline") ||
         errorMsg.includes("json") || // ✅ JSON Errors
         errorMsg.includes("parse") || // ✅ Parse Errors
-        errorMsg.includes("syntax"); // ✅ Syntax Errors
+        errorMsg.includes("syntax") || // ✅ Syntax Errors
+        errorMsg.includes("rejected") || // ✅ Voto de Segunda Opinión
+        errorMsg.includes("consensus"); // ✅ Búsqueda de consenso
 
       if (isRetryable && i < maxRetries - 1) {
         // ⚡ Reintento rápido: máximo 2 segundos de espera
@@ -424,7 +435,8 @@ export async function analyzeMultipleImages(
 
     try {
       // 1. ANALIZAR PORTADA (Index 0)
-      const coverResult = await analyzeImage(images[0], 'VEHICLE');
+      const contextHint = context?.brand ? `${context.brand} ${context.model || ''} ${context.year || ''}`.trim() : undefined;
+      const coverResult = await analyzeImage(images[0], 'VEHICLE', contextHint);
 
       if (!coverResult.valid) {
         return {
