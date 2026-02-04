@@ -199,12 +199,15 @@ REGLA CRÍTICA DE FORMATO:
           console.warn("⚠️ Activando MODO TOLERANTE para segunda opinión...");
           activePrompt += `
             \n🚨 MODO EMERGENCIA (SEGUNDA OPINIÓN):
-            - El usuario insiste que esto es un vehículo.
             - TU ANTERIOR JUICIO FUE RECHAZADO.
+            - EL USUARIO DICE QUE ES UN VEHÍCULO. ASUME QUE EL USUARIO TIENE RAZÓN.
             - SÉ EXTREMADAMENTE PERMISIVO.
+            - CASO ESPECIFICO: SI PARECE UN JEEP WRANGLER, AUNQUE ESTÉ OSCURO, ¡APRUÉBALO!
             - Acepta fotos oscuras, borrosas, o detalles extremos (solo una llanta, solo un faro).
-            - Si hay una mínima probabilidad de que sea un vehículo, MARCALO COMO valid: true.
-            - RECHAZA ÚNICAMENTE si es absolutamente obvio que es una persona, animal u objeto doméstico.
+            - Si ves CUALQUIER indicio de: llantas, faros redondos, parrilla vertical (Jeep), volante o carrocería metálica -> VALID: TRUE.
+            - RECHAZA ÚNICAMENTE SI ES 100% SEGURO QUE ES UNA PERSONA DESNUDA, UN ANIMAL VIVO, O ALGO QUE VIOLE POLÍTICAS.
+            - SI TIENES DUDA -> VALID: TRUE.
+            - NO RECHACES POR MALA ILUMINACIÓN NI POR ÁNGULOS RAROS.
             `;
         }
 
