@@ -163,6 +163,9 @@ export default function PublishClient() {
     const handleImagesChange = (newImages: string[]) => {
         setImages(newImages)
         setAiError('')
+        setInvalidImageUrls(new Set())
+        setInvalidReasons({})
+        setRejectedIndices(new Set())
     }
 
     const validateImagesAndProceed = async (retryCount = 0) => {
