@@ -1,5 +1,5 @@
 
-import { geminiPro, geminiFlash } from "./geminiClient"; // ✅ Modelos para análisis
+import { geminiFlash8B, geminiFlash, geminiFlashLite, geminiPro } from "./geminiClient"; // ✅ Modelos optimizados (2026)
 
 
 interface ImageAnalysisResult {
@@ -201,13 +201,27 @@ RESPONDE SOLO EL JSON.
             `;
         }
 
-        // 🏎️ ESTRATEGIA BI-TURBO 2.0: Alternar modelos para evadir saturación
-        const modelToUse = i % 2 === 0 ? geminiPro : geminiFlash;
-        console.log(`🤖 [IA] Intento ${i + 1}/${maxRetries} usando ${i % 2 === 0 ? 'PRO (Experto)' : 'FLASH (Veloz)'} ${i > 0 ? '(+Tolerancia)' : ''}`);
+        // 🏎️ ESTRATEGIA TRI-TURBO (2026 EDITION):
+        // 1. Flash-8B: Ultrarápido y barato para el primer intento (filtramos lo obvio).
+        // 2. Flash-Lite: Si el 8B duda, entramos con Lite (más listo).
+        // 3. Flash 2.0 / Pro: Si todo falla, sacamos la artillería pesada.
+
+        let modelToUse = geminiFlash8B; // Default: El más barato
+
+        if (i === 1) modelToUse = geminiFlashLite; // Segundo intento: Un poco más listo
+        if (i >= 2) modelToUse = geminiFlash; // Tercer intento: Estándar potente
+
+        console.log(`🤖 [IA] Intento ${i + 1}/${maxRetries} usando ${modelToUse.model}`);
         result = await modelToUse.generateContent([activePrompt, imagePart]);
-      } catch (proError) {
-        console.warn("⚠️ Modelo saturado, rotando al respaldo Flash...");
-        result = await geminiFlash.generateContent([prompt, imagePart]);
+
+      } catch (genError) {
+        console.warn(`⚠️ Error en modelo ${i}, rotando...`);
+        // Fallback inmediato dentro del mismo intento si es error de red
+        try {
+          result = await geminiPro.generateContent([prompt, imagePart]);
+        } catch (e) {
+          throw genError; // Si el fallback también falla, lanzamos el error al loop principal
+        }
       }
 
       const response = await result.response;
@@ -245,22 +259,20 @@ RESPONDE SOLO EL JSON.
 
         // 🧠 CONSEJO DE IAs (VOTO DE SEGUNDA OPINIÓN)
         // Si la IA dice que NO es válido:
+        // 🧠 CONSEJO DE IAs (VOTO DE SEGUNDA OPINIÓN)
+        // Si la IA dice que NO es válido:
         if (parsedResult && parsedResult.valid === false) {
-          // Si no es el último intento, pedimos otra opinión
+          // Si no es el último intento, pedimos otra opinión al siguiente modelo
           if (i < maxRetries - 1) {
-            console.warn(`🤔 La IA rechazó la imagen (Intento ${i + 1}), pero pediremos una SEGUNDA OPINIÓN al siguiente modelo...`);
+            console.warn(`🤔 La IA rechazó la imagen (Intento ${i + 1}), pero pediremos una SEGUNDA OPINIÓN...`);
             throw new Error("Rejected by first opinion - seeking consensus"); // Forzar retry
           }
 
-          // 🛑 ÚLTIMO INTENTO: SI LA IA SIGUE DICIENDO QUE NO...
-          // "Oye gemini si puede o no por que sigue sin pasar el puto jeep" -> EL CLIENTE MANDA.
-          // Si llegamos aquí, es que la IA es terca. Activamos el modo confianza.
-          console.warn("⚠️ Rechazo persistente en último intento. Aplicando FAIL-OPEN por política de confianza.");
-          return {
-            valid: true,
-            reason: "Aprobado por política de confianza (Usuario insiste)",
-            details: parsedResult.details || { brand: contextHint?.split(' ')[0] || "Vehículo" }
-          };
+          // 🛑 ÚLTIMO INTENTO: SI LA IA DICE QUE NO, ES NO.
+          // Ya tenemos un prompt "Universal" muy permisivo. Si aún así rechaza, 
+          // es muy probable que realmente NO sea un vehículo (ej: una TV, un perro).
+          // Para mantener la red sana, respetamos el NO definitivo de la IA.
+          return parsedResult;
         }
 
         return parsedResult;
