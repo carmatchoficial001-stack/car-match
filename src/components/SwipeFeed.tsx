@@ -22,6 +22,7 @@ interface FeedItem {
     currency?: string | null
     city: string
     images?: string[]
+    description?: string | null // ✅ Added description
     feedType?: 'VEHICLE' | 'BUSINESS'
     user: {
         name: string
@@ -223,6 +224,15 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                                     </Link>
                                 ) || null}
                             </div>
+                        </div>
+                    )}
+
+                    {/* 4.5 Description (Truncated) - DESKTOP ONLY */}
+                    {item.description && (
+                        <div className="hidden lg:block px-6 mb-2">
+                            <p className="text-sm text-text-secondary line-clamp-2 leading-relaxed opacity-80">
+                                {item.description}
+                            </p>
                         </div>
                     )}
 

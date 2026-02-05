@@ -78,6 +78,7 @@ export default async function SwipePage() {
             latitude: true,
             longitude: true,
             country: true,
+            description: true, // ✅ Fetched for swipe card details
             images: true,
             user: {
                 select: {

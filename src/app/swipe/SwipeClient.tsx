@@ -27,6 +27,7 @@ interface FeedItem {
     longitude: number | null
     country?: string | null
     images?: string[]
+    description?: string | null // ✅ Added description
     isFavorited?: boolean
     isBoosted?: boolean
     user: {
