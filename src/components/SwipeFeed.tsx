@@ -64,16 +64,20 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
             drag={isTop ? "x" : false}
             dragConstraints={{ left: 0, right: 0 }}
             onDragEnd={handleDragEnd}
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-            animate={{ scale: isTop ? 1 : 0.95, opacity: 1, y: isTop ? 0 : 10 }}
+            initial={{ scale: 0.9, opacity: 0, y: 0 }}
+            animate={{
+                scale: isTop ? 1 : 0.95,
+                opacity: 1,
+                y: 0, // ✅ Fix: Align perfectly behind (no peeking footer)
+                zIndex: isTop ? 10 : 0
+            }}
             style={{
                 x,
                 rotate,
                 opacity,
                 position: 'absolute',
                 width: '100%',
-                height: 'auto',
-                maxHeight: '100%',
+                height: '100%',
                 zIndex: isTop ? 10 : 0,
             }}
             exit={{
@@ -82,9 +86,9 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 rotate: x.get() <= 0 ? -45 : 45,
                 transition: { duration: 0.4, ease: "easeOut" }
             }}
-            className={`touch-none flex flex-col h-auto max-h-full ${!isTop && 'pointer-events-none'}`}
+            className={`touch-none flex flex-col h-full ${!isTop && 'pointer-events-none'}`}
         >
-            <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-auto max-h-full">
+            <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-full">
                 {/* Imagen Principal (Compressed to preserve button visibility) */}
                 <div className="relative w-full h-[38vh] sm:h-[45vh] lg:h-[45vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden shrink-0">
                     <Link
