@@ -471,9 +471,9 @@ export default function MarketClient({
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 pt-8 pb-24">
+            <div className="container mx-auto px-4 pt-4 pb-24">
                 {/* Header */}
-                <header className="mb-8">
+                <header className="mb-3">
                     {/* Controles en una sola línea */}
                     <div className="flex flex-row gap-2 md:gap-4 items-center">
                         {/* Botón para mostrar filtros - Solo si están ocultos */}
