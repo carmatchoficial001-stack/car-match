@@ -77,7 +77,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 opacity,
                 position: 'absolute',
                 width: '100%',
-                height: '100%',
+                height: '75vh',
                 zIndex: isTop ? 10 : 0,
             }}
             exit={{
@@ -86,11 +86,11 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 rotate: x.get() <= 0 ? -45 : 45,
                 transition: { duration: 0.4, ease: "easeOut" }
             }}
-            className={`touch-none flex flex-col h-full ${!isTop && 'pointer-events-none'}`}
+            className={`touch-none flex flex-col h-[75vh] ${!isTop && 'pointer-events-none'}`}
         >
             <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-full">
-                {/* Imagen Principal (Compressed to preserve button visibility) */}
-                <div className="relative w-full h-[38vh] sm:h-[45vh] lg:h-[45vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden shrink-0">
+                {/* Imagen Principal (Flexible Height) */}
+                <div className="relative w-full flex-1 min-h-0 bg-gradient-to-br from-surface-highlight to-surface overflow-hidden shrink-0">
                     <Link
                         href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
                         onPointerDown={(e) => e.stopPropagation()}
@@ -349,7 +349,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
     }
 
     return (
-        <div className="relative w-full max-w-md lg:max-w-xl mx-auto flex flex-col h-full justify-center">
+        <div className="relative w-full max-w-md lg:max-w-2xl mx-auto flex flex-col h-full justify-center items-center">
 
             {/* 🖥️ DESKTOP: Botones Flotantes Laterales */}
             <div className="hidden lg:flex fixed top-1/2 -translate-y-1/2 left-1/2 -ml-[320px] z-10 flex-col items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-700">
