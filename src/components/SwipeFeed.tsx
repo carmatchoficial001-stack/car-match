@@ -86,7 +86,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
         >
             <div className="bg-surface rounded-3xl shadow-2xl border border-surface-highlight overflow-hidden flex flex-col h-auto max-h-full">
                 {/* Imagen Principal (Compressed to preserve button visibility) */}
-                <div className="relative w-full h-[38vh] sm:h-[45vh] lg:h-[55vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden shrink-0">
+                <div className="relative w-full h-[38vh] sm:h-[45vh] lg:h-[45vh] bg-gradient-to-br from-surface-highlight to-surface overflow-hidden shrink-0">
                     <Link
                         href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
                         onPointerDown={(e) => e.stopPropagation()}
