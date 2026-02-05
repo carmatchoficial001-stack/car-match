@@ -449,7 +449,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
                 {/* 🗂️ PANEL DE FILTROS (PERSISTENT DESKTOP / OVERLAY MOBILE) */}
                 <div className={`
-                    absolute inset-0 z-40 lg:z-10 lg:static lg:w-[340px] lg:shrink-0 flex items-end md:items-start justify-start transition-none pointer-events-none lg:pointer-events-auto lg:order-1
+                    absolute inset-0 z-[60] lg:z-10 lg:static lg:w-[340px] lg:shrink-0 flex items-start justify-start transition-none pointer-events-none lg:pointer-events-auto lg:order-1
                 `}>
                     {/* Backdrop (Mobile Only) */}
                     <div
