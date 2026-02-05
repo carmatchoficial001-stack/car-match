@@ -379,8 +379,17 @@ export default function PublishClient() {
         }
     }
 
+    // 🚀 SCROLL OPTIMIZATION: Ensure view starts at top on step change
+    const topRef = useRef<HTMLDivElement>(null)
+
     useEffect(() => {
-        window.scrollTo(0, 0)
+        // Force scroll to top instantly
+        window.scrollTo({ top: 0, behavior: 'instant' })
+
+        // Backup: Scroll top container into view if window scroll fails (common in mobile wrappers)
+        if (topRef.current) {
+            topRef.current.scrollIntoView({ behavior: 'instant', block: 'start' })
+        }
     }, [currentStep])
 
     const handleNextStep = () => {
@@ -672,7 +681,7 @@ export default function PublishClient() {
     }, [currentStep, images, brand, model, year, price, city])
 
     return (
-        <div className="min-h-screen bg-background pb-safe">
+        <div ref={topRef} className="min-h-screen bg-background pb-safe">
             <PortalAnimation show={showPortal} />
 
             <div className="container mx-auto px-4 py-8 pb-32 max-w-4xl">
