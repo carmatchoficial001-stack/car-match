@@ -773,38 +773,48 @@ export default function MarketClient({
                                             </p>
                                         </div>
                                     ) : (
-                                        <button
-                                            onClick={handleExpandSearch}
-                                            className="bg-primary-900/20 border-2 border-primary-700/50 hover:border-primary-500 rounded-2xl flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-primary-900/40 transition group min-h-[250px]"
+                                        <div
+                                            className="bg-primary-900/20 border-2 border-primary-700/50 hover:border-primary-500 rounded-2xl flex flex-col items-center justify-center p-6 text-center transition group min-h-[250px] relative"
                                         >
-                                            <div className="w-16 h-16 bg-primary-700 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-primary-900/50">
-                                                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                                </svg>
-                                            </div>
-                                            <span className="font-bold text-lg text-white">
-                                                {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search') : t('market.expand_search')}
-                                            </span>
-                                            <div className="mt-2 px-3 py-1 bg-white/10 rounded-full border border-white/20">
-                                                <span className="text-[10px] md:text-xs text-primary-200 font-bold uppercase tracking-wider">
-                                                    {t('market.radius_label').replace('{radius}', searchRadius.toString())} | {displayCity}
+                                            <div onClick={handleExpandSearch} className="flex flex-col items-center w-full cursor-pointer">
+                                                <div className="w-16 h-16 bg-primary-700 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-primary-900/50">
+                                                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                    </svg>
+                                                </div>
+                                                <span className="font-bold text-lg text-white">
+                                                    {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search') : t('market.expand_search')}
+                                                </span>
+                                                <div className="mt-2 px-3 py-1 bg-white/10 rounded-full border border-white/20">
+                                                    <span className="text-[10px] md:text-xs text-primary-200 font-bold uppercase tracking-wider">
+                                                        {t('market.radius_label').replace('{radius}', searchRadius.toString())} | {displayCity}
+                                                    </span>
+                                                </div>
+                                                <span className="text-sm text-primary-200 mt-2">
+                                                    {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search_desc') : t('market.expand_search_desc')}
                                                 </span>
                                             </div>
-                                            <span className="text-sm text-primary-200 mt-2">
-                                                {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search_desc') : t('market.expand_search_desc')}
-                                            </span>
 
-                                            <div className="mt-6 pt-6 border-t border-white/10 w-full flex flex-col items-center">
+                                            <div className="mt-6 pt-6 border-t border-white/10 w-full flex flex-col items-center z-20 relative">
                                                 <p className="text-xs text-primary-300 font-medium mb-3 uppercase tracking-wider">{t('market.cant_find_desc')}</p>
-                                                <Link
-                                                    href="/publish"
-                                                    className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary-900 rounded-xl hover:bg-white/90 transition font-bold shadow-lg"
-                                                >
-                                                    <Plus size={18} />
-                                                    {t('market.publish_cta')}
-                                                </Link>
+                                                <div className="flex flex-row items-center gap-3">
+                                                    <Link
+                                                        href="/publish"
+                                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-primary-900 rounded-xl hover:bg-white/90 transition font-bold shadow-lg text-xs md:text-sm"
+                                                    >
+                                                        <Plus size={16} />
+                                                        {t('market.publish_cta')}
+                                                    </Link>
+                                                    <Link
+                                                        href="/my-businesses?action=new"
+                                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-500 transition font-bold shadow-lg text-xs md:text-sm"
+                                                    >
+                                                        <MapPin size={16} />
+                                                        <span>{t('map_store.publish_business') || 'Subir Negocio'}</span>
+                                                    </Link>
+                                                </div>
                                             </div>
-                                        </button>
+                                        </div>
 
                                     )}
                                 </div>
