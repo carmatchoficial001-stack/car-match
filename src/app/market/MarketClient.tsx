@@ -773,10 +773,12 @@ export default function MarketClient({
                                             </p>
                                         </div>
                                     ) : (
-                                        <div
-                                            className="bg-primary-900/20 border-2 border-primary-700/50 hover:border-primary-500 rounded-2xl flex flex-col items-center justify-center p-6 text-center transition group min-h-[250px] relative"
-                                        >
-                                            <div onClick={handleExpandSearch} className="flex flex-col items-center w-full cursor-pointer">
+                                        <div className="contents">
+                                            {/* Card 1: Expandir Búsqueda */}
+                                            <div
+                                                className="bg-primary-900/20 border-2 border-primary-700/50 hover:border-primary-500 rounded-2xl flex flex-col items-center justify-center p-6 text-center transition group min-h-[250px] relative cursor-pointer"
+                                                onClick={handleExpandSearch}
+                                            >
                                                 <div className="w-16 h-16 bg-primary-700 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-primary-900/50">
                                                     <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -795,22 +797,20 @@ export default function MarketClient({
                                                 </span>
                                             </div>
 
-                                            <div className="mt-6 pt-6 border-t border-white/10 w-full flex flex-col items-center z-20 relative">
-                                                <p className="text-xs text-primary-300 font-medium mb-3 uppercase tracking-wider">{t('market.cant_find_desc')}</p>
-                                                <div className="flex flex-row items-center gap-3">
+                                            {/* Card 2: Promo Vende Tu Auto */}
+                                            <div className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-2 border-green-500/30 hover:border-green-500/50 rounded-2xl flex flex-col items-center justify-center p-6 text-center transition group min-h-[250px] relative">
+                                                <div className="flex flex-col items-center w-full">
+                                                    <p className="text-sm text-green-200 font-bold uppercase tracking-wider mb-2">Mientras buscas</p>
+                                                    <h3 className="text-xl font-black text-white leading-tight mb-6">
+                                                        ¡GENERA DINERO<br />CON EL TUYO!
+                                                    </h3>
+
                                                     <Link
                                                         href="/publish"
-                                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-primary-900 rounded-xl hover:bg-white/90 transition font-bold shadow-lg text-xs md:text-sm"
+                                                        className="inline-flex items-center gap-2 px-6 py-3 bg-white text-green-900 rounded-xl hover:bg-green-50 transition font-black uppercase tracking-wide shadow-lg text-sm group-hover:scale-105 transform duration-200"
                                                     >
-                                                        <Plus size={16} />
-                                                        {t('market.publish_cta')}
-                                                    </Link>
-                                                    <Link
-                                                        href="/my-businesses?action=new"
-                                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-500 transition font-bold shadow-lg text-xs md:text-sm"
-                                                    >
-                                                        <MapPin size={16} />
-                                                        <span>{t('map_store.publish_business') || 'Subir Negocio'}</span>
+                                                        <Plus size={18} strokeWidth={3} />
+                                                        Convierte tu auto en dinero
                                                     </Link>
                                                 </div>
                                             </div>
