@@ -81,6 +81,7 @@
         "currency": "Currency",
         "city": "City",
         "change_language": "Change language",
+        "language": "Language",
         "install_on_ios": "Install on iOS",
         "install_on_android": "Install on Android",
         "user": "User",

@@ -76,6 +76,7 @@
         "city": "Ciudad",
         "select": "Selecciona...",
         "change_language": "Cambiar idioma",
+        "language": "Idioma",
         "install_on_ios": "Instalar en iOS",
         "install_on_android": "Instalar en Android",
         "user": "Usuario",
