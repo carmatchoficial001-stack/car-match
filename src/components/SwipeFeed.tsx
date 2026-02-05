@@ -359,7 +359,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
     }
 
     return (
-        <div className="relative w-full max-w-sm mx-auto flex flex-col h-full min-h-[75vh]">
+        <div className="relative w-full max-w-md mx-auto flex flex-col h-full min-h-[75vh]">
 
             {/* 🖥️ DESKTOP: Botones Flotantes Laterales */}
             <div className="hidden lg:flex fixed top-1/2 -translate-y-1/2 left-1/2 -ml-[320px] z-10 flex-col items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-700">
