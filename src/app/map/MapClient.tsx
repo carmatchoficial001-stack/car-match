@@ -421,8 +421,8 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
             <div className="flex-1 relative flex overflow-hidden">
 
-                {/* 🗺️ MAP (FULL SCREEN) */}
-                <div className="absolute inset-0 z-0">
+                {/* 🗺️ MAP (FULL SCREEN / FLEX CHILD) */}
+                <div className="absolute inset-0 lg:relative lg:flex-1 lg:inset-auto z-0 order-2">
                     <MapBoxStoreLocator
                         businesses={filteredBusinesses}
                         categoryColors={CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.color }), {})}
@@ -434,8 +434,8 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                 </div>
 
 
-                {/* 📱 BOTONES FLOTANTES (MAPA) */}
-                <div className="absolute top-6 left-6 z-30 flex flex-col gap-3">
+                {/* 📱 BOTONES FLOTANTES (MAPA - MOBILE ONLY) */}
+                <div className="absolute top-6 left-6 z-30 flex flex-col gap-3 lg:hidden">
                     {!showSidebar && (
                         <button
                             onClick={() => setShowSidebar(true)}
@@ -447,21 +447,20 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                     )}
                 </div>
 
-                {/* 🗂️ PANEL DE FILTROS (OVERLAY PANAL) */}
+                {/* 🗂️ PANEL DE FILTROS (PERSISTENT DESKTOP / OVERLAY MOBILE) */}
                 <div className={`
-                    absolute inset-0 z-40 flex items-end md:items-start justify-start transition-all duration-500
-                    ${showSidebar ? 'visible' : 'invisible'}
+                    absolute inset-0 z-40 lg:z-10 lg:static lg:w-[340px] lg:shrink-0 flex items-end md:items-start justify-start transition-none pointer-events-none lg:pointer-events-auto lg:order-1
                 `}>
-                    {/* Backdrop */}
+                    {/* Backdrop (Mobile Only) */}
                     <div
-                        className={`absolute inset-0 bg-background/40 backdrop-blur-sm transition-opacity duration-500 ${showSidebar ? 'opacity-100' : 'opacity-0'}`}
+                        className={`lg:hidden absolute inset-0 bg-background/40 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${showSidebar ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                         onClick={() => setShowSidebar(false)}
                     />
 
-                    {/* Filter Panel (SIDEBAR STYLE) */}
+                    {/* Filter Panel (Sidebar Content) */}
                     <div className={`
-                        relative h-full w-[85%] max-w-[340px] bg-[#1a243d]/95 backdrop-blur-2xl border-r border-white/10 shadow-[20px_0_50px_rgba(0,0,0,0.4)] flex flex-col transition-transform duration-500 ease-out transform
-                        ${showSidebar ? 'translate-x-0' : '-translate-x-full'}
+                        relative h-full w-[85%] max-w-[340px] lg:w-full bg-[#1a243d]/95 backdrop-blur-2xl border-r border-white/10 shadow-[20px_0_50px_rgba(0,0,0,0.4)] lg:shadow-none flex flex-col transition-transform duration-300 ease-out transform pointer-events-auto
+                        ${showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                     `}>
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-0 flex flex-col h-full bg-transparent">
                             {/* 1. HEADER CON BOTÓN DE PUBLICAR */}
