@@ -97,7 +97,15 @@ export default function Header() {
                 "ATRAE MÁS CLIENTES | ¡GENERA MÁS LANA!",
                 "¿NEGOCIO LENTO? | ¡LLÉNALO DE DINERO!",
                 "POSICIONA TU MARCA | ¡VENDE MÁS HOY!",
-                "NO TE QUEDES SIN JALE | ¡GENERA INGRESOS YA!"
+                "NO TE QUEDES SIN JALE | ¡GENERA INGRESOS YA!",
+                "¿NEGOCIO DIGITAL? | ¡PRESENCIA EN MAPA!",
+                "GANA LA COMPETENCIA | ¡SÚBETE PRIMERO!",
+                "¿CLIENTES NUEVOS? | ¡AQUÍ TE ENCUENTRAN!",
+                "MAPA EN VIVO | ¡TU NEGOCIO EN TIEMPO REAL!",
+                "¿BAJAS VENTAS? | ¡IMPULSA TU TALLER!",
+                "DIRECTO A TU WHATSAPP | ¡CLIENTES REALES!",
+                "COMUNIDAD AUTOMOTRIZ | ¡SÉ PARTE AHORA!",
+                "¿BUSCAS SOCIOS? | ¡ESTÁS EN EL LUGAR!"
             ];
 
             return [
