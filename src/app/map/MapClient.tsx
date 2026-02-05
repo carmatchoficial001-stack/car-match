@@ -453,7 +453,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                 `}>
                     {/* Backdrop (Mobile Only) */}
                     <div
-                        className={`lg:hidden absolute inset-0 bg-background/40 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${showSidebar ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                        className={`lg:hidden absolute inset-0 bg-background/40 backdrop-blur-sm transition-opacity duration-300 ${showSidebar ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
                         onClick={() => setShowSidebar(false)}
                     />
 
