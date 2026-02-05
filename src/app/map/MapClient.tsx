@@ -474,7 +474,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                 </Link>
                                 <button
                                     onClick={() => setShowSidebar(false)}
-                                    className="p-1 text-white/40 hover:text-white transition-colors flex-shrink-0"
+                                    className="p-1 text-white/40 hover:text-white transition-colors flex-shrink-0 lg:hidden"
                                 >
                                     <Plus size={24} className="rotate-45" />
                                 </button>
