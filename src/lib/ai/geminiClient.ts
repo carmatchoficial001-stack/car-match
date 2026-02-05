@@ -8,6 +8,8 @@ export {
     geminiModel,
     geminiPro,
     geminiFlash,
+    geminiFlash8B,
+    geminiFlashLite,
     geminiFlashConversational,
     geminiFlashPrecise,
     getModelForUseCase,
