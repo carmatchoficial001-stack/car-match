@@ -352,7 +352,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
         <div className="relative w-full max-w-md lg:max-w-2xl mx-auto flex flex-col h-full justify-center items-center">
 
             {/* 🖥️ DESKTOP: Botones Flotantes Laterales */}
-            <div className="hidden lg:flex fixed top-1/2 -translate-y-1/2 left-1/2 -ml-[320px] z-10 flex-col items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-700">
+            <div className="hidden lg:flex fixed top-1/2 -translate-y-1/2 left-1/2 -ml-[420px] z-10 flex-col items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-700">
                 <button
                     onClick={() => {
                         const card = document.querySelector('[data-swipe-card="top"]')
@@ -370,7 +370,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
                 </span>
             </div>
 
-            <div className="hidden lg:flex fixed top-1/2 -translate-y-1/2 right-1/2 -mr-[320px] z-10 flex-col items-center gap-2 animate-in fade-in slide-in-from-left-4 duration-700">
+            <div className="hidden lg:flex fixed top-1/2 -translate-y-1/2 right-1/2 -mr-[420px] z-10 flex-col items-center gap-2 animate-in fade-in slide-in-from-left-4 duration-700">
                 <button
                     onClick={() => onLike(items[0].id)}
                     className="w-16 h-16 rounded-full bg-surface border-4 border-surface-highlight text-primary-500 shadow-xl hover:bg-primary-500 hover:text-white hover:scale-110 hover:border-primary-600 transition-all flex items-center justify-center group"
@@ -382,7 +382,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
                 </span>
             </div>
 
-            <div className="relative flex-1 h-full flex justify-center perspective-1000">
+            <div className="relative w-full flex-1 h-full flex justify-center perspective-1000">
                 <AnimatePresence mode="popLayout">
                     {items.slice(0, 2).map((item, index) => {
                         const isTop = index === 0;
