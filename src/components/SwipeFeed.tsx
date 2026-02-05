@@ -176,7 +176,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                     </div>
 
                     {/* 2. Precio */}
-                    <div className="px-6 mb-1">
+                    <div className="px-6 mb-1 flex items-center justify-between">
                         <Link
                             href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
                             onPointerDown={(e) => e.stopPropagation()}
@@ -191,6 +191,14 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                                     {item.category || 'Negocio'}
                                 </div>
                             )}
+                        </Link>
+
+                        <Link
+                            href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            className="text-sm font-bold text-primary-500 hover:text-primary-400 transition flex items-center gap-1 bg-primary-500/10 px-3 py-1 rounded-full"
+                        >
+                            {t('swipe.view_more')} &rarr;
                         </Link>
                     </div>
 
@@ -231,25 +239,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                         </div>
                     )}
 
-                    {/* 4.5 Description (Truncated) - DESKTOP ONLY */}
-                    {item.description && (
-                        <div className="hidden lg:block px-6 mb-2">
-                            <p className="text-sm text-text-secondary line-clamp-2 leading-relaxed opacity-80">
-                                {item.description}
-                            </p>
-                        </div>
-                    )}
 
-                    {/* 5. Ver más */}
-                    <div className="flex justify-end px-6 mb-2">
-                        <Link
-                            href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}
-                            onPointerDown={(e) => e.stopPropagation()}
-                            className="text-lg font-bold text-primary-500 hover:text-primary-400 transition flex items-center gap-1"
-                        >
-                            {t('swipe.view_more')} &rarr;
-                        </Link>
-                    </div>
 
                     {/* 6. Botones de Acción (Ocultos en Desktop) */}
                     <div className="grid grid-cols-2 gap-4 px-6 pb-6 mt-auto lg:hidden">
