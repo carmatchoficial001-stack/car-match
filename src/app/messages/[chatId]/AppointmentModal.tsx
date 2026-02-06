@@ -118,27 +118,64 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
             const proximityLng = userLocation?.lng || customLng || -102.552784
             const proximityLat = userLocation?.lat || customLat || 23.634501
 
-            // 1. Obtener sugerencias de Mapbox
-            const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${token}&country=mx&language=es&limit=5&proximity=${proximityLng},${proximityLat}`
+            // 1. Obtener sugerencias de Mapbox (Incluyendo POIs y Lugares)
+            // Limitamos a 8 resultados y pedimos tipos específicos para más variedad
+            // Se elimina country=mx para permitir búsqueda GLOBAL
+            const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${token}&language=es&limit=8&proximity=${proximityLng},${proximityLat}&types=poi,address,place,locality`
+
             const res = await fetch(mapboxUrl)
             const data = await res.json()
 
-            const mapboxResults = (data.features || []).map((f: any) => ({
-                id: f.id,
-                name: f.text,
-                address: f.place_name,
-                latitude: f.center[1],
-                longitude: f.center[0],
-                type: 'address',
-                icon: '📍'
-            }))
+            const mapboxResults = (data.features || []).map((f: any) => {
+                // Determinar icono y tipo basado en place_type y categorías
+                let icon = '📍'
+                let typeLabel = 'Dirección'
+                const types = f.place_type || []
+                const category = (f.properties?.category || '').toLowerCase()
+
+                if (types.includes('poi')) {
+                    icon = '🏢'
+                    typeLabel = 'Negocio / Lugar'
+
+                    if (category.includes('shop') || category.includes('mall') || category.includes('store')) {
+                        icon = '🛒'
+                        typeLabel = 'Comercial'
+                    } else if (category.includes('food') || category.includes('restaurant') || category.includes('cafe')) {
+                        icon = '🍽️'
+                        typeLabel = 'Restaurante'
+                    } else if (category.includes('park') || category.includes('garden')) {
+                        icon = '🌳'
+                        typeLabel = 'Parque'
+                    } else if (category.includes('bank') || category.includes('atm')) {
+                        icon = '🏦'
+                        typeLabel = 'Banco'
+                    } else if (category.includes('police')) {
+                        icon = '👮'
+                        typeLabel = 'Policía'
+                    }
+                } else if (types.includes('place') || types.includes('locality')) {
+                    icon = '🏙️'
+                    typeLabel = 'Ciudad / Zona'
+                }
+
+                return {
+                    id: f.id,
+                    name: f.text,
+                    address: f.place_name,
+                    latitude: f.center[1],
+                    longitude: f.center[0],
+                    type: types.includes('poi') ? 'poi_mapbox' : 'address',
+                    icon,
+                    typeLabel
+                }
+            })
 
             // 2. Filtrar lugares seguros locales que coincidan
             const term = customLocation.toLowerCase()
             const filteredSafe = safePlaces.filter(p =>
                 p.name.toLowerCase().includes(term) ||
                 p.address.toLowerCase().includes(term)
-            ).map(p => ({ ...p, type: 'safe_point' }))
+            ).map(p => ({ ...p, type: 'safe_point', typeLabel: 'Punto Seguro Oficial' }))
 
             // Combinar ambos, priorizando los puntos seguros
             setAutocompleteSuggestions([...filteredSafe, ...mapboxResults])
@@ -175,7 +212,8 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
             const proximityLng = userLocation?.lng || customLng || -102.552784
             const proximityLat = userLocation?.lat || customLat || 23.634501
 
-            const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${token}&country=mx&language=es&limit=1&proximity=${proximityLng},${proximityLat}`)
+            // Se elimina country=mx para permitir búsqueda GLOBAL
+            const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${token}&language=es&limit=1&proximity=${proximityLng},${proximityLat}`)
             const data = await res.json()
 
             if (data.features && data.features.length > 0) {
@@ -327,15 +365,17 @@ export default function AppointmentModal({ onClose, onSubmit, chatId, initialApp
                                                     }}
                                                     className="w-full p-3 text-left hover:bg-surface-highlight/50 flex items-start gap-3 border-b border-surface-highlight last:border-0 transition-colors"
                                                 >
-                                                    <span className="text-xl">{s.icon || '📍'}</span>
-                                                    <div className="min-w-0">
-                                                        <div className="flex items-center gap-2">
+                                                    <span className="text-xl mt-0.5">{s.icon || '📍'}</span>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-2 flex-wrap">
                                                             <span className="font-bold text-sm text-text-primary truncate">{s.name}</span>
-                                                            {s.type === 'safe_point' && (
-                                                                <span className="text-[9px] bg-primary-500/20 text-primary-400 px-1.5 py-0.5 rounded-full font-bold">PUNTO SEGURO</span>
-                                                            )}
+                                                            {s.type === 'safe_point' ? (
+                                                                <span className="text-[9px] bg-primary-500/20 text-primary-400 px-1.5 py-0.5 rounded-full font-bold uppercase shrink-0">PUNTO SEGURO</span>
+                                                            ) : s.typeLabel ? (
+                                                                <span className="text-[9px] bg-surface-highlight text-text-secondary px-1.5 py-0.5 rounded-full font-bold uppercase shrink-0 border border-white/5">{s.typeLabel}</span>
+                                                            ) : null}
                                                         </div>
-                                                        <div className="text-[11px] text-text-secondary truncate">{s.address}</div>
+                                                        <div className="text-[11px] text-text-secondary truncate mt-0.5">{s.address}</div>
                                                     </div>
                                                 </button>
                                             ))}
