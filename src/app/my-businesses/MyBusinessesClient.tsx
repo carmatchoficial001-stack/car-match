@@ -12,6 +12,7 @@ import { generateDeviceFingerprint } from '@/lib/fingerprint'
 import ConfirmationModal from '@/components/ConfirmationModal'
 import { AlertTriangle, Clock, MapPin, Phone, Globe, Trash2, Edit, AlertCircle, Plus, Sparkles, ChevronRight, X, Image as ImageIcon, Briefcase, Info, CheckCircle, Pause, CreditCard, Play, ShieldCheck } from 'lucide-react'
 import CategoryIcon from '@/components/CategoryIcon'
+import OpeningHoursEditor from '@/components/OpeningHoursEditor'
 
 // Modified: MapBox Component replacement
 const MapBoxAddressPicker = dynamic(() => import('@/components/MapBoxAddressPicker'), {
@@ -769,12 +770,12 @@ export default function MyBusinessesClient() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-text-primary mb-1">⏰ Horario de Atención (Opcional)</label>
-                                            <input
-                                                value={hours}
-                                                onChange={(e) => setHours(e.target.value)}
-                                                placeholder="L-V 9am-6pm, Sáb 10am-2pm"
-                                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg outline-none focus:border-primary-500 text-sm"
-                                            />
+                                            <div className="mt-1">
+                                                <OpeningHoursEditor
+                                                    value={hours}
+                                                    onChange={setHours}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

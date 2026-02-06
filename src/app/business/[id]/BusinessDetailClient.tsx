@@ -9,6 +9,7 @@ import Header from '@/components/Header'
 import ShareButton from '@/components/ShareButton'
 import { MapPin, Clock, Phone, Navigation, ArrowLeft, Star, ShieldCheck, Edit3, CreditCard, Play, Pause, Calendar, BadgeCheck } from 'lucide-react'
 import ConfirmationModal from '@/components/ConfirmationModal'
+import OpeningHoursDisplay from '@/components/OpeningHoursDisplay'
 
 interface BusinessDetailProps {
     business: {
@@ -302,11 +303,7 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
                                 />
 
                                 {business.hours && (
-                                    <InfoItem
-                                        icon={<Clock size={20} />}
-                                        label="Horario"
-                                        value={business.hours}
-                                    />
+                                    <OpeningHoursDisplay hours={business.hours} />
                                 )}
 
                                 <div className="pt-4 border-t border-surface-highlight">

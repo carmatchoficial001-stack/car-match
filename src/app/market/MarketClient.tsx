@@ -798,16 +798,16 @@ export default function MarketClient({
                                             </div>
 
                                             {/* Card 2: Promo Vende Tu Auto */}
-                                            <div className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-2 border-green-500/30 hover:border-green-500/50 rounded-2xl flex flex-col items-center justify-center p-6 text-center transition group min-h-[250px] relative">
+                                            <div className="bg-gradient-to-br from-primary-900/20 to-indigo-900/20 border-2 border-primary-500/30 hover:border-primary-500/50 rounded-2xl flex flex-col items-center justify-center p-6 text-center transition group min-h-[250px] relative">
                                                 <div className="flex flex-col items-center w-full">
-                                                    <p className="text-sm text-green-200 font-bold uppercase tracking-wider mb-2">Mientras buscas</p>
+                                                    <p className="text-sm text-primary-200 font-bold uppercase tracking-wider mb-2">Mientras buscas</p>
                                                     <h3 className="text-xl font-black text-white leading-tight mb-6">
                                                         ¡GENERA DINERO<br />CON EL TUYO!
                                                     </h3>
 
                                                     <Link
                                                         href="/publish"
-                                                        className="inline-flex items-center gap-2 px-6 py-3 bg-white text-green-900 rounded-xl hover:bg-green-50 transition font-black uppercase tracking-wide shadow-lg text-sm group-hover:scale-105 transform duration-200"
+                                                        className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary-900 rounded-xl hover:bg-white/90 transition font-black uppercase tracking-wide shadow-lg text-sm group-hover:scale-105 transform duration-200"
                                                     >
                                                         <Plus size={18} strokeWidth={3} />
                                                         Convierte tu auto en dinero

@@ -201,26 +201,31 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                     </div>
 
                     {/* SECCIÓN SOS: Contacto de Confianza */}
-                    <div className="bg-red-900/10 border border-red-500/20 p-5 rounded-2xl space-y-4">
+                    <div className="bg-primary-900/10 border border-primary-500/20 p-5 rounded-2xl space-y-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center text-red-500">
+                            <div className="w-10 h-10 rounded-xl bg-primary-500/20 flex items-center justify-center text-primary-500">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H10m11-3V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-3zM12 9l-.01.01" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                 </svg>
                             </div>
                             <div>
-                                <h3 className="text-red-400 font-bold">{t('edit_profile.security_sos')}</h3>
+                                <h3 className="text-primary-400 font-bold">{t('edit_profile.security_sos')}</h3>
                                 <p className="text-[10px] text-text-secondary">{t('edit_profile.sos_desc')}</p>
                             </div>
                         </div>
 
                         {trustedContactName ? (
-                            <div className="bg-surface/50 p-3 rounded-xl border border-red-500/30 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-lg bg-primary-500/20 flex items-center justify-center text-xs font-bold text-primary-400">
-                                        {trustedContactName[0].toUpperCase()}
+                            <div className="bg-gradient-to-r from-primary-900/20 to-surface p-4 rounded-xl border border-primary-500/30 flex items-center justify-between shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white shadow-lg">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                        </svg>
                                     </div>
-                                    <span className="text-sm font-bold text-text-primary">{trustedContactName}</span>
+                                    <div>
+                                        <span className="block text-xs text-primary-300 font-bold uppercase tracking-wider">Contacto Confirmado</span>
+                                        <span className="text-base font-bold text-text-primary">{trustedContactName}</span>
+                                    </div>
                                 </div>
                                 <button
                                     type="button"
@@ -228,7 +233,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                         setTrustedContactId('');
                                         setTrustedContactName('');
                                     }}
-                                    className="text-xs text-red-400 hover:text-red-300 font-bold"
+                                    className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs rounded-lg transition"
                                 >
                                     {t('edit_profile.remove')}
                                 </button>
@@ -239,7 +244,7 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                     <input
                                         type="text"
                                         placeholder={t('edit_profile.search_user')}
-                                        className="w-full bg-background border border-surface-highlight rounded-xl px-4 py-2.5 text-sm text-text-primary outline-none focus:border-red-500/50 transition"
+                                        className="w-full bg-background border border-surface-highlight rounded-xl px-4 py-3 pl-10 text-sm text-text-primary outline-none focus:border-primary-500 transition"
                                         value={searchQuery}
                                         onChange={async (e) => {
                                             const val = e.target.value;
@@ -260,43 +265,58 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                             }
                                         }}
                                     />
+                                    <svg className="absolute left-3.5 top-3.5 w-4 h-4 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+
                                     {searching && (
                                         <div className="absolute right-3 top-3">
-                                            <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-lg animate-spin"></div>
+                                            <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-lg animate-spin"></div>
                                         </div>
                                     )}
                                 </div>
 
                                 {searchResults.length > 0 && (
-                                    <div className="bg-background border border-surface-highlight rounded-xl overflow-hidden shadow-xl max-h-40 overflow-y-auto custom-scrollbar">
+                                    <div className="bg-background border border-surface-highlight rounded-xl overflow-hidden shadow-xl max-h-56 overflow-y-auto custom-scrollbar">
                                         {searchResults.map((user: any) => (
-                                            <button
+                                            <div
                                                 key={user.id}
-                                                type="button"
-                                                onClick={() => {
-                                                    setTrustedContactId(user.id);
-                                                    setTrustedContactName(user.name);
-                                                    setSearchResults([]);
-                                                    setSearchQuery('');
-                                                }}
-                                                className="w-full p-3 flex items-center gap-3 hover:bg-surface-highlight transition text-left"
+                                                className="w-full p-3 hover:bg-surface-highlight transition border-b border-surface-highlight/50 last:border-0 flex flex-col sm:flex-row items-center gap-3"
                                             >
-                                                {user.image ? (
-                                                    <img src={user.image} className="w-8 h-8 rounded-lg object-contain bg-black/20" alt="" />
-                                                ) : (
-                                                    <div className="w-8 h-8 rounded-lg bg-primary-500/20 flex items-center justify-center text-xs font-bold text-primary-400">
-                                                        {user.name[0].toUpperCase()}
+                                                <div className="flex items-center gap-3 flex-1 w-full">
+                                                    {user.image ? (
+                                                        <img src={user.image} className="w-10 h-10 rounded-full object-cover bg-surface" alt="" />
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-full bg-primary-500/20 flex items-center justify-center text-xs font-bold text-primary-400">
+                                                            {user.name[0].toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <span className="block text-sm font-bold text-text-primary">{user.name}</span>
+                                                        <span className="block text-xs text-text-secondary">Usuario CarMatch</span>
                                                     </div>
-                                                )}
-                                                <span className="text-sm font-medium text-text-primary">{user.name}</span>
-                                            </button>
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setTrustedContactId(user.id);
+                                                        setTrustedContactName(user.name);
+                                                        setSearchResults([]);
+                                                        setSearchQuery('');
+                                                    }}
+                                                    className="w-full sm:w-auto px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold rounded-lg transition shadow-md whitespace-nowrap"
+                                                >
+                                                    {t('edit_profile.this_is_trusted')}
+                                                </button>
+                                            </div>
                                         ))}
                                     </div>
                                 )}
                             </div>
                         )}
-                        <p className="text-[9px] text-text-secondary italic">
-                            💡 {t('edit_profile.sos_warning')}
+                        <p className="text-[10px] text-primary-300/70 italic flex items-start gap-1">
+                            <span>🛡️</span> {t('edit_profile.sos_warning')}
                         </p>
                     </div>
 
