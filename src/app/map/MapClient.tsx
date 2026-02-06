@@ -9,6 +9,7 @@ import { BUSINESS_CATEGORIES as CATEGORIES } from '@/lib/businessCategories'
 import { useLocation } from '@/contexts/LocationContext'
 import { Star, Sparkles, MapPin, Settings2, Plus, Check } from 'lucide-react'
 import CategoryIcon from '@/components/CategoryIcon'
+import { useRestoreSessionModal } from "@/hooks/useRestoreSessionModal"
 
 const MapBoxStoreLocator = dynamic(() => import('@/components/MapBoxStoreLocator'), {
     ssr: false,
@@ -48,6 +49,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
     const { t } = useLanguage()
     // 🔥 USANDO CONTEXTO GLOBAL
     const { location, loading, error, refreshLocation, setManualLocation } = useLocation()
+    const { openModal } = useRestoreSessionModal()
     const searchParams = useSearchParams()
     const [selectedCategories, setSelectedCategories] = useState<string[]>([])
     const [searchQuery, setSearchQuery] = useState('')
