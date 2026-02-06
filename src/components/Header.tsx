@@ -412,6 +412,16 @@ export default function Header() {
                                     onClick={(e) => {
                                         e.preventDefault()
                                         e.stopPropagation()
+
+                                        // 🚀 GUEST SESSION FIX: Si es "Modo Invitado", pedimos restaurar sesión antes de navegar
+                                        if (session && isSoftLogout) {
+                                            openModal(
+                                                "Cerraste sesión hace un momento. ¿Deseas volver a activar tu cuenta para publicar?",
+                                                () => { /* La lógica de restauración ocurre en el modal */ }
+                                            )
+                                            return
+                                        }
+
                                         const isMapContext = pathname?.startsWith('/map') || pathname?.startsWith('/map-store')
                                         const targetPath = isMapContext ? "/my-businesses?action=new" : "/auth"
                                         console.log("Redirecting guest to:", targetPath)

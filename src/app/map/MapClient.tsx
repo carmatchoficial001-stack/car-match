@@ -467,6 +467,17 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                             <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 gap-4">
                                 <Link
                                     href="/my-businesses?action=new"
+                                    onClick={(e) => {
+                                        // 🔥 GUEST SESSION FIX: Verificamos si hay soft logout antes de navegar a ruta protegida
+                                        const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
+                                        if (user && isSoftLogout) {
+                                            e.preventDefault()
+                                            openModal(
+                                                "Cerraste sesión hace un momento. ¿Deseas volver a activar tu cuenta para registrar tu negocio?",
+                                                () => { /* Restauración en modal */ }
+                                            )
+                                        }
+                                    }}
                                     className="flex-1 py-2.5 bg-accent-600 text-white rounded-lg shadow-lg font-black uppercase tracking-wider border border-accent-500/50 flex items-center justify-center gap-2 active:scale-95 hover:bg-accent-500 transition-all text-xs"
                                 >
                                     <Plus size={16} />
