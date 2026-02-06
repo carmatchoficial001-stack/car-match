@@ -69,7 +69,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 scale: isTop ? 1 : 0.95,
                 opacity: 1,
                 y: 0, // ✅ Fix: Align perfectly behind (no peeking footer)
-                zIndex: isTop ? 10 : 0
+                zIndex: isTop ? 20 : 10
             }}
             style={{
                 x,
@@ -78,12 +78,12 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 position: 'absolute',
                 width: '100%',
                 height: '75vh',
-                zIndex: isTop ? 10 : 0,
             }}
             exit={{
                 x: exitX !== undefined ? exitX : (x.get() <= 0 ? -1000 : 1000),
                 opacity: 0,
                 rotate: x.get() <= 0 ? -45 : 45,
+                zIndex: 50, // 🚀 FORZAR ENCIMA: La tarjeta que sale siempre arriba de la nueva top
                 transition: { duration: 0.4, ease: "easeOut" }
             }}
             className={`touch-none flex flex-col h-[75vh] ${!isTop && 'pointer-events-none'}`}
