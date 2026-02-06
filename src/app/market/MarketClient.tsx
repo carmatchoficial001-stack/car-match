@@ -143,6 +143,44 @@ export default function MarketClient({
     const CARS_PER_PAGE = 4 // 💰 Optimizado para datos móviles (antes: 6)
     const [visibleCount, setVisibleCount] = useState(CARS_PER_PAGE)
 
+    // 🔔 REAL-TIME NOTIFICATIONS
+    const [newVehiclesCount, setNewVehiclesCount] = useState(0)
+
+    useEffect(() => {
+        // Connect to socket
+        import('@/lib/socket').then(({ socket }) => {
+            if (!socket.connected) socket.connect()
+
+            const handleNewVehicle = (vehicle: any) => {
+                // Filtrar por distancia si tenemos ubicación activa
+                if (activeLocation && activeLocation.latitude && activeLocation.longitude && vehicle.latitude && vehicle.longitude) {
+                    const dist = calculateDistance(
+                        activeLocation.latitude,
+                        activeLocation.longitude,
+                        vehicle.latitude,
+                        vehicle.longitude
+                    )
+
+                    // Si está dentro del radio actual, avisar
+                    if (dist <= searchRadius) {
+                        console.log("🔔 Nuevo vehículo en zona detectado:", vehicle.title)
+                        setNewVehiclesCount(prev => prev + 1)
+                        // Reproducir sonido sutil? (Opcional)
+                    }
+                } else if (!activeLocation) {
+                    // Si no hay ubicación (modo global/invitado), mostrar todo
+                    setNewVehiclesCount(prev => prev + 1)
+                }
+            }
+
+            socket.on('new_vehicle_published', handleNewVehicle)
+
+            return () => {
+                socket.off('new_vehicle_published', handleNewVehicle)
+            }
+        })
+    }, [activeLocation, searchRadius])
+
     useEffect(() => {
         // 🔄 URL -> Context Synchronization
         const syncUrlCity = async () => {
@@ -277,6 +315,8 @@ export default function MarketClient({
 
         // 4. Ensure we show results from top
         setVisibleCount(CARS_PER_PAGE)
+        // 🔔 Reset notification
+        setNewVehiclesCount(0)
     }
 
     // --- LÓGICA DE FILTRADO Y DISTANCIA ---
@@ -470,6 +510,27 @@ export default function MarketClient({
                     />
                 </div>
             </div>
+
+            {/* 🔔 New Vehicles Notification */}
+            {newVehiclesCount > 0 && (
+                <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-bounce-in">
+                    <button
+                        onClick={triggerRefresh}
+                        className="bg-primary-600 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-3 hover:bg-primary-700 transition transform hover:scale-105"
+                    >
+                        <span className="relative flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                        </span>
+                        <span className="font-bold">
+                            {newVehiclesCount === 1
+                                ? '🚗 ¡Hay 1 vehículo nuevo en tu zona!'
+                                : `🚗 ¡Hay ${newVehiclesCount} vehículos nuevos en tu zona!`}
+                        </span>
+                        <RefreshCw className="w-4 h-4 ml-1" />
+                    </button>
+                </div>
+            )}
 
             <div className="container mx-auto px-4 pt-4 pb-24">
                 {/* Header */}

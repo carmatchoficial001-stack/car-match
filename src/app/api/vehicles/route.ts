@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
@@ -339,7 +340,29 @@ export async function POST(request: NextRequest) {
                 .catch(err => console.error('Error en revisión de seguridad:', err))
         })
 
+        // 🔔 REAL-TIME SOCKET EMISSION: Avisar al feed global / market
+        const io = (global as any).io
+        if (io) {
+            console.log(`📡 Emitting global event: new_vehicle_published for ${vehicle.id}`)
+            io.emit('new_vehicle_published', {
+                id: vehicle.id,
+                title: vehicle.title,
+                brand: vehicle.brand,
+                model: vehicle.model,
+                year: vehicle.year,
+                price: vehicle.price,
+                currency: vehicle.currency,
+                city: vehicle.city,
+                latitude: latitude ? parseFloat(latitude) : null,
+                longitude: longitude ? parseFloat(longitude) : null,
+                images: body.images || [],
+                feedType: 'VEHICLE',
+                createdAt: new Date()
+            })
+        }
+
         // 🔔 NOTIFICACIÓN REAL: Avisar a usuarios en la misma ciudad
+
         // "¡Nuevo [Marca] [Modelo] en [Ciudad]!"
         import('@/lib/push').then(async (push) => {
             try {
@@ -383,6 +406,12 @@ export async function POST(request: NextRequest) {
         } else if (isAiRejected) {
             successMessage = `La IA detectó que los datos o fotos podrían no coincidir (${coverAnalysis.reason || 'Imagen inusual'}). Entre más reales sean tus datos, más rápido venderás. Puedes corregirlo o activarlo con 1 crédito.`
         }
+
+        // 🔄 REVALIDACIÓN DE CACHÉ: Actualizar listas inmediatamente
+        revalidatePath('/profile')   // Mis Vehículos
+        revalidatePath('/market')    // MarketCar
+        revalidatePath('/swipe')     // CarMatch
+        revalidatePath('/map-store') // Por si acaso (negocios vinculados)
 
         return NextResponse.json({
             success: true,

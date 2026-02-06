@@ -102,6 +102,25 @@ export async function POST(
             tag: `message-${message.id}`
         })
 
+        // 🚀 3. EMITIR EVENTO SOCKET.IO (Real-time)
+        try {
+            const io = (global as any).io
+            if (io) {
+                // Emitir mensaje al room del chat
+                io.to(`chat:${chatId}`).emit('new-message', message)
+
+                // Emitir notificación visual al usuario que recibe
+                io.to(`user:${receiverId}`).emit('message-update')
+
+                console.log(`✅ [SOCKET] Emitted new-message to chat:${chatId}`)
+            } else {
+                console.warn('⚠️ [SOCKET] Server IO not found (Global var missing)')
+            }
+        } catch (error) {
+            console.error('❌ [SOCKET] Error emitting event:', error)
+            // No fallar el request por error de socket explicitamente
+        }
+
         return NextResponse.json(message)
 
     } catch (error) {

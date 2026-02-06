@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:socket": "tsx server.ts",
     "build": "rimraf .next && prisma generate && cross-env NODE_OPTIONS=--max-old-space-size=4096 next build",
     "clean": "rimraf .next",
-    "start": "next start",
+    "start": "cross-env NODE_ENV=production tsx server.ts",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",

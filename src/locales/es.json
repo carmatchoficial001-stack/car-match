@@ -139,6 +139,7 @@
         "share": "Compartir"
     },
     "image_upload": {
+        "no_photos_yet": "Aún no has agregado fotos",
         "error_upload": "Error al subir imagen",
         "max_limit": "Solo puedes subir máximo {max} imágenes",
         "error_retry": "Error al subir imágenes. Intenta de nuevo.",

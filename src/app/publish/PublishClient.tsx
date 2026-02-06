@@ -655,6 +655,8 @@ export default function PublishClient() {
                 }
                 throw new Error(errorData.error || 'Error al publicar vehículo')
             }
+            // Forzar actualización de caché del cliente antes de navegar
+            router.refresh()
             router.push('/profile?published=true')
         } catch (error) {
             console.error('Error:', error)

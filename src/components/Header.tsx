@@ -218,6 +218,27 @@ export default function Header() {
 
         fetchCounts()
 
+        // 🚀 REAL-TIME UPDATES (Socket.IO)
+        // 💰 Eliminamos polling de 10s para ahorrar $$$ en DB
+        import('@/lib/socket').then(({ socket }) => {
+            if (!socket.connected) {
+                socket.connect()
+            }
+
+            // Join user channel
+            if (session?.user?.id) {
+                socket.emit('join-user', session.user.id)
+            }
+
+            socket.on('notification-update', () => {
+                fetchCounts() // Fetch only when notified
+            })
+
+            socket.on('message-update', () => {
+                fetchCounts()
+            })
+        })
+
         // Escuchar actualizaciones inmediatas (desde Swipe)
         const handleFavUpdate = () => fetchCounts()
         window.addEventListener('favoriteUpdated', handleFavUpdate)
@@ -229,13 +250,19 @@ export default function Header() {
         }
         window.addEventListener('profileUpdated', handleProfileUpdate)
 
-        const interval = setInterval(fetchCounts, 30000) // 💰 Optimizado: 30s (antes: 10s) = 66% menos queries
+        // Fallback: Low frequency polling (every 5 mins instead of 10s) just in case
+        const interval = setInterval(fetchCounts, 300000)
+
         return () => {
+            import('@/lib/socket').then(({ socket }) => {
+                socket.off('notification-update')
+                socket.off('message-update')
+            })
             clearInterval(interval)
             window.removeEventListener('favoriteUpdated', handleFavUpdate)
             window.removeEventListener('profileUpdated', handleProfileUpdate)
         }
-    }, [status, update, router])
+    }, [status, update, router, session?.user?.id])
 
     const totalUnread = unreadMessages + unreadNotifications
 

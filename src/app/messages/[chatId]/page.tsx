@@ -66,19 +66,35 @@ export default function ChatPage({
         }
         fetchMessages()
         fetchChatDetails()
-        const messagesInterval = setInterval(() => {
-            fetchMessages()
-        }, 30000) // 💰 Optimizado: 30s (antes: 3s)
-        const chatDetailsInterval = setInterval(() => {
-            fetchChatDetails() // Refrescar estado del vehículo periódicamente
-        }, 3000)
+        fetchChatDetails()
 
-        // Safety reminders interval
-        const safetyInterval = setInterval(checkSafetyReminders, 60000) // Check every minute
+        // 🚀 REAL-TIME UPDATES (Socket.IO) - Chat Room
+        import('@/lib/socket').then(({ socket }) => {
+            if (!socket.connected) {
+                socket.connect()
+            }
+
+            // Join specific chat room
+            socket.emit('join-room', `chat:${chatId}`)
+
+            // Listen for new messages
+            socket.on('new-message', (message: Message) => {
+                setMessages(prev => {
+                    // Avoid duplicates
+                    if (prev.find(m => m.id === message.id)) return prev
+                    return [...prev, message]
+                })
+            })
+        })
+
+        // Safety reminders interval (local check, no db cost)
+        const safetyInterval = setInterval(checkSafetyReminders, 60000)
 
         return () => {
-            clearInterval(messagesInterval)
-            clearInterval(chatDetailsInterval)
+            import('@/lib/socket').then(({ socket }) => {
+                socket.emit('leave-room', `chat:${chatId}`)
+                socket.off('new-message')
+            })
             clearInterval(safetyInterval)
         }
     }, [session, status, chatId])
