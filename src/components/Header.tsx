@@ -382,14 +382,17 @@ export default function Header() {
                                 </AnimatePresence>
 
                                 <div
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
                                         const isMapContext = pathname?.startsWith('/map') || pathname?.startsWith('/map-store')
                                         const targetPath = isMapContext ? "/my-businesses?action=new" : "/auth"
+                                        console.log("Redirecting guest to:", targetPath)
                                         router.push(targetPath)
                                     }}
-                                    className="relative group shrink-0 flex items-center cursor-pointer"
+                                    className="relative group shrink-0 flex items-center cursor-pointer z-20"
                                 >
-                                    <div className="px-4 py-2 lg:px-6 lg:py-2.5 bg-accent-600 rounded-lg shadow-lg group-hover:bg-accent-500 transition-all active:scale-95 ring-1 ring-accent-500/30 flex items-center gap-2">
+                                    <div className="px-4 py-2 lg:px-6 lg:py-2.5 bg-accent-600 rounded-lg shadow-lg group-hover:bg-accent-500 transition-all active:scale-95 ring-1 ring-accent-500/30 flex items-center gap-2 pointer-events-none">
                                         <AnimatePresence mode="wait">
                                             <motion.span
                                                 key={`action-guest-${ctaIndex}`}
