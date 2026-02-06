@@ -162,49 +162,57 @@ export default function OpeningHoursEditor({ value, onChange }: OpeningHoursEdit
                 {(Object.keys(DAYS_TRANSLATION) as Array<keyof WeeklySchedule>).map((day) => (
                     <div
                         key={day}
-                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${schedule[day].isOpen
-                                ? 'bg-surface-highlight/20 border-surface-highlight'
-                                : 'bg-surface/50 border-transparent opacity-60'
+                        className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-xl border transition-all ${schedule[day].isOpen
+                            ? 'bg-surface-highlight/20 border-surface-highlight'
+                            : 'bg-surface/50 border-transparent opacity-60'
                             }`}
                     >
-                        {/* Toggle Checkbox */}
-                        <div className="flex items-center h-full">
-                            <input
-                                type="checkbox"
-                                id={`toggle-${day}`}
-                                checked={schedule[day].isOpen}
-                                onChange={(e) => updateDay(day, 'isOpen', e.target.checked)}
-                                className="w-4 h-4 rounded border-gray-500 text-primary-600 focus:ring-primary-500 bg-transparent cursor-pointer"
-                            />
-                        </div>
+                        <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto">
+                            <div className="flex items-center gap-3">
+                                {/* Toggle Checkbox */}
+                                <div className="flex items-center h-full">
+                                    <input
+                                        type="checkbox"
+                                        id={`toggle-${day}`}
+                                        checked={schedule[day].isOpen}
+                                        onChange={(e) => updateDay(day, 'isOpen', e.target.checked)}
+                                        className="w-4 h-4 rounded border-gray-500 text-primary-600 focus:ring-primary-500 bg-transparent cursor-pointer"
+                                    />
+                                </div>
+                                {/* Label */}
+                                <label
+                                    htmlFor={`toggle-${day}`}
+                                    className="w-24 text-sm font-medium text-text-primary cursor-pointer select-none"
+                                >
+                                    {DAYS_TRANSLATION[day]}
+                                </label>
+                            </div>
 
-                        {/* Label */}
-                        <label
-                            htmlFor={`toggle-${day}`}
-                            className="w-24 text-sm font-medium text-text-primary cursor-pointer"
-                        >
-                            {DAYS_TRANSLATION[day]}
-                        </label>
+                            {/* Mobile Status Indicator (Closed) */}
+                            {!schedule[day].isOpen && (
+                                <span className="text-xs text-text-secondary italic sm:hidden">Cerrado</span>
+                            )}
+                        </div>
 
                         {/* Time Inputs */}
                         {schedule[day].isOpen ? (
-                            <div className="flex items-center gap-2 flex-1">
+                            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start pl-7 sm:pl-0">
                                 <input
                                     type="time"
                                     value={schedule[day].open}
                                     onChange={(e) => updateDay(day, 'open', e.target.value)}
-                                    className="bg-surface-highlight border-0 rounded-lg px-2 py-1 text-sm text-text-primary outline-none focus:ring-1 focus:ring-primary-500 w-24"
+                                    className="bg-surface-highlight border-0 rounded-lg px-2 py-1 text-sm text-text-primary outline-none focus:ring-1 focus:ring-primary-500 w-[45%] sm:w-28"
                                 />
                                 <span className="text-text-secondary text-xs">a</span>
                                 <input
                                     type="time"
                                     value={schedule[day].close}
                                     onChange={(e) => updateDay(day, 'close', e.target.value)}
-                                    className="bg-surface-highlight border-0 rounded-lg px-2 py-1 text-sm text-text-primary outline-none focus:ring-1 focus:ring-primary-500 w-24"
+                                    className="bg-surface-highlight border-0 rounded-lg px-2 py-1 text-sm text-text-primary outline-none focus:ring-1 focus:ring-primary-500 w-[45%] sm:w-28"
                                 />
                             </div>
                         ) : (
-                            <div className="flex-1 text-sm text-text-secondary italic">
+                            <div className="flex-1 text-sm text-text-secondary italic hidden sm:block">
                                 Cerrado
                             </div>
                         )}

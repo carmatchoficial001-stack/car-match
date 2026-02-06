@@ -83,35 +83,7 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                     </p>
                                 </div>
 
-                                {/* ID de Usuario */}
-                                {isOwner && (
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <div className="bg-surface-highlight/30 px-2 py-1 rounded-md border border-surface-highlight flex items-center gap-1.5">
-                                            <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">ID:</span>
-                                            <code className="text-[10px] sm:text-xs text-primary-400 font-mono truncate max-w-[80px] sm:max-w-[120px]">
-                                                {user.id}
-                                            </code>
-                                        </div>
-                                        <button
-                                            onClick={(e) => {
-                                                navigator.clipboard.writeText(user.id)
-                                                // @ts-ignore
-                                                const btn = e.currentTarget
-                                                const originalHtml = btn.innerHTML
-                                                btn.innerHTML = `<span class="text-[10px] text-green-400 font-bold">OK</span>`
-                                                setTimeout(() => {
-                                                    btn.innerHTML = originalHtml
-                                                }, 2000)
-                                            }}
-                                            className="p-1.5 bg-surface-highlight/50 hover:bg-surface-highlight rounded-md transition text-text-secondary hover:text-primary-400 border border-surface-highlight"
-                                            title="Copiar ID"
-                                        >
-                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                )}
+
 
                                 {/* Botón de Editar (Móvil) */}
                                 {isOwner && (
