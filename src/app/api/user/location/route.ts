@@ -60,7 +60,7 @@ export async function POST(req: Request) {
                             victimLng,
                             counterpartLat,
                             counterpartLng,
-                            lastUpdate: new Date()
+                            updatedAt: new Date()
                         }
                     })
 
