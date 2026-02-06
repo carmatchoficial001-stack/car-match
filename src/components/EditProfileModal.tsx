@@ -216,45 +216,47 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                         </div>
 
                         {/* Mostrar ID para compartir */}
-                        <div className="bg-background/50 border border-surface-highlight rounded-lg p-3 flex items-center justify-between">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] text-text-secondary uppercase font-bold tracking-wider">Tu Código de Perfil</span>
-                                <span className="text-xs font-mono text-primary-400">{currentUser.id}</span>
+                        <div className="bg-background/50 border border-surface-highlight rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex flex-col overflow-hidden">
+                                <span className="text-[10px] text-text-secondary uppercase font-bold tracking-wider truncate">Tu Código de Perfil</span>
+                                <span className="text-xs font-mono text-primary-400 truncate">{currentUser.id}</span>
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (currentUser.id) navigator.clipboard.writeText(currentUser.id)
-                                }}
-                                className="px-3 py-1.5 bg-surface hover:bg-surface-highlight border border-surface-highlight rounded-lg text-[10px] font-bold text-text-primary transition"
-                            >
-                                Copiar
-                            </button>
-                            <button
-                                type="button"
-                                onClick={async () => {
-                                    if (currentUser.id) {
-                                        const shareData = {
-                                            title: 'Mi Código CarMatch',
-                                            text: `Agrégame como tu contacto de confianza en CarMatch. Mi código es: ${currentUser.id}`,
-                                        }
-                                        try {
-                                            if (navigator.share) {
-                                                await navigator.share(shareData)
-                                            } else {
-                                                navigator.clipboard.writeText(shareData.text)
-                                                alert('Código copiado al portapapeles')
+                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (currentUser.id) navigator.clipboard.writeText(currentUser.id)
+                                    }}
+                                    className="px-3 py-2 bg-surface hover:bg-surface-highlight border border-surface-highlight rounded-lg text-[10px] font-bold text-text-primary transition flex items-center justify-center min-w-[60px]"
+                                >
+                                    Copiar
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        if (currentUser.id) {
+                                            const shareData = {
+                                                title: 'Mi Código CarMatch',
+                                                text: `Agrégame como tu contacto de confianza en CarMatch. Mi código es: ${currentUser.id}`,
                                             }
-                                        } catch (err) {
-                                            console.error('Error sharing:', err)
+                                            try {
+                                                if (navigator.share) {
+                                                    await navigator.share(shareData)
+                                                } else {
+                                                    navigator.clipboard.writeText(shareData.text)
+                                                    alert('Código copiado al portapapeles')
+                                                }
+                                            } catch (err) {
+                                                console.error('Error sharing:', err)
+                                            }
                                         }
-                                    }
-                                }}
-                                className="ml-2 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1"
-                            >
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
-                                Compartir
-                            </button>
+                                    }}
+                                    className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1.5 shadow-lg shadow-primary-900/20"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                                    Compartir
+                                </button>
+                            </div>
                         </div>
 
                         {trustedContactName ? (
