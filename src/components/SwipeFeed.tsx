@@ -84,7 +84,7 @@ function SwipeCard({ item, onSwipe, isTop, exitX }: SwipeCardProps) {
                 opacity: 0,
                 rotate: x.get() <= 0 ? -45 : 45,
                 zIndex: 50, // 🚀 FORZAR ENCIMA: La tarjeta que sale siempre arriba de la nueva top
-                transition: { duration: 0.4, ease: "easeOut" }
+                transition: { duration: 0.6, ease: "easeOut" }
             }}
             className={`touch-none flex flex-col h-[75vh] ${!isTop && 'pointer-events-none'}`}
         >
@@ -302,7 +302,7 @@ export default function SwipeFeed({ items, onLike, onDislike, onNeedMore }: Swip
         setTimeout(() => {
             setExitX(undefined)
             setIsSwiping(false)
-        }, 300)
+        }, 500)
     }
 
     const currentItem = items[0]
