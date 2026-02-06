@@ -11,6 +11,7 @@ interface EditProfileModalProps {
         name: string | null
         image: string | null
         email?: string | null
+        id?: string // Added ID
         trustedContactId?: string | null
         trustedContact?: { id: string, name: string } | null
     }
@@ -212,6 +213,23 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                 <h3 className="text-primary-400 font-bold">{t('edit_profile.security_sos')}</h3>
                                 <p className="text-[10px] text-text-secondary">{t('edit_profile.sos_desc')}</p>
                             </div>
+                        </div>
+
+                        {/* Mostrar ID para compartir */}
+                        <div className="bg-background/50 border border-surface-highlight rounded-lg p-3 flex items-center justify-between">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] text-text-secondary uppercase font-bold tracking-wider">Tu Código de Perfil</span>
+                                <span className="text-xs font-mono text-primary-400">{currentUser.id}</span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (currentUser.id) navigator.clipboard.writeText(currentUser.id)
+                                }}
+                                className="px-3 py-1.5 bg-surface hover:bg-surface-highlight border border-surface-highlight rounded-lg text-[10px] font-bold text-text-primary transition"
+                            >
+                                Copiar
+                            </button>
                         </div>
 
                         {trustedContactName ? (

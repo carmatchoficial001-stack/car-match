@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getRandomTip } from '@/lib/safety-tips'
 import { useLanguage } from '@/contexts/LanguageContext'
-import Header from '@/components/Header'
 import AppointmentCard from './AppointmentCard'
 import AppointmentModal from './AppointmentModal'
 import SOSComponent from '@/components/SOSComponent'
@@ -294,7 +293,6 @@ export default function ChatPage({
 
     return (
         <>
-            <Header />
             <div className={`flex bg-background overflow-hidden md:h-[calc(100vh-64px)] transition-all duration-300 ${isInputFocused
                 ? 'h-[calc(100dvh-64px)]'
                 : 'h-[calc(100dvh-64px-4rem)] md:h-[calc(100vh-64px)]'
