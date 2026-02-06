@@ -230,6 +230,31 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                             >
                                 Copiar
                             </button>
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    if (currentUser.id) {
+                                        const shareData = {
+                                            title: 'Mi Código CarMatch',
+                                            text: `Agrégame como tu contacto de confianza en CarMatch. Mi código es: ${currentUser.id}`,
+                                        }
+                                        try {
+                                            if (navigator.share) {
+                                                await navigator.share(shareData)
+                                            } else {
+                                                navigator.clipboard.writeText(shareData.text)
+                                                alert('Código copiado al portapapeles')
+                                            }
+                                        } catch (err) {
+                                            console.error('Error sharing:', err)
+                                        }
+                                    }
+                                }}
+                                className="ml-2 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1"
+                            >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                                Compartir
+                            </button>
                         </div>
 
                         {trustedContactName ? (
@@ -258,11 +283,14 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                             </div>
                         ) : (
                             <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">
+                                    Agrega a tu Contacto de Confianza
+                                </label>
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder={t('edit_profile.search_user')}
-                                        className="w-full bg-background border border-surface-highlight rounded-xl px-4 py-3 pl-10 text-sm text-text-primary outline-none focus:border-primary-500 transition"
+                                        placeholder="Pega aquí el código que te enviaron..."
+                                        className="w-full bg-background border border-surface-highlight rounded-xl px-4 py-3 pl-10 text-sm text-text-primary outline-none focus:border-primary-500 transition placeholder:text-text-secondary/50"
                                         value={searchQuery}
                                         onChange={async (e) => {
                                             const val = e.target.value;
@@ -331,6 +359,9 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, userVeh
                                         ))}
                                     </div>
                                 )}
+                                <p className="text-[10px] text-text-secondary italic">
+                                    * Solo puedes tener 1 contacto de confianza activo. Este contacto recibirá tu ubicación cuando confirmes una cita segura.
+                                </p>
                             </div>
                         )}
                         <p className="text-[10px] text-primary-300/70 italic flex items-start gap-1">
