@@ -272,7 +272,7 @@ export default function MapBoxStoreLocator({
                 const source = mapInstance.getSource('businesses') as mapboxgl.GeoJSONSource
 
                 source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-                    if (err) return
+                    if (err || zoom == null) return
 
                     mapInstance.easeTo({
                         center: (features[0].geometry as any).coordinates,
