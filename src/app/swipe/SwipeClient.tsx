@@ -108,6 +108,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     const currentRadius = RADIUS_TIERS[tierIndex]
 
     // 1. Historial (Eliminado para que sea siempre dinámico)
+<<<<<<< HEAD
 
     // 2. MAZO ESTABLE CON FRONTERA DIGITAL - ESTRATEGIA INCREMENTAL
     const [shuffledItems, setShuffledItems] = useState<FeedItem[]>([])
@@ -170,6 +171,38 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         }
     }, [location, tierIndex])
 
+=======
+
+    // 2. MAZO ESTABLE CON FRONTERA DIGITAL - ESTRATEGIA INCREMENTAL
+    const [shuffledItems, setShuffledItems] = useState<FeedItem[]>([])
+    const isFirstRun = useRef(true)
+
+    // 🚀 RESTAURAR ESTADO DESDE SESSIONSTORAGE (Para persistencia al volver atrás)
+    useEffect(() => {
+        try {
+            const savedItems = sessionStorage.getItem('carmatch_swipe_items')
+            const savedSeen = sessionStorage.getItem('carmatch_swipe_seen')
+            const savedTier = sessionStorage.getItem('carmatch_swipe_tier')
+
+            if (savedItems) {
+                const parsedItems = JSON.parse(savedItems)
+                if (parsedItems.length > 0) {
+                    setShuffledItems(parsedItems)
+                    isFirstRun.current = false
+                }
+            }
+            if (savedSeen) {
+                setSeenIds(new Set(JSON.parse(savedSeen)))
+            }
+            if (savedTier) {
+                setTierIndex(parseInt(savedTier))
+            }
+        } catch (e) {
+            console.error("Error al restaurar sesión de swipe:", e)
+        }
+    }, [])
+
+>>>>>>> a40411cb2a7366dd0eaf4ed8df2ce6bd99141a0f
     // 💾 GUARDAR ESTADO EN SESSIONSTORAGE
     useEffect(() => {
         if (!isFirstRun.current) {
