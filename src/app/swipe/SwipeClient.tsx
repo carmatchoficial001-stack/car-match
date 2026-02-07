@@ -475,7 +475,6 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                 ) : (
                     <div className="w-full flex-1 flex flex-col">
                         <SwipeFeed
-                            key={`stack-tier-${tierIndex}`}
                             items={swipeFeedItems}
                             onLike={handleLike}
                             onDislike={handleDislike}
