@@ -296,7 +296,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                 setIsExpanding(false)
             }, 300) // Reducido a 300ms para respuesta más rápida
         }, 0)
-    }, []) // ✅ Array vacío - isExpandingRef previene llamadas múltiples
+    }, [isExpanding]) // ✅ Array vacío - isExpandingRef previene llamadas múltiples
 
     const markAsSeen = (id: string) => {
         setSeenIds(prev => {
