@@ -275,28 +275,26 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         }))
     }, [nearbyItems, location?.city])
 
-    // 🔒 Estado para prevenir múltiples expansiones simultáneas
-    const [isExpanding, setIsExpanding] = useState(false)
+    // 🔒 REF para prevenir múltiples llamadas simultáneas
+    const isExpandingRef = useRef(false)
 
     const expandSearch = useCallback(() => {
         // 🚫 Prevenir múltiples llamadas simultáneas
-        if (isExpanding) return
+        if (isExpandingRef.current) return
 
-        setIsExpanding(true)
+        isExpandingRef.current = true
+
+        setSeenIds(new Set())
+        setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length)
         setIsInternalLoading(true)
 
-        // ✅ SIEMPRE resetear seenIds para mostrar 0-{radius}km
-        // Usar setTimeout(0) para agrupar las actualizaciones de estado en un solo batch
-        setTimeout(() => {
-            setSeenIds(new Set())
-            setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length)
 
-            setTimeout(() => {
-                setIsInternalLoading(false)
-                setIsExpanding(false)
-            }, 300) // Reducido a 300ms para respuesta más rápida
-        }, 0)
-    }, [isExpanding]) // ✅ Array vacío - isExpandingRef previene llamadas múltiples
+
+        requestAnimationFrame(() => {
+            setIsInternalLoading(false)
+            isExpandingRef.current = false
+        })
+    }, []) // ✅ Array vacío - isExpandingRef previene llamadas múltiples
 
     const markAsSeen = (id: string) => {
         setSeenIds(prev => {
