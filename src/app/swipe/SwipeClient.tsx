@@ -289,11 +289,11 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         setIsInternalLoading(true)
 
 
-
-        requestAnimationFrame(() => {
+        
+        setTimeout(() => {
             setIsInternalLoading(false)
             isExpandingRef.current = false
-        })
+        }, 500)
     }, []) // ✅ Array vacío - isExpandingRef previene llamadas múltiples
 
     const markAsSeen = (id: string) => {
