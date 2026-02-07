@@ -201,9 +201,39 @@ export default function MapBoxStoreLocator({
                 type: 'geojson',
                 data: geojson,
                 // 💰 CLUSTERING: Agrupar negocios cercanos (ahorro 40% en rendering)
-                cluster: businesses.length > 50, // Solo cluster si hay más de 50 puntos
+                cluster: true, // Siempre activar clustering
                 clusterMaxZoom: 14, // Deshace clusters al hacer zoom
-                clusterRadius: 50, // Radio de agrupación en píxeles
+                clusterRadius: 50, // Radio de agrupación en píxeles (mínimo ~50 puntos en vista)
+            })
+
+            // 1. CLUSTER CIRCLES (Fondo de los círculos agrupados)
+            mapInstance.addLayer({
+                id: 'clusters',
+                type: 'circle',
+                source: sourceId,
+                filter: ['has', 'point_count'],
+                paint: {
+                    'circle-color': '#FF6B35',
+                    'circle-radius': 20,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#fff'
+                }
+            })
+
+            // 2. CLUSTER COUNT (Números en los círculos)
+            mapInstance.addLayer({
+                id: 'cluster-count',
+                type: 'symbol',
+                source: sourceId,
+                filter: ['has', 'point_count'],
+                layout: {
+                    'text-field': '{point_count_abbreviated}',
+                    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                    'text-size': 14
+                },
+                paint: {
+                    'text-color': '#ffffff'
+                }
             })
 
             // 3. UNCLUSTERED POINTS LAYER (The Pin Shape)
@@ -211,6 +241,7 @@ export default function MapBoxStoreLocator({
                 id: 'unclustered-point-bg',
                 type: 'symbol',
                 source: sourceId,
+                filter: ['!', ['has', 'point_count']], // Solo puntos NO agrupados
                 layout: {
                     'icon-image': 'pin',
                     'icon-size': 0.08,
@@ -232,8 +263,33 @@ export default function MapBoxStoreLocator({
 
             // --- CLICK HANDLERS ---
 
+            // Click handler para CLUSTERS: Expandir al hacer click
+            mapInstance.on('click', 'clusters', (e) => {
+                const features = mapInstance.queryRenderedFeatures(e.point, {
+                    layers: ['clusters']
+                })
+                const clusterId = features[0].properties?.cluster_id
+                const source = mapInstance.getSource('businesses') as mapboxgl.GeoJSONSource
 
-            // Click Handler Function
+                source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+                    if (err) return
+
+                    mapInstance.easeTo({
+                        center: (features[0].geometry as any).coordinates,
+                        zoom: zoom
+                    })
+                })
+            })
+
+            // Cambiar cursor en clusters
+            mapInstance.on('mouseenter', 'clusters', () => {
+                mapInstance.getCanvas().style.cursor = 'pointer'
+            })
+            mapInstance.on('mouseleave', 'clusters', () => {
+                mapInstance.getCanvas().style.cursor = ''
+            })
+
+            // Click Handler Function para puntos individuales
             const handlePointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
                 if (!e.features || !e.features[0]) return
 
