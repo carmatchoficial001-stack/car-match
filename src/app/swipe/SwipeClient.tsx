@@ -275,14 +275,14 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         }))
     }, [nearbyItems, location?.city])
 
-    // 🔒 REF para prevenir múltiples llamadas simultáneas a expandSearch
-    const isExpandingRef = useRef(false)
+    // 🔒 Estado para prevenir múltiples expansiones simultáneas
+    const [isExpanding, setIsExpanding] = useState(false)
 
     const expandSearch = useCallback(() => {
         // 🚫 Prevenir múltiples llamadas simultáneas
-        if (isExpandingRef.current) return
+        if (isExpanding) return
 
-        isExpandingRef.current = true
+        setIsExpanding(true)
         setIsInternalLoading(true)
 
         // ✅ SIEMPRE resetear seenIds para mostrar 0-{radius}km
@@ -293,7 +293,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
             setTimeout(() => {
                 setIsInternalLoading(false)
-                isExpandingRef.current = false
+                setIsExpanding(false)
             }, 300) // Reducido a 300ms para respuesta más rápida
         }, 0)
     }, []) // ✅ Array vacío - isExpandingRef previene llamadas múltiples

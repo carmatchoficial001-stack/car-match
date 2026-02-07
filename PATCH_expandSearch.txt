@@ -1,0 +1,19 @@
+// Reemplaza la función expandSearch (líneas 281-299) con esto:
+
+const expandSearch = useCallback(() => {
+    if (isExpanding) return
+
+    // React 18 agrupa automáticamente estas actualizaciones
+    setIsExpanding(true)
+    setIsInternalLoading(true)
+    setSeenIds(new Set())
+    setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length)
+    
+    // Resetear flags después del render
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            setIsInternalLoading(false)
+            setIsExpanding(false)
+        })
+    })
+}, [isExpanding])
