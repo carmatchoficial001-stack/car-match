@@ -10,6 +10,7 @@ import RestoringSessionOverlay from "@/components/RestoringSessionOverlay";
 import RestoreSessionModal from "@/components/RestoreSessionModal";
 import InstallInvasiveBanner from "@/components/InstallInvasiveBanner";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import CookieConsentBanner from "@/components/CookieConsentBanner";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -344,6 +345,7 @@ export default function RootLayout({
                     <ResponsiveViewportFix />
                     <RestoringSessionOverlay />
                     <RestoreSessionModal />
+                    <CookieConsentBanner />
 
                     {/* App Shell Architecture: Fixed Viewport + Internal Scroll */}
                     <div className="flex flex-col h-[100dvh] w-full overflow-hidden relative">
