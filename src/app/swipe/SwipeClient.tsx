@@ -105,8 +105,6 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     const [locationCandidates, setLocationCandidates] = useState<LocationData[]>([])
     const [showCandidates, setShowCandidates] = useState(false)
 
-    const currentRadius = RADIUS_TIERS[tierIndex]
-
     // 1. Historial (Eliminado para que sea siempre dinámico)
 
     // 2. MAZO ESTABLE CON FRONTERA DIGITAL - ESTRATEGIA INCREMENTAL
@@ -182,16 +180,8 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         sessionStorage.setItem('carmatch_swipe_seen', JSON.stringify(Array.from(seenIds)))
     }, [seenIds])
 
-    // 🔧 REF para prevenir loops: cuando expandSearch resetea seenIds, no queremos re-procesar items
-    const isExpandingRef = useRef(false)
-
     useEffect(() => {
         if (locationLoading || !location || items.length === 0) return
-        // 🚫 NO procesamos si estamos en medio de una expansión de radio
-        if (isExpandingRef.current) {
-            isExpandingRef.current = false
-            return
-        }
 
         const userCountry = normalizeCountryCode(location?.country)
 
@@ -259,6 +249,8 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
     const stablePool = shuffledItems
 
+    const currentRadius = RADIUS_TIERS[tierIndex]
+
     // 3. FILTRADO FINAL
     const nearbyItems = useMemo(() => {
         // Marcamos los IDs que vienen del servidor para asegurar que seguimos mostrando solo lo vigente
@@ -269,7 +261,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
             !seenIds.has(v.id) &&
             validIds.has(v.id) // Solo si sigue estando en la lista del servidor
         )
-    }, [stablePool, seenIds, currentRadius, items])
+    }, [stablePool, currentRadius, items, seenIds])
 
     // 🎯 MEMOIZAR items para SwipeFeed para evitar re-creación del array en cada render
     const swipeFeedItems = useMemo(() => {
@@ -280,12 +272,24 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         }))
     }, [nearbyItems, location?.city])
 
+    // 🔒 REF para prevenir múltiples llamadas simultáneas a expandSearch
+    const isExpandingRef = useRef(false)
+
     const expandSearch = useCallback(() => {
-        isExpandingRef.current = true // 🔧 Marcar que estamos expandiendo para prevenir loops
+        // 🚫 Prevenir múltiples llamadas simultáneas
+        if (isExpandingRef.current) return
+
+        isExpandingRef.current = true
         setIsInternalLoading(true)
-        setSeenIds(new Set());
-        setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length);
-        setTimeout(() => setIsInternalLoading(false), 400)
+
+        // ✅ SIEMPRE resetear seenIds para mostrar 0-{radius}km
+        setSeenIds(new Set())
+        setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length)
+
+        setTimeout(() => {
+            setIsInternalLoading(false)
+            isExpandingRef.current = false
+        }, 500) // Aumentado a 500ms para evitar clics rápidos
     }, []) // ✅ Array vacío: RADIUS_TIERS ahora es constante estática
 
     const markAsSeen = (id: string) => {
