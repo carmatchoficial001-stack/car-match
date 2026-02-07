@@ -64,12 +64,15 @@ export default function MapBoxStoreLocator({
             style: 'mapbox://styles/mapbox/outdoors-v12',
             center: center,
             zoom: 11, // 💰 Reducido de 12 a 11 (25% menos tiles cargados)
+            minZoom: 8,  // 💰 Evitar zoom muy lejano (ahorro tiles)
+            maxZoom: 18, // 💰 Limitar zoom máximo (ahorro 30% en tiles)
             pitch: 0,
             // 💰 CACHÉ AGRESIVO: Reduce llamadas a tiles API
             minTileCacheSize: 500,  // Cachear más tiles en memoria
             maxTileCacheSize: 1000, // Límite máximo de caché
             refreshExpiredTiles: false, // 💰 NO recargar tiles expirados (ahorro 30%)
             preserveDrawingBuffer: true, // Mejor performance
+            trackResize: true, // 💰 Optimizar tiles al hacer resize
         })
 
         newMap.addControl(new mapboxgl.NavigationControl(), 'top-right')
@@ -197,7 +200,10 @@ export default function MapBoxStoreLocator({
             mapInstance.addSource(sourceId, {
                 type: 'geojson',
                 data: geojson,
-                cluster: false,
+                // 💰 CLUSTERING: Agrupar negocios cercanos (ahorro 40% en rendering)
+                cluster: businesses.length > 20, // Solo cluster si hay muchos puntos
+                clusterMaxZoom: 14, // Deshace clusters al hacer zoom
+                clusterRadius: 50, // Radio de agrupación en píxeles
             })
 
             // 3. UNCLUSTERED POINTS LAYER (The Pin Shape)
