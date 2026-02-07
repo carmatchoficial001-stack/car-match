@@ -48,7 +48,7 @@ export default function CookieConsentBanner() {
                             </h3>
                         </div>
                         <button
-                            onClick={rejectCookies}
+                            onClick={acceptCookies}
                             className="p-1.5 hover:bg-surface-highlight rounded-lg transition-colors"
                             aria-label="Cerrar"
                         >
