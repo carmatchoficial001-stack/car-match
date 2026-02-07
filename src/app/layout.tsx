@@ -9,6 +9,7 @@ import Header from "@/components/Header";
 import RestoringSessionOverlay from "@/components/RestoringSessionOverlay";
 import RestoreSessionModal from "@/components/RestoreSessionModal";
 import InstallInvasiveBanner from "@/components/InstallInvasiveBanner";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -335,6 +336,7 @@ export default function RootLayout({
                         ])
                     }}
                 />
+                <GoogleAnalytics />
                 <Providers>
                     <InstallInvasiveBanner />
                     <PushNotificationRequest />
