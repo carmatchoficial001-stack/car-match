@@ -201,7 +201,7 @@ export default function MapBoxStoreLocator({
                 type: 'geojson',
                 data: geojson,
                 // 💰 CLUSTERING: Agrupar negocios cercanos (ahorro 40% en rendering)
-                cluster: businesses.length > 20, // Solo cluster si hay muchos puntos
+                cluster: businesses.length > 50, // Solo cluster si hay más de 50 puntos
                 clusterMaxZoom: 14, // Deshace clusters al hacer zoom
                 clusterRadius: 50, // Radio de agrupación en píxeles
             })
