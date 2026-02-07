@@ -3,7 +3,7 @@ import { prisma } from './db'
 
 if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
     webpush.setVapidDetails(
-        'mailto:admin@carmatch.app',
+        'mailto:support@carmatchapp.net', // Unificado
         process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
         process.env.VAPID_PRIVATE_KEY
     )
@@ -31,9 +31,17 @@ export async function sendPushNotification(subscription: any, payload: PushPaylo
         await webpush.sendNotification(subscription, JSON.stringify(payload))
         return true
     } catch (error) {
-        // If subscription is expired or invalid, we should ideally remove it
-        if (error instanceof Error && (error as any).statusCode === 410) {
-            console.log('Push subscription expired, should be removed')
+        // 🛡️ Si la suscripción ha expirado o es inválida (Error 410 Gone o 404), la eliminamos de la base de datos
+        if (error instanceof Error && (error as any).statusCode === 410 || (error as any).statusCode === 404) {
+            console.log(`[PUSH] Subscripción expirada (${(error as any).statusCode}), eliminando endpoint: ${subscription.endpoint}`)
+            try {
+                await prisma.pushSubscription.deleteMany({
+                    where: { endpoint: subscription.endpoint }
+                })
+                console.log('[PUSH] Subscripción eliminada correctamente de la DB')
+            } catch (dbError) {
+                console.error('[PUSH] Error al intentar eliminar subscripción de la DB:', dbError)
+            }
         }
         console.error('Error sending push notification:', error)
         return false

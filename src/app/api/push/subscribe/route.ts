@@ -15,15 +15,28 @@ export async function POST(req: NextRequest) {
             endpoint: subscription.endpoint ? 'Present' : 'Missing'
         })
 
-        // Guardar suscripción
-        await prisma.pushSubscription.create({
-            data: {
+        // 🛡️ Evitar duplicados: Buscar si ya existe la suscripción para este endpoint
+        const existingSub = await prisma.pushSubscription.findFirst({
+            where: {
                 userId: session.user.id,
-                endpoint: subscription.endpoint,
-                p256dh: subscription.keys.p256dh,
-                auth: subscription.keys.auth
+                endpoint: subscription.endpoint
             }
         })
+
+        if (!existingSub) {
+            // Guardar suscripción solo si no existe
+            await prisma.pushSubscription.create({
+                data: {
+                    userId: session.user.id,
+                    endpoint: subscription.endpoint,
+                    p256dh: subscription.keys.p256dh,
+                    auth: subscription.keys.auth
+                }
+            })
+            console.log('[API] New Push Subscription saved')
+        } else {
+            console.log('[API] Push Subscription already exists, skipping')
+        }
 
         return NextResponse.json({ success: true })
     } catch (error) {

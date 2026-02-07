@@ -99,7 +99,8 @@ export async function POST(
             body: content.length > 50 ? content.substring(0, 47) + '...' : content,
             url: `/messages/${chatId}`,
             icon: user.image || undefined,
-            tag: `message-${message.id}`
+            tag: `chat-${chatId}`, // 🛡️ Unificado para evitar saturación y agrupar por chat
+            renotify: true
         })
 
         // 🚀 3. EMITIR EVENTO SOCKET.IO (Real-time)
