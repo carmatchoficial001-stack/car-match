@@ -357,28 +357,8 @@ export default function MyBusinessesClient() {
         setFormLoading(true)
 
         try {
-            // Validar imágenes con el Equipo de Seguridad antes de crear el negocio
-            if (images.length > 0) {
-                for (const img of images) {
-                    try {
-                        const res = await fetch('/api/ai/validate-image', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ image: img, type: 'BUSINESS' })
-                        })
-                        const validation = await res.json()
-
-                        if (!validation.valid) {
-                            alert(`⚠️ La imagen no cumple con la política de contenido: ${validation.reason}`)
-                            setFormLoading(false)
-                            return
-                        }
-                    } catch (e) {
-                        console.error('Error validando imagen:', e)
-                        // Si hay error técnico en la validación, permitir continuar
-                    }
-                }
-            }
+            // [MEJORA] Eliminada validación síncrona de IA en cliente.
+            // La moderación ocurre automáticamente en segundo plano en el servidor para "Instant Publish".
 
             // Concatenate Address
             const fullAddress = `${street} ${streetNumber}, ${colony}, ${city}, ${state}`.replace(/, ,/g, ',').trim()

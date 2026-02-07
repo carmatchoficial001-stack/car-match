@@ -77,39 +77,6 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // ═══ VALIDACIÓN SÍNCRONA DE IMAGEN DE PORTADA ═══
-        // Implementamos un "Filtro de Aire" inmediato: Si la portada no es un carro real, NO entra.
-        const images = body.images || []
-        if (images.length === 0) {
-            return NextResponse.json(
-                { error: 'La foto de portada es obligatoria' },
-                { status: 400 }
-            )
-        }
-
-        console.log(`🔍 Validando portada síncronamente para nuevo vehículo de ${user.id}...`)
-        const { analyzeMultipleImages } = await import('@/lib/ai/imageAnalyzer')
-        const { fetchImageAsBase64 } = await import('@/lib/ai-moderation-helper') // Necesitamos extraer este helper o uno similar
-
-        // Obtener base64 de la portada (images[0])
-        const coverBase64 = await fetchImageAsBase64(images[0])
-        if (!coverBase64) {
-            return NextResponse.json(
-                { error: 'No se pudo procesar la imagen de portada. Intenta con otra.' },
-                { status: 400 }
-            )
-        }
-
-        // Llamar a Gemini (Modo Especial Portada ya implementado en analyzeMultipleImages)
-        const coverAnalysis = await analyzeMultipleImages([coverBase64], 'VEHICLE')
-
-        let isAiRejected = false
-        if (!coverAnalysis.valid) {
-            console.log(`❌ Portada rechazada por IA: ${coverAnalysis.reason}`)
-            isAiRejected = true
-            // YA NO BLOQUEAMOS: Se guardará como Borrador (Inactive) para revisión manual
-        }
-
         // 🛡️ ANTI-FRAUDE & MONETIZACIÓN
         // Usamos lifetimeVehicleCount para determinar beneficios (BLINDAJE DE POR VIDA)
         // El primero es GRATIS DE VERDAD (6 Meses)
@@ -135,11 +102,11 @@ export async function POST(request: NextRequest) {
 
         // 🔍 Validar duplicados de contenido (Mismo carro republicado?)
         const contentHash = generateVehicleHash({
-            brand: coverAnalysis.details?.brand || brand,
-            model: coverAnalysis.details?.model || model,
-            year: coverAnalysis.details?.year ? parseInt(coverAnalysis.details.year) : parseInt(year),
-            color: coverAnalysis.details?.color || body.color,
-            vehicleType: coverAnalysis.details?.type || body.vehicleType
+            brand: brand,
+            model: model,
+            year: parseInt(year),
+            color: body.color,
+            vehicleType: body.vehicleType
         })
 
         // 🛡️ VALIDAR HUELLA DIGITAL GLOBAL (Detecta fraude de varios correos en mismo cel)
@@ -191,11 +158,12 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // ═══ REGLAS FINALES DE MONETIZACIÓN (HISTÓRICA) ═══
+        // ═══ REGLAS FINALES DE MONETIZACIÓN (HISTÓRICAS) ═══
         const now = new Date()
         let expiresAt = new Date()
         let isFreePublication = true
         let initialStatus: 'ACTIVE' | 'INACTIVE' = 'ACTIVE' // Por defecto activo si pasa filtros
+        let isAiRejected = false // [MEJORA] Ya no hay rechazo síncrono
 
         const isPermanentlyRestricted = (user.fraudStrikes || 0) >= 10
         const lifetimeCount = user.lifetimeVehicleCount || 0
@@ -204,8 +172,8 @@ export async function POST(request: NextRequest) {
             expiresAt.setFullYear(now.getFullYear() + 10)
             isFreePublication = true
         }
-        else if (isPermanentlyRestricted || isAiRejected) {
-            // Usuarios marcados o RECHAZADO POR IA -> INACTIVO (Borrador)
+        else if (isPermanentlyRestricted) {
+            // Usuarios marcados -> INACTIVO (Borrador)
             expiresAt.setDate(now.getDate() + 30) // Vigencia estándar para cuando paguen
             isFreePublication = false
             initialStatus = 'INACTIVE'
@@ -227,11 +195,10 @@ export async function POST(request: NextRequest) {
             initialStatus = 'INACTIVE' // Requiere pago para activarse
         }
 
-        // Regenerar título respetando datos del usuario primero
-        // 🔒 PRIORIDAD: Datos del usuario > Datos de  la IA
-        const finalBrand = brand || coverAnalysis.details?.brand || 'Desconocido'
-        const finalModel = model || coverAnalysis.details?.model || 'N/A'
-        const finalYear = parseInt(year) || (coverAnalysis.details?.year ? parseInt(coverAnalysis.details.year) : new Date().getFullYear())
+        // Regenerar título respetando datos del usuario
+        const finalBrand = brand || 'Desconocido'
+        const finalModel = model || 'N/A'
+        const finalYear = parseInt(year) || new Date().getFullYear()
         const finalTitle = `${finalBrand} ${finalModel} ${finalYear}`
 
         // Crear vehículo
@@ -248,13 +215,13 @@ export async function POST(request: NextRequest) {
                 latitude: latitude ? parseFloat(latitude) : null,
                 longitude: longitude ? parseFloat(longitude) : null,
                 images: body.images || [],
-                // Campos opcionales - PRIORIDAD: Usuario primero, IA como fallback
+                // Campos opcionales
                 mileage: safeInt(body.mileage),
                 transmission: body.transmission || null,
                 fuel: body.fuel || null,
                 engine: body.engine || null,
-                color: body.color || coverAnalysis.details?.color || null,
-                vehicleType: body.vehicleType || coverAnalysis.details?.type || null,
+                color: body.color || null,
+                vehicleType: body.vehicleType || null,
                 currency: body.currency || 'MXN',
 
                 // Campos adicionales restaurados
@@ -263,17 +230,17 @@ export async function POST(request: NextRequest) {
                 condition: body.condition || null,
                 doors: safeInt(body.doors),
                 passengers: safeInt(body.passengers),
-                displacement: safeInt(body.displacement) || safeInt(coverAnalysis.details?.displacement),
-                cargoCapacity: safeFloat(body.cargoCapacity) || safeFloat(coverAnalysis.details?.cargoCapacity),
-                operatingHours: safeInt(body.operatingHours) || safeInt(coverAnalysis.details?.operatingHours),
-                hp: safeInt(body.hp) || safeInt(coverAnalysis.details?.hp),
-                torque: body.torque || (coverAnalysis.details?.torque || null),
-                aspiration: body.aspiration || (coverAnalysis.details?.aspiration || null),
-                cylinders: safeInt(body.cylinders) || safeInt(coverAnalysis.details?.cylinders),
-                batteryCapacity: safeFloat(body.batteryCapacity) || safeFloat(coverAnalysis.details?.batteryCapacity),
-                range: safeInt(body.range) || safeInt(coverAnalysis.details?.range),
-                weight: safeInt(body.weight) || safeInt(coverAnalysis.details?.weight),
-                axles: safeInt(body.axles) || safeInt(coverAnalysis.details?.axles),
+                displacement: safeInt(body.displacement),
+                cargoCapacity: safeFloat(body.cargoCapacity),
+                operatingHours: safeInt(body.operatingHours),
+                hp: safeInt(body.hp),
+                torque: body.torque || null,
+                aspiration: body.aspiration || null,
+                cylinders: safeInt(body.cylinders),
+                batteryCapacity: safeFloat(body.batteryCapacity),
+                range: safeInt(body.range),
+                weight: safeInt(body.weight),
+                axles: safeInt(body.axles),
                 // ESTADO INICIAL
                 status: initialStatus, // BLINDAJE: Empieza inactivo
                 moderationStatus: isAiRejected ? 'REJECTED' : 'PENDING_AI',
@@ -400,11 +367,9 @@ export async function POST(request: NextRequest) {
             }
         })
 
-        let successMessage = '¡Publicación enviada! Nuestro equipo la verificará pronto. Recuerda que los datos reales atraen a más compradores.'
+        let successMessage = '¡Anuncio publicado con éxito! 🚀 Ya es visible en el mercado.'
         if (isPermanentlyRestricted) {
             successMessage = 'Cuenta restringida. El anuncio se guardó como BORRADOR. Puedes activarlo con un crédito o contactar a soporte.'
-        } else if (isAiRejected) {
-            successMessage = `La IA detectó que los datos o fotos podrían no coincidir (${coverAnalysis.reason || 'Imagen inusual'}). Entre más reales sean tus datos, más rápido venderás. Puedes corregirlo o activarlo con 1 crédito.`
         }
 
         // 🔄 REVALIDACIÓN DE CACHÉ: Actualizar listas inmediatamente
@@ -418,9 +383,9 @@ export async function POST(request: NextRequest) {
             vehicle: {
                 id: vehicle.id,
                 title: vehicle.title,
-                moderationStatus: isAiRejected ? 'REJECTED' : 'APPROVED',
+                moderationStatus: 'PENDING_AI',
                 // Indicar al frontend si se publicó activo o requiere pago
-                status: (isFraudulentRetry || isPermanentlyRestricted || isAiRejected) ? 'INACTIVE' : 'ACTIVE',
+                status: (isFraudulentRetry || isPermanentlyRestricted) ? 'INACTIVE' : 'ACTIVE',
                 message: successMessage
             }
         }, { status: 201 })
