@@ -1,9 +1,5 @@
 export const dynamic = 'force-dynamic'
-import { auth } from "@/lib/auth"
-<<<<<<< HEAD
-
-=======
->>>>>>> a40411cb2a7366dd0eaf4ed8df2ce6bd99141a0f
+import { auth } from "@/auth"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
