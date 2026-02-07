@@ -7,7 +7,7 @@ const enFile = path.join(localesDir, 'en.json');
 const enData = JSON.parse(fs.readFileSync(enFile, 'utf8'));
 
 // Keys to propagate
-const keysToPropagate = ['settings', 'sos', 'appointments', 'taxonomy'];
+const keysToPropagate = ['settings', 'sos', 'appointments', 'taxonomy', 'map_store', 'business_details'];
 const swipeKeys = [
     'business_badge', 'view_more', 'seen_all_title', 'seen_all_desc',
     'expand_btn', 'like_btn', 'nope_btn', 'overlay_like', 'overlay_nope'

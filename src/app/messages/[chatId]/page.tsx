@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getRandomTip } from '@/lib/safety-tips'
 import { useLanguage } from '@/contexts/LanguageContext'
-import Header from '@/components/Header'
 import AppointmentCard from './AppointmentCard'
 import AppointmentModal from './AppointmentModal'
 import SOSComponent from '@/components/SOSComponent'
@@ -67,16 +66,35 @@ export default function ChatPage({
         }
         fetchMessages()
         fetchChatDetails()
-        const interval = setInterval(() => {
-            fetchMessages()
-            fetchChatDetails() // Refrescar estado del vehículo periódicamente
-        }, 3000)
+        fetchChatDetails()
 
-        // Safety reminders interval
-        const safetyInterval = setInterval(checkSafetyReminders, 60000) // Check every minute
+        // 🚀 REAL-TIME UPDATES (Socket.IO) - Chat Room
+        import('@/lib/socket').then(({ socket }) => {
+            if (!socket.connected) {
+                socket.connect()
+            }
+
+            // Join specific chat room
+            socket.emit('join-room', `chat:${chatId}`)
+
+            // Listen for new messages
+            socket.on('new-message', (message: Message) => {
+                setMessages(prev => {
+                    // Avoid duplicates
+                    if (prev.find(m => m.id === message.id)) return prev
+                    return [...prev, message]
+                })
+            })
+        })
+
+        // Safety reminders interval (local check, no db cost)
+        const safetyInterval = setInterval(checkSafetyReminders, 60000)
 
         return () => {
-            clearInterval(interval)
+            import('@/lib/socket').then(({ socket }) => {
+                socket.emit('leave-room', `chat:${chatId}`)
+                socket.off('new-message')
+            })
             clearInterval(safetyInterval)
         }
     }, [session, status, chatId])
@@ -291,7 +309,6 @@ export default function ChatPage({
 
     return (
         <>
-            <Header />
             <div className={`flex bg-background overflow-hidden md:h-[calc(100vh-64px)] transition-all duration-300 ${isInputFocused
                 ? 'h-[calc(100dvh-64px)]'
                 : 'h-[calc(100dvh-64px-4rem)] md:h-[calc(100vh-64px)]'
@@ -316,7 +333,7 @@ export default function ChatPage({
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-xl bg-surface-highlight flex items-center justify-center overflow-hidden shrink-0">
                                         {chat.vehicle.user.image ? (
-                                            <img src={chat.vehicle.user.image} alt="" className="w-full h-full object-cover" />
+                                            <img src={chat.vehicle.user.image} alt="" className="w-full h-full object-contain" />
                                         ) : (
                                             <span className="text-lg font-bold text-text-secondary uppercase">{(chat.vehicle.user.name || '?')[0]}</span>
                                         )}

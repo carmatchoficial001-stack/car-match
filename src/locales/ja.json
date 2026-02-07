@@ -46,7 +46,90 @@
         "copied": "コピーしました！",
         "view_more": "もっと見る",
         "seats": "座席",
-        "currency": "通貨"
+        "currency": "通貨",
+        "login_vehicle": "車両を売る",
+        "login_business": "ビジネスを掲載する",
+        "dynamic_ctas": {
+            "vehicles": [
+                "現金が必要ですか？ | ここで公開！",
+                "もう気に入らない？ | 今日売ろう！",
+                "更新したいですか？ | 無料でアップロード！",
+                "現金が必要ですか？ | 今すぐ売却！",
+                "ガレージがいっぱい？ | ここに公開！",
+                "変更の時間？ | 今日アップロード！",
+                "車が余っていますか？ | ここで売ってください！",
+                "別の車を探していますか？ | 今すぐ公開！",
+                "資本が必要ですか？ | お金にする！",
+                "新しいものが欲しいですか？ | 今すぐ売却！",
+                "ガレージがいっぱい？ | 今日アップロード！",
+                "邪魔な車？ | ここで売ってください！",
+                "最高のものが必要ですか？ | これを売る！",
+                "費用がかかりますか？ | お金にする！",
+                "頭金のため？ | 今すぐ売却！",
+                "旅行に行きますか？ | 今日アップロード！",
+                "すぐに引っ越しますか？ | 今すぐ売却！",
+                "小型車？ | ここに公開！",
+                "パワーが欲しいですか？ | あなたのものを売ってください！",
+                "大家族？ | 今すぐアップロード！",
+                "もう完了しましたか？ | 今日売ろう！",
+                "すぐに現金が必要ですか？ | ここに公開！",
+                "タイヤが余っていますか？ | お金にする！",
+                "新しいプロジェクト？ | 今すぐ売却！",
+                "デビューしたいですか？ | ここに公開！",
+                "停止中の車？ | 今すぐ売却！",
+                "アップグレードしたいですか？ | あなたのものを交換してください！",
+                "何か新しいものを探していますか？ | これを公開！",
+                "通りで邪魔になりますか？ | 現金化する！",
+                "スペースが必要ですか？ | すぐに売却！",
+                "もう使いませんか？ | お金を稼ぐ！",
+                "別のものが欲しいですか？ | 今すぐこれを手放してください！",
+                "経済性を求めていますか？ | あなたのSUVを売ってください！",
+                "古い匂いがしますか？ | 今日デビュー！",
+                "走行距離が多いですか？ | 次の人に渡してください！",
+                "冒険を探していますか？ | 車を交換してください！",
+                "頭金の準備はできましたか？ | これだけが足りません！",
+                "電気自動車を探していますか？ | ガソリン車を売ってください！",
+                "メンテナンスが高いですか？ | 今日売ろう！",
+                "家族が増えましたか？ | セダンを売ってください！",
+                "書類は揃っていますか？ | 今すぐ公開！",
+                "あまり使用しませんか？ | 他の人に譲ってください！",
+                "贅沢品をお探しですか？ | 販売から始めましょう！",
+                "クラシックが欲しいですか？ | あなたのモダンなものを売ってください！",
+                "シリンダーが多すぎますか？ | 消費量を減らす！",
+                "4x4を探していますか？ | あなたの街を売ってください！",
+                "大学に行く子供たち？ | 宇宙船を交換してください！",
+                "スポーツカーが欲しいですか？ | 屋根を外してください！",
+                "信頼性をお探しですか？ | 車を更新してください！",
+                "流動性が急務ですか？ | 今すぐ売ってください！",
+                "みんなのためのSNS | ここに公開！",
+                "排他的ではありません！ | ムーブメントに参加する",
+                "最大のコミュニティ | 今すぐ参加！",
+                "実際の人々、実際の取引 | 今日公開！",
+                "誰でも大歓迎です！ | 車を売る",
+                "人々のためのネットワーク | 無料でアップロード！",
+                "巨大な潮流に参加する | ここで売る！",
+                "メキシコ全土であなたの車を | 今すぐ参加！",
+                "公開の自由 | お金にする！",
+                "あなたをサポートするネットワーク | 今日売る！"
+            ]
+        },
+        "city": "都市",
+        "change_language": "言語を変更",
+        "install_on_ios": "iOSにインストール",
+        "install_on_android": "Androidにインストール",
+        "user": "ユーザー",
+        "sold": "売却済",
+        "unavailable": "利用不可",
+        "seller": "売り手",
+        "buyer": "買い手",
+        "accept": "承認",
+        "time": {
+            "now": "今",
+            "m": "m",
+            "h": "h",
+            "d": "d",
+            "sem": "sem"
+        }
     },
     "share": {
         "share_in": "共有先...",
@@ -76,7 +159,8 @@
         "favorites": "お気に入り",
         "credits": "クレジット",
         "admin_panel": "管理パネル",
-        "exit_portal": "ポータルを終了"
+        "exit_portal": "ポータルを終了",
+        "settings": "設定"
     },
     "swipe": {
         "expand_search": "他の場所まで検索範囲を広げる",
@@ -223,7 +307,10 @@
             "images": "画像",
             "features": "装備",
             "location": "場所",
-            "review": "確認と出品"
+            "review": "確認と出品",
+            "identity_price": "アイデンティティと価値",
+            "specs_features": "魂と装備",
+            "location_review": "場所と公開"
         },
         "titles": {
             "what_type": "出品する車両のタイプを選択してください",
@@ -380,7 +467,8 @@
             "sold": "売却済み",
             "inactive": "非公開"
         },
-        "user_id": "ユーザーID"
+        "user_id": "ユーザーID",
+        "edit_profile": "プロファイルを編集"
     },
     "business": {
         "title": "マイビジネス",
@@ -508,6 +596,30 @@
             "pesados": {
                 "name": "大型車両",
                 "services": "トラック整備|エアサス|油圧システム|フリートメンテナンス"
+            },
+            "electrolinera": {
+                "name": "充電ステーション",
+                "services": "急速充電|テスラ充電器|タイプ1および2コネクタ|公共充電ステーション|無料充電ポイント"
+            },
+            "caseta": {
+                "name": "料金所",
+                "services": "現金払い|自動料金収受|トイレ|請求"
+            },
+            "hospital": {
+                "name": "病院",
+                "services": "救急|相談|薬局|救急車"
+            },
+            "policia": {
+                "name": "警察署",
+                "services": "緊急|通報|交通|パトロール"
+            },
+            "aeropuerto": {
+                "name": "空港",
+                "services": "フライト|タクシー|レンタカー|両替"
+            },
+            "estacion_tren": {
+                "name": "駅",
+                "services": "切符|プラットフォーム|待合室|カフェテリア"
             }
         }
     },
@@ -707,7 +819,12 @@
         "placeholder_active": "アドバイザーに相談中...",
         "placeholder_default": "要望を入力してください（例: 「燃費の良い車がいいな...」）",
         "btn_analyzing": "相談中...",
-        "btn_search": "相談する"
+        "btn_search": "相談する",
+        "title": "スマート検索",
+        "placeholder": "どんな車をお探しですか？ 例：『赤色の４気筒の安いファミリーバンが欲しい』",
+        "ask_advisor": "アドバイザーに相談する",
+        "consulting": "専門家相談中...",
+        "understood": "了解しました！検索条件に合わせてフィルターを調整しました。"
     },
     "map_store": {
         "search_placeholder": "🔍 通り、地域、場所を検索...",
@@ -787,7 +904,28 @@
             "safety_desc": "書類の確認や現車確認は、安全な公共の場所で行うことをお勧めします。",
             "transparency_title": "透明性:",
             "transparency_desc": "メンテンナンス履歴を詳しく書くことで、成約しやすくなります。"
-        }
+        },
+        "view_list": "Show Map and List",
+        "show_filters": "Show Filters",
+        "results_found": "results found",
+        "report": {
+            "title": "Report Business",
+            "reason_label": "Reason for Report",
+            "wrong_category": "Wrong category",
+            "fake_business": "Fake business / Doesn't exist",
+            "incorrect_info": "Incorrect info",
+            "duplicate": "Duplicate business",
+            "offensive": "Offensive content",
+            "other": "Other reason",
+            "description_label": "Additional Description",
+            "description_placeholder": "Provide more details to help us review...",
+            "submit": "Send Report",
+            "sending": "Sending...",
+            "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
+            "success_msg": "Thank you for your report. The business has been hidden for review.",
+            "success_title": "レポートを送信しました！"
+        },
+        "how_to_diagnose": "Tell your advisor what's wrong with your car..."
     },
     "business_details": {
         "website": "ウェブサイト",
@@ -888,7 +1026,8 @@
             "safety_desc": "書類の確認や現車確認は、安全な公共の場所で行うことをお勧めします。",
             "transparency_title": "透明性:",
             "transparency_desc": "メンテンナンス履歴を詳しく書くことで、成約しやすくなります。"
-        }
+        },
+        "creative_examples": "例: '{name}のガレージ'、'北部の車'、'{name}のコレクション'"
     },
     "taxonomy": {
         "categories": {
@@ -996,7 +1135,86 @@
             "Remolque": "トレーラー / 荷車",
             "Lowboy": "低床トレーラー",
             "Remolque Frigorífico": "冷蔵トレーラー",
-            "Plataforma Porta-contenedor": "コンテナシャシー"
+            "Plataforma Porta-contenedor": "コンテナシャシー",
+            "Alarma": "アラーム",
+            "GPS": "GPS",
+            "Luces LED": "LEDライト",
+            "Frenos ABS": "ABSブレーキ",
+            "Bluetooth": "Bluetooth",
+            "USB": "USB",
+            "Pantalla Touch": "タッチスクリーン",
+            "Aire Acondicionado": "エアコン",
+            "Climatizador Automático": "オートエアコン",
+            "Asientos de Piel": "革シート",
+            "Asientos Eléctricos": "パワーシート",
+            "Asientos Calefactables": "シートヒーター",
+            "Asientos Ventilados": "シートベンチレーション",
+            "Quemacocos": "サンルーフ",
+            "Techo Panorámico": "パノラミックルーフ",
+            "Vidrios Eléctricos": "パワーウィンドウ",
+            "Espejos Eléctricos": "電動ミラー",
+            "Volante Multifuncional": "多機能ステアリング",
+            "Cajuela Eléctrica": "電動トランク",
+            "Android Auto/CarPlay": "Android Auto/CarPlay",
+            "Cargador Inalámbrico": "ワイヤレス充電器",
+            "Head-Up Display": "ヘッドアップディスプレイ",
+            "Sistema de Sonido Premium": "プレミアムサウンド",
+            "Tablero Digital": "デジタルダッシュボード",
+            "Llave Inteligente (Keyless)": "スマートキー (キーレス)",
+            "Cámara de Reversa": "バックカメラ",
+            "Cámara 360°": "360°カメラ",
+            "Bolsas de Aire (Airbags)": "エアバッグ",
+            "Sensores de Estacionamiento": "パーキングセンサー",
+            "Monitor de Punto Ciego": "死角モニター",
+            "Alerta de Cambio de Carril": "車線逸脱警報",
+            "Frenado Autónomo de Emergencia": "緊急ブレーキ",
+            "Control Crucero Adaptativo": "アダプティブクルーズコントロール",
+            "Rines de Aluminio": "アルミホイール",
+            "Faros de Niebla": "フォグランプ",
+            "Barras de Techo": "ルーフレール",
+            "Kit Deportivo": "スポーツキット",
+            "Frenos de Disco": "ディスクブレーキ",
+            "ABS en Curva": "コーナリングABS",
+            "Control de Tracción": "トラクションコントロール",
+            "Quickshifter": "クイックシフター",
+            "Modos de Manejo": "走行モード",
+            "Suspensión Electrónica": "電子制御サスペンション",
+            "Amortiguador de Dirección": "ステアリングダンパー",
+            "Maletas Laterales": "サイドパニア",
+            "Top Case": "トップケース",
+            "Parabrisas": "ウィンドスクリーン",
+            "Defensas/Sliders": "エンジンガード/スライダー",
+            "Puños Calefactables": "グリップヒーター",
+            "Asiento Comfort": "コンフォートシート",
+            "Luces Auxiliares (Exploradoras)": "補助灯",
+            "Freno de Motor": "エンジンブレーキ",
+            "Retardador": "リターダー",
+            "Camarote": "キャビン",
+            "Ejes Retráctiles": "格納式車軸",
+            "Suspensión de Aire": "エアサスペンション",
+            "Toma de Fuerza (PTO)": "動力取り出し装置 (PTO)",
+            "Deflector de Aire": "エアディフレクター",
+            "Tanque Auxiliar": "補助タンク",
+            "Visera Exterior": "エクステリアバイザー",
+            "Asiento Neumático": "エアシート",
+            "Eje Elevable": "リフトアクスル",
+            "Cabina Cerrada (ROPS/FOPS)": "密閉式キャビン",
+            "Calefacción": "ヒーター",
+            "Joystick Control": "ジョイスティック制御",
+            "Estabilizadores": "スタビライザー",
+            "Cucharon 4en1": "4in1バケット",
+            "Línea Hidráulica Auxiliar": "油圧ライン",
+            "Ripper (Desgarrador)": "リッパー",
+            "Zapatas Anchas": "ワイドシュー",
+            "Llantas Sólidas": "ソリッドタイヤ",
+            "Winch (Cabrestante)": "ウインチ（巻上げ機）",
+            "Roll Cage (Jaula)": "ロールケージ",
+            "Snorkel": "シュノーケル",
+            "Suspensión Lift Kit": "リフトアップキット",
+            "Llantas All-Terrain/Mud-Terrain": "オールテレーンタイヤ",
+            "Luces LED Bar": "LEDバー",
+            "Techo Rígido": "ハードトップ",
+            "Medios Puertas": "ハーフドア"
         },
         "transmission": {
             "Manual": "マニュアル (MT)",
@@ -1112,6 +1330,11 @@
         "completed": "Completed",
         "accept_btn": "Accept",
         "reject_btn": "Reject",
-        "cancel_btn": "Cancel"
+        "cancel_btn": "Cancel",
+        "past": "完了"
+    },
+    "chat": {
+        "welcome": "こんにちは！CarMatchアドバイザーです。👨‍💻 今日は何をお手伝いできますか？",
+        "title": "CarMatchアドバイザー"
     }
 }

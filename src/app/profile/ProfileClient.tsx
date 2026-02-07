@@ -4,10 +4,11 @@ import Header from "@/components/Header"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { formatPrice } from "@/lib/vehicleTaxonomy"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import EditProfileModal from "@/components/EditProfileModal"
 import ReportImageButton from "@/components/ReportImageButton"
+import { Flag, MessageSquare, AlertCircle, ChevronRight, RefreshCw, Headset, ShieldCheck } from "lucide-react"
 
 interface ProfileClientProps {
     user: any // Typed as any to match the dynamic prisma include structure for now
@@ -24,21 +25,20 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
 
     return (
         <div className="min-h-screen bg-background">
-            <Header />
             <div className="container mx-auto px-4 pt-8 pb-24 max-w-5xl">
                 {/* Header del Perfil */}
                 <div className="bg-surface rounded-2xl shadow-xl p-8 mb-8 border border-surface-highlight">
                     <div className="flex flex-col gap-6">
                         <div className="flex flex-row items-start gap-4 sm:gap-6">
                             {/* 1. Foto de Perfil (Izquierda - Rojo) */}
-                            <div className="w-24 sm:w-32 md:w-40 flex-shrink-0">
-                                <div className="relative w-full rounded-xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-surface group">
+                            <div className="w-32 sm:w-40 md:w-56 flex-shrink-0">
+                                <div className="relative w-full aspect-[3/2] rounded-2xl overflow-hidden shadow-lg border-2 border-surface-highlight bg-black/10 group flex items-center justify-center">
                                     {user.image ? (
                                         <>
                                             <img
                                                 src={user.image}
                                                 alt={user.name}
-                                                className="w-full h-auto object-cover"
+                                                className="w-full h-full object-contain"
                                             />
                                             {isOwner && (
                                                 <button
@@ -83,35 +83,7 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                     </p>
                                 </div>
 
-                                {/* ID de Usuario */}
-                                {isOwner && (
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <div className="bg-surface-highlight/30 px-2 py-1 rounded-md border border-surface-highlight flex items-center gap-1.5">
-                                            <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">ID:</span>
-                                            <code className="text-[10px] sm:text-xs text-primary-400 font-mono truncate max-w-[80px] sm:max-w-[120px]">
-                                                {user.id}
-                                            </code>
-                                        </div>
-                                        <button
-                                            onClick={(e) => {
-                                                navigator.clipboard.writeText(user.id)
-                                                // @ts-ignore
-                                                const btn = e.currentTarget
-                                                const originalHtml = btn.innerHTML
-                                                btn.innerHTML = `<span class="text-[10px] text-green-400 font-bold">OK</span>`
-                                                setTimeout(() => {
-                                                    btn.innerHTML = originalHtml
-                                                }, 2000)
-                                            }}
-                                            className="p-1.5 bg-surface-highlight/50 hover:bg-surface-highlight rounded-md transition text-text-secondary hover:text-primary-400 border border-surface-highlight"
-                                            title="Copiar ID"
-                                        >
-                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                )}
+
 
                                 {/* Botón de Editar (Móvil) */}
                                 {isOwner && (
@@ -141,7 +113,7 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
 
                 </div>
 
-                {/* Vehículos */}
+
                 <div className="bg-surface rounded-2xl shadow-xl p-8 border border-surface-highlight">
 
 
@@ -287,11 +259,119 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                     name: user.name,
                     image: user.image,
                     email: user.email,
+                    id: user.id,
                     trustedContactId: user.trustedContactId,
-                    trustedContact: user.trustedContact
+                    trustedContact: user.trustedContact,
                 }}
                 userVehicles={vehiclesToShow}
             />
-        </div>
+        </div >
+    )
+}
+
+function ReportChat({ reportId }: { reportId: string }) {
+    const [messages, setMessages] = useState<any[]>([])
+    const [newMessage, setNewMessage] = useState("")
+    const [loading, setLoading] = useState(true)
+    const [sending, setSending] = useState(false)
+    const scrollRef = useRef<HTMLDivElement>(null)
+
+    const fetchMessages = useCallback(async () => {
+        try {
+            const res = await fetch(`/api/report/${reportId}/messages`)
+            if (res.ok) {
+                const data = await res.json()
+                setMessages(data)
+            }
+        } catch (e) { console.error(e) }
+        finally { setLoading(false) }
+    }, [reportId])
+
+    useEffect(() => {
+        fetchMessages()
+        const interval = setInterval(fetchMessages, 5000)
+        return () => clearInterval(interval)
+    }, [fetchMessages])
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+        }
+    }, [messages])
+
+    const handleSend = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!newMessage.trim() || sending) return
+
+        setSending(true)
+        try {
+            const res = await fetch(`/api/report/${reportId}/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: newMessage })
+            })
+            if (res.ok) {
+                const msg = await res.json()
+                setMessages(prev => [...prev, msg])
+                setNewMessage("")
+            }
+        } catch (e) {
+            console.error(e)
+        } finally {
+            setSending(false)
+        }
+    }
+
+    if (loading) return <div className="flex-1 flex items-center justify-center text-xs opacity-50">Cargando conversación...</div>
+
+    return (
+        <>
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                {messages.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center gap-4 opacity-30 grayscale p-8">
+                        <div className="p-4 bg-primary-400/10 rounded-full">
+                            <Headset className="w-8 h-8 text-primary-400" />
+                        </div>
+                        <p className="text-[10px] font-bold text-center">Inicia una conversación con un administrador sobre tu reporte.</p>
+                    </div>
+                ) : (
+                    messages.map((msg) => {
+                        const isMe = !msg.sender.isAdmin // Para el usuario, "Me" son los NO admins
+                        return (
+                            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[85%] p-3 rounded-2xl text-[11px] ${isMe
+                                    ? 'bg-primary-700 text-white rounded-tr-none'
+                                    : 'bg-surface border border-surface-highlight text-text-primary rounded-tl-none'
+                                    }`}>
+                                    <div className="flex items-center gap-2 mb-1 opacity-70">
+                                        <span className="font-black uppercase text-[8px]">{msg.sender.isAdmin ? 'ADMINISTRADOR' : 'TU'}</span>
+                                        <span className="text-[8px]">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    </div>
+                                    <p className="leading-relaxed">{msg.content}</p>
+                                </div>
+                            </div>
+                        )
+                    })
+                )}
+            </div>
+
+            <form onSubmit={handleSend} className="p-4 border-t border-surface-highlight bg-surface">
+                <div className="flex gap-2">
+                    <input
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Escribe un mensaje..."
+                        className="flex-1 bg-background border border-surface-highlight rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-primary-500 transition-colors"
+                        disabled={sending}
+                    />
+                    <button
+                        disabled={!newMessage.trim() || sending}
+                        className="p-2 bg-primary-700 hover:bg-primary-600 disabled:opacity-50 text-white rounded-xl transition-all shadow-lg active:scale-95"
+                    >
+                        {sending ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
+                    </button>
+                </div>
+            </form>
+        </>
     )
 }

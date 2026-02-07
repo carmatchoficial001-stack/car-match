@@ -1,11 +1,13 @@
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import BusinessDetailClient from './BusinessDetailClient'
 import { Metadata } from 'next'
+import { auth } from '@/lib/auth'
+import { generateBusinessSlug } from '@/lib/slug'
 
 interface Props {
     params: Promise<{ id: string }>
-    searchParams: Promise<any>
+    searchParams?: Promise<any>
 }
 
 // Generar Metadata dinámica para SEO y Compartir en Redes (WhatsApp, Facebook, etc.)
@@ -13,7 +15,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const { id } = await params
     const business = await prisma.business.findUnique({
         where: { id },
-        select: { name: true, category: true, description: true, images: true }
+        select: { name: true, category: true, description: true, images: true, city: true }
     })
 
     if (!business) {
@@ -22,60 +24,32 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
         }
     }
 
+    const title = `${business.name} | ${business.category.charAt(0).toUpperCase() + business.category.slice(1).toLowerCase()} en ${business.city}`
+
     return {
-        title: `${business.name} | CarMatch MapStore`,
-        description: business.description?.substring(0, 160) || `Encuentra ${business.name} y otros negocios de ${business.category} en CarMatch.`,
+        title: `${title} | CarMatch`,
+        description: business.description?.substring(0, 160) || `Encuentra ${business.name} en ${business.city}. Servicios de ${business.category} verificados en el MapStore de CarMatch.`,
         openGraph: {
-            title: `${business.name} - ${business.category}`,
-            description: `¡Mira este negocio en CarMatch! Ubicación, horarios y contacto.`,
+            title: title,
+            description: `¡Mira este negocio en CarMatch! Ubicación, horarios y servicios en ${business.city}.`,
             images: business.images.length > 0 ? [business.images[0]] : [],
         },
     }
 }
 
-import { auth } from '@/lib/auth'
-
-export default async function BusinessDetailPage({ params, searchParams }: Props) {
+export default async function BusinessDetailPage({ params }: Props) {
     const { id } = await params
-
-    // Fetch business data
     const business = await prisma.business.findUnique({
         where: { id },
-        include: {
-            user: {
-                select: {
-                    name: true,
-                    image: true
-                }
-            }
-        }
+        select: { id: true, name: true, city: true }
     })
 
     if (!business) {
         notFound()
     }
 
-    // Obtener sesión para saber si es el dueño
-    const session = await auth()
+    const slug = generateBusinessSlug(business.name, business.city)
 
-    const safeBusiness = {
-        ...business,
-        user: {
-            ...business.user,
-            name: business.user.name || 'Usuario CarMatch',
-            image: business.user.image || ''
-        },
-        // Campos para gestión
-        isActive: business.isActive,
-        expiresAt: business.expiresAt,
-        userId: business.userId,
-        isFreePublication: business.isFreePublication
-    }
-
-    return (
-        <BusinessDetailClient
-            business={safeBusiness as any}
-            currentUserId={session?.user?.id}
-        />
-    )
+    // 🚀 REDIRECCIÓN 301 (Business SEO Supremacy)
+    permanentRedirect(`/negocio/${slug}-${business.id}`)
 }

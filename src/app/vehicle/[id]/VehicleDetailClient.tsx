@@ -1,18 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import Header from '@/components/Header'
-import { ArrowLeft, MapPin, MessageCircle, Calendar, Gauge, Fuel, CheckCircle2, Zap, Activity, Wind, CircleDot, BatteryCharging, Route, Weight, Truck, ShieldCheck, Settings2, Pipette, Container } from 'lucide-react'
+import { ArrowLeft, MapPin, MessageCircle, Calendar, Gauge, Fuel, CheckCircle2, Zap, Activity, Wind, CircleDot, BatteryCharging, Route, Weight, Truck, ShieldCheck, Settings2, Container } from 'lucide-react'
 import FavoriteButton from '@/components/FavoriteButton'
 import ContactButton from '@/components/ContactButton'
 import ShareButton from '@/components/ShareButton'
 import ReportImageButton from '@/components/ReportImageButton'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { formatPrice, formatNumber } from '@/lib/vehicleTaxonomy'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Edit3, Sparkles, CreditCard, Play, Pause, BadgeCheck, AlertTriangle, Share2, X, Trash2 } from 'lucide-react'
+import { generateVehicleSlug } from '@/lib/slug'
 import ConfirmationModal from '@/components/ConfirmationModal'
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 
@@ -76,30 +78,79 @@ interface VehicleDetailProps {
     }
     currentUserEmail?: string | null
     currentUserId?: string | null
+    relatedVehicles?: any[]
 }
 
-export default function VehicleDetailClient({ vehicle, currentUserEmail, currentUserId }: VehicleDetailProps) {
+export default function VehicleDetailClient({ vehicle, currentUserEmail, currentUserId, relatedVehicles }: VehicleDetailProps) {
     const { t, locale } = useLanguage()
+    const router = useRouter()
+    const searchParams = useSearchParams()
+
+    // Hooks should be at the top level
     const [activeImage, setActiveImage] = useState(0)
     const [showFullImage, setShowFullImage] = useState(false)
-    const isOwner = currentUserId === vehicle.userId
+    const thumbnailsRef = useRef<HTMLDivElement>(null)
+    const isManualScrolling = useRef(false)
+
+    const isOwner = !!currentUserId && currentUserId === vehicle.userId
+    const isGuest = !currentUserId
+    const [isSoftLogout, setIsSoftLogout] = useState(false)
+
+    useEffect(() => {
+        setIsSoftLogout(document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true')
+    }, [])
+
 
     useEffect(() => {
         // Registrar vista real al entrar
         fetch(`/api/vehicles/${vehicle.id}/view`, { method: 'POST' }).catch(() => { })
     }, [vehicle.id])
 
-    const locationString = [vehicle.city, vehicle.state, vehicle.country]
+    // Sincronizar scroll manual de miniaturas con la imagen principal
+    const handleThumbnailsScroll = () => {
+        if (!thumbnailsRef.current || !vehicle.images || vehicle.images.length <= 1) return
+
+        // Solo actuar si el scroll es manual
+        if (isManualScrolling.current) {
+            const container = thumbnailsRef.current
+            const scrollPercent = container.scrollLeft / (container.scrollWidth - container.clientWidth)
+            const index = Math.min(
+                Math.max(Math.round(scrollPercent * (vehicle.images.length - 1)), 0),
+                vehicle.images.length - 1
+            )
+
+            if (index !== activeImage) {
+                setActiveImage(index)
+            }
+        }
+    }
+
+    // Auto-centrar la miniatura cuando cambia activeImage
+    useEffect(() => {
+        if (thumbnailsRef.current && !isManualScrolling.current) {
+            const container = thumbnailsRef.current
+            const activeThumb = container.children[activeImage] as HTMLElement
+            if (activeThumb) {
+                const targetScroll = activeThumb.offsetLeft - (container.offsetWidth / 2) + (activeThumb.offsetWidth / 2)
+                container.scrollTo({
+                    left: targetScroll,
+                    behavior: 'smooth'
+                })
+            }
+        }
+    }, [activeImage])
+
+    // 📍 ADMIN DYNAMIC LOCATION LOGIC
+    const contextCity = searchParams.get('contextCity')
+    const displayCity = (vehicle.user.isAdmin && contextCity) ? contextCity : vehicle.city
+    const locationString = [displayCity, vehicle.state, vehicle.country]
         .filter(b => b && b !== 'null' && b !== 'undefined')
         .join(', ')
 
     // Componentes de Gestión Internos (Solo Dueño)
     const ManagementPanel = () => {
-        // 💡 Lógica de Condición para botones
         const isExpired = vehicle.expiresAt && new Date(vehicle.expiresAt) < new Date()
         const isSold = vehicle.status === 'SOLD'
-
-        // Si está vendido, siempre necesita crédito para reactivar
         const needsCreditToActivate = isSold || !vehicle.isFreePublication || isExpired || vehicle.moderationStatus === 'REJECTED'
         const canActivateFree = !isSold && vehicle.isFreePublication && !isExpired && (vehicle.moderationStatus === 'APPROVED' || vehicle.moderationStatus === 'PENDING_AI')
         const statusKey = vehicle.status.toLowerCase()
@@ -127,7 +178,6 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 </div>
                             )}
                         </div>
-
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full md:w-auto">
@@ -138,8 +188,6 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                             <Edit3 size={20} className="text-primary-400 group-hover:scale-110 transition" />
                             <span className="text-[10px] font-bold uppercase tracking-tighter">Editar</span>
                         </Link>
-
-
 
                         {vehicle.status !== 'ACTIVE' && needsCreditToActivate && (
                             <OwnerActionButton
@@ -181,7 +229,6 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                             />
                         )}
 
-                        {/* Botón de Eliminar (Siempre visible para el dueño) */}
                         <OwnerActionButton
                             action="delete"
                             vehicleId={vehicle.id}
@@ -189,8 +236,6 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                             label="Eliminar"
                             variant="danger"
                         />
-
-
                     </div>
                 </div>
             </div>
@@ -198,16 +243,17 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
     }
 
     return (
-        <div className="min-h-screen bg-background pb-32">
-            <Header />
-
-            <div className="container mx-auto px-4 pt-6">
+        <div className="min-h-screen bg-background pb-20">
+            <div className="container mx-auto px-4 py-8 max-w-7xl">
                 {/* Back Button */}
                 <div className="flex justify-between items-center mb-6">
-                    <Link href="/market" className="inline-flex items-center text-text-secondary hover:text-primary-400 transition">
+                    <button
+                        onClick={() => router.back()}
+                        className="inline-flex items-center text-text-secondary hover:text-primary-400 transition cursor-pointer"
+                    >
                         <ArrowLeft className="mr-2" size={20} />
                         {t('vehicle.back_market')}
-                    </Link>
+                    </button>
 
                     {isOwner && (
                         <div className="bg-primary-700/10 text-primary-400 px-4 py-1.5 rounded-xl border border-primary-700/30 flex items-center gap-2 lg:hidden">
@@ -220,14 +266,21 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Column: Images */}
                     <div className="space-y-4">
-                        <div className="relative w-full bg-black/95 rounded-2xl overflow-hidden border border-surface-highlight shadow-2xl flex items-center justify-center min-h-[300px] group">
+                        <div className="relative w-full bg-black/95 rounded-2xl overflow-hidden border border-surface-highlight shadow-2xl flex items-center justify-center min-h-[300px] group aspect-video lg:aspect-square md:aspect-video">
                             {vehicle.images && vehicle.images.length > 0 ? (
-                                <img
-                                    src={vehicle.images[activeImage]}
-                                    alt={vehicle.title}
-                                    className="w-full h-full object-contain mx-auto cursor-zoom-in"
-                                    onClick={() => setShowFullImage(true)}
-                                />
+                                <AnimatePresence mode="wait">
+                                    <motion.img
+                                        key={activeImage}
+                                        src={vehicle.images[activeImage]}
+                                        alt={vehicle.title}
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 1.05 }}
+                                        transition={{ duration: 0.3, ease: "easeOut" }}
+                                        className="w-full h-full object-contain mx-auto cursor-zoom-in"
+                                        onClick={() => setShowFullImage(true)}
+                                    />
+                                </AnimatePresence>
                             ) : (
                                 <div className="flex items-center justify-center h-full text-text-secondary">
                                     <span className="text-lg">{t('vehicle.no_images')}</span>
@@ -267,6 +320,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                             <img
                                                 src={vehicle.images?.[activeImage]}
                                                 alt={vehicle.title}
+                                                loading="lazy"
                                                 className="max-w-full max-h-[90vh] object-contain"
                                             />
                                         </TransformComponent>
@@ -277,12 +331,28 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
 
                         {/* Thumbnails */}
                         {vehicle.images && vehicle.images.length > 1 && (
-                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                            <div
+                                ref={thumbnailsRef}
+                                onScroll={handleThumbnailsScroll}
+                                onTouchStart={() => isManualScrolling.current = true}
+                                onTouchEnd={() => {
+                                    setTimeout(() => isManualScrolling.current = false, 500)
+                                }}
+                                onMouseDown={() => isManualScrolling.current = true}
+                                onMouseUp={() => {
+                                    setTimeout(() => isManualScrolling.current = false, 500)
+                                }}
+                                className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory scroll-smooth"
+                                style={{ WebkitOverflowScrolling: 'touch' }}
+                            >
                                 {vehicle.images.map((img, idx) => (
                                     <button
                                         key={idx}
-                                        onClick={() => setActiveImage(idx)}
-                                        className={`relative w-24 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition ${activeImage === idx ? 'border-primary-500' : 'border-transparent opacity-70 hover:opacity-100'
+                                        onClick={() => {
+                                            isManualScrolling.current = false;
+                                            setActiveImage(idx);
+                                        }}
+                                        className={`relative w-24 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition snap-center ${activeImage === idx ? 'border-primary-500 scale-105 shadow-glow-sm' : 'border-transparent opacity-50 hover:opacity-100'
                                             }`}
                                     >
                                         <Image src={img} alt={`Thumbnail ${idx}`} fill className="object-cover" />
@@ -294,7 +364,8 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
 
                     {/* Right Column: Details */}
                     <div className="flex flex-col">
-                        {isOwner && <ManagementPanel />}
+                        {isOwner && !isSoftLogout && <ManagementPanel />}
+
 
                         <div className="bg-surface border border-surface-highlight rounded-3xl p-6 shadow-xl mb-6">
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
@@ -327,40 +398,41 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 </div>
                             </div>
 
-                            <div className="flex gap-3 mb-8 items-stretch">
-                                {/* Columna Izquierda: Compartir y Favorito */}
-                                <div className="flex-1 flex flex-col gap-3">
-                                    <ShareButton
-                                        title={vehicle.title}
-                                        text={t('vehicle.share_text').replace('{title}', vehicle.title)}
-                                        url={typeof window !== 'undefined' ? `${window.location.origin}/vehicle/${vehicle.id}` : `/vehicle/${vehicle.id}`}
-                                        variant="full"
-                                        className="mt-0"
+                            <div className="flex flex-col gap-3 mb-8">
+                                {/* Botón de Contacto Principal (Mandar Mensaje) */}
+                                {!isOwner && (
+                                    <ContactButton
+                                        sellerId={vehicle.userId}
+                                        vehicleId={vehicle.id}
+                                        vehicleTitle={vehicle.title}
+                                        status={vehicle.status as any}
+                                        label="Mandar Mensaje al Vendedor"
+                                        className="w-full text-lg py-4 shadow-lg shadow-primary-900/20 active:scale-[0.98] transition-all"
                                     />
-                                    {!isOwner && (
-                                        <FavoriteButton
-                                            vehicleId={vehicle.id}
-                                            initialIsFavorited={vehicle.isFavorited}
-                                            size="lg"
-                                            showText={true}
-                                            rounded="rounded-2xl"
-                                            className="w-full h-full min-h-[56px] border border-surface-highlight"
-                                        />
-                                    )}
-                                </div>
-
-                                {/* Columna Derecha: Contactar */}
-                                {!isOwner && !vehicle.user.isAdmin && (
-                                    <div className="flex-1">
-                                        <ContactButton
-                                            sellerId={vehicle.userId}
-                                            vehicleId={vehicle.id}
-                                            vehicleTitle={vehicle.title}
-                                            status={vehicle.status as any}
-                                            className="h-full flex flex-col items-center justify-center text-center py-6"
-                                        />
-                                    </div>
                                 )}
+
+                                <div className="flex gap-3 items-stretch">
+                                    {/* Columna Izquierda: Compartir y Favorito */}
+                                    <div className="flex-1 flex flex-col gap-3">
+                                        <ShareButton
+                                            title={vehicle.title}
+                                            text={t('vehicle.share_text').replace('{title}', vehicle.title)}
+                                            url={`/comprar/${generateVehicleSlug(vehicle.brand, vehicle.model, vehicle.year, vehicle.city)}-${vehicle.id}`}
+                                            variant="full"
+                                            className="mt-0"
+                                        />
+                                        {!isOwner && (
+                                            <FavoriteButton
+                                                vehicleId={vehicle.id}
+                                                initialIsFavorited={vehicle.isFavorited}
+                                                size="lg"
+                                                showText={true}
+                                                rounded="rounded-2xl"
+                                                className="w-full h-full min-h-[56px] border border-surface-highlight"
+                                            />
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Main Specs Grid */}
@@ -393,12 +465,90 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
 
                                     <DetailItem icon={<CheckCircle2 size={18} />} label="Condición" value={vehicle.condition || 'N/A'} />
 
+                                    {/* 🏎️ ESPECIFICACIONES AVANZADAS (NUEVAS) */}
+                                    {vehicle.displacement && (
+                                        <DetailItem
+                                            icon={<Settings2 size={18} />}
+                                            label="Cilindraje"
+                                            value={vehicle.displacement > 100 ? `${vehicle.displacement} cc` : `${vehicle.displacement}L`}
+                                        />
+                                    )}
 
-                                    {vehicle.cargoCapacity && <DetailItem icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>} label="Carga" value={`${vehicle.cargoCapacity} kg`} />}
+                                    {vehicle.hp && (
+                                        <DetailItem
+                                            icon={<Zap size={18} />}
+                                            label="Potencia"
+                                            value={`${vehicle.hp} HP`}
+                                        />
+                                    )}
+
+                                    {vehicle.torque && (
+                                        <DetailItem
+                                            icon={<Activity size={18} />}
+                                            label="Torque"
+                                            value={vehicle.torque}
+                                        />
+                                    )}
+
+                                    {vehicle.cylinders && (
+                                        <DetailItem
+                                            icon={<CircleDot size={18} />}
+                                            label="Cilindros"
+                                            value={vehicle.cylinders.toString()}
+                                        />
+                                    )}
+
+                                    {vehicle.aspiration && (
+                                        <DetailItem
+                                            icon={<Wind size={18} />}
+                                            label="Aspiración"
+                                            value={vehicle.aspiration}
+                                        />
+                                    )}
+
+                                    {vehicle.batteryCapacity && (
+                                        <DetailItem
+                                            icon={<BatteryCharging size={18} />}
+                                            label="Batería"
+                                            value={`${vehicle.batteryCapacity} kWh`}
+                                        />
+                                    )}
+
+                                    {vehicle.range && (
+                                        <DetailItem
+                                            icon={<Route size={18} />}
+                                            label="Rango Eléctrico"
+                                            value={`${vehicle.range} km`}
+                                        />
+                                    )}
+
+                                    {vehicle.weight && (
+                                        <DetailItem
+                                            icon={<Weight size={18} />}
+                                            label="Peso"
+                                            value={`${vehicle.weight} kg`}
+                                        />
+                                    )}
+
+                                    {vehicle.axles && (
+                                        <DetailItem
+                                            icon={<Truck size={18} />}
+                                            label="Ejes"
+                                            value={vehicle.axles.toString()}
+                                        />
+                                    )}
+
+                                    {vehicle.cargoCapacity && (
+                                        <DetailItem
+                                            icon={<Container size={18} />}
+                                            label="Carga"
+                                            value={`${vehicle.cargoCapacity} kg`}
+                                        />
+                                    )}
 
                                     {vehicle.traction && (
                                         <DetailItem
-                                            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
+                                            icon={<Settings2 size={18} />}
                                             label="Tracción"
                                             value={vehicle.traction}
                                         />
@@ -445,21 +595,84 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
                                 </p>
                             </div>
 
-                            {/* Sección de Vendedor - Oculta para el dueño y si el vendedor es admin */}
-                            {!isOwner && !vehicle.user.isAdmin && (
-                                <div className="border-t border-surface-highlight pt-6">
-                                    <h3 className="text-lg font-bold text-text-primary mb-4 font-outfit">{t('vehicle.seller')}</h3>
-                                    <div className="flex items-center justify-between">
-                                        <Link href={`/profile/${vehicle.user.id}`} className="flex items-center gap-3 group/seller transition-all hover:opacity-80">
-                                            <div className="w-12 h-12 bg-primary-700/20 rounded-full flex items-center justify-center text-primary-400 font-bold text-xl uppercase shadow-glow group-hover/seller:bg-primary-700/30 transition-colors">
-                                                {vehicle.user.name.substring(0, 2)}
+                            {/* Sección de Vendedor - Solo visible si NO es el dueño */}
+                            {!isOwner && (
+                                <div className="border-t border-surface-highlight pt-8 mt-4">
+                                    <h3 className="text-xl font-bold text-text-primary mb-6 font-outfit flex items-center gap-2">
+                                        <ShieldCheck size={22} className="text-primary-400" />
+                                        Información del Vendedor
+                                    </h3>
+                                    <div className="bg-surface-highlight/20 border border-white/5 rounded-3xl p-6 transition-all hover:bg-surface-highlight/30">
+                                        <div className="flex items-center justify-between">
+                                            <div
+                                                onClick={() => {
+                                                    if (isGuest) {
+                                                        router.push('/auth?callbackUrl=' + encodeURIComponent(`/profile/${vehicle.user.id}`));
+                                                    } else {
+                                                        router.push(`/profile/${vehicle.user.id}`);
+                                                    }
+                                                }}
+                                                className="flex items-center gap-4 group/seller transition-all cursor-pointer w-full"
+                                            >
+                                                <div className="relative">
+                                                    <div className="w-28 h-20 bg-black/20 rounded-2xl flex items-center justify-center text-primary-400 font-bold text-2xl uppercase shadow-glow group-hover/seller:bg-black/30 transition-all overflow-hidden border-2 border-primary-500/30">
+                                                        {vehicle.user.image ? (
+                                                            <img src={vehicle.user.image} alt={vehicle.user.name} loading="lazy" className="w-full h-full object-contain" />
+                                                        ) : (
+                                                            vehicle.user.name.substring(0, 2)
+                                                        )}
+                                                    </div>
+                                                    <div className="absolute -bottom-1 -right-1 bg-green-500 w-5 h-5 rounded-full border-4 border-surface flex items-center justify-center shadow-lg">
+                                                        <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className="font-black text-xl text-text-primary group-hover/seller:text-primary-400 transition-colors flex items-center gap-2">
+                                                        {vehicle.user.name}
+                                                        {vehicle.user.isAdmin && <BadgeCheck size={18} className="text-primary-400" />}
+                                                    </p>
+                                                    <p className="text-sm text-text-secondary font-medium">{t('vehicle.verified_seller')}</p>
+                                                    <div className="flex items-center gap-4 mt-2">
+                                                        <span className="text-xs px-2.5 py-1 bg-green-500/10 text-green-400 rounded-lg border border-green-500/20 font-bold uppercase tracking-tight">Active Now</span>
+                                                        <span className="text-xs text-primary-400 font-bold">Ver Perfil Completo →</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-bold text-text-primary group-hover/seller:text-primary-400 transition-colors">{vehicle.user.name}</p>
-                                                <p className="text-xs text-text-secondary">{t('vehicle.verified_seller')}</p>
-                                            </div>
-                                        </Link>
-                                        {/* Botón de contacto movido arriba por petición del usuario */}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 🔄 RELATED VEHICLES (Cross-linking UI) */}
+                            {relatedVehicles && relatedVehicles.length > 0 && (
+                                <div className="border-t border-surface-highlight pt-12 mt-8">
+                                    <h3 className="text-2xl font-black text-text-primary mb-6 font-outfit flex items-center gap-3">
+                                        <Sparkles size={24} className="text-primary-400" />
+                                        También te podría interesar
+                                    </h3>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                        {relatedVehicles.map((rv: any) => (
+                                            <Link
+                                                key={rv.id}
+                                                href={`/comprar/${generateVehicleSlug(rv.brand || rv.title, rv.model || '', rv.year, rv.city)}-${rv.id}`}
+                                                className="group bg-surface-highlight/10 border border-white/5 rounded-2xl overflow-hidden hover:bg-surface-highlight/20 transition-all hover:scale-[1.02]"
+                                            >
+                                                <div className="aspect-video relative overflow-hidden bg-black/40">
+                                                    {rv.images?.[0] ? (
+                                                        <img src={rv.images[0]} alt={rv.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-primary-500/20 font-black text-xl">CM</div>
+                                                    )}
+                                                </div>
+                                                <div className="p-3">
+                                                    <p className="text-xs font-bold text-primary-400 uppercase tracking-tighter mb-1 truncate">{rv.title}</p>
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-sm font-black text-text-primary">{formatPrice(rv.price, 'MXN', locale)}</span>
+                                                        <span className="text-[10px] text-text-secondary">{rv.year}</span>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))}
                                     </div>
                                 </div>
                             )}

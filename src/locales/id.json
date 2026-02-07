@@ -46,7 +46,90 @@
         "copied": "Tersalin!",
         "view_more": "Lihat selengkapnya",
         "seats": "kursi",
-        "currency": "Mata Uang"
+        "currency": "Mata Uang",
+        "login_vehicle": "Jual Kendaraan",
+        "login_business": "Unggah Bisnismu",
+        "dynamic_ctas": {
+            "vehicles": [
+                "Butuh uang cepat? | Publikasikan di sini!",
+                "Tidak suka lagi? | Jual hari ini!",
+                "Ingin memperbarui? | Unggah gratis!",
+                "Butuh uang tunai? | Jual sekarang!",
+                "Garasi penuh? | Publikasikan di sini!",
+                "Waktunya ganti? | Unggah hari ini!",
+                "Punya mobil berlebih? | Jual di sini!",
+                "Mau yang lain? | Publikasikan sekarang!",
+                "Butuh modal? | Jadikan uang!",
+                "Ingin yang baru? | Jual sekarang!",
+                "Garasi penuh? | Unggah hari ini!",
+                "Mobil menghalangi? | Jual di sini!",
+                "Ingin yang terbaik? | Jual ini!",
+                "Pengeluaran menumpuk? | Jadikan uang!",
+                "Untuk uang muka? | Jual sekarang!",
+                "Mau pergi berlibur? | Unggah hari ini!",
+                "Mau segera pindah? | Jual sekarang!",
+                "Mobil kecil? | Publikasikan di sini!",
+                "Ingin tenaga besar? | Jual milikmu!",
+                "Keluarga besar? | Unggah sekarang!",
+                "Sudah selesai? | Jual hari ini!",
+                "Uang cepat? | Publikasikan di sini!",
+                "Punya ban berlebih? | Jadikan uang!",
+                "Proyek baru? | Jual sekarang!",
+                "Ingin yang baru? | Publikasikan di sini!",
+                "Mobil berhenti? | Jual sekarang!",
+                "Ingin upgrade? | Tukar milikmu!",
+                "Mencari yang baru? | Publikasikan ini!",
+                "Menghalangi di jalan? | Jadikan efektif!",
+                "Butuh ruang? | Jual cepat!",
+                "Tidak digunakan lagi? | Dapatkan uang!",
+                "Tertarik yang lain? | Lepaskan ini sekarang!",
+                "Mencari ekonomi? | Jual SUV-mu!",
+                "Bau tua? | Dapatkan yang baru hari ini!",
+                "Kilometer banyak? | Berikan ke yang berikutnya!",
+                "Mencari petualangan? | Ganti mobil!",
+                "Uang muka siap? | Hanya ini yang kurang!",
+                "Mencari mobil listrik? | Jual bensinmu!",
+                "Perawatan mahal? | Jual hari ini!",
+                "Keluarga bertambah? | Jual sedan!",
+                "Surat-surat lengkap? | Publikasikan sekarang!",
+                "Jarang digunakan? | Berikan ke orang lain!",
+                "Mencari kemewahan? | Mulai dengan menjual!",
+                "Ingin mobil klasik? | Jual yang modern!",
+                "Silinder berlebih? | Turunkan konsumsi!",
+                "Mencari 4x4? | Jual yang perkotaan!",
+                "Anak kuliah? | Ganti kendaraan!",
+                "Ingin mobil sport? | Lepaskan atapnya!",
+                "Mencari keandalan? | Perbarui mobilmu!",
+                "Butuh likuiditas mendesak? | Jual hari ini juga!",
+                "JARINGAN SOSIAL UNTUK SEMUA | PUBLIKASIKAN DI SINI!",
+                "KAMI TIDAK EKSKLUSIF! | BERGABUNG DENGAN GERAKAN",
+                "KOMUNITAS TERBESAR | NAIK SEKARANG!",
+                "ORANG NYATA, TRANSAKSI NYATA | PUBLIKASIKAN HARI INI!",
+                "SEMUA ORANG DIPERSILAKAN! | JUAL MOBIL ANDA",
+                "JARINGAN UNTUK RAKYAT | UNGGAH GRATIS!",
+                "BERGABUNG DENGAN ARUS MEGA | JUAL DI SINI!",
+                "MOBIL ANDA DI SELURUH MÉXICO | NAIK SEKARANG!",
+                "KEBEBASAN UNTUK MEMPUBLIKASIKAN | JADIKAN UANG!",
+                "JARINGAN YANG MENDUKUNG ANDA | JUAL HARI INI!"
+            ]
+        },
+        "city": "Kota",
+        "change_language": "Ganti bahasa",
+        "install_on_ios": "Instal di iOS",
+        "install_on_android": "Instal di Android",
+        "user": "Pengguna",
+        "sold": "Terjual",
+        "unavailable": "Tidak Tersedia",
+        "seller": "Penjual",
+        "buyer": "Pembeli",
+        "accept": "Terima",
+        "time": {
+            "now": "Sekarang",
+            "m": "m",
+            "h": "j",
+            "d": "h",
+            "sem": "mgg"
+        }
     },
     "share": {
         "share_in": "Bagikan ke...",
@@ -76,7 +159,8 @@
         "favorites": "Favorit",
         "credits": "Kredit",
         "admin_panel": "Panel Admin",
-        "exit_portal": "Keluar Portal"
+        "exit_portal": "Keluar Portal",
+        "settings": "Pengaturan"
     },
     "swipe": {
         "expand_search": "Perluas pencarian ke lokasi lain",
@@ -223,7 +307,10 @@
             "images": "Gambar",
             "features": "Opsi",
             "location": "Lokasi",
-            "review": "Tinjauan"
+            "review": "Tinjauan",
+            "identity_price": "Identitas dan Harga",
+            "specs_features": "Jiwa dan Perlengkapan",
+            "location_review": "Lokasi dan Peluncuran"
         },
         "titles": {
             "what_type": "Jenis kendaraan apa yang Anda jual?",
@@ -380,7 +467,8 @@
             "sold": "Terjual",
             "inactive": "Iklan Ditarik"
         },
-        "user_id": "ID Pengguna"
+        "user_id": "ID Pengguna",
+        "edit_profile": "Edit Profil"
     },
     "business": {
         "title": "Bisnis Saya",
@@ -508,6 +596,30 @@
             "pesados": {
                 "name": "Kendaraan Berat",
                 "services": "Perawatan Truk|Suspensi Udara|Sistem Hidrolik|Perawatan Armada"
+            },
+            "electrolinera": {
+                "name": "Stasiun Pengisian Daya",
+                "services": "Pengisian cepat|Pengisi Daya Tesla|Konektor Tipe 1 dan 2|Stasiun pengisian daya publik|Titik pengisian daya gratis"
+            },
+            "caseta": {
+                "name": "Gerbang Tol",
+                "services": "Pembayaran Tunai|Pembayaran Tol Elektronik|Toilet|Penagihan"
+            },
+            "hospital": {
+                "name": "Rumah Sakit",
+                "services": "UGD|Konsultasi|Apotek|Ambulans"
+            },
+            "policia": {
+                "name": "Kantor Polisi",
+                "services": "Darurat|Laporan|Lalu Lintas|Patroli"
+            },
+            "aeropuerto": {
+                "name": "Bandara",
+                "services": "Penerbangan|Taksi|Rental Mobil|Penukaran Mata Uang"
+            },
+            "estacion_tren": {
+                "name": "Stasiun Kereta",
+                "services": "Tiket|Peron|Ruang Tunggu|Kafetaria"
             }
         }
     },
@@ -707,7 +819,12 @@
         "placeholder_active": "Penasihat sedang menganalisis permintaan...",
         "placeholder_default": "Tulis apa yang Anda cari (misalnya: «Saya ingin mobil hemat untuk dalam kota»)",
         "btn_analyzing": "Berpikir...",
-        "btn_search": "Ajukan pertanyaan"
+        "btn_search": "Ajukan pertanyaan",
+        "title": "Pencarian Cerdas",
+        "placeholder": "Ceritakan apa yang Anda cari: 'Saya butuh truk keluarga merah, murah, 4 silinder...'",
+        "ask_advisor": "Tanya Penasihat",
+        "consulting": "Konsultasi dengan ahli...",
+        "understood": "Dimengerti! Saya telah menyesuaikan filter sesuai dengan pencarian Anda."
     },
     "map_store": {
         "search_placeholder": "🔍 Cari jalan, area, tempat...",
@@ -787,7 +904,28 @@
             "safety_desc": "Periksa mobil dan dokumen hanya di tempat umum yang aman.",
             "transparency_title": "Transparansi:",
             "transparency_desc": "Penjelasan rinci mengenai riwayat perawatan akan mempercepat penjualan."
-        }
+        },
+        "view_list": "Show Map and List",
+        "show_filters": "Show Filters",
+        "results_found": "results found",
+        "report": {
+            "title": "Report Business",
+            "reason_label": "Reason for Report",
+            "wrong_category": "Wrong category",
+            "fake_business": "Fake business / Doesn't exist",
+            "incorrect_info": "Incorrect info",
+            "duplicate": "Duplicate business",
+            "offensive": "Offensive content",
+            "other": "Other reason",
+            "description_label": "Additional Description",
+            "description_placeholder": "Provide more details to help us review...",
+            "submit": "Send Report",
+            "sending": "Sending...",
+            "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
+            "success_msg": "Thank you for your report. The business has been hidden for review.",
+            "success_title": "Laporan Terkirim!"
+        },
+        "how_to_diagnose": "Tell your advisor what's wrong with your car..."
     },
     "business_details": {
         "website": "Situs Web",
@@ -888,7 +1026,8 @@
             "safety_desc": "Periksa mobil dan dokumen hanya di tempat umum yang aman.",
             "transparency_title": "Transparansi:",
             "transparency_desc": "Penjelasan rinci mengenai riwayat perawatan akan mempercepat penjualan."
-        }
+        },
+        "creative_examples": "Contoh: 'Garasi {name}', 'Mobil dari Utara', 'Koleksi {name}'"
     },
     "taxonomy": {
         "categories": {
@@ -996,7 +1135,86 @@
             "Remolque": "Trailer",
             "Lowboy": "Lowboy",
             "Remolque Frigorífico": "Trailer Pendingin",
-            "Plataforma Porta-contenedor": "Pengangkut Kontainer"
+            "Plataforma Porta-contenedor": "Pengangkut Kontainer",
+            "Alarma": "Alarm",
+            "GPS": "GPS",
+            "Luces LED": "Lampu LED",
+            "Frenos ABS": "Rem ABS",
+            "Bluetooth": "Bluetooth",
+            "USB": "USB",
+            "Pantalla Touch": "Layar Sentuh",
+            "Aire Acondicionado": "AC",
+            "Climatizador Automático": "Pengatur Suhu Otomatis",
+            "Asientos de Piel": "Jok Kulit",
+            "Asientos Eléctricos": "Jok Elektrik",
+            "Asientos Calefactables": "Jok Pemanas",
+            "Asientos Ventilados": "Jok Berventilasi",
+            "Quemacocos": "Sunroof",
+            "Techo Panorámico": "Atap Panorama",
+            "Vidrios Eléctricos": "Jendela Elektrik",
+            "Espejos Eléctricos": "Spion Elektrik",
+            "Volante Multifuncional": "Setir Multifungsi",
+            "Cajuela Eléctrica": "Cajuela Eléctrica",
+            "Android Auto/CarPlay": "Android Auto/CarPlay",
+            "Cargador Inalámbrico": "Cargador Inalámbrico",
+            "Head-Up Display": "Head-Up Display",
+            "Sistema de Sonido Premium": "Sonido Premium",
+            "Tablero Digital": "Tablero Digital",
+            "Llave Inteligente (Keyless)": "Llave Inteligente",
+            "Cámara de Reversa": "Kamera Mundur",
+            "Cámara 360°": "Kamera 360°",
+            "Bolsas de Aire (Airbags)": "Bolsas de Aire",
+            "Sensores de Estacionamiento": "Sensor Parkir",
+            "Monitor de Punto Ciego": "Pendeteksi Titik Buta",
+            "Alerta de Cambio de Carril": "Peringatan Pindah Jalur",
+            "Frenado Autónomo de Emergencia": "Pengereman Darurat Otomatis",
+            "Control Crucero Adaptativo": "Kontrol Jelajah Adaptif",
+            "Rines de Aluminio": "Rines de Aluminio",
+            "Faros de Niebla": "Lampu Kabut",
+            "Barras de Techo": "Batang Atap",
+            "Kit Deportivo": "Kit Sport",
+            "Frenos de Disco": "Rem Cakram",
+            "ABS en Curva": "ABS di Tikungan",
+            "Control de Tracción": "Kontrol Traksi",
+            "Quickshifter": "Quickshifter",
+            "Modos de Manejo": "Mode Berkendara",
+            "Suspensión Electrónica": "Suspensi Elektronik",
+            "Amortiguador de Dirección": "Peredam Kemudi",
+            "Maletas Laterales": "Tas Samping",
+            "Top Case": "Top Case",
+            "Parabrisas": "Kaca Depan",
+            "Defensas/Sliders": "Pelindung/Slider",
+            "Puños Calefactables": "Puños Calefactables",
+            "Asiento Comfort": "Asiento Comfort",
+            "Luces Auxiliares (Exploradoras)": "Luces Auxiliares",
+            "Freno de Motor": "Freno de Motor",
+            "Retardador": "Retardador",
+            "Camarote": "Camarote",
+            "Ejes Retráctiles": "Ejes Retráctiles",
+            "Suspensión de Aire": "Suspensi Udara",
+            "Toma de Fuerza (PTO)": "Toma de Fuerza (PTO)",
+            "Deflector de Aire": "Deflektor Udara",
+            "Tanque Auxiliar": "Tangki Tambahan",
+            "Visera Exterior": "Visor Eksterior",
+            "Asiento Neumático": "Jok Pneumatik",
+            "Eje Elevable": "Poros Angkat",
+            "Cabina Cerrada (ROPS/FOPS)": "Kabin Tertutup (ROPS/FOPS)",
+            "Calefacción": "Pemanas",
+            "Joystick Control": "Kontrol Joystick",
+            "Estabilizadores": "Stabilisator",
+            "Cucharon 4en1": "Bucket 4in1",
+            "Línea Hidráulica Auxiliar": "Jalur Hidraulik",
+            "Ripper (Desgarrador)": "Ripper",
+            "Zapatas Anchas": "Bantalan Lebar",
+            "Llantas Sólidas": "Ban Padat",
+            "Winch (Cabrestante)": "Winch",
+            "Roll Cage (Jaula)": "Roll Cage",
+            "Snorkel": "Snorkel",
+            "Suspensión Lift Kit": "Lift Kit",
+            "Llantas All-Terrain/Mud-Terrain": "Ban All-Terrain",
+            "Luces LED Bar": "Bilah Lampu LED",
+            "Techo Rígido": "Atap Keras",
+            "Medios Puertas": "Pintu Setengah"
         },
         "transmission": {
             "Manual": "Manual",
@@ -1112,6 +1330,11 @@
         "completed": "Completed",
         "accept_btn": "Accept",
         "reject_btn": "Reject",
-        "cancel_btn": "Cancel"
+        "cancel_btn": "Cancel",
+        "past": "Selesai"
+    },
+    "chat": {
+        "welcome": "¡Hola! Saya Asisten CarMatch Anda. 👨‍💻 Apa yang bisa saya bantu hari ini?",
+        "title": "Asisten CarMatch"
     }
 }

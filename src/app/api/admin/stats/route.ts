@@ -48,7 +48,8 @@ export async function GET(request: NextRequest) {
                 include: {
                     reporter: { select: { name: true, email: true } },
                     targetUser: { select: { name: true, email: true } },
-                    vehicle: { select: { title: true } },
+                    vehicle: { select: { id: true, title: true } },
+                    business: { select: { id: true, name: true } }
                 }
             }),
             prisma.user.findMany({
@@ -77,7 +78,23 @@ export async function GET(request: NextRequest) {
             prisma.payment.aggregate({ where: { status: 'COMPLETED' }, _sum: { creditsAdded: true, amount: true } }), // 19
             prisma.creditTransaction.aggregate({ where: { amount: { lt: 0 } }, _sum: { amount: true } }), // 20
             prisma.business.count({ where: { isActive: true } }), // 21
-            prisma.sOSAlert.count() // 22
+            prisma.sOSAlert.count(), // 22
+
+            // 📊 23-24: Métricas de Registros
+            prisma.user.count({
+                where: {
+                    createdAt: {
+                        gte: new Date(new Date().setHours(0, 0, 0, 0)) // Inicio del día de hoy
+                    }
+                }
+            }), // 23: Registros hoy
+            prisma.user.count({
+                where: {
+                    createdAt: {
+                        gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) // Inicio del mes
+                    }
+                }
+            }) // 24: Registros este mes
         ])
 
         const [
@@ -103,7 +120,9 @@ export async function GET(request: NextRequest) {
             paymentSummary,
             usageSummary,
             activeBusinesses,
-            sosCount
+            sosCount,
+            registrationsToday,
+            registrationsThisMonth
         ] = statsResults
 
         const creditsPurchased = paymentSummary?._sum?.creditsAdded || 0
@@ -167,6 +186,11 @@ export async function GET(request: NextRequest) {
             financials: {
                 revenue: growth.revenue,
                 totalRevenue: totalRevenue
+            },
+            registrations: {
+                today: registrationsToday,
+                thisMonth: registrationsThisMonth,
+                total: totalUsers
             },
             detailedStats: {
                 shareCount,

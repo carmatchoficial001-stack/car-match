@@ -66,7 +66,7 @@ export default function RegisterSW() {
                 <div className="flex-1">
                     <h4 className="font-bold text-sm mb-1">Nueva versión disponible</h4>
                     <p className="text-xs text-white/90 mb-3">
-                        CarMatch tiene mejoras. Actualiza para obtener la mejor experiencia.
+                        CarMatch Social tiene mejoras. Actualiza para obtener la mejor experiencia.
                     </p>
                     <div className="flex gap-2">
                         <button

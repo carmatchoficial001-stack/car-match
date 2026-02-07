@@ -11,70 +11,67 @@ import {
     Map as MapIcon,
     User
 } from "lucide-react"
+import { useRestoreSessionModal } from "@/hooks/useRestoreSessionModal"
+import { useRouter } from "next/navigation"
 
 export default function MobileNav() {
     const pathname = usePathname()
     const { t } = useLanguage()
     const { data: session } = useSession()
+    const router = useRouter()
+    const { openModal } = useRestoreSessionModal()
+    const [isSoftLogout, setIsSoftLogout] = useState(false)
     const [isVisible, setIsVisible] = useState(true)
 
+    // 🔥 SESIÓN Y SOFT LOGOUT
     useEffect(() => {
-        // Función simplificada y robusta para detectar teclado
-        const handleResize = () => {
-            // Si el viewport es mucho más chico que la pantalla, es probable que esté el teclado
-            // Usamos window.screen.height como referencia absoluta que no cambia (usualmente)
-            const isKeyboardOpen = window.visualViewport
-                ? window.visualViewport.height < window.screen.height * 0.6 // 60% de la pantalla
-                : window.innerHeight < window.screen.height * 0.75;
+        const hasCookie = document.cookie.includes('soft_logout=true')
+        const hasStorage = localStorage.getItem('soft_logout') === 'true'
+        const currentSoftLogout = hasCookie || hasStorage
 
-            // Verificación adicional por foco (la más confiable para inputs)
-            const activeTag = document.activeElement?.tagName;
-            const isInputFocused = activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT';
+        const protectedPaths = ['/profile', '/settings', '/messages', '/my-businesses', '/publish', '/admin', '/favorites', '/credits'];
+        const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
 
-            if (isKeyboardOpen || isInputFocused) {
-                setIsVisible(false);
-            } else {
-                setIsVisible(true);
-            }
-        };
-
-        // Listeners
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', handleResize);
+        if (session && currentSoftLogout && isProtectedPath) {
+            document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+            localStorage.removeItem('soft_logout')
+            setIsSoftLogout(false)
+        } else {
+            setIsSoftLogout(currentSoftLogout)
         }
-        window.addEventListener('resize', handleResize);
+    }, [pathname, session])
 
-        // Focus listeners con capture para asegurar que los atrapamos
-        const handleFocus = (e: Event) => {
+    // ⌨️ SMART KEYBOARD HIDE (Detección por Eventos Puros)
+    useEffect(() => {
+        const handleFocus = (e: FocusEvent) => {
             const target = e.target as HTMLElement;
             if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
                 setIsVisible(false);
             }
         };
+
         const handleBlur = () => {
-            // Pequeño delay para verificar si el foco pasó a otro input o se cerró el teclado
-            setTimeout(handleResize, 100);
+            setIsVisible(true);
         };
 
         document.addEventListener('focusin', handleFocus);
         document.addEventListener('focusout', handleBlur);
 
-        // Chequeo inicial
-        handleResize();
-
         return () => {
-            if (window.visualViewport) {
-                window.visualViewport.removeEventListener('resize', handleResize);
-            }
-            window.removeEventListener('resize', handleResize);
             document.removeEventListener('focusin', handleFocus);
             document.removeEventListener('focusout', handleBlur);
         };
     }, []);
 
-    if (!session) return null
+    // 🔥 ESCUCHAR RESTAURACIÓN MANUAL
+    useEffect(() => {
+        const handleRestore = () => {
+            setIsSoftLogout(false)
+        }
+        window.addEventListener('session-restored', handleRestore)
+        return () => window.removeEventListener('session-restored', handleRestore)
+    }, [])
 
-    // Ocultar en admin
     if (pathname?.startsWith('/admin')) {
         return null
     }
@@ -85,26 +82,47 @@ export default function MobileNav() {
         { href: "/swipe", icon: Flame, label: t('nav.carmatch'), color: "text-orange-500" },
         { href: "/market", icon: Car, label: t('nav.marketcar'), color: "text-blue-500" },
         { href: "/map", icon: MapIcon, label: t('nav.mapstore'), color: "text-green-500" },
-        { href: "/profile", icon: User, label: t('nav.profile'), color: "text-purple-500" },
+        {
+            href: (session && !isSoftLogout) ? "/profile" : "/auth",
+            icon: User,
+            label: (session && !isSoftLogout) ? t('nav.profile') : t('common.login'),
+            color: "text-purple-500"
+        },
     ]
 
     return (
-        <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-[9999] glass-effect pb-safe transition-all duration-300 ${isVisible ? 'flex opacity-100 translate-y-0' : 'flex opacity-0 translate-y-full pointer-events-none'
-            }`}>
-            <div className="flex items-center justify-around h-16 px-2 w-full">
+        <nav
+            className={`md:hidden fixed bottom-0 left-0 right-0 z-[50] bg-[#0f172a] border-t border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.6)] ${isVisible ? 'flex' : 'hidden'}`}
+            style={{
+                height: 'calc(68px + env(safe-area-inset-bottom))',
+                paddingBottom: 'env(safe-area-inset-bottom)'
+            }}
+        >
+            <div className="flex items-center justify-around h-[68px] px-2 w-full">
                 {navItems.map((item, index) => {
                     const Icon = item.icon
                     const active = isActive(item.href)
+
+                    const handleClick = (e: React.MouseEvent) => {
+                        // Si es el ítem de auth y hay sesión con soft logout
+                        if (item.href === "/auth" && session && isSoftLogout) {
+                            e.preventDefault()
+                            openModal(
+                                "Cerraste sesión hace un momento. ¿Deseas volver a activar tu cuenta?",
+                                () => { /* Logica en modal */ }
+                            )
+                        }
+                    }
 
                     return (
                         <Link
                             key={item.href || index}
                             href={item.href}
-                            className={`flex flex-col items-center justify-center w-full gap-1 transition ${active ? 'text-primary-500 scale-110' : 'text-text-secondary'
-                                }`}
+                            onClick={handleClick}
+                            className={`flex flex-col items-center justify-center w-full gap-0.5 active:scale-95 transition-transform ${active ? 'text-primary-500' : 'text-slate-400'}`}
                         >
-                            <Icon className={`w-6 h-6 ${active ? item.color : ''}`} />
-                            <span className="text-[10px] font-medium truncate max-w-[60px]">
+                            <Icon className={`w-6 h-6 ${active ? item.color : 'opacity-80'}`} />
+                            <span className={`text-[10px] font-bold truncate max-w-[64px] ${active ? 'text-white' : 'text-slate-500'}`}>
                                 {item.label}
                             </span>
                         </Link>

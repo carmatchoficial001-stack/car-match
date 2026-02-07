@@ -107,7 +107,7 @@ export default function ReportImageButton({
                                 </h3>
 
                                 <p className="text-sm text-text-secondary">
-                                    Ayuda a mantener segura la comunidad de CarMatch. Tu reporte es anónimo.
+                                    Ayuda a mantener segura la comunidad de CarMatch Social. Tu reporte es anónimo.
                                 </p>
 
                                 <div>

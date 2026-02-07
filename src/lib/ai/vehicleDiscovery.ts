@@ -39,7 +39,9 @@ export async function discoverNewBrands(): Promise<number> {
   Responde ÚNICAMENTE con el JSON, sin texto adicional ni markdown.
   `
 
-    const response = await safeGenerateContent(prompt)
+    // ✅ Usar Pro para descubrimiento (requiere conocimiento profundo del mercado)
+    const { geminiPro } = await import('@/lib/ai/geminiClient');
+    const response = await safeGenerateContent(prompt, 5, geminiPro);
     const responseText = response.text().trim()
 
     const brands = safeExtractJSON<any[]>(responseText)
@@ -124,7 +126,8 @@ export async function discoverNewModels(): Promise<number> {
     Responde SOLO JSON, sin markdown.
     `
 
-        const response = await safeGenerateContent(prompt)
+        const { geminiPro } = await import('@/lib/ai/geminiClient');
+        const response = await safeGenerateContent(prompt, 5, geminiPro); // ✅ Pro
         const responseText = response.text().trim()
 
         const models = safeExtractJSON<any[]>(responseText)
@@ -198,7 +201,8 @@ export async function discoverNewVehicleTypes(): Promise<number> {
   Solo JSON, sin markdown.
   `
 
-    const response = await safeGenerateContent(prompt)
+    const { geminiPro } = await import('@/lib/ai/geminiClient');
+    const response = await safeGenerateContent(prompt, 5, geminiPro); // ✅ Pro
     const responseText = response.text().trim()
 
     const types = safeExtractJSON<any[]>(responseText)

@@ -9,18 +9,18 @@ interface LogoProps {
 
 export function Logo({ className = "w-12 h-12", showText = false, textClassName = "text-2xl font-black tracking-tight" }: LogoProps) {
     return (
-        <div className="flex flex-col items-center justify-center gap-2 sm:flex-row">
+        <div className="flex items-center gap-2">
             <div className={`relative ${className}`}>
                 <Image
-                    src="/logo-v18.png"
-                    alt="CarMatch Logo"
+                    src="/icon-192-v20.png" // ✨ NEW: Logo v20 maximizado sin bordes blancos
+                    alt="CarMatch® | Marketplace Oficial de Autos y Servicios"
                     fill
                     className="object-contain"
                     priority
                 />
             </div>
             {showText && (
-                <span className={textClassName}>CarMatch</span>
+                <span className={`${textClassName} text-text-primary`}>CarMatch</span>
             )}
         </div>
     )

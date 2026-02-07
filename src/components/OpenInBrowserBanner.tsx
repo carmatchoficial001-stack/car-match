@@ -54,9 +54,9 @@ export default function OpenInBrowserBanner() {
     const getInstructions = () => {
         const isAndroid = navigator.userAgent.toLowerCase().includes('android')
         if (isAndroid) {
-            return `Para descargar CarMatch en tu celular, necesitas abrirlo en Chrome`
+            return `Para descargar CarMatch Social en tu celular, necesitas abrirlo en Chrome`
         } else {
-            return `Para descargar CarMatch en tu celular, necesitas abrirlo en Safari`
+            return `Para descargar CarMatch Social en tu celular, necesitas abrirlo en Safari`
         }
     }
 

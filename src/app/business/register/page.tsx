@@ -2,13 +2,13 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 
 import { useLanguage } from '@/contexts/LanguageContext'
 import { BUSINESS_CATEGORIES } from '@/lib/businessCategories'
 
 // Dynamic import for Mapbox component
-const MapBoxAddressPicker = dynamic(() => import('@/components/MapBoxAddressPicker'), {
+const MapBoxAddressPicker = nextDynamic(() => import('@/components/MapBoxAddressPicker'), {
     ssr: false,
     loading: () => <div className="w-full h-[350px] bg-surface-highlight animate-pulse rounded-xl" />
 })

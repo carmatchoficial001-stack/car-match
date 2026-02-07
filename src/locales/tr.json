@@ -46,7 +46,90 @@
         "copied": "Kopyalandı!",
         "view_more": "Daha Fazla Gör",
         "seats": "koltuk",
-        "currency": "Para Birimi"
+        "currency": "Para Birimi",
+        "login_vehicle": "Araç Sat",
+        "login_business": "İşletmeni Yükle",
+        "dynamic_ctas": {
+            "vehicles": [
+                "Paraya mı ihtiyacın var? | Burada yayınla!",
+                "Artık beğenmiyor musun? | Bugün sat!",
+                "Yenilemek mi istiyorsun? | Ücretsiz yükle!",
+                "Nakit mi lazım? | Hemen sat!",
+                "Garaj dolu mu? | Burada yayınla!",
+                "Değişim zamanı mı? | Bugün yükle!",
+                "Fazla araban mı var? | Burada sat!",
+                "Başka bir araba mı alacaksın? | Hemen yayınla!",
+                "Sermayeye mi ihtiyacın var? | Nakde çevir!",
+                "Yenisini mi istiyorsun? | Hemen sat!",
+                "Garaj dolu mu? | Bugün yükle!",
+                "Araba engel mi oluyor? | Burada sat!",
+                "En iyisini mi istiyorsun? | Bunu sat!",
+                "Giderler mi arttı? | Paraya çevir!",
+                "Peşinat için mi? | Hemen sat!",
+                "Seyahate mi çıkıyorsun? | Bugün yükle!",
+                "Yakında taşınıyor musun? | Hemen sat!",
+                "Küçük araba mı? | Burada yayınla!",
+                "Güç mü istiyorsun? | Kendi arabanı sat!",
+                "Geniş aile mi? | Hemen yükle!",
+                "Görevini tamamladı mı? | Bugün sat!",
+                "Hızlı para mı? | Burada yayınla!",
+                "Fazla lastiklerin mi var? | Paraya çevir!",
+                "Yeni proje mi? | Hemen sat!",
+                "Yeni araba mı almak istiyorsun? | Burada yayınla!",
+                "Araba park halinde mi? | Hemen sat!",
+                "Yükseltme mi istiyorsun? | Arabanı değiştir!",
+                "Yeni bir şey mi arıyorsun? | Bunu yayınla!",
+                "Sokakta engel mi oluyor? | Nakite çevir!",
+                "Alana mı ihtiyacın var? | Hızlıca sat!",
+                "Artık kullanmıyor musun? | Para kazan!",
+                "Başka biri mi ilgini çekiyor? | Hemen bundan kurtul!",
+                "Ekonomi mi arıyorsun? | SUV'unu sat!",
+                "Eski gibi mi kokuyor? | Bugün yenile!",
+                "Çok kilometre mi? | Bir sonrakine devret!",
+                "Macera mı arıyorsun? | Araba değiştir!",
+                "Peşinat hazır mı? | Sadece bu eksik!",
+                "Elektrikli mi arıyorsun? | Benzinli arabanı sat!",
+                "Pahalı bakım mı? | Bugün sat!",
+                "Aile büyüdü mü? | Sedanı sat!",
+                "Evraklar tamam mı? | Hemen yayınla!",
+                "Az mı kullanıyorsun? | Başkasına ver!",
+                "Lüks mü arıyorsun? | Satış yaparak başla!",
+                "Klasik mi istiyorsun? | Modernini sat!",
+                "Fazla silindir mi var? | Tüketimi azalt!",
+                "4x4 mü arıyorsun? | Şehir arabanı sat!",
+                "Çocuklar üniversitede mi? | Araba değiştir!",
+                "Spor araba mı istiyorsun? | Tavanı bırak!",
+                "Güvenilirlik mi arıyorsun? | Arabanı güncelle!",
+                "Nakit sıkıntısı mı var? | Hemen bugün sat!",
+                "HERKES İÇİN SOSYAL AĞ | BURADA YAYINLA!",
+                "AYRICALIKLI DEĞİLİZ! | HAREKETE KATIL",
+                "EN BÜYÜK TOPLULUK | HEMEN KATIL!",
+                "GERÇEK İNSANLAR, GERÇEK ANLAŞMALAR | BUGÜN YAYINLA!",
+                "HERKES HOŞ GELDİNİZ! | ARABANI SAT",
+                "HALK İÇİN BİR AĞ | ÜCRETSİZ YÜKLE!",
+                "MEGA AKIMA KATIL | BURADA SAT!",
+                "ARABAN TÜM MEKSİKA'DA | HEMEN KATIL!",
+                "YAYINLAMAK İÇİN ÖZGÜRLÜK | NAKDE ÇEVİR!",
+                "SİZİ DESTEKLEYEN AĞ | BUGÜN SAT!"
+            ]
+        },
+        "city": "Şehir",
+        "change_language": "Dili değiştir",
+        "install_on_ios": "iOS'e Yükle",
+        "install_on_android": "Android'e Yükle",
+        "user": "Kullanıcı",
+        "sold": "Satıldı",
+        "unavailable": "Mevcut Değil",
+        "seller": "Satıcı",
+        "buyer": "Alıcı",
+        "accept": "Kabul et",
+        "time": {
+            "now": "Şimdi",
+            "m": "m",
+            "h": "h",
+            "d": "d",
+            "sem": "sem"
+        }
     },
     "share": {
         "share_in": "Şurada paylaş...",
@@ -76,7 +159,8 @@
         "favorites": "Favoriler",
         "credits": "Krediler",
         "admin_panel": "Yönetici Paneli",
-        "exit_portal": "Portaldan Çık"
+        "exit_portal": "Portaldan Çık",
+        "settings": "Ayarlar"
     },
     "swipe": {
         "expand_search": "Aramayı diğer yerlere genişlet",
@@ -223,7 +307,10 @@
             "images": "Resimler",
             "features": "Seçenekler",
             "location": "Konum",
-            "review": "İnceleme"
+            "review": "İnceleme",
+            "identity_price": "Kimlik ve Değer",
+            "specs_features": "Ruh ve Donanım",
+            "location_review": "Konum ve Yayınlama"
         },
         "titles": {
             "what_type": "Ne tür bir araç satıyorsunuz?",
@@ -380,7 +467,8 @@
             "sold": "Satıldı",
             "inactive": "İlan Geri Çekildi"
         },
-        "user_id": "Kullanıcı ID"
+        "user_id": "Kullanıcı ID",
+        "edit_profile": "Profili Düzenle"
     },
     "business": {
         "title": "İşletmelerim",
@@ -508,6 +596,30 @@
             "pesados": {
                 "name": "Ağır Vasıta",
                 "services": "Kamyon Bakımı|Havalı Süspansiyon|Hidrolik Sistemler|Filo Bakımı"
+            },
+            "electrolinera": {
+                "name": "Şarj İstasyonları",
+                "services": "Hızlı şarj|Tesla Şarj Cihazları|Tip 1 ve 2 Konnektörler|Herkese Açık Şarj İstasyonları|Ücretsiz Şarj Noktaları"
+            },
+            "caseta": {
+                "name": "Ücretli Gişeler",
+                "services": "Nakit Ödeme|Otomatik Geçiş Sistemi|Tuvaletler|Fatura"
+            },
+            "hospital": {
+                "name": "Hastaneler",
+                "services": "Acil Servis|Muayene|Eczane|Ambulans"
+            },
+            "policia": {
+                "name": "Polis Merkezi",
+                "services": "Acil Durumlar|Şikayetler|Trafik|Devriyeler"
+            },
+            "aeropuerto": {
+                "name": "Havaalanları",
+                "services": "Uçuşlar|Taksiler|Araba Kiralama|Döviz Bürosu"
+            },
+            "estacion_tren": {
+                "name": "Tren İstasyonu",
+                "services": "Biletler|Peronlar|Bekleme Salonu|Kafeterya"
             }
         }
     },
@@ -707,7 +819,12 @@
         "placeholder_active": "Danışman talebi analiz ediyor...",
         "placeholder_default": "Ne aradığınızı yazın (Örn: «Şehir içi için ekonomik bir araba istiyorum»)",
         "btn_analyzing": "Düşünüyor...",
-        "btn_search": "Soru Sor"
+        "btn_search": "Soru Sor",
+        "title": "Akıllı Arama",
+        "placeholder": "Ne aradığınızı bize anlatın: 'Kırmızı, ucuz, 4 silindirli bir aile minibüsüne ihtiyacım var...'",
+        "ask_advisor": "Danışmana Sor",
+        "consulting": "Uzmana danışılıyor...",
+        "understood": "Anlaşıldı! Filtreleri aramanıza göre ayarladım."
     },
     "map_store": {
         "search_placeholder": "🔍 Cadde, bölge, yer ara...",
@@ -787,7 +904,28 @@
             "safety_desc": "Araba ve belgeleri sadece güvenli kamuya açık yerlerde kontrol edin.",
             "transparency_title": "Şeffaflık:",
             "transparency_desc": "Bakım geçmişinin detaylı açıklanması satışı hızlandırır."
-        }
+        },
+        "view_list": "Show Map and List",
+        "show_filters": "Show Filters",
+        "results_found": "results found",
+        "report": {
+            "title": "Report Business",
+            "reason_label": "Reason for Report",
+            "wrong_category": "Wrong category",
+            "fake_business": "Fake business / Doesn't exist",
+            "incorrect_info": "Incorrect info",
+            "duplicate": "Duplicate business",
+            "offensive": "Offensive content",
+            "other": "Other reason",
+            "description_label": "Additional Description",
+            "description_placeholder": "Provide more details to help us review...",
+            "submit": "Send Report",
+            "sending": "Sending...",
+            "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
+            "success_msg": "Thank you for your report. The business has been hidden for review.",
+            "success_title": "Rapor Gönderildi!"
+        },
+        "how_to_diagnose": "Tell your advisor what's wrong with your car..."
     },
     "business_details": {
         "website": "Web Sitesi",
@@ -888,7 +1026,8 @@
             "safety_desc": "Araba ve belgeleri sadece güvenli kamuya açık yerlerde kontrol edin.",
             "transparency_title": "Şeffaflık:",
             "transparency_desc": "Bakım geçmişinin detaylı açıklanması satışı hızlandırır."
-        }
+        },
+        "creative_examples": "Örnekler: '{name}'in Garajı', 'Kuzeyin Arabaları', '{name}'in Koleksiyonu'"
     },
     "taxonomy": {
         "categories": {
@@ -996,7 +1135,86 @@
             "Remolque": "Römork",
             "Lowboy": "Lowboy",
             "Remolque Frigorífico": "Frigorifik Römork",
-            "Plataforma Porta-contenedor": "Konteyner Taşıyıcı"
+            "Plataforma Porta-contenedor": "Konteyner Taşıyıcı",
+            "Alarma": "Alarm",
+            "GPS": "GPS",
+            "Luces LED": "LED Işıklar",
+            "Frenos ABS": "ABS Frenler",
+            "Bluetooth": "Bluetooth",
+            "USB": "USB",
+            "Pantalla Touch": "Dokunmatik Ekran",
+            "Aire Acondicionado": "Klima",
+            "Climatizador Automático": "Otomatik Klima",
+            "Asientos de Piel": "Deri Koltuklar",
+            "Asientos Eléctricos": "Elektrikli Koltuklar",
+            "Asientos Calefactables": "Isıtmalı Koltuklar",
+            "Asientos Ventilados": "Havalandırmalı Koltuklar",
+            "Quemacocos": "Sunroof",
+            "Techo Panorámico": "Panoramik Tavan",
+            "Vidrios Eléctricos": "Elektrikli Camlar",
+            "Espejos Eléctricos": "Elektrikli Aynalar",
+            "Volante Multifuncional": "Çok Fonksiyonlu Direksiyon",
+            "Cajuela Eléctrica": "Elektrikli Bagaj",
+            "Android Auto/CarPlay": "Android Auto/CarPlay",
+            "Cargador Inalámbrico": "Kablosuz Şarj Cihazı",
+            "Head-Up Display": "Head-Up Display",
+            "Sistema de Sonido Premium": "Premium Ses Sistemi",
+            "Tablero Digital": "Dijital Gösterge Paneli",
+            "Llave Inteligente (Keyless)": "Akıllı Anahtar (Keyless)",
+            "Cámara de Reversa": "Geri Görüş Kamerası",
+            "Cámara 360°": "360° Kamera",
+            "Bolsas de Aire (Airbags)": "Hava Yastıkları (Airbags)",
+            "Sensores de Estacionamiento": "Park Sensörleri",
+            "Monitor de Punto Ciego": "Kör Nokta Monitörü",
+            "Alerta de Cambio de Carril": "Şerit Değiştirme Uyarısı",
+            "Frenado Autónomo de Emergencia": "Otonom Acil Frenleme",
+            "Control Crucero Adaptativo": "Adaptif Hız Sabitleyici",
+            "Rines de Aluminio": "Alüminyum Jantlar",
+            "Faros de Niebla": "Sis Farları",
+            "Barras de Techo": "Tavan Barları",
+            "Kit Deportivo": "Spor Kit",
+            "Frenos de Disco": "Disk Frenler",
+            "ABS en Curva": "Virajda ABS",
+            "Control de Tracción": "Çekiş Kontrolü",
+            "Quickshifter": "Quickshifter",
+            "Modos de Manejo": "Sürüş Modları",
+            "Suspensión Electrónica": "Elektronik Süspansiyon",
+            "Amortiguador de Dirección": "Direksiyon Amortisörü",
+            "Maletas Laterales": "Yan Çantalar",
+            "Top Case": "Top Case",
+            "Parabrisas": "Ön Cam",
+            "Defensas/Sliders": "Koruma Demiri/Slider",
+            "Puños Calefactables": "Isıtmalı Gidonlar",
+            "Asiento Comfort": "Konfor Koltuğu",
+            "Luces Auxiliares (Exploradoras)": "Yardımcı Farlar (Sis Farları)",
+            "Freno de Motor": "Motor Freni",
+            "Retardador": "Retarder",
+            "Camarote": "Kamarot",
+            "Ejes Retráctiles": "Geri Çekilebilir Akslar",
+            "Suspensión de Aire": "Hava Süspansiyonu",
+            "Toma de Fuerza (PTO)": "Güç Çıkışı (PTO)",
+            "Deflector de Aire": "Hava Deflektörü",
+            "Tanque Auxiliar": "Yardımcı Tank",
+            "Visera Exterior": "Dış Siperlik",
+            "Asiento Neumático": "Pnömatik Koltuk",
+            "Eje Elevable": "Kaldırılabilir Aks",
+            "Cabina Cerrada (ROPS/FOPS)": "Kapalı Kabin (ROPS/FOPS)",
+            "Calefacción": "Isıtma",
+            "Joystick Control": "Joystick Kontrolü",
+            "Estabilizadores": "Dengeleyiciler",
+            "Cucharon 4en1": "4'ü 1 Arada Kepçe",
+            "Línea Hidráulica Auxiliar": "Hidrolik Hat",
+            "Ripper (Desgarrador)": "Ripper (Sökücü)",
+            "Zapatas Anchas": "Geniş Pabuçlar",
+            "Llantas Sólidas": "Dolgu Lastikler",
+            "Winch (Cabrestante)": "Winch (Vinç)",
+            "Roll Cage (Jaula)": "Roll Cage (Takla Kafesi)",
+            "Snorkel": "Şnorkel",
+            "Suspensión Lift Kit": "Lift Kit",
+            "Llantas All-Terrain/Mud-Terrain": "Arazi/Çamur Lastikleri",
+            "Luces LED Bar": "LED Bar",
+            "Techo Rígido": "Sert Tavan",
+            "Medios Puertas": "Yarım Kapılar"
         },
         "transmission": {
             "Manual": "Manuel",
@@ -1112,6 +1330,11 @@
         "completed": "Completed",
         "accept_btn": "Accept",
         "reject_btn": "Reject",
-        "cancel_btn": "Cancel"
+        "cancel_btn": "Cancel",
+        "past": "Tamamlandı"
+    },
+    "chat": {
+        "welcome": "Merhaba! Ben CarMatch Danışmanınızım. 👨‍💻 Bugün size nasıl yardımcı olabilirim?",
+        "title": "CarMatch Danışmanı"
     }
 }

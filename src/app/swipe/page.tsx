@@ -1,49 +1,76 @@
 // 🔒 FEATURE LOCKED: CARMATCH SWIPE. DO NOT EDIT WITHOUT EXPLICIT USER OVERRIDE.
+export const dynamic = 'force-dynamic'
+
 import { auth } from "@/lib/auth"
+import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+
 import { prisma } from "@/lib/db"
 import SwipeClient from "./SwipeClient"
 import { serializeDecimal } from "@/lib/serialize"
 
+// 🎯 SEO METADATA (Safe to edit - No afecta lógica locked)
+export const metadata = {
+    title: "CarMatch",
+    description: "Desliza para descubrir tu próximo auto. Like para guardar en favoritos, Dislike para ocultar. La forma más rápida y divertida de explorar autos usados, camionetas, motos y más en México.",
+    keywords: [
+        "swipe autos", "tinder de carros", "descubrir autos", "feed de vehiculos",
+        "like autos", "guardar favoritos carros", "explorar autos usados",
+        "app deslizar carros", "encontrar auto rapido", "swipe vehiculos mexico",
+        "carros en venta swipe", "marketplace dinámico autos", "feed interactivo vehiculos"
+    ],
+    openGraph: {
+        title: "CarMatch Swipe | Descubre Tu Auto Ideal Deslizando",
+        description: "La experiencia tipo Tinder para encontrar autos. Desliza, da Like y guarda tus favoritos al instante. Miles de vehículos esperándote.",
+        url: "https://carmatchapp.net/swipe",
+        images: ["/icon-512-v19.png"]
+    }
+}
+
 export default async function SwipePage() {
     const session = await auth()
+    const cookieStore = await cookies()
+    const isSoftLogout = cookieStore.get('soft_logout')?.value === 'true'
 
-    if (!session?.user) {
-        redirect("/auth")
-    }
+    const currentUser = session?.user?.email
 
-    const currentUser = await prisma.user.findUnique({
-        where: { email: session.user.email! },
-        select: { id: true, isAdmin: true }
-    })
+        ? await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { id: true, isAdmin: true }
+        })
+        : null
 
-    if (!currentUser) {
-        redirect("/auth")
-    }
-
-    const isAdmin = currentUser.isAdmin || currentUser.id === process.env.ADMIN_EMAIL
+    const currentUserId = currentUser?.id || 'guest'
+    const isAdmin = currentUser?.isAdmin || currentUser?.id === process.env.ADMIN_EMAIL
 
     // Obtener vehículos ACTIVOS
     const vehiclesWhere: any = {
         status: "ACTIVE",
-        dislikes: {
+    }
+
+    // Si hay usuario, excluir lo que ya le dio dislike
+    if (currentUser) {
+        vehiclesWhere.dislikes = {
             none: {
                 userId: currentUser.id
             }
         }
     }
 
-    // Si NO es admin, ocultar propios
-    if (!isAdmin) {
+    // Si NO es admin y hay usuario, ocultar propios. Invitados ven todo.
+    // 🔥 NEW: En Modo Invitado (soft_logout) sí permitimos ver sus propios vehículos
+    if (!isAdmin && currentUser && !isSoftLogout) {
         vehiclesWhere.userId = {
             not: currentUser.id
         }
     }
 
+
     const vehicles = await prisma.vehicle.findMany({
         where: vehiclesWhere,
         select: {
             id: true,
+            userId: true,  // 🆕 Needed to track ownership
             title: true,
             brand: true,
             model: true,
@@ -53,6 +80,7 @@ export default async function SwipePage() {
             latitude: true,
             longitude: true,
             country: true,
+            description: true, // ✅ Fetched for swipe card details
             images: true,
             user: {
                 select: {
@@ -66,13 +94,16 @@ export default async function SwipePage() {
                     favorites: true
                 }
             },
-            favorites: {
+            favorites: currentUser ? {
                 where: {
                     userId: currentUser.id
                 },
                 select: {
                     id: true
                 }
+            } : {
+                where: { id: 'none' },
+                take: 0
             }
         },
         orderBy: {
@@ -95,7 +126,7 @@ export default async function SwipePage() {
     return (
         <SwipeClient
             initialItems={serializeDecimal(items) as any}
-            currentUserId={currentUser.id}
+            currentUserId={currentUserId}
         />
     )
 }

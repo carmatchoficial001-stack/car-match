@@ -1,9 +1,12 @@
 ﻿"use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { useRestoreSessionModal } from '@/hooks/useRestoreSessionModal'
 
 interface FavoriteButtonProps {
+
     vehicleId?: string
     businessId?: string
     initialIsFavorited?: boolean
@@ -24,10 +27,26 @@ export default function FavoriteButton({
     rounded = 'rounded-full',
     onToggle
 }: FavoriteButtonProps) {
-    const [isFavorited, setIsFavorited] = useState(initialIsFavorited)
+    const isSoftLogout = typeof document !== 'undefined' && (document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true')
+
+    const [isFavorited, setIsFavorited] = useState(isSoftLogout ? false : initialIsFavorited)
     const [isLoading, setIsLoading] = useState(false)
     const [animate, setAnimate] = useState(false)
     const router = useRouter()
+    const { data: session } = useSession()
+    const { openModal } = useRestoreSessionModal()
+
+    // Sincronizar con cambios en props (importante para refrescos de servidor)
+    useEffect(() => {
+        // 🔥 GHOST SESSION FIX: Si hay soft logout, forzamos estado de invitado (no favorito)
+        const isSoftLogout = typeof document !== 'undefined' && (document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true')
+
+        if (isSoftLogout) {
+            setIsFavorited(false)
+        } else {
+            setIsFavorited(initialIsFavorited)
+        }
+    }, [initialIsFavorited])
 
     const sizeClasses = {
         sm: 'p-1.5',
@@ -48,12 +67,28 @@ export default function FavoriteButton({
         lg: 'w-7 h-7'
     }
 
-    const handleToggle = async (e: React.MouseEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
+    const handleToggle = async (e?: React.MouseEvent) => {
+        if (e) {
+            e.preventDefault()
+            e.stopPropagation()
+        }
 
         if (isLoading) return
 
+        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos
+        const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
+        if (session && isSoftLogout) {
+            openModal(
+                "¿Deseas reactivar tu sesión para guardar este favorito? Tu cuenta sigue vinculada.",
+                () => executeToggle()
+            )
+            return
+        }
+
+        await executeToggle()
+    }
+
+    const executeToggle = async () => {
         // Optimistic update
         const newState = !isFavorited
         setIsFavorited(newState)
@@ -79,10 +114,10 @@ export default function FavoriteButton({
             })
 
             if (response.status === 401) {
-                // Si no está autorizado, redirigir a login
-                // Revertir estado
+                // Si no está autorizado, redirigir a login con callback
                 setIsFavorited(!newState)
-                router.push('/auth')
+                const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+                router.push(`/auth?callbackUrl=${encodeURIComponent(currentPath)}`)
                 return
             }
 
@@ -90,13 +125,24 @@ export default function FavoriteButton({
                 throw new Error('Error al actualizar favorito')
             }
 
-            // Confirmar estado real del servidor para negocios (devuelve isFavorite en vez de isFavorited)
+            // Confirmar estado real del servidor
             const data = await response.json()
+            let finalState = newState
+
             if (data.hasOwnProperty('isFavorite')) {
-                setIsFavorited(data.isFavorite)
+                finalState = data.isFavorite
             } else if (data.hasOwnProperty('isFavorited')) {
-                setIsFavorited(data.isFavorited)
+                finalState = data.isFavorited
             }
+
+            setIsFavorited(finalState)
+            if (onToggle) onToggle(finalState)
+
+            // 🔄 Sincronizar con el servidor y otros componentes
+            router.refresh()
+            window.dispatchEvent(new CustomEvent('favoriteUpdated', {
+                detail: { vehicleId, businessId, isFavorited: finalState }
+            }))
 
         } catch (error) {
             console.error('Error:', error)

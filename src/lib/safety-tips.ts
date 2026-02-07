@@ -1,267 +1,176 @@
 // 50+ Consejos de Seguridad para Chat
 // Estos consejos se mostrarán aleatoriamente uno por uno en el chat
 
+// PARA COMPRADORES (Expert Level)
 export const SAFETY_TIPS = [
-    // PARA COMPRADORES
     {
         category: "COMPRADORES",
-        tip: "Siempre revisa los documentos originales del vehículo antes de pagar."
+        tip: "En autos automáticos, verifica que los cambios sean suaves y no 'pateen' al pasar de Park a Drive."
     },
     {
         category: "COMPRADORES",
-        tip: "Nunca envíes dinero por adelantado sin ver el vehículo en persona."
+        tip: "Revisa el color del aceite: si parece café con leche, podría haber una fuga de anticongelante al motor."
     },
     {
         category: "COMPRADORES",
-        tip: "Reúnete en un lugar público y concurrido, preferiblemente de día."
+        tip: "Busca fugas de líquido de frenos cerca de las llantas; es un tema de seguridad crítica."
     },
     {
         category: "COMPRADORES",
-        tip: "Lleva a un mecánico de confianza o alguien con experiencia contigo."
+        tip: "Observa el desgaste de las llantas: si es irregular, el auto podría necesitar alineación o tener problemas de suspensión."
     },
     {
         category: "COMPRADORES",
-        tip: "Realiza una prueba de manejo antes de comprometer cualquier pago."
+        tip: "Al encender el auto en frío, fíjate si sale humo azul (quema aceite) o blanco persistente (quemando anticongelante)."
     },
     {
         category: "COMPRADORES",
-        tip: "Solicita un historial de servicio y mantenimiento del vehículo."
+        tip: "Verifica que el aire acondicionado enfríe en menos de 1 minuto; si no, podría ser una fuga costosa de gas."
     },
     {
         category: "COMPRADORES",
-        tip: "Verifica que el número de serie (VIN) coincida con los documentos."
+        tip: "Pasa la mano por la pintura bajo la luz: si se siente rugosa o hay 'briseado', esa pieza pudo ser repintada por un golpe."
     },
     {
         category: "COMPRADORES",
-        tip: "Desconfía de precios extremadamente bajos, pueden ser estafas."
+        tip: "Revisa los cinturones de seguridad: deben retraerse con fuerza. Si están flojos, el auto pudo haber tenido un choque fuerte."
     },
     {
         category: "COMPRADORES",
-        tip: "Verifica que no existan adeudos de tenencia o multas pendientes."
+        tip: "En zonas costeras, revisa debajo del chasis buscando corrosión extrema por el salitre."
     },
     {
         category: "COMPRADORES",
-        tip: "Solicita una inspección mecánica completa antes de cerrar la compra."
+        tip: "Si el pedal del freno se siente 'esponjoso', el sistema podría tener aire o una bomba fallando."
     },
     {
         category: "COMPRADORES",
-        tip: "Confirma la identidad del vendedor con una identificación oficial."
+        tip: "Comprueba que la rueda de refacción, el gato y la llave de cruz estén presentes y en buen estado."
     },
     {
         category: "COMPRADORES",
-        tip: "Revisa que las placas y documentos estén vigentes y sean legítimos."
+        tip: "Verifica el historial del REPUVE o equivalente para asegurarte de que el auto no sea recuperado de robo."
     },
     {
         category: "COMPRADORES",
-        tip: "No te sientas presionado a decidir rápidamente, tómate tu tiempo."
-    },
-    {
-        category: "COMPRADORES",
-        tip: "Investiga el precio promedio del modelo para evitar pagar de más."
-    },
-    {
-        category: "COMPRADORES",
-        tip: "Verifica el estado real de las llantas, frenos y suspensión."
-    },
-    {
-        category: "COMPRADORES",
-        tip: "Pregunta si el vehículo ha estado en algún accidente."
-    },
-    {
-        category: "COMPRADORES",
-        tip: "Comprueba que todas las luces, controles y accesorios funcionen."
-    },
-    {
-        category: "COMPRADORES",
-        tip: "No confíes en vendedores que evitan responder preguntas directas."
-    },
-    {
-        category: "COMPRADORES",
-        tip: "Exige un contrato de compra-venta firmado por ambas partes."
-    },
-    {
-        category: "COMPRADORES",
-        tip: "Si el precio parece demasiado bueno, probablemente haya un problema."
-    },
-    {
-        category: "COMPRADORES",
-        tip: "Pide una videollamada para ver el auto funcionando antes de ir en persona."
-    },
-    {
-        category: "COMPRADORES",
-        tip: "Verifica el número de dueños anteriores en la factura original."
-    },
-    {
-        category: "COMPRADORES",
-        tip: "Revisa que el motor no tenga fugas de aceite o sonidos extraños."
-    },
-    {
-        category: "COMPRADORES",
-        tip: "No compartas tu ubicación exacta hasta que confíes en el vendedor."
-    },
-    {
-        category: "COMPRADORES",
-        tip: "Prefiere pagos mediante transferencia bancaria rastreable."
+        tip: "En autos híbridos o eléctricos, exige un reporte de salud de la batería principal (SOH)."
     },
 
-    // PARA VENDEDORES
+    // PARA VENDEDORES (Professional Selling)
     {
         category: "VENDEDORES",
-        tip: "Nunca entregues el vehículo sin haber recibido el pago completo."
+        tip: "Lavar el motor (con vapor y cuidado) puede subir el valor percibido del auto, pero evita ocultar fugas activas."
     },
     {
         category: "VENDEDORES",
-        tip: "Verifica la identidad del comprador con una ID oficial."
+        tip: "Ten a la mano el historial de servicios; un auto con bitácora se vende hasta un 15% más rápido."
     },
     {
         category: "VENDEDORES",
-        tip: "Acepta solo métodos de pago seguros (transferencia bancaria, efectivo)."
+        tip: "Si el auto tiene detalles estéticos menores (raspones), aclararlo desde el inicio genera mucha confianza."
     },
     {
         category: "VENDEDORES",
-        tip: "Realiza el intercambio en un lugar público y seguro."
+        tip: "Toma fotos con luz natural, nunca bajo el sol directo del mediodía para evitar sombras duras."
     },
     {
         category: "VENDEDORES",
-        tip: "Ten listos todos los documentos legales del vehículo."
+        tip: "Muestra el auto en una plaza comercial con cámaras; es seguro para ti y le da tranquilidad al comprador."
     },
     {
         category: "VENDEDORES",
-        tip: "Firma un contrato de compraventa con todos los datos del comprador."
+        tip: "Nunca aceptes pagos con cheques que 'aparecerán en firme' después; espera a ver el saldo disponible en tu App bancaria."
     },
     {
         category: "VENDEDORES",
-        tip: "No permitas pruebas de manejo sin acompañar al comprador."
+        tip: "Desvincula tus cuentas de Google/Apple CarPlay y borra tus datos del GPS antes de entregar el vehículo."
     },
     {
         category: "VENDEDORES",
-        tip: "Guarda copias de la identificación del comprador al entregar."
+        tip: "Si el comprador quiere llevar un mecánico, acepta siempre que el diagnóstico se haga frente a ti."
     },
     {
         category: "VENDEDORES",
-        tip: "Si aceptas efectivo, verifica que los billetes sean auténticos."
+        tip: "Limpia profundamente el interior; el 'olor a carro limpio' es un factor psicológico clave para la venta."
     },
     {
         category: "VENDEDORES",
-        tip: "Desconfía de compradores que ofrecen mucho más del precio pedido."
-    },
-    {
-        category: "VENDEDORES",
-        tip: "Nunca des tus llaves a desconocidos sin supervisión."
-    },
-    {
-        category: "VENDEDORES",
-        tip: "Asegúrate de que el comprador tenga licencia de conducir vigente."
-    },
-    {
-        category: "VENDEDORES",
-        tip: "Cancela el seguro solo después de que el comprador se lleve el auto."
-    },
-    {
-        category: "VENDEDORES",
-        tip: "No aceptes cheques personales, pueden ser sin fondos."
-    },
-    {
-        category: "VENDEDORES",
-        tip: "Proporciona un recibo oficial de la transacción."
-    },
-    {
-        category: "VENDEDORES",
-        tip: "Informa a un conocido cuando vayas a mostrar el vehículo."
-    },
-    {
-        category: "VENDEDORES",
-        tip: "No aceptes pagos con cheques de caja, pueden ser falsos."
-    },
-    {
-        category: "VENDEDORES",
-        tip: "Asegúrate de dar de baja las placas tras concretar la venta."
-    },
-    {
-        category: "VENDEDORES",
-        tip: "Evita mostrar el vehículo en tu domicilio personal si es posible."
+        tip: "Aclara que el cambio de propietario es obligatorio para deslindarte de multas futuras del nuevo dueño."
     },
 
-    // CONSEJOS GENERALES DE SEGURIDAD
+    // CONSEJOS GENERALES DE SEGURIDAD (Global Standards)
     {
         category: "GENERAL",
-        tip: "CarMatch NO participa en las transacciones, solo conectamos compradores y vendedores."
+        tip: "CarMatch es una comunidad: reporta perfiles que exijan dinero rápido o eviten el trato en persona."
     },
     {
         category: "GENERAL",
-        tip: "Reporta cualquier comportamiento sospechoso a través de la plataforma."
+        tip: "Si el vendedor dice estar en otra ciudad y te pide un 'depósito de apartado', ¡ES FRAUDE!"
     },
     {
         category: "GENERAL",
-        tip: "Nunca compartas información bancaria sensible por chat."
+        tip: "Los trámites de gobierno (altas/bajas) deben hacerse preferiblemente en oficinas oficiales, no con 'coyotes'."
     },
     {
         category: "GENERAL",
-        tip: "Si algo se siente incorrecto, confía en tu instinto y cancela."
+        tip: "Confía en tu instinto: si el trato parece demasiado perfecto para ser verdad, probablemente no lo sea."
     },
     {
         category: "GENERAL",
-        tip: "Los fraudes comunes incluyen vehículos que 'no están disponibles para ver'."
+        tip: "Mantén toda la comunicación dentro del chat de CarMatch para que tu historial esté protegido en caso de disputa."
     },
     {
         category: "GENERAL",
-        tip: "Usa lugares recomendados por CarMatch para reuniones seguras."
+        tip: "No compartas fotos de tu contrato de compra-venta o factura hasta que el pago esté confirmado."
     },
     {
         category: "GENERAL",
-        tip: "Toma fotos del vehículo y documentos durante la negociación."
-    },
-    {
-        category: "GENERAL",
-        tip: "Informa a un amigo o familiar sobre tu encuentro y ubicación."
-    },
-    {
-        category: "GENERAL",
-        tip: "Para mayor seguridad, agenda tu cita usando el botón 'Agendar Cita' de este chat."
+        tip: "Al usar el MapStore, prefiere negocios con etiqueta 'Verificado' para tus revisiones previas a la compra."
     },
 
-    // CONSEJOS DE MANTENIMIENTO (EXTRAS)
+    // CONSEJOS DE MANTENIMIENTO (Engine & Tech)
     {
         category: "MANTENIMIENTO",
-        tip: "Revisa el nivel de aceite cada 2 semanas para mantener el motor sano."
+        tip: "Si escuchas un chillido al frenar, tus balatas ya están en el límite; cámbialas para no dañar los discos."
     },
     {
         category: "MANTENIMIENTO",
-        tip: "Cambia el aceite cada 5,000-7,000 km según el fabricante."
+        tip: "El anticongelante no solo enfría, también previene la corrosión interna. Nunca uses agua de la llave en el radiador."
     },
     {
         category: "MANTENIMIENTO",
-        tip: "Verifica la presión de las llantas mensualmente para mejor rendimiento."
+        tip: "Las bandas del motor (distribución/accesorios) suelen cambiarse cada 60,000 km. Si se rompen, el daño es catastrófico."
     },
     {
         category: "MANTENIMIENTO",
-        tip: "Lava tu auto regularmente para prevenir corrosión de la pintura."
+        tip: "Revisa tus bujías cada afinación; su color te dice si el motor está quemando bien el combustible."
     },
     {
         category: "MANTENIMIENTO",
-        tip: "Revisa las luces delanteras y traseras cada mes por seguridad."
+        tip: "Limpia los postes de tu batería con agua carbonatada si ves sarro blanco o verde; esto mejora el arranque."
     },
     {
         category: "MANTENIMIENTO",
-        tip: "Cambia los filtros de aire cada 15,000-20,000 km."
+        tip: "Si tu volante vibra a altas velocidades (80-100 km/h), tus llantas probablemente necesitan balanceo."
     },
     {
         category: "MANTENIMIENTO",
-        tip: "Mantén el tanque de gasolina al menos a 1/4 para evitar daños a la bomba."
+        tip: "No ignores la luz de 'Check Engine'; a veces es solo un sensor de oxígeno sucio, pero ignorarlo daña el catalizador."
     },
     {
         category: "MANTENIMIENTO",
-        tip: "Inspecciona los frenos cada 10,000 km para tu seguridad."
+        tip: "Cambia el líquido de frenos cada 2 años; este absorbe humedad y pierde efectividad con el tiempo."
     },
     {
         category: "MANTENIMIENTO",
-        tip: "Estaciona a la sombra cuando sea posible para proteger la pintura."
+        tip: "En autos turbo, deja el motor encendido en ralentí 1 minuto antes de apagarlo después de un viaje largo; cuida la vida del turbo."
     },
     {
         category: "MANTENIMIENTO",
-        tip: "Lleva un registro de todo el mantenimiento para mantener el valor del auto."
+        tip: "Usa el octanaje de gasolina recomendado por el manual; usar una menor puede causar 'cascabeleo' y daño interno."
     },
 ]
+
 
 // Función para obtener un consejo aleatorio
 export function getRandomTip(): typeof SAFETY_TIPS[0] {

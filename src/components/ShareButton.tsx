@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from 'react'
 import { Share2, Link as LinkIcon, Check } from 'lucide-react'
 
@@ -18,10 +20,16 @@ export default function ShareButton({ title, text, url, variant = 'full', classN
         e?.preventDefault()
         e?.stopPropagation()
 
+        // Asegurar URL absoluta
+        let absoluteUrl = url
+        if (url.startsWith('/')) {
+            absoluteUrl = `${window.location.origin}${url}`
+        }
+
         const shareData = {
             title: title,
             text: text,
-            url: url,
+            url: absoluteUrl,
         }
 
         // 1. Intentar API Nativa primero (Share fácil en WhatsApp, Telegram, etc.)
@@ -50,7 +58,7 @@ export default function ShareButton({ title, text, url, variant = 'full', classN
         } catch (err) {
             console.error('Failed to copy', err)
             // Último recurso: abrir en nueva pestaña
-            window.open(url, '_blank')
+            window.open(absoluteUrl, '_blank')
         }
     }
 

@@ -9,6 +9,7 @@ import Header from '@/components/Header'
 import ShareButton from '@/components/ShareButton'
 import { MapPin, Clock, Phone, Navigation, ArrowLeft, Star, ShieldCheck, Edit3, CreditCard, Play, Pause, Calendar, BadgeCheck } from 'lucide-react'
 import ConfirmationModal from '@/components/ConfirmationModal'
+import OpeningHoursDisplay from '@/components/OpeningHoursDisplay'
 
 interface BusinessDetailProps {
     business: {
@@ -214,10 +215,8 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
     }
 
     return (
-        <div className="min-h-screen bg-background pb-32">
-            <Header />
-
-            <div className="container mx-auto px-4 pt-6">
+        <div className="min-h-screen bg-background pb-20 pt-8 px-4">
+            <div className="max-w-4xl mx-auto space-y-8">
                 {/* Back Button */}
                 <Link href="/map" className="inline-flex items-center text-text-secondary hover:text-primary-400 mb-6 transition">
                     <ArrowLeft className="mr-2" size={20} />
@@ -268,7 +267,7 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
                             <ShareButton
                                 title={business.name}
                                 text={`¡Mira este negocio en CarMatch! ${business.name}`}
-                                url={typeof window !== 'undefined' ? `${window.location.origin}/business/${business.id}` : `/business/${business.id}`}
+                                url={`/map?id=${business.id}`}
                                 variant="minimal"
                                 className="bg-surface border border-surface-highlight rounded-xl w-14 flex items-center justify-center"
                             />
@@ -290,7 +289,7 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
                                     <ShareButton
                                         title={business.name}
                                         text={`¡Mira este negocio en CarMatch! ${business.name}`}
-                                        url={typeof window !== 'undefined' ? `${window.location.origin}/business/${business.id}` : `/business/${business.id}`}
+                                        url={`/map?id=${business.id}`}
                                         variant="minimal"
                                     />
                                 </div>
@@ -304,11 +303,7 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
                                 />
 
                                 {business.hours && (
-                                    <InfoItem
-                                        icon={<Clock size={20} />}
-                                        label="Horario"
-                                        value={business.hours}
-                                    />
+                                    <OpeningHoursDisplay hours={business.hours} />
                                 )}
 
                                 <div className="pt-4 border-t border-surface-highlight">

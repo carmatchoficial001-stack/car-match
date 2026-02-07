@@ -1,13 +1,14 @@
-
 import { Metadata } from 'next'
 import { prisma } from "@/lib/db"
-import { notFound } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 import VehicleDetailClient from "./VehicleDetailClient"
 import { auth } from '@/lib/auth'
+import { serializeDecimal } from "@/lib/serialize"
+import { generateVehicleSlug } from '@/lib/slug'
 
 interface Props {
     params: Promise<{ id: string }>
-    searchParams: Promise<any>
+    searchParams?: Promise<any>
 }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
@@ -25,7 +26,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
     if (!vehicle) {
         return {
-            title: 'Vehículo no encontrado | CarMatch',
+            title: 'CarMatch',
         }
     }
 
@@ -42,7 +43,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const description = `CarMatch Verificado: ${vehicle.brand} ${vehicle.model} ${vehicle.year}. ${specs}. ${vehicle.description?.substring(0, 120)}...`
 
     return {
-        title: title,
+        title: `${title} | ${vehicle.city} | CarMatch`,
         description: description,
         openGraph: {
             title: title,
@@ -65,121 +66,20 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     }
 }
 
-export default async function VehicleDetailPage({ params, searchParams }: Props) {
-    const session = await auth()
+export default async function VehicleDetailPage({ params }: Props) {
     const { id } = await params
     const vehicle = await prisma.vehicle.findUnique({
         where: { id },
-        include: {
-            user: {
-                select: {
-                    id: true,
-                    name: true,
-                    image: true,
-                    email: true,
-                    phone: true,
-                    isAdmin: true
-                }
-            },
-            _count: {
-                select: {
-                    favorites: true
-                }
-            },
-            favorites: session?.user?.email ? {
-                where: {
-                    user: {
-                        email: session.user.email
-                    }
-                },
-                select: {
-                    id: true
-                }
-            } : undefined
-        }
+        select: { id: true, brand: true, model: true, year: true, city: true }
     })
 
     if (!vehicle) {
         notFound()
     }
 
-    // JSON-LD for AI and Google (Schema.org)
-    const jsonLd = {
-        "@context": "https://schema.org",
-        "@type": "Car",
-        "name": `${vehicle.brand} ${vehicle.model} ${vehicle.year}`,
-        "description": vehicle.description,
-        "image": vehicle.images,
-        "brand": {
-            "@type": "Brand",
-            "name": vehicle.brand
-        },
-        "model": vehicle.model,
-        "modelDate": vehicle.year,
-        "color": vehicle.color,
-        "vehicleTransmission": vehicle.transmission,
-        "fuelType": vehicle.fuel,
-        "vehicleEngine": {
-            "@type": "EngineSpecification",
-            "name": vehicle.engine,
-            "engineDisplacement": vehicle.displacement ? {
-                "@type": "QuantitativeValue",
-                "value": vehicle.displacement,
-                "unitCode": "CMQ"
-            } : undefined,
-            "enginePower": vehicle.hp ? {
-                "@type": "QuantitativeValue",
-                "value": vehicle.hp,
-                "unitText": "hp"
-            } : undefined
-        },
-        "numberOfAxles": vehicle.axles || undefined,
-        "weight": vehicle.weight ? {
-            "@type": "QuantitativeValue",
-            "value": vehicle.weight,
-            "unitCode": "KGM"
-        } : undefined,
-        "mileageFromOdometer": {
-            "@type": "QuantitativeValue",
-            "value": vehicle.mileage,
-            "unitCode": vehicle.mileageUnit === 'km' ? 'KMT' : 'SMI'
-        },
-        "offers": {
-            "@type": "Offer",
-            "price": vehicle.price.toNumber(),
-            "priceCurrency": vehicle.currency || "MXN",
-            "availability": "https://schema.org/InStock"
-        }
-    }
+    const slug = generateVehicleSlug(vehicle.brand, vehicle.model, vehicle.year, vehicle.city)
 
-    // Calcular isAdmin correctamente corectamente
-    const vehicleData = {
-        ...vehicle,
-        price: vehicle.price.toNumber(),
-        isFavorited: vehicle.favorites && vehicle.favorites.length > 0,
-        features: vehicle.features || [],
-        favorites: undefined,
-        moderationStatus: vehicle.moderationStatus,
-        moderationFeedback: vehicle.moderationFeedback,
-        expiresAt: vehicle.expiresAt,
-        isFreePublication: vehicle.isFreePublication,
-        user: {
-            ...vehicle.user,
-            isAdmin: vehicle.user.isAdmin || vehicle.user.email === process.env.ADMIN_EMAIL
-        }
-    }
-
-    return (
-        <>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
-            <VehicleDetailClient
-                vehicle={vehicleData as any}
-                currentUserEmail={session?.user?.email}
-                currentUserId={session?.user?.id}
-            />
-        </>
-    )
+    // 🚀 REDIRECCIÓN 301 (Ultimate SEO Supremacy)
+    permanentRedirect(`/comprar/${slug}-${vehicle.id}`)
 }
+

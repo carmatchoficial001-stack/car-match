@@ -2,13 +2,15 @@
 // 🔒 FEATURE LOCKED: CARMATCH SWIPE. DO NOT EDIT WITHOUT EXPLICIT USER OVERRIDE.
 'use client'
 
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { useLocation } from '@/contexts/LocationContext'
 import SwipeFeed from '@/components/SwipeFeed'
-import Header from '@/components/Header'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { MapPin, RefreshCw, Search } from 'lucide-react'
+import { MapPin, RefreshCw, Search, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { calculateDistance, searchCity, searchCities, normalizeCountryCode, LocationData } from '@/lib/geolocation'
+import { useRestoreSessionModal } from '@/hooks/useRestoreSessionModal'
 
 interface FeedItem {
     id: string
@@ -25,6 +27,7 @@ interface FeedItem {
     longitude: number | null
     country?: string | null
     images?: string[]
+    description?: string | null // ✅ Added description
     isFavorited?: boolean
     isBoosted?: boolean
     user: {
@@ -34,6 +37,7 @@ interface FeedItem {
     _count?: {
         favorites: number
     }
+    distance?: number
 }
 
 interface SwipeClientProps {
@@ -80,16 +84,18 @@ function boostShuffleArray(array: FeedItem[]): FeedItem[] {
 export default function SwipeClient({ initialItems, currentUserId }: SwipeClientProps) {
     const { t } = useLanguage()
     const { location, loading: locationLoading, setManualLocation } = useLocation()
+    const router = useRouter()
+    const { openModal } = useRestoreSessionModal()
 
     const items = initialItems
 
     // ANILLOS PROGRESIVOS
     const RADIUS_TIERS = [12, 100, 250, 500, 1000, 2500, 5000]
-    const STORAGE_KEY = `carmatch_swipe_seen_v1_${currentUserId}`
 
     const [tierIndex, setTierIndex] = useState(0)
     const [seenIds, setSeenIds] = useState<Set<string>>(new Set())
     const [isInternalLoading, setIsInternalLoading] = useState(false)
+    const [newVehiclesCount, setNewVehiclesCount] = useState(0)
 
     // Modal State
     const [showLocationModal, setShowLocationModal] = useState(false)
@@ -101,69 +107,165 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
     const currentRadius = RADIUS_TIERS[tierIndex]
 
-    // 1. Cargar historial
-    useEffect(() => {
-        const saved = localStorage.getItem(STORAGE_KEY)
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved)
-                const now = Date.now()
-                const validIds = new Set<string>()
-                if (Array.isArray(parsed)) {
-                    parsed.forEach((item: any) => {
-                        const id = typeof item === 'string' ? item : item.id
-                        const ts = typeof item === 'string' ? now : item.timestamp
-                        if (now - ts < 24 * 60 * 60 * 1000) validIds.add(id)
-                    })
-                }
-                setSeenIds(validIds)
-            } catch (e) { setSeenIds(new Set()) }
-        }
-    }, [])
+    // 1. Historial (Eliminado para que sea siempre dinámico)
 
-    // 2. MAZO ESTABLE CON FRONTERA DIGITAL
-    const stablePool = useMemo(() => {
-        if (locationLoading || !location) return []
+    // 2. MAZO ESTABLE CON FRONTERA DIGITAL - ESTRATEGIA INCREMENTAL
+    const [shuffledItems, setShuffledItems] = useState<FeedItem[]>([])
+    const isFirstRun = useRef(true)
+
+    // 🚀 RESTAURAR ESTADO DESDE SESSIONSTORAGE (Para persistencia al volver atrás)
+    useEffect(() => {
+        try {
+            const savedItems = sessionStorage.getItem('carmatch_swipe_items')
+            const savedSeen = sessionStorage.getItem('carmatch_swipe_seen')
+            const savedTier = sessionStorage.getItem('carmatch_swipe_tier')
+
+            if (savedItems) {
+                const parsedItems = JSON.parse(savedItems)
+                if (parsedItems.length > 0) {
+                    setShuffledItems(parsedItems)
+                    isFirstRun.current = false
+                }
+            }
+            if (savedSeen) {
+                setSeenIds(new Set(JSON.parse(savedSeen)))
+            }
+            if (savedTier) {
+                setTierIndex(parseInt(savedTier))
+            }
+        } catch (e) {
+            console.error("Error al restaurar sesión de swipe:", e)
+        }
+
+        // 🔔 REAL-TIME NOTIFICATIONS
+        const handleNewVehicleOnSocket = (vehicle: any) => {
+            // Filtrar por distancia si tenemos ubicación activa
+            if (location && location.latitude && location.longitude && vehicle.latitude && vehicle.longitude) {
+                const dist = calculateDistance(
+                    location.latitude,
+                    location.longitude,
+                    vehicle.latitude,
+                    vehicle.longitude
+                )
+
+                // Si está dentro del radio actual (o es boosted), avisar
+                if (dist <= RADIUS_TIERS[tierIndex] || vehicle.isBoosted) {
+                    console.log("🔔 [Swipe] Nuevo vehículo detectado:", vehicle.title)
+                    setNewVehiclesCount(prev => prev + 1)
+                }
+            } else if (!location) {
+                setNewVehiclesCount(prev => prev + 1)
+            }
+        }
+
+        import('@/lib/socket').then(({ socket }) => {
+            if (!socket.connected) socket.connect()
+            socket.on('new_vehicle_published', handleNewVehicleOnSocket)
+        })
+
+        return () => {
+            import('@/lib/socket').then(({ socket }) => {
+                socket.off('new_vehicle_published', handleNewVehicleOnSocket)
+            })
+        }
+    }, [location, tierIndex])
+
+    // 💾 GUARDAR ESTADO EN SESSIONSTORAGE
+    useEffect(() => {
+        if (!isFirstRun.current) {
+            sessionStorage.setItem('carmatch_swipe_items', JSON.stringify(shuffledItems))
+            sessionStorage.setItem('carmatch_swipe_tier', tierIndex.toString())
+        }
+    }, [shuffledItems, tierIndex])
+
+    useEffect(() => {
+        sessionStorage.setItem('carmatch_swipe_seen', JSON.stringify(Array.from(seenIds)))
+    }, [seenIds])
+
+    useEffect(() => {
+        if (locationLoading || !location || items.length === 0) return
 
         const userCountry = normalizeCountryCode(location?.country)
 
-        const withDist = items
-            .filter((item: FeedItem) => {
-                // 🔐 FRONTERA DIGITAL ESTRICTA
-                // Solo mostrar vehículos del mismo país que la ubicación del usuario.
-                const itemCountry = normalizeCountryCode(item.country)
-                return itemCountry === userCountry
-            })
-            .map((item: FeedItem) => {
-                const distance = calculateDistance(
+        // 1. Filtrar los items de la prop que pertenecen a la frontera digital
+        const validItems = items.filter((item: FeedItem) => {
+            const itemCountry = normalizeCountryCode(item.country)
+            return itemCountry === userCountry
+        })
+
+        // 2. Identificar qué items son NUEVOS (no están en nuestro mazo actual)
+        const currentIds = new Set(shuffledItems.map(i => i.id))
+        const newItemsRaw = validItems.filter(i => !currentIds.has(i.id))
+
+        // Si es el primer run o cambiamos de ciudad, reiniciamos el mazo
+        if (isFirstRun.current || (shuffledItems.length > 0 && shuffledItems[0].city !== location.city)) {
+            // Si el cambio es por ciudad, limpiamos storage
+            if (shuffledItems.length > 0 && shuffledItems[0].city !== location.city) {
+                sessionStorage.removeItem('carmatch_swipe_items')
+                sessionStorage.removeItem('carmatch_swipe_seen')
+                sessionStorage.removeItem('carmatch_swipe_tier')
+                setSeenIds(new Set())
+                setTierIndex(0)
+            }
+
+            const withDist = validItems.map((item: FeedItem) => {
+                let distance = calculateDistance(
                     location.latitude,
                     location.longitude,
                     item.latitude || 0,
                     item.longitude || 0
                 )
+                if (item.isBoosted) distance = 0
                 return { ...item, distance }
             })
 
-        const tiers = RADIUS_TIERS.map(r => ({ max: r, items: [] as any[] }))
+            const tiers = RADIUS_TIERS.map(r => ({ max: r, items: [] as any[] }))
+            withDist.forEach(item => {
+                const tier = tiers.find(t => item.distance <= t.max) || tiers[tiers.length - 1]
+                tier.items.push(item)
+            })
 
-        withDist.forEach(item => {
-            const tier = tiers.find(t => item.distance <= t.max) || tiers[tiers.length - 1]
-            tier.items.push(item)
-        })
+            const finalPool = tiers.reduce((acc, ss) => [...acc, ...boostShuffleArray(ss.items)], [] as any[])
+            setShuffledItems(finalPool)
+            isFirstRun.current = false
+            return
+        }
 
-        return tiers.reduce((acc, ss) => [...acc, ...boostShuffleArray(ss.items)], [] as any[])
-    }, [items, location, locationLoading])
+        // 3. Si hay items nuevos, los mezclamos y los añadimos AL FINAL
+        if (newItemsRaw.length > 0) {
+            const newWithDist = newItemsRaw.map(item => ({
+                ...item,
+                distance: calculateDistance(
+                    location.latitude,
+                    location.longitude,
+                    item.latitude || 0,
+                    item.longitude || 0
+                )
+            }))
+
+            // Mezclamos los nuevos items y los pegamos al final de los existentes
+            const shuffledNew = boostShuffleArray(newWithDist)
+            setShuffledItems(prev => [...prev, ...shuffledNew])
+        }
+    }, [items, location?.city, locationLoading])
+
+    const stablePool = shuffledItems
 
     // 3. FILTRADO FINAL
     const nearbyItems = useMemo(() => {
-        const stack = stablePool.filter(v => v.distance <= currentRadius && !seenIds.has(v.id))
-        return stack
-    }, [stablePool, seenIds, currentRadius])
+        // Marcamos los IDs que vienen del servidor para asegurar que seguimos mostrando solo lo vigente
+        const validIds = new Set(items.map(i => i.id))
+
+        return stablePool.filter(v =>
+            (v.distance ?? 999999) <= currentRadius &&
+            !seenIds.has(v.id) &&
+            validIds.has(v.id) // Solo si sigue estando en la lista del servidor
+        )
+    }, [stablePool, seenIds, currentRadius, items])
 
     const expandSearch = useCallback(() => {
         setIsInternalLoading(true)
         setSeenIds(new Set());
-        localStorage.removeItem(STORAGE_KEY);
         setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length);
         setTimeout(() => setIsInternalLoading(false), 400)
     }, [RADIUS_TIERS.length])
@@ -172,15 +274,32 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         setSeenIds(prev => {
             const next = new Set(prev)
             next.add(id)
-            const saved = localStorage.getItem(STORAGE_KEY)
-            let entries: any[] = saved ? JSON.parse(saved) : []
-            entries.push({ id, timestamp: Date.now() })
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(-500)))
             return next
         })
     }
 
     const handleLike = async (id: string) => {
+        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos
+        const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
+        if (currentUserId !== 'guest' && isSoftLogout) {
+            openModal(
+                "¿Deseas reactivar tu sesión para guardar este vehículo? Tu cuenta sigue vinculada.",
+                () => executeLike(id)
+            )
+            return
+        }
+
+        await executeLike(id)
+    }
+
+    const executeLike = async (id: string) => {
+        // Si no hay usuario logueado, redirigir con callback
+        if (currentUserId === 'guest') {
+            const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/swipe'
+            router.push(`/auth?callbackUrl=${encodeURIComponent(currentPath)}`)
+            return
+        }
+
         markAsSeen(id)
         try {
             await fetch('/api/favorites', {
@@ -189,10 +308,15 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                 body: JSON.stringify({ vehicleId: id, action: 'add' })
             })
             window.dispatchEvent(new CustomEvent('favoriteUpdated'))
+            router.refresh()
         } catch (e) { }
     }
 
-    const handleDislike = (id: string) => markAsSeen(id)
+    const handleDislike = (id: string) => {
+        markAsSeen(id)
+    }
+
+
 
     const [isSearchingLocation, setIsSearchingLocation] = useState(false)
     const [locationError, setLocationError] = useState<string | null>(null)
@@ -244,11 +368,37 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     const isLoading = locationLoading || isInternalLoading
 
     return (
-        <div className="flex flex-col min-h-screen bg-background text-text-primary">
-            <Header />
-            <main className="flex-1 max-w-4xl mx-auto w-full px-4 pt-10 pb-24 flex flex-col items-center justify-center">
+        <div className="fixed inset-0 flex flex-col bg-background text-text-primary overflow-hidden overscroll-none pt-[70px] pb-4">
+            <div className="w-full max-w-4xl mx-auto px-4 flex-1 flex flex-col items-center justify-center relative">
 
                 {/* El indicador de radio se movió dentro de los estados específicos */}
+
+                {/* 🔔 New Vehicles Notification */}
+                {newVehiclesCount > 0 && (
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[100] animate-bounce-in w-full max-w-xs sm:max-w-md px-4">
+                        <button
+                            onClick={() => {
+                                sessionStorage.removeItem('carmatch_swipe_items')
+                                sessionStorage.removeItem('carmatch_swipe_seen')
+                                sessionStorage.removeItem('carmatch_swipe_tier')
+                                setNewVehiclesCount(0)
+                                router.refresh()
+                            }}
+                            className="w-full bg-primary-600 text-white px-4 py-3 rounded-full shadow-2xl flex items-center justify-center gap-2 hover:bg-primary-700 transition transform hover:scale-105"
+                        >
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                            </span>
+                            <span className="font-bold text-xs sm:text-sm whitespace-nowrap">
+                                {newVehiclesCount === 1
+                                    ? '🚗 ¡Hay 1 vehículo nuevo en tu zona!'
+                                    : `🚗 ¡Hay ${newVehiclesCount} vehículos nuevos en tu zona!`}
+                            </span>
+                            <RefreshCw className="w-4 h-4" />
+                        </button>
+                    </div>
+                )}
 
                 {isLoading ? (
                     <div className="flex flex-col items-center">
@@ -286,20 +436,36 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                                 <MapPin size={20} />
                                 {t('market.change_location')}
                             </button>
+
+                            <div className="mt-4 pt-4 border-t border-white/10 w-full flex flex-col items-center">
+                                <p className="text-xs text-text-secondary mb-3 uppercase tracking-wider">{t('market.cant_find_desc')}</p>
+                                <Link
+                                    href="/publish"
+                                    className="w-full py-4 bg-white text-primary-900 rounded-2xl font-bold transition shadow-xl active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    <Plus size={20} />
+                                    {t('swipe.publish') || t('market.publish_cta')}
+                                </Link>
+                            </div>
                         </div>
                     </div>
+
                 ) : (
                     <div className="w-full flex-1 flex flex-col">
                         <SwipeFeed
                             key={`stack-tier-${tierIndex}`}
-                            items={nearbyItems}
+                            items={nearbyItems.map(item => ({
+                                ...item,
+                                // 🚀 ADMIN NACIONAL: Mostrar ciudad del usuario en publicaciones de admin
+                                city: item.isBoosted && location?.city ? location.city : item.city
+                            }))}
                             onLike={handleLike}
                             onDislike={handleDislike}
                             onNeedMore={expandSearch}
                         />
                     </div>
                 )}
-            </main>
+            </div>
 
             {/* 🌍 LOCATION MODAL */}
             {showLocationModal && (

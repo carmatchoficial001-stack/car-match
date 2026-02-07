@@ -11,39 +11,35 @@ import { useEffect } from 'react'
  */
 export function ResponsiveViewportFix() {
     useEffect(() => {
-        // Enforce mobile viewport settings
-        const metaViewport = document.querySelector('meta[name="viewport"]') || document.createElement('meta');
-        metaViewport.setAttribute('name', 'viewport');
+        const updateViewport = () => {
+            let meta = document.querySelector('meta[name="viewport"]');
+            // Remove interactive-widget=resizes-content to avoid layout jumps during keyboard/address bar shifts
+            const content = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover";
 
-        // Ensure critical mobile viewport properties are present
-        // We overwrite to ensure no cached 'desktop' settings remain
-        metaViewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover, interactive-widget=resizes-content');
+            if (!meta) {
+                meta = document.createElement("meta");
+                (meta as HTMLMetaElement).name = "viewport";
+                document.getElementsByTagName("head")[0].appendChild(meta);
+            }
 
-        if (!metaViewport.parentElement) {
-            document.head.appendChild(metaViewport);
-        }
-
-        // Prevent unwanted zoom on iOS
-        const preventZoom = (e: Event) => {
-            e.preventDefault();
+            if (meta.getAttribute("content") !== content) {
+                meta.setAttribute("content", content);
+            }
         };
 
-        document.addEventListener('gesturestart', preventZoom);
+        updateViewport();
 
-        // Safari iOS 100vh Fix
-        const handleResize = () => {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        // Prevent zooming on touch gestures
+        const preventZoom = (e: TouchEvent) => {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
         };
 
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        window.addEventListener('orientationchange', handleResize);
+        document.addEventListener('touchstart', preventZoom as any, { passive: false });
 
         return () => {
-            document.removeEventListener('gesturestart', preventZoom);
-            window.removeEventListener('resize', handleResize);
-            window.removeEventListener('orientationchange', handleResize);
+            document.removeEventListener('touchstart', preventZoom as any);
         };
     }, []);
 

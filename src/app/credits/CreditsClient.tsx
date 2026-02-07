@@ -172,10 +172,8 @@ export default function CreditsClient({ user, transactions }: CreditsClientProps
     const total = pricing ? pricing.pricePerCredit * quantity : 0
 
     return (
-        <div className="min-h-screen bg-background pb-32">
-            <Header />
-
-            <div className="container mx-auto px-4 pt-8 pb-8 max-w-4xl">
+        <div className="min-h-screen bg-background px-4 py-8">
+            <div className="max-w-4xl mx-auto space-y-8">
                 <h1 className="text-3xl font-bold text-text-primary mb-2">Banco de Créditos 🏦</h1>
                 <p className="text-text-secondary mb-8">Administra el saldo para tus publicaciones.</p>
 

@@ -1,4 +1,4 @@
-import { geminiModel } from './geminiClient';
+import { geminiFlashPrecise } from './geminiClient'; // ✅ Flash preciso para listados
 import { POPULAR_MODELS } from '../vehicleTaxonomy';
 
 /**
@@ -25,7 +25,7 @@ export async function suggestModelsForBrand(brand: string): Promise<string[]> {
     Model S, Model 3, Model X, Model Y, Cybertruck, Roadster
     `;
 
-        const result = await geminiModel.generateContent(prompt);
+        const result = await geminiFlashPrecise.generateContent(prompt); // ✅ Flash preciso
         const response = await result.response;
         const text = response.text().trim();
 

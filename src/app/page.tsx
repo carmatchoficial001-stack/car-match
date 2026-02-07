@@ -1,15 +1,15 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { getWeightedHomePath } from "@/lib/navigation"
-import LandingPageContent from "@/components/landing/LandingPageContent"
 
 export default async function LandingPage() {
     const session = await auth()
 
-    // 🔥 Redirección inmediata en el Servidor si ya está logueado
+    // 🚀 Redirección para usuarios autenticados a su home ponderado
     if (session) {
         redirect(getWeightedHomePath())
     }
 
-    return <LandingPageContent />
+    // 🚀 Visitantes van directo al MarketCar (no necesitan cuenta para ver)
+    redirect('/market')
 }

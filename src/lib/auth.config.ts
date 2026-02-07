@@ -25,11 +25,44 @@ export const authConfig: NextAuthConfig = {
     },
     session: {
         strategy: "jwt",
-        maxAge: 365 * 24 * 60 * 60,
+        maxAge: 10 * 365 * 24 * 60 * 60, // 10 years (Session locking)
     },
+
     callbacks: {
-        async authorized({ auth }) {
-            return !!auth
+        async authorized({ auth, request: { nextUrl } }) {
+            const isLoggedIn = !!auth
+            const pathname = nextUrl.pathname
+
+            // 🔓 RUTAS PÚBLICAS (Wikipedia Mode): Accesibles para Google y Guests
+            const publicPaths = [
+                '/',
+                '/market',
+                '/swipe',
+                '/map',
+                '/map-store',
+                '/autos/',
+                '/autos-en/',
+                '/autos/cluster/',
+                '/comprar/',
+                '/comparar/',
+                '/negocio/',
+                '/vehicle/',
+                '/negocios/',
+                '/business/',
+                '/auth',
+                '/privacy',
+                '/terms'
+            ]
+
+            const isPublicPath = publicPaths.some(path =>
+                pathname === path || pathname.startsWith(path)
+            )
+
+            // Si es ruta pública, permitimos siempre (para SEO)
+            if (isPublicPath) return true
+
+            // Si no es pública, requerimos login
+            return isLoggedIn
         },
         async signIn() {
             return true
@@ -38,6 +71,9 @@ export const authConfig: NextAuthConfig = {
             if (session.user && token) {
                 // @ts-ignore
                 session.user.id = (token.id as string) || (token.sub as string)
+                session.user.image = (token.picture as string) || session.user.image
+                session.user.name = (token.name as string) || session.user.name
+
                 if (session.user.email === process.env.ADMIN_EMAIL) {
                     // @ts-ignore
                     session.user.isAdmin = true
@@ -45,8 +81,12 @@ export const authConfig: NextAuthConfig = {
             }
             return session
         },
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger, session }) {
             if (user) token.id = user.id
+            if (trigger === "update") {
+                if (session?.image) token.picture = session.image
+                if (session?.name) token.name = session.name
+            }
             return token
         },
         async redirect({ url, baseUrl }) {

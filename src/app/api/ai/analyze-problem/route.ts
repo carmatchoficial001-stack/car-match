@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { safeGenerateContent, safeExtractJSON } from '@/lib/ai/geminiClient'
+import aiCache from '@/lib/ai/aiCache' // 💰 Sistema de caché para reducir costos
+import { DIAGNOSTICS_DB } from '@/lib/ai/diagnosticsDB'
 
 export async function POST(req: NextRequest) {
     try {
@@ -12,52 +14,84 @@ export async function POST(req: NextRequest) {
             )
         }
 
+        // 🚀 PASO 1: Intentar obtener del caché
+        const cachedResult = aiCache.get(query, 'MAP_PROBLEM');
+        if (cachedResult) {
+            console.log(`⚡ [CACHE HIT] Diagnóstico recuperado del caché. $0 gastados.`);
+            return NextResponse.json(cachedResult);
+        }
+
         // Prompt de análisis automático (backend - no visible para usuario)
         // Prompt mejorado para diagnóstico experto (Persona: Veterano de 100 años)
-        const prompt = `Actúa como un MEGAPROCESADOR TÉCNICO VETERANO de CarMatch. Tu base de datos interna fusiona la sabiduría del mejor mecánico de la historia con el procesamiento de datos en tiempo real de vehículos motorizados terrestres.
+        const prompt = `Actúa como un COMITÉ DE EXPERTOS EN DIAGNÓSTICO AUTOMOTRIZ ("The CarMatch Service Board").
 
-**TU DOMINIO EXCLUSIVO:** Cualquier vehículo terrestre motorizado (Autos, Motos, Camiones, Maquinaria, Autobuses, Especiales). No tratas temas fuera de este nicho.
+**TU EQUIPO INTERNO:**
+1.  🩺 **EL DIAGNOSTA (Agente 1):** Identifica síntomas y posibles causas basándose en física y mecánica.
+2.  🔎 **EL INVESTIGADOR (Agente 2):** Consulta la "Base de Datos Experta" para ver si es una falla conocida de ese modelo o slang regional.
+3.  ✅ **EL JEFE DE TALLER (Agente 3):** Decide la categoría final y emite la recomendación.
 
-**TUS OBJETIVOS CRÍTICOS:**
-1.  🔬 **Diagnóstico de Ultra-Precisión**: El usuario te dará un problema ("ruido", "olor", "jaloneo"). Debes deducir la causa raíz basándote en física automotriz y mecánica profunda.
-2.  🎯 **Mapeo de Categorías**: Recomienda los especialistas de CarMatch que puedan SOLUCIONAR el problema.
-3.  🛡️ **Protocolo de Seguridad**: Si detectas una falla que pone en riesgo la vida (frenos, fuego, dirección), inicia con "🚨 PROTOCOLO DE SEGURIDAD ACTIVADO:".
+**TU DOMINIO:** Vehículos terrestres motorizados.
 
-**DATOS TÉCNICOS DE APOYO (Categorías CarMatch):**
-${categories.map((cat: any) => `- [${cat.id}] "${cat.label}": Enfocado a ${cat.keywords.join(', ')}`).join('\n')}
+**BASE DE DATOS DE CONOCIMIENTO EXPERTO ("The Knowledge"):**
+(Usa esto como referencia verificada. Si el vehículo del usuario coincide, ES MUY PROBABLE que sea esta falla).
 
-**LÓGICA DE PROCESAMIENTO SUPER-INTELIGENTE:**
-- ⚙️ **Diferenciación Semántica**: 
-    - "Motor" ≠ "Moto". Si el usuario busca "reparar motor", el especialista es [TALLER] o [REFACCIONES]. No sugieras [MOTOS] a menos que mencione explícitamente un vehículo de 2 o 3 ruedas.
-    - "Cuerpo de aceleración" → [TALLER] (Mecánica) o [ELECTRICO].
-    - "Marcha/Burro de arranque" → [ELECTRICO].
-- 🚛 **Especialización Diesel**: Si detectas términos como "cabezal", "quinta rueda", "compresor de aire de frenado" o "suspensión de aire", PRIORIZA [DIESEL] y [ACCESORIOS_PESADOS].
-- 🚜 **Maquinaria Pesada**: Si menciona "hidráulicos", "mando final" o "orugas", el especialista es [MAQUINARIA].
-- 🌡️ **Termodinámica**: 
-    - Humo azul = Aceite siendo quemado (Sellos de válvula o anillos). → [TALLER].
-    - Humo negro = Exceso de combustible (Sensores o inyectores). → [TALLER].
-    - Humo blanco (dulce) = Anticongelante (Junta de cabeza). → [RADIADORES] y [TALLER].
+--- INICIO BASE DE DATOS ---
+${JSON.stringify(DIAGNOSTICS_DB.COMMON_FAILURES, null, 2)}
+--- FIN BASE DE DATOS ---
 
-**FORMATO DE RESPUESTA (ESTRICTO JSON):**
+**DICCIONARIO DE SLANG:**
+${JSON.stringify(DIAGNOSTICS_DB.SLANG_MAPPING, null, 2)}
+
+**REGLAS DE DERIVACIÓN (Protocolo del Jefe de Taller):**
+- ⚙️ **Mecánica General:** Si es motor, humo, calentamiento, afinación, fugas de aceite o "algo suena mal" internamente -> [mecanico].
+- ⚡ **Eléctrico:** Batería, luces, alternador, marcha, "no prende y hace clic" -> [electrico].
+- ⛽ **Combustible:** "Gas", "Gasolina", "Diesel", "Echar", "Cargar", "Bomba" -> [gasolinera] (PRIORIDAD MÁXIMA).
+- 🔊 **Ruidos/Suspensión:** "Suena raro", "Se escucha", "Golpeteo en baches", "Rechinido", "Jala a un lado", "Truena al dar vuelta" -> [suspension] o [mecanico].
+- 🆘 **Urgencias:** "Llanta baja", "Ponchado", "Grúa" -> [llantera], [gruas].
+
+**CASO: INVESTIGACIÓN DE TÉRMINOS DESCONOCIDOS:**
+Si el usuario usa una palabra rara (ej. "Chirrimbolo", "Claxon que tose"), el Agente 2 DEBE inferir el contexto usando el diccionario de slang o lógica fonética.
+- "Suena como matraca" -> Ruido metálico rítmico -> [mecanico].
+- "Huele a maple" -> Anticongelante quemado -> [radiadores] o [mecanico].
+
+**DATOS TÉCNICOS DISPONIBLES:**
+${categories.map((cat: any) => `- [${cat.id}] "${cat.label}": ${cat.keywords.slice(0, 5).join(', ')}...`).join('\n')}
+
+**FORMATO DE RESPUESTA (JSON PURO):**
 {
-    "categories": ["ID_MAS_RELEVANTE", "ID_SECUNDARIO"]
+    "categories": ["ID_PRIORITARIO", "ID_SECUNDARIO"],
+    "explanation": "Breve nota técnica del Jefe de Taller (ej. 'El humo azul en tu Sentra suele ser por calentamiento de la CVT si zumba, o anillos si es motor...')."
 }
 
-**QUERY DEL USUARIO A ANALIZAR:**
+**QUERY DEL USUARIO:**
 "${query}"
 
-Responde UNICAMENTE con el JSON solicitado.`
+**PROCESO DE PENSAMIENTO (Invisible):**
+1. Diagnosta: Veo síntomas de X...
+2. Investigador: Busco en DB... Encontré coincidencia para [Modelo] + [Síntoma]...
+3. Jefe: Derivando a [cat1, cat2]...
+
+Responde SOLO con el JSON final.`
 
         console.log('🤖 Analizando query:', query)
-        const response = await safeGenerateContent(prompt)
+        // 🚀 UPGRADE: Usamos Gemini PRO para máxima comprensión del "Concepto Mundial"
+        // Aunque sea unos milisegundos más lento, la "Perfección" requiere el modelo más capaz.
+        const { geminiPro } = await import('@/lib/ai/geminiModels');
+
+        // Usamos geminiPro en lugar de flash para el análisis
+        const response = await safeGenerateContent(prompt, 3, geminiPro);
         const responseText = response.text()
-        console.log('✅ Respuesta de IA:', responseText)
+        console.log('✅ [AI Expert] Respuesta:', responseText)
 
         const aiResponse = safeExtractJSON<any>(responseText)
 
         if (!aiResponse) {
             throw new Error('Invalid AI response format')
         }
+
+        // 💾 PASO FINAL: Guardar en caché para futuras consultas idénticas
+        aiCache.set(query, aiResponse, 'MAP_PROBLEM');
+        console.log(`💰 [CACHE SAVE] Próximo diagnóstico idéntico será gratis.`);
 
         return NextResponse.json(aiResponse)
 

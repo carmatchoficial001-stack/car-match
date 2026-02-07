@@ -1,17 +1,41 @@
+// Caching and Fetch handler
+const CACHE_NAME = 'carmatch-v1';
+const OFFLINE_URL = '/offline.html';
 
-// Fetch handler (Requerido para que la PWA sea instalable)
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll([OFFLINE_URL]);
+        })
+    );
+});
+
 self.addEventListener('fetch', function (event) {
     const url = new URL(event.request.url);
 
-    // 🚀 NO interceptar llamadas de autenticación ni de la propia API de NextAuth
-    // Esto previene el error "Failed to fetch" cuando el SW intenta manejar el flujo de auth.
     if (url.pathname.startsWith('/api/auth')) {
         return;
     }
 
-    // Por ahora, simplemente dejamos que las peticiones pasen para cumplir con el requisito de PWA.
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).catch(() => {
+                return caches.open(CACHE_NAME).then((cache) => {
+                    return cache.match(OFFLINE_URL);
+                });
+            })
+        );
+        return;
+    }
+
     event.respondWith(fetch(event.request));
 });
+
+// Reclamar control inmediatamente
+self.addEventListener('activate', function (event) {
+    event.waitUntil(self.clients.claim());
+});
+
 
 self.addEventListener('push', function (event) {
     if (event.data) {
@@ -21,9 +45,10 @@ self.addEventListener('push', function (event) {
 
             const options = {
                 body: data.body,
-                icon: data.icon || '/icon-192-v18.png',
-                badge: '/icon-192-v18.png',
+                icon: data.icon || '/maskable-192-v19.png?v=21',
+                badge: '/favicon-v19.png?v=21',
                 vibrate: data.vibrate || (isSafetyCheck ? [500, 100, 500, 100, 500] : [100, 50, 100]),
+
                 data: {
                     dateOfArrival: Date.now(),
                     url: data.url || '/',

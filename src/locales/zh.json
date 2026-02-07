@@ -46,7 +46,90 @@
         "copied": "已复制！",
         "view_more": "查看更多",
         "seats": "座椅",
-        "currency": "货币"
+        "currency": "货币",
+        "login_vehicle": "Vender Vehículo",
+        "login_business": "Sube tu Negocio",
+        "dynamic_ctas": {
+            "vehicles": [
+                "¿Te urge una lana? | ¡Publícalo aquí!",
+                "¿Ya no te gusta? | ¡Véndelo hoy!",
+                "¿Buscas renovar? | ¡Súbelo gratis!",
+                "¿Necesitas cash? | ¡Véndelo ya!",
+                "¿Cochera llena? | ¡Publica aquí!",
+                "¿Hora de cambio? | ¡Súbelo hoy!",
+                "¿Te sobra un auto? | ¡Véndelo aquí!",
+                "¿Vas por otro? | ¡Publícalo ya!",
+                "¿Ocupas capital? | ¡Hazlo dinero!",
+                "¿Quieres lo nuevo? | ¡Véndelo ya!",
+                "¿Cochera llena? | ¡Súbelo hoy!",
+                "¿Auto estorbando? | ¡Véndelo aquí!",
+                "¿Quieres lo mejor? | ¡Vende este!",
+                "¿Gastos encima? | ¡Hazlo lana!",
+                "¿Para el enganche? | ¡Véndelo ya!",
+                "¿Te vas de viaje? | ¡Súbelo hoy!",
+                "¿Te mudas pronto? | ¡Véndelo ya!",
+                "¿Coche pequeño? | ¡Publícalo aquí!",
+                "¿Quieres potencia? | ¡Vende el tuyo!",
+                "¿Familia grande? | ¡Súbelo ya!",
+                "¿Ya cumplió? | ¡Véndelo hoy!",
+                "¿Dinero rápido? | ¡Publícalo aquí!",
+                "¿Te sobran llantas? | ¡Hazlas lana!",
+                "¿Nuevo proyecto? | ¡Véndelo ya!",
+                "¿Quieres estrenar? | ¡Publica aquí!",
+                "¿Auto parado? | ¡Véndelo ya!",
+                "¿Quieres un upgrade? | ¡Cambia el tuyo!",
+                "¿Buscas algo nuevo? | ¡Publica este!",
+                "¿Estorba en la calle? | ¡Hazlo efectivo!",
+                "¿Necesitas espacio? | ¡Véndelo rápido!",
+                "¿Ya no lo usas? | ¡Gana una lana!",
+                "¿Te atrae otro? | ¡Suelta este ya!",
+                "¿Buscas economía? | ¡Vende tu SUV!",
+                "¿Huele a viejo? | ¡Estrena hoy!",
+                "¿Muchos kilómetros? | ¡Pásalo al que sigue!",
+                "¿Buscas aventura? | ¡Cambia de auto!",
+                "¿Enganche listo? | ¡Solo falta este!",
+                "¿Buscas eléctrico? | ¡Vende tu gasolina!",
+                "¿Mantenimiento caro? | ¡Véndelo hoy!",
+                "¿Familia creció? | ¡Vende el sedán!",
+                "¿Papeles en regla? | ¡Publícalo ya!",
+                "¿Poco uso? | ¡Dáselo a otro!",
+                "¿Buscas lujo? | ¡Empieza vendiendo!",
+                "¿Quieres un clásico? | ¡Vende tu moderno!",
+                "¿Sobran cilindros? | ¡Baja el consumo!",
+                "¿Buscas un 4x4? | ¡Vende tu ciudad!",
+                "¿Hijos a la uni? | ¡Cambia de nave!",
+                "¿Quieres un deportivo? | ¡Suelta el techo!",
+                "¿Buscas fiabilidad? | ¡Actualiza tu auto!",
+                "¿Urge liquidez? | ¡Véndelo hoy mismo!",
+                "RED SOCIAL PARA TODOS | ¡PUBLÍCALO AQUÍ!",
+                "¡NO SOMOS EXCLUSIVOS! | ÚNETE AL MOVIMIENTO",
+                "LA COMUNIDAD MÁS GRANDE | ¡SÚBETE YA!",
+                "GENTE REAL, TRATOS REALES | ¡PUBLICA HOY!",
+                "¡TODOS SON BIENVENIDOS! | VENDE TU AUTO",
+                "UNA RED PARA EL PUEBLO | ¡SÚBELO GRATIS!",
+                "ÚNETE A LA MEGACORRIENTE | ¡VENDE AQUÍ!",
+                "TU AUTO EN TODO MÉXICO | ¡SÚBETE YA!",
+                "LIBERTAD PARA PUBLICAR | ¡HAZLO DINERO!",
+                "LA RED QUE SÍ TE APOYA | ¡VENDE HOY!"
+            ]
+        },
+        "city": "城市",
+        "change_language": "更改语言",
+        "install_on_ios": "Instalar en iOS",
+        "install_on_android": "Instalar en Android",
+        "user": "Usuario",
+        "sold": "Vendido",
+        "unavailable": "No Disponible",
+        "seller": "Vendedor",
+        "buyer": "Comprador",
+        "accept": "Aceptar",
+        "time": {
+            "now": "Ahora",
+            "m": "m",
+            "h": "h",
+            "d": "d",
+            "sem": "sem"
+        }
     },
     "share": {
         "share_in": "分享到...",
@@ -76,7 +159,8 @@
         "favorites": "收藏夹",
         "credits": "积分",
         "admin_panel": "管理面板",
-        "exit_portal": "退出到主站"
+        "exit_portal": "退出到主站",
+        "settings": "Configuración"
     },
     "swipe": {
         "expand_search": "扩大搜索范围至更多地点",
@@ -223,7 +307,10 @@
             "images": "图片",
             "features": "配置",
             "location": "位置",
-            "review": "预览并发布"
+            "review": "预览并发布",
+            "identity_price": "Identidad y Valor",
+            "specs_features": "Alma y Equipo",
+            "location_review": "Ubicación y Lanzamiento"
         },
         "titles": {
             "what_type": "您要发布什么类型的车辆？",
@@ -380,7 +467,8 @@
             "sold": "已售出",
             "inactive": "未发布"
         },
-        "user_id": "用户 ID"
+        "user_id": "用户 ID",
+        "edit_profile": "Editar Perfil"
     },
     "business": {
         "title": "我的业务",
@@ -508,6 +596,30 @@
             "pesados": {
                 "name": "重型车辆",
                 "services": "卡车维修店|气压悬挂|液压系统|车队维护"
+            },
+            "electrolinera": {
+                "name": "Estaciones de Carga",
+                "services": "Carga rápida|Cargadores Tesla|Conectores Tipo 1 y 2|Estaciones de carga pública|Puntos de recarga gratuita"
+            },
+            "caseta": {
+                "name": "Casetas de Cobro",
+                "services": "Pago en Efectivo|Telepeaje|Baños|Facturación"
+            },
+            "hospital": {
+                "name": "Hospitales",
+                "services": "Urgencias|Consulta|Farmacia|Ambulancia"
+            },
+            "policia": {
+                "name": "Estación de Policía",
+                "services": "紧急情况|举报|交通|巡逻车"
+            },
+            "aeropuerto": {
+                "name": "机场",
+                "services": "航班|出租车|汽车租赁|货币兑换"
+            },
+            "estacion_tren": {
+                "name": "火车站",
+                "services": "车票|站台|候车室|咖啡厅"
             }
         }
     },
@@ -707,7 +819,12 @@
         "placeholder_active": "正在咨询您的私人顾问...",
         "placeholder_default": "告诉顾问您的需求：“我需要一辆省油的车...”",
         "btn_analyzing": "咨询中...",
-        "btn_search": "咨询顾问"
+        "btn_search": "咨询顾问",
+        "title": "智能搜索",
+        "placeholder": "请告诉我们您在寻找什么：'我需要一辆红色、便宜的 4 缸家用卡车...'",
+        "ask_advisor": "咨询顾问",
+        "consulting": "正在咨询专家...",
+        "understood": "知道了！ 我已根据您的搜索调整了过滤器。"
     },
     "map_store": {
         "search_placeholder": "🔍 搜索街道、社区或地点...",
@@ -787,7 +904,28 @@
             "safety_desc": "我们建议在公共且安全的场所进行证件查验及看车。",
             "transparency_title": "透明度：",
             "transparency_desc": "清晰描述已做过的保养项目，有助于更快卖出。"
-        }
+        },
+        "view_list": "Show Map and List",
+        "show_filters": "Show Filters",
+        "results_found": "results found",
+        "report": {
+            "title": "Report Business",
+            "reason_label": "Reason for Report",
+            "wrong_category": "Wrong category",
+            "fake_business": "Fake business / Doesn't exist",
+            "incorrect_info": "Incorrect info",
+            "duplicate": "Duplicate business",
+            "offensive": "Offensive content",
+            "other": "Other reason",
+            "description_label": "Additional Description",
+            "description_placeholder": "Provide more details to help us review...",
+            "submit": "Send Report",
+            "sending": "Sending...",
+            "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
+            "success_msg": "Thank you for your report. The business has been hidden for review.",
+            "success_title": "报告已发送！"
+        },
+        "how_to_diagnose": "Tell your advisor what's wrong with your car..."
     },
     "business_details": {
         "website": "官网",
@@ -888,7 +1026,8 @@
             "safety_desc": "我们建议在公共且安全的场所进行证件查验及看车。",
             "transparency_title": "透明度：",
             "transparency_desc": "清晰描述已做过的保养项目，有助于更快卖出。"
-        }
+        },
+        "creative_examples": "示例：'{name}的车库'，'北方汽车'，'{name}的收藏'"
     },
     "taxonomy": {
         "categories": {
@@ -996,7 +1135,86 @@
             "Remolque": "拖车 / 挂车",
             "Lowboy": "低平板拖车",
             "Remolque Frigorífico": "冷藏挂车",
-            "Plataforma Porta-contenedor": "集装箱底盘"
+            "Plataforma Porta-contenedor": "集装箱底盘",
+            "Alarma": "警报器",
+            "GPS": "GPS",
+            "Luces LED": "LED灯",
+            "Frenos ABS": "ABS防抱死刹车系统",
+            "Bluetooth": "Bluetooth",
+            "USB": "USB",
+            "Pantalla Touch": "触摸屏",
+            "Aire Acondicionado": "空调",
+            "Climatizador Automático": "自动空调",
+            "Asientos de Piel": "真皮座椅",
+            "Asientos Eléctricos": "电动座椅",
+            "Asientos Calefactables": "加热座椅",
+            "Asientos Ventilados": "通风座椅",
+            "Quemacocos": "天窗",
+            "Techo Panorámico": "全景天窗",
+            "Vidrios Eléctricos": "电动车窗",
+            "Espejos Eléctricos": "电动后视镜",
+            "Volante Multifuncional": "多功能方向盘",
+            "Cajuela Eléctrica": "电动后备箱",
+            "Android Auto/CarPlay": "Android Auto/CarPlay",
+            "Cargador Inalámbrico": "无线充电器",
+            "Head-Up Display": "抬头显示",
+            "Sistema de Sonido Premium": "高级音响系统",
+            "Tablero Digital": "数字仪表盘",
+            "Llave Inteligente (Keyless)": "智能钥匙（无钥匙进入）",
+            "Cámara de Reversa": "倒车摄像头",
+            "Cámara 360°": "360°摄像头",
+            "Bolsas de Aire (Airbags)": "安全气囊（Airbags）",
+            "Sensores de Estacionamiento": "距离传感器",
+            "Monitor de Punto Ciego": "盲点监测",
+            "Alerta de Cambio de Carril": "车道偏离警告",
+            "Frenado Autónomo de Emergencia": "紧急制动",
+            "Control Crucero Adaptativo": "自适应巡航控制",
+            "Rines de Aluminio": "铝合金轮毂",
+            "Faros de Niebla": "雾灯",
+            "Barras de Techo": "车顶行李架",
+            "Kit Deportivo": "运动套件",
+            "Frenos de Disco": "盘式制动器",
+            "ABS en Curva": "弯道ABS",
+            "Control de Tracción": "牵引力控制",
+            "Quickshifter": "快速换挡",
+            "Modos de Manejo": "驾驶模式",
+            "Suspensión Electrónica": "电子悬架",
+            "Amortiguador de Dirección": "转向减震器",
+            "Maletas Laterales": "侧箱",
+            "Top Case": "尾箱",
+            "Parabrisas": "挡风玻璃",
+            "Defensas/Sliders": "保险杠/滑块",
+            "Puños Calefactables": "Puños Calefactables",
+            "Asiento Comfort": "舒适座椅",
+            "Luces Auxiliares (Exploradoras)": "辅助照明灯",
+            "Freno de Motor": "发动机刹车",
+            "Retardador": "缓速器",
+            "Camarote": "卧铺",
+            "Ejes Retráctiles": "可伸缩轴",
+            "Suspensión de Aire": "空气悬架",
+            "Toma de Fuerza (PTO)": "动力输出装置 (PTO)",
+            "Deflector de Aire": "导流罩",
+            "Tanque Auxiliar": "辅助油箱",
+            "Visera Exterior": "外部遮阳板",
+            "Asiento Neumático": "气动座椅",
+            "Eje Elevable": "可提升轴",
+            "Cabina Cerrada (ROPS/FOPS)": "封闭式驾驶室 (ROPS/FOPS)",
+            "Calefacción": "加热",
+            "Joystick Control": "操纵杆控制",
+            "Estabilizadores": "稳定器",
+            "Cucharon 4en1": "4合1铲斗",
+            "Línea Hidráulica Auxiliar": "辅助液压管路",
+            "Ripper (Desgarrador)": "松土器",
+            "Zapatas Anchas": "宽履带板",
+            "Llantas Sólidas": "实心轮胎",
+            "Winch (Cabrestante)": "绞盘",
+            "Roll Cage (Jaula)": "防滚架",
+            "Snorkel": "涉水喉",
+            "Suspensión Lift Kit": "升高套件",
+            "Llantas All-Terrain/Mud-Terrain": "全地形轮胎",
+            "Luces LED Bar": "LED灯条",
+            "Techo Rígido": "硬顶",
+            "Medios Puertas": "半截门"
         },
         "transmission": {
             "Manual": "手动",
@@ -1112,6 +1330,11 @@
         "completed": "Completed",
         "accept_btn": "Accept",
         "reject_btn": "Reject",
-        "cancel_btn": "Cancel"
+        "cancel_btn": "Cancel",
+        "past": "已完成"
+    },
+    "chat": {
+        "welcome": "您好！我是您的 CarMatch 顾问。 👨‍💻 今天有什么可以帮到您？",
+        "title": "CarMatch 顾问"
     }
 }

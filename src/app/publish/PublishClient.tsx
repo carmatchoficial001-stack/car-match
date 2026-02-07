@@ -1,6 +1,6 @@
-﻿"use client"
+"use client"
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Header from '@/components/Header'
 import GPSCaptureStep from '@/components/GPSCaptureStep'
@@ -10,6 +10,7 @@ import { generateDeviceFingerprint } from '@/lib/fingerprint'
 import PortalAnimation from '@/components/PortalAnimation'
 import VehicleTypeSelector from '@/components/VehicleTypeSelector'
 import SearchableSelect from '@/components/SearchableSelect'
+import { Settings2, BatteryCharging, Truck, X } from 'lucide-react'
 import {
     VEHICLE_CATEGORIES,
     BRANDS,
@@ -43,6 +44,7 @@ export default function PublishClient() {
     const [loading, setLoading] = useState(false)
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [aiConfidence, setAiConfidence] = useState(0)
+    const [currentTipIndex, setCurrentTipIndex] = useState(0)
     const [aiError, setAiError] = useState('')
     const [showPortal, setShowPortal] = useState(false)
     const [redirectUrl, setRedirectUrl] = useState('')
@@ -77,6 +79,7 @@ export default function PublishClient() {
     const [description, setDescription] = useState('')
     const [brand, setBrand] = useState('')
     const [model, setModel] = useState('')
+    const [version, setVersion] = useState('')
     const [year, setYear] = useState('')
     const [price, setPrice] = useState('')
     const [currency, setCurrency] = useState('MXN')
@@ -155,34 +158,49 @@ export default function PublishClient() {
     const [bestCategoryCache, setBestCategoryCache] = useState<string>('')
     const [invalidImageUrls, setInvalidImageUrls] = useState<Set<string>>(new Set())
     const [invalidReasons, setInvalidReasons] = useState<Record<string, string>>({})
+    const [rejectedIndices, setRejectedIndices] = useState<Set<number>>(new Set())
 
     const handleImagesChange = (newImages: string[]) => {
         setImages(newImages)
         setAiError('')
+        setInvalidImageUrls(new Set())
+        setInvalidReasons({})
+        setRejectedIndices(new Set())
     }
 
-    const validateImagesAndProceed = async () => {
+    const validateImagesAndProceed = async (retryCount = 0) => {
         if (images.length === 0) return
         setIsAnalyzing(true)
         setAiError('')
-        setAiConfidence(50)
+        // NO establecer aiConfidence aquí - el useEffect lo manejará desde 0%
 
-        // 🎯 Validamos TODAS las imágenes (Portada + Galería)
+        console.log(`🧪 [Intento ${retryCount + 1}] Iniciando validación de imágenes...`, images.length, 'fotos')
+
         try {
             const res = await fetch('/api/ai/validate-images-bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    images: images, // Enviamos TODAS
+                    images: images,
                     type: 'VEHICLE',
                     context: { brand, model, year }
                 })
             })
 
-            if (!res.ok) throw new Error('Error en validación de imágenes')
-
             const validation = await res.json()
+
+            // 🔄 REINTENTO AUTOMÁTICO DEL CLIENTE (Si el servidor devuelve error técnico)
+            if (!res.ok && retryCount < 2) {
+                console.warn(`⚠️ Error técnico del servidor. Reintentando automáticamente (${retryCount + 1}/3)...`);
+                return setTimeout(() => validateImagesAndProceed(retryCount + 1), 2000);
+            }
+
+            console.log('🤖 Respuesta del Asesor IA:', validation)
+
+            if (!res.ok) throw new Error('No pudimos completar la verificación técnica. Intenta de nuevo.')
+
             setAiConfidence(100)
+            // ... resto igual ...
 
             // 1. 🛡️ APLICAR DETALLES DE IA (Si la portada es válida)
             if (validation.details && (!validation.invalidIndices || !validation.invalidIndices.includes(0))) {
@@ -190,9 +208,17 @@ export default function PublishClient() {
             }
 
             // 2. 🚨 VALIDAR PORTADA (Index 0)
-            // Solo bloqueamos si la PORTADA misma es basura o no es un vehículo.
-            if (!validation.valid || validation.invalidIndices?.includes(0)) {
-                const reason = validation.reason || 'La foto de portada debe ser un vehículo real.'
+            // Bloqueamos SI Y SOLO SI la PORTADA es inválida.
+            const isCoverInvalid = !validation.valid || validation.invalidIndices?.includes(0)
+            if (isCoverInvalid) {
+                // Mensaje de error específico y claro
+                let reason = validation.reason || 'La imagen no pasó la verificación.'
+
+                // Si el backend no dio razón específica, dar una genérica útil
+                if (!validation.reason) {
+                    reason = '⚠️ Esta imagen no es un vehículo motorizado terrestre. Por favor, sube una foto clara de un auto, camioneta, motocicleta, o vehículo similar.'
+                }
+
                 setAiError(reason)
                 setIsAnalyzing(false)
                 setInvalidImageUrls(new Set([images[0]]))
@@ -200,17 +226,19 @@ export default function PublishClient() {
                 return
             }
 
-            // 3. 🧹 FILTRAR GALERÍA (Index > 0)
-            // Si hay fotos malas en la galería, las quitamos silenciosamente y continuamos.
+            // 3. 🧹 MARCAR GALERÍA (Index > 0)
+            // Si hay fotos malas en la galería, las guardamos para filtrarlas al final.
             if (validation.invalidIndices && validation.invalidIndices.length > 0) {
-                const cleanImages = images.filter((_, idx) => !validation.invalidIndices.includes(idx))
-                console.log(`🧹 Limpieza mágica de galería: ${images.length - cleanImages.length} fotos eliminadas por no coincidir.`);
-                setImages(cleanImages)
+                const galleryRejected = validation.invalidIndices.filter((idx: number) => idx > 0)
+                setRejectedIndices(new Set(galleryRejected))
+                console.log(`⚠️ Galería marcada para limpieza: ${galleryRejected.length} fotos no pasaron pero seguimos adelante.`);
+            } else {
+                setRejectedIndices(new Set())
             }
 
             setInvalidImageUrls(new Set())
             setIsAnalyzing(false)
-            handleNextStep() // Proceder al siguiente paso automáticamente si la portada es buena
+            handleNextStep() // Proceder al siguiente paso (el usuario manda)
 
         } catch (error: any) {
             console.error('Error en validación de imágenes:', error)
@@ -261,6 +289,7 @@ export default function PublishClient() {
 
         // 🛡️ REGLA DE AUTORIDAD CARMATCH: Sobrescribir especificaciones técnicas SOLO si el usuario no las corrigió
         if (details.model && !userEditedFields.has('model')) setModel(details.model)
+        if (details.version && !userEditedFields.has('version')) setVersion(details.version)
         if (details.year && !userEditedFields.has('year')) setYear(details.year.toString())
         if (details.color && !userEditedFields.has('color')) setColor(details.color)
         if (details.type && !userEditedFields.has('vehicleType')) setVehicleType(details.type)
@@ -303,10 +332,44 @@ export default function PublishClient() {
             else setVehicleCategory('automovil')
         }
 
+        // 🧠 SMART FEATURES: Match AI features with UI suggestions
         const feats = details.features || []
+
         if (feats.length > 0) {
+            // 1. Get official taxonomy for this category
+            const taxCat = mapCategoryToTaxonomy(category) || 'Automóvil'
+            const officialFeatures = getFeaturesByCategory(taxCat)
+
+            const normalizedFeats = feats.map((f: string) => {
+                const normF = f.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+
+                // Try to find a match in official features
+                const match = officialFeatures.find(official => {
+                    const normOfficial = official.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+
+                    // Direct match or inclusion
+                    if (normOfficial === normF) return true
+                    if (normOfficial.includes(normF) && normF.length > 3) return true // "Piel" in "Asientos de Piel"
+
+                    // Synonyms Logic
+                    if (normOfficial.includes('piel') && normF.includes('cuero')) return true
+                    if (normOfficial.includes('quemacocos') && (normF.includes('techo') || normF.includes('solar') || normF.includes('sunroof'))) return true
+                    if (normOfficial.includes('pantalla') && (normF.includes('tactil') || normF.includes('touch') || normF.includes('infotainment'))) return true
+                    if (normOfficial.includes('reversa') && (normF.includes('trasera') || normF.includes('backup'))) return true
+                    if (normOfficial.includes('niebla') && (normF.includes('niebla') || normF.includes('fog'))) return true
+                    if (normOfficial.includes('rines') && (normF.includes('aleacion') || normF.includes('aluminio') || normF.includes('deportivos'))) return true
+                    if (normOfficial.includes('vidrios') && (normF.includes('ventanas') || normF.includes('cristales') || normF.includes('electricos'))) return true
+                    if (normOfficial.includes('aire') && (normF.includes('a/c') || normF.includes('clima'))) return true
+                    if (normOfficial.includes('android') && (normF.includes('carplay') || normF.includes('apple'))) return true
+
+                    return false
+                })
+
+                return match || f // Return the official name if matched, otherwise keep original
+            })
+
             setSelectedFeatures(prev => {
-                const newFeats = [...new Set([...prev, ...feats])]
+                const newFeats = [...new Set([...prev, ...normalizedFeats])]
                 return newFeats
             })
         }
@@ -316,8 +379,17 @@ export default function PublishClient() {
         }
     }
 
+    // 🚀 SCROLL OPTIMIZATION: Ensure view starts at top on step change
+    const topRef = useRef<HTMLDivElement>(null)
+
     useEffect(() => {
-        window.scrollTo(0, 0)
+        // Force scroll to top instantly
+        window.scrollTo({ top: 0, behavior: 'instant' })
+
+        // Backup: Scroll top container into view if window scroll fails (common in mobile wrappers)
+        if (topRef.current) {
+            topRef.current.scrollIntoView({ behavior: 'instant', block: 'start' })
+        }
     }, [currentStep])
 
     const handleNextStep = () => {
@@ -368,6 +440,40 @@ export default function PublishClient() {
         detectRegionalSettings()
     }, [])
 
+    // 🔄 Rotar consejos dinámicamente cada 6 segundos mientras está analizando
+    useEffect(() => {
+        if (!isAnalyzing) return
+
+        const interval = setInterval(() => {
+            setCurrentTipIndex(prev => (prev + 1) % 5) // 5 consejos en total
+        }, 6000) // Cambiar cada 6 segundos
+
+        return () => clearInterval(interval)
+    }, [isAnalyzing])
+
+    // 📊 Animar barra de progreso automáticamente mientras está analizando
+    useEffect(() => {
+        if (!isAnalyzing) {
+            setAiConfidence(0) // Reset al terminar
+            setCurrentTipIndex(0)
+            return
+        }
+
+        // Iniciar desde 0 y llegar gradualmente a 90% (el 100% se alcanza cuando termina realmente)
+        setAiConfidence(0)
+        const startTime = Date.now()
+        const duration = 15000 // 15 segundos para llegar al 90%
+
+        const progressInterval = setInterval(() => {
+            const elapsed = Date.now() - startTime
+            const progress = Math.min((elapsed / duration) * 90, 90) // Max 90%
+            setAiConfidence(Math.floor(progress))
+        }, 100) // Actualizar cada 100ms para animación suave
+
+        return () => clearInterval(progressInterval)
+    }, [isAnalyzing])
+
+
     // ✏️ Edit Mode: Load vehicle data
     useEffect(() => {
         if (editId) {
@@ -386,6 +492,7 @@ export default function PublishClient() {
                     setDescription(v.description || '')
                     setBrand(v.brand || '')
                     setModel(v.model || '')
+                    setVersion(v.version || '')
                     setYear(v.year?.toString() || '')
                     setPrice(v.price?.toString() || '')
                     setCurrency(v.currency || 'MXN')
@@ -424,30 +531,12 @@ export default function PublishClient() {
         setLoading(true)
         setAiError('')
 
-        // 🛡️ FILTRADO SILENCIOSO DE GALERÍA ANTES DE PUBLICAR
-        // Analizamos todas las fotos para quitar las que no sean vehículos (sin avisar al usuario)
-        let finalImages = [...images]
-        try {
-            const bulkRes = await fetch('/api/ai/validate-images-bulk', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    images,
-                    type: 'VEHICLE',
-                    context: { brand, model, year }
-                })
-            })
+        // 🛡️ FILTRADO SILENCIOSO DEFINITIVO ANTES DE PUBLICAR
+        // Usamos los índices que ya detectamos en el paso 1 para limpiar la lista.
+        let finalImages = images.filter((_, idx) => !rejectedIndices.has(idx))
 
-            if (bulkRes.ok) {
-                const bulkValidation = await bulkRes.json()
-                if (bulkValidation.invalidIndices && bulkValidation.invalidIndices.length > 0) {
-                    // Solo filtramos los índices > 0 (la galería). La portada (0) ya se validó antes.
-                    finalImages = images.filter((_, idx) => !bulkValidation.invalidIndices.includes(idx) || idx === 0)
-                    console.log(`🧹 Limpieza silenciosa: ${images.length - finalImages.length} fotos extras eliminadas por no ser válidas.`)
-                }
-            }
-        } catch (err) {
-            console.warn('Error en validación silenciosa, procediendo con fotos originales:', err)
+        if (finalImages.length < images.length) {
+            console.log(`🚀 CarMatch: Filtrando ${images.length - finalImages.length} imágenes de galería que no pasaron la auditoría IA.`);
         }
 
         try {
@@ -473,39 +562,46 @@ export default function PublishClient() {
             }
 
             const deviceFP = await generateDeviceFingerprint()
+            // 🧪 Helper para parsear números seguros
+            const parseN = (val: string) => {
+                if (!val) return null
+                const clean = val.replace(/[^0-9.]/g, '')
+                return isNaN(parseFloat(clean)) ? null : parseFloat(clean)
+            }
+
             const vehicleData = {
-                title: `${brand} ${model} ${year}`,
-                description, brand, model,
+                title: `${brand} ${model} ${version ? version + ' ' : ''}${year}`,
+                description, brand, model, version,
                 year: parsedYear,
                 price: parseFloat(price) || 0,
                 currency,
                 city,
                 state: stateLocation,
                 country: countryLocation,
-                latitude, longitude, images,
+                latitude, longitude, images: finalImages,
                 vehicleType,
                 features: selectedFeatures,
-                mileage: mileage ? parseInt(mileage) : null,
+                mileage: mileage ? parseInt(mileage.replace(/\D/g, '')) : null,
                 mileageUnit,
                 transmission: transmission || null,
                 fuel: fuel || null,
                 engine: engine || null,
-                doors: doors ? parseInt(doors) : null,
+                doors: doors ? parseInt(doors.replace(/\D/g, '')) : null,
                 color: color || null,
                 condition: condition || null,
                 traction: traction || null,
-                passengers: passengers ? parseInt(passengers) : null,
-                displacement: displacement || undefined,
-                cargoCapacity: cargoCapacity || undefined,
-                operatingHours: operatingHours || undefined,
-                hp: hp || undefined,
+                passengers: parseN(passengers),
+                displacement: parseN(displacement),
+                cargoCapacity: parseN(cargoCapacity),
+                operatingHours: parseN(operatingHours),
+                hp: parseN(hp),
                 torque: torque || undefined,
                 aspiration: aspiration || undefined,
-                cylinders: cylinders || undefined,
-                batteryCapacity: batteryCapacity || undefined,
-                range: range || undefined,
-                weight: weight || undefined,
-                axles: axles || undefined,
+                cylinders: parseN(cylinders),
+                batteryCapacity: parseN(batteryCapacity),
+                range: parseN(range),
+                weight: parseN(weight),
+                axles: parseN(axles),
             }
 
             if (deviceFP) {
@@ -514,7 +610,7 @@ export default function PublishClient() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         deviceFingerprint: deviceFP,
-                        images,
+                        images: finalImages,
                         vehicleData,
                         gpsLocation: { latitude, longitude },
                         currentVehicleId: editId
@@ -559,6 +655,8 @@ export default function PublishClient() {
                 }
                 throw new Error(errorData.error || 'Error al publicar vehículo')
             }
+            // Forzar actualización de caché del cliente antes de navegar
+            router.refresh()
             router.push('/profile?published=true')
         } catch (error) {
             console.error('Error:', error)
@@ -568,9 +666,24 @@ export default function PublishClient() {
         }
     }
 
+    // Validaciones de cada paso calculadas con useMemo
+    const canProceed = useMemo(() => {
+        const step1 = images.length > 0
+        const step2 = !!(brand && model && year && price && parseFloat(price) > 0)
+        const step3 = true // Paso 3 es opcional
+        const step4 = !!(brand && model && year && price && images.length > 0 && city)
+
+        switch (currentStep) {
+            case 1: return step1
+            case 2: return step2
+            case 3: return step3
+            case 4: return step4
+            default: return true
+        }
+    }, [currentStep, images, brand, model, year, price, city])
+
     return (
-        <div className="min-h-screen bg-background">
-            <Header />
+        <div ref={topRef} className="min-h-screen bg-background pb-safe">
             <PortalAnimation show={showPortal} />
 
             <div className="container mx-auto px-4 py-8 pb-32 max-w-4xl">
@@ -610,11 +723,33 @@ export default function PublishClient() {
                     {isAnalyzing && (
                         <div className="absolute inset-0 z-40 bg-surface/90 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl">
                             <h3 className="text-2xl font-bold text-text-primary animate-pulse text-center px-6">
-                                Subiendo fotos...
+                                Subiendo tus fotos...
                             </h3>
+                            <p className="text-text-secondary text-sm mt-2 mb-8">Esto puede tardar unos segundos</p>
 
-                            <div className="w-64 h-2 bg-surface-highlight rounded-full mt-6 overflow-hidden">
-                                <div className="h-full bg-green-500 transition-all" style={{ width: `${aiConfidence}%` }}></div>
+                            {/* 💡 Consejos dinámicos para el vendedor */}
+                            <div className="max-w-md w-full px-6 py-4 bg-primary-900/10 border border-primary-500/20 rounded-2xl animate-in fade-in zoom-in duration-500">
+                                <div className="flex items-center gap-2 mb-3 text-primary-400">
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <h4 className="font-bold text-xs uppercase tracking-widest">Consejo CarMatch</h4>
+                                </div>
+                                <div className="h-20 flex items-center">
+                                    <p className="text-sm text-text-secondary italic">
+                                        {[
+                                            "Sugerencia: Acuerden un punto medio seguro para la entrega o revisión del vehículo.",
+                                            "Tip: Recuerda que CarMatch no se involucra en las negociaciones finales, ¡tú eres el experto!",
+                                            "Seguridad: Te recomendamos revisar papeles originales y número de serie antes de cerrar cualquier trato.",
+                                            "Éxito: Una buena descripción técnica ayuda a que el comprador decida más rápido.",
+                                            "Cita: Una vez que acuerden la reunión, pongan un recordatorio para evitar contratiempos."
+                                        ][currentTipIndex]}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="w-64 h-2 bg-surface-highlight rounded-full mt-8 overflow-hidden">
+                                <div className="h-full bg-primary-500 transition-all duration-1000" style={{ width: `${aiConfidence}%` }}></div>
                             </div>
                         </div>
                     )}
@@ -718,6 +853,21 @@ export default function PublishClient() {
                                         options={modelNames}
                                         strict={false}
                                     />
+                                    <div className="space-y-2">
+                                        <label className="block text-text-primary font-medium">
+                                            Versión / Trim <span className="text-xs font-normal text-text-secondary">({t('common.optional')})</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={version}
+                                            onChange={(e) => {
+                                                setVersion(e.target.value)
+                                                setUserEditedFields(prev => new Set(prev).add('version'))
+                                            }}
+                                            placeholder="Ej: Raptor, Denali, GTI..."
+                                            className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all"
+                                        />
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                     <SearchableSelect
@@ -741,48 +891,48 @@ export default function PublishClient() {
                                         strict={true}
                                     />
                                 </div>
-                            </div>
 
-                            {/* Precio */}
-                            <div className="pt-8 border-t border-surface-highlight">
-                                <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
-                                    <span className="w-8 h-8 bg-primary-700/20 text-primary-400 rounded-lg flex items-center justify-center text-sm">3</span>
-                                    {t('publish.labels.price')}
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="space-y-2 col-span-1">
-                                        <label className="block text-text-primary font-medium">
-                                            {t('common.currency')}
-                                        </label>
-                                        <SearchableSelect
-                                            value={currency}
-                                            onChange={setCurrency}
-                                            options={CURRENCIES.map(c => c.code)}
-                                            renderOption={(option) => {
-                                                const c = CURRENCIES.find(curr => curr.code === option)
-                                                return `${option} - ${c?.name || ''}`
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="space-y-2 col-span-1 md:col-span-2">
-                                        <label className="block text-text-primary font-medium">
-                                            {t('publish.labels.price')}
-                                        </label>
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                inputMode="numeric"
-                                                value={price}
-                                                onChange={(e) => {
-                                                    const val = e.target.value;
-                                                    const onlyNums = val.replace(/[^0-9]/g, '');
-                                                    const sanitized = onlyNums.replace(/^0+(?=\d)/, '');
-                                                    setPrice(sanitized);
+                                {/* Precio */}
+                                <div className="pt-8 border-t border-surface-highlight">
+                                    <h3 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+                                        <span className="w-8 h-8 bg-primary-700/20 text-primary-400 rounded-lg flex items-center justify-center text-sm">3</span>
+                                        {t('publish.labels.price')}
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-2 col-span-1">
+                                            <label className="block text-text-primary font-medium">
+                                                {t('common.currency')}
+                                            </label>
+                                            <SearchableSelect
+                                                value={currency}
+                                                onChange={setCurrency}
+                                                options={CURRENCIES.map(c => c.code)}
+                                                renderOption={(option) => {
+                                                    const c = CURRENCIES.find(curr => curr.code === option)
+                                                    return `${option} - ${c?.name || ''}`
                                                 }}
-                                                placeholder="0"
-                                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all pl-12 text-xl font-bold text-primary-400"
                                             />
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-xl">$</span>
+                                        </div>
+                                        <div className="space-y-2 col-span-1 md:col-span-2">
+                                            <label className="block text-text-primary font-medium">
+                                                {t('publish.labels.price')}
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    value={price ? Number(price).toLocaleString(locale === 'es' ? 'es-MX' : 'en-US') : ''}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        const onlyNums = val.replace(/[^0-9]/g, '');
+                                                        const sanitized = onlyNums.replace(/^0+(?=\d)/, '');
+                                                        setPrice(sanitized);
+                                                    }}
+                                                    placeholder="0"
+                                                    className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg focus:ring-2 focus:ring-primary-700 outline-none transition-all pl-12 text-xl font-bold text-primary-400"
+                                                />
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-xl">$</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -803,7 +953,7 @@ export default function PublishClient() {
                                             <input
                                                 type="text"
                                                 inputMode="numeric"
-                                                value={mileage}
+                                                value={mileage ? Number(mileage).toLocaleString(locale === 'es' ? 'es-MX' : 'en-US') : ''}
                                                 onChange={(e) => {
                                                     const val = e.target.value;
                                                     const onlyNums = val.replace(/[^0-9]/g, '');
@@ -872,131 +1022,295 @@ export default function PublishClient() {
                                         strict={true}
                                     />
                                 </div>
-                            </div>
 
-                            {/* Equipamiento y Características */}
-                            <div className="pt-8 border-t border-surface-highlight">
-                                <h3 className="text-xl font-bold text-text-primary mb-2">{t('publish.labels.features_title')}</h3>
-                                <p className="text-sm text-text-secondary mb-6">
-                                    Revisa, edita o elimina lo que la IA detectó automáticamente, o agrega nuevas características manuales.
-                                </p>
-
-                                {/* 1. Lista de Equipamiento Seleccionado (Editable) */}
-                                <div className="space-y-3 mb-8">
-                                    <div className="flex flex-wrap gap-2">
-                                        {selectedFeatures.length === 0 ? (
-                                            <p className="text-sm text-text-secondary italic bg-surface-highlight/20 px-4 py-2 rounded-lg border border-dashed border-surface-highlight">
-                                                No hay equipamiento seleccionado. Usa las sugerencias o agrega uno nuevo.
-                                            </p>
-                                        ) : (
-                                            selectedFeatures.map((feature, index) => (
-                                                <div
-                                                    key={`selected-${index}`}
-                                                    className="flex items-center bg-primary-700/10 border border-primary-700/30 rounded-xl px-3 py-1.5 gap-2 group hover:bg-primary-700/20 transition-all"
-                                                >
-                                                    <input
-                                                        type="text"
-                                                        value={feature}
-                                                        onChange={(e) => updateFeature(index, e.target.value)}
-                                                        className="bg-transparent border-none focus:ring-0 text-sm font-medium text-text-primary p-0 min-w-[80px]"
-                                                        style={{ width: `${Math.max(80, feature.length * 8)}px` }}
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeFeature(index)}
-                                                        className="text-text-secondary hover:text-red-400 p-0.5 rounded-md hover:bg-red-400/10 transition"
-                                                    >
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            ))
-                                        )}
+                                {/* 🔬 Detalles Técnicos Avanzados (NUEVOS) */}
+                                <div className="pt-6 border-t border-surface-highlight/50 space-y-4">
+                                    <h4 className="text-sm font-bold text-primary-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Settings2 size={16} />
+                                        Motor y Potencia
+                                    </h4>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Cilindraje</label>
+                                            <input
+                                                type="text"
+                                                value={displacement}
+                                                onChange={(e) => {
+                                                    setDisplacement(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('displacement'))
+                                                }}
+                                                placeholder="Ej: 2.5 (L) o 600 (cc)"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Potencia (HP)</label>
+                                            <input
+                                                type="text"
+                                                value={hp}
+                                                onChange={(e) => {
+                                                    setHp(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('hp'))
+                                                }}
+                                                placeholder="Ej: 250"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Torque</label>
+                                            <input
+                                                type="text"
+                                                value={torque}
+                                                onChange={(e) => {
+                                                    setTorque(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('torque'))
+                                                }}
+                                                placeholder="Ej: 300 lb-pie"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Cilindros</label>
+                                            <input
+                                                type="text"
+                                                value={cylinders}
+                                                onChange={(e) => {
+                                                    setCylinders(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('cylinders'))
+                                                }}
+                                                placeholder="Ej: 4, 6, 8"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-
-                                {/* 2. Agregar Característica Personalizada */}
-                                <div className="flex gap-2 max-w-md mb-8">
-                                    <div className="relative flex-1">
-                                        <input
-                                            type="text"
-                                            value={newFeature}
-                                            onChange={(e) => setNewFeature(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    e.preventDefault()
-                                                    addCustomFeature()
-                                                }
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Tipo de Motor / Descripción</label>
+                                            <input
+                                                type="text"
+                                                value={engine}
+                                                onChange={(e) => {
+                                                    setEngine(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('engine'))
+                                                }}
+                                                placeholder="Ej: 2.0L Turbo, V6 i-VTEC, Eléctrico Dual Motor"
+                                                className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <SearchableSelect
+                                            label="Tracción"
+                                            value={traction}
+                                            onChange={(value) => {
+                                                setTraction(value)
+                                                setUserEditedFields(prev => new Set(prev).add('traction'))
                                             }}
-                                            placeholder="Ej: Rines deportivos 20\", GPS..."
-                                        className="w-full bg-surface-highlight border border-surface-highlight p-3 rounded-xl pr-10 text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            options={['FWD (Delantera)', 'RWD (Trasera)', 'AWD (Integral)', '4WD (4x4)', '2WD', '4x2', '6x4', '8x4']}
+                                            strict={false}
                                         />
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={addCustomFeature}
-                                        disabled={!newFeature.trim()}
-                                        className="bg-primary-700 hover:bg-primary-600 disabled:opacity-50 text-white font-bold px-4 rounded-xl transition-all flex items-center gap-2"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                        </svg>
-                                        <span className="hidden sm:inline">Agregar</span>
-                                    </button>
-                                </div>
-
-                                {/* 3. Sugerencias Rápidas */}
-                                <div className="space-y-4">
-                                    <h4 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Sugerencias por categoría</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {getFeaturesByCategory(
-                                            (() => {
-                                                const c = vehicleCategory.toLowerCase()
-                                                if (c.includes('moto')) return 'Motocicleta'
-                                                if (c.includes('camion') || c.includes('comercial')) return 'Camión'
-                                                if (c.includes('industrial') || c.includes('maquinaria')) return 'Maquinaria'
-                                                if (c.includes('transporte') || c.includes('autobus') || c.includes('bus')) return 'Autobús'
-                                                if (c.includes('especial')) return 'Especial'
-                                                return 'Automóvil'
-                                            })()
-                                        ).map(feature => {
-                                            const isSelected = selectedFeatures.includes(feature)
-                                            return (
-                                                <button
-                                                    key={feature}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (isSelected) setSelectedFeatures(prev => prev.filter(f => f !== feature))
-                                                        else setSelectedFeatures(prev => [...prev, feature])
-                                                    }}
-                                                    className={`
-                                                        px-4 py-2 rounded-xl text-sm font-medium border transition-all
-                                                        ${isSelected
-                                                            ? 'bg-primary-700 border-primary-700 text-white shadow-lg shadow-primary-700/20'
-                                                            : 'bg-surface-highlight border-transparent text-text-secondary hover:border-primary-700/50 hover:text-text-primary'}
-                                                    `}
-                                                >
-                                                    {feature}
-                                                </button>
-                                            )
-                                        })}
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <SearchableSelect
+                                            label="Aspiración"
+                                            value={aspiration}
+                                            onChange={(value) => {
+                                                setAspiration(value)
+                                                setUserEditedFields(prev => new Set(prev).add('aspiration'))
+                                            }}
+                                            options={['Atmosférico', 'Turbo', 'Bi-Turbo', 'Supercargado', 'Aspirado Natural']}
+                                            strict={false}
+                                        />
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Nº Pasajeros</label>
+                                            <input
+                                                type="text"
+                                                value={passengers}
+                                                onChange={(e) => {
+                                                    setPassengers(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('passengers'))
+                                                }}
+                                                placeholder="Ej: 5"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-xs font-medium text-text-secondary uppercase">Peso (kg)</label>
+                                            <input
+                                                type="text"
+                                                value={weight}
+                                                onChange={(e) => {
+                                                    setWeight(e.target.value)
+                                                    setUserEditedFields(prev => new Set(prev).add('weight'))
+                                                }}
+                                                placeholder="Ej: 1540"
+                                                className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Descripción */}
-                            <div className="pt-8 border-t border-surface-highlight">
-                                <label className="block text-xl font-bold text-text-primary mb-4">
-                                    {t('publish.labels.description')} <span className="text-xs font-normal text-text-secondary">({t('common.optional')})</span>
-                                </label>
-                                <textarea
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="Comentarios adicionales, estado de llantas, mantenimiento, etc..."
-                                    rows={4}
-                                    className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg resize-none focus:ring-2 focus:ring-primary-700 outline-none transition-all"
-                                />
+                                {/* 🔌 Campo Eléctrico (Opcional) */}
+                                {fuel?.toLowerCase().includes('electric') || fuel?.toLowerCase().includes('hibrid') || engine?.toLowerCase().includes('electri') ? (
+                                    <div className="pt-6 border-t border-surface-highlight/50 space-y-4 animate-in slide-in-from-left-2 duration-300">
+                                        <h4 className="text-sm font-bold text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                                            <BatteryCharging size={16} />
+                                            Detalles Eléctricos
+                                        </h4>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="block text-xs font-medium text-text-secondary uppercase">Capacidad Batería (kWh)</label>
+                                                <input
+                                                    type="text"
+                                                    value={batteryCapacity}
+                                                    onChange={(e) => setBatteryCapacity(e.target.value)}
+                                                    placeholder="Ej: 75"
+                                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="block text-xs font-medium text-text-secondary uppercase">Rango Eléctrico (km)</label>
+                                                <input
+                                                    type="text"
+                                                    value={range}
+                                                    onChange={(e) => setRange(e.target.value)}
+                                                    placeholder="Ej: 450"
+                                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : null}
+
+                                {/* 🚚 Campos Específicos por Tipo (Carga / Industrial / Pesados) */}
+                                {(vehicleCategory === 'comercial' || vehicleCategory === 'transporte' || vehicleCategory === 'industrial') && (
+                                    <div className="pt-6 border-t border-surface-highlight/50 space-y-4 animate-in slide-in-from-left-2 duration-300">
+                                        <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                                            <Truck size={16} />
+                                            Detalles de Carga y Pesados
+                                        </h4>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="block text-xs font-medium text-text-secondary uppercase">Capacidad de Carga (kg)</label>
+                                                <input
+                                                    type="text"
+                                                    value={cargoCapacity}
+                                                    onChange={(e) => setCargoCapacity(e.target.value)}
+                                                    placeholder="Ej: 3500"
+                                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="block text-xs font-medium text-text-secondary uppercase">Ejes</label>
+                                                <input
+                                                    type="text"
+                                                    value={axles}
+                                                    onChange={(e) => setAxles(e.target.value)}
+                                                    placeholder="Ej: 2, 3, 4"
+                                                    className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                />
+                                            </div>
+                                            {vehicleCategory === 'industrial' && (
+                                                <div className="space-y-1 col-span-2 md:col-span-1">
+                                                    <label className="block text-xs font-medium text-text-secondary uppercase">Horas de Operación</label>
+                                                    <input
+                                                        type="text"
+                                                        value={operatingHours}
+                                                        onChange={(e) => setOperatingHours(e.target.value)}
+                                                        placeholder="Ej: 1200"
+                                                        className="w-full px-3 py-2 bg-background border border-surface-highlight rounded-lg text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Equipamiento y Características */}
+                                <div className="pt-8 border-t border-surface-highlight">
+                                    <h3 className="text-xl font-bold text-text-primary mb-2">{t('publish.labels.features_title')}</h3>
+                                    <p className="text-sm text-text-secondary mb-6">
+                                        Revisa, edita o elimina lo que un asesor detectó automáticamente, o agrega nuevas características manuales.
+                                    </p>
+
+                                    {/* 1. Lista de Equipamiento Seleccionado (Editable) */}
+                                    <div className="space-y-3 mb-8">
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedFeatures.length === 0 ? (
+                                                <p className="text-sm text-text-secondary italic bg-surface-highlight/20 px-4 py-2 rounded-lg border border-dashed border-surface-highlight">
+                                                    No hay equipamiento seleccionado. Usa las sugerencias o agrega uno nuevo.
+                                                </p>
+                                            ) : (
+                                                selectedFeatures.map((feature, index) => (
+                                                    <div
+                                                        key={`selected-${index}`}
+                                                        className="flex items-center bg-primary-700/10 border border-primary-700/30 rounded-xl px-3 py-1.5 gap-2 group hover:bg-primary-700/20 transition-all max-w-full"
+                                                    >
+                                                        <input
+                                                            type="text"
+                                                            value={feature}
+                                                            onChange={(e) => updateFeature(index, e.target.value)}
+                                                            className="bg-transparent border-none focus:ring-0 text-sm font-medium text-text-primary p-0 min-w-[60px] max-w-[240px] flex-1"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeFeature(index)}
+                                                            className="text-text-secondary hover:text-red-400 p-0.5 rounded-md hover:bg-red-400/10 transition flex-shrink-0"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* 2. Agregar Característica Personalizada */}
+                                    <div className="flex gap-2 max-w-md mb-8">
+                                        <div className="relative flex-1">
+                                            <input
+                                                type="text"
+                                                value={newFeature}
+                                                onChange={(e) => setNewFeature(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault()
+                                                        addCustomFeature()
+                                                    }
+                                                }}
+                                                placeholder={'Ej: Rines deportivos 20", GPS...'}
+                                                className="w-full bg-surface-highlight border border-surface-highlight p-3 rounded-xl pr-10 text-sm focus:ring-1 focus:ring-primary-700 outline-none"
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={addCustomFeature}
+                                            disabled={!newFeature.trim()}
+                                            className="bg-primary-700 hover:bg-primary-600 disabled:opacity-50 text-white font-bold px-4 rounded-xl transition-all flex items-center gap-2"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                            </svg>
+                                            <span className="hidden sm:inline">Agregar</span>
+                                        </button>
+                                    </div>
+
+
+                                </div>
+
+                                {/* Descripción */}
+                                <div className="pt-8 border-t border-surface-highlight">
+                                    <label className="block text-xl font-bold text-text-primary mb-4">
+                                        {t('publish.labels.description')} <span className="text-xs font-normal text-text-secondary">({t('common.optional')})</span>
+                                    </label>
+                                    <textarea
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Comentarios adicionales, estado de llantas, mantenimiento, etc..."
+                                        rows={4}
+                                        className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg resize-none focus:ring-2 focus:ring-primary-700 outline-none transition-all"
+                                    />
+                                </div>
                             </div>
                         </div>
                     )}
@@ -1007,49 +1321,54 @@ export default function PublishClient() {
                             <GPSCaptureStep onLocationChange={handleLocationChange} latitude={latitude} longitude={longitude} city={city} />
 
                             {/* Resumen Final para Revisión */}
-                            <div className="pt-8 border-t border-surface-highlight">
-                                <div className="p-6 bg-surface-highlight/20 border border-surface-highlight rounded-2xl relative overflow-hidden">
-                                    {/* Sello de Calidad IA */}
-                                    {/* Sello de Calidad IA REMOVIDO */}
-
-                                    <div className="flex flex-col md:flex-row gap-6">
-                                        {images[0] && (
-                                            <div className="w-full md:w-1/3 aspect-video rounded-xl overflow-hidden shadow-lg border-2 border-primary-700/30">
-                                                <img src={images[0]} alt="Portada" className="w-full h-full object-cover" />
+                            <div className="pt-8 border-t border-surface-highlight space-y-8">
+                                {/* 📸 Resumen de Fotos que pasarán (Limpieza Silenciosa) */}
+                                <div>
+                                    <h3 className="text-sm font-bold text-primary-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse" />
+                                        Fotos confirmadas para publicación
+                                    </h3>
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                                        {images.filter((_, idx) => !rejectedIndices.has(idx)).map((url, index) => (
+                                            <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-surface-highlight bg-surface group">
+                                                <img
+                                                    src={url}
+                                                    alt={`Confirmada ${index}`}
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                />
+                                                {index === 0 && (
+                                                    <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-primary-700 text-[9px] font-black text-white rounded-md shadow-lg border border-primary-600">
+                                                        PORTADA
+                                                    </div>
+                                                )}
+                                                {/* Overlay de calidad sugerido */}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                                            </div>
+                                        ))}
+                                        {/* Placeholder si se borraron muchas */}
+                                        {images.filter((_, idx) => rejectedIndices.has(idx)).length > 0 && (
+                                            <div className="aspect-square rounded-xl border border-dashed border-surface-highlight bg-surface/30 flex flex-col items-center justify-center p-2 text-center opacity-40">
+                                                <X size={16} className="text-text-secondary mb-1" />
+                                                <span className="text-[10px] font-medium leading-tight">Fotos depuradas por la IA</span>
                                             </div>
                                         )}
-                                        <div className="flex-1">
-                                            <h3 className="text-2xl font-black text-text-primary uppercase tracking-tight">{brand} {model} {year}</h3>
-                                            <div className="flex items-center gap-3 mt-2">
-                                                <span className="text-3xl font-black text-primary-400">
-                                                    {formatPrice(parseFloat(price || '0'), currency, locale)}
-                                                </span>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-2 mt-4 text-xs font-bold uppercase text-text-secondary">
-                                                <div className="flex items-center gap-2">📍 {city}</div>
-                                                <div className="flex items-center gap-2">🛣️ {mileage} {mileageUnit}</div>
-                                                <div className="flex items-center gap-2">⚙️ {transmission}</div>
-                                                <div className="flex items-center gap-2">⛽ {fuel}</div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Alertas de Validación */}
-                            {(!brand || !model || !year || !price || images.length === 0 || !city) && (
-                                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl space-y-2">
-                                    <p className="text-red-500 font-bold text-sm">⚠️ {t('publish.validation.review_required')}</p>
-                                    <ul className="text-xs text-red-400 space-y-1">
-                                        {!brand && <li>• {t('publish.validation.missing_brand')}</li>}
-                                        {!model && <li>• {t('publish.validation.missing_model')}</li>}
-                                        {!year && <li>• {t('publish.validation.missing_year')}</li>}
-                                        {(!price || parseFloat(price) <= 0) && <li>• {t('publish.validation.invalid_price')}</li>}
-                                        {images.length === 0 && <li>• {t('publish.validation.missing_images')}</li>}
-                                        {!city && <li>• {t('publish.validation.missing_city')}</li>}
-                                    </ul>
-                                </div>
-                            )}
+                                {(!brand || !model || !year || !price || images.length === 0 || !city) && (
+                                    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl space-y-2">
+                                        <p className="text-red-500 font-bold text-sm">⚠️ {t('publish.validation.review_required')}</p>
+                                        <ul className="text-xs text-red-400 space-y-1">
+                                            {!brand && <li>• {t('publish.validation.missing_brand')}</li>}
+                                            {!model && <li>• {t('publish.validation.missing_model')}</li>}
+                                            {!year && <li>• {t('publish.validation.missing_year')}</li>}
+                                            {(!price || parseFloat(price) <= 0) && <li>• {t('publish.validation.invalid_price')}</li>}
+                                            {images.length === 0 && <li>• {t('publish.validation.missing_images')}</li>}
+                                            {!city && <li>• {t('publish.validation.missing_city')}</li>}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
 
@@ -1067,12 +1386,7 @@ export default function PublishClient() {
                             <button
                                 type="button"
                                 onClick={handleNext}
-                                disabled={loading || isAnalyzing || !(() => {
-                                    if (currentStep === 1) return canProceedFromStep1;
-                                    if (currentStep === 2) return canProceedFromStep2;
-                                    if (currentStep === 3) return canProceedFromStep3;
-                                    return true;
-                                })()}
+                                disabled={loading || isAnalyzing || !canProceed}
                                 className="flex-1 px-6 py-3 bg-primary-700 text-text-primary rounded-xl font-bold hover:bg-primary-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg active:scale-95"
                             >
                                 {t('publish.actions.next')}
@@ -1093,3 +1407,4 @@ export default function PublishClient() {
         </div>
     )
 }
+

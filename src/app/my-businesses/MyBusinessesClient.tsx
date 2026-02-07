@@ -10,6 +10,9 @@ import dynamic from 'next/dynamic'
 import { CATEGORY_COLORS, CATEGORY_EMOJIS, SERVICES_BY_CATEGORY, BUSINESS_CATEGORIES } from '@/lib/businessCategories'
 import { generateDeviceFingerprint } from '@/lib/fingerprint'
 import ConfirmationModal from '@/components/ConfirmationModal'
+import { AlertTriangle, Clock, MapPin, Phone, Globe, Trash2, Edit, AlertCircle, Plus, Sparkles, ChevronRight, X, Image as ImageIcon, Briefcase, Info, CheckCircle, Pause, CreditCard, Play, ShieldCheck } from 'lucide-react'
+import CategoryIcon from '@/components/CategoryIcon'
+import OpeningHoursEditor from '@/components/OpeningHoursEditor'
 
 // Modified: MapBox Component replacement
 const MapBoxAddressPicker = dynamic(() => import('@/components/MapBoxAddressPicker'), {
@@ -78,6 +81,7 @@ export default function MyBusinessesClient() {
     const [facebook, setFacebook] = useState('')
     const [instagram, setInstagram] = useState('')
     const [tiktok, setTiktok] = useState('')
+    const [hours, setHours] = useState('')
 
     // [NEW] Business Attributes
     const [is24Hours, setIs24Hours] = useState(false)
@@ -284,6 +288,7 @@ export default function MyBusinessesClient() {
         setFacebook(b.facebook || '')
         setInstagram(b.instagram || '')
         setTiktok(b.tiktok || '')
+        setHours(b.hours || '')
 
         // Load Attributes
         setIs24Hours(b.is24Hours || false)
@@ -308,8 +313,6 @@ export default function MyBusinessesClient() {
 
         setSelectedServices([])
         setCurrentCategory('')
-        setSelectedServices([])
-        setCurrentCategory('')
 
         // Reset new fields
         setPhone('')
@@ -320,13 +323,19 @@ export default function MyBusinessesClient() {
         setFacebook('')
         setInstagram('')
         setTiktok('')
+        setHours('')
 
         // Reset Attributes
         setIs24Hours(false)
         setHasEmergencyService(false)
         setHasHomeService(false)
         setIsSafeMeetingPoint(false)
+
+        // 🚀 LIMPIEZA TOTAL:
+        // 1. Cerrar formulario
         setShowForm(false)
+        // 2. Limpiar URL para evitar que se reabra por ?action=new
+        router.replace('/my-businesses')
     }
 
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -409,6 +418,7 @@ export default function MyBusinessesClient() {
                 hasEmergencyService,
                 hasHomeService,
                 isSafeMeetingPoint,
+                hours,
                 fingerprint // 🛡️ Enviar huella
             }
 
@@ -502,7 +512,6 @@ export default function MyBusinessesClient() {
 
     return (
         <div className="min-h-screen bg-background" >
-            <Header />
             <div className="container mx-auto px-4 pt-8 pb-24 max-w-5xl">
                 <div className="flex items-center justify-between mb-8">
                     <div>
@@ -556,10 +565,11 @@ export default function MyBusinessesClient() {
                                         <option value="">Selecciona una categoría...</option>
                                         {/* Dynamic category list from taxonomy - Sorted Alphabetically by Translation */}
                                         {[...BUSINESS_CATEGORIES]
+                                            .filter(cat => !cat.isPublic)
                                             .sort((a, b) => (t(`map_store.categories.${a.id}`) || a.label).localeCompare(t(`map_store.categories.${b.id}`) || b.label))
                                             .map(cat => (
                                                 <option key={cat.id} value={cat.id}>
-                                                    {cat.icon} {t(`map_store.categories.${cat.id}`) || cat.label}
+                                                    {t(`map_store.categories.${cat.id}`) || cat.label}
                                                 </option>
                                             ))}
                                     </select>
@@ -660,6 +670,42 @@ export default function MyBusinessesClient() {
                                     </div>
 
                                     {/* Additional Phones */}
+                                    <div className="space-y-3">
+                                        <label className="block text-sm font-medium text-text-primary">Teléfonos Adicionales (Opcional)</label>
+                                        <div className="space-y-2">
+                                            {additionalPhones.map((p, idx) => (
+                                                <div key={idx} className="flex gap-2 animate-fade-in">
+                                                    <div className="flex-1">
+                                                        <PhoneInput
+                                                            value={p}
+                                                            onChange={(val) => {
+                                                                const newPhones = [...additionalPhones];
+                                                                newPhones[idx] = val;
+                                                                setAdditionalPhones(newPhones);
+                                                            }}
+                                                            placeholder={`Teléfono ${idx + 2}`}
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setAdditionalPhones(prev => prev.filter((_, i) => i !== idx))}
+                                                        className="px-3 bg-red-500/10 text-red-500 rounded-lg border border-red-500/20 hover:bg-red-500/20 transition"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {additionalPhones.length < 3 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setAdditionalPhones(prev => [...prev, ''])}
+                                                    className="w-full py-2 border-2 border-dashed border-surface-highlight rounded-lg text-text-secondary text-sm hover:border-primary-700/50 hover:text-primary-400 transition flex items-center justify-center gap-2"
+                                                >
+                                                    + Agregar otro teléfono
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
 
 
                                     {/* WhatsApp & Telegram */}
@@ -722,6 +768,15 @@ export default function MyBusinessesClient() {
                                                 className="w-full px-4 py-3 bg-background border border-surface-highlight rounded-lg outline-none focus:border-primary-500 text-sm"
                                             />
                                         </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-text-primary mb-1">⏰ Horario de Atención (Opcional)</label>
+                                            <div className="mt-1">
+                                                <OpeningHoursEditor
+                                                    value={hours}
+                                                    onChange={setHours}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -737,26 +792,81 @@ export default function MyBusinessesClient() {
                                 </div>
 
                                 {/* Atributos Especiales Checkboxes */}
-                                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-primary-900/10 p-4 rounded-xl border border-primary-500/20">
-                                    <div className="sm:col-span-2">
-                                        <h4 className="text-sm font-bold text-primary-400 mb-2 uppercase tracking-wider">Opciones de Disponibilidad</h4>
+                                <div className="md:col-span-2 space-y-4">
+                                    <div className="bg-primary-900/10 p-5 rounded-2xl border border-primary-500/20">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <ShieldCheck size={18} className="text-primary-400" />
+                                            <h4 className="text-sm font-black uppercase tracking-widest text-primary-400">Punto de Encuentro Seguro</h4>
+                                        </div>
+
+                                        <label className="flex items-start gap-4 p-4 bg-background/40 hover:bg-background/60 rounded-xl cursor-pointer transition-all border border-transparent hover:border-primary-500/30 group">
+                                            <div className="pt-1">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isSafeMeetingPoint}
+                                                    onChange={(e) => setIsSafeMeetingPoint(e.target.checked)}
+                                                    className="w-5 h-5 rounded border-surface-highlight text-primary-600 focus:ring-primary-500"
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-sm font-black text-text-primary uppercase tracking-tight">Ofrecer mi local como punto seguro</span>
+                                                    <Sparkles size={14} className="text-primary-500 animate-pulse" />
+                                                </div>
+                                                <p className="text-xs text-text-secondary leading-relaxed">
+                                                    Permite que compradores y vendedores usen tu negocio como punto de reunión verificado.
+                                                    <span className="text-primary-400/80 ml-1 font-medium">Esto aumenta la visibilidad de tu local y atrae potenciales clientes.</span>
+                                                </p>
+                                            </div>
+                                        </label>
                                     </div>
 
-                                    <label className="flex items-center gap-3 p-3 bg-background/50 rounded-lg cursor-pointer hover:bg-background transition sm:col-span-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={isSafeMeetingPoint}
-                                            onChange={(e) => setIsSafeMeetingPoint(e.target.checked)}
-                                            className="w-5 h-5 rounded border-surface-highlight text-primary-600 focus:ring-primary-500"
-                                        />
-                                        <div>
-                                            <span className="text-sm font-bold text-text-primary block">🤝 Punto de Encuentro Seguro</span>
-                                            <span className="text-[10px] text-text-secondary">
-                                                Permite que compradores y vendedores usen tu negocio como punto de reunión seguro.
-                                                Esto atraerá visitas y potenciales clientes a tu local.
-                                            </span>
-                                        </div>
-                                    </label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <label className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${is24Hours ? 'bg-blue-500/10 border-blue-500/30' : 'bg-surface border-surface-highlight hover:border-blue-500/40'}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={is24Hours}
+                                                onChange={(e) => setIs24Hours(e.target.checked)}
+                                                className="w-5 h-5 rounded border-surface-highlight text-blue-600 focus:ring-blue-500 bg-background"
+                                            />
+                                            <div className={`p-2 rounded-lg ${is24Hours ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-text-secondary opacity-50'}`}>
+                                                <Clock size={16} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <span className={`text-xs font-bold uppercase tracking-tight ${is24Hours ? 'text-blue-400' : 'text-text-secondary'}`}>Servicio 24 Horas</span>
+                                            </div>
+                                        </label>
+
+                                        <label className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${hasEmergencyService ? 'bg-red-500/10 border-red-500/30' : 'bg-surface border-surface-highlight hover:border-red-500/40'}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={hasEmergencyService}
+                                                onChange={(e) => setHasEmergencyService(e.target.checked)}
+                                                className="w-5 h-5 rounded border-surface-highlight text-red-600 focus:ring-red-500 bg-background"
+                                            />
+                                            <div className={`p-2 rounded-lg ${hasEmergencyService ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-text-secondary opacity-50'}`}>
+                                                <AlertCircle size={16} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <span className={`text-xs font-bold uppercase tracking-tight ${hasEmergencyService ? 'text-red-400' : 'text-text-secondary'}`}>Emergencia</span>
+                                            </div>
+                                        </label>
+
+                                        <label className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${hasHomeService ? 'bg-green-500/10 border-green-500/30' : 'bg-surface border-surface-highlight hover:border-green-500/40'}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={hasHomeService}
+                                                onChange={(e) => setHasHomeService(e.target.checked)}
+                                                className="w-5 h-5 rounded border-surface-highlight text-green-600 focus:ring-green-500 bg-background"
+                                            />
+                                            <div className={`p-2 rounded-lg ${hasHomeService ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-text-secondary opacity-50'}`}>
+                                                <Briefcase size={16} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <span className={`text-xs font-bold uppercase tracking-tight ${hasHomeService ? 'text-green-400' : 'text-text-secondary'}`}>A domicilio</span>
+                                            </div>
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <div className="md:col-span-2">
@@ -820,43 +930,6 @@ export default function MyBusinessesClient() {
                                         </div>
                                     </div>
 
-                                    {/* [NEW] Atributos Especiales */}
-                                    <div className="mt-4 pt-4 border-t border-surface-highlight/30">
-                                        <label className="block text-sm font-medium text-text-primary mb-3">
-                                            🌟 Características Destacadas
-                                        </label>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                            <label className={`flex items-center gap-2 p-3 bg-background border rounded-lg cursor-pointer transition ${is24Hours ? 'border-blue-500 bg-blue-500/10' : 'border-surface-highlight hover:border-blue-500/50'}`}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={is24Hours}
-                                                    onChange={(e) => setIs24Hours(e.target.checked)}
-                                                    className="w-4 h-4 rounded border-surface-highlight text-blue-500 focus:ring-blue-500"
-                                                />
-                                                <span className="text-sm text-text-primary font-medium">🕒 Abierto 24 Horas</span>
-                                            </label>
-
-                                            <label className={`flex items-center gap-2 p-3 bg-background border rounded-lg cursor-pointer transition ${hasEmergencyService ? 'border-red-500 bg-red-500/10' : 'border-surface-highlight hover:border-red-500/50'}`}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={hasEmergencyService}
-                                                    onChange={(e) => setHasEmergencyService(e.target.checked)}
-                                                    className="w-4 h-4 rounded border-surface-highlight text-red-500 focus:ring-red-500"
-                                                />
-                                                <span className="text-sm text-text-primary font-medium">🚑 Servicio de Emergencia</span>
-                                            </label>
-
-                                            <label className={`flex items-center gap-2 p-3 bg-background border rounded-lg cursor-pointer transition ${hasHomeService ? 'border-green-500 bg-green-500/10' : 'border-surface-highlight hover:border-green-500/50'}`}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={hasHomeService}
-                                                    onChange={(e) => setHasHomeService(e.target.checked)}
-                                                    className="w-4 h-4 rounded border-surface-highlight text-green-500 focus:ring-green-500"
-                                                />
-                                                <span className="text-sm text-text-primary font-medium">🏠 Servicio a Domicilio</span>
-                                            </label>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
 
@@ -938,18 +1011,17 @@ export default function MyBusinessesClient() {
                                                 Sin foto
                                             </div>
                                         )}
-                                        <div className={`absolute top-2 right-2 px-3 py-1.5 backdrop-blur-sm rounded-lg text-xs font-bold ${business.status === 'ACTIVE'
-                                            ? 'bg-green-500/90 text-white'
-                                            : 'bg-gray-500/90 text-white'
-                                            }`}>
-                                            {business.status === 'ACTIVE' ? `✅ ${t('business.status_active')}` : `⏸️ ${t('business.status_inactive')}`}
+                                        <div className="flex items-center gap-1.5">
+                                            {business.status === 'ACTIVE' ? <CheckCircle size={14} /> : <Pause size={14} />}
+                                            {business.status === 'ACTIVE' ? t('business.status_active') : t('business.status_inactive')}
                                         </div>
                                     </div>
                                     <div className="p-4">
                                         <h3 className="font-bold text-text-primary text-lg mb-1">{business.name}</h3>
                                         <p className="text-sm text-text-secondary mb-3 capitalize">{business.category}</p>
                                         <div className="flex items-center gap-2 text-sm text-text-secondary">
-                                            <span>📍 {business.city}</span>
+                                            <MapPin size={14} className="text-primary-500" />
+                                            <span>{business.city}</span>
                                         </div>
                                         {business.expiresAt && (
                                             <div className="mt-2 text-xs font-medium text-text-secondary bg-surface-highlight/30 px-2 py-1 rounded inline-block">
@@ -972,12 +1044,12 @@ export default function MyBusinessesClient() {
                                                 }`}
                                         >
                                             {business.status === 'ACTIVE' ? (
-                                                <><span>⏸️</span> {t('business.deactivate')}</>
+                                                <><Pause size={16} className="mr-1" /> {t('business.deactivate')}</>
                                             ) : (
                                                 (business.expiresAt && new Date(business.expiresAt) < new Date()) || !business.expiresAt ? (
-                                                    <><span>💳</span> Activar con 1 Crédito</>
+                                                    <><CreditCard size={16} className="mr-1" /> Activar con 1 Crédito</>
                                                 ) : (
-                                                    <><span>▶️</span> {t('business.activate')}</>
+                                                    <><Play size={16} className="mr-1" /> {t('business.activate')}</>
                                                 )
                                             )}
                                         </button>
@@ -989,9 +1061,10 @@ export default function MyBusinessesClient() {
                                         </button>
                                         <button
                                             onClick={() => handleDelete(business.id)}
-                                            className="px-3 py-2 bg-red-900/20 text-red-400 rounded-lg text-sm hover:bg-red-900/30 transition"
+                                            className="px-3 py-2 bg-red-900/20 text-red-400 rounded-lg text-sm hover:bg-red-900/30 transition flex items-center justify-center"
+                                            title="Eliminar"
                                         >
-                                            🗑️
+                                            <Trash2 size={16} />
                                         </button>
                                     </div>
                                 </div>
@@ -1003,7 +1076,7 @@ export default function MyBusinessesClient() {
             </div >
 
             {/* Modal de Sin Créditos */}
-            <ConfirmationModal
+            < ConfirmationModal
                 isOpen={showNoCreditsModal}
                 onClose={() => setShowNoCreditsModal(false)}
                 title="¡Ups! Necesitas Créditos"

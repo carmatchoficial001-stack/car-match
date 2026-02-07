@@ -51,21 +51,42 @@ export default function AIChatbot() {
         setInputValue('')
         setIsTyping(true)
 
-        setTimeout(() => {
-            const response = findBestResponse(userMsg.text)
+        try {
+            const response = await fetch('/api/ai/chatbot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: userMsg.text,
+                    history: messages.slice(-5) // Enviar últimos mensajes para contexto
+                })
+            })
+
+            if (!response.ok) throw new Error('API Error')
+
+            const data = await response.json()
 
             const botMsg: Message = {
-                id: (Date.now() + 1).toString(),
-                text: response.response,
+                id: Date.now().toString(),
+                text: data.response,
                 sender: 'bot',
-                actionLink: response.actionLink,
-                actionText: response.actionText,
+                actionLink: data.actionLink,
+                actionText: data.actionText,
                 timestamp: new Date()
             }
 
             setMessages(prev => [...prev, botMsg])
+        } catch (error) {
+            console.error('Chatbot Error:', error)
+            // Fallback en caso de error
+            setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                text: "Lo siento, mi motor de inteligencia está bajo mantenimiento. Pero aquí sigo para ayudarte con lo básico de CarMatch Social.",
+                sender: 'bot',
+                timestamp: new Date()
+            }])
+        } finally {
             setIsTyping(false)
-        }, 1000 + Math.random() * 1000)
+        }
     }
 
     const handleKeyPress = (e: React.KeyboardEvent) => {

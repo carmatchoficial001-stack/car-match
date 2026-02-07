@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
@@ -226,10 +227,11 @@ export async function POST(request: NextRequest) {
             initialStatus = 'INACTIVE' // Requiere pago para activarse
         }
 
-        // Regenerar título si hubo corrección por IA o para asegurar consistencia
-        const finalBrand = coverAnalysis.details?.brand || brand
-        const finalModel = coverAnalysis.details?.model || model
-        const finalYear = coverAnalysis.details?.year ? parseInt(coverAnalysis.details.year) : parseInt(year)
+        // Regenerar título respetando datos del usuario primero
+        // 🔒 PRIORIDAD: Datos del usuario > Datos de  la IA
+        const finalBrand = brand || coverAnalysis.details?.brand || 'Desconocido'
+        const finalModel = model || coverAnalysis.details?.model || 'N/A'
+        const finalYear = parseInt(year) || (coverAnalysis.details?.year ? parseInt(coverAnalysis.details.year) : new Date().getFullYear())
         const finalTitle = `${finalBrand} ${finalModel} ${finalYear}`
 
         // Crear vehículo
@@ -246,13 +248,13 @@ export async function POST(request: NextRequest) {
                 latitude: latitude ? parseFloat(latitude) : null,
                 longitude: longitude ? parseFloat(longitude) : null,
                 images: body.images || [],
-                // Campos opcionales
+                // Campos opcionales - PRIORIDAD: Usuario primero, IA como fallback
                 mileage: safeInt(body.mileage),
                 transmission: body.transmission || null,
                 fuel: body.fuel || null,
                 engine: body.engine || null,
-                color: coverAnalysis.details?.color || body.color,
-                vehicleType: coverAnalysis.details?.type || body.vehicleType,
+                color: body.color || coverAnalysis.details?.color || null,
+                vehicleType: body.vehicleType || coverAnalysis.details?.type || null,
                 currency: body.currency || 'MXN',
 
                 // Campos adicionales restaurados
@@ -338,7 +340,29 @@ export async function POST(request: NextRequest) {
                 .catch(err => console.error('Error en revisión de seguridad:', err))
         })
 
+        // 🔔 REAL-TIME SOCKET EMISSION: Avisar al feed global / market
+        const io = (global as any).io
+        if (io) {
+            console.log(`📡 Emitting global event: new_vehicle_published for ${vehicle.id}`)
+            io.emit('new_vehicle_published', {
+                id: vehicle.id,
+                title: vehicle.title,
+                brand: vehicle.brand,
+                model: vehicle.model,
+                year: vehicle.year,
+                price: vehicle.price,
+                currency: vehicle.currency,
+                city: vehicle.city,
+                latitude: latitude ? parseFloat(latitude) : null,
+                longitude: longitude ? parseFloat(longitude) : null,
+                images: body.images || [],
+                feedType: 'VEHICLE',
+                createdAt: new Date()
+            })
+        }
+
         // 🔔 NOTIFICACIÓN REAL: Avisar a usuarios en la misma ciudad
+
         // "¡Nuevo [Marca] [Modelo] en [Ciudad]!"
         import('@/lib/push').then(async (push) => {
             try {
@@ -382,6 +406,12 @@ export async function POST(request: NextRequest) {
         } else if (isAiRejected) {
             successMessage = `La IA detectó que los datos o fotos podrían no coincidir (${coverAnalysis.reason || 'Imagen inusual'}). Entre más reales sean tus datos, más rápido venderás. Puedes corregirlo o activarlo con 1 crédito.`
         }
+
+        // 🔄 REVALIDACIÓN DE CACHÉ: Actualizar listas inmediatamente
+        revalidatePath('/profile')   // Mis Vehículos
+        revalidatePath('/market')    // MarketCar
+        revalidatePath('/swipe')     // CarMatch
+        revalidatePath('/map-store') // Por si acaso (negocios vinculados)
 
         return NextResponse.json({
             success: true,

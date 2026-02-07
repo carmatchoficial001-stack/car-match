@@ -264,22 +264,16 @@ export const EXPANSION_TIERS = [12, 50, 100, 250, 500, 1000, 5000, 10000]
 export function normalizeCountryCode(country?: string | null): string {
     if (!country) return 'MX' // Default to MX if undefined
 
-    const upper = country.toUpperCase().trim()
+    const upper = country.toUpperCase()
+    // Limpiar caracteres no alfanuméricos (evita corruptos como M\0 o M%0)
+    const clean = upper.replace(/[^A-Z]/g, '')
 
-    // México
-    if (upper === 'MX' || upper.includes('MEX') || upper.includes('MÉX')) return 'MX'
+    if (clean === 'MX' || clean.includes('MEX') || clean.includes('M')) return 'MX'
+    if (clean === 'US' || clean === 'USA' || clean.includes('UNIT') || clean.includes('ESTAD') || clean.includes('EEUU')) return 'US'
+    if (clean === 'CA' || clean === 'CAN' || clean.includes('CANADA')) return 'CA'
+    if (clean === 'CO' || clean === 'COL' || clean.includes('COLOMBIA')) return 'CO'
 
-    // USA
-    if (upper === 'US' || upper === 'USA' || upper.includes('UNIT') || upper.includes('ESTAD') || upper.includes('EEUU')) return 'US'
+    if (clean.length === 2) return clean
 
-    // Canadá
-    if (upper === 'CA' || upper === 'CAN' || upper.includes('CANADA')) return 'CA'
-
-    // Colombia
-    if (upper === 'CO' || upper === 'COL' || upper.includes('COLOMBIA')) return 'CO'
-
-    // Si tiene 2 letras, asumimos que es el código
-    if (upper.length === 2) return upper
-
-    return 'MX' // Fallback seguro
+    return 'MX'
 }

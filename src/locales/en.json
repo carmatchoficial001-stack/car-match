@@ -1,6 +1,37 @@
 {
     "common": {
         "login": "Log In",
+        "login_vehicle": "Sell Vehicle",
+        "login_business": "Add Business",
+        "dynamic_ctas": {
+            "vehicles": [
+                "Need cash fast? | ¡Post it here!",
+                "Don't like it anymore? | ¡Sell it today!",
+                "Looking to renew? | ¡Post for free!",
+                "Need cash? | ¡Sell it now!",
+                "Garage full? | ¡Post it here!",
+                "Time for a change? | ¡Sell it today!",
+                "Extra car? | ¡Post it here!",
+                "Looking for a new ride? | ¡Sell it now!",
+                "Need capital? | ¡Make it cash!",
+                "Want the latest? | ¡Sell it now!",
+                "Need more room? | ¡Post it today!",
+                "Car in the way? | ¡Sell it here!",
+                "Want the best? | ¡Sell this one!",
+                "Expenses rising? | ¡Make it cash!",
+                "For a down payment? | ¡Sell it now!",
+                "Going on a trip? | ¡Post it today!",
+                "Moving soon? | ¡Sell it now!",
+                "Small car? | ¡Post it here!",
+                "Need more power? | ¡Sell yours!",
+                "Growing family? | ¡Post it now!",
+                "Served its purpose? | ¡Sell it today!",
+                "Quick cash? | ¡Post it here!",
+                "Too many wheels? | ¡Make it cash!",
+                "New project? | ¡Sell it now!",
+                "Want a new car? | ¡Post it here!"
+            ]
+        },
         "logout": "Log Out",
         "ios": "iOS",
         "android": "Android",
@@ -24,6 +55,7 @@
             "payment_generic": "Payment error.",
             "payment_not_final": "Payment status is not final."
         },
+        "accept": "Accept",
         "step_count": "Step {current} of {total}",
         "chars": "characters",
         "doors_count": "doors",
@@ -38,15 +70,32 @@
         "select_city": "Select a city:",
         "back_to_gps": "Back to GPS location",
         "all_rights_reserved": "All rights reserved.",
-        "support": "CarMatch Support",
-        "install_app": "Install CarMatch App",
+        "support": "CarMatch Social Support",
+        "install_app": "Install CarMatch Social App",
         "online_team": "Online Support",
         "typing_placeholder": "Ask your question...",
         "copy": "Copy",
         "copied": "Copied!",
         "view_more": "View more",
         "seats": "Seats",
-        "currency": "Currency"
+        "currency": "Currency",
+        "city": "City",
+        "change_language": "Change language",
+        "language": "Language",
+        "install_on_ios": "Install on iOS",
+        "install_on_android": "Install on Android",
+        "user": "User",
+        "sold": "Sold",
+        "unavailable": "Unavailable",
+        "seller": "Seller",
+        "buyer": "Buyer",
+        "time": {
+            "now": "Now",
+            "m": "m",
+            "h": "h",
+            "d": "d",
+            "sem": "sem"
+        }
     },
     "share": {
         "share_in": "Share on...",
@@ -66,7 +115,7 @@
         "main_photo": "Main"
     },
     "nav": {
-        "carmatch": "CarMatch",
+        "carmatch": "CarMatch Social",
         "marketcar": "MarketCar",
         "mapstore": "MapStore",
         "profile": "My Profile",
@@ -76,6 +125,7 @@
         "favorites": "Favorites",
         "credits": "Credits",
         "admin_panel": "Admin Panel",
+        "settings": "Settings",
         "exit_portal": "Exit to Portal"
     },
     "swipe": {
@@ -122,7 +172,7 @@
         "use_gps": "Use my GPS",
         "business_badge": "Business",
         "view_on_map": "View on map",
-        "interest_text": "Check out this {title} on CarMatch!",
+        "interest_text": "Check out this {title} on CarMatch Social!",
         "shared_location": "Shared Location",
         "no_local_results": "No vehicles in your area",
         "expand_hint": "Do you want to expand the search to the whole country?",
@@ -192,12 +242,12 @@
         "hero_title_1": "CARMATCH",
         "hero_title_2": "THE APP",
         "hero_subtitle": "The ultimate social network for vehicle owners. Your app to buy, sell, and find shops with AI.",
-        "cta_enter": "Enter CarMatch",
+        "cta_enter": "Enter CarMatch Social",
         "download_on": "Download on",
         "get_it_on": "Get it on",
         "app_store": "App Store",
         "google_play": "Google Play",
-        "carmatch_title": "CarMatch",
+        "carmatch_title": "CarMatch Social",
         "carmatch_subtitle": "Swipe",
         "carmatch_desc": "Swipe and save. Find your ideal car addictively, giving LIKE to what you love.",
         "marketcar_title": "MarketCar",
@@ -383,7 +433,8 @@
             "sold": "Sold",
             "inactive": "Inactive"
         },
-        "user_id": "User ID"
+        "user_id": "User ID",
+        "edit_profile": "Edit Profile"
     },
     "business": {
         "title": "My Businesses",
@@ -449,7 +500,7 @@
             "call": "📞 Call",
             "navigate": "🧭 Get Directions",
             "share_whatsapp": "📢 Share on WhatsApp",
-            "share_msg": "Check out this business on CarMatch!"
+            "share_msg": "Check out this business on CarMatch Social!"
         },
         "categories": {
             "mecanico": {
@@ -511,11 +562,35 @@
             "pesados": {
                 "name": "Heavy Vehicles",
                 "services": "Truck workshops|Pneumatic suspension|Hydraulic systems|Fleet maintenance"
+            },
+            "electrolinera": {
+                "name": "Charging Stations",
+                "services": "Fast charging|Tesla Chargers|Type 1 and 2 Connectors|Public charging stations|Free charging points"
+            },
+            "caseta": {
+                "name": "Toll Booths",
+                "services": "Cash Payment|Electronic Toll Collection|Bathrooms|Billing"
+            },
+            "hospital": {
+                "name": "Hospitals",
+                "services": "Emergency|Consultation|Pharmacy|Ambulance"
+            },
+            "policia": {
+                "name": "Police Station",
+                "services": "Emergencies|Complaints|Transit|Patrols"
+            },
+            "aeropuerto": {
+                "name": "Airports",
+                "services": "Flights|Taxis|Car Rental|Currency Exchange"
+            },
+            "estacion_tren": {
+                "name": "Train Station",
+                "services": "Tickets|Platforms|Waiting Room|Cafeteria"
             }
         }
     },
     "auth": {
-        "welcome": "Welcome to CarMatch!",
+        "welcome": "Welcome to CarMatch Social!",
         "login_subtitle": "Sign in with your Google account to start discovering vehicles",
         "continue_with": "Continue with",
         "coming_soon": "Coming Soon",
@@ -529,25 +604,25 @@
         "title": "Terms and Conditions of Use",
         "last_updated": "Last updated",
         "acceptance_title": "1. Acceptance of Terms",
-        "acceptance_text": "By downloading, accessing, or using CarMatch (\"the Platform\"), you agree to be bound by these Terms and Conditions. If you do not agree to any part of these terms, you must not use our services.",
+        "acceptance_text": "By downloading, accessing, or using CarMatch Social (\"the Platform\"), you agree to be bound by these Terms and Conditions. If you do not agree to any part of these terms, you must not use our services.",
         "liability_title": "2. Limitation of Liability (IMPORTANT)",
-        "liability_intro": "CarMatch acts exclusively as a provider of digital intermediation and technology services.",
+        "liability_intro": "CarMatch Social acts exclusively as a provider of digital intermediation and technology services.",
         "liability_1_title": "We are not part of the transaction",
-        "liability_1_text": "CarMatch does not buy, sell, or own the listed vehicles. Any purchase agreement is strictly between the Buyer and Seller.",
+        "liability_1_text": "CarMatch Social does not buy, sell, or own the listed vehicles. Any purchase agreement is strictly between the Buyer and Seller.",
         "liability_2_title": "We do not guarantee vehicles",
         "liability_2_text": "We do not inspect or guarantee the mechanical, legal, or physical condition of any vehicle. Descriptions are provided entirely by users.",
         "liability_3_title": "Negotiation disclaimer",
-        "liability_3_text": "CarMatch is not responsible for disputes, fraud, non-payment, or any damage arising from negotiations or meetings between users.",
+        "liability_3_text": "CarMatch Social is not responsible for disputes, fraud, non-payment, or any damage arising from negotiations or meetings between users.",
         "liability_4_title": "Safety Tips",
         "liability_4_text": "Our \"Safe Meeting Points\" suggestions or AI alerts are informational only and do not guarantee absolute safety. You are solely responsible for your personal safety.",
         "usage_title": "3. Platform Usage",
-        "usage_text": "You agree to use CarMatch only for lawful purposes. Posting false, misleading content, or stolen vehicles is prohibited. We reserve the right to remove any post violating our community standards without notice.",
+        "usage_text": "You agree to use CarMatch Social only for lawful purposes. Posting false, misleading content, or stolen vehicles is prohibited. We reserve the right to remove any post violating our community standards without notice.",
         "fees_title": "4. Fees and Payments",
         "fees_text": "Vehicle listing may be subject to fees according to our current model (e.g., listing credits after the free period). All fees are non-refundable unless stated otherwise.",
         "mapstore_title": "5. Map Store and Businesses",
-        "mapstore_text": "Information shown in \"Map Store\" regarding workshops and businesses is referential. CarMatch does not endorse or guarantee the quality of services provided by third parties listed on the map.",
+        "mapstore_text": "Information shown in \"Map Store\" regarding workshops and businesses is referential. CarMatch Social does not endorse or guarantee the quality of services provided by third parties listed on the map.",
         "intellectual_title": "6. Intellectual Property",
-        "intellectual_text": "All CarMatch content, brands, logos, and software are exclusive property of our holders. Users grant CarMatch a license to display their vehicle photos on the platform.",
+        "intellectual_text": "All CarMatch Social content, brands, logos, and software are exclusive property of our holders. Users grant CarMatch Social a license to display their vehicle photos on the platform.",
         "contact_title": "7. Contact",
         "contact_text": "If you have questions about these terms, contact us via our official support in the app."
     },
@@ -555,7 +630,7 @@
         "title": "Privacy Policy",
         "last_updated": "Last updated",
         "intro_title": "1. Introduction",
-        "intro_text": "At CarMatch, we value and respect your privacy. This policy describes how we collect, use, and protect your personal information when using our app and web services.",
+        "intro_text": "At CarMatch Social, we value and respect your privacy. This policy describes how we collect, use, and protect your personal information when using our app and web services.",
         "collect_title": "2. Information We Collect",
         "collect_1_title": "Registration Data",
         "collect_1_text": "Name, email, phone number, and encrypted password.",
@@ -564,7 +639,7 @@
         "collect_3_title": "Location Data",
         "collect_3_text": "We use your location (GPS) for critical features like \"Map Store\" (finding nearby businesses) and showing relevant vehicles in your area.",
         "collect_4_title": "Interactions",
-        "collect_4_text": "We log your \"Likes\" and \"Dislikes\" on CarMatch to improve our recommendations via AI.",
+        "collect_4_text": "We log your \"Likes\" and \"Dislikes\" on CarMatch Social to improve our recommendations via AI.",
         "use_title": "3. Use of Information",
         "use_text": "We use your data to:",
         "use_1": "Facilitate buying and selling of vehicles.",
@@ -587,7 +662,7 @@
         "condition_new": "New",
         "condition_used": "Used",
         "interested": "interested",
-        "share_text": "Check out this {title} on CarMatch!",
+        "share_text": "Check out this {title} on CarMatch Social!",
         "seller": "Seller",
         "verified_seller": "Verified Seller"
     },
@@ -595,8 +670,8 @@
         "title": "My Favorites",
         "subtitle": "Collection of vehicles you liked ({count})",
         "empty_title": "You have no favorites yet",
-        "empty_text": "Explore CarMatch or MarketCar and like vehicles to save them here.",
-        "explore_carmatch": "Explore CarMatch",
+        "empty_text": "Explore CarMatch Social or MarketCar and like vehicles to save them here.",
+        "explore_carmatch": "Explore CarMatch Social",
         "go_to_market": "Go to Market"
     },
     "notifications": {
@@ -665,7 +740,7 @@
             },
             "general": {
                 "title": "General Safety",
-                "desc": "CarMatch only connects users. We do not intervene in payments or shipping. You are primarily responsible for your safety."
+                "desc": "CarMatch Social only connects users. We do not intervene in payments or shipping. You are primarily responsible for your safety."
             }
         },
         "safety_mode": {
@@ -686,6 +761,9 @@
         "safety_shield": "Safety Guide"
     },
     "map_store": {
+        "view_list": "Show Map and List",
+        "show_filters": "Show Filters",
+        "results_found": "results found",
         "loading": "Loading Map...",
         "loading_location": "Getting your location...",
         "location_required": "Location Required",
@@ -698,8 +776,9 @@
         "step_2": "Select \"Allow\" when the browser requests permissions",
         "step_3": "Click \"Allow GPS Location\" again",
         "manual_tip": "Or you can manually enter your city to see businesses in that area",
-        "publish_business": "Publish my Business",
+        "publish_business": "Publish business",
         "smart_search_label": "How can we help you today?",
+        "how_to_diagnose": "Tell your advisor what's wrong with your car...",
         "smart_search_placeholder": "Ex. I hear a strange noise when braking...",
         "ask_specialist": "Consult my Advisor",
         "analyzing": "Consulting...",
@@ -763,7 +842,24 @@
             "transparency_title": "Transparency:",
             "transparency_desc": "A clear description of the maintenance performed helps sell faster."
         },
-        "search_placeholder": "🔍 Search street, neighborhood or place..."
+        "search_placeholder": "🔍 Search street, neighborhood or place...",
+        "report": {
+            "title": "Report Business",
+            "reason_label": "Reason for Report",
+            "wrong_category": "Wrong category",
+            "fake_business": "Fake business / Doesn't exist",
+            "incorrect_info": "Incorrect info",
+            "duplicate": "Duplicate business",
+            "offensive": "Offensive content",
+            "other": "Other reason",
+            "description_label": "Additional Description",
+            "description_placeholder": "Provide more details to help us review...",
+            "submit": "Send Report",
+            "sending": "Sending...",
+            "helper_text": "* The business will be hidden immediately while the administrator reviews your report.",
+            "success_title": "Report Sent!",
+            "success_msg": "Thank you for your report. The business has been hidden for review."
+        }
     },
     "business_details": {
         "website": "Website",
@@ -797,7 +893,12 @@
         "placeholder_active": "Consulting with your personal advisor...",
         "placeholder_default": "Tell your advisor what you're looking for: \"I need an economical car...\"",
         "btn_analyzing": "Consulting...",
-        "btn_search": "Ask advisor"
+        "btn_search": "Ask advisor",
+        "title": "Smart Search",
+        "placeholder": "Tell us what you are looking for: 'I need a red, cheap, 4-cylinder family van...'",
+        "ask_advisor": "Ask the Advisor",
+        "consulting": "Consulting expert...",
+        "understood": "Understood! I have adjusted the filters according to your search."
     },
     "appointment": {
         "modal_title": "🛡️ Schedule Safe Meeting",
@@ -835,7 +936,7 @@
         "photo_label": "Profile Photo",
         "your_vehicles": "Your Vehicles",
         "security_sos": "SOS Security",
-        "sos_desc": "Select a CarMatch user to be your emergency contact.",
+        "sos_desc": "Select a CarMatch Social user to be your emergency contact.",
         "remove": "Remove",
         "search_user": "Search user by name...",
         "sos_warning": "If you activate an SOS during a meeting, this contact will receive your location and the other person's.",
@@ -845,7 +946,7 @@
         "upload_first": "Upload your first photo!",
         "change_photo": "Change Photo",
         "current_profile_desc": "This is how your profile looks currently (no custom photo)",
-        "recommendation_full": "CarMatch is an automotive community. Upload a photo of your ride, favorite car, or the vehicle you're selling to stand out!",
+        "recommendation_full": "CarMatch Social is an automotive community. Upload a photo of your ride, favorite car, or the vehicle you're selling to stand out!",
         "labels": {
             "title": "Ad Title",
             "description": "Description",
@@ -1186,7 +1287,8 @@
         "completed": "Completed",
         "accept_btn": "Accept",
         "reject_btn": "Reject",
-        "cancel_btn": "Cancel"
+        "cancel_btn": "Cancel",
+        "past": "Finished"
     },
     "chat": {
         "welcome": "Hello! I am your CarMatch Advisor. 👨‍💻 How can I advise you today?",

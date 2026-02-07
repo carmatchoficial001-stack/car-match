@@ -1,0 +1,10 @@
+# CarMatch - robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://carmatchapp.net/sitemap.xml
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /admin

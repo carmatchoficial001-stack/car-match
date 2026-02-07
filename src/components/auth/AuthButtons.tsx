@@ -1,6 +1,6 @@
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { useLanguage } from "@/contexts/LanguageContext"
-import { getWeightedHomePath } from "@/lib/navigation"
+import { useRouter } from "next/navigation"
 
 export default function AuthButtons({
     linkedEmail,
@@ -10,26 +10,35 @@ export default function AuthButtons({
     forceOnlyLinked?: boolean
 }) {
     const { t } = useLanguage()
+    const { data: session } = useSession()
+    const router = useRouter()
 
     const handleSignIn = async (provider: string) => {
         try {
-            const signOptions: any = {
-                callbackUrl: "/",
-                redirect: false
+            // 🔥 SI YA HAY SESIÓN (Soft Logout), simplemente re-entramos
+            if (session) {
+                // Limpiar cookie de soft_logout (cliente y servidor)
+                document.cookie = "soft_logout=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+                localStorage.removeItem('soft_logout')
+                await fetch('/api/auth/soft-logout-clear', { method: 'POST' })
+
+                // Forzamos recarga completa
+                window.location.href = "/"
+                return
             }
+
+            const options: any = { callbackUrl: "/" }
 
             if (linkedEmail && provider === 'google') {
-                signOptions.login_hint = linkedEmail
+                // login_hint ayuda a pre-seleccionar la cuenta sin romper el flujo
+                options.login_hint = linkedEmail
             }
 
-            const result = await signIn(provider, signOptions) as any
-
-            if (result && result.url) {
-                window.location.replace(result.url)
-            }
+            await signIn(provider, options)
         } catch (error) {
             console.error("Error signing in:", error)
-            signIn(provider, { callbackUrl: "/", login_hint: linkedEmail || undefined })
+            // Fallback manual en caso de que falle la librería
+            window.location.href = `/api/auth/signin/${provider}?callbackUrl=/`
         }
     }
 

@@ -8,7 +8,7 @@ type Locale = 'es' | 'en' | 'pt' | 'fr' | 'de' | 'it' | 'zh' | 'ja' | 'ru' | 'ko
 interface LanguageContextType {
     locale: Locale
     setLocale: (locale: Locale) => void
-    t: (key: string, params?: Record<string, string>) => string
+    t: (key: string, params?: Record<string, any>) => any
     isLoading: boolean
 }
 
@@ -85,7 +85,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('carmatch-locale', newLocale)
     }
 
-    const t = useCallback((path: string, params?: Record<string, string>): string => {
+    const t = useCallback((path: string, params?: Record<string, any>): any => {
         if (!translations) return path
 
         const keys = path.split('.')
@@ -102,12 +102,19 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             current = current[key]
         }
 
-        if (typeof current !== 'string') return path
+        // Si se pide explícitamente retornar el objeto (array de mensajes por ejemplo)
+        if (params?.returnObjects) {
+            return current
+        }
+
+        if (typeof current !== 'string') return current
 
         let translated = current
         if (params) {
             Object.entries(params).forEach(([key, value]) => {
-                translated = translated.replace(new RegExp(`{${key}}`, 'g'), value)
+                if (typeof value === 'string' || typeof value === 'number') {
+                    translated = translated.replace(new RegExp(`{${key}}`, 'g'), String(value))
+                }
             })
         }
 

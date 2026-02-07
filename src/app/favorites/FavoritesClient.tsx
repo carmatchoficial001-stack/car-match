@@ -60,8 +60,7 @@ export default function FavoritesClient({ favorites }: { favorites: FavoriteVehi
     }
 
     return (
-        <div className="min-h-screen bg-background">
-            <Header />
+        <div className="min-h-screen bg-background pb-20 pt-8 px-4">
             <div className="container mx-auto px-4 pt-8 pb-32">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-text-primary mb-2">{t('favorites.title')}</h1>
@@ -121,7 +120,8 @@ export default function FavoritesClient({ favorites }: { favorites: FavoriteVehi
                                             <img
                                                 src={vehicle.images[0]}
                                                 alt={vehicle.title}
-                                                className="w-full h-full object-cover"
+                                                loading="lazy"
+                                                className="w-full h-full object-contain bg-black/40"
                                             />
                                         ) : (
                                             <svg className="w-16 h-16 text-text-secondary opacity-50" fill="currentColor" viewBox="0 0 24 24">

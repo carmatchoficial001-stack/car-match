@@ -15,3 +15,20 @@ export function generateSlug(text: string): string {
         .replace(/^-+/, '') // Elimina guiones al inicio
         .replace(/-+$/, '') // Elimina guiones al final
 }
+
+/**
+ * Genera un link semántico para vehículos (Wikipedia Style)
+ * Ej: "Toyota", "Tacoma", 2022, "Juárez" -> "toyota-tacoma-2022-juarez"
+ */
+export function generateVehicleSlug(brand: string, model: string, year: number, city: string | null): string {
+    const parts = [brand, model, year.toString(), city].filter(Boolean) as string[]
+    return generateSlug(parts.join(' '))
+}
+
+/**
+ * Genera un link semántico para negocios
+ * Ej: "Taller El Rayo", "Juárez" -> "taller-el-rayo-juarez"
+ */
+export function generateBusinessSlug(name: string, city: string): string {
+    return generateSlug(`${name} ${city}`)
+}

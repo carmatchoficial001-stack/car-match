@@ -28,6 +28,10 @@ export default function PushNotificationRequest() {
     useEffect(() => {
         if (status !== 'authenticated') return
 
+        // Verificar si el usuario ya rechazó las notificaciones antes
+        const hasDeclined = localStorage.getItem('push-notifications-declined')
+        if (hasDeclined === 'true') return
+
         // Solo mostrar si las notificaciones están soportadas y en estado 'default'
         if ('Notification' in window && Notification.permission === 'default') {
             const timer = setTimeout(() => setShowPrompt(true), 2000)
@@ -35,12 +39,30 @@ export default function PushNotificationRequest() {
         }
     }, [status])
 
+    // 🔄 Monitorear cambios en el permiso de notificaciones
+    useEffect(() => {
+        if (!showPrompt) return
+
+        const checkPermission = () => {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                setShowPrompt(false)
+            }
+        }
+
+        // Verificar cada 500ms mientras el prompt está visible
+        const interval = setInterval(checkPermission, 500)
+        return () => clearInterval(interval)
+    }, [showPrompt])
+
+
     const subscribeUser = async () => {
         if (!session?.user?.id) {
             alert('Debes iniciar sesión para activar las notificaciones')
             return
         }
 
+        // ✅ CERRAR MODAL INMEDIATAMENTE al hacer clic (antes de pedir permiso)
+        setShowPrompt(false)
         setIsLoading(true)
 
         try {
@@ -67,9 +89,12 @@ export default function PushNotificationRequest() {
             const permissionResult = await Notification.requestPermission()
 
             if (permissionResult !== 'granted') {
-                setShowPrompt(false)
+                // Usuario rechazó, pero ya cerramos el modal arriba
                 return
             }
+
+            // Limpiar el flag de rechazo ya que ahora aceptó
+            localStorage.removeItem('push-notifications-declined')
 
             // Crear suscripción
             const subscription = await registration.pushManager.subscribe({
@@ -88,13 +113,11 @@ export default function PushNotificationRequest() {
                 throw new Error('Error al guardar la suscripción')
             }
 
-            // Ocultar el prompt inmediatamente después del éxito
-            setShowPrompt(false)
 
         } catch (error: any) {
             console.error('Push Error:', error)
             alert(error.message || 'Error al activar las notificaciones')
-            setShowPrompt(false)
+            // No es necesario cerrar el modal aquí, ya se cerró al inicio
         } finally {
             setIsLoading(false)
         }
@@ -102,7 +125,10 @@ export default function PushNotificationRequest() {
 
     const handleDismiss = () => {
         setShowPrompt(false)
+        // Guardar que el usuario rechazó para no volver a mostrar
+        localStorage.setItem('push-notifications-declined', 'true')
     }
+
 
     // No mostrar si no está autenticado o si ya no debe mostrarse
     if (status !== 'authenticated' || !showPrompt) {

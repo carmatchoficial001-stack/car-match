@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useRestoreSessionModal } from '@/hooks/useRestoreSessionModal'
 
 interface ContactButtonProps {
     vehicleId: string
@@ -11,6 +12,7 @@ interface ContactButtonProps {
     vehicleTitle: string
     status?: string
     variant?: 'default' | 'minimal' | 'icon'
+    label?: string
     className?: string
 }
 
@@ -20,18 +22,37 @@ export default function ContactButton({
     vehicleTitle,
     status,
     variant = 'default',
+    label,
     className = ''
 }: ContactButtonProps) {
     const { data: session } = useSession()
     const { t } = useLanguage()
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const { openModal } = useRestoreSessionModal()
 
     const handleContact = async () => {
-        if (!session) {
-            router.push('/auth')
+        // 🔥 RESTAURAR SESIÓN: Si hay sesión pero está en "Modo Invitado", la activamos
+        const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
+        if (session && isSoftLogout) {
+            openModal(
+                "¿Deseas reactivar tu sesión para enviar este mensaje? Tu cuenta sigue vinculada.",
+                () => executeContact()
+            )
             return
         }
+
+        await executeContact()
+    }
+
+    const executeContact = async () => {
+        if (!session) {
+            // Redirigir a login con callbackUrl para volver aquí
+            const currentPath = typeof window !== 'undefined' ? window.location.pathname : ''
+            router.push(`/auth?callbackUrl=${encodeURIComponent(currentPath)}`)
+            return
+        }
+
 
         setLoading(true)
         try {
@@ -67,8 +88,10 @@ export default function ContactButton({
         }
     }
 
-    // No mostrar si es tu propio vehículo
-    if (session?.user?.id === sellerId) {
+    // No mostrar si es tu propio vehículo (Solo si la sesión está ACTIVA y NO en soft logout)
+    const isSoftLogout = typeof document !== 'undefined' && (document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true')
+
+    if (session?.user?.id === sellerId && !isSoftLogout) {
         return null
     }
 
@@ -139,7 +162,7 @@ export default function ContactButton({
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
-                    Contactar Vendedor
+                    {label || t('vehicle.contact_seller')}
                 </>
             )}
         </button>

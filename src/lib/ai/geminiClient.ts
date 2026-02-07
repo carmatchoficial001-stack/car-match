@@ -1,47 +1,74 @@
+/**
+ * 🔧 GEMINI CLIENT - Funciones helper para interactuar con Gemini AI
+ * Los modelos específicos ahora están en geminiModels.ts
+ */
 
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
-
-const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
-
-if (!apiKey) {
-    console.warn("⚠️ Advertencia: Ni GEMINI_API_KEY ni GOOGLE_API_KEY están definidas.");
-}
-
-const genAI = new GoogleGenerativeAI(apiKey);
-
-export const geminiModel = genAI.getGenerativeModel({
-    model: "gemini-flash-latest",
-    safetySettings: [
-        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-    ],
-    generationConfig: {
-        temperature: 0.1,
-        topP: 0.95,
-        topK: 40,
-        maxOutputTokens: 2048,
-    }
-});
+// Exportar modelos desde la configuración centralizada
+export {
+    geminiModel,
+    geminiPro,
+    geminiFlash,
+    geminiFlash8B,
+    geminiFlashLite,
+    geminiFlashConversational,
+    geminiFlashPrecise,
+    getModelForUseCase,
+    AI_USE_CASES
+} from './geminiModels';
 
 /**
  * Wrapper robusto para llamar a Gemini con reintentos automáticos
+ * @param prompt El prompt a enviar
+ * @param maxRetries Número máximo de reintentos
+ * @param model Modelo específico a usar (por defecto geminiFlash)
  */
-export async function safeGenerateContent(prompt: string, maxRetries = 3) {
+export async function safeGenerateContent(prompt: string, maxRetries = 3, model?: any) {
+    // Importar dinámicamente para evitar circular dependency
+    const { geminiFlash, geminiPro, geminiLegacy } = await import('./geminiModels');
+
+    // Default to Flash, but allow override
+    let currentModel = model || geminiFlash;
+    let usingFallback = false;
+
     let lastError: any;
 
     for (let i = 0; i < maxRetries; i++) {
         try {
-            const result = await geminiModel.generateContent(prompt);
+            console.log(`🤖 [AI] Intentando generar con ${usingFallback ? 'FALLBACK (Pro)' : 'Principal'} (Intento ${i + 1}/${maxRetries})...`);
+            const result = await currentModel.generateContent(prompt);
             return result.response;
         } catch (error: any) {
             lastError = error;
-            const isRetryable = error.message?.includes("429") || error.message?.includes("500") || error.message?.includes("503");
+            const msg = error.message?.toLowerCase() || '';
+
+            // 🚨 CRITICAL PRODUCTION FIX: Model Not Found (404) Handling
+            // Triple Blindaje: Flash -> Pro -> Legacy (1.0)
+            if (msg.includes("404") || msg.includes("not found")) {
+                if (!usingFallback) {
+                    console.warn("⚠️ [AI WARN] Modelo Flash no encontrado. Cambiando a PRO...");
+                    currentModel = geminiPro;
+                    usingFallback = true;
+                    continue;
+                } else if (currentModel !== geminiLegacy) {
+                    console.warn("⚠️ [AI WARN] Modelo Pro no encontrado. Cambiando a LEGACY (1.0)...");
+                    currentModel = geminiLegacy;
+                    continue;
+                }
+            }
+
+            const isRetryable =
+                msg.includes("429") ||
+                msg.includes("500") ||
+                msg.includes("503") ||
+                msg.includes("quota") ||
+                msg.includes("overloaded") ||
+                msg.includes("exhausted") ||
+                msg.includes("timeout") ||
+                msg.includes("deadline");
 
             if (isRetryable && i < maxRetries - 1) {
                 const waitTime = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                console.warn(`⚠️ IA Ocupada (Intento ${i + 1}/${maxRetries}). Reintentando en ${Math.round(waitTime)}ms...`);
+                console.warn(`⚠️ [AI] Reintentando en ${Math.round(waitTime)}ms...`);
                 await new Promise(resolve => setTimeout(resolve, waitTime));
                 continue;
             }

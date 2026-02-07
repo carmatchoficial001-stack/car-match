@@ -50,9 +50,34 @@ export default function EmergencyPage({
         }
 
         fetchSOSData()
-        const interval = setInterval(fetchSOSData, 10000) // Actualizar cada 10s
 
-        return () => clearInterval(interval)
+        // 🚀 REAL-TIME UPDATES (Socket.IO) - Emergency Room
+        import('@/lib/socket').then(({ socket }) => {
+            if (!socket.connected) {
+                socket.connect()
+            }
+
+            // Join specific emergency room
+            socket.emit('join-room', `emergency:${id}`)
+
+            // Listen for location updates
+            socket.on('emergency-update', (data: SOSData) => {
+                console.log('🚨 [SOCKET] Emergency update received:', data)
+                setSOSData(data)
+                updateMap(data)
+            })
+        })
+
+        // Fallback polling (less frequent)
+        const interval = setInterval(fetchSOSData, 60000)
+
+        return () => {
+            import('@/lib/socket').then(({ socket }) => {
+                socket.emit('leave-room', `emergency:${id}`)
+                socket.off('emergency-update')
+            })
+            clearInterval(interval)
+        }
     }, [session, status, id])
 
     const fetchSOSData = async () => {

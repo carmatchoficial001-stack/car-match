@@ -1,21 +1,24 @@
 "use client"
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef, Fragment } from 'react'
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import Header from '@/components/Header'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { BUSINESS_CATEGORIES as CATEGORIES } from '@/lib/businessCategories'
 import { useLocation } from '@/contexts/LocationContext'
-// ...
+import { Star, Sparkles, MapPin, Settings2, Plus, Check } from 'lucide-react'
+import CategoryIcon from '@/components/CategoryIcon'
+import { useRestoreSessionModal } from "@/hooks/useRestoreSessionModal"
 
-// Dynamic Imports (Moved outside to prevent re-rendering)
 const MapBoxStoreLocator = dynamic(() => import('@/components/MapBoxStoreLocator'), {
     ssr: false,
-    loading: () => <div className="w-full h-full bg-slate-900 animate-pulse flex items-center justify-center text-white/20">Cargando Mapa...</div>
+    loading: () => <div className="w-full h-full bg-slate-900 animate-pulse flex items-center justify-center text-white/20 uppercase tracking-widest font-black">Cargando Mapa...</div>
 })
 
 const BusinessDetailsModal = dynamic(() => import('@/components/BusinessDetailsModal'), { ssr: false })
+const BusinessListCard = dynamic(() => import('@/components/BusinessListCard'), { ssr: false })
+
 
 interface MapClientProps {
     businesses: any[]
@@ -46,6 +49,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
     const { t } = useLanguage()
     // 🔥 USANDO CONTEXTO GLOBAL
     const { location, loading, error, refreshLocation, setManualLocation } = useLocation()
+    const { openModal } = useRestoreSessionModal()
     const searchParams = useSearchParams()
     const [selectedCategories, setSelectedCategories] = useState<string[]>([])
     const [searchQuery, setSearchQuery] = useState('')
@@ -61,14 +65,23 @@ export default function MapClient({ businesses, user }: MapClientProps) {
     const [hasSearched, setHasSearched] = useState(false)
 
     const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null)
+    const [activeBusinessId, setActiveBusinessId] = useState<string | null>(null)
+    const [dynamicBusinesses, setDynamicBusinesses] = useState<any[]>(businesses)
+    const [isLoadingBounds, setIsLoadingBounds] = useState(false)
+    const debounceTimer = useRef<NodeJS.Timeout | null>(null)
+    const currentBoundsRef = useRef<any>(null) // 🔥 Guardar bounds actuales
+    const lastBoundsKeyRef = useRef<string>('')
+
+    const isGuest = !user
 
     // Listen for custom event from MapBoxStoreLocator
     useEffect(() => {
         const handleOpenModal = (e: CustomEvent<string>) => {
             const businessId = e.detail
-            const business = businesses.find(b => b.id === businessId)
+            const business = dynamicBusinesses.find(b => b.id === businessId)
             if (business) {
                 setSelectedBusiness(business)
+                setActiveBusinessId(businessId)
                 // Registrar vista real / apertura de tarjeta
                 fetch(`/api/businesses/${businessId}/view`, { method: 'POST' }).catch(() => { })
             }
@@ -79,7 +92,56 @@ export default function MapClient({ businesses, user }: MapClientProps) {
         return () => {
             window.removeEventListener('open-business-modal' as any, handleOpenModal as any)
         }
-    }, [businesses])
+    }, [dynamicBusinesses])
+
+    // 🗺️ Dynamic Bounds Fetch (Centralized)
+    const refreshVisibleBusinesses = async (bounds: any, force = false) => {
+        const boundsKey = JSON.stringify(bounds)
+        if (!force && boundsKey === lastBoundsKeyRef.current) return
+
+        lastBoundsKeyRef.current = boundsKey
+        currentBoundsRef.current = bounds
+
+        if (debounceTimer.current) clearTimeout(debounceTimer.current)
+
+        debounceTimer.current = setTimeout(async () => {
+            setIsLoadingBounds(true)
+            try {
+                const params = new URLSearchParams({
+                    minLat: bounds.minLat.toString(),
+                    maxLat: bounds.maxLat.toString(),
+                    minLng: bounds.minLng.toString(),
+                    maxLng: bounds.maxLng.toString(),
+                    category: selectedCategories.length === 1 ? selectedCategories[0] : 'all'
+                })
+
+                const res = await fetch(`/api/businesses/bounds?${params}`)
+                if (res.ok) {
+                    const data = await res.json()
+                    setDynamicBusinesses(prev => {
+                        const existingIds = new Set(prev.map(b => b.id))
+                        const newOnes = data.businesses.filter((b: any) => !existingIds.has(b.id))
+                        return [...prev, ...newOnes].slice(-1000)
+                    })
+                }
+            } catch (err) {
+                console.error("Bounds fetch error:", err)
+            } finally {
+                setIsLoadingBounds(false)
+            }
+        }, 300) // Reduced debounce for snappier AI response
+    }
+
+    const handleBoundsChange = (bounds: any) => {
+        refreshVisibleBusinesses(bounds)
+    }
+
+    // 🔥 REFRESH BUSSINESSES ON CATEGORY CHANGE (AI or Manual)
+    useEffect(() => {
+        if (currentBoundsRef.current) {
+            refreshVisibleBusinesses(currentBoundsRef.current, true)
+        }
+    }, [selectedCategories])
 
     const handleSmartSearch = async () => {
         if (!searchQuery.trim()) return
@@ -87,6 +149,8 @@ export default function MapClient({ businesses, user }: MapClientProps) {
         setIsAnalyzing(true)
         setSearchSuccess(false)
         setHasSearched(false)
+        setSelectedCategories([]) // 🔥 RESET MAP IMMEDIATELY ON NEW SEARCH
+        let successFound = false
 
         try {
             const response = await fetch('/api/ai/analyze-problem', {
@@ -102,45 +166,49 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                 })
             })
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}))
-                console.warn('⚠️ IA Smart Search no disponible:', errorData.error || response.statusText)
-                throw new Error('FALLBACK_MODE')
-            }
+            if (!response.ok) throw new Error('FALLBACK_MODE')
 
             const data = await response.json()
 
             if (data.categories && data.categories.length > 0) {
-                setSelectedCategories(data.categories)
+                // 🔥 Ensure all IDs are lowercase to match taxonomy
+                const normalizedCats = data.categories.map((c: string) => c.toLowerCase())
+                setSelectedCategories(normalizedCats)
                 setSearchSuccess(true)
+                successFound = true
             } else {
-                setSelectedCategories([])
+                throw new Error('NO_CATEGORIES_FOUND')
             }
         } catch (error: any) {
-            // Solently handle all errors to enforce fallback
-            if (error.message !== 'FALLBACK_MODE') {
-                console.warn('⚠️ Error de conexión con IA, usando búsqueda local:', error.message)
-            }
             // Fallback a búsqueda básica mejorada
             const query = searchQuery.toLowerCase()
             const detectedCats: string[] = []
 
-            // Detectar si menciona "carro", "auto", "vehículo" → excluir motos
+            // 🔥 MEJORA CRÍTICA: Detección ultra-agresiva de gasolineras para Ruben
+            if (/\b(gas|gaso|gasol|gasolina|gasolinera|gasolineria|magna|premium|diesel|combustible|echar|cargar)\b/i.test(query)) {
+                detectedCats.push('gasolinera')
+            }
+
             const isCarRelated = /\b(carro|auto|automovil|vehiculo|sedan|suv|pick.*up|camioneta)\b/i.test(searchQuery)
             const isMotorcycleRelated = /\b(moto|motocicleta|scooter|cuatrimoto)\b/i.test(searchQuery)
 
+            // 🔥 MEJORA: Detectar ruidos/fallas genéricas -> Mecánico
+            if (/\b(ruido|suena|sonido|traqueteo|golpeteo|falla|vibracion|tiembla|jalonea|cascabelea|escucha|oye|trona|cruje)\b/i.test(query)) {
+                detectedCats.push('mecanico')
+            }
+
             CATEGORIES.forEach(cat => {
-                // Excluir motos si habla de carros
-                if (isCarRelated && cat.id === 'MOTOS') return
-                // Excluir categorías de carros si habla de motos
-                if (isMotorcycleRelated && !['MOTOS', 'LLANTAS', 'GRUAS'].includes(cat.id)) return
+                if (detectedCats.includes(cat.id)) return // Skip if already detected
+
+                if (isCarRelated && cat.id === 'motos') return
+                if (isMotorcycleRelated && !['motos', 'llantera', 'gruas'].includes(cat.id)) return
 
                 if (cat.keywords.some(k => {
-                    // Fix: Evitar que 'moto' haga match con 'motor'
-                    if (k === 'moto') {
-                        return new RegExp(`\\b${k}\\b`, 'i').test(query)
-                    }
-                    return query.includes(k)
+                    const normalizedK = k.toLowerCase()
+                    if (normalizedK === 'moto') return new RegExp(`\\b${normalizedK}\\b`, 'i').test(query)
+
+                    const kWords = normalizedK.split(' ').filter(w => w.length > 3)
+                    return kWords.some(word => query.includes(word)) || query.includes(normalizedK)
                 })) {
                     detectedCats.push(cat.id)
                 }
@@ -149,10 +217,18 @@ export default function MapClient({ businesses, user }: MapClientProps) {
             setSelectedCategories(detectedCats)
             if (detectedCats.length > 0) {
                 setSearchSuccess(true)
+                successFound = true
             }
         } finally {
             setIsAnalyzing(false)
             setHasSearched(true)
+
+            // 🪄 AUTO-CLOSE SIDEBAR IF SUCCESSFUL
+            if (successFound) {
+                setTimeout(() => {
+                    setShowSidebar(false)
+                }, 2000) // 2s para que Ruben vea las categorías marcadas
+            }
         }
     }
 
@@ -176,6 +252,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
             const business = businesses.find(b => b.id === highlightParam)
             if (business) {
                 setSelectedBusiness(business)
+                setActiveBusinessId(highlightParam)
                 setManualLocation({
                     latitude: Number(business.latitude),
                     longitude: Number(business.longitude),
@@ -196,8 +273,6 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                     city: t('market.shared_location'),
                     country: ''
                 })
-                // No forzamos re-render con key, dejamos que MapController maneje el cambio
-                // setMapKey(Math.random()) 
             }
         }
     }, [searchParams, setManualLocation])
@@ -239,17 +314,20 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
     // Filter Logic
     const filteredBusinesses = useMemo(() => {
-        if (selectedCategories.length === 0) return businesses
-        return businesses.filter(b => selectedCategories.includes(b.category) || selectedCategories.includes(b.subCategory || ''))
-        // Note: Assumes DB category matches IDs roughly. Map needed if IDs differ.
-        // Quick fix: Map 'TALLER' to 'TALLER', etc.
-    }, [businesses, selectedCategories])
+        let result = dynamicBusinesses;
+        if (selectedCategories.length > 0) {
+            result = result.filter(b => selectedCategories.includes(b.category));
+        }
+
+        // Sorting: If user has location, sort by distance? Or just boosted first.
+        // For now, let's keep it simple.
+        return result;
+    }, [dynamicBusinesses, selectedCategories])
 
     // 🔒 Si está cargando la ubicación, mostrar pantalla de carga
     if (loading) {
         return (
             <div className="flex flex-col min-h-screen bg-background">
-                <Header />
                 <div className="flex-1 flex flex-col items-center justify-center p-8">
                     <div className="max-w-md text-center space-y-6">
                         <div className="w-20 h-20 mx-auto bg-primary-700 rounded-full flex items-center justify-center animate-pulse">
@@ -277,7 +355,6 @@ export default function MapClient({ businesses, user }: MapClientProps) {
     if (error || !location) {
         return (
             <div className="flex flex-col min-h-screen bg-background">
-                <Header />
                 <div className="flex-1 flex flex-col items-center justify-center p-8">
                     <div className="max-w-md text-center space-y-6">
                         <div className="w-20 h-20 mx-auto bg-red-500/20 rounded-full flex items-center justify-center">
@@ -342,174 +419,211 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
 
     return (
-        <div className="flex flex-col h-[calc(100dvh-5rem)] md:h-screen bg-background overflow-hidden pb-safe">
-            <Header />
+        <div className="flex flex-col h-full bg-background overflow-hidden pb-safe">
 
             <div className="flex-1 relative flex overflow-hidden">
 
-                {/* 📱 Mobile Toggle Button */}
-                {/* 📱 Mobile Toggle Button */}
-                <button
-                    onClick={() => setShowSidebar(true)}
-                    className="md:hidden absolute top-4 left-4 z-30 px-4 py-2 bg-primary-700 text-white rounded-lg shadow-lg font-bold"
-                >
-                    {t('market.filters.show_filters')}
-                </button>
-
-                {/* 🗂️ Sidebar (Desktop & Mobile Drawer) */}
-                <div className={`
-                    fixed inset-0 z-[500] bg-black/50 md:static md:bg-transparent md:inset-auto md:z-auto flex-shrink-0
-                    ${showSidebar ? 'block' : 'hidden md:block'}
-                `}>
-                    <div className="h-full w-80 bg-surface border-r border-surface-highlight flex flex-col shadow-2xl md:shadow-none animate-slide-in-left">
-
-                        {/* Mobile Header */}
-                        <div className="md:hidden p-4 border-b border-surface-highlight flex justify-between items-center">
-                            <h2 className="font-bold text-lg text-text-primary">{t('market.filters_label')}</h2>
-                            <button onClick={() => setShowSidebar(false)} className="text-text-secondary">✕</button>
-                        </div>
-
-                        <div className="p-4 pb-24 md:pb-8 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
-
-                            {/* ➕ Add Business Button (Small) */}
-                            <a
-                                href="/my-businesses?action=new"
-                                className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg text-sm font-medium shadow hover:from-primary-700 hover:to-primary-800 transition-all mb-4"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
-                                {t('map_store.publish_business')}
-                            </a>
-
-                            {/* 🧠 Smart Search */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-primary-400 uppercase tracking-wider">
-                                    {t('map_store.smart_search_label')}
-                                </label>
-                                <div className="space-y-2">
-                                    <textarea
-                                        value={searchQuery}
-                                        onChange={(e) => {
-                                            setSearchQuery(e.target.value)
-                                            setSearchSuccess(false)
-                                            setHasSearched(false)
-                                        }}
-                                        placeholder={t('map_store.smart_search_placeholder')}
-                                        className="w-full bg-background border border-surface-highlight rounded-xl p-4 text-base md:text-sm text-text-primary focus:border-primary-600 focus:outline-none resize-none h-28"
-                                        disabled={isAnalyzing}
-                                    />
-                                    <button
-                                        onClick={handleSmartSearch}
-                                        disabled={isAnalyzing || !searchQuery.trim()}
-                                        className="w-full py-4 md:py-2 bg-primary-700 rounded-xl text-white font-bold hover:bg-primary-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-primary-900/20"
-                                    >
-                                        {isAnalyzing ? (
-                                            <>
-                                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                <span>{t('map_store.analyzing')}</span>
-                                            </>
-                                        ) : (
-                                            t('map_store.ask_specialist')
-                                        )}
-                                    </button>
-                                </div>
-
-                                {searchSuccess ? (
-                                    <div className="p-3 bg-surface-highlight/50 border border-primary-500/30 rounded-lg animate-fade-in-up space-y-2">
-                                        <p className="text-xs text-green-400 font-bold flex items-center gap-1">
-                                            <span>✅</span> {t('map_store.filter_success')}
-                                        </p>
-                                    </div>
-                                ) : hasSearched ? (
-                                    <div className="p-2 bg-red-500/10 border border-red-500/20 rounded-lg animate-fade-in-up">
-                                        <p className="text-xs text-red-400 font-bold flex items-center gap-1">
-                                            <span>⚠️</span> {t('map_store.no_matches')}
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <p className="text-xs text-text-secondary">
-                                        {isAnalyzing ? t('map_store.specialist_placeholder') : t('map_store.default_placeholder')}
-                                    </p>
-                                )}
-                            </div>
-
-                            <hr className="border-surface-highlight" />
-
-                            {/* 📋 Categories */}
-                            <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                    <label className="text-sm font-bold text-text-secondary uppercase tracking-wider">
-                                        {t('map_store.categories_label')} ({filteredBusinesses.length})
-                                    </label>
-                                    {selectedCategories.length > 0 && (
-                                        <button
-                                            onClick={() => setSelectedCategories([])}
-                                            className="text-xs text-primary-400 hover:text-primary-300"
-                                        >
-                                            {t('map_store.clean_filters')}
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="space-y-1">
-                                    {[...CATEGORIES]
-                                        .sort((a, b) => (t(`map_store.categories.${a.id}`) || a.label).localeCompare(t(`map_store.categories.${b.id}`) || b.label))
-                                        .map(cat => {
-                                            const isSelected = selectedCategories.includes(cat.id)
-                                            return (
-                                                <div
-                                                    key={cat.id}
-                                                    onClick={() => toggleCategory(cat.id)}
-                                                    className={`
-                                                        flex items-center space-x-3 p-2 rounded-lg cursor-pointer transition-all
-                                                        ${isSelected ? 'bg-surface-highlight/50' : 'hover:bg-surface-highlight'}
-                                                    `}
-                                                >
-                                                    <div
-                                                        className={`
-                                                            w-5 h-5 rounded border flex items-center justify-center transition-colors
-                                                            ${isSelected ? 'bg-transparent' : 'bg-transparent'}
-                                                        `}
-                                                        style={{
-                                                            backgroundColor: isSelected ? cat.color : 'transparent',
-                                                            borderColor: cat.color
-                                                        }}
-                                                    >
-                                                        {isSelected && (
-                                                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                                            </svg>
-                                                        )}
-                                                    </div>
-                                                    <span className={`text-sm ${isSelected ? 'text-white font-medium' : 'text-gray-400'}`}>
-                                                        {t(`map_store.categories.${cat.id}`) || cat.label}
-                                                    </span>
-                                                </div>
-                                            )
-                                        })}
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </div>
-                    {/* Backdrop click to close on mobile */}
-                    <div className="md:hidden absolute inset-0 -z-10" onClick={() => setShowSidebar(false)}></div>
-                </div>
-
-                {/* 🗺️ MAP */}
-                <div className="flex-1 w-full h-full relative z-0">
+                {/* 🗺️ MAP (FULL SCREEN / FLEX CHILD) */}
+                <div className="absolute inset-0 lg:relative lg:flex-1 lg:inset-auto z-0 order-2">
                     <MapBoxStoreLocator
                         businesses={filteredBusinesses}
                         categoryColors={CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.color }), {})}
                         categoryEmojis={CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.icon }), {})}
                         initialLocation={location ? { latitude: location.latitude, longitude: location.longitude } : undefined}
+                        onBoundsChange={handleBoundsChange}
+                        highlightCategories={searchSuccess ? selectedCategories : []}
                     />
                 </div>
 
+
+                {/* 📱 BOTONES FLOTANTES (MAPA - MOBILE ONLY) */}
+                <div className="absolute top-6 left-6 z-30 flex flex-col gap-3 lg:hidden">
+                    {!showSidebar && (
+                        <button
+                            onClick={() => setShowSidebar(true)}
+                            className="w-fit px-5 py-2.5 bg-[#1a243d]/90 backdrop-blur-md text-white/80 rounded-full shadow-xl font-bold uppercase tracking-wider border border-white/10 flex items-center gap-2 active:scale-95 hover:bg-[#1a243d] transition-all"
+                        >
+                            <Settings2 size={18} />
+                            <span className="text-xs">{t('map_store.show_filters')}</span>
+                        </button>
+                    )}
+                </div>
+
+                {/* 🗂️ PANEL DE FILTROS (PERSISTENT DESKTOP / OVERLAY MOBILE) */}
+                <div className={`
+                    absolute inset-0 z-[60] lg:z-10 lg:static lg:w-[340px] lg:shrink-0 flex items-start justify-start transition-none pointer-events-none lg:pointer-events-auto lg:order-1
+                `}>
+                    {/* Backdrop (Mobile Only) */}
+                    <div
+                        className={`lg:hidden absolute inset-0 bg-background/40 backdrop-blur-sm transition-opacity duration-300 ${showSidebar ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                        onClick={() => setShowSidebar(false)}
+                    />
+
+                    {/* Filter Panel (Sidebar Content) */}
+                    <div className={`
+                        relative h-full w-[85%] max-w-[340px] lg:w-full bg-[#1a243d]/95 backdrop-blur-2xl border-r border-white/10 shadow-[20px_0_50px_rgba(0,0,0,0.4)] lg:shadow-none flex flex-col transition-transform duration-300 ease-out transform pointer-events-auto
+                        ${showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                    `}>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-0 flex flex-col h-full bg-transparent">
+                            {/* 1. HEADER CON BOTÓN DE PUBLICAR */}
+                            <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 gap-4">
+                                <Link
+                                    href="/my-businesses?action=new"
+                                    onClick={(e) => {
+                                        // 🔥 GUEST SESSION FIX: Verificamos si hay soft logout antes de navegar a ruta protegida
+                                        const isSoftLogout = document.cookie.includes('soft_logout=true') || localStorage.getItem('soft_logout') === 'true'
+                                        if (user && isSoftLogout) {
+                                            e.preventDefault()
+                                            openModal(
+                                                "Cerraste sesión hace un momento. ¿Deseas volver a activar tu cuenta para registrar tu negocio?",
+                                                () => { /* Restauración en modal */ }
+                                            )
+                                        }
+                                    }}
+                                    className="flex-1 py-2.5 bg-accent-600 text-white rounded-lg shadow-lg font-black uppercase tracking-wider border border-accent-500/50 flex items-center justify-center gap-2 active:scale-95 hover:bg-accent-500 transition-all text-xs"
+                                >
+                                    <Plus size={16} />
+                                    <span>{t('map_store.publish_business')}</span>
+                                </Link>
+                                <button
+                                    onClick={() => setShowSidebar(false)}
+                                    className="p-1 text-white/40 hover:text-white transition-colors flex-shrink-0 lg:hidden"
+                                >
+                                    <Plus size={24} className="rotate-45" />
+                                </button>
+                            </div>
+
+                            <div className="px-6 py-6 space-y-8 flex-1">
+                                {/* 2. PREGUNTAR AL EXPERTO (ESTILO SENCILLO) */}
+                                <div className="space-y-4">
+                                    <p className="text-sm text-white/60">
+                                        {t('map_store.how_to_diagnose') === 'map_store.how_to_diagnose'
+                                            ? 'Cuéntale a tu asesor qué falla tiene tu auto...'
+                                            : t('map_store.how_to_diagnose')}
+                                    </p>
+                                    <div className="space-y-3">
+                                        <div className="relative">
+                                            <textarea
+                                                value={searchQuery}
+                                                onChange={(e) => {
+                                                    setSearchQuery(e.target.value)
+                                                    setSearchSuccess(false)
+                                                    setHasSearched(false)
+                                                }}
+                                                placeholder={t('map_store.smart_search_placeholder')}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:border-primary-500/50 focus:outline-none transition-all resize-none h-24"
+                                                disabled={isAnalyzing}
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={handleSmartSearch}
+                                            disabled={isAnalyzing || !searchQuery.trim()}
+                                            className="w-full py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-500 disabled:opacity-30 transition-all shadow-lg flex items-center justify-center gap-2 font-bold uppercase tracking-wide text-xs"
+                                        >
+                                            {isAnalyzing ? (
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <>
+                                                    <Sparkles size={16} />
+                                                    Preguntar al Asesor
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+
+                                    {searchSuccess && !isAnalyzing && (
+                                        <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-xl animate-in fade-in zoom-in">
+                                            <p className="text-xs text-green-400 font-medium text-center">
+                                                Expertos seleccionados. Dale click en <span className="underline font-bold">VER EN EL MAPA</span>
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {hasSearched && !searchSuccess && !isAnalyzing && (
+                                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl animate-in fade-in zoom-in text-center">
+                                            <p className="text-xs text-red-400 font-medium leading-relaxed">
+                                                No encontré nada. Intenta con otras palabras.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="h-[1px] bg-white/5 w-full my-6"></div>
+
+                                {/* 3. LISTA DE CATEGORÍAS SENCILLA */}
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/40 mb-6">
+                                        Categorías
+                                    </h3>
+
+                                    <div className="space-y-1">
+                                        {CATEGORIES.map((cat, index) => {
+                                            const isSelected = selectedCategories.includes(cat.id);
+                                            const showDivider = cat.isPublic && (index === 0 || !CATEGORIES[index - 1].isPublic);
+
+                                            return (
+                                                <Fragment key={cat.id}>
+                                                    {showDivider && (
+                                                        <div className="py-6 flex flex-col gap-6">
+                                                            <div className="h-[1px] bg-white/5 w-full"></div>
+                                                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/40">
+                                                                Servicios Públicos
+                                                            </h3>
+                                                        </div>
+                                                    )}
+                                                    <button
+                                                        onClick={() => toggleCategory(cat.id)}
+                                                        className={`
+                                                            w-full flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all group
+                                                            ${isSelected ? 'bg-white/10 ring-1 ring-white/10' : 'hover:bg-white/5'}
+                                                        `}
+                                                    >
+                                                        <div
+                                                            className="w-8 h-8 rounded-xl border flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm shrink-0"
+                                                            style={{
+                                                                backgroundColor: `${cat.color}20`,
+                                                                borderColor: isSelected ? cat.color : `${cat.color}40`,
+                                                                boxShadow: isSelected ? `0 0 15px ${cat.color}30` : 'none'
+                                                            }}
+                                                        >
+                                                            <CategoryIcon
+                                                                iconName={cat.icon}
+                                                                size={16}
+                                                                color={cat.color}
+                                                                className={isSelected ? 'animate-pulse' : 'opacity-90'}
+                                                            />
+                                                        </div>
+                                                        <span className={`text-[13px] font-bold transition-colors truncate flex-1 text-left ${isSelected ? 'text-white' : 'text-white/50'}`}>
+                                                            {t(`map_store.categories.${cat.id}`) || cat.label}
+                                                        </span>
+
+                                                        {/* Checkbox Indicator */}
+                                                        <div className={`
+                                                            w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all shrink-0
+                                                            ${isSelected ? 'bg-primary-600 border-primary-600 shadow-lg shadow-primary-900/40' : 'border-white/10 bg-white/5'}
+                                                        `}>
+                                                            {isSelected && <Check size={12} strokeWidth={4} className="text-white" />}
+                                                        </div>
+                                                    </button>
+                                                </Fragment>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer de Aplicar */}
+                        <div className="p-4 bg-surface-highlight/20 border-t border-surface-highlight">
+                            <button
+                                onClick={() => setShowSidebar(false)}
+                                className="w-full py-4 bg-primary-700 text-white rounded-xl font-black uppercase tracking-[0.2em] shadow-xl hover:bg-primary-600 active:scale-95 transition-all"
+                            >
+                                Ver en el Mapa
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* 🌍 MODAL DE UBICACIÓN MANUAL */}

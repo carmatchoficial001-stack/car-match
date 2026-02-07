@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react' // ✅ Importar useState
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
@@ -12,15 +13,19 @@ import {
     Bell,
     BellOff,
     LogOut,
-    Check
+    Check,
+    FileText,
+    ChevronDown, // ✅ Iconos adicionales
+    ChevronUp
 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion' // ✅ AnimatePresence
 
 export default function SettingsPage() {
     const { data: session, status } = useSession()
     const router = useRouter()
     const { locale, setLocale, t } = useLanguage()
     const { isSubscribed, subscribe, permission } = usePushNotifications()
+    const [showLanguages, setShowLanguages] = useState(false) // ✅ Estado local
 
     if (status === 'unauthenticated') {
         router.push('/auth')
@@ -29,18 +34,13 @@ export default function SettingsPage() {
 
     const handleSignOut = async () => {
         try {
-            await signOut({
-                callbackUrl: '/',
-                redirect: true
-            })
+            // 🔥 CIERRE DE SESIÓN SIMULADO (Soft Logout)
+            document.cookie = "soft_logout=true; Path=/; Max-Age=315360000" // 10 años
+            localStorage.setItem('soft_logout', 'true')
+
+            window.location.href = '/'
         } catch (error) {
-            console.error("Error during sign out:", error)
-            // Fallback: Clear cookies and redirect
-            document.cookie.split(";").forEach((c) => {
-                document.cookie = c
-                    .replace(/^ +/, "")
-                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-            });
+            console.error("Error during soft sign out:", error)
             window.location.href = '/'
         }
     }
@@ -89,59 +89,74 @@ export default function SettingsPage() {
             </div>
 
             <main className="max-w-2xl mx-auto p-4 space-y-8 mt-4">
-                {/* Idiomas */}
-                <section className="space-y-4">
-                    <div className="flex items-center gap-2 px-1">
-                        <Globe size={18} className="text-primary-500" />
-                        <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">{t('settings.select_language')}</h2>
-                    </div>
-                    {/* Vertical scrollable language list */}
-                    <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-                        {languages.map((lang) => (
-                            <button
-                                key={lang.code}
-                                onClick={() => setLocale(lang.code as any)}
-                                className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${locale === lang.code
-                                    ? 'bg-primary-900/20 border-primary-500 text-primary-400 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]'
-                                    : 'bg-surface border-surface-highlight text-text-primary hover:border-text-secondary/30 hover:bg-white/5 active:scale-[0.98]'
-                                    }`}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <span className="text-2xl">{lang.flag}</span>
-                                    <span className={`font-bold ${locale === lang.code ? 'text-primary-400' : 'text-text-primary'}`}>
-                                        {lang.name}
-                                    </span>
-                                </div>
-                                {locale === lang.code && <Check size={20} className="text-primary-500" />}
-                            </button>
-                        ))}
-                    </div>
-
-                    <style jsx>{`
-                        .custom-scrollbar::-webkit-scrollbar {
-                            width: 5px;
-                        }
-                        .custom-scrollbar::-webkit-scrollbar-track {
-                            background: rgba(255, 255, 255, 0.02);
-                            border-radius: 10px;
-                        }
-                        .custom-scrollbar::-webkit-scrollbar-thumb {
-                            background: rgba(var(--primary-rgb), 0.2);
-                            border-radius: 10px;
-                        }
-                        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                            background: rgba(var(--primary-rgb), 0.4);
-                        }
-                    `}</style>
-                </section>
-
                 {/* Notificaciones y Soporte */}
                 <section className="space-y-4">
                     <div className="flex items-center gap-2 px-1">
                         <Settings size={18} className="text-primary-500" />
                         <h2 className="text-sm font-black uppercase tracking-widest text-text-secondary opacity-60">{t('settings.preferences_help')}</h2>
                     </div>
+
                     <div className="space-y-2">
+                        {/* 🌐 SELECTOR DE IDIOMA */}
+                        <div className="overflow-hidden rounded-2xl border border-surface-highlight bg-surface transition-all">
+                            <button
+                                onClick={() => setShowLanguages(!showLanguages)}
+                                className="w-full flex items-center justify-between p-5 hover:bg-surface-highlight/30 transition-colors"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="p-2 rounded-xl bg-orange-500/10 text-orange-500">
+                                        <Globe size={22} />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="font-bold flex items-center gap-2">
+                                            {t('common.language') || "Idioma"}
+                                            <span className="text-sm font-normal text-text-secondary opacity-60">
+                                                ({languages.find(l => l.code === locale)?.name})
+                                            </span>
+                                        </p>
+                                        <p className="text-xs text-text-secondary">
+                                            Selecciona tu idioma preferido
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="text-text-secondary">
+                                    {showLanguages ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                </div>
+                            </button>
+
+                            <AnimatePresence>
+                                {showLanguages && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="border-t border-surface-highlight bg-surface-highlight/10"
+                                    >
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-4">
+                                            {languages.map((lang) => (
+                                                <button
+                                                    key={lang.code}
+                                                    onClick={() => {
+                                                        setLocale(lang.code as any)
+                                                        setShowLanguages(false)
+                                                    }}
+                                                    className={`flex items-center gap-3 p-3 rounded-xl transition-all ${locale === lang.code
+                                                        ? 'bg-primary-500/20 border border-primary-500/30 text-primary-400'
+                                                        : 'hover:bg-surface-highlight text-text-secondary hover:text-text-primary'
+                                                        }`}
+                                                >
+                                                    <span className="text-2xl">{lang.flag}</span>
+                                                    <span className="text-sm font-medium">{lang.name}</span>
+                                                    {locale === lang.code && <Check size={16} className="ml-auto" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
                         <button
                             onClick={() => subscribe()}
                             disabled={isSubscribed || permission === 'denied'}
@@ -177,6 +192,21 @@ export default function SettingsPage() {
                                 <p className="font-bold">{t('settings.support_title')}</p>
                                 <p className="text-xs text-text-secondary">
                                     {t('settings.support_desc')}
+                                </p>
+                            </div>
+                        </button>
+
+                        <button
+                            onClick={() => router.push('/terms')}
+                            className="w-full flex items-center gap-4 p-5 rounded-2xl border border-surface-highlight bg-surface text-text-primary hover:border-text-secondary/30 transition-all"
+                        >
+                            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
+                                <FileText size={22} />
+                            </div>
+                            <div className="text-left">
+                                <p className="font-bold">{t('settings.terms_title')}</p>
+                                <p className="text-xs text-text-secondary">
+                                    {t('settings.terms_desc')}
                                 </p>
                             </div>
                         </button>

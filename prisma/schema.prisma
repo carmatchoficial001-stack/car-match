@@ -42,6 +42,7 @@ model User {
   fakeNotifCounters       FakeNotificationCounter[]
   favorites               Favorite[]
   sentMessages            Message[]
+  reportMessages          ReportMessage[]
   notifications           Notification[]
   payments                Payment[]
   paymentMethods          PaymentMethod[]
@@ -139,7 +140,7 @@ model Vehicle {
   owners             Int?
   features           String[]
   searchIndex        String?
-  displacement       Int?
+  displacement       Float?
   cargoCapacity      Float?
   operatingHours     Int?
   latitude           Float?
@@ -177,6 +178,7 @@ model Vehicle {
   @@index([status, createdAt])
   @@index([status, price])
   @@index([status, year])
+  @@index([model])
   @@index([status, brand])
   @@index([status, vehicleType])
 }
@@ -651,6 +653,18 @@ model SearchMetric {
   id        String   @id @default(cuid())
   query     String?
   category  String?
+  brand     String?
+  model     String?
+  minPrice  Float?
+  maxPrice  Float?
+  minYear   Int?
+  maxYear   Int?
+  vehicleType String?
+  color     String?
+  transmission String?
+  fuel      String?
+  cylinders Int?
+  features  String[]
   latitude  Float
   longitude Float
   userId    String?
@@ -658,6 +672,10 @@ model SearchMetric {
 
   @@index([latitude, longitude])
   @@index([createdAt])
+  @@index([brand])
+  @@index([category])
+  @@index([vehicleType])
+  @@index([model])
 }
 
 model OpportunityLog {
@@ -674,7 +692,7 @@ model OpportunityLog {
 
 model Report {
   id           String       @id @default(cuid())
-  reporterId   String
+  reporterId   String?
   reason       String
   description  String?
   status       ReportStatus @default(PENDING)
@@ -685,13 +703,27 @@ model Report {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   business     Business?    @relation(fields: [businessId], references: [id])
-  reporter     User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reporter     User?        @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
   targetUser   User?        @relation("ReportedUser", fields: [targetUserId], references: [id])
   vehicle      Vehicle?     @relation(fields: [vehicleId], references: [id])
+  messages     ReportMessage[]
 
   @@index([reporterId])
   @@index([status])
   @@index([createdAt])
+}
+
+model ReportMessage {
+  id        String   @id @default(cuid())
+  reportId  String
+  senderId  String?
+  content   String
+  createdAt DateTime @default(now())
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  sender    User?     @relation(fields: [senderId], references: [id])
+
+  @@index([reportId])
+  @@index([senderId])
 }
 
 enum VehicleStatus {

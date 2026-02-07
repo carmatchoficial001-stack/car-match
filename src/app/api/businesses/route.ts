@@ -44,7 +44,10 @@ export async function POST(request: NextRequest) {
             longitude,
             images = [],
             services = [],
-            isSafeMeetingPoint = false
+            isSafeMeetingPoint = false,
+            is24Hours = false,
+            hasEmergencyService = false,
+            hasHomeService = false
         } = body
 
         // Validaciones básicas
@@ -396,7 +399,10 @@ export async function PATCH(request: NextRequest) {
             longitude,
             images,
             services,
-            isSafeMeetingPoint
+            isSafeMeetingPoint,
+            is24Hours,
+            hasEmergencyService,
+            hasHomeService
         } = body
 
         if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 })
@@ -457,7 +463,10 @@ export async function PATCH(request: NextRequest) {
                 longitude: longitude ? parseFloat(longitude) : undefined,
                 images,
                 services: Array.isArray(services) ? services : undefined,
-                isSafeMeetingPoint: typeof isSafeMeetingPoint === 'boolean' ? isSafeMeetingPoint : undefined
+                isSafeMeetingPoint: typeof isSafeMeetingPoint === 'boolean' ? isSafeMeetingPoint : undefined,
+                is24Hours: typeof is24Hours === 'boolean' ? is24Hours : undefined,
+                hasEmergencyService: typeof hasEmergencyService === 'boolean' ? hasEmergencyService : undefined,
+                hasHomeService: typeof hasHomeService === 'boolean' ? hasHomeService : undefined
             }
         })
 

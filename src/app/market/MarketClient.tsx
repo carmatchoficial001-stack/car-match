@@ -1,19 +1,20 @@
 "use client"
 // v1.4 Refactor: Global LocationContext Usage
 
-import { useEffect, useState } from 'react'
-import { MapPin, Search } from 'lucide-react'
+import { useEffect, useState, useRef, useCallback } from 'react'
+import { MapPin, Search, Loader2, Plus, RefreshCw } from 'lucide-react'
+
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useLocation } from '@/contexts/LocationContext'
 import { searchCity, searchCities, calculateDistance, normalizeCountryCode, LocationData } from '@/lib/geolocation'
-import Header from '@/components/Header'
 import MarketFilters from '@/components/MarketFilters'
 import FavoriteButton from '@/components/FavoriteButton'
 import ShareButton from '@/components/ShareButton'
 import ReportImageButton from '@/components/ReportImageButton'
 import { formatPrice, formatNumber } from '@/lib/vehicleTaxonomy'
+import { generateVehicleSlug, generateBusinessSlug } from '@/lib/slug'
 
 interface FeedItem {
     id: string
@@ -48,6 +49,7 @@ interface MarketClientProps {
     vehicleTypes: string[]
     colors: string[]
     searchParams: any
+    aiReasoning?: string
 }
 
 // Utility: Fisher-Yates Shuffle with 300% Boost Prioritization
@@ -92,16 +94,17 @@ function boostShuffleArray(array: FeedItem[]): FeedItem[] {
 
     return result
 }
-
 export default function MarketClient({
     initialItems,
     currentUserId,
     brands,
     vehicleTypes,
     colors,
-    searchParams
+    searchParams,
+    aiReasoning: initialAiReasoning
 }: MarketClientProps) {
     const { t, locale } = useLanguage()
+    const [aiReasoning, setAiReasoning] = useState(initialAiReasoning)
 
     // 🔥 USANDO CONTEXTO GLOBAL
     const { location, loading: locationLoading, manualLocation, setManualLocation } = useLocation()
@@ -113,8 +116,14 @@ export default function MarketClient({
     const searchRadius = RADIUS_TIERS[tierIndex]
 
     const [items, setItems] = useState<FeedItem[]>(initialItems)
-    const [filteredItems, setFilteredItems] = useState<FeedItem[]>([])
+    const [filteredItems, setFilteredItems] = useState<FeedItem[]>(initialItems)
     const [showFilters, setShowFilters] = useState(false)
+
+    // --- PULL TO REFRESH STATE ---
+    const [pullProgress, setPullProgress] = useState(0)
+    const [isRefreshing, setIsRefreshing] = useState(false)
+    const [startY, setStartY] = useState(0)
+    const pullThreshold = 100
 
     // Modal UI State
     const [showLocationModal, setShowLocationModal] = useState(false)
@@ -131,16 +140,184 @@ export default function MarketClient({
     const userCountry = normalizeCountryCode(activeLocation?.countryCode || activeLocation?.country)
 
     // Pagination
-    const CARS_PER_PAGE = 6
+    const CARS_PER_PAGE = 4 // 💰 Optimizado para datos móviles (antes: 6)
     const [visibleCount, setVisibleCount] = useState(CARS_PER_PAGE)
 
+    // 🔔 REAL-TIME NOTIFICATIONS
+    const [newVehiclesCount, setNewVehiclesCount] = useState(0)
+
     useEffect(() => {
-        // Shuffle only on first load if no specific sort
-        const shouldShuffle = !searchParams.sort || searchParams.sort === 'newest'
-        if (shouldShuffle) {
-            setItems(boostShuffleArray(initialItems))
+        // Connect to socket
+        import('@/lib/socket').then(({ socket }) => {
+            if (!socket.connected) socket.connect()
+
+            const handleNewVehicle = (vehicle: any) => {
+                // Filtrar por distancia si tenemos ubicación activa
+                if (activeLocation && activeLocation.latitude && activeLocation.longitude && vehicle.latitude && vehicle.longitude) {
+                    const dist = calculateDistance(
+                        activeLocation.latitude,
+                        activeLocation.longitude,
+                        vehicle.latitude,
+                        vehicle.longitude
+                    )
+
+                    // Si está dentro del radio actual, avisar
+                    if (dist <= searchRadius) {
+                        console.log("🔔 Nuevo vehículo en zona detectado:", vehicle.title)
+                        setNewVehiclesCount(prev => prev + 1)
+                        // Reproducir sonido sutil? (Opcional)
+                    }
+                } else if (!activeLocation) {
+                    // Si no hay ubicación (modo global/invitado), mostrar todo
+                    setNewVehiclesCount(prev => prev + 1)
+                }
+            }
+
+            socket.on('new_vehicle_published', handleNewVehicle)
+
+            return () => {
+                socket.off('new_vehicle_published', handleNewVehicle)
+            }
+        })
+    }, [activeLocation, searchRadius])
+
+    useEffect(() => {
+        // 🔄 URL -> Context Synchronization
+        const syncUrlCity = async () => {
+            if (searchParams.city && (!manualLocation || manualLocation.city !== searchParams.city)) {
+                try {
+                    const loc = await searchCity(searchParams.city)
+                    if (loc) {
+                        setManualLocation(loc)
+                        setTierIndex(0)
+                    }
+                } catch (e) {
+                    console.warn("Failed to sync URL city to context", e)
+                }
+            }
         }
-    }, [initialItems, searchParams.sort])
+        syncUrlCity()
+
+        // 🚀 CRITICAL FIX: Always default to server-provided items first
+        let currentItems = [...initialItems]
+
+        // Only try to restore order/shuffle if we are NOT in a specific search context that dictates order/filtering
+        // If initialItems changed drastically (different length/content), server knows best.
+        const isDefaultView = !searchParams.search && !searchParams.brand && !searchParams.category
+
+        if (isDefaultView) {
+            const savedItemsOrder = sessionStorage.getItem('market_items_order')
+            if (savedItemsOrder && !searchParams.sort) {
+                try {
+                    const orderedIds = JSON.parse(savedItemsOrder)
+                    const orderedItems = orderedIds.map((id: string) => initialItems.find(it => it.id === id)).filter(Boolean)
+                    // Only restore if we have roughly the same content
+                    if (orderedItems.length > 0 && orderedItems.length === initialItems.length) {
+                        currentItems = orderedItems
+                    } else {
+                        // Reshuffle if mismatch
+                        currentItems = boostShuffleArray(initialItems)
+                        sessionStorage.setItem('market_items_order', JSON.stringify(currentItems.map(it => it.id)))
+                    }
+                } catch (e) {
+                    // Fallback shuffle
+                    currentItems = boostShuffleArray(initialItems)
+                }
+            } else if (!searchParams.sort || searchParams.sort === 'newest') {
+                // Initial shuffle
+                currentItems = boostShuffleArray(initialItems)
+                sessionStorage.setItem('market_items_order', JSON.stringify(currentItems.map(it => it.id)))
+            }
+        } else {
+            // 🧠 SEARCH MODE: Trust server order absolutely
+            // Do NOT shuffle or restore old order when user is searching specific things
+            // But we might want to prioritize boosted in search too? usually server handles sort.
+            // If sort is default (newest), maybe we still want admin boost logic?
+            // Actually boostShuffleArray handles admin logic nicely.
+            // But for "Ram negra", we just want the results.
+            // Let's trust use server order for filtered views to avoid confusion.
+        }
+
+        setItems(currentItems)
+        // Reset AI reasoning on search change
+        setAiReasoning(initialAiReasoning)
+
+    }, [initialItems, searchParams.sort, searchParams.city, searchParams.search, searchParams.brand, searchParams.category, initialAiReasoning])
+
+    // Save visibleCount whenever it changes
+    useEffect(() => {
+        sessionStorage.setItem('market_visible_count', visibleCount.toString())
+    }, [visibleCount])
+
+    // --- INFINITE SCROLL LOGIC ---
+    const observer = useRef<IntersectionObserver | null>(null)
+    const lastItemRef = useCallback((node: HTMLDivElement | null) => {
+        if (isFiltering) return
+        if (observer.current) observer.current.disconnect()
+
+        observer.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && visibleCount < filteredItems.length) {
+                setVisibleCount(prev => prev + CARS_PER_PAGE)
+            }
+        }, { threshold: 0.5 })
+
+        if (node) observer.current.observe(node)
+    }, [isFiltering, visibleCount, filteredItems.length])
+
+    // --- PULL TO REFRESH HANDLERS ---
+    const handleTouchStart = (e: React.TouchEvent) => {
+        if (window.scrollY === 0 && !isRefreshing) {
+            setStartY(e.touches[0].pageY)
+        }
+    }
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (startY === 0 || isRefreshing || window.scrollY > 0) return
+
+        const currentY = e.touches[0].pageY
+        const diff = currentY - startY
+
+        if (diff > 0) {
+            // Apply resistance
+            const progress = Math.min(diff / 2.5, pullThreshold + 20)
+            setPullProgress(progress)
+
+            // Prevent scroll when pulling
+            if (diff > 10 && e.cancelable) {
+                // e.preventDefault() // Can't easily prevent default on passive listeners in React, but we check scrollY
+            }
+        }
+    }
+
+    const handleTouchEnd = async () => {
+        if (pullProgress > pullThreshold) {
+            await triggerRefresh()
+        }
+        setPullProgress(0)
+        setStartY(0)
+    }
+
+    const triggerRefresh = async () => {
+        setIsRefreshing(true)
+
+        // 1. Force immediate local shuffle for "perceived" randomness
+        sessionStorage.removeItem('market_items_order')
+        const freshOrder = boostShuffleArray(initialItems)
+        setItems(freshOrder)
+        sessionStorage.setItem('market_items_order', JSON.stringify(freshOrder.map(it => it.id)))
+
+        // 2. Refresh from server (Next.js server actions / router.refresh)
+        router.refresh()
+
+        // 3. Fake delay for visual feedback
+        await new Promise(resolve => setTimeout(resolve, 800))
+        setIsRefreshing(false)
+
+        // 4. Ensure we show results from top
+        setVisibleCount(CARS_PER_PAGE)
+        // 🔔 Reset notification
+        setNewVehiclesCount(0)
+    }
 
     // --- LÓGICA DE FILTRADO Y DISTANCIA ---
     useEffect(() => {
@@ -163,6 +340,14 @@ export default function MarketClient({
                         if (userLat && userLng && item.latitude && item.longitude) {
                             d = calculateDistance(userLat, userLng, item.latitude, item.longitude)
                         }
+
+                        // 👑 ADMIN GLOBAL VISIBILITY:
+                        // If it's an admin vehicle (isBoosted) AND in the same country,
+                        // force distance to 0 so it appears as "Local" (0-12km tier) anywhere in the country.
+                        if (item.isBoosted && normalizeCountryCode(item.country) === userCountry) {
+                            d = 0
+                        }
+
                         return { ...item, distance: d }
                     })
                     // 🌍 FRONTERA DIGITAL: Filtrar estrictamente por país normalizado
@@ -203,12 +388,44 @@ export default function MarketClient({
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ query: searchText, context: 'MARKET' })
             })
-            const data = await res.json()
-            const filters = data.filters || {}
+            const filters = await res.json()
             const params = new URLSearchParams()
             params.set('search', searchText)
+
+            // 🧠 AI INSIGHT: Si la IA nos dio una explicación, la pasamos a la URL para mostrarla
+            if (filters.aiReasoning) {
+                params.set('ai_msg', filters.aiReasoning)
+            }
+            if (filters.category) params.set('category', filters.category)
             if (filters.brand) params.set('brand', filters.brand)
+            if (filters.model) params.set('model', filters.model)
+            if (filters.vehicleType) params.set('vehicleType', filters.vehicleType)
+            if (filters.minPrice) params.set('minPrice', filters.minPrice.toString())
             if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString())
+            if (filters.minYear) params.set('minYear', filters.minYear.toString())
+            if (filters.color) params.set('color', filters.color)
+            if (filters.transmission) params.set('transmission', filters.transmission)
+            if (filters.fuel) params.set('fuel', filters.fuel)
+            if (filters.passengers) params.set('passengers', filters.passengers.toString())
+            if (filters.cylinders) params.set('cylinders', filters.cylinders.toString())
+            if (filters.hp) params.set('hp', filters.hp.toString())
+            if (filters.cargoCapacity) params.set('maxCargoCapacity', filters.cargoCapacity.toString())
+            if (filters.operatingHours) params.set('hours', filters.operatingHours.toString())
+            if (filters.sort) params.set('sort', filters.sort)
+            if (filters.features && Array.isArray(filters.features)) {
+                params.set('features', filters.features.join(','))
+            }
+
+            // 🧠 SMART CLEANUP: Si la IA encontró filtros útiles (Marca, Modelo, Color, Cilindros...), 
+            // eliminamos el texto de búsqueda para evitar que el filtro de texto estricto oculte resultados.
+            const hasKeyFilters = filters.brand || filters.model || filters.category || filters.vehicleType || filters.color || filters.cylinders || filters.hp || filters.cargoCapacity;
+            if (hasKeyFilters) {
+                params.delete('search')
+            } else {
+                // Si no encontró nada estructurado, mantenemos la búsqueda de texto como fallback
+                params.set('search', searchText)
+            }
+
             router.push(`/market?${params.toString()}`)
         } catch (error) {
             router.push(`/market?search=${encodeURIComponent(searchText)}`)
@@ -272,11 +489,52 @@ export default function MarketClient({
     }
 
     return (
-        <div className="min-h-screen bg-background">
-            <Header />
-            <div className="container mx-auto px-4 pt-8 pb-24">
+        <div
+            className="min-h-screen bg-background"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+        >
+            {/* Pull to Refresh Indicator */}
+            <div
+                className="fixed top-0 left-0 w-full z-[60] flex justify-center pointer-events-none transition-transform duration-200"
+                style={{
+                    transform: `translateY(${pullProgress > 0 ? pullProgress : (isRefreshing ? 60 : -40)}px)`,
+                    opacity: pullProgress > 0 || isRefreshing ? 1 : 0
+                }}
+            >
+                <div className="bg-surface border border-surface-highlight rounded-full p-2 shadow-xl flex items-center justify-center">
+                    <RefreshCw
+                        className={`w-6 h-6 text-primary-500 ${isRefreshing ? 'animate-spin' : ''}`}
+                        style={{ transform: !isRefreshing ? `rotate(${pullProgress * 3}deg)` : 'none' }}
+                    />
+                </div>
+            </div>
+
+            {/* 🔔 New Vehicles Notification */}
+            {newVehiclesCount > 0 && (
+                <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-bounce-in">
+                    <button
+                        onClick={triggerRefresh}
+                        className="bg-primary-600 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-3 hover:bg-primary-700 transition transform hover:scale-105"
+                    >
+                        <span className="relative flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                        </span>
+                        <span className="font-bold">
+                            {newVehiclesCount === 1
+                                ? '🚗 ¡Hay 1 vehículo nuevo en tu zona!'
+                                : `🚗 ¡Hay ${newVehiclesCount} vehículos nuevos en tu zona!`}
+                        </span>
+                        <RefreshCw className="w-4 h-4 ml-1" />
+                    </button>
+                </div>
+            )}
+
+            <div className="container mx-auto px-4 pt-4 pb-24">
                 {/* Header */}
-                <header className="mb-8">
+                <header className="mb-3">
                     {/* Controles en una sola línea */}
                     <div className="flex flex-row gap-2 md:gap-4 items-center">
                         {/* Botón para mostrar filtros - Solo si están ocultos */}
@@ -337,6 +595,42 @@ export default function MarketClient({
                     {/* El indicador de radio se movió dentro de los estados específicos */}
                 </header>
 
+                {/* 🧠 AI INSIGHT BANNER */}
+                {(searchParams.ai_msg || aiReasoning) && (
+                    <div className="mb-6 animate-fade-in-down">
+                        <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-xl p-4 flex items-start gap-3 relative overflow-hidden group">
+                            {/* Decorative glow */}
+                            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-purple-500" />
+
+                            <div className="mt-0.5 p-2 bg-indigo-500/10 rounded-lg text-indigo-400 group-hover:scale-110 transition-transform">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>
+
+                            <div className="flex-1">
+                                <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-widest text-[10px] mb-0.5 flex items-center gap-2">
+                                    CarMatch AI
+                                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                                </h3>
+                                <p className="text-indigo-100 text-base font-medium leading-tight">
+                                    {searchParams.ai_msg || aiReasoning}
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    setAiReasoning('')
+                                    router.push('/market')
+                                }}
+                                className="text-indigo-400/50 hover:text-indigo-300 transition p-1"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Área de Filtros (Full Width) */}
                 {
                     showFilters && (
@@ -354,7 +648,7 @@ export default function MarketClient({
 
                 {/* Grid de Vehículos */}
                 <div>
-                    {(isFiltering || (locationLoading && !activeLocation)) ? (
+                    {(isFiltering && items.length === 0) ? (
                         <div className="flex items-center justify-center py-20">
                             <div className="text-center">
                                 <div className="w-12 h-12 border-4 border-primary-700 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -370,12 +664,19 @@ export default function MarketClient({
                                         return (
                                             <div key={item.id} className={`bg-surface border rounded-2xl overflow-hidden hover:shadow-xl transition group relative ${isBusiness ? 'border-primary-700/30' : 'border-surface-highlight'}`}>
                                                 {/* Imagen y Badge */}
-                                                <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} className="block relative aspect-[4/3] bg-gray-800 group-hover:opacity-95 transition-opacity">
+                                                <Link
+                                                    href={isBusiness
+                                                        ? `/map-store?id=${item.id}`
+                                                        : `/comprar/${generateVehicleSlug(item.brand || item.title, item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                    }
+                                                    className="block relative aspect-[4/3] bg-gray-800 group-hover:opacity-95 transition-opacity"
+                                                >
                                                     {item.images && item.images[0] ? (
                                                         <img
                                                             src={item.images[0]}
-                                                            alt={item.title}
-                                                            className="w-full h-full object-cover"
+                                                            alt={isBusiness ? `Negocio: ${item.title}` : `Venta de ${item.brand || item.title} ${item.model || ''} ${item.year || ''} en ${item.city} - CarMatch`}
+                                                            loading="lazy"
+                                                            className="w-full h-full object-contain bg-black/40"
                                                         />
                                                     ) : (
                                                         <div className="absolute inset-0 flex items-center justify-center text-text-secondary opacity-20">
@@ -400,9 +701,15 @@ export default function MarketClient({
                                                 </Link>
 
                                                 <div className="p-2 md:p-4">
-                                                    <Link href={isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`} className="block mb-0.5 group-hover:text-primary-400 transition">
+                                                    <Link
+                                                        href={isBusiness
+                                                            ? `/map-store?id=${item.id}`
+                                                            : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                        }
+                                                        className="block mb-0.5 group-hover:text-primary-400 transition"
+                                                    >
                                                         <h3 className="font-bold text-xs md:text-lg text-text-primary line-clamp-1">
-                                                            {item.brand ? `${item.brand} ${item.model} ${item.year}` : item.title}
+                                                            {item.brand ? `${item.brand} ${item.model}` : item.title}
                                                         </h3>
                                                     </Link>
 
@@ -420,24 +727,45 @@ export default function MarketClient({
 
                                                     <div className="flex flex-wrap gap-1 mb-1.5 mt-1">
                                                         {!isBusiness && item.transmission && (
-                                                            <div className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded">
+                                                            <Link
+                                                                href={isBusiness
+                                                                    ? `/map-store?id=${item.id}`
+                                                                    : `/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                                }
+                                                                className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded hover:bg-surface-highlight/80 transition"
+                                                            >
                                                                 {item.transmission}
-                                                            </div>
+                                                            </Link>
                                                         )}
-                                                        <div className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded">
-                                                            {item.city}
-                                                        </div>
+                                                        <Link
+                                                            href={isBusiness
+                                                                ? `/map-store?id=${item.id}`
+                                                                : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                            }
+                                                            className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded hover:bg-surface-highlight/80 transition"
+                                                        >
+                                                            {/* 📍 ADMIN DYNAMIC LOCATION: Override city if it's an admin post */}
+                                                            {item.isBoosted && activeLocation?.city ? activeLocation.city : item.city}
+                                                        </Link>
                                                     </div>
 
                                                     <div className="flex items-center justify-between mt-auto">
                                                         <div className="flex flex-col">
                                                             {!isBusiness ? (
                                                                 <>
-                                                                    <p className="font-bold text-sm md:text-xl text-primary-400" suppressHydrationWarning>
-                                                                        {formatPrice(item.price || 0, item.currency || 'MXN', locale)}
-                                                                    </p>
+                                                                    <Link
+                                                                        href={`/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`}
+                                                                        className="block group/price"
+                                                                    >
+                                                                        <p className="font-bold text-sm md:text-xl text-primary-400 group-hover/price:text-primary-300 transition" suppressHydrationWarning>
+                                                                            {formatPrice(item.price || 0, item.currency || 'MXN', locale)}
+                                                                        </p>
+                                                                    </Link>
                                                                     <div className="flex items-center gap-2 mt-0.5">
-                                                                        <Link href={`/vehicle/${item.id}`} className="text-[10px] font-bold text-primary-400 uppercase group-hover:text-primary-300">
+                                                                        <Link
+                                                                            href={`/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`}
+                                                                            className="text-[10px] font-bold text-primary-400 uppercase group-hover:text-primary-300"
+                                                                        >
                                                                             {t('common.view_more') || 'Ver más'}
                                                                         </Link>
                                                                         <ReportImageButton
@@ -465,11 +793,14 @@ export default function MarketClient({
                                                         </div>
 
                                                         <div className="flex items-center gap-2">
-                                                            <div className="hidden md:block">
+                                                            <div>
                                                                 <ShareButton
-                                                                    title={item.title}
-                                                                    text={t('market.interest_text').replace('{title}', item.title)}
-                                                                    url={typeof window !== 'undefined' ? `${window.location.origin}${isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`}` : (isBusiness ? `/map-store?id=${item.id}` : `/vehicle/${item.id}`)}
+                                                                    title={item.brand ? `${item.brand} ${item.model}` : item.title}
+                                                                    text={t('market.interest_text').replace('{title}', item.brand ? `${item.brand} ${item.model}` : item.title)}
+                                                                    url={isBusiness
+                                                                        ? `/negocio/${generateBusinessSlug(item.title, item.city)}-${item.id}`
+                                                                        : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}`
+                                                                    }
                                                                     variant="minimal"
                                                                 />
                                                             </div>
@@ -491,27 +822,23 @@ export default function MarketClient({
                                         )
                                     })}
 
-                                    {/* Action Card (Load More or Expand) */}
-                                    {(visibleCount < filteredItems.length) ? (
-                                        // Card: Ver más
-                                        <button
-                                            onClick={() => setVisibleCount(prev => prev + CARS_PER_PAGE)}
-                                            className="bg-surface border border-surface-highlight hover:border-primary-500 rounded-2xl flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-surface-highlight/50 transition group min-h-[250px]"
+                                    {/* Action Card (Infinite Scroll Sentinel or Expand) */}
+                                    {visibleCount < filteredItems.length ? (
+                                        <div
+                                            ref={lastItemRef}
+                                            className="col-span-2 md:col-span-3 py-10 flex flex-col items-center justify-center space-y-4"
                                         >
-                                            <div className="w-16 h-16 bg-surface-highlight rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                                <svg className="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </div>
-                                            <span className="font-bold text-lg text-text-primary">{t('market.view_more')}</span>
-                                            <span className="text-sm text-text-secondary mt-1">{t('market.load_next')} {CARS_PER_PAGE}</span>
-                                        </button>
+                                            <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+                                            <p className="text-text-secondary text-sm font-medium animate-pulse">
+                                                {t('market.loading_more') || 'Cargando más vehículos...'}
+                                            </p>
+                                        </div>
                                     ) : (
-                                        // Card: Expandir
-                                        (
-                                            <button
+                                        <div className="contents">
+                                            {/* Card 1: Expandir Búsqueda */}
+                                            <div
+                                                className="bg-primary-900/20 border-2 border-primary-700/50 hover:border-primary-500 rounded-2xl flex flex-col items-center justify-center p-6 text-center transition group min-h-[250px] relative cursor-pointer"
                                                 onClick={handleExpandSearch}
-                                                className="bg-primary-900/20 border-2 border-primary-700/50 hover:border-primary-500 rounded-2xl flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-primary-900/40 transition group min-h-[250px]"
                                             >
                                                 <div className="w-16 h-16 bg-primary-700 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-primary-900/50">
                                                     <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -529,8 +856,27 @@ export default function MarketClient({
                                                 <span className="text-sm text-primary-200 mt-2">
                                                     {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search_desc') : t('market.expand_search_desc')}
                                                 </span>
-                                            </button>
-                                        )
+                                            </div>
+
+                                            {/* Card 2: Promo Vende Tu Auto */}
+                                            <div className="bg-gradient-to-br from-primary-900/20 to-indigo-900/20 border-2 border-primary-500/30 hover:border-primary-500/50 rounded-2xl flex flex-col items-center justify-center p-6 text-center transition group min-h-[250px] relative">
+                                                <div className="flex flex-col items-center w-full">
+                                                    <p className="text-sm text-primary-200 font-bold uppercase tracking-wider mb-2">Mientras buscas</p>
+                                                    <h3 className="text-xl font-black text-white leading-tight mb-6">
+                                                        ¡GENERA DINERO<br />CON EL TUYO!
+                                                    </h3>
+
+                                                    <Link
+                                                        href="/publish"
+                                                        className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary-900 rounded-xl hover:bg-white/90 transition font-black uppercase tracking-wide shadow-lg text-sm group-hover:scale-105 transform duration-200"
+                                                    >
+                                                        <Plus size={18} strokeWidth={3} />
+                                                        Convierte tu auto en dinero
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     )}
                                 </div>
                             ) : (
@@ -581,8 +927,18 @@ export default function MarketClient({
                                             </svg>
                                             {t('market.change_location')}
                                         </button>
+
+                                        {/* Botón de publicar vehículo en estado vacío */}
+                                        <Link
+                                            href="/publish"
+                                            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary-900 rounded-xl hover:bg-white/90 transition font-bold shadow-lg justify-center whitespace-nowrap"
+                                        >
+                                            <Plus size={20} />
+                                            {t('market.publish_cta')}
+                                        </Link>
                                     </div>
                                 </div>
+
                             )}
                         </>
                     )}

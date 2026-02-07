@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Vehicle" ALTER COLUMN "displacement" SET DATA TYPE DOUBLE PRECISION;
