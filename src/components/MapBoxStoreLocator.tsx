@@ -203,7 +203,7 @@ export default function MapBoxStoreLocator({
                 // 💰 CLUSTERING: Agrupar negocios cercanos (ahorro 40% en rendering)
                 cluster: true, // Siempre activar clustering
                 clusterMaxZoom: 14, // Deshace clusters al hacer zoom
-                clusterRadius: 50, // Radio de agrupación en píxeles (mínimo ~50 puntos en vista)
+                clusterRadius: 70, // Radio de agrupación en píxeles (mínimo ~70 puntos en vista)
             })
 
             // 1. CLUSTER CIRCLES (Fondo de los círculos agrupados)
