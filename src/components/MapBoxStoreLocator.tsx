@@ -213,7 +213,7 @@ export default function MapBoxStoreLocator({
                 source: sourceId,
                 filter: ['has', 'point_count'],
                 paint: {
-                    'circle-color': '#FF6B35',
+                    'circle-color': '#1a1a2e',
                     'circle-radius': 20,
                     'circle-stroke-width': 2,
                     'circle-stroke-color': '#fff'
