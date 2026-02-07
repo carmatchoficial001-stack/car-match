@@ -157,13 +157,8 @@ export default function RootLayout({
                             {
                                 "@context": "https://schema.org",
                                 "@type": "Organization",
-<<<<<<< HEAD
                                 "name": "CarMatch Social",
                                 "alternateName": "CarMatch",
-=======
-                                "name": "CarMatch",
-                                "alternateName": "CarMatch Official",
->>>>>>> a40411cb2a7366dd0eaf4ed8df2ce6bd99141a0f
                                 "url": "https://carmatchapp.net",
                                 "logo": "https://carmatchapp.net/icon-512-v20.png?v=22", // ✨ Logo v20 maximizado
                                 "sameAs": [
