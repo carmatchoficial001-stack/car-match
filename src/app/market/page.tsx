@@ -100,11 +100,8 @@ export default async function MarketPage({
 
     // Si NO es admin, ocultar propios. Si ES admin, mostrarlos. Invitados ven todo.
     // 🔥 NEW: Si está en Modo Invitado (soft_logout), sí mostramos sus vehículos para que pueda ver cómo quedaron.
-    if (!isAdmin && currentUser && !isSoftLogout) {
-        where.userId = {
-            not: currentUser.id
-        }
-    }
+    // 🔥 REGLA: Los usuarios ahora sí pueden ver sus propios vehículos en el feed
+    // para feedback inmediato (BD Viva). Solo ocultamos si el usuario lo pide explícitamente.
 
 
 

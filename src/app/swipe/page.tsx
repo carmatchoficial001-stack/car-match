@@ -59,11 +59,8 @@ export default async function SwipePage() {
 
     // Si NO es admin y hay usuario, ocultar propios. Invitados ven todo.
     // 🔥 NEW: En Modo Invitado (soft_logout) sí permitimos ver sus propios vehículos
-    if (!isAdmin && currentUser && !isSoftLogout) {
-        vehiclesWhere.userId = {
-            not: currentUser.id
-        }
-    }
+    // 🔥 REGLA: El usuario puede ver sus propios vehículos en el deslizamiento
+    // para asegurar que su publicación está "Viva" en el sistema.
 
 
     const vehicles = await prisma.vehicle.findMany({
