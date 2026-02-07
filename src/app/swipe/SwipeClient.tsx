@@ -279,18 +279,26 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     const isExpandingRef = useRef(false)
 
     const expandSearch = useCallback(() => {
-        // 🚫 Prevenir múltiples llamadas simultáneas
-        if (isExpandingRef.current) return
+        console.log('[expandSearch] Llamada recibida, isExpandingRef.current:', isExpandingRef.current)
 
+        if (isExpandingRef.current) {
+            console.log('[expandSearch] BLOQUEADO - ya está expandiendo')
+            return
+        }
+
+        console.log('[expandSearch] EJECUTANDO expansión...')
         isExpandingRef.current = true
 
         setSeenIds(new Set())
-        setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length)
+        setTierIndex(prev => {
+            const next = (prev + 1) % RADIUS_TIERS.length
+            console.log('[expandSearch] Cambiando tier de', prev, 'a', next)
+            return next
+        })
         setIsInternalLoading(true)
 
-
-        
         setTimeout(() => {
+            console.log('[expandSearch] Reseteando flags después de 500ms')
             setIsInternalLoading(false)
             isExpandingRef.current = false
         }, 500)

@@ -1,9 +1,5 @@
 {
-<<<<<<< HEAD
     "name": "CarMatch Social",
-=======
-    "name": "CarMatch",
->>>>>>> a40411cb2a7366dd0eaf4ed8df2ce6bd99141a0f
     "short_name": "CarMatch",
     "description": "Red social para comprar, vender y descubrir vehículos y negocios automotrices en tiempo real",
     "start_url": "/",
