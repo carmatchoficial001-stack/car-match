@@ -15,7 +15,7 @@ export default async function ProfilePage() {
             where: { email: session.user.email },
             include: {
                 vehicles: {
-                    orderBy: { createdAt: "desc" },
+                    orderBy: { createdAt: "asc" }, // 🛡️ Orden secuencial como se agregaron
                 },
                 _count: {
                     select: {
@@ -47,14 +47,9 @@ export default async function ProfilePage() {
             ? user.vehicles
             : user.vehicles.filter(v => v.status === "ACTIVE")
 
-        // Si es el dueño, ordenar por estado: ACTIVE → INACTIVE → SOLD
-        if (isOwner) {
-            vehiclesToShow = [...vehiclesToShow].sort((a, b) => {
-                const statusOrder = { ACTIVE: 0, INACTIVE: 1, SOLD: 2 }
-                const statusA = a.status as keyof typeof statusOrder
-                const statusB = b.status as keyof typeof statusOrder
-                return (statusOrder[statusA] ?? 99) - (statusOrder[statusB] ?? 99)
-            })
+        // 🛡️ Si es visitante, barajar aleatoriamente
+        if (!isOwner) {
+            vehiclesToShow = [...vehiclesToShow].sort(() => Math.random() - 0.5)
         }
 
         return (
