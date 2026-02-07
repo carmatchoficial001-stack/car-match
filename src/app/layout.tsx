@@ -15,13 +15,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
     metadataBase: new URL("https://carmatchapp.net"),
-<<<<<<< HEAD
     title: "CarMatch Social | Vende Tu Carro y Genera Dinero Extra | La App #1 de México",
     description: "💰 Publica GRATIS y vende tu carro al mejor precio en CarMatch Social | 🚗 Genera dinero extra sin intermediarios | 💸 Tú decides el precio, tú te quedas con TODO | 🔍 Miles de compradores buscando tu auto. La forma más rentable de vender en México.",
-=======
-    title: "CarMatch | Vende Tu Carro y Genera Dinero Extra | La App #1 de México",
-    description: "💰 Publica GRATIS y vende tu carro al mejor precio | 🚗 Genera dinero extra sin intermediarios | 💸 Tú decides el precio, tú te quedas con TODO | 🔍 Miles de compradores buscando tu auto. La forma más rentable de vender en México.",
->>>>>>> a40411cb2a7366dd0eaf4ed8df2ce6bd99141a0f
     alternates: {
         canonical: "https://carmatchapp.net",
         languages: {
@@ -44,14 +39,9 @@ export const metadata: Metadata = {
         google: "u4BWC_7mrWziSal62PD0Jv6grcjI6Pl2zHOnc0Jcdxg",
     },
     keywords: [
-<<<<<<< HEAD
         // Core Brand - Dual Strategy: CarMatch (generic) + CarMatch Social (official)
         "CarMatch", "CarMatch Social", "CarMatch App", "CarMatch México", "CarMatch Official", "CarMatch Oficial",
         "red social de autos", "red social automotriz", "social network cars",
-=======
-        // Core Brand
-        "CarMatch", "CarMatch App", "CarMatch México", "CarMatch Official", "CarMatch Oficial",
->>>>>>> a40411cb2a7366dd0eaf4ed8df2ce6bd99141a0f
 
         // Compra-Venta General
         "compra venta autos", "marketplace autos mexico", "vender carro gratis", "comprar autos usados",
@@ -100,15 +90,9 @@ export const metadata: Metadata = {
         type: "website",
         locale: "es_MX",
         url: "https://carmatchapp.net",
-<<<<<<< HEAD
         siteName: "CarMatch Social",
         title: "CarMatch Social | La Revolución Automotriz",
         description: "Desliza, encuentra y conecta. La forma más inteligente y segura de comprar autos usados, vender tu carro gratis y encontrar talleres mecánicos 24/7 cerca de ti. CarMatch Social es la red social automotriz #1 en México.",
-=======
-        siteName: "CarMatch",
-        title: "CarMatch | La Revolución Automotriz",
-        description: "Desliza, encuentra y conecta. La forma más inteligente y segura de comprar autos usados, vender tu carro gratis y encontrar talleres mecánicos 24/7 cerca de ti. CarMatch es la red social automotriz #1 en México.",
->>>>>>> a40411cb2a7366dd0eaf4ed8df2ce6bd99141a0f
         images: [
             {
                 url: "/icon-512-v20.png?v=22", // ✨ Logo v20 maximizado
@@ -186,11 +170,7 @@ export default function RootLayout({
                                     "https://www.facebook.com/share/1AVsMtGGrG/",
                                     "https://www.instagram.com/car.matchoficial?igsh=MWR2cjN5bGVmZzdoeQ=="
                                 ],
-<<<<<<< HEAD
                                 "description": "CarMatch Social es la plataforma líder en México para la compra y venta de piezas y vehículos, conectando usuarios con servicios automotrices 24/7."
-=======
-                                "description": "CarMatch es la plataforma líder en México para la compra y venta de piezas y vehículos, conectando usuarios con servicios automotrices 24/7."
->>>>>>> a40411cb2a7366dd0eaf4ed8df2ce6bd99141a0f
                             },
                             {
                                 "@context": "https://schema.org",
@@ -223,11 +203,7 @@ export default function RootLayout({
                                 "url": "https://carmatchapp.net",
                                 "applicationCategory": "ShoppingApplication, SocialNetworkingApplication",
                                 "operatingSystem": "iOS, Android, Windows, macOS",
-<<<<<<< HEAD
                                 "description": "La aplicación líder para comprar, vender y descubrir vehículos. CarMatch Social incluye Buscadores Expertos para vehículos y detección de fallas mecánicas.",
-=======
-                                "description": "La aplicación líder para comprar, vender y descubrir vehículos. Incluye Buscadores Expertos para vehículos y detección de fallas mecánicas.",
->>>>>>> a40411cb2a7366dd0eaf4ed8df2ce6bd99141a0f
                                 "softwareVersion": "1.0.0",
                                 "screenshot": "https://carmatchapp.net/icon-512-v20.png?v=22",
                                 "offers": {
