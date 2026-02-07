@@ -182,8 +182,16 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         sessionStorage.setItem('carmatch_swipe_seen', JSON.stringify(Array.from(seenIds)))
     }, [seenIds])
 
+    // 🔧 REF para prevenir loops: cuando expandSearch resetea seenIds, no queremos re-procesar items
+    const isExpandingRef = useRef(false)
+
     useEffect(() => {
         if (locationLoading || !location || items.length === 0) return
+        // 🚫 NO procesamos si estamos en medio de una expansión de radio
+        if (isExpandingRef.current) {
+            isExpandingRef.current = false
+            return
+        }
 
         const userCountry = normalizeCountryCode(location?.country)
 
@@ -263,7 +271,17 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         )
     }, [stablePool, seenIds, currentRadius, items])
 
+    // 🎯 MEMOIZAR items para SwipeFeed para evitar re-creación del array en cada render
+    const swipeFeedItems = useMemo(() => {
+        return nearbyItems.map(item => ({
+            ...item,
+            // 🚀 ADMIN NACIONAL: Mostrar ciudad del usuario en publicaciones de admin
+            city: item.isBoosted && location?.city ? location.city : item.city
+        }))
+    }, [nearbyItems, location?.city])
+
     const expandSearch = useCallback(() => {
+        isExpandingRef.current = true // 🔧 Marcar que estamos expandiendo para prevenir loops
         setIsInternalLoading(true)
         setSeenIds(new Set());
         setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length);
@@ -454,11 +472,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                     <div className="w-full flex-1 flex flex-col">
                         <SwipeFeed
                             key={`stack-tier-${tierIndex}`}
-                            items={nearbyItems.map(item => ({
-                                ...item,
-                                // 🚀 ADMIN NACIONAL: Mostrar ciudad del usuario en publicaciones de admin
-                                city: item.isBoosted && location?.city ? location.city : item.city
-                            }))}
+                            items={swipeFeedItems}
                             onLike={handleLike}
                             onDislike={handleDislike}
                             onNeedMore={expandSearch}
