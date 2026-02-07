@@ -265,6 +265,9 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
     // 🎯 MEMOIZAR items para SwipeFeed para evitar re-creación del array en cada render
     const swipeFeedItems = useMemo(() => {
+        // 🔒 Si no hay items, devolver array vacío estático
+        if (nearbyItems.length === 0) return []
+
         return nearbyItems.map(item => ({
             ...item,
             // 🚀 ADMIN NACIONAL: Mostrar ciudad del usuario en publicaciones de admin
@@ -277,20 +280,23 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
     const expandSearch = useCallback(() => {
         // 🚫 Prevenir múltiples llamadas simultáneas
-        if (isExpandingRef.current) return
+        if (isExpandingRef.current || isInternalLoading) return
 
         isExpandingRef.current = true
         setIsInternalLoading(true)
 
         // ✅ SIEMPRE resetear seenIds para mostrar 0-{radius}km
-        setSeenIds(new Set())
-        setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length)
-
+        // Usar setTimeout(0) para agrupar las actualizaciones de estado en un solo batch
         setTimeout(() => {
-            setIsInternalLoading(false)
-            isExpandingRef.current = false
-        }, 500) // Aumentado a 500ms para evitar clics rápidos
-    }, []) // ✅ Array vacío: RADIUS_TIERS ahora es constante estática
+            setSeenIds(new Set())
+            setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length)
+
+            setTimeout(() => {
+                setIsInternalLoading(false)
+                isExpandingRef.current = false
+            }, 300) // Reducido a 300ms para respuesta más rápida
+        }, 0)
+    }, [isInternalLoading]) // Incluir isInternalLoading para prevenir clics durante loading
 
     const markAsSeen = (id: string) => {
         setSeenIds(prev => {
