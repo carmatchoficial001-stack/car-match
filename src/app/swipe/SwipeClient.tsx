@@ -45,6 +45,9 @@ interface SwipeClientProps {
     currentUserId: string
 }
 
+// 🔧 CONSTANTE FUERA DEL COMPONENTE: Evita recreación en cada render
+const RADIUS_TIERS = [25, 100, 250, 500, 1000, 2500, 5000]
+
 function boostShuffleArray(array: FeedItem[]): FeedItem[] {
     const boosted = array.filter(item => item.isBoosted)
     const regular = array.filter(item => !item.isBoosted)
@@ -88,9 +91,6 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     const { openModal } = useRestoreSessionModal()
 
     const items = initialItems
-
-    // ANILLOS PROGRESIVOS
-    const RADIUS_TIERS = [12, 100, 250, 500, 1000, 2500, 5000]
 
     const [tierIndex, setTierIndex] = useState(0)
     const [seenIds, setSeenIds] = useState<Set<string>>(new Set())
@@ -268,7 +268,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         setSeenIds(new Set());
         setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length);
         setTimeout(() => setIsInternalLoading(false), 400)
-    }, [RADIUS_TIERS.length])
+    }, []) // ✅ Array vacío: RADIUS_TIERS ahora es constante estática
 
     const markAsSeen = (id: string) => {
         setSeenIds(prev => {

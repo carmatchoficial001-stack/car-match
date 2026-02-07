@@ -138,6 +138,7 @@ export default function MarketClient({
     const activeLocation = manualLocation || location
     const displayCity = activeLocation?.city || activeLocation?.state || (locationLoading ? t('common.loading') : t('market.radius_unknown'))
     const userCountry = normalizeCountryCode(activeLocation?.countryCode || activeLocation?.country)
+    const containerRef = useRef<HTMLElement | null>(null)
 
     // Pagination
     const CARS_PER_PAGE = 4 // 💰 Optimizado para datos móviles (antes: 6)
@@ -264,15 +265,22 @@ export default function MarketClient({
         if (node) observer.current.observe(node)
     }, [isFiltering, visibleCount, filteredItems.length])
 
+    // Find the main container on mount
+    useEffect(() => {
+        containerRef.current = document.querySelector('main')
+    }, [])
+
     // --- PULL TO REFRESH HANDLERS ---
     const handleTouchStart = (e: React.TouchEvent) => {
-        if (window.scrollY === 0 && !isRefreshing) {
+        const scrollTop = containerRef.current?.scrollTop ?? window.scrollY
+        if (scrollTop === 0 && !isRefreshing) {
             setStartY(e.touches[0].pageY)
         }
     }
 
     const handleTouchMove = (e: React.TouchEvent) => {
-        if (startY === 0 || isRefreshing || window.scrollY > 0) return
+        const scrollTop = containerRef.current?.scrollTop ?? window.scrollY
+        if (startY === 0 || isRefreshing || scrollTop > 0) return
 
         const currentY = e.touches[0].pageY
         const diff = currentY - startY
