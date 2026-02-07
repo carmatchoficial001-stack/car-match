@@ -280,7 +280,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
     const expandSearch = useCallback(() => {
         // 🚫 Prevenir múltiples llamadas simultáneas
-        if (isExpandingRef.current || isInternalLoading) return
+        if (isExpandingRef.current) return
 
         isExpandingRef.current = true
         setIsInternalLoading(true)
@@ -296,7 +296,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
                 isExpandingRef.current = false
             }, 300) // Reducido a 300ms para respuesta más rápida
         }, 0)
-    }, [isInternalLoading]) // Incluir isInternalLoading para prevenir clics durante loading
+    }, []) // ✅ Array vacío - isExpandingRef previene llamadas múltiples
 
     const markAsSeen = (id: string) => {
         setSeenIds(prev => {
