@@ -277,6 +277,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
     // 🔒 REF para prevenir múltiples llamadas simultáneas
     const isExpandingRef = useRef(false)
+    const expandTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     const expandSearch = useCallback(() => {
         console.log('[expandSearch] Llamada recibida, isExpandingRef.current:', isExpandingRef.current)
@@ -289,20 +290,37 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         console.log('[expandSearch] EJECUTANDO expansión...')
         isExpandingRef.current = true
 
-        setSeenIds(new Set())
+        // Limpiar timeout anterior si existe
+        if (expandTimeoutRef.current) {
+            clearTimeout(expandTimeoutRef.current)
+        }
+
+        // 🔥 BATCH UPDATE: Actualizar todo el estado de una vez usando función de actualización
         setTierIndex(prev => {
-            const next = (prev + 1) % RADIUS_TIERS.length
-            console.log('[expandSearch] Cambiando tier de', prev, 'a', next)
-            return next
+            const nextTier = (prev + 1) % RADIUS_TIERS.length
+            console.log('[expandSearch] Cambiando tier de', prev, 'a', nextTier)
+            return nextTier
         })
+        setSeenIds(new Set())
         setIsInternalLoading(true)
 
-        setTimeout(() => {
-            console.log('[expandSearch] Reseteando flags después de 500ms')
+        expandTimeoutRef.current = setTimeout(() => {
+            console.log('[expandSearch] Reseteando flags después de 600ms')
             setIsInternalLoading(false)
             isExpandingRef.current = false
-        }, 500)
-    }, []) // ✅ Array vacío - isExpandingRef previene llamadas múltiples
+            expandTimeoutRef.current = null
+        }, 600)
+    }, []) // ✅ Sin dependencias - función estable que no causa re-renders
+
+    // 🧹 Cleanup del timeout cuando el componente se desmonta
+    useEffect(() => {
+        return () => {
+            if (expandTimeoutRef.current) {
+                clearTimeout(expandTimeoutRef.current)
+                expandTimeoutRef.current = null
+            }
+        }
+    }, [])
 
     const markAsSeen = (id: string) => {
         setSeenIds(prev => {
