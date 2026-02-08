@@ -4,6 +4,13 @@ import { authConfig } from "@/lib/auth.config"
 const { auth } = NextAuth(authConfig)
 
 export default auth((req) => {
+    // 🔧 FIX: Redirect www to non-www (Google Search Console redirect error)
+    if (req.nextUrl.hostname === 'www.carmatchapp.net') {
+        const newUrl = req.nextUrl.clone()
+        newUrl.hostname = 'carmatchapp.net'
+        return Response.redirect(newUrl, 308)
+    }
+
     const isLoggedIn = !!req.auth
     const { pathname } = req.nextUrl
     const isSoftLogout = req.cookies.get('soft_logout')?.value === 'true'
