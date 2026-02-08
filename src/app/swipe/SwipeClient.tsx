@@ -90,7 +90,8 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     const router = useRouter()
     const { openModal } = useRestoreSessionModal()
 
-    const items = initialItems
+    // 🎯 Memoize items to prevent reference changes causing expensive recalculations
+    const items = useMemo(() => initialItems, [initialItems.length, initialItems[0]?.id])
 
     const [tierIndex, setTierIndex] = useState(0)
     const [seenIds, setSeenIds] = useState<Set<string>>(new Set())
@@ -251,17 +252,17 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
     const currentRadius = RADIUS_TIERS[tierIndex]
 
+    // 🎯 OPTIMIZACIÓN: Memoizar validIds para evitar crear Set en cada render
+    const validIds = useMemo(() => new Set(items.map(i => i.id)), [items])
+
     // 3. FILTRADO FINAL
     const nearbyItems = useMemo(() => {
-        // Marcamos los IDs que vienen del servidor para asegurar que seguimos mostrando solo lo vigente
-        const validIds = new Set(items.map(i => i.id))
-
         return stablePool.filter(v =>
             (v.distance ?? 999999) <= currentRadius &&
             !seenIds.has(v.id) &&
             validIds.has(v.id) // Solo si sigue estando en la lista del servidor
         )
-    }, [stablePool, currentRadius, items, seenIds])
+    }, [stablePool, currentRadius, validIds, seenIds])
 
     // 🎯 MEMOIZAR items para SwipeFeed para evitar re-creación del array en cada render
     const swipeFeedItems = useMemo(() => {
@@ -295,21 +296,25 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
             clearTimeout(expandTimeoutRef.current)
         }
 
-        // 🔥 BATCH UPDATE: Actualizar todo el estado de una vez usando función de actualización
-        setTierIndex(prev => {
-            const nextTier = (prev + 1) % RADIUS_TIERS.length
-            console.log('[expandSearch] Cambiando tier de', prev, 'a', nextTier)
-            return nextTier
-        })
-        setSeenIds(new Set())
-        setIsInternalLoading(true)
+        // 🔥 CRITICAL FIX: Usar setTimeout(0) para permitir que React procese el render antes de los cambios de estado
+        // Esto previene el bloqueo del UI cuando se cambian múltiples estados
+        setTimeout(() => {
+            // 🔥 BATCH UPDATE: Actualizar todo el estado de una vez usando función de actualización
+            setTierIndex(prev => {
+                const nextTier = (prev + 1) % RADIUS_TIERS.length
+                console.log('[expandSearch] Cambiando tier de', prev, 'a', nextTier)
+                return nextTier
+            })
+            setSeenIds(new Set())
+            setIsInternalLoading(true)
 
-        expandTimeoutRef.current = setTimeout(() => {
-            console.log('[expandSearch] Reseteando flags después de 600ms')
-            setIsInternalLoading(false)
-            isExpandingRef.current = false
-            expandTimeoutRef.current = null
-        }, 600)
+            expandTimeoutRef.current = setTimeout(() => {
+                console.log('[expandSearch] Reseteando flags después de 600ms')
+                setIsInternalLoading(false)
+                isExpandingRef.current = false
+                expandTimeoutRef.current = null
+            }, 600)
+        }, 0)
     }, []) // ✅ Sin dependencias - función estable que no causa re-renders
 
     // 🧹 Cleanup del timeout cuando el componente se desmonta
