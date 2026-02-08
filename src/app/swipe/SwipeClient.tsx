@@ -112,7 +112,7 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
     const [shuffledItems, setShuffledItems] = useState<FeedItem[]>([])
     const isFirstRun = useRef(true)
 
-    // 🚀 RESTAURAR ESTADO DESDE SESSIONSTORAGE (Para persistencia al volver atrás)
+    // 🚀 RESTAURAR ESTADO DESDE SESSIONSTORAGE (Solo al montar - UNA VEZ)
     useEffect(() => {
         try {
             const savedItems = sessionStorage.getItem('carmatch_swipe_items')
@@ -135,8 +135,10 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
         } catch (e) {
             console.error("Error al restaurar sesión de swipe:", e)
         }
+    }, []) // ✅ Solo se ejecuta una vez al montar
 
-        // 🔔 REAL-TIME NOTIFICATIONS
+    // 🔔 REAL-TIME NOTIFICATIONS (Se actualiza cuando cambia location o tierIndex)
+    useEffect(() => {
         const handleNewVehicleOnSocket = (vehicle: any) => {
             // Filtrar por distancia si tenemos ubicación activa
             if (location && location.latitude && location.longitude && vehicle.latitude && vehicle.longitude) {
