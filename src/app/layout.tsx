@@ -17,8 +17,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
     metadataBase: new URL("https://carmatchapp.net"),
-    title: "CarMatch Social | Vende Tu Carro y Genera Dinero Extra | La App #1 de México",
-    description: "💰 Publica GRATIS y vende tu carro al mejor precio en CarMatch Social | 🚗 Genera dinero extra sin intermediarios | 💸 Tú decides el precio, tú te quedas con TODO | 🔍 Miles de compradores buscando tu auto. La forma más rentable de vender en México.",
+    title: "CarMatch | Vende Tu Carro GRATIS y Gana Dinero Extra | App #1 México - Red Social Automotriz",
+    description: "💰 Vende tu carro SIN comisiones en CarMatch | 🚗 Publica GRATIS y recibe ofertas al instante | 💸 Compra autos usados directo del dueño | 🔍 Miles de vehículos nuevos cada día | Red social automotriz más grande de México. ¡Únete ahora!",
     alternates: {
         canonical: "https://carmatchapp.net",
         languages: {
@@ -41,48 +41,46 @@ export const metadata: Metadata = {
         google: "u4BWC_7mrWziSal62PD0Jv6grcjI6Pl2zHOnc0Jcdxg",
     },
     keywords: [
-        // Core Brand - Dual Strategy: CarMatch (generic) + CarMatch Social (official)
-        "CarMatch", "CarMatch Social", "CarMatch App", "CarMatch México", "CarMatch Official", "CarMatch Oficial",
-        "red social de autos", "red social automotriz", "social network cars",
+        // HIGH-INTENT COMMERCIAL (Priority #1 for SEO)
+        "vender carro gratis", "compra venta autos", "comprar autos usados", "marketplace autos mexico",
+        "autos seminuevos", "carros usados baratos", "venta de autos", "compra de carros",
 
-        // Compra-Venta General
-        "compra venta autos", "marketplace autos mexico", "vender carro gratis", "comprar autos usados",
-        "compra de carros", "venta de autos", "autos seminuevos", "carros usados baratos",
+        // LONG-TAIL HIGH-CONVERSION
+        "donde vender mi carro rapido", "comprar auto usado seguro", "vender carro sin intermediarios",
+        "marketplace autos confiable", "comprar carro particular", "autos usados certificados",
 
-        // Long-tail Específicos
-        "donde vender mi carro rapido", "comprar auto usado seguro", "marketplace autos confiable",
-        "vender carro sin intermediarios", "comprar carro particular", "autos usados certificados",
+        // CORE BRAND (After commercial for better ranking)
+        "CarMatch", "CarMatch App", "CarMatch México", "car match", "app autos mexico",
+        "aplicacion vender carro", "descargar CarMatch", "instalar CarMatch",
 
-        // Tipos de Vehículos
-        "carros", "carros deportivos", "autos usados", "vehiculos", "camionetas usadas",
-        "pickups seminuevos", "SUV usadas mexico", "sedanes economicos", "autos compactos",
-        "carros automaticos", "motos usadas", "autos hibridos usados", "carros electricos",
+        // TIPOS DE VEHÍCULOS
+        "autos usados", "carros", "vehiculos", "camionetas usadas", "pickups seminuevos",
+        "SUV usadas mexico", "sedanes economicos", "autos compactos", "carros automaticos",
+        "motos usadas", "autos hibridos usados", "carros electricos", "carros deportivos",
 
-        // Map Store y Servicios
-        "mapa de negocios", "directorio automotriz", "talleres mecanicos 24 horas",
-        "mecanico cerca de mi", "desponchadora abierta", "servicios automotrices mexico",
-        "taller mecanico confiable", "auxilio vial", "grua 24 horas", "mecanico a domicilio",
-        "refacciones cerca de mi", "carwash cerca", "llantera abierta ahora",
+        // MAP STORE Y SERVICIOS (High Local Intent)
+        "mecanico cerca de mi", "taller mecanico confiable", "talleres mecanicos 24 horas",
+        "desponchadora abierta", "servicios automotrices mexico", "auxilio vial",
+        "grua 24 horas", "mecanico a domicilio", "refacciones cerca de mi",
+        "carwash cerca", "llantera abierta ahora", "mapa de negocios", "directorio automotriz",
 
-        // Regional y Ciudades
-        "refacciones juarez", "autos usados juarez", "compra venta autos cdmx",
+        // REGIONAL Y CIUDADES
+        "compra venta autos cdmx", "autos usados juarez", "refacciones juarez",
         "carros usados monterrey", "autos guadalajara", "vender auto tijuana",
         "marketplace autos mexico", "carros en venta mexico",
 
-        // Engagement y Social
-        "red social autos", "tinder de carros", "swipe autos", "app comprar carros",
-        "app vender auto", "comunidad automotriz", "foro autos mexico",
-
-        // Safety y Trust
+        // SAFETY Y TRUST
         "compra segura autos", "cita segura vender auto", "verificar auto usado",
         "como comprar auto usado seguro", "evitar fraude compra auto",
 
-        // Mobile y Tech
-        "app autos mexico", "aplicacion vender carro", "marketplace autos movil",
-        "PWA autos", "instalar CarMatch", "descargar CarMatch",
+        // ENGAGEMENT (Lower priority but included)
+        "tinder de carros", "swipe autos", "app comprar carros", "app vender auto",
+        "marketplace autos movil", "PWA autos", "match de carros", "encontrar auto ideal",
 
-        // Aliases y Variantes
-        "car match", "match de carros", "encontrar auto ideal", "buscar auto usado"
+        // LEGAL/SOCIAL COVERAGE (Last for compliance, not SEO priority)
+        "CarMatch Social", "CarMatch Official", "CarMatch Oficial", "red social de autos",
+        "red social automotriz", "social network cars", "comunidad automotriz",
+        "foro autos mexico", "red social autos"
     ],
     manifest: "/app-v1.webmanifest",
     authors: [{ name: "CarMatch" }],
@@ -92,9 +90,9 @@ export const metadata: Metadata = {
         type: "website",
         locale: "es_MX",
         url: "https://carmatchapp.net",
-        siteName: "CarMatch Social",
-        title: "CarMatch Social | La Revolución Automotriz",
-        description: "Desliza, encuentra y conecta. La forma más inteligente y segura de comprar autos usados, vender tu carro gratis y encontrar talleres mecánicos 24/7 cerca de ti. CarMatch Social es la red social automotriz #1 en México.",
+        siteName: "CarMatch - Red Social Automotriz",
+        title: "CarMatch | Compra y Vende Autos GRATIS | App #1 México",
+        description: "💰 Vende tu carro SIN comisiones | 🚗 Compra autos usados directo del dueño | 🔍 Encuentra talleres mecánicos 24/7 | La red social automotriz más grande de México. ¡Miles de vehículos nuevos cada día!",
         images: [
             {
                 url: "/icon-512-v20.png?v=22", // ✨ Logo v20 maximizado
@@ -106,8 +104,8 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary_large_image",
-        title: "CarMatch | El Marketplace de Autos del Futuro",
-        description: "Descubre autos usados con swipe, vende tu carro gratis y encuentra talleres 24/7 en el mapa. 1er auto gratis 6 meses. La app definitiva del sector automotriz que revoluciona México.",
+        title: "CarMatch | Compra y Vende Autos GRATIS - Marketplace #1 México",
+        description: "💸 Publica GRATIS y recibe ofertas al instante | 🚗 Miles de autos usados | 🔧 Encuentra talleres 24/7 | La app definitiva que revoluciona el sector automotriz en México.",
         images: ["/icon-512-v20.png?v=22"], // ✨ Logo v20 maximizado
     },
     appleWebApp: {
