@@ -1,6 +1,6 @@
 // API route para obtener stats del Marketing Studio
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { auth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
     // Validar que el usuario está autenticado y es admin
