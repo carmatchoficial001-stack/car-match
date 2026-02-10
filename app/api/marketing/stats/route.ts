@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     // Validar que el usuario está autenticado y es admin
     const session = await auth();
 
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || !session.user.isAdmin) {
         return NextResponse.json(
             { error: 'No autorizado - Solo admin' },
             { status: 401 }

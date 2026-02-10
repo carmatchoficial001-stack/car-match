@@ -75,7 +75,6 @@ export const authConfig: NextAuthConfig = {
                 session.user.name = (token.name as string) || session.user.name
 
                 if (session.user.email === process.env.ADMIN_EMAIL) {
-                    // @ts-ignore
                     session.user.isAdmin = true
                 }
             }
