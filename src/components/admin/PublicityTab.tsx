@@ -43,6 +43,7 @@ export default function PublicityTab() {
     const [loading, setLoading] = useState(true)
     const [showModal, setShowModal] = useState(false)
     const [showAIModal, setShowAIModal] = useState(false)
+    const [viewMode, setViewMode] = useState<'STUDIO' | 'QUEUE'>('QUEUE')
     const [selectedCampaign, setSelectedCampaign] = useState<PublicityCampaign | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -121,7 +122,7 @@ export default function PublicityTab() {
                 <div className="flex items-center gap-3">
                     {viewMode === 'STUDIO' && (
                         <button
-                            onClick={() => setIsAIModalOpen(true)}
+                            onClick={() => setShowAIModal(true)}
                             className="hidden md:flex px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold text-xs shadow-lg shadow-purple-900/30 hover:shadow-purple-900/50 transition-all items-center gap-2"
                         >
                             <Zap className="w-3 h-3" />
