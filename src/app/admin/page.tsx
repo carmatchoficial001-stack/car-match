@@ -684,12 +684,9 @@ function InventoryTab({ vehicles }: { vehicles: any[] }) {
 
                         {/* Actions Footer */}
                     </div>
-                        </div>
+                ))}
+            </div>
         </div>
-    ))
-}
-            </div >
-        </div >
     )
 }
 
