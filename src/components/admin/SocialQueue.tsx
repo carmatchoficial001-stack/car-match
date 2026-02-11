@@ -163,33 +163,31 @@ export default function SocialQueue() {
                                         </p>
                                     </div>
                                 )}
-                            </div>
 
-                            {/* Actions */ }
-                            < div className = "p-3 bg-black/20 border-t border-white/5 flex gap-2" >
-                                { editingId === post.id ? (
-                                <button onClick={saveEdit} className="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-500 transition w-full">Guardar</button>
-                            ) : (
-                                <>
-                                    <button onClick={() => startEdit(post)} className="p-2 hover:bg-white/10 rounded-lg text-text-secondary transition"><Edit2 className="w-4 h-4" /></button>
-                                    <button onClick={() => handleDelete(post.id)} className="p-2 hover:bg-red-500/20 rounded-lg text-red-500 transition"><Trash2 className="w-4 h-4" /></button>
-                                    <div className="flex-1"></div>
-                                    <button
-                                        onClick={() => handleManualPublish(post.id)}
-                                        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-lg text-xs font-bold transition shadow-lg shadow-blue-900/20 flex items-center gap-2"
-                                    >
-                                        <Share2 className="w-3 h-3" />
-                                        Ya lo publiqué
-                                    </button>
-                                </>
-                            )}
-                </div>
+                                {/* Actions */}
+                                <div className="p-3 bg-black/20 border-t border-white/5 flex gap-2">
+                                    {editingId === post.id ? (
+                                        <button onClick={saveEdit} className="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-500 transition w-full">Guardar</button>
+                                    ) : (
+                                        <>
+                                            <button onClick={() => startEdit(post)} className="p-2 hover:bg-white/10 rounded-lg text-text-secondary transition"><Edit2 className="w-4 h-4" /></button>
+                                            <button onClick={() => handleDelete(post.id)} className="p-2 hover:bg-red-500/20 rounded-lg text-red-500 transition"><Trash2 className="w-4 h-4" /></button>
+                                            <div className="flex-1"></div>
+                                            <button
+                                                onClick={() => handleManualPublish(post.id)}
+                                                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-lg text-xs font-bold transition shadow-lg shadow-blue-900/20 flex items-center gap-2"
+                                            >
+                                                <Share2 className="w-3 h-3" />
+                                                Ya lo publiqué
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
                             </motion.div>
-    ))
-}
-                    </AnimatePresence >
-                </div >
+                        ))}
+                    </AnimatePresence>
+                </div>
             )}
-        </div >
+        </div>
     )
 }
