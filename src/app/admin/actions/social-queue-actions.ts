@@ -17,6 +17,21 @@ export async function createSocialPostDraft(topic: string, country: string) {
         // 2. Generate Image (Unsplash Fallback included in this function)
         const imageRes = await generateSocialImage(topic + ' luxury car ' + country)
 
+        // 3. Generate Veo Prompt (New)
+        const veoRes = await generateVeoPrompt(topic, 'Cinematic', country)
+
+        // 4. Save Draft
+        const post = await prisma.socialPost.create({
+            data: {
+                content: (captionRes.success && captionRes.content) ? captionRes.content : 'Error generando texto',
+                imageUrl: (imageRes.success && imageRes.url) ? imageRes.url : null, // Uses Unsplash URL if DALL-E fails
+                videoPrompt: (veoRes.success && veoRes.content) ? veoRes.content : `Prompt para Veo 3: ${topic} - ${country}`,
+                platform: 'FACEBOOK', // Default Enum
+                status: 'DRAFT',
+                aiPrompt: `Topic: ${topic}, Country: ${country}`,
+                scheduledFor: new Date(Date.now() + 24 * 60 * 60 * 1000) // +24h default
+            }
+        })
 
         revalidatePath('/admin')
         return { success: true, post }
