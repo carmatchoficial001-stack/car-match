@@ -30,6 +30,10 @@ export async function POST(request: NextRequest) {
         }
 
         // ═══ REGLAS DE PUBLICACIÓN - NEGOCIOS ═══
+        // ⚠️ CRITICAL: DO NOT MODIFY THESE RULES WITHOUT EXPLICIT APPROVAL
+        // ⚠️ PRODUCTION CONFIGURATION - MUST REMAIN STABLE
+        // Rule 1: First business is FREE for 3 months
+        // Rule 2: Subsequent businesses require credit immediately
         // 1er negocio: 3 MESES GRATIS → luego 1 crédito/mes
         // 2do+ negocio: 1 crédito/mes desde el inicio (si no hay créditos, se crea INACTIVO)
 
@@ -58,8 +62,8 @@ export async function POST(request: NextRequest) {
             expirationDate.setFullYear(now.getFullYear() + 10)
             isActive = true
         } else if (isFirstBusiness) {
-            // 🎁 Primer negocio: 1 MES GRATIS y ACTIVO
-            expirationDate.setMonth(now.getMonth() + 1)
+            // 🎁 Primer negocio: 3 MESES GRATIS y ACTIVO
+            expirationDate.setMonth(now.getMonth() + 3)
             isActive = true
         } else {
             // 🪙 Segundo en adelante: Requiere crédito
@@ -102,7 +106,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             businessId: business.id,
-            message: 'Negocio registrado con éxito. ¡Tienes 1 mes gratis!'
+            message: 'Negocio registrado con éxito. ¡Tienes 3 meses gratis!'
         })
 
     } catch (error) {

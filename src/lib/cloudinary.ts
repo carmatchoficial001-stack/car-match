@@ -1,3 +1,7 @@
+// 🛡️ PROHIBIDO MODIFICAR SIN ORDEN EXPLÍCITA DEL USUARIO (Ver PROJECT_RULES.md)
+// ⚠️ CRITICAL WARNING: FILE PROTECTED BY PROJECT RULES.
+// DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER INSTRUCTION.
+
 /**
  * Utilidades para subir imágenes a Cloudinary
  * Configuración para CarMatch
@@ -40,6 +44,7 @@ export async function uploadToCloudinary(file: File): Promise<string> {
     let processedFile = file
     try {
         const options = {
+            // ⚠️ CRITICAL: DO NOT CHANGE COMPRESSION SETTINGS. COST SAVING MEASURE.
             maxSizeMB: 0.5,        // 💰 500KB máximo (antes: 3-5MB)
             maxWidthOrHeight: 1920, // 💰 Full HD suficiente para zoom
             useWebWorker: true,     // No bloquear UI

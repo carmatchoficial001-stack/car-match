@@ -68,6 +68,7 @@ export default function MarketFiltersAdvanced({
     const [city, setCity] = useState(currentFilters.city || userCity)
 
     // 📍 Location Search State
+    // ⚠️ CRITICAL: DO NOT MODIFY. SEARCH RADIUS LOGIC IS PRODUCTION CRITICAL.
     // PREFERENCIA: 1. Filtro actual URL -> 2. Prop usuario -> 3. Manual (Contexto) -> 4. GPS (Contexto)
     const [locationInput, setLocationInput] = useState(
         currentFilters.city ||

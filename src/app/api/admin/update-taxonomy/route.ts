@@ -1,3 +1,7 @@
+// 🛡️ PROHIBIDO MODIFICAR SIN ORDEN EXPLÍCITA DEL USUARIO (Ver PROJECT_RULES.md)
+// ⚠️ CRITICAL WARNING: FILE PROTECTED BY PROJECT RULES.
+// DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER INSTRUCTION.
+
 import { NextResponse } from 'next/server';
 import { fetchTaxonomyUpdates } from '@/lib/ai/taxonomyUpdater';
 import { auth } from '@/lib/auth';

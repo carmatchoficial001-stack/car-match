@@ -1,3 +1,7 @@
+// 🛡️ PROHIBIDO MODIFICAR SIN ORDEN EXPLÍCITA DEL USUARIO (Ver PROJECT_RULES.md)
+// ⚠️ CRITICAL WARNING: FILE PROTECTED BY PROJECT RULES.
+// DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER INSTRUCTION.
+
 /**
  * Mapeo de Marcas a Wikidata IDs para Entity Linking (Legendary SEO)
  * Esto le dice a Google exactamente a qué entidad del mundo real nos referimos.

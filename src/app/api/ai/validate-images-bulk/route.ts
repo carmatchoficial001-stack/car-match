@@ -32,6 +32,7 @@ async function urlToBase64(url: string): Promise<string> {
  * Body: { images: string[] } // Array de URLs de Cloudinary
  */
 export async function POST(request: NextRequest) {
+    // ⚠️ CRITICAL: DO NOT MODIFY. FAIL-OPEN LOGIC IS REQUIRED FOR UX.
     try {
         const body = await request.json()
         const { images } = body

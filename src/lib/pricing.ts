@@ -11,26 +11,26 @@ interface PricingConfig {
 const DEVELOPED_COUNTRIES = [
     // América del Norte
     'US', 'CA',
-    
+
     // Europa Occidental
     'GB', 'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'NO', 'DK', 'FI',
     'CH', 'AT', 'BE', 'IE', 'PT', 'LU', 'IS', 'GR', 'CY', 'MT',
-    
+
     // Europa Central y del Este (Alto Ingreso)
     'CZ', 'SI', 'EE', 'SK', 'LT', 'LV', 'PL', 'HU', 'HR',
-    
+
     // Oceanía
     'AU', 'NZ',
-    
+
     // Asia Oriental y Sudeste Asiático (Desarrollados)
     'JP', 'KR', 'SG', 'HK', 'TW', 'BN', 'MO',
-    
+
     // Medio Oriente (Alto Ingreso)
     'AE', 'QA', 'SA', 'KW', 'BH', 'OM', 'IL',
-    
+
     // Caribe y Territorios (Alto Ingreso)
     'BS', 'BB', 'TC', 'KY', 'BM', 'VI', 'PR',
-    
+
     // Otros territorios de alto ingreso
     'GU', 'MP', 'AS', 'AW', 'CW', 'SX'
 ]
@@ -40,6 +40,7 @@ export function getPricingForCountry(countryCode: string): PricingConfig {
 
     // █▓▒░ BLOQUE DE COBRO CRÍTICO (20/40 MXN) ░▒▓█
     // ------------------------------------------------------------
+    // ⚠️ CRITICAL: DO NOT MODIFY. PRODUCTION SETTING.
     // PROHIBIDO MODIFICAR SIN AUTORIZACIÓN. 
     // Define el precio real basado en el desarrollo del país.
     return {

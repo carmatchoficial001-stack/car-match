@@ -1,3 +1,7 @@
+// 🛡️ PROHIBIDO MODIFICAR SIN ORDEN EXPLÍCITA DEL USUARIO (Ver PROJECT_RULES.md)
+// ⚠️ CRITICAL WARNING: FILE PROTECTED BY PROJECT RULES.
+// DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER INSTRUCTION.
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'

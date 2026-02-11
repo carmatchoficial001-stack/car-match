@@ -31,6 +31,8 @@ const sanitizeAIValue = (val: any) => {
  * Servicio de Moderación Automática (AI) Real con Gemini
  */
 export async function moderateVehicleListing(vehicleId: string, imageUrls: string[]) {
+    // ⚠️ CRITICAL: DO NOT MODIFY. AI MODERATION RULES ARE PRODUCTION CRITICAL.
+    // ⚠️ INCLUDES "RUBEN'S RULES" FOR DUPLICATES AND CLEANUP.
     console.log(`🛡️ Seguridad CarMatch: Iniciando revisión REAL con Gemini para vehículo ${vehicleId}`)
 
     let status: 'APPROVED' | 'REJECTED' = 'APPROVED'
@@ -306,8 +308,8 @@ export async function fixAndApproveVehicle(vehicleId: string) {
     try {
         // 1. Re-analizar imágenes para obtener los mejores datos posibles (Límite de 10)
         const base64Images = (await Promise.all(
-            vehicle.images.slice(0, 10).map(url => fetchImageAsBase64(url))
-        )).filter((img): img is string => img !== null)
+            vehicle.images.slice(0, 10).map((url: string) => fetchImageAsBase64(url))
+        )).filter((img: string | null): img is string => img !== null)
 
         if (base64Images.length === 0) {
             return { success: false, error: 'No se pudieron procesar las imágenes actuales.' }
@@ -326,7 +328,7 @@ export async function fixAndApproveVehicle(vehicleId: string) {
         }
 
         // 🚀 LIMPIEZA SILENCIOSA (REGLA RUBEN)
-        const finalImages = vehicle.images.filter((_, idx) => !invalidIndices.includes(idx))
+        const finalImages = vehicle.images.filter((_: string, idx: number) => !invalidIndices.includes(idx))
 
         // 2. Aplicar correcciones AGRESIVAS para Identidad (La Portada manda)
         const updateData: any = {

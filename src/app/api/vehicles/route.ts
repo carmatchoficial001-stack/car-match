@@ -159,6 +159,11 @@ export async function POST(request: NextRequest) {
         }
 
         // ═══ REGLAS FINALES DE MONETIZACIÓN (HISTÓRICAS) ═══
+        // ⚠️ CRITICAL: DO NOT MODIFY THESE RULES WITHOUT EXPLICIT APPROVAL
+        // ⚠️ PRODUCTION CONFIGURATION - MUST REMAIN STABLE
+        // Rule 1: First vehicle ever is FREE for 6 months
+        // Rule 2: Vehicles 2-25 are FREE for 7 days
+        // Rule 3: Vehicle 26+ is PAID immediately
         const now = new Date()
         let expiresAt = new Date()
         let isFreePublication = true

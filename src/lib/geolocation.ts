@@ -1,3 +1,7 @@
+// 🛡️ PROHIBIDO MODIFICAR SIN ORDEN EXPLÍCITA DEL USUARIO (Ver PROJECT_RULES.md)
+// ⚠️ CRITICAL WARNING: FILE PROTECTED BY PROJECT RULES.
+// DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER INSTRUCTION.
+
 /**
  * Biblioteca de funciones de geolocalización para CarMatch
  * Soporta:
@@ -189,7 +193,7 @@ export function filterNearbyVehicles<T extends { latitude?: number | null; longi
     userLat: number,
     userLng: number,
     vehicles: T[],
-    radiusKm: number = 12
+    radiusKm: number = 25
 ): Array<T & { distance: number }> {
     return vehicles
         .filter(v => v.latitude != null && v.longitude != null)
@@ -254,7 +258,7 @@ export async function searchCities(query: string): Promise<LocationData[]> {
     }
 }
 
-export const EXPANSION_TIERS = [12, 50, 100, 250, 500, 1000, 5000, 10000]
+export const EXPANSION_TIERS = [25, 50, 100, 250, 500, 1000, 5000, 10000]
 
 /**
  * Normaliza el código de país a formato ISO de 2 letras (MX, US, etc)

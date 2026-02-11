@@ -2,6 +2,7 @@ import { Business } from '@prisma/client'
 
 /**
  * Calcula la fecha de expiración para un nuevo negocio
+ * ⚠️ CRITICAL: DO NOT MODIFY. PRODUCTION SETTING.
  * Primer negocio: 3 MESES GRATIS
  * Siguientes: null (requiere crédito para activar)
  */

@@ -1,5 +1,8 @@
 # 🚗 CarMatch Social
 
+> **🛡️ IMPORTANT**: Please read [PROJECT_RULES.md](./PROJECT_RULES.md) before making changes to business logic.
+
+
 **Red Social para Compra, Venta y Descubrimiento de Vehículos y Negocios Automotrices en Tiempo Real**
 
 ## 🌟 Características Principales

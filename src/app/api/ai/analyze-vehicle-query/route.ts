@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
         console.log('🔍 [AI Search] Query recibido:', query)
 
 
+        // ⚠️ CRITICAL: DO NOT MODIFY PROMPT. IT DEFINES THE "BRAIN TRUST" LOGIC.
         const prompt = `Actúa como un COMITÉ DE EXPERTOS EN AUTOMOCIÓN ("The CarMatch Brain Trust").
 Tu objetivo es traducir el lenguaje natural del usuario a filtros técnicos PRECISOS, usando un proceso de pensamiento de 3 pasos (Cadena de Pensamiento).
 

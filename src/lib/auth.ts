@@ -18,6 +18,7 @@ export const {
     callbacks: {
         ...authConfig.callbacks,
         async signIn({ user }) {
+            // ⚠️ CRITICAL: DO NOT MODIFY. SERVER-SIDE SECURITY IS PRODUCTION CRITICAL.
             // 🛡️ REGLA DE ORO CARMATCH: Bloqueo preventivo en el Servidor
             try {
                 const cookieStore = await cookies()
