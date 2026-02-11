@@ -19,7 +19,7 @@ import {
     togglePublicityStatus,
     manualTriggerSocialPost
 } from '@/app/admin/actions/publicity-actions'
-import { generateSocialCaption, generateImagePrompt, generateVideoScript } from '@/app/admin/actions/ai-content-actions'
+import { generateSocialCaption, generateImagePrompt, generateVideoScript, suggestCampaignFromInventory } from '@/app/admin/actions/ai-content-actions'
 import SocialQueue from '@/components/admin/SocialQueue'
 
 interface PublicityCampaign {
@@ -391,10 +391,10 @@ function AIStudioModal({ isOpen, onClose }: any) {
                 res = await generateVideoScript(topic, duration, targetCountry, videoStyle)
             }
 
-            if (res.success) {
-                setGeneratedContent(res.content)
+            if (res.success && res.content) {
+                setGeneratedContent(res.content || "")
             } else {
-                setGeneratedContent("Error al generar contenido.")
+                setGeneratedContent(res.error || "Error al generar contenido.")
             }
         } catch (e) {
             console.error(e)
@@ -413,7 +413,7 @@ function AIStudioModal({ isOpen, onClose }: any) {
             if (res.success) {
                 setAutoPilotData(res)
                 setGeneratedContent(res.campaignData.caption)
-                setTopic(`Promoción Automática de ${res.vehicle.title}`)
+                setTopic(`Promoción Automática de ${res.vehicle?.title || 'Vehículo'}`)
             } else {
                 setGeneratedContent(res.error || "No se pudo generar campaña automática.")
             }
