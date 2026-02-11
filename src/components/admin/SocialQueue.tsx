@@ -165,7 +165,7 @@ export default function SocialQueue() {
                                 )}
                             </div>
 
-                                {/* Actions */ }
+                            {/* Actions */ }
                             < div className = "p-3 bg-black/20 border-t border-white/5 flex gap-2" >
                                 { editingId === post.id ? (
                                 <button onClick={saveEdit} className="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-500 transition w-full">Guardar</button>
