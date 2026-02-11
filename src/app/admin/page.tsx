@@ -41,7 +41,6 @@ import {
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 // ... imports
-import dynamic from 'next/dynamic'
 const AdminHeatMap = dynamic(() => import('@/components/AdminHeatMap'), { ssr: false })
 const PublicityTab = dynamic(() => import('@/components/admin/PublicityTab'), { ssr: false })
 const AdminMobileNav = dynamic(() => import('@/components/admin/AdminMobileNav'), { ssr: false })
