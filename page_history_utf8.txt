@@ -1,0 +1,1469 @@
+﻿commit 4e628a4e467e5b872923ab69a56863f1e5d6825b
+Author: Ruben Carmatch <carmatchoficial001@gmail.com>
+Date:   Tue Feb 10 21:05:58 2026 -0700
+
+    fix: syntax error in Admin InventoryTab (unclosed div)
+
+diff --git a/src/app/admin/page.tsx b/src/app/admin/page.tsx
+index 74398d8..00a5583 100644
+--- a/src/app/admin/page.tsx
++++ b/src/app/admin/page.tsx
+@@ -636,28 +636,13 @@ function InventoryTab({ vehicles }: { vehicles: any[] }) {
+                         </div>
+ 
+                         {/* Actions Footer */}
+-                        <div className="pt-3 border-t border-white/5 flex gap-2">
+-                            <div className="flex-1">
+-                                <AdminGenericAction
+-                                    apiPath={`/api/vehicles/${vehicle.id}`}
+-                                    method="PATCH"
+-                                    body={{ status: vehicle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
+-                                    label={vehicle.status === 'ACTIVE' ? 'Ocultar' : 'Publicar'}
+-                                />
+-                            </div>
+-                            <div className="flex-1">
+-                                <AdminGenericAction
+-                                    apiPath={`/api/vehicles/${vehicle.id}`}
+-                                    method="DELETE"
+-                                    label="Eliminar"
+-                                    danger
+-                                />
+-                            </div>
+-                        </div>
+                     </div>
+-                ))}
+-            </div>
++                        </div>
+         </div>
++    ))
++}
++            </div >
++        </div >
+     )
+ }
+ 
+
+commit 4c4d2772c28b8c6563cdc05829c6d626389c4c17
+Author: Ruben Carmatch <carmatchoficial001@gmail.com>
+Date:   Tue Feb 10 21:01:35 2026 -0700
+
+    feat: mobile responsive user and inventory lists in admin panel
+
+diff --git a/src/app/admin/page.tsx b/src/app/admin/page.tsx
+index 54837ff..74398d8 100644
+--- a/src/app/admin/page.tsx
++++ b/src/app/admin/page.tsx
+@@ -378,7 +378,8 @@ function UsersTab({ users }: { users: any[] }) {
+                     <input type="text" placeholder="Buscar usuario..." className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary-500" />
+                 </div>
+             </div>
+-            <div className="overflow-x-auto">
++            {/* Desktop Table View */}
++            <div className="hidden md:block overflow-x-auto">
+                 <table className="w-full">
+                     <thead className="bg-white/5">
+                         <tr>
+@@ -454,6 +455,76 @@ function UsersTab({ users }: { users: any[] }) {
+                 </table>
+             </div>
+ 
++            {/* Mobile Card View */}
++            <div className="md:hidden grid grid-cols-1 gap-4 p-4">
++                {users.map(user => (
++                    <div key={user.id} className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-4">
++                        <div className="flex items-start justify-between">
++                            <div className="flex items-center gap-3">
++                                <div className="w-10 h-10 rounded-xl bg-surface-highlight overflow-hidden">
++                                    <img src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} className="w-full h-full object-cover" />
++                                </div>
++                                <div>
++                                    <h4 className="font-bold text-sm text-white">{user.name}</h4>
++                                    <p className="text-xs text-text-secondary">{user.email}</p>
++                                </div>
++                            </div>
++                            <span className={`text-[9px] font-black px-2 py-1 rounded ${user.isAdmin ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
++                                {user.isAdmin ? 'ADMIN' : 'USER'}
++                            </span>
++                        </div>
++
++                        <div className="grid grid-cols-2 gap-3">
++                            <div className="bg-white/5 rounded-xl p-2 px-3 border border-white/5 flex items-center justify-between">
++                                <span className="text-[10px] font-black uppercase text-text-secondary">Cr├®ditos</span>
++                                <div className="flex items-center gap-2">
++                                    <span className={`text-sm font-bold ${user.credits > 0 ? 'text-amber-400' : 'text-gray-500'}`}>
++                                        {user.credits}
++                                    </span>
++                                    <button
++                                        onClick={() => {
++                                            setSelectedUser(user)
++                                            setShowCreditModal(true)
++                                        }}
++                                        className="p-1 bg-white/10 rounded-lg text-amber-500/80 hover:text-amber-400"
++                                    >
++                                        <Coins size={12} />
++                                    </button>
++                                </div>
++                            </div>
++
++                            <div className="bg-white/5 rounded-xl p-2 px-3 border border-white/5 flex items-center justify-between">
++                                <span className="text-[10px] font-black uppercase text-text-secondary">Estado</span>
++                                <span className={`text-[10px] font-black flex items-center gap-1.5 ${user.isActive ? 'text-green-500' : 'text-red-500'}`}>
++                                    <div className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
++                                    {user.isActive ? 'ACTIVO' : 'INACTIVO'}
++                                </span>
++                            </div>
++                        </div>
++
++                        <div className="flex items-center justify-between pt-3 border-t border-white/5">
++                            <span className="text-[10px] text-text-secondary">
++                                Reg: {new Date(user.createdAt).toLocaleDateString()}
++                            </span>
++                            <div className="flex gap-2">
++                                <AdminGenericAction
++                                    apiPath={`/api/admin/users/${user.id}`}
++                                    method="PATCH"
++                                    body={{ isActive: !user.isActive }}
++                                    label={user.isActive ? 'Bloquear' : 'Activar'}
++                                />
++                                <AdminGenericAction
++                                    apiPath={`/api/admin/users/${user.id}`}
++                                    method="DELETE"
++                                    label="Eliminar"
++                                    danger
++                                />
++                            </div>
++                        </div>
++                    </div>
++                ))}
++            </div>
++
+             {selectedUser && (
+                 <ManageCreditsModal
+                     isOpen={showCreditModal}
+@@ -480,57 +551,112 @@ function InventoryTab({ vehicles }: { vehicles: any[] }) {
+                     </button>
+                 </div>
+             </div>
+-            <table className="w-full">
+-                <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-text-secondary">
+-                    <tr>
+-                        <th className="px-6 py-4 text-left">Veh├¡culo</th>
+-                        <th className="px-6 py-4 text-left">Vendedor</th>
+-                        <th className="px-6 py-4 text-left">Precio</th>
+-                        <th className="px-6 py-4 text-left">Estado</th>
+-                        <th className="px-6 py-4 text-left">Acciones</th>
+-                    </tr>
+-                </thead>
+-                <tbody className="divide-y divide-white/5">
+-                    {vehicles.map(vehicle => (
+-                        <tr key={vehicle.id} className="hover:bg-white/5 transition-colors">
+-                            <td className="px-6 py-4">
+-                                <div className="flex items-center gap-3">
+-                                    <div className="w-12 h-8 rounded-lg bg-black overflow-hidden border border-white/10">
+-                                        <img src={vehicle.images?.[0]} className="w-full h-full object-cover" />
+-                                    </div>
+-                                    <span className="text-sm font-bold">{vehicle.title}</span>
+-                                </div>
+-                            </td>
+-                            <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.user.name}</td>
+-                            <td className="px-6 py-4 text-sm font-bold text-primary-400">
+-                                {Number(vehicle.price).toLocaleString('es-MX', { style: 'currency', currency: vehicle.currency || 'MXN' })}
+-                            </td>
+-                            <td className="px-6 py-4">
+-                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
+-                                    }`}>
+-                                    {vehicle.status}
+-                                </span>
+-                            </td>
+-                            <td className="px-6 py-4">
+-                                <div className="flex gap-2">
+-                                    <AdminGenericAction
+-                                        apiPath={`/api/vehicles/${vehicle.id}`}
+-                                        method="PATCH"
+-                                        body={{ status: vehicle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
+-                                        label={vehicle.status === 'ACTIVE' ? 'Ocultar' : 'Mostrar'}
+-                                    />
+-                                    <AdminGenericAction
+-                                        apiPath={`/api/vehicles/${vehicle.id}`}
+-                                        method="DELETE"
+-                                        label="Eliminar"
+-                                        danger
+-                                    />
+-                                </div>
+-                            </td>
++            {/* Desktop Table */}
++            <div className="hidden md:block overflow-x-auto">
++                <table className="w-full">
++                    <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-text-secondary">
++                        <tr>
++                            <th className="px-6 py-4 text-left">Veh├¡culo</th>
++                            <th className="px-6 py-4 text-left">Vendedor</th>
++                            <th className="px-6 py-4 text-left">Precio</th>
++                            <th className="px-6 py-4 text-left">Estado</th>
++                            <th className="px-6 py-4 text-left">Acciones</th>
+                         </tr>
+-                    ))}
+-                </tbody>
+-            </table>
++                    </thead>
++                    <tbody className="divide-y divide-white/5">
++                        {vehicles.map(vehicle => (
++                            <tr key={vehicle.id} className="hover:bg-white/5 transition-colors">
++                                <td className="px-6 py-4">
++                                    <div className="flex items-center gap-3">
++                                        <div className="w-12 h-8 rounded-lg bg-black overflow-hidden border border-white/10">
++                                            <img src={vehicle.images?.[0]} className="w-full h-full object-cover" />
++                                        </div>
++                                        <span className="text-sm font-bold">{vehicle.title}</span>
++                                    </div>
++                                </td>
++                                <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.user.name}</td>
++                                <td className="px-6 py-4 text-sm font-bold text-primary-400">
++                                    {Number(vehicle.price).toLocaleString('es-MX', { style: 'currency', currency: vehicle.currency || 'MXN' })}
++                                </td>
++                                <td className="px-6 py-4">
++                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
++                                        }`}>
++                                        {vehicle.status}
++                                    </span>
++                                </td>
++                                <td className="px-6 py-4">
++                                    <div className="flex gap-2">
++                                        <AdminGenericAction
++                                            apiPath={`/api/vehicles/${vehicle.id}`}
++                                            method="PATCH"
++                                            body={{ status: vehicle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
++                                            label={vehicle.status === 'ACTIVE' ? 'Ocultar' : 'Mostrar'}
++                                        />
++                                        <AdminGenericAction
++                                            apiPath={`/api/vehicles/${vehicle.id}`}
++                                            method="DELETE"
++                                            label="Eliminar"
++                                            danger
++                                        />
++                                    </div>
++                                </td>
++                            </tr>
++                        ))}
++                    </tbody>
++                </table>
++            </div>
++
++            {/* Mobile Card View */}
++            <div className="md:hidden grid grid-cols-1 gap-4 p-4">
++                {vehicles.map(vehicle => (
++                    <div key={vehicle.id} className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-3">
++                        {/* Header: Image & Title */}
++                        <div className="flex items-start gap-3">
++                            <div className="w-16 h-12 rounded-lg bg-black overflow-hidden border border-white/10 shrink-0">
++                                <img src={vehicle.images?.[0]} className="w-full h-full object-cover" />
++                            </div>
++                            <div className="flex-1 min-w-0">
++                                <h4 className="font-bold text-sm text-white line-clamp-1">{vehicle.title}</h4>
++                                <p className="text-xs text-text-secondary truncate">{vehicle.user.name}</p>
++                                <p className="text-sm font-black text-primary-400 mt-1">
++                                    {Number(vehicle.price).toLocaleString('es-MX', { style: 'currency', currency: vehicle.currency || 'MXN' })}
++                                </p>
++                            </div>
++                        </div>
++
++                        {/* Badges Row */}
++                        <div className="flex items-center justify-between">
++                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
++                                }`}>
++                                {vehicle.status}
++                            </span>
++                            <span className="text-[9px] text-text-secondary uppercase tracking-widest">
++                                {vehicle.city || 'Ubicaci├│n n/a'}
++                            </span>
++                        </div>
++
++                        {/* Actions Footer */}
++                        <div className="pt-3 border-t border-white/5 flex gap-2">
++                            <div className="flex-1">
++                                <AdminGenericAction
++                                    apiPath={`/api/vehicles/${vehicle.id}`}
++                                    method="PATCH"
++                                    body={{ status: vehicle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
++                                    label={vehicle.status === 'ACTIVE' ? 'Ocultar' : 'Publicar'}
++                                />
++                            </div>
++                            <div className="flex-1">
++                                <AdminGenericAction
++                                    apiPath={`/api/vehicles/${vehicle.id}`}
++                                    method="DELETE"
++                                    label="Eliminar"
++                                    danger
++                                />
++                            </div>
++                        </div>
++                    </div>
++                ))}
++            </div>
+         </div>
+     )
+ }
+
+commit ba78726d87c6aa26899ef831bd67997f10b1f9bd
+Author: Ruben Carmatch <carmatchoficial001@gmail.com>
+Date:   Tue Feb 10 20:32:13 2026 -0700
+
+    fix: cleanup AdminDashboard mobile nav integration
+
+diff --git a/src/app/admin/page.tsx b/src/app/admin/page.tsx
+index abeff69..54837ff 100644
+--- a/src/app/admin/page.tsx
++++ b/src/app/admin/page.tsx
+@@ -1347,96 +1347,4 @@ function AiHubTab() {
+                 </motion.div>
+             )}
+ 
+-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+-                <div className="lg:col-span-2 space-y-6">
+-                    <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+-                        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+-                            <h4 className="font-black text-sm uppercase tracking-widest flex items-center gap-2">
+-                                <Activity className="w-4 h-4 text-text-secondary" /> Historial de Sincronizaci├│n
+-                            </h4>
+-                            <span className="text-[10px] text-text-secondary font-bold">├Ültimos 10 registros</span>
+-                        </div>
+-                        <div className="divide-y divide-white/5">
+-                            {loading ? (
+-                                <div className="p-10 text-center text-text-secondary animate-pulse">Cargando bit├ícora...</div>
+-                            ) : logs.length === 0 ? (
+-                                <div className="p-10 text-center text-text-secondary">No se han realizado actualizaciones todav├¡a.</div>
+-                            ) : (
+-                                logs.map((log: any) => (
+-                                    <div key={log.id} className="p-6 hover:bg-white/[0.02] transition-colors flex items-center justify-between group">
+-                                        <div className="flex items-center gap-4">
+-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${log.status === 'COMPLETED' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+-                                                }`}>
+-                                                {log.status === 'COMPLETED' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+-                                            </div>
+-                                            <div>
+-                                                <div className="flex items-center gap-2">
+-                                                    <span className="text-sm font-black uppercase tracking-tight">
+-                                                        {log.status === 'COMPLETED' ? 'Actualizaci├│n Completada' : 'Fallo en Actualizaci├│n'}
+-                                                    </span>
+-                                                    <span className="text-[10px] text-text-secondary font-medium">#{log.id.slice(-4)}</span>
+-                                                </div>
+-                                                <p className="text-[10px] text-text-secondary mt-0.5">
+-                                                    {new Date(log.createdAt).toLocaleString()} ÔÇó {log.executionTime || 0}s ejecuci├│n
+-                                                </p>
+-                                            </div>
+-                                        </div>
+-                                        <div className="flex items-center gap-6 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+-                                            <div>
+-                                                <p className="text-[9px] font-black text-text-secondary uppercase">Modelos</p>
+-                                                <p className="text-xs font-bold">+{log.modelsAdded}</p>
+-                                            </div>
+-                                            <div>
+-                                                <p className="text-[9px] font-black text-text-secondary uppercase">Marcas</p>
+-                                                <p className="text-xs font-bold">+{log.brandsAdded}</p>
+-                                            </div>
+-                                        </div>
+-                                    </div>
+-                                ))
+-                            )}
+-                        </div>
+-                    </div>
+-                </div>
+-
+-                <div className="space-y-6">
+-                    <div className="bg-gradient-to-br from-primary-900/40 to-black border border-primary-500/20 p-8 rounded-3xl relative overflow-hidden group">
+-                        <Sparkles className="absolute -bottom-4 -right-4 w-32 h-32 text-primary-500/10 group-hover:rotate-12 transition-transform duration-700" />
+-                        <h4 className="text-lg font-black italic tracking-tighter uppercase mb-2">Estado del Monopolio</h4>
+-                        <p className="text-xs text-text-secondary leading-relaxed mb-6">
+-                            Tu sistema de IA est├í configurado para buscar el dominio total de datos vehiculares.
+-                            La actualizaci├│n autom├ítica se ejecuta los domingos a las 00:00.
+-                        </p>
+-                        <div className="space-y-4 relative z-10">
+-                            <div className="flex items-center justify-between text-xs">
+-                                <span className="text-text-secondary">Pr├│ximo Escaneo:</span>
+-                                <span className="font-bold text-primary-400">Domingo, 00:00 H</span>
+-                            </div>
+-                            <div className="flex items-center justify-between text-xs">
+-                                <span className="text-text-secondary">Estrategia:</span>
+-                                <span className="font-bold text-green-500">Global (2024-2026)</span>
+-                            </div>
+-                            <div className="flex items-center justify-between text-xs">
+-                                <span className="text-text-secondary">IA Engine:</span>
+-                                <span className="font-black">FLASH LATEST</span>
+-                            </div>
+-                        </div>
+-                    </div>
+ 
+-                    <div className="bg-[#111114] border border-white/5 p-8 rounded-3xl">
+-                        <h4 className="text-sm font-black uppercase tracking-widest mb-4">Configuraci├│n</h4>
+-                        <div className="flex items-center justify-between py-3 border-b border-white/5">
+-                            <span className="text-xs">Modo Autom├ítico</span>
+-                            <div className="w-10 h-5 bg-primary-600 rounded-full flex items-center justify-end px-1 scale-75">
+-                                <div className="w-3 h-3 bg-white rounded-full" />
+-                            </div>
+-                        </div>
+-                        <div className="flex items-center justify-between py-3">
+-                            <span className="text-xs">Notificar cambios</span>
+-                            <div className="w-10 h-5 bg-primary-600 rounded-full flex items-center justify-end px-1 scale-75">
+-                                <div className="w-3 h-3 bg-white rounded-full" />
+-                            </div>
+-                        </div>
+-                    </div>
+-                </div>
+-                )
+-}
+
+commit afd8903f156f0f0b5b6c0d368ab83f3e98fe8156
+Author: Ruben Carmatch <carmatchoficial001@gmail.com>
+Date:   Tue Feb 10 20:17:30 2026 -0700
+
+    fix: restore AdminDashboard structure and add mobile nav
+
+diff --git a/src/app/admin/page.tsx b/src/app/admin/page.tsx
+index db53d5a..abeff69 100644
+--- a/src/app/admin/page.tsx
++++ b/src/app/admin/page.tsx
+@@ -32,307 +32,152 @@ import {
+     Cpu,
+     Sparkles,
+     RefreshCw,
+-    Coins
++    Coins,
++    Megaphone
+ } from 'lucide-react'
+ import dynamic from 'next/dynamic'
++// ... imports
++import dynamic from 'next/dynamic'
+ const AdminHeatMap = dynamic(() => import('@/components/AdminHeatMap'), { ssr: false })
++const PublicityTab = dynamic(() => import('@/components/admin/PublicityTab'), { ssr: false })
++const AdminMobileNav = dynamic(() => import('@/components/admin/AdminMobileNav'), { ssr: false })
+ import QRCodeModal from '@/components/QRCodeModal'
+-import ManageCreditsModal from '@/components/admin/ManageCreditsModal'
+-import Link from 'next/link'
+-import SimpleLineChart from '@/components/SimpleLineChart'
+-
+-interface SystemStats {
+-    users: { total: number; active: number; recent: any[]; growth?: number[] }
+-    vehicles: { total: number; active: number; recent: any[] }
+-    businesses: { total: number; recent: any[] }
+-    chats: { total: number }
+-    appointments: { total: number; active: number }
+-    logs: Array<{
+-        id: string
+-        level: string
+-        message: string
+-        source: string | null
+-        createdAt: string
+-    }>
+-    reports: Array<{
+-        id: string
+-        reason: string
+-        description: string | null
+-        status: string
+-        imageUrl: string | null
+-        vehicleId: string | null
+-        targetUserId: string | null
+-        createdAt: string
+-        reporter: { name: string; email: string }
+-        targetUser?: { name: string; email: string }
+-        vehicle?: { title: string }
+-    }>
+-    intelligence?: {
+-        searches: any[]
+-        vehicles: Array<{ latitude: number; longitude: number; title: string }>
+-        businesses: Array<{ latitude: number; longitude: number; name: string; category: string }>
+-    }
+-    financials?: {
+-        revenue: number[]
+-        totalRevenue: number
+-    }
+-    registrations?: {
+-        today: number
+-        thisMonth: number
+-        total: number
+-    }
+-}
+-
+-type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub'
+-
+-export default function AdminDashboard() {
+-    const { data: session, status } = useSession()
+-    const router = useRouter()
+-    const [stats, setStats] = useState<SystemStats | null>(null)
+-    const [loading, setLoading] = useState(true)
+-    const [activeView, setActiveView] = useState<AdminView>('overview')
+-    const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+-
+-    // AI Analyst State
+-    const [isAnalyzing, setIsAnalyzing] = useState(false)
+-    const [aiAnalysis, setAiAnalysis] = useState<any>(null)
+-    const [showQRModal, setShowQRModal] = useState(false)
+-
+-    useEffect(() => {
+-        if (status === 'unauthenticated') {
+-            router.push('/auth')
+-            return
+-        }
+-        if (status === 'authenticated') {
+-            fetchStats()
+-        }
+-    }, [status, router])
+-
+-    const fetchStats = async () => {
+-        try {
+-            const res = await fetch('/api/admin/stats')
+-            if (res.ok) {
+-                const data = await res.json()
+-                setStats(data)
+-            } else if (res.status === 403) {
+-                alert('No tienes permisos de administrador')
+-                router.push('/')
+-            }
+-        } catch (error) {
+-            console.error('Error fetching stats:', error)
+-        } finally {
+-            setLoading(false)
+-        }
+-    }
+-
+-    const handleRunAnalyst = async () => {
+-        setIsAnalyzing(true)
+-        try {
+-            const res = await fetch('/api/admin/ai-analyst', {
+-                method: 'POST',
+-                headers: { 'Content-Type': 'application/json' }
+-            })
+-            if (res.ok) {
+-                const data = await res.json()
+-                setAiAnalysis(data)
+-            }
+-        } catch (error) {
+-            console.error('Error running AI analyst:', error)
+-        } finally {
+-            setIsAnalyzing(false)
+-        }
+-    }
+-
+-    // Mobile Responsive Logic - Moved up to avoid hook rule violation
+-    useEffect(() => {
+-        const handleResize = () => {
+-            if (window.innerWidth < 768) setIsSidebarOpen(false)
+-            else setIsSidebarOpen(true)
+-        }
+-        // Initial check
+-        handleResize()
+-        window.addEventListener('resize', handleResize)
+-        return () => window.removeEventListener('resize', handleResize)
+-    }, [])
+-
+-    if (loading) {
+-        return (
+-            <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center">
+-                <div className="flex flex-col items-center gap-4">
+-                    <div className="animate-spin h-12 w-12 border-4 border-primary-600 border-t-transparent rounded-full shadow-[0_0_20px_rgba(147,51,234,0.3)]"></div>
+-                    <p className="text-text-secondary animate-pulse font-medium tracking-widest text-xs uppercase">CarMatch Admin Loading</p>
++// ... (rest of imports)
++
++// ... inside AdminView type definition
++type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub' | 'publicity'
++
++// ... inside AdminDashboard component
++const menuItems = [
++    { id: 'overview', icon: LayoutDashboard, label: 'Panel de Control' },
++    { id: 'publicity', icon: Megaphone, label: 'Publicidad' }, // New Item
++    { id: 'intelligence', icon: Activity, label: 'Inteligencia' },
++    { id: 'users', icon: Users, label: 'Usuarios' },
++    { id: 'inventory', icon: Car, label: 'Inventario' },
++    { id: 'map-store', icon: Store, label: 'MapStore' },
++    { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
++    { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports?.filter(r => r.status === 'PENDING').length || 0 },
++    { id: 'logs', icon: Terminal, label: 'Registros' },
++]
++
++// ... inside render return
++{ activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} /> }
++{ activeView === 'publicity' && <PublicityTab /> }
++{ activeView === 'intelligence' && <IntelligenceTab /> }
++{ activeView === 'users' && <UsersTab users={stats.users.recent} /> }
++{ activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} /> }
++{ activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} /> }
++{ activeView === 'ai-hub' && <AiHubTab /> }
++{ activeView === 'reports' && <ReportsTab reports={stats.reports} /> }
++{ activeView === 'logs' && <LogsTab logs={stats.logs} /> }
++return (
++    <div className="min-h-screen bg-black text-white font-sans selection:bg-primary-500/30">
++        {/* Desktop Sidebar */}
++        <aside className="fixed left-0 top-0 bottom-0 w-72 bg-[#09090b] border-r border-white/10 p-6 hidden md:flex flex-col z-50">
++            <div className="flex items-center gap-3 mb-10 px-2">
++                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary-900/40">
++                    <Terminal className="w-6 h-6 text-white" />
+                 </div>
+-            </div>
+-        )
+-    }
+-
+-    if (!stats) return null
+-
+-    const menuItems = [
+-        { id: 'overview', icon: LayoutDashboard, label: 'Panel de Control' },
+-        { id: 'intelligence', icon: Activity, label: 'Inteligencia' },
+-        { id: 'users', icon: Users, label: 'Usuarios' },
+-        { id: 'inventory', icon: Car, label: 'Inventario' },
+-        { id: 'map-store', icon: Store, label: 'MapStore' },
+-        { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
+-        { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports?.filter(r => r.status === 'PENDING').length || 0 },
+-        { id: 'logs', icon: Terminal, label: 'Registros' },
+-    ]
+-
+-    return (
+-        <div className="min-h-screen bg-[#0c0c0e] text-text-primary flex relative overflow-hidden">
+-            {/* Mobile Sidebar Overlay */}
+-            {isSidebarOpen && (
+-                <div
+-                    onClick={() => setIsSidebarOpen(false)}
+-                    className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden"
+-                />
+-            )}
+-
+-            {/* Sidebar */}
+-            <aside className={`
+-                fixed md:static inset-y-0 left-0 z-50
+-                bg-[#111114] border-r border-white/5 
+-                transition-all duration-300 ease-in-out
+-                flex flex-col flex-shrink-0
+-                ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-20'}
+-            `}>
+-                <div className="p-6 flex items-center gap-3">
+-                    <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary-900/40 shrink-0">
+-                        <ShieldCheck className="w-5 h-5 text-white" />
+-                    </div>
+-                    <span className={`font-black text-xl tracking-tighter bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent italic transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>
+-                        ADMIN
+-                    </span>
++                <div>
++                    <h1 className="font-black text-xl tracking-tighter italic">CarMatch <span className="text-primary-500">OS</span></h1>
++                    <p className="text-[10px] text-text-secondary font-mono tracking-widest uppercase">Admin Neural Interface</p>
+                 </div>
++            </div>
+ 
+-                <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
+-                    {menuItems.map((item) => (
+-                        <button
+-                            key={item.id}
+-                            onClick={() => {
+-                                setActiveView(item.id as AdminView)
+-                                if (window.innerWidth < 768) setIsSidebarOpen(false)
+-                            }}
+-                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative ${activeView === item.id
+-                                ? 'bg-primary-600/10 text-primary-400'
+-                                : 'text-text-secondary hover:bg-white/5 hover:text-text-primary'
+-                                }`}
+-                        >
+-                            <item.icon className={`w-5 h-5 shrink-0 ${activeView === item.id ? 'text-primary-500' : 'group-hover:text-text-primary'}`} />
+-                            <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ${isSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 md:absolute md:left-14 md:bg-[#111114] md:px-2 md:py-1 md:rounded md:border md:border-white/10 md:z-50 md:group-hover:opacity-100 md:group-hover:translate-x-0 md:pointer-events-none'}`}>
+-                                {isSidebarOpen ? item.label : (
+-                                    // Tooltip logic for collapsed desktop sidebar
+-                                    <span className="hidden md:block">{item.label}</span>
+-                                )}
+-                            </span>
+-
+-                            {item.badge ? (
+-                                <span className={`absolute ${isSidebarOpen ? 'right-3' : 'top-2 right-2'} bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold`}>
+-                                    {item.badge}
+-                                </span>
+-                            ) : null}
+-                            {activeView === item.id && (
+-                                <motion.div
+-                                    layoutId="active-pill"
+-                                    className="absolute left-0 w-1 h-6 bg-primary-500 rounded-r-full"
+-                                />
+-                            )}
+-                        </button>
+-                    ))}
+-                </nav>
+-
+-                <div className="p-4 border-t border-white/5 space-y-1">
++            <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
++                {menuItems.map((item) => (
+                     <button
+-                        onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot'))}
+-                        className="w-full flex items-center gap-3 px-3 py-3 text-primary-400 hover:text-primary-300 hover:bg-white/5 transition-all rounded-xl"
++                        key={item.id}
++                        onClick={() => setActiveView(item.id as AdminView)}
++                        className={`w-full flex items-center justify-between p-3 rounded-xl transition-all group ${activeView === item.id
++                            ? 'bg-white/10 text-white shadow-lg border border-white/5'
++                            : 'text-text-secondary hover:bg-white/5 hover:text-white'
++                            }`}
+                     >
+-                        <Headset className="w-5 h-5 shrink-0" />
+-                        <span className={`font-bold text-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>Soporte</span>
++                        <div className="flex items-center gap-3">
++                            <item.icon className={`w-5 h-5 ${activeView === item.id ? 'text-primary-400' : 'group-hover:text-primary-400 transition-colors'}`} />
++                            <span className="text-sm font-bold tracking-tight">{item.label}</span>
++                        </div>
++                        {item.badge && (
++                            <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg shadow-red-900/40 animate-pulse">
++                                {item.badge}
++                            </span>
++                        )}
+                     </button>
++                ))}
++            </nav>
+ 
+-                    <button
+-                        onClick={() => router.push('/')}
+-                        className="w-full flex items-center gap-3 px-3 py-3 text-text-secondary hover:text-white hover:bg-white/5 transition-all rounded-xl"
+-                    >
+-                        <LogOut className="w-5 h-5 shrink-0" />
+-                        <span className={`text-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>Salir del Portal</span>
++            <div className="mt-6 pt-6 border-t border-white/10 space-y-2">
++                <button onClick={() => setShowQRModal(true)} className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
++                    <QrCode className="w-5 h-5" />
++                    <span className="text-sm font-bold">Descargar App</span>
++                </button>
++                <button className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
++                    <Settings className="w-5 h-5" />
++                    <span className="text-sm font-bold">Configuraci├│n</span>
++                </button>
++                <div className="p-4 bg-gradient-to-br from-white/5 to-transparent rounded-2xl border border-white/5 mt-4">
++                    <div className="flex items-center gap-3 mb-2">
++                        <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
++                            <span className="font-black text-indigo-400">R</span>
++                        </div>
++                        <div>
++                            <p className="text-xs font-bold text-white">Ruben Admin</p>
++                            <p className="text-[10px] text-text-secondary">Super User</p>
++                        </div>
++                    </div>
++                    <button className="w-full py-2 bg-white/5 hover:bg-red-500/20 hover:text-red-500 text-text-secondary rounded-lg text-xs font-bold transition flex items-center justify-center gap-2">
++                        <LogOut className="w-3 h-3" /> Cerrar Sesi├│n
+                     </button>
+                 </div>
+-            </aside>
+-
+-            {/* Main Content */}
+-            <main className="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
+-                {/* Top Header */}
+-                <header className="h-16 bg-[#111114]/50 backdrop-blur-md border-b border-white/5 px-4 md:px-8 flex items-center justify-between shrink-0">
+-                    <div className="flex items-center gap-4">
+-                        <button
+-                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+-                            className="p-2 hover:bg-white/5 rounded-lg text-text-secondary active:scale-95 transition"
+-                        >
+-                            {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+-                        </button>
+-                        <h2 className="text-lg font-bold capitalize truncate max-w-[150px] md:max-w-none">{activeView}</h2>
+-                    </div>
++            </div>
++        </aside>
+ 
+-                    <div className="flex items-center gap-3 md:gap-6">
+-                        {/* QR Code Button */}
+-                        <button
+-                            onClick={() => setShowQRModal(true)}
+-                            className="flex items-center gap-2 px-3 py-2 bg-primary-600/10 hover:bg-primary-600/20 border border-primary-600/20 rounded-xl transition group"
+-                        >
+-                            <QrCode className="w-4 h-4 text-primary-400" />
+-                            <span className="hidden sm:block text-xs font-bold text-primary-400 uppercase tracking-wider">
+-                                COMPARTIR APP
+-                            </span>
+-                        </button>
++        {/* Main Content Area */}
++        <main className="md:pl-72 min-h-screen bg-[#000000] relative pb-24 md:pb-0">
+ 
+-                        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
+-                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+-                            <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">System Healthy</span>
+-                        </div>
++            {/* Mobile Header */}
++            <div className="md:hidden p-6 pb-2 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-xl z-40 border-b border-white/10">
++                <div className="flex items-center gap-2">
++                    <Terminal className="w-5 h-5 text-primary-500" />
++                    <h1 className="font-black text-lg tracking-tighter italic">CarMatch OS</h1>
++                </div>
++                <div className="w-8 h-8 rounded-full bg-surface-highlight overflow-hidden">
++                    <img src={session?.user?.image || "https://ui-avatars.com/api/?name=Admin"} alt="Profile" />
++                </div>
++            </div>
+ 
+-                        <div className="flex items-center gap-3">
+-                            <div className="text-right hidden sm:block">
+-                                <p className="text-xs font-bold text-text-primary">{session?.user?.name || 'Admin'}</p>
+-                            </div>
+-                            <div className="w-8 h-8 bg-surface-highlight rounded-lg border border-white/10 overflow-hidden">
+-                                <img src={session?.user?.image || 'https://ui-avatars.com/api/?name=Admin'} className="w-full h-full object-cover" />
+-                            </div>
+-                        </div>
+-                    </div>
+-                </header>
++            <div className="p-4 md:p-10 max-w-7xl mx-auto space-y-8">
++                <AnimatePresence mode="wait">
++                    <motion.div
++                        key={activeView}
++                        initial={{ opacity: 0, y: 10 }}
++                        animate={{ opacity: 1, y: 0 }}
++                        exit={{ opacity: 0, y: -10 }}
++                        transition={{ duration: 0.2 }}
++                    >
++                        {activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} />}
++                        {activeView === 'publicity' && <PublicityTab />}
++                        {activeView === 'intelligence' && <IntelligenceTab />}
++                        {activeView === 'users' && <UsersTab users={stats.users.recent} />}
++                        {activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} />}
++                        {activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} />}
++                        {activeView === 'ai-hub' && <AiHubTab />}
++                        {activeView === 'reports' && <ReportsTab reports={stats.reports} />}
++                        {activeView === 'logs' && <LogsTab logs={stats.logs} />}
++                    </motion.div>
++                </AnimatePresence>
++            </div>
++        </main>
+ 
+-                {/* View Content */}
+-                <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-32 custom-scrollbar">
+-                    <AnimatePresence mode="wait">
+-                        <motion.div
+-                            key={activeView}
+-                            initial={{ opacity: 0, y: 10 }}
+-                            animate={{ opacity: 1, y: 0 }}
+-                            exit={{ opacity: 0, y: -10 }}
+-                            transition={{ duration: 0.2 }}
+-                        >
+-                            {activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} />}
+-                            {activeView === 'intelligence' && <IntelligenceTab />}
+-                            {activeView === 'users' && <UsersTab users={stats.users.recent} />}
+-                            {activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} />}
+-                            {activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} />}
+-                            {activeView === 'ai-hub' && <AiHubTab />}
+-                            {activeView === 'reports' && <ReportsTab reports={stats.reports} />}
+-                            {activeView === 'logs' && <LogsTab logs={stats.logs} />}
+-                        </motion.div>
+-                    </AnimatePresence>
+-                </div>
+-            </main>
++        <AdminMobileNav activeView={activeView} setActiveView={setActiveView} menuItems={menuItems} />
+ 
+-            {/* QR Code Modal */}
+-            <QRCodeModal
+-                isOpen={showQRModal}
+-                onClose={() => setShowQRModal(false)}
+-            />
+-        </div>
+-    )
++        <QRCodeModal
++            isOpen={showQRModal}
++            onClose={() => setShowQRModal(false)}
++        />
++    </div>
++)
+ }
+ 
+ function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) {
+@@ -1593,7 +1438,5 @@ function AiHubTab() {
+                         </div>
+                     </div>
+                 </div>
+-            </div>
+-        </div>
+-    )
++                )
+ }
+
+commit d55df8dbd2f1950ca72e14381d0e548f93fa84ea
+Author: Ruben Carmatch <carmatchoficial001@gmail.com>
+Date:   Fri Feb 6 18:26:23 2026 -0700
+
+    Rebranding completo a CarMatch Social - Protecci├│n de marca establecida
+
+diff --git a/src/app/admin/page.tsx b/src/app/admin/page.tsx
+index baae4f7..db53d5a 100644
+--- a/src/app/admin/page.tsx
++++ b/src/app/admin/page.tsx
+@@ -2,7 +2,7 @@
+ 
+ import { useSession } from 'next-auth/react'
+ import { useRouter } from 'next/navigation'
+-import { useEffect, useState } from 'react'
++import { useEffect, useState, useRef } from 'react'
+ import { motion, AnimatePresence } from 'framer-motion'
+ import {
+     LayoutDashboard,
+@@ -76,6 +76,11 @@ interface SystemStats {
+         revenue: number[]
+         totalRevenue: number
+     }
++    registrations?: {
++        today: number
++        thisMonth: number
++        total: number
++    }
+ }
+ 
+ type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub'
+@@ -170,7 +175,7 @@ export default function AdminDashboard() {
+         { id: 'inventory', icon: Car, label: 'Inventario' },
+         { id: 'map-store', icon: Store, label: 'MapStore' },
+         { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
+-        { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports.filter(r => r.status === 'PENDING').length },
++        { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports?.filter(r => r.status === 'PENDING').length || 0 },
+         { id: 'logs', icon: Terminal, label: 'Registros' },
+     ]
+ 
+@@ -389,9 +394,9 @@ function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any)
+ 
+             {/* Quick Stats Row */}
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+-                <StatCard2 icon={Car} label="Inventario" value={stats.vehicles.active} trend="+5%" color="purple" simple />
+-                <StatCard2 icon={Activity} label="Citas Activas" value={stats.appointments.active} trend="+8%" color="green" simple />
+-                <StatCard2 icon={Store} label="Negocios" value={stats.businesses.total} trend="Nuevo" color="blue" simple />
++                <StatCard2 icon={Users} label="Usuarios Registrados" value={stats.registrations?.total || stats.users.total} trend="Total" color="purple" simple />
++                <StatCard2 icon={TrendingUp} label="Registros Este Mes" value={stats.registrations?.thisMonth || 0} trend="+12%" color="green" simple />
++                <StatCard2 icon={Car} label="Inventario" value={stats.vehicles.active} trend="+5%" color="blue" simple />
+                 <StatCard2 icon={Flag} label="Reportes" value={stats.reports.filter((r: any) => r.status === 'PENDING').length} trend="Atenci├│n" color="red" simple />
+             </div>
+ 
+@@ -686,51 +691,263 @@ function InventoryTab({ vehicles }: { vehicles: any[] }) {
+ }
+ 
+ function ReportsTab({ reports }: { reports: any[] }) {
++    const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
++    const selectedReport = reports.find(r => r.id === selectedReportId)
++
++    useEffect(() => {
++        if (selectedReportId) window.scrollTo({ top: 0, behavior: 'smooth' })
++    }, [selectedReportId])
++
+     return (
+-        <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+-            <div className="p-6 border-b border-white/5">
+-                <h3 className="font-bold text-lg flex items-center gap-2">
+-                    <Flag className="w-5 h-5 text-red-500" /> Centro de Moderaci├│n
+-                </h3>
++        <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-280px)]">
++            {/* Lista de Reportes */}
++            <div className={`bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl flex flex-col ${selectedReportId ? 'hidden lg:flex lg:w-1/3' : 'w-full h-full'}`}>
++                <div className="p-6 border-b border-white/5 flex items-center justify-between shrink-0">
++                    <h3 className="font-bold text-lg flex items-center gap-2">
++                        <Flag className="w-5 h-5 text-red-500" /> Moderaci├│n
++                    </h3>
++                    <span className="text-[10px] font-black bg-red-500/10 text-red-500 px-2 py-1 rounded">
++                        {reports?.filter(r => r.status === 'PENDING').length || 0} PENDIENTES
++                    </span>
++                </div>
++                <div className="flex-1 overflow-y-auto custom-scrollbar">
++                    {!reports || reports.length === 0 ? (
++                        <div className="p-12 text-center opacity-30 italic text-sm">No hay reportes hoy</div>
++                    ) : (
++                        <div className="divide-y divide-white/5">
++                            {reports.map((report) => (
++                                <button
++                                    key={report.id}
++                                    onClick={() => setSelectedReportId(report.id)}
++                                    className={`w-full text-left p-4 hover:bg-white/5 transition-colors group ${selectedReportId === report.id ? 'bg-white/5' : ''}`}
++                                >
++                                    <div className="flex justify-between items-start mb-1">
++                                        <span className={`text-[9px] font-black uppercase tracking-widest ${report.status === 'PENDING' ? 'text-red-500' : 'text-green-500'}`}>
++                                            {report.status}
++                                        </span>
++                                        <span className="text-[9px] text-text-secondary">{new Date(report.createdAt).toLocaleDateString()}</span>
++                                    </div>
++                                    <h4 className="font-bold text-sm line-clamp-1 group-hover:text-primary-400">
++                                        {report.vehicle?.title || report.business?.name || 'Usuario/Otro'}
++                                    </h4>
++                                    <p className="text-[10px] text-text-secondary truncate mt-0.5">{report.reason}</p>
++                                    <div className="flex items-center gap-2 mt-3">
++                                        <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[9px] font-bold">
++                                            {report.reporter?.name?.[0] || 'I'}
++                                        </div>
++                                        <span className="text-[9px] text-text-secondary truncate">por {report.reporter?.name || 'Invitado'}</span>
++                                    </div>
++                                </button>
++                            ))}
++                        </div>
++                    )}
++                </div>
+             </div>
+-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+-                {reports.map((report) => (
+-                    <div key={report.id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex flex-col">
+-                        <div className="aspect-video relative bg-black">
+-                            <img src={report.imageUrl || ''} className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" />
+-                            <div className="absolute top-3 right-3">
+-                                <span className={`text-[9px] font-black px-2 py-1 rounded bg-black/80 backdrop-blur shadow-xl ${report.status === 'PENDING' ? 'text-red-500' : 'text-green-500'
+-                                    }`}>
+-                                    {report.status}
+-                                </span>
++
++            {/* Detalle y Chat */}
++            {selectedReportId && selectedReport ? (
++                <div className="flex-1 bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-right-4">
++                    {/* Header del Detalle */}
++                    <div className="p-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/[0.02]">
++                        <div className="flex items-center gap-4">
++                            <button onClick={() => setSelectedReportId(null)} className="lg:hidden p-2 hover:bg-white/5 rounded-lg">
++                                <ChevronRight className="w-5 h-5 rotate-180" />
++                            </button>
++                            <div>
++                                <h3 className="font-bold">{selectedReport.vehicle?.title || selectedReport.business?.name || 'Usuario'}</h3>
++                                <p className="text-[10px] text-red-400 font-bold uppercase tracking-widest">{selectedReport.reason}</p>
+                             </div>
+                         </div>
+-                        <div className="p-4 flex-1">
+-                            <h4 className="font-bold text-sm text-red-400 flex items-center gap-2">
+-                                <AlertCircle className="w-3.5 h-3.5" /> {report.reason}
+-                            </h4>
+-                            <p className="text-xs text-text-secondary mt-1">{report.description || 'Sin descripci├│n adicional.'}</p>
++                        <div className="flex flex-wrap gap-2">
++                            {/* Link to Publication */}
++                            {(selectedReport.vehicleId || selectedReport.vehicle?.id || selectedReport.businessId || selectedReport.business?.id) && (
++                                <button
++                                    onClick={(e) => {
++                                        e.preventDefault();
++                                        e.stopPropagation();
++                                        const id = selectedReport.vehicleId || selectedReport.vehicle?.id;
++                                        const bizId = selectedReport.businessId || selectedReport.business?.id;
++                                        const url = id ? `/vehicle/${id}` : `/map-store?id=${bizId}`;
++                                        window.open(url, '_blank', 'noopener,noreferrer');
++                                    }}
++                                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white text-black hover:bg-primary-500 hover:text-white transition-all shadow-xl active:scale-95 z-50 pointer-events-auto"
++                                >
++                                    <ArrowUpRight className="w-4 h-4" />
++                                    Ver Publicaci├│n
++                                </button>
++                            )}
++                            <AdminReportAction2 reportId={selectedReport.id} action="RESTORE" label="APROBAR" primary />
++                            <AdminReportAction2 reportId={selectedReport.id} action="RESOLVE" label="ELIMINAR" danger />
++                        </div>
++                    </div>
++
++                    <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
++                        {/* Info General */}
++                        <div className="w-full lg:w-1/2 p-6 overflow-y-auto custom-scrollbar border-b lg:border-b-0 lg:border-r border-white/5">
++                            <div className="aspect-video rounded-2xl overflow-hidden bg-black mb-6 group relative">
++                                <img src={selectedReport.imageUrl || ''} className="w-full h-full object-cover" />
++                                {!selectedReport.imageUrl && (
++                                    <div className="w-full h-full flex items-center justify-center text-text-secondary italic text-xs">Sin imagen adjunta</div>
++                                )}
++                            </div>
+ 
+-                            <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+-                                <div className="flex items-center gap-2">
+-                                    <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold">
+-                                        {report.reporter.name[0]}
++                            <div className="space-y-6">
++                                <div>
++                                    <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-2">Descripci├│n del Reporte</label>
++                                    <div className="p-4 bg-white/5 rounded-2xl text-sm border border-white/5">
++                                        {selectedReport.description || 'No se proporcion├│ una descripci├│n adicional.'}
+                                     </div>
+-                                    <span className="text-[10px] text-text-secondary">por {report.reporter.name}</span>
+                                 </div>
+-                                <div className="flex gap-2">
+-                                    <AdminReportAction2 reportId={report.id} action="DISMISS" label="Ignorar" />
+-                                    <AdminReportAction2 reportId={report.id} action="RESOLVE" label="BORRAR" danger />
++
++                                <div className="grid grid-cols-2 gap-4">
++                                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
++                                        <label className="text-[9px] font-black text-text-secondary uppercase block mb-1">Reportero</label>
++                                        <p className="text-sm font-bold">{selectedReport.reporter?.name || 'Invitado'}</p>
++                                        <p className="text-[10px] text-text-secondary truncate">{selectedReport.reporter?.email || 'Sin correo'}</p>
++                                    </div>
++                                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
++                                        <label className="text-[9px] font-black text-text-secondary uppercase block mb-1">Objetivo del reporte</label>
++                                        <p className="text-sm font-bold truncate">{selectedReport.vehicle?.title || selectedReport.business?.name || 'Usuario'}</p>
++                                        <p className="text-[10px] text-primary-400">{selectedReport.vehicleId ? 'Veh├¡culo' : selectedReport.businessId ? 'Negocio' : 'Perfil'}</p>
++                                    </div>
+                                 </div>
+                             </div>
+                         </div>
++
++                        {/* Chat de Comunicaci├│n */}
++                        <div className="flex-1 flex flex-col bg-black/20">
++                            <div className="p-4 border-b border-white/5 bg-white/[0.01]">
++                                <h4 className="text-[10px] font-black uppercase text-text-secondary flex items-center gap-2">
++                                    <Headset className="w-3 h-3" /> Centro de Dudas / Soporte
++                                </h4>
++                            </div>
++
++                            <ReportChat reportId={selectedReport.id} />
++                        </div>
+                     </div>
+-                ))}
+-            </div>
++                </div>
++            ) : (
++                <div className="flex-1 bg-[#111114] border border-white/5 border-dashed rounded-3xl flex items-center justify-center opacity-30 select-none">
++                    <div className="text-center">
++                        <Flag className="w-12 h-12 mx-auto mb-4" />
++                        <p className="text-sm font-bold">Selecciona un reporte para ver los detalles</p>
++                    </div>
++                </div>
++            )}
+         </div>
+     )
+ }
+ 
++function ReportChat({ reportId }: { reportId: string }) {
++    const [messages, setMessages] = useState<any[]>([])
++    const [newMessage, setNewMessage] = useState("")
++    const [loading, setLoading] = useState(true)
++    const [sending, setSending] = useState(false)
++    const scrollRef = useRef<HTMLDivElement>(null)
++
++    const fetchMessages = async () => {
++        try {
++            const res = await fetch(`/api/report/${reportId}/messages`)
++            if (res.ok) {
++                const data = await res.json()
++                setMessages(data)
++            }
++        } catch (e) { console.error(e) }
++        finally { setLoading(false) }
++    }
++
++    useEffect(() => {
++        fetchMessages()
++        const interval = setInterval(fetchMessages, 5000)
++        return () => clearInterval(interval)
++    }, [reportId])
++
++    useEffect(() => {
++        if (scrollRef.current) {
++            scrollRef.current.scrollTop = scrollRef.current.scrollHeight
++        }
++    }, [messages])
++
++    const handleSend = async (e: React.FormEvent) => {
++        e.preventDefault()
++        if (!newMessage.trim() || sending) return
++
++        setSending(true)
++        try {
++            const res = await fetch(`/api/report/${reportId}/messages`, {
++                method: 'POST',
++                headers: { 'Content-Type': 'application/json' },
++                body: JSON.stringify({ content: newMessage })
++            })
++            if (res.ok) {
++                const msg = await res.json()
++                setMessages(prev => [...prev, msg])
++                setNewMessage("")
++            }
++        } catch (e) {
++            console.error(e)
++        } finally {
++            setSending(false)
++        }
++    }
++
++    if (loading) return <div className="flex-1 flex items-center justify-center text-xs opacity-50">Cargando conversaci├│n...</div>
++
++    return (
++        <>
++            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
++                {messages.length === 0 ? (
++                    <div className="h-full flex flex-col items-center justify-center gap-4 opacity-30 grayscale p-8">
++                        <div className="p-4 bg-white/5 rounded-full">
++                            <Headset className="w-8 h-8" />
++                        </div>
++                        <p className="text-xs font-bold text-center">Inicia una conversaci├│n con el usuario para resolver dudas sobre este reporte.</p>
++                    </div>
++                ) : (
++                    messages.map((msg) => {
++                        const isMe = msg.sender?.isAdmin // En esta vista admin, "Me" son los admins
++                        return (
++                            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
++                                <div className={`max-w-[85%] p-3 rounded-2xl text-xs ${isMe
++                                    ? 'bg-primary-600 text-white rounded-tr-none'
++                                    : 'bg-white/5 border border-white/10 text-text-primary rounded-tl-none'
++                                    }`}>
++                                    <div className="flex items-center gap-2 mb-1 opacity-70">
++                                        <span className="font-black uppercase text-[8px]">{msg.sender?.name || 'Invitado'}</span>
++                                        <span className="text-[8px]">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
++                                    </div>
++                                    <p className="leading-relaxed">{msg.content}</p>
++                                </div>
++                            </div>
++                        )
++                    })
++                )}
++            </div>
++
++            <form onSubmit={handleSend} className="p-4 border-t border-white/5 bg-white/[0.01]">
++                <div className="flex gap-2">
++                    <input
++                        value={newMessage}
++                        onChange={(e) => setNewMessage(e.target.value)}
++                        placeholder="Escribe un mensaje al usuario..."
++                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-primary-500 transition-colors"
++                        disabled={sending}
++                    />
++                    <button
++                        disabled={!newMessage.trim() || sending}
++                        className="p-2 bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white rounded-xl transition-all shadow-lg active:scale-95"
++                    >
++                        {sending ? <RefreshCw className="w-4 h-4 animate-spin text-white" /> : <ChevronRight className="w-4 h-4 text-white" />}
++                    </button>
++                </div>
++                <p className="text-[8px] text-text-secondary mt-2 italic text-center opacity-50">
++                    * Tu respuesta llegar├í al "Centro de Reportes" del usuario.
++                </p>
++            </form>
++        </>
++    )
++}
++
+ function LogsTab({ logs }: { logs: any[] }) {
+     return (
+         <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+@@ -978,95 +1195,206 @@ function IntelligenceTab() {
+     if (loading) return <div className="h-96 flex items-center justify-center opacity-50 uppercase tracking-widest text-xs font-bold animate-pulse">Cargando Inteligencia Geoespacial...</div>
+ 
+     return (
+-        <div className="space-y-8 h-full flex flex-col overflow-y-auto pb-20 custom-scrollbar">
+-            <div className="flex items-center justify-between shrink-0">
++        <div className="space-y-12 h-full flex flex-col overflow-y-auto pb-20 custom-scrollbar">
++            <div className="flex flex-col md:flex-row md:items-center justify-between shrink-0 gap-6">
+                 <div>
+-                    <h3 className="text-2xl font-black italic tracking-tighter uppercase">An├ílisis de Oc├®anos Azules</h3>
+-                    <p className="text-text-secondary text-sm">Visualizaci├│n de Demanda (B├║squedas) vs Oferta (Negocios e Inventario)</p>
++                    <h3 className="text-3xl font-black italic tracking-tighter uppercase flex items-center gap-3">
++                        <Activity className="w-8 h-8 text-primary-500" /> CarMatch Intelligence 360┬░
++                    </h3>
++                    <p className="text-text-secondary text-sm font-medium">An├ílisis de Oc├®anos Azules: Visualizando la brecha entre Demanda vs Oferta</p>
+                 </div>
+-                <div className="flex gap-4">
+-                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-3">
+-                        <Search className="w-5 h-5 text-red-500" />
++                <div className="flex flex-wrap gap-4">
++                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4 group hover:bg-white/[0.08] transition-colors">
++                        <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
++                            <Search className="w-6 h-6" />
++                        </div>
+                         <div>
+-                            <p className="text-[10px] font-black uppercase text-text-secondary">Puntos de Calor</p>
+-                            <p className="text-sm font-bold">{intelligenceData.searches.length} B├║squedas</p>
++                            <p className="text-[10px] font-black uppercase text-text-secondary tracking-widest">Demanda (B├║squedas)</p>
++                            <p className="text-xl font-black italic tracking-tighter">{intelligenceData.searches?.length || 0}</p>
+                         </div>
+                     </div>
++                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4 group hover:bg-white/[0.08] transition-colors">
++                        <div className="w-10 h-10 rounded-xl bg-primary-500/10 flex items-center justify-center text-primary-500 group-hover:scale-110 transition-transform">
++                            <Car className="w-6 h-6" />
++                        </div>
++                        <div>
++                            <p className="text-[10px] font-black uppercase text-text-secondary tracking-widest">Oferta (Inventario)</p>
++                            <p className="text-xl font-black italic tracking-tighter">{intelligenceData.vehicles?.length || 0}</p>
++                        </div>
++                    </div>
++                </div>
++            </div>
++
++            {/* Radar de Demanda Profunda */}
++            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
++                {/* 1. Top Marcas Buscadas */}
++                <div className="bg-[#111114] border border-white/5 rounded-3xl p-8 relative overflow-hidden shadow-2xl">
++                    <div className="absolute top-0 right-0 p-8 opacity-5">
++                        <Target className="w-32 h-32 text-primary-500" />
++                    </div>
++                    <h4 className="text-sm font-black uppercase tracking-[0.2em] mb-8 text-primary-400 flex items-center gap-2">
++                        <TrendingUp className="w-4 h-4" /> Marcas con Mayor Deseo
++                    </h4>
++                    <div className="space-y-6">
++                        {intelligenceData.stats?.topBrands.length > 0 ? (
++                            intelligenceData.stats.topBrands.map(([brand, count]: any, i: number) => (
++                                <div key={brand} className="group">
++                                    <div className="flex justify-between items-end mb-2">
++                                        <span className="text-sm font-black tracking-tight group-hover:text-primary-400 transition-colors">
++                                            {i + 1}. {brand}
++                                        </span>
++                                        <span className="text-xs font-bold text-text-secondary italic">{count} b├║squedas</span>
++                                    </div>
++                                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
++                                        <motion.div
++                                            initial={{ width: 0 }}
++                                            animate={{ width: `${(count / intelligenceData.stats.topBrands[0][1]) * 100}%` }}
++                                            className="h-full bg-primary-600 rounded-full"
++                                        />
++                                    </div>
++                                </div>
++                            ))
++                        ) : (
++                            <p className="text-xs italic opacity-40">No hay datos suficientes hoy</p>
++                        )}
++                    </div>
++                </div>
++
++                {/* 2. Top Modelos Espec├¡ficos */}
++                <div className="bg-[#111114] border border-white/5 rounded-3xl p-8 relative overflow-hidden shadow-2xl lg:col-span-2">
++                    <h4 className="text-sm font-black uppercase tracking-[0.2em] mb-8 text-emerald-400 flex items-center gap-2">
++                        <Activity className="w-4 h-4" /> Modelos con Mayor Tracci├│n (IA)
++                    </h4>
++                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
++                        {intelligenceData.stats?.topModels.length > 0 ? (
++                            intelligenceData.stats.topModels.map(([model, count]: any, i: number) => (
++                                <div key={model} className="flex items-center gap-4 bg-white/[0.02] p-4 rounded-2xl border border-white/5 hover:border-emerald-500/30 transition-all group">
++                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-black italic">
++                                        #{i + 1}
++                                    </div>
++                                    <div className="flex-1">
++                                        <p className="text-sm font-black tracking-tight uppercase group-hover:text-emerald-400">{model}</p>
++                                        <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest">{count} Interesados</p>
++                                    </div>
++                                    <div className="text-xs font-black text-emerald-500">
++                                        {Math.round((count / intelligenceData.searches.length) * 100)}%
++                                    </div>
++                                </div>
++                            ))
++                        ) : (
++                            <p className="text-xs italic opacity-40">Analizando modelos deseados...</p>
++                        )}
++                    </div>
+                 </div>
+             </div>
+ 
+-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 shrink-0 h-[500px]">
+-                <div className="lg:col-span-3 h-full relative">
++            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 shrink-0 min-h-[500px]">
++                <div className="lg:col-span-3 h-full relative bg-[#111114] border border-white/5 rounded-[40px] overflow-hidden shadow-2xl group">
++                    <div className="absolute top-6 left-8 z-10 flex items-center gap-4 bg-black/60 backdrop-blur-xl px-4 py-2 rounded-2xl border border-white/10">
++                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
++                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Live Search Map</span>
++                    </div>
+                     <AdminHeatMap data={intelligenceData} />
+                 </div>
+ 
+-                <div className="bg-[#111114] border border-white/5 rounded-3xl p-6 flex flex-col h-full">
+-                    <h4 className="text-sm font-black uppercase tracking-widest mb-4 flex items-center gap-2">
+-                        <Target className="w-4 h-4 text-primary-500" /> Leyenda T├íctica
++                <div className="bg-[#111114] border border-white/5 rounded-[40px] p-8 flex flex-col h-full shadow-2xl relative overflow-hidden">
++                    <div className="absolute top-0 right-0 p-8 opacity-5">
++                        <Target className="w-40 h-40" />
++                    </div>
++                    <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2 text-primary-500">
++                        <Target className="w-4 h-4 text-primary-500" /> Legenda T├íctica
+                     </h4>
+ 
+-                    <div className="space-y-6 flex-1 overflow-y-auto custom-scrollbar">
+-                        <div className="space-y-3">
++                    <div className="space-y-8 flex-1 overflow-y-auto custom-scrollbar relative z-10">
++                        <div className="space-y-3 p-4 bg-white/5 rounded-2xl border border-white/5">
+                             <div className="flex items-center gap-2">
+-                                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+-                                <span className="text-xs font-bold">Alta Demanda</span>
++                                <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
++                                <span className="text-xs font-black uppercase">Alta Demanda</span>
+                             </div>
+-                            <p className="text-[10px] text-text-secondary leading-relaxed pl-5">Zonas donde los usuarios est├ín buscando veh├¡culos o servicios espec├¡ficos activamente.</p>
++                            <p className="text-[10px] text-text-secondary leading-relaxed font-medium">B├║squedas activas detectadas por la IA en esta coordenada.</p>
+                         </div>
+ 
+-                        <div className="space-y-3">
++                        <div className="space-y-3 p-4 bg-white/5 rounded-2xl border border-white/5">
+                             <div className="flex items-center gap-2">
+-                                <div className="w-3 h-3 rounded-full bg-white border border-black"></div>
+-                                <span className="text-xs font-bold">Competencia</span>
++                                <div className="w-3 h-3 rounded-full bg-white border border-black shadow-[0_0_10px_rgba(255,255,255,0.3)]"></div>
++                                <span className="text-xs font-black uppercase">Competencia</span>
+                             </div>
+-                            <p className="text-[10px] text-text-secondary leading-relaxed pl-5">Negocios f├¡sicos registrados actualmente en el MapStore.</p>
++                            <p className="text-[10px] text-text-secondary leading-relaxed font-medium">Negocios de CarMatch registrados actualmente.</p>
+                         </div>
+ 
+-                        <div className="pt-6 border-t border-white/5">
+-                            <p className="text-[10px] font-black text-primary-500 uppercase mb-2">Consejo de ROI</p>
+-                            <p className="text-[10px] italic text-text-primary/70">Identifica zonas con alta demanda (rojo) y baja competencia (puntos blancos) para maximizar tu inversi├│n.</p>
++                        <div className="mt-auto space-y-4">
++                            <p className="text-[10px] font-black text-primary-500 uppercase tracking-widest">Insight de ROI Maestro</p>
++                            <p className="text-[10px] italic text-text-primary/70 border-l-2 border-primary-500 pl-4 py-2 leading-relaxed">
++                                "La zona con el punto rojo m├ís intenso y menos puntos blancos representa el **Oc├®ano Azul** donde un negocio nuevo tendr├í ├®xito inmediato."
++                            </p>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+ 
+-            {/* Nueva Secci├│n: Oportunidades IA */}
+-            <div className="space-y-4">
+-                <h3 className="text-lg font-black italic tracking-tighter uppercase flex items-center gap-2 text-green-500">
+-                    <Sparkles className="w-5 h-5" /> Oportunidades de Negocio Detectadas (90%+ ├ëxito)
++            {/* Radar de Preferencias T├®cnicas */}
++            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
++                {[
++                    { label: 'Transmisi├│n', key: 'transmissions', icon: Settings, color: 'text-blue-400' },
++                    { label: 'Combustible', key: 'fuels', icon: Coins, color: 'text-amber-400' },
++                    { label: 'Colores Populares', key: 'colors', icon: Sparkles, color: 'text-pink-400' }
++                ].map((trend) => (
++                    <div key={trend.key} className="bg-[#111114] border border-white/5 p-8 rounded-3xl shadow-xl">
++                        <div className="flex items-center gap-3 mb-6">
++                            <trend.icon className={`w-5 h-5 ${trend.color}`} />
++                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">{trend.label}</h4>
++                        </div>
++                        <div className="space-y-4">
++                            {intelligenceData.stats?.techTrends?.[trend.key]?.map(([val, count]: any) => (
++                                <div key={val} className="flex justify-between items-center bg-white/[0.02] px-4 py-2.5 rounded-xl border border-white/5">
++                                    <span className="text-xs font-bold">{val}</span>
++                                    <span className="text-[10px] font-black text-text-secondary">{count}</span>
++                                </div>
++                            ))}
++                            {(!intelligenceData.stats?.techTrends?.[trend.key] || intelligenceData.stats.techTrends[trend.key].length === 0) && (
++                                <p className="text-xs italic opacity-30 text-center py-4">Recopilando datos...</p>
++                            )}
++                        </div>
++                    </div>
++                ))}
++            </div>
++
++            {/* Nueva Secci├│n: Oportunidades IA Reforzada */}
++            <div className="space-y-8">
++                <h3 className="text-2xl font-black italic tracking-tighter uppercase flex items-center gap-3 text-green-500">
++                    <Sparkles className="w-7 h-7" /> Oc├®anos Azules para Socios Estrat├®gicos
+                 </h3>
+-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
++                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                     {opportunities.map((opp) => (
+                         <motion.div
+                             key={opp.id}
+                             initial={{ opacity: 0, y: 20 }}
+-                            animate={{ opacity: 1, y: 0 }}
+-                            className="bg-gradient-to-br from-[#111114] to-black border border-green-500/20 p-6 rounded-3xl relative overflow-hidden group hover:border-green-500/50 transition-colors"
++                            whileInView={{ opacity: 1, y: 0 }}
++                            viewport={{ once: true }}
++                            className="bg-gradient-to-br from-[#121215] to-black border border-green-500/10 p-8 rounded-[32px] relative overflow-hidden group hover:border-green-400/40 transition-all hover:shadow-[0_20px_50px_rgba(34,197,94,0.1)]"
+                         >
+-                            <div className="absolute top-0 right-0 bg-green-500 text-black text-[10px] font-black px-3 py-1 rounded-bl-xl z-10">
+-                                {opp.confidence}% PROBABILIDAD
++                            <div className="absolute top-0 right-0 bg-green-500 text-black text-[10px] font-black px-4 py-1.5 rounded-bl-2xl z-10 shadow-xl">
++                                {opp.confidence}% ├ëXITO
+                             </div>
+ 
+-                            <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-green-500/5 rounded-full blur-3xl group-hover:bg-green-500/10 transition-colors pointer-events-none" />
+-
+-                            <div className="flex items-start justify-between mb-4">
+-                                <div className="p-3 bg-green-500/10 rounded-2xl text-green-500">
+-                                    <Store className="w-6 h-6" />
++                            <div className="flex items-start justify-between mb-6">
++                                <div className="p-4 bg-green-500/10 rounded-2xl text-green-400 group-hover:scale-110 transition-all shadow-inner">
++                                    <Store className="w-7 h-7" />
+                                 </div>
+                             </div>
+ 
+-                            <h4 className="text-sm font-black uppercase tracking-tight text-white mb-1 group-hover:text-green-400 transition-colors">
++                            <h4 className="text-base font-black uppercase tracking-tight text-white mb-2 group-hover:text-green-400 transition-colors">
+                                 {opp.type}
+                             </h4>
+-                            <p className="text-xs font-bold text-text-secondary mb-4 flex items-center gap-1">
+-                                <MapIcon className="w-3 h-3" /> {opp.location}
++                            <p className="text-xs font-bold text-text-secondary mb-6 flex items-center gap-2 uppercase tracking-widest opacity-80">
++                                <MapIcon className="w-3.5 h-3.5 text-green-500" /> {opp.location}
+                             </p>
+ 
+-                            <p className="text-[11px] text-text-secondary leading-relaxed border-l-2 border-green-500/30 pl-3 mb-4">
++                            <p className="text-xs text-text-secondary leading-relaxed border-l-2 border-green-500/20 pl-4 mb-8 italic">
+                                 "{opp.reason}"
+                             </p>
+ 
+-                            <button className="w-full py-2 bg-white/5 hover:bg-green-500 hover:text-black border border-white/5 hover:border-transparent rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
++                            <button className="w-full py-4 bg-white/[0.03] hover:bg-green-500 hover:text-black border border-white/10 hover:border-transparent rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl">
+                                 {opp.action}
+                             </button>
+                         </motion.div>

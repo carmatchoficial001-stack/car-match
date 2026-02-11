@@ -47,184 +47,137 @@ import QRCodeModal from '@/components/QRCodeModal'
 // ... inside AdminView type definition
 type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub' | 'publicity'
 
-export default function AdminPanel() {
-    const { data: session } = useSession()
-    const [activeView, setActiveView] = useState<AdminView>('overview')
-    const [stats, setStats] = useState<any>({
-        users: { total: 0, growth: [], recent: [] },
-        vehicles: { active: 0, recent: [] },
-        businesses: { recent: [] },
-        reports: [],
-        logs: [],
-        financials: { totalRevenue: 0, revenue: [] },
-        intelligence: null,
-        registrations: { total: 0, thisMonth: 0 }
-    })
-    const [isAnalyzing, setIsAnalyzing] = useState(false)
-    const [aiAnalysis, setAiAnalysis] = useState<any>(null)
-    const [showQRModal, setShowQRModal] = useState(false)
+// ... inside AdminDashboard component
+const menuItems = [
+    { id: 'overview', icon: LayoutDashboard, label: 'Panel de Control' },
+    { id: 'publicity', icon: Megaphone, label: 'Publicidad' }, // New Item
+    { id: 'intelligence', icon: Activity, label: 'Inteligencia' },
+    { id: 'users', icon: Users, label: 'Usuarios' },
+    { id: 'inventory', icon: Car, label: 'Inventario' },
+    { id: 'map-store', icon: Store, label: 'MapStore' },
+    { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
+    { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports?.filter(r => r.status === 'PENDING').length || 0 },
+    { id: 'logs', icon: Terminal, label: 'Registros' },
+]
 
-    useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const res = await fetch('/api/admin/stats')
-                if (res.ok) {
-                    const data = await res.json()
-                    const safeStats = {
-                        users: data.users || { total: 0, growth: [], recent: [] },
-                        vehicles: data.vehicles || { active: 0, recent: [] },
-                        businesses: data.businesses || { recent: [] },
-                        reports: data.reports || [],
-                        logs: data.logs || [],
-                        financials: data.financials || { totalRevenue: 0, revenue: [] },
-                        intelligence: data.intelligence || null,
-                        registrations: data.registrations || { total: 0, thisMonth: 0 }
-                    }
-                    setStats(safeStats)
-                }
-            } catch (error) {
-                console.error('Error fetching stats:', error)
-            }
-        }
-        fetchStats()
-    }, [])
-
-    const handleRunAnalyst = async () => {
-        setIsAnalyzing(true)
-        // Simulación de análisis AI
-        setTimeout(() => {
-            setAiAnalysis({
-                summary: 'El análisis de CarMatch OS indica una tendencia de crecimiento sostenida.',
-                insights: [
-                    { observation: 'Alta retención de usuarios nuevos', recommendation: 'Mantener campañas de onboarding' },
-                    { observation: 'Demanda insatisfecha en SUVs', recommendation: 'Promocionar inventario de SUVs' }
-                ],
-                businessOppotunities: []
-            })
-            setIsAnalyzing(false)
-        }, 2000)
-    }
-
-    const menuItems = [
-        { id: 'overview', icon: LayoutDashboard, label: 'Panel de Control' },
-        { id: 'publicity', icon: Megaphone, label: 'Publicidad' },
-        { id: 'intelligence', icon: Activity, label: 'Inteligencia' },
-        { id: 'users', icon: Users, label: 'Usuarios' },
-        { id: 'inventory', icon: Car, label: 'Inventario' },
-        { id: 'map-store', icon: Store, label: 'MapStore' },
-        { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
-        { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports?.filter((r: any) => r.status === 'PENDING').length || 0 },
-        { id: 'logs', icon: Terminal, label: 'Registros' },
-    ]
-
-    return (
-        <div className="min-h-screen bg-black text-white font-sans selection:bg-primary-500/30">
-            {/* Desktop Sidebar */}
-            <aside className="fixed left-0 top-0 bottom-0 w-72 bg-[#09090b] border-r border-white/10 p-6 hidden md:flex flex-col z-50">
-                <div className="flex items-center gap-3 mb-10 px-2">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary-900/40">
-                        <Terminal className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                        <h1 className="font-black text-xl tracking-tighter italic">CarMatch <span className="text-primary-500">OS</span></h1>
-                        <p className="text-[10px] text-text-secondary font-mono tracking-widest uppercase">Admin Neural Interface</p>
-                    </div>
+// ... inside render return
+{ activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} /> }
+{ activeView === 'publicity' && <PublicityTab /> }
+{ activeView === 'intelligence' && <IntelligenceTab /> }
+{ activeView === 'users' && <UsersTab users={stats.users.recent} /> }
+{ activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} /> }
+{ activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} /> }
+{ activeView === 'ai-hub' && <AiHubTab /> }
+{ activeView === 'reports' && <ReportsTab reports={stats.reports} /> }
+{ activeView === 'logs' && <LogsTab logs={stats.logs} /> }
+return (
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-primary-500/30">
+        {/* Desktop Sidebar */}
+        <aside className="fixed left-0 top-0 bottom-0 w-72 bg-[#09090b] border-r border-white/10 p-6 hidden md:flex flex-col z-50">
+            <div className="flex items-center gap-3 mb-10 px-2">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary-900/40">
+                    <Terminal className="w-6 h-6 text-white" />
                 </div>
+                <div>
+                    <h1 className="font-black text-xl tracking-tighter italic">CarMatch <span className="text-primary-500">OS</span></h1>
+                    <p className="text-[10px] text-text-secondary font-mono tracking-widest uppercase">Admin Neural Interface</p>
+                </div>
+            </div>
 
-                <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
-                    {menuItems.map((item) => (
-                        <button
-                            key={item.id}
-                            onClick={() => setActiveView(item.id as AdminView)}
-                            className={`w-full flex items-center justify-between p-3 rounded-xl transition-all group ${activeView === item.id
-                                ? 'bg-white/10 text-white shadow-lg border border-white/5'
-                                : 'text-text-secondary hover:bg-white/5 hover:text-white'
-                                }`}
-                        >
-                            <div className="flex items-center gap-3">
-                                <item.icon className={`w-5 h-5 ${activeView === item.id ? 'text-primary-400' : 'group-hover:text-primary-400 transition-colors'}`} />
-                                <span className="text-sm font-bold tracking-tight">{item.label}</span>
-                            </div>
-                            {item.badge && (
-                                <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg shadow-red-900/40 animate-pulse">
-                                    {item.badge}
-                                </span>
-                            )}
-                        </button>
-                    ))}
-                </nav>
-
-                <div className="mt-6 pt-6 border-t border-white/10 space-y-2">
-                    <button onClick={() => setShowQRModal(true)} className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
-                        <QrCode className="w-5 h-5" />
-                        <span className="text-sm font-bold">Descargar App</span>
-                    </button>
-                    <button className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
-                        <Settings className="w-5 h-5" />
-                        <span className="text-sm font-bold">Configuración</span>
-                    </button>
-                    <div className="p-4 bg-gradient-to-br from-white/5 to-transparent rounded-2xl border border-white/5 mt-4">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
-                                <span className="font-black text-indigo-400">R</span>
-                            </div>
-                            <div>
-                                <p className="text-xs font-bold text-white">Ruben Admin</p>
-                                <p className="text-[10px] text-text-secondary">Super User</p>
-                            </div>
+            <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
+                {menuItems.map((item) => (
+                    <button
+                        key={item.id}
+                        onClick={() => setActiveView(item.id as AdminView)}
+                        className={`w-full flex items-center justify-between p-3 rounded-xl transition-all group ${activeView === item.id
+                            ? 'bg-white/10 text-white shadow-lg border border-white/5'
+                            : 'text-text-secondary hover:bg-white/5 hover:text-white'
+                            }`}
+                    >
+                        <div className="flex items-center gap-3">
+                            <item.icon className={`w-5 h-5 ${activeView === item.id ? 'text-primary-400' : 'group-hover:text-primary-400 transition-colors'}`} />
+                            <span className="text-sm font-bold tracking-tight">{item.label}</span>
                         </div>
-                        <button className="w-full py-2 bg-white/5 hover:bg-red-500/20 hover:text-red-500 text-text-secondary rounded-lg text-xs font-bold transition flex items-center justify-center gap-2">
-                            <LogOut className="w-3 h-3" /> Cerrar Sesión
-                        </button>
+                        {item.badge && (
+                            <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg shadow-red-900/40 animate-pulse">
+                                {item.badge}
+                            </span>
+                        )}
+                    </button>
+                ))}
+            </nav>
+
+            <div className="mt-6 pt-6 border-t border-white/10 space-y-2">
+                <button onClick={() => setShowQRModal(true)} className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
+                    <QrCode className="w-5 h-5" />
+                    <span className="text-sm font-bold">Descargar App</span>
+                </button>
+                <button className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
+                    <Settings className="w-5 h-5" />
+                    <span className="text-sm font-bold">Configuración</span>
+                </button>
+                <div className="p-4 bg-gradient-to-br from-white/5 to-transparent rounded-2xl border border-white/5 mt-4">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                            <span className="font-black text-indigo-400">R</span>
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-white">Ruben Admin</p>
+                            <p className="text-[10px] text-text-secondary">Super User</p>
+                        </div>
                     </div>
+                    <button className="w-full py-2 bg-white/5 hover:bg-red-500/20 hover:text-red-500 text-text-secondary rounded-lg text-xs font-bold transition flex items-center justify-center gap-2">
+                        <LogOut className="w-3 h-3" /> Cerrar Sesión
+                    </button>
                 </div>
-            </aside>
+            </div>
+        </aside>
 
-            {/* Main Content Area */}
-            <main className="md:pl-72 min-h-screen bg-[#000000] relative pb-24 md:pb-0">
+        {/* Main Content Area */}
+        <main className="md:pl-72 min-h-screen bg-[#000000] relative pb-24 md:pb-0">
 
-                {/* Mobile Header */}
-                <div className="md:hidden p-6 pb-2 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-xl z-40 border-b border-white/10">
-                    <div className="flex items-center gap-2">
-                        <Terminal className="w-5 h-5 text-primary-500" />
-                        <h1 className="font-black text-lg tracking-tighter italic">CarMatch OS</h1>
-                    </div>
-                    <div className="w-8 h-8 rounded-full bg-surface-highlight overflow-hidden">
-                        <img src={session?.user?.image || "https://ui-avatars.com/api/?name=Admin"} alt="Profile" />
-                    </div>
+            {/* Mobile Header */}
+            <div className="md:hidden p-6 pb-2 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-xl z-40 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                    <Terminal className="w-5 h-5 text-primary-500" />
+                    <h1 className="font-black text-lg tracking-tighter italic">CarMatch OS</h1>
                 </div>
-
-                <div className="p-4 md:p-10 max-w-7xl mx-auto space-y-8">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeView}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            {activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} />}
-                            {activeView === 'publicity' && <PublicityTab />}
-                            {activeView === 'intelligence' && <IntelligenceTab />}
-                            {activeView === 'users' && <UsersTab users={stats.users.recent} />}
-                            {activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} />}
-                            {activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} />}
-                            {activeView === 'ai-hub' && <AiHubTab />}
-                            {activeView === 'reports' && <ReportsTab reports={stats.reports} />}
-                            {activeView === 'logs' && <LogsTab logs={stats.logs} />}
-                        </motion.div>
-                    </AnimatePresence>
+                <div className="w-8 h-8 rounded-full bg-surface-highlight overflow-hidden">
+                    <img src={session?.user?.image || "https://ui-avatars.com/api/?name=Admin"} alt="Profile" />
                 </div>
-            </main>
+            </div>
 
-            <AdminMobileNav activeView={activeView} setActiveView={setActiveView} menuItems={menuItems} />
+            <div className="p-4 md:p-10 max-w-7xl mx-auto space-y-8">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={activeView}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        {activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} />}
+                        {activeView === 'publicity' && <PublicityTab />}
+                        {activeView === 'intelligence' && <IntelligenceTab />}
+                        {activeView === 'users' && <UsersTab users={stats.users.recent} />}
+                        {activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} />}
+                        {activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} />}
+                        {activeView === 'ai-hub' && <AiHubTab />}
+                        {activeView === 'reports' && <ReportsTab reports={stats.reports} />}
+                        {activeView === 'logs' && <LogsTab logs={stats.logs} />}
+                    </motion.div>
+                </AnimatePresence>
+            </div>
+        </main>
 
-            <QRCodeModal
-                isOpen={showQRModal}
-                onClose={() => setShowQRModal(false)}
-            />
-        </div>
-    )
+        <AdminMobileNav activeView={activeView} setActiveView={setActiveView} menuItems={menuItems} />
+
+        <QRCodeModal
+            isOpen={showQRModal}
+            onClose={() => setShowQRModal(false)}
+        />
+    </div>
+)
 }
 
 function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) {
@@ -425,8 +378,7 @@ function UsersTab({ users }: { users: any[] }) {
                     <input type="text" placeholder="Buscar usuario..." className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary-500" />
                 </div>
             </div>
-            {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-white/5">
                         <tr>
@@ -502,76 +454,6 @@ function UsersTab({ users }: { users: any[] }) {
                 </table>
             </div>
 
-            {/* Mobile Card View */}
-            <div className="md:hidden grid grid-cols-1 gap-4 p-4">
-                {users.map(user => (
-                    <div key={user.id} className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-4">
-                        <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-surface-highlight overflow-hidden">
-                                    <img src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} className="w-full h-full object-cover" />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-sm text-white">{user.name}</h4>
-                                    <p className="text-xs text-text-secondary">{user.email}</p>
-                                </div>
-                            </div>
-                            <span className={`text-[9px] font-black px-2 py-1 rounded ${user.isAdmin ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                                {user.isAdmin ? 'ADMIN' : 'USER'}
-                            </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-white/5 rounded-xl p-2 px-3 border border-white/5 flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase text-text-secondary">Créditos</span>
-                                <div className="flex items-center gap-2">
-                                    <span className={`text-sm font-bold ${user.credits > 0 ? 'text-amber-400' : 'text-gray-500'}`}>
-                                        {user.credits}
-                                    </span>
-                                    <button
-                                        onClick={() => {
-                                            setSelectedUser(user)
-                                            setShowCreditModal(true)
-                                        }}
-                                        className="p-1 bg-white/10 rounded-lg text-amber-500/80 hover:text-amber-400"
-                                    >
-                                        <Coins size={12} />
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="bg-white/5 rounded-xl p-2 px-3 border border-white/5 flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase text-text-secondary">Estado</span>
-                                <span className={`text-[10px] font-black flex items-center gap-1.5 ${user.isActive ? 'text-green-500' : 'text-red-500'}`}>
-                                    <div className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
-                                    {user.isActive ? 'ACTIVO' : 'INACTIVO'}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-3 border-t border-white/5">
-                            <span className="text-[10px] text-text-secondary">
-                                Reg: {new Date(user.createdAt).toLocaleDateString()}
-                            </span>
-                            <div className="flex gap-2">
-                                <AdminGenericAction
-                                    apiPath={`/api/admin/users/${user.id}`}
-                                    method="PATCH"
-                                    body={{ isActive: !user.isActive }}
-                                    label={user.isActive ? 'Bloquear' : 'Activar'}
-                                />
-                                <AdminGenericAction
-                                    apiPath={`/api/admin/users/${user.id}`}
-                                    method="DELETE"
-                                    label="Eliminar"
-                                    danger
-                                />
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
             {selectedUser && (
                 <ManageCreditsModal
                     isOpen={showCreditModal}
@@ -598,98 +480,58 @@ function InventoryTab({ vehicles }: { vehicles: any[] }) {
                     </button>
                 </div>
             </div>
-            {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
-                <table className="w-full">
-                    <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-text-secondary">
-                        <tr>
-                            <th className="px-6 py-4 text-left">Vehículo</th>
-                            <th className="px-6 py-4 text-left">Vendedor</th>
-                            <th className="px-6 py-4 text-left">Precio</th>
-                            <th className="px-6 py-4 text-left">Estado</th>
-                            <th className="px-6 py-4 text-left">Acciones</th>
+            <table className="w-full">
+                <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-text-secondary">
+                    <tr>
+                        <th className="px-6 py-4 text-left">Vehículo</th>
+                        <th className="px-6 py-4 text-left">Vendedor</th>
+                        <th className="px-6 py-4 text-left">Precio</th>
+                        <th className="px-6 py-4 text-left">Estado</th>
+                        <th className="px-6 py-4 text-left">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                    {vehicles.map(vehicle => (
+                        <tr key={vehicle.id} className="hover:bg-white/5 transition-colors">
+                            <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-8 rounded-lg bg-black overflow-hidden border border-white/10">
+                                        <img src={vehicle.images?.[0]} className="w-full h-full object-cover" />
+                                    </div>
+                                    <span className="text-sm font-bold">{vehicle.title}</span>
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.user.name}</td>
+                            <td className="px-6 py-4 text-sm font-bold text-primary-400">
+                                {Number(vehicle.price).toLocaleString('es-MX', { style: 'currency', currency: vehicle.currency || 'MXN' })}
+                            </td>
+                            <td className="px-6 py-4">
+                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
+                                    }`}>
+                                    {vehicle.status}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4">
+                                <div className="flex gap-2">
+                                    <AdminGenericAction
+                                        apiPath={`/api/vehicles/${vehicle.id}`}
+                                        method="PATCH"
+                                        body={{ status: vehicle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
+                                        label={vehicle.status === 'ACTIVE' ? 'Ocultar' : 'Mostrar'}
+                                    />
+                                    <AdminGenericAction
+                                        apiPath={`/api/vehicles/${vehicle.id}`}
+                                        method="DELETE"
+                                        label="Eliminar"
+                                        danger
+                                    />
+                                </div>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                        {vehicles.map(vehicle => (
-                            <tr key={vehicle.id} className="hover:bg-white/5 transition-colors">
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-8 rounded-lg bg-black overflow-hidden border border-white/10">
-                                            <img src={vehicle.images?.[0]} className="w-full h-full object-cover" />
-                                        </div>
-                                        <span className="text-sm font-bold">{vehicle.title}</span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.user.name}</td>
-                                <td className="px-6 py-4 text-sm font-bold text-primary-400">
-                                    {Number(vehicle.price).toLocaleString('es-MX', { style: 'currency', currency: vehicle.currency || 'MXN' })}
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
-                                        }`}>
-                                        {vehicle.status}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex gap-2">
-                                        <AdminGenericAction
-                                            apiPath={`/api/vehicles/${vehicle.id}`}
-                                            method="PATCH"
-                                            body={{ status: vehicle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
-                                            label={vehicle.status === 'ACTIVE' ? 'Ocultar' : 'Mostrar'}
-                                        />
-                                        <AdminGenericAction
-                                            apiPath={`/api/vehicles/${vehicle.id}`}
-                                            method="DELETE"
-                                            label="Eliminar"
-                                            danger
-                                        />
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Mobile Card View */}
-            <div className="md:hidden grid grid-cols-1 gap-4 p-4">
-                {vehicles.map(vehicle => (
-                    <div key={vehicle.id} className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-3">
-                        {/* Header: Image & Title */}
-                        <div className="flex items-start gap-3">
-                            <div className="w-16 h-12 rounded-lg bg-black overflow-hidden border border-white/10 shrink-0">
-                                <img src={vehicle.images?.[0]} className="w-full h-full object-cover" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h4 className="font-bold text-sm text-white line-clamp-1">{vehicle.title}</h4>
-                                <p className="text-xs text-text-secondary truncate">{vehicle.user.name}</p>
-                                <p className="text-sm font-black text-primary-400 mt-1">
-                                    {Number(vehicle.price).toLocaleString('es-MX', { style: 'currency', currency: vehicle.currency || 'MXN' })}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Badges Row */}
-                        <div className="flex items-center justify-between">
-                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
-                                }`}>
-                                {vehicle.status}
-                            </span>
-                            <span className="text-[9px] text-text-secondary uppercase tracking-widest">
-                                {vehicle.city || 'Ubicación n/a'}
-                            </span>
-                        </div>
-
-                        {/* Actions Footer */}
-                    </div>
-                        </div>
+                    ))}
+                </tbody>
+            </table>
         </div>
-    ))
-}
-            </div >
-        </div >
     )
 }
 

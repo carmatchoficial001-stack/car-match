@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
     Megaphone, Plus, Search, Filter, MoreVertical,
     Calendar, Globe, Share2, Trash2, Edit, CheckCircle2,
-    XCircle, Clock, ExternalLink, Image as ImageIcon, Sparkles, RefreshCw
+    XCircle, Clock, ExternalLink, Image as ImageIcon, Sparkles, RefreshCw, Zap
 } from 'lucide-react'
 import {
     getPublicityCampaigns,
@@ -89,30 +89,48 @@ export default function PublicityTab() {
     return (
         <div className="h-full flex flex-col">
             <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4 bg-zinc-900/50 p-1 rounded-xl border border-white/5">
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
+                    <div className="flex items-center gap-1 bg-zinc-900/50 p-1 rounded-xl border border-white/5 shrink-0">
+                        <button
+                            onClick={() => setViewMode('STUDIO')}
+                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${viewMode === 'STUDIO' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20' : 'text-white/40 hover:text-white'}`}
+                        >
+                            ✨ AI Studio
+                        </button>
+                        <button
+                            onClick={() => setViewMode('QUEUE')}
+                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${viewMode === 'QUEUE' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-white/40 hover:text-white'}`}
+                        >
+                            🕒 Drafts
+                        </button>
+                    </div>
+                    {/* Botón Crear Campaña en Header Móvil */}
                     <button
-                        onClick={() => setViewMode('STUDIO')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition ${viewMode === 'STUDIO' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20' : 'text-white/40 hover:text-white'}`}
+                        onClick={handleCreate}
+                        className="md:hidden p-3 bg-primary-600 text-white rounded-xl shadow-lg shadow-primary-900/20 shrink-0"
                     >
-                        ✨ AI Studio
-                    </button>
-                    <button
-                        onClick={() => setViewMode('QUEUE')}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition ${viewMode === 'QUEUE' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-white/40 hover:text-white'}`}
-                    >
-                        🕒 Sala de Espera (Drafts)
+                        <Plus className="w-5 h-5" />
                     </button>
                 </div>
 
-                {viewMode === 'STUDIO' && (
+                <div className="flex items-center gap-3">
+                    {viewMode === 'STUDIO' && (
+                        <button
+                            onClick={() => setIsAIModalOpen(true)}
+                            className="hidden md:flex px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold text-xs shadow-lg shadow-purple-900/30 hover:shadow-purple-900/50 transition-all items-center gap-2"
+                        >
+                            <Zap className="w-3 h-3" />
+                            AI Gen
+                        </button>
+                    )}
                     <button
-                        onClick={() => setIsAIModalOpen(true)}
-                        className="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-purple-900/30 hover:shadow-purple-900/50 transition-all flex items-center gap-2"
+                        onClick={handleCreate}
+                        className="hidden md:flex px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-bold text-xs transition shadow-lg shadow-primary-900/20 items-center gap-2"
                     >
-                        <Zap className="w-4 h-4" />
-                        Abrir Generador Manual
+                        <Plus className="w-4 h-4" />
+                        Nueva Campaña
                     </button>
-                )}
+                </div>
             </div>
 
             <div className="flex-1 bg-zinc-950/50 border border-white/5 rounded-3xl overflow-hidden relative backdrop-blur-sm">
@@ -694,7 +712,7 @@ export default function PublicityTab() {
                                         <input name="title" required defaultValue={campaign?.title} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" placeholder="Ej. Promoción Verano 2026" />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Cliente</label>
                                             <input name="clientName" defaultValue={campaign?.clientName} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" placeholder="Opcional" />
@@ -715,7 +733,7 @@ export default function PublicityTab() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Inicio</label>
                                             <input type="date" name="startDate" required defaultValue={campaign?.startDate ? new Date(campaign.startDate).toISOString().split('T')[0] : ''} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" />
