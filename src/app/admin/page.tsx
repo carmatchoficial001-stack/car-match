@@ -378,7 +378,8 @@ function UsersTab({ users }: { users: any[] }) {
                     <input type="text" placeholder="Buscar usuario..." className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary-500" />
                 </div>
             </div>
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-white/5">
                         <tr>
@@ -454,6 +455,76 @@ function UsersTab({ users }: { users: any[] }) {
                 </table>
             </div>
 
+            {/* Mobile Card View */}
+            <div className="md:hidden grid grid-cols-1 gap-4 p-4">
+                {users.map(user => (
+                    <div key={user.id} className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-4">
+                        <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-surface-highlight overflow-hidden">
+                                    <img src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} className="w-full h-full object-cover" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-sm text-white">{user.name}</h4>
+                                    <p className="text-xs text-text-secondary">{user.email}</p>
+                                </div>
+                            </div>
+                            <span className={`text-[9px] font-black px-2 py-1 rounded ${user.isAdmin ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                                {user.isAdmin ? 'ADMIN' : 'USER'}
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-white/5 rounded-xl p-2 px-3 border border-white/5 flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase text-text-secondary">Créditos</span>
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-sm font-bold ${user.credits > 0 ? 'text-amber-400' : 'text-gray-500'}`}>
+                                        {user.credits}
+                                    </span>
+                                    <button
+                                        onClick={() => {
+                                            setSelectedUser(user)
+                                            setShowCreditModal(true)
+                                        }}
+                                        className="p-1 bg-white/10 rounded-lg text-amber-500/80 hover:text-amber-400"
+                                    >
+                                        <Coins size={12} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="bg-white/5 rounded-xl p-2 px-3 border border-white/5 flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase text-text-secondary">Estado</span>
+                                <span className={`text-[10px] font-black flex items-center gap-1.5 ${user.isActive ? 'text-green-500' : 'text-red-500'}`}>
+                                    <div className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
+                                    {user.isActive ? 'ACTIVO' : 'INACTIVO'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-3 border-t border-white/5">
+                            <span className="text-[10px] text-text-secondary">
+                                Reg: {new Date(user.createdAt).toLocaleDateString()}
+                            </span>
+                            <div className="flex gap-2">
+                                <AdminGenericAction
+                                    apiPath={`/api/admin/users/${user.id}`}
+                                    method="PATCH"
+                                    body={{ isActive: !user.isActive }}
+                                    label={user.isActive ? 'Bloquear' : 'Activar'}
+                                />
+                                <AdminGenericAction
+                                    apiPath={`/api/admin/users/${user.id}`}
+                                    method="DELETE"
+                                    label="Eliminar"
+                                    danger
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
             {selectedUser && (
                 <ManageCreditsModal
                     isOpen={showCreditModal}
@@ -480,57 +551,112 @@ function InventoryTab({ vehicles }: { vehicles: any[] }) {
                     </button>
                 </div>
             </div>
-            <table className="w-full">
-                <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-text-secondary">
-                    <tr>
-                        <th className="px-6 py-4 text-left">Vehículo</th>
-                        <th className="px-6 py-4 text-left">Vendedor</th>
-                        <th className="px-6 py-4 text-left">Precio</th>
-                        <th className="px-6 py-4 text-left">Estado</th>
-                        <th className="px-6 py-4 text-left">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                    {vehicles.map(vehicle => (
-                        <tr key={vehicle.id} className="hover:bg-white/5 transition-colors">
-                            <td className="px-6 py-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-8 rounded-lg bg-black overflow-hidden border border-white/10">
-                                        <img src={vehicle.images?.[0]} className="w-full h-full object-cover" />
-                                    </div>
-                                    <span className="text-sm font-bold">{vehicle.title}</span>
-                                </div>
-                            </td>
-                            <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.user.name}</td>
-                            <td className="px-6 py-4 text-sm font-bold text-primary-400">
-                                {Number(vehicle.price).toLocaleString('es-MX', { style: 'currency', currency: vehicle.currency || 'MXN' })}
-                            </td>
-                            <td className="px-6 py-4">
-                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
-                                    }`}>
-                                    {vehicle.status}
-                                </span>
-                            </td>
-                            <td className="px-6 py-4">
-                                <div className="flex gap-2">
-                                    <AdminGenericAction
-                                        apiPath={`/api/vehicles/${vehicle.id}`}
-                                        method="PATCH"
-                                        body={{ status: vehicle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
-                                        label={vehicle.status === 'ACTIVE' ? 'Ocultar' : 'Mostrar'}
-                                    />
-                                    <AdminGenericAction
-                                        apiPath={`/api/vehicles/${vehicle.id}`}
-                                        method="DELETE"
-                                        label="Eliminar"
-                                        danger
-                                    />
-                                </div>
-                            </td>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+                <table className="w-full">
+                    <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-text-secondary">
+                        <tr>
+                            <th className="px-6 py-4 text-left">Vehículo</th>
+                            <th className="px-6 py-4 text-left">Vendedor</th>
+                            <th className="px-6 py-4 text-left">Precio</th>
+                            <th className="px-6 py-4 text-left">Estado</th>
+                            <th className="px-6 py-4 text-left">Acciones</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                        {vehicles.map(vehicle => (
+                            <tr key={vehicle.id} className="hover:bg-white/5 transition-colors">
+                                <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-8 rounded-lg bg-black overflow-hidden border border-white/10">
+                                            <img src={vehicle.images?.[0]} className="w-full h-full object-cover" />
+                                        </div>
+                                        <span className="text-sm font-bold">{vehicle.title}</span>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.user.name}</td>
+                                <td className="px-6 py-4 text-sm font-bold text-primary-400">
+                                    {Number(vehicle.price).toLocaleString('es-MX', { style: 'currency', currency: vehicle.currency || 'MXN' })}
+                                </td>
+                                <td className="px-6 py-4">
+                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
+                                        }`}>
+                                        {vehicle.status}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="flex gap-2">
+                                        <AdminGenericAction
+                                            apiPath={`/api/vehicles/${vehicle.id}`}
+                                            method="PATCH"
+                                            body={{ status: vehicle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
+                                            label={vehicle.status === 'ACTIVE' ? 'Ocultar' : 'Mostrar'}
+                                        />
+                                        <AdminGenericAction
+                                            apiPath={`/api/vehicles/${vehicle.id}`}
+                                            method="DELETE"
+                                            label="Eliminar"
+                                            danger
+                                        />
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden grid grid-cols-1 gap-4 p-4">
+                {vehicles.map(vehicle => (
+                    <div key={vehicle.id} className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-3">
+                        {/* Header: Image & Title */}
+                        <div className="flex items-start gap-3">
+                            <div className="w-16 h-12 rounded-lg bg-black overflow-hidden border border-white/10 shrink-0">
+                                <img src={vehicle.images?.[0]} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-sm text-white line-clamp-1">{vehicle.title}</h4>
+                                <p className="text-xs text-text-secondary truncate">{vehicle.user.name}</p>
+                                <p className="text-sm font-black text-primary-400 mt-1">
+                                    {Number(vehicle.price).toLocaleString('es-MX', { style: 'currency', currency: vehicle.currency || 'MXN' })}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Badges Row */}
+                        <div className="flex items-center justify-between">
+                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
+                                }`}>
+                                {vehicle.status}
+                            </span>
+                            <span className="text-[9px] text-text-secondary uppercase tracking-widest">
+                                {vehicle.city || 'Ubicación n/a'}
+                            </span>
+                        </div>
+
+                        {/* Actions Footer */}
+                        <div className="pt-3 border-t border-white/5 flex gap-2">
+                            <div className="flex-1">
+                                <AdminGenericAction
+                                    apiPath={`/api/vehicles/${vehicle.id}`}
+                                    method="PATCH"
+                                    body={{ status: vehicle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
+                                    label={vehicle.status === 'ACTIVE' ? 'Ocultar' : 'Publicar'}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <AdminGenericAction
+                                    apiPath={`/api/vehicles/${vehicle.id}`}
+                                    method="DELETE"
+                                    label="Eliminar"
+                                    danger
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }
