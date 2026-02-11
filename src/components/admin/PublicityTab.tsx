@@ -135,9 +135,9 @@ export default function PublicityTab() {
                             </button>
                         </div>
 
-                        {/* Campaign List */}
+                        {/* Campaign List - Responsive Layout */}
                         {loading ? (
-                            <div className="p-12 text-center text-text-secondary" > Cargando campañas...</div>
+                            <div className="p-12 text-center text-text-secondary animate-pulse">Cargando campañas...</div>
                         ) : campaigns.length === 0 ? (
                             <div className="p-12 text-center text-text-secondary flex flex-col items-center">
                                 <Megaphone className="w-12 h-12 mb-4 opacity-20" />
@@ -145,115 +145,192 @@ export default function PublicityTab() {
                                 <button onClick={handleCreate} className="mt-4 text-primary-400 font-bold text-sm">Crear la primera</button>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-text-secondary">
-                                        <tr>
-                                            <th className="px-6 py-4 text-left">Campaña</th>
-                                            <th className="px-6 py-4 text-left">Estado</th>
-                                            <th className="px-6 py-4 text-left">Duración</th>
-                                            <th className="px-6 py-4 text-left">Redes Sociales</th>
-                                            <th className="px-6 py-4 text-left">Rendimiento</th>
-                                            <th className="px-6 py-4 text-right">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {campaigns.map(campaign => (
-                                            <tr key={campaign.id} className="hover:bg-white/5 transition-colors group">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-12 h-12 rounded-lg bg-black overflow-hidden border border-white/10 relative">
-                                                            <img src={campaign.imageUrl} alt={campaign.title} className="w-full h-full object-cover" />
+                            <>
+                                {/* Desktop Table View (Hidden on Mobile) */}
+                                <div className="hidden md:block overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-text-secondary">
+                                            <tr>
+                                                <th className="px-6 py-4 text-left">Campaña</th>
+                                                <th className="px-6 py-4 text-left">Estado</th>
+                                                <th className="px-6 py-4 text-left">Duración</th>
+                                                <th className="px-6 py-4 text-left">Redes Sociales</th>
+                                                <th className="px-6 py-4 text-left">Rendimiento</th>
+                                                <th className="px-6 py-4 text-right">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {campaigns.map(campaign => (
+                                                <tr key={campaign.id} className="hover:bg-white/5 transition-colors group">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-12 h-12 rounded-lg bg-black overflow-hidden border border-white/10 relative">
+                                                                <img src={campaign.imageUrl} alt={campaign.title} className="w-full h-full object-cover" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-sm text-white">{campaign.title}</p>
+                                                                <p className="text-xs text-text-secondary">{campaign.clientName || 'Interno'}</p>
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <p className="font-bold text-sm text-white">{campaign.title}</p>
-                                                            <p className="text-xs text-text-secondary">{campaign.clientName || 'Interno'}</p>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <button
+                                                            onClick={() => handleToggleStatus(campaign.id, campaign.isActive)}
+                                                            className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-all ${campaign.isActive
+                                                                ? 'bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20'
+                                                                : 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20'
+                                                                }`}
+                                                        >
+                                                            {campaign.isActive ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                                                            <span className="text-[10px] font-black uppercase">{campaign.isActive ? 'Activa' : 'Pausada'}</span>
+                                                        </button>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex flex-col gap-1 text-xs text-text-secondary">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Calendar className="w-3 h-3" />
+                                                                <span>{new Date(campaign.startDate).toLocaleDateString()}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Clock className="w-3 h-3" />
+                                                                <span>{new Date(campaign.endDate).toLocaleDateString()}</span>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className={`w-2 h-2 rounded-full ${campaign.socialMediaEnabled ? 'bg-blue-500 animate-pulse' : 'bg-gray-700'}`} />
+                                                                <span className="text-xs text-text-secondary">
+                                                                    {campaign.socialMediaEnabled ? 'Auto-Publicación ON' : 'Apagado'}
+                                                                </span>
+                                                            </div>
+                                                            {campaign.socialMediaEnabled && (
+                                                                <div className="text-[10px] text-text-secondary pl-4">
+                                                                    Ult: {campaign.lastSocialPost
+                                                                        ? new Date(campaign.lastSocialPost).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                                        : 'Pendiente'}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex gap-4">
+                                                            <div className="text-center">
+                                                                <p className="text-xs font-bold text-white">{campaign.impressionCount}</p>
+                                                                <p className="text-[9px] text-text-secondary uppercase">Vistas</p>
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <p className="text-xs font-bold text-primary-400">{campaign.clickCount}</p>
+                                                                <p className="text-[9px] text-text-secondary uppercase">Clics</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            {campaign.socialMediaEnabled && (
+                                                                <button
+                                                                    onClick={() => handleManualPost(campaign.id)}
+                                                                    className="p-2 hover:bg-white/10 rounded-lg text-blue-400 transition"
+                                                                    title="Publicar Ahora en Redes"
+                                                                >
+                                                                    <Share2 className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                            <button
+                                                                onClick={() => handleEdit(campaign)}
+                                                                className="p-2 hover:bg-white/10 rounded-lg text-white transition"
+                                                            >
+                                                                <Edit className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDelete(campaign.id)}
+                                                                className="p-2 hover:bg-red-500/20 rounded-lg text-red-500 transition"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Mobile Card View (Visible on Mobile) */}
+                                <div className="md:hidden grid grid-cols-1 gap-4 p-4">
+                                    {campaigns.map(campaign => (
+                                        <div key={campaign.id} className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-4">
+                                            {/* Header: Image & Title */}
+                                            <div className="flex items-start gap-4">
+                                                <div className="w-16 h-16 rounded-xl bg-black overflow-hidden border border-white/10 shrink-0">
+                                                    <img src={campaign.imageUrl} alt={campaign.title} className="w-full h-full object-cover" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="font-bold text-white truncate">{campaign.title}</h3>
+                                                    <p className="text-xs text-text-secondary mb-2">{campaign.clientName || 'Interno'}</p>
                                                     <button
                                                         onClick={() => handleToggleStatus(campaign.id, campaign.isActive)}
-                                                        className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-all ${campaign.isActive
-                                                            ? 'bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20'
-                                                            : 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20'
+                                                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg border transition-all ${campaign.isActive
+                                                            ? 'bg-green-500/10 border-green-500/20 text-green-500'
+                                                            : 'bg-red-500/10 border-red-500/20 text-red-500'
                                                             }`}
                                                     >
                                                         {campaign.isActive ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                                                         <span className="text-[10px] font-black uppercase">{campaign.isActive ? 'Activa' : 'Pausada'}</span>
                                                     </button>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-col gap-1 text-xs text-text-secondary">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <Calendar className="w-3 h-3" />
-                                                            <span>{new Date(campaign.startDate).toLocaleDateString()}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <Clock className="w-3 h-3" />
-                                                            <span>{new Date(campaign.endDate).toLocaleDateString()}</span>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="space-y-2">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className={`w-2 h-2 rounded-full ${campaign.socialMediaEnabled ? 'bg-blue-500 animate-pulse' : 'bg-gray-700'}`} />
-                                                            <span className="text-xs text-text-secondary">
-                                                                {campaign.socialMediaEnabled ? 'Auto-Publicación ON' : 'Apagado'}
-                                                            </span>
-                                                        </div>
-                                                        {campaign.socialMediaEnabled && (
-                                                            <div className="text-[10px] text-text-secondary pl-4">
-                                                                Ult: {campaign.lastSocialPost
-                                                                    ? new Date(campaign.lastSocialPost).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                                                    : 'Pendiente'}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex gap-4">
-                                                        <div className="text-center">
-                                                            <p className="text-xs font-bold text-white">{campaign.impressionCount}</p>
-                                                            <p className="text-[9px] text-text-secondary uppercase">Vistas</p>
-                                                        </div>
-                                                        <div className="text-center">
-                                                            <p className="text-xs font-bold text-primary-400">{campaign.clickCount}</p>
-                                                            <p className="text-[9px] text-text-secondary uppercase">Clics</p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        {campaign.socialMediaEnabled && (
-                                                            <button
-                                                                onClick={() => handleManualPost(campaign.id)}
-                                                                className="p-2 hover:bg-white/10 rounded-lg text-blue-400 transition"
-                                                                title="Publicar Ahora en Redes"
-                                                            >
-                                                                <Share2 className="w-4 h-4" />
-                                                            </button>
-                                                        )}
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <button
+                                                        onClick={() => handleEdit(campaign)}
+                                                        className="p-2 bg-white/5 rounded-full text-white hover:bg-white/10"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Stats Grid */}
+                                            <div className="grid grid-cols-2 gap-2 bg-white/5 rounded-xl p-3">
+                                                <div className="text-center border-r border-white/5">
+                                                    <p className="text-lg font-black text-white">{campaign.impressionCount}</p>
+                                                    <p className="text-[9px] text-text-secondary uppercase tracking-wider">Vistas</p>
+                                                </div>
+                                                <div className="text-center">
+                                                    <p className="text-lg font-black text-primary-400">{campaign.clickCount}</p>
+                                                    <p className="text-[9px] text-text-secondary uppercase tracking-wider">Clics</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Footer: Date & Social Actions */}
+                                            <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                                                <div className="flex items-center gap-2 text-xs text-text-secondary">
+                                                    <Calendar className="w-3 h-3" />
+                                                    <span>{new Date(campaign.startDate).toLocaleDateString()}</span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    {campaign.socialMediaEnabled && (
                                                         <button
-                                                            onClick={() => handleEdit(campaign)}
-                                                            className="p-2 hover:bg-white/10 rounded-lg text-white transition"
+                                                            onClick={() => handleManualPost(campaign.id)}
+                                                            className="p-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500/20 transition flex items-center gap-2"
                                                         >
-                                                            <Edit className="w-4 h-4" />
+                                                            <Share2 className="w-3 h-3" />
+                                                            <span className="text-[10px] font-bold">Publicar</span>
                                                         </button>
-                                                        <button
-                                                            onClick={() => handleDelete(campaign.id)}
-                                                            className="p-2 hover:bg-red-500/20 rounded-lg text-red-500 transition"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                                    )}
+                                                    <button
+                                                        onClick={() => handleDelete(campaign.id)}
+                                                        className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
                         )
                         }
                     </div >

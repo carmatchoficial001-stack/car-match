@@ -212,53 +212,6 @@ export default function RootLayout({
                                     "ratingCount": "1250"
                                 }
                             },
-                            // 🎯 NEW: FAQPage Schema para Rich Snippets
-                            {
-                                "@context": "https://schema.org",
-                                "@type": "FAQPage",
-                                "mainEntity": [
-                                    {
-                                        "@type": "Question",
-                                        "name": "¿Cómo vendo mi carro gratis en CarMatch?",
-                                        "acceptedAnswer": {
-                                            "@type": "Answer",
-                                            "text": "Tu primer vehículo se publica GRATIS por 6 meses completos. Solo regístrate, sube fotos de calidad y describe tu auto. Aparecerá en MarketCar y en el feed CarMatch para máxima visibilidad."
-                                        }
-                                    },
-                                    {
-                                        "@type": "Question",
-                                        "name": "¿Qué es el feed CarMatch estilo Tinder?",
-                                        "acceptedAnswer": {
-                                            "@type": "Answer",
-                                            "text": "Es una forma rápida y divertida de descubrir vehículos. Desliza a la derecha (Like) para guardar en favoritos o a la izquierda (Dislike) para ocultar. Perfecto para explorar mientras esperas el transporte."
-                                        }
-                                    },
-                                    {
-                                        "@type": "Question",
-                                        "name": "¿Cómo encuentro un taller mecánico 24 horas cerca de mí?",
-                                        "acceptedAnswer": {
-                                            "@type": "Answer",
-                                            "text": "Usa nuestro Map Store con búsqueda inteligente por IA. Solo describe tu problema (ej: 'mi carro hace ruido al frenar') y te mostramos talleres especializados cercanos con servicio 24/7 o a domicilio."
-                                        }
-                                    },
-                                    {
-                                        "@type": "Question",
-                                        "name": "¿Es seguro comprar autos en CarMatch?",
-                                        "acceptedAnswer": {
-                                            "@type": "Answer",
-                                            "text": "Sí. CarMatch cuenta con sistema de Cita Segura, recordatorios automáticos, alertas SOS con geolocalización y un Asesor IA que te da consejos de verificación antes de comprar. Nunca vayas solo a una cita."
-                                        }
-                                    },
-                                    {
-                                        "@type": "Question",
-                                        "name": "¿CarMatch cobra comisión por ventas?",
-                                        "acceptedAnswer": {
-                                            "@type": "Answer",
-                                            "text": "NO. CarMatch NUNCA cobra comisión por ventas. Solo cobras créditos si publicas más de un vehículo o después del periodo gratuito. La negociación y pago es 100% directo entre comprador y vendedor."
-                                        }
-                                    }
-                                ]
-                            },
                             // 🏢 NEW: LocalBusiness Schema para Map Store
                             {
                                 "@context": "https://schema.org",
