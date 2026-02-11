@@ -224,9 +224,8 @@ export default function PublicityTab() {
                                                     <td className="px-6 py-4">
                                                         <div className="space-y-2">
                                                             <div className="flex items-center gap-2">
-                                                                <div className={`w-2 h-2 rounded-full ${campaign.socialMediaEnabled ? 'bg-blue-500 animate-pulse' : 'bg-gray-700'}`} />
                                                                 <span className="text-xs text-text-secondary">
-                                                                    {campaign.socialMediaEnabled ? 'Auto-Publicación ON' : 'Apagado'}
+                                                                    Redes Sociales
                                                                 </span>
                                                             </div>
                                                             {campaign.socialMediaEnabled && (
@@ -252,15 +251,7 @@ export default function PublicityTab() {
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
                                                         <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            {campaign.socialMediaEnabled && (
-                                                                <button
-                                                                    onClick={() => handleManualPost(campaign.id)}
-                                                                    className="p-2 hover:bg-white/10 rounded-lg text-blue-400 transition"
-                                                                    title="Publicar Ahora en Redes"
-                                                                >
-                                                                    <Share2 className="w-4 h-4" />
-                                                                </button>
-                                                            )}
+
                                                             <button
                                                                 onClick={() => handleEdit(campaign)}
                                                                 className="p-2 hover:bg-white/10 rounded-lg text-white transition"
@@ -754,21 +745,7 @@ function CampaignModal({ isOpen, onClose, campaign, onSuccess }: any) {
                         </div>
                     </div>
 
-                    <div className="p-4 bg-primary-600/5 border border-primary-600/10 rounded-xl space-y-3">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Share2 className="w-4 h-4 text-primary-400" />
-                                <span className="text-sm font-bold text-primary-100">Automatización Social</span>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="socialMediaEnabled" className="sr-only peer" defaultChecked={campaign?.socialMediaEnabled} />
-                                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-                            </label>
-                        </div>
-                        <p className="text-[10px] text-text-secondary leading-normal">
-                            Si se activa, el anuncio se publicará automáticamente en las cuentas conectadas (Facebook/Instagram) cada 6 horas.
-                        </p>
-                    </div>
+
 
                     <div className="pt-4 flex gap-3">
                         <button type="button" onClick={onClose} className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold text-sm transition">Cancelar</button>
