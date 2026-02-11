@@ -355,7 +355,7 @@ export default function PublicityTab() {
                             </>
                         )
                         }
-                    </div >
+                    </div>
                 )
 }
 
