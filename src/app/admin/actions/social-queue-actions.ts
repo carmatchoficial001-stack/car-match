@@ -4,6 +4,8 @@
 
 'use server'
 
+// Force rebuild timestamp: 2026-02-11
+
 import { prisma } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { generateSocialCaption, generateVeoPrompt } from './ai-content-actions'
