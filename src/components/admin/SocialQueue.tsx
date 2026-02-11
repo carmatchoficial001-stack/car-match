@@ -21,7 +21,7 @@ export default function SocialQueue() {
         setLoading(true)
         const res = await getSocialQueue()
         if (res.success) {
-            setQueue(res.queue)
+            setQueue(res.queue || [])
         }
         setLoading(false)
     }
