@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { SocialMediaManager } from '@/lib/social/SocialMediaManager'
 import { suggestCampaignFromInventory } from '@/app/admin/actions/ai-content-actions'
+import { generateSocialImage } from '@/lib/ai/dallE'
 
 export async function GET(req: Request) {
     // 1. Security Check (Verify CRON_SECRET if present, or allow valid Vercel Cron header)
@@ -66,8 +67,26 @@ export async function GET(req: Request) {
             // Alternamos países o usamos el principal
             const res = await suggestCampaignFromInventory('MX');
 
-            if (res.success && res.savedPostId) {
-                return NextResponse.json({ success: true, action: 'GENERATED_DRAFT', id: res.savedPostId })
+            if (res.success && res.campaignData) {
+                // Generate Image from Prompt
+                const imagePrompt = res.campaignData.imagePrompt || `Luxury car in Mexico, ${res.campaignData.strategy}`;
+                const imageRes = await generateSocialImage(imagePrompt);
+
+                // Save Draft to DB
+                const savedPost = await prisma.socialPost.create({
+                    data: {
+                        content: res.campaignData.caption || 'New Content',
+                        imageUrl: (imageRes.success && imageRes.url) ? imageRes.url : null,
+                        videoPrompt: res.campaignData.videoPrompt || res.campaignData.strategy,
+                        platform: 'FACEBOOK', // Default
+                        status: 'DRAFT',
+                        aiPrompt: `Strategy: ${res.campaignData.strategy}`,
+                        scheduledFor: new Date(Date.now() + 24 * 60 * 60 * 1000) // +24h
+                    }
+                })
+
+                console.log(`✅ Nuevo borrador guardado: ${savedPost.id}`);
+                return NextResponse.json({ success: true, action: 'GENERATED_DRAFT', id: savedPost.id })
             }
         }
 
