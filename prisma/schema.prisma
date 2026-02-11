@@ -775,3 +775,64 @@ enum ReportStatus {
   DISMISSED
   ACTION_TAKEN
 }
+
+model PublicityCampaign {
+  id                    String    @id @default(cuid())
+  title                 String
+  clientName            String?
+  imageUrl              String
+  targetUrl             String?
+  startDate             DateTime
+  endDate               DateTime
+  isActive              Boolean   @default(true)
+  impressionCount       Int       @default(0)
+  clickCount            Int       @default(0)
+  
+  // Social Media Automation
+  socialMediaEnabled    Boolean   @default(false)
+  lastSocialPost        DateTime?
+  postingFrequencyHours Int       @default(6)
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([isActive])
+  @@index([startDate, endDate])
+}
+
+model SocialPost {
+  id              String        @id @default(cuid())
+  campaignId      String?
+  platform        SocialPlatform @default(INSTAGRAM)
+  content         String        @db.Text // Caption or Text Post
+  imageUrl        String?       // Generated Image URL
+  videoScript     String?       // Generated Script
+  videoPrompt     String?       @db.Text // New: Prompt optimized for Veo/Sora
+  status          PostStatus    @default(DRAFT)
+  scheduledFor    DateTime?
+  publishedAt     DateTime?
+  
+  // Metadata for AI regeneration
+  aiPrompt        String?       @db.Text
+  targetPersona   String?
+  marketingAngle  String?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+enum SocialPlatform {
+  FACEBOOK
+  INSTAGRAM
+  TIKTOK
+  TWITTER
+  LINKEDIN
+}
+
+enum PostStatus {
+  DRAFT
+  APPROVED
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}

@@ -32,307 +32,152 @@ import {
     Cpu,
     Sparkles,
     RefreshCw,
-    Coins
+    Coins,
+    Megaphone
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
+// ... imports
+import dynamic from 'next/dynamic'
 const AdminHeatMap = dynamic(() => import('@/components/AdminHeatMap'), { ssr: false })
+const PublicityTab = dynamic(() => import('@/components/admin/PublicityTab'), { ssr: false })
+const AdminMobileNav = dynamic(() => import('@/components/admin/AdminMobileNav'), { ssr: false })
 import QRCodeModal from '@/components/QRCodeModal'
-import ManageCreditsModal from '@/components/admin/ManageCreditsModal'
-import Link from 'next/link'
-import SimpleLineChart from '@/components/SimpleLineChart'
+// ... (rest of imports)
 
-interface SystemStats {
-    users: { total: number; active: number; recent: any[]; growth?: number[] }
-    vehicles: { total: number; active: number; recent: any[] }
-    businesses: { total: number; recent: any[] }
-    chats: { total: number }
-    appointments: { total: number; active: number }
-    logs: Array<{
-        id: string
-        level: string
-        message: string
-        source: string | null
-        createdAt: string
-    }>
-    reports: Array<{
-        id: string
-        reason: string
-        description: string | null
-        status: string
-        imageUrl: string | null
-        vehicleId: string | null
-        targetUserId: string | null
-        createdAt: string
-        reporter: { name: string; email: string }
-        targetUser?: { name: string; email: string }
-        vehicle?: { title: string }
-    }>
-    intelligence?: {
-        searches: any[]
-        vehicles: Array<{ latitude: number; longitude: number; title: string }>
-        businesses: Array<{ latitude: number; longitude: number; name: string; category: string }>
-    }
-    financials?: {
-        revenue: number[]
-        totalRevenue: number
-    }
-    registrations?: {
-        today: number
-        thisMonth: number
-        total: number
-    }
-}
+// ... inside AdminView type definition
+type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub' | 'publicity'
 
-type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub'
+// ... inside AdminDashboard component
+const menuItems = [
+    { id: 'overview', icon: LayoutDashboard, label: 'Panel de Control' },
+    { id: 'publicity', icon: Megaphone, label: 'Publicidad' }, // New Item
+    { id: 'intelligence', icon: Activity, label: 'Inteligencia' },
+    { id: 'users', icon: Users, label: 'Usuarios' },
+    { id: 'inventory', icon: Car, label: 'Inventario' },
+    { id: 'map-store', icon: Store, label: 'MapStore' },
+    { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
+    { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports?.filter(r => r.status === 'PENDING').length || 0 },
+    { id: 'logs', icon: Terminal, label: 'Registros' },
+]
 
-export default function AdminDashboard() {
-    const { data: session, status } = useSession()
-    const router = useRouter()
-    const [stats, setStats] = useState<SystemStats | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [activeView, setActiveView] = useState<AdminView>('overview')
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-
-    // AI Analyst State
-    const [isAnalyzing, setIsAnalyzing] = useState(false)
-    const [aiAnalysis, setAiAnalysis] = useState<any>(null)
-    const [showQRModal, setShowQRModal] = useState(false)
-
-    useEffect(() => {
-        if (status === 'unauthenticated') {
-            router.push('/auth')
-            return
-        }
-        if (status === 'authenticated') {
-            fetchStats()
-        }
-    }, [status, router])
-
-    const fetchStats = async () => {
-        try {
-            const res = await fetch('/api/admin/stats')
-            if (res.ok) {
-                const data = await res.json()
-                setStats(data)
-            } else if (res.status === 403) {
-                alert('No tienes permisos de administrador')
-                router.push('/')
-            }
-        } catch (error) {
-            console.error('Error fetching stats:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const handleRunAnalyst = async () => {
-        setIsAnalyzing(true)
-        try {
-            const res = await fetch('/api/admin/ai-analyst', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            if (res.ok) {
-                const data = await res.json()
-                setAiAnalysis(data)
-            }
-        } catch (error) {
-            console.error('Error running AI analyst:', error)
-        } finally {
-            setIsAnalyzing(false)
-        }
-    }
-
-    // Mobile Responsive Logic - Moved up to avoid hook rule violation
-    useEffect(() => {
-        const handleResize = () => {
-            if (window.innerWidth < 768) setIsSidebarOpen(false)
-            else setIsSidebarOpen(true)
-        }
-        // Initial check
-        handleResize()
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="animate-spin h-12 w-12 border-4 border-primary-600 border-t-transparent rounded-full shadow-[0_0_20px_rgba(147,51,234,0.3)]"></div>
-                    <p className="text-text-secondary animate-pulse font-medium tracking-widest text-xs uppercase">CarMatch Admin Loading</p>
+// ... inside render return
+{ activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} /> }
+{ activeView === 'publicity' && <PublicityTab /> }
+{ activeView === 'intelligence' && <IntelligenceTab /> }
+{ activeView === 'users' && <UsersTab users={stats.users.recent} /> }
+{ activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} /> }
+{ activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} /> }
+{ activeView === 'ai-hub' && <AiHubTab /> }
+{ activeView === 'reports' && <ReportsTab reports={stats.reports} /> }
+{ activeView === 'logs' && <LogsTab logs={stats.logs} /> }
+return (
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-primary-500/30">
+        {/* Desktop Sidebar */}
+        <aside className="fixed left-0 top-0 bottom-0 w-72 bg-[#09090b] border-r border-white/10 p-6 hidden md:flex flex-col z-50">
+            <div className="flex items-center gap-3 mb-10 px-2">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary-900/40">
+                    <Terminal className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                    <h1 className="font-black text-xl tracking-tighter italic">CarMatch <span className="text-primary-500">OS</span></h1>
+                    <p className="text-[10px] text-text-secondary font-mono tracking-widest uppercase">Admin Neural Interface</p>
                 </div>
             </div>
-        )
-    }
 
-    if (!stats) return null
-
-    const menuItems = [
-        { id: 'overview', icon: LayoutDashboard, label: 'Panel de Control' },
-        { id: 'intelligence', icon: Activity, label: 'Inteligencia' },
-        { id: 'users', icon: Users, label: 'Usuarios' },
-        { id: 'inventory', icon: Car, label: 'Inventario' },
-        { id: 'map-store', icon: Store, label: 'MapStore' },
-        { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
-        { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports?.filter(r => r.status === 'PENDING').length || 0 },
-        { id: 'logs', icon: Terminal, label: 'Registros' },
-    ]
-
-    return (
-        <div className="min-h-screen bg-[#0c0c0e] text-text-primary flex relative overflow-hidden">
-            {/* Mobile Sidebar Overlay */}
-            {isSidebarOpen && (
-                <div
-                    onClick={() => setIsSidebarOpen(false)}
-                    className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden"
-                />
-            )}
-
-            {/* Sidebar */}
-            <aside className={`
-                fixed md:static inset-y-0 left-0 z-50
-                bg-[#111114] border-r border-white/5 
-                transition-all duration-300 ease-in-out
-                flex flex-col flex-shrink-0
-                ${isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-20'}
-            `}>
-                <div className="p-6 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shadow-lg shadow-primary-900/40 shrink-0">
-                        <ShieldCheck className="w-5 h-5 text-white" />
-                    </div>
-                    <span className={`font-black text-xl tracking-tighter bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent italic transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>
-                        ADMIN
-                    </span>
-                </div>
-
-                <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
-                    {menuItems.map((item) => (
-                        <button
-                            key={item.id}
-                            onClick={() => {
-                                setActiveView(item.id as AdminView)
-                                if (window.innerWidth < 768) setIsSidebarOpen(false)
-                            }}
-                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative ${activeView === item.id
-                                ? 'bg-primary-600/10 text-primary-400'
-                                : 'text-text-secondary hover:bg-white/5 hover:text-text-primary'
-                                }`}
-                        >
-                            <item.icon className={`w-5 h-5 shrink-0 ${activeView === item.id ? 'text-primary-500' : 'group-hover:text-text-primary'}`} />
-                            <span className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ${isSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 md:absolute md:left-14 md:bg-[#111114] md:px-2 md:py-1 md:rounded md:border md:border-white/10 md:z-50 md:group-hover:opacity-100 md:group-hover:translate-x-0 md:pointer-events-none'}`}>
-                                {isSidebarOpen ? item.label : (
-                                    // Tooltip logic for collapsed desktop sidebar
-                                    <span className="hidden md:block">{item.label}</span>
-                                )}
-                            </span>
-
-                            {item.badge ? (
-                                <span className={`absolute ${isSidebarOpen ? 'right-3' : 'top-2 right-2'} bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold`}>
-                                    {item.badge}
-                                </span>
-                            ) : null}
-                            {activeView === item.id && (
-                                <motion.div
-                                    layoutId="active-pill"
-                                    className="absolute left-0 w-1 h-6 bg-primary-500 rounded-r-full"
-                                />
-                            )}
-                        </button>
-                    ))}
-                </nav>
-
-                <div className="p-4 border-t border-white/5 space-y-1">
+            <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
+                {menuItems.map((item) => (
                     <button
-                        onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot'))}
-                        className="w-full flex items-center gap-3 px-3 py-3 text-primary-400 hover:text-primary-300 hover:bg-white/5 transition-all rounded-xl"
+                        key={item.id}
+                        onClick={() => setActiveView(item.id as AdminView)}
+                        className={`w-full flex items-center justify-between p-3 rounded-xl transition-all group ${activeView === item.id
+                            ? 'bg-white/10 text-white shadow-lg border border-white/5'
+                            : 'text-text-secondary hover:bg-white/5 hover:text-white'
+                            }`}
                     >
-                        <Headset className="w-5 h-5 shrink-0" />
-                        <span className={`font-bold text-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>Soporte</span>
-                    </button>
-
-                    <button
-                        onClick={() => router.push('/')}
-                        className="w-full flex items-center gap-3 px-3 py-3 text-text-secondary hover:text-white hover:bg-white/5 transition-all rounded-xl"
-                    >
-                        <LogOut className="w-5 h-5 shrink-0" />
-                        <span className={`text-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>Salir del Portal</span>
-                    </button>
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
-                {/* Top Header */}
-                <header className="h-16 bg-[#111114]/50 backdrop-blur-md border-b border-white/5 px-4 md:px-8 flex items-center justify-between shrink-0">
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                            className="p-2 hover:bg-white/5 rounded-lg text-text-secondary active:scale-95 transition"
-                        >
-                            {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                        </button>
-                        <h2 className="text-lg font-bold capitalize truncate max-w-[150px] md:max-w-none">{activeView}</h2>
-                    </div>
-
-                    <div className="flex items-center gap-3 md:gap-6">
-                        {/* QR Code Button */}
-                        <button
-                            onClick={() => setShowQRModal(true)}
-                            className="flex items-center gap-2 px-3 py-2 bg-primary-600/10 hover:bg-primary-600/20 border border-primary-600/20 rounded-xl transition group"
-                        >
-                            <QrCode className="w-4 h-4 text-primary-400" />
-                            <span className="hidden sm:block text-xs font-bold text-primary-400 uppercase tracking-wider">
-                                COMPARTIR APP
-                            </span>
-                        </button>
-
-                        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
-                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                            <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">System Healthy</span>
-                        </div>
-
                         <div className="flex items-center gap-3">
-                            <div className="text-right hidden sm:block">
-                                <p className="text-xs font-bold text-text-primary">{session?.user?.name || 'Admin'}</p>
-                            </div>
-                            <div className="w-8 h-8 bg-surface-highlight rounded-lg border border-white/10 overflow-hidden">
-                                <img src={session?.user?.image || 'https://ui-avatars.com/api/?name=Admin'} className="w-full h-full object-cover" />
-                            </div>
+                            <item.icon className={`w-5 h-5 ${activeView === item.id ? 'text-primary-400' : 'group-hover:text-primary-400 transition-colors'}`} />
+                            <span className="text-sm font-bold tracking-tight">{item.label}</span>
+                        </div>
+                        {item.badge && (
+                            <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg shadow-red-900/40 animate-pulse">
+                                {item.badge}
+                            </span>
+                        )}
+                    </button>
+                ))}
+            </nav>
+
+            <div className="mt-6 pt-6 border-t border-white/10 space-y-2">
+                <button onClick={() => setShowQRModal(true)} className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
+                    <QrCode className="w-5 h-5" />
+                    <span className="text-sm font-bold">Descargar App</span>
+                </button>
+                <button className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
+                    <Settings className="w-5 h-5" />
+                    <span className="text-sm font-bold">Configuración</span>
+                </button>
+                <div className="p-4 bg-gradient-to-br from-white/5 to-transparent rounded-2xl border border-white/5 mt-4">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                            <span className="font-black text-indigo-400">R</span>
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-white">Ruben Admin</p>
+                            <p className="text-[10px] text-text-secondary">Super User</p>
                         </div>
                     </div>
-                </header>
-
-                {/* View Content */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-32 custom-scrollbar">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeView}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            {activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} />}
-                            {activeView === 'intelligence' && <IntelligenceTab />}
-                            {activeView === 'users' && <UsersTab users={stats.users.recent} />}
-                            {activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} />}
-                            {activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} />}
-                            {activeView === 'ai-hub' && <AiHubTab />}
-                            {activeView === 'reports' && <ReportsTab reports={stats.reports} />}
-                            {activeView === 'logs' && <LogsTab logs={stats.logs} />}
-                        </motion.div>
-                    </AnimatePresence>
+                    <button className="w-full py-2 bg-white/5 hover:bg-red-500/20 hover:text-red-500 text-text-secondary rounded-lg text-xs font-bold transition flex items-center justify-center gap-2">
+                        <LogOut className="w-3 h-3" /> Cerrar Sesión
+                    </button>
                 </div>
-            </main>
+            </div>
+        </aside>
 
-            {/* QR Code Modal */}
-            <QRCodeModal
-                isOpen={showQRModal}
-                onClose={() => setShowQRModal(false)}
-            />
-        </div>
-    )
+        {/* Main Content Area */}
+        <main className="md:pl-72 min-h-screen bg-[#000000] relative pb-24 md:pb-0">
+
+            {/* Mobile Header */}
+            <div className="md:hidden p-6 pb-2 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-xl z-40 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                    <Terminal className="w-5 h-5 text-primary-500" />
+                    <h1 className="font-black text-lg tracking-tighter italic">CarMatch OS</h1>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-surface-highlight overflow-hidden">
+                    <img src={session?.user?.image || "https://ui-avatars.com/api/?name=Admin"} alt="Profile" />
+                </div>
+            </div>
+
+            <div className="p-4 md:p-10 max-w-7xl mx-auto space-y-8">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={activeView}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        {activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} />}
+                        {activeView === 'publicity' && <PublicityTab />}
+                        {activeView === 'intelligence' && <IntelligenceTab />}
+                        {activeView === 'users' && <UsersTab users={stats.users.recent} />}
+                        {activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} />}
+                        {activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} />}
+                        {activeView === 'ai-hub' && <AiHubTab />}
+                        {activeView === 'reports' && <ReportsTab reports={stats.reports} />}
+                        {activeView === 'logs' && <LogsTab logs={stats.logs} />}
+                    </motion.div>
+                </AnimatePresence>
+            </div>
+        </main>
+
+        <AdminMobileNav activeView={activeView} setActiveView={setActiveView} menuItems={menuItems} />
+
+        <QRCodeModal
+            isOpen={showQRModal}
+            onClose={() => setShowQRModal(false)}
+        />
+    </div>
+)
 }
 
 function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) {
@@ -1593,7 +1438,5 @@ function AiHubTab() {
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    )
+                )
 }
