@@ -20,6 +20,7 @@ import {
     manualTriggerSocialPost
 } from '@/app/admin/actions/publicity-actions'
 import { generateSocialCaption, generateImagePrompt, generateVideoScript } from '@/app/admin/actions/ai-content-actions'
+import SocialQueue from '@/components/admin/SocialQueue'
 
 interface PublicityCampaign {
     id: string
@@ -356,422 +357,423 @@ export default function PublicityTab() {
                         )
                         }
                     </div>
-                )
+            </div>
+            )
 }
 
-                function AIStudioModal({isOpen, onClose}: any) {
+            function AIStudioModal({isOpen, onClose}: any) {
     const [topic, setTopic] = useState("")
-                const [activeTab, setActiveTab] = useState<'text' | 'image' | 'video'>('text')
-                const [generatedContent, setGeneratedContent] = useState("")
-                const [loading, setLoading] = useState(false)
-                const [autoPilotData, setAutoPilotData] = useState<any>(null)
+            const [activeTab, setActiveTab] = useState<'text' | 'image' | 'video'>('text')
+            const [generatedContent, setGeneratedContent] = useState("")
+            const [loading, setLoading] = useState(false)
+            const [autoPilotData, setAutoPilotData] = useState<any>(null)
 
-                    // Country / Market Target
-                    const [targetCountry, setTargetCountry] = useState("MX")
+                // Country / Market Target
+                const [targetCountry, setTargetCountry] = useState("MX")
 
-                    // Text Options
-                    const [tone, setTone] = useState("professional")
+                // Text Options
+                const [tone, setTone] = useState("professional")
 
-                    // Image Options
-                    const [style, setStyle] = useState("realistic")
+                // Image Options
+                const [style, setStyle] = useState("realistic")
 
-                    // Video Options
-                    const [duration, setDuration] = useState("15 seconds")
-                    const [videoStyle, setVideoStyle] = useState("showcase")
+                // Video Options
+                const [duration, setDuration] = useState("15 seconds")
+                const [videoStyle, setVideoStyle] = useState("showcase")
 
     const handleGenerate = async () => {
         if (!topic) return
-                    setLoading(true)
-                    setGeneratedContent("")
+                setLoading(true)
+                setGeneratedContent("")
 
-                    try {
-                        let res;
-                    if (activeTab === 'text') {
-                        res = await generateSocialCaption(topic, tone, 'general', targetCountry)
-                    } else if (activeTab === 'image') {
-                        res = await generateImagePrompt(topic, style, targetCountry)
-                    } else {
-                        res = await generateVideoScript(topic, duration, targetCountry, videoStyle)
-                    }
+                try {
+                    let res;
+                if (activeTab === 'text') {
+                    res = await generateSocialCaption(topic, tone, 'general', targetCountry)
+                } else if (activeTab === 'image') {
+                    res = await generateImagePrompt(topic, style, targetCountry)
+                } else {
+                    res = await generateVideoScript(topic, duration, targetCountry, videoStyle)
+                }
 
-                    if (res.success) {
-                        setGeneratedContent(res.content)
-                    } else {
-                        setGeneratedContent("Error al generar contenido.")
-                    }
+                if (res.success) {
+                    setGeneratedContent(res.content)
+                } else {
+                    setGeneratedContent("Error al generar contenido.")
+                }
         } catch (e) {
-                        console.error(e)
+                    console.error(e)
             setGeneratedContent("Error de conexión.")
         } finally {
-                        setLoading(false)
-                    }
+                    setLoading(false)
+                }
     }
 
     const handleAutoPilot = async () => {
-                        setLoading(true)
+                    setLoading(true)
         setGeneratedContent("")
-                    setAutoPilotData(null)
-                    try {
+                setAutoPilotData(null)
+                try {
             const res = await suggestCampaignFromInventory(targetCountry)
-                    if (res.success) {
-                        setAutoPilotData(res)
+                if (res.success) {
+                    setAutoPilotData(res)
                 setGeneratedContent(res.campaignData.caption)
-                    setTopic(`Promoción Automática de ${res.vehicle.title}`)
+                setTopic(`Promoción Automática de ${res.vehicle.title}`)
             } else {
-                        setGeneratedContent(res.error || "No se pudo generar campaña automática.")
-                    }
+                    setGeneratedContent(res.error || "No se pudo generar campaña automática.")
+                }
         } catch (e) {
-                        setGeneratedContent("Error en piloto automático.")
-                    } finally {
-                        setLoading(false)
-                    }
+                    setGeneratedContent("Error en piloto automático.")
+                } finally {
+                    setLoading(false)
+                }
     }
 
     const handleCreateCampaign = () => {
-                        // Logic to close this modal and open the campaign modal with pre-filled data
-                        // For now, valid copy to clipboard
-                        navigator.clipboard.writeText(generatedContent)
+                    // Logic to close this modal and open the campaign modal with pre-filled data
+                    // For now, valid copy to clipboard
+                    navigator.clipboard.writeText(generatedContent)
         alert("Contenido copiado al portapapeles. Ahora puedes crear la campaña.")
-                    onClose()
+                onClose()
+    }
+
+                return (
+                <motion.div
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4"
+                >
+                    <motion.div
+                        initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                        className="bg-[#111114] border border-white/10 rounded-3xl w-full max-w-5xl h-[85vh] overflow-hidden shadow-2xl flex flex-col"
+                    >
+                        {/* Header */}
+                        <div className="p-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-gradient-to-r from-purple-900/10 to-transparent">
+                            <h3 className="text-xl font-black italic tracking-tighter text-white flex items-center gap-2">
+                                <Sparkles className="w-5 h-5 text-purple-400" /> AI Content Studio
+                                <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full ml-2">Global Agent</span>
+                            </h3>
+                            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-text-secondary">
+                                <XCircle className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+                            {/* Controls Sidebar */}
+                            <div className="w-full md:w-80 p-6 border-r border-white/5 bg-black/20 overflow-y-auto custom-scrollbar">
+                                <div className="space-y-6">
+
+                                    {/* Country Selector */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-text-secondary uppercase tracking-widest flex items-center gap-2">
+                                            <Globe className="w-3 h-3" /> Mercado Objetivo
+                                        </label>
+                                        <select
+                                            value={targetCountry} onChange={(e) => setTargetCountry(e.target.value)}
+                                            className="w-full bg-black/40 border border-white/10 rounded-xl p-2 text-sm text-white focus:border-purple-500 outline-none font-bold"
+                                        >
+                                            <option value="MX">🇲🇽 México</option>
+                                            <option value="CO">🇨🇴 Colombia</option>
+                                            <option value="US">🇺🇸 USA (Latino)</option>
+                                            <option value="ES">🇪🇸 España</option>
+                                            <option value="AR">🇦🇷 Argentina</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Auto Pilot Section */}
+                                    <div className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 p-4 rounded-2xl border border-white/10">
+                                        <h4 className="text-xs font-black text-white uppercase tracking-widest mb-2 flex items-center gap-2">
+                                            <Zap className="w-3 h-3 text-yellow-400" /> Piloto Automático
+                                        </h4>
+                                        <p className="text-[10px] text-text-secondary mb-3">Genera una campaña viral para {targetCountry === 'MX' ? 'México' : targetCountry} automáticamente.</p>
+                                        <button
+                                            onClick={handleAutoPilot}
+                                            disabled={loading}
+                                            className="w-full py-2 bg-white text-black hover:bg-gray-200 disabled:opacity-50 rounded-lg font-black text-xs transition shadow-lg flex items-center justify-center gap-2"
+                                        >
+                                            {loading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                            ¡Sorpréndeme!
+                                        </button>
+                                    </div>
+
+                                    <hr className="border-white/5" />
+
+                                    <div>
+                                        <label className="text-xs font-bold text-text-secondary uppercase tracking-widest block mb-2">Creación Manual</label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[
+                                                { id: 'text', icon: Megaphone, label: 'Post' },
+                                                { id: 'image', icon: ImageIcon, label: 'Imagen' },
+                                                { id: 'video', icon: Share2, label: 'Video' }
+                                            ].map(type => (
+                                                <button
+                                                    key={type.id}
+                                                    onClick={() => {
+                                                        setActiveTab(type.id as any)
+                                                        setGeneratedContent(
+                                                            autoPilotData
+                                                                ? (type.id === 'text' ? autoPilotData.campaignData.caption
+                                                                    : type.id === 'image' ? autoPilotData.campaignData.imagePrompt
+                                                                        : autoPilotData.campaignData.videoScript)
+                                                                : ""
+                                                        )
+                                                    }}
+                                                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${activeTab === type.id
+                                                        ? 'bg-purple-600 border-purple-500 text-white'
+                                                        : 'bg-white/5 border-white/10 text-text-secondary hover:bg-white/10'
+                                                        }`}
+                                                >
+                                                    <type.icon className="w-5 h-5" />
+                                                    <span className="text-[10px] font-bold uppercase">{type.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Tema / Auto / Producto</label>
+                                        <textarea
+                                            value={topic}
+                                            onChange={(e) => setTopic(e.target.value)}
+                                            placeholder="Ej. Venta de Ford Mustang 2024..."
+                                            className="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:border-purple-500 outline-none resize-none"
+                                        />
+                                    </div>
+
+                                    {/* Dynamic Options based on Tab */}
+                                    {activeTab === 'text' && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Tono</label>
+                                            <select
+                                                value={tone} onChange={(e) => setTone(e.target.value)}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-2 text-sm text-white focus:border-purple-500 outline-none"
+                                            >
+                                                <option value="professional">Profesional</option>
+                                                <option value="funny">Divertido / Viral</option>
+                                                <option value="urgent">Urgente / Oferta</option>
+                                                <option value="luxury">Lujo / Elegante</option>
+                                            </select>
+                                        </div>
+                                    )}
+
+                                    {activeTab === 'image' && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Estilo Visual</label>
+                                            <select
+                                                value={style} onChange={(e) => setStyle(e.target.value)}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-2 text-sm text-white focus:border-purple-500 outline-none"
+                                            >
+                                                <option value="realistic">Fotorealista (8k)</option>
+                                                <option value="studio">Estudio Automotriz</option>
+                                                <option value="cyberpunk">Cyberpunk / Neón</option>
+                                                <option value="minimalist">Minimalista</option>
+                                            </select>
+                                        </div>
+                                    )}
+
+                                    {activeTab === 'video' && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Estilo de Video</label>
+                                            <select
+                                                value={videoStyle} onChange={(e) => setVideoStyle(e.target.value)}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-2 text-sm text-white focus:border-purple-500 outline-none mb-2"
+                                            >
+                                                <option value="showcase">🔥 Showcase (Cinemático)</option>
+                                                <option value="funny">🎭 Sketch Gracioso</option>
+                                                <option value="emotional">🥺 Reflexivo / Emocional</option>
+                                                <option value="educational">💡 Consejo / Tutorial</option>
+                                                <option value="versus">🆚 Versus / Batalla</option>
+                                                <option value="myths">🕵️‍♂️ Desmintiendo Mitos</option>
+                                                <option value="trivia">❓ Trivia / Adivinanza</option>
+                                                <option value="safety">🆘 Seguridad Vial (SOS)</option>
+                                                <option value="security">🛡️ Anti-Estafa / Compra Segura</option>
+                                                <option value="success">🤝 Historia de Éxito</option>
+                                                <option value="dreams">🤩 Aspiracional / Sueños</option>
+                                                <option value="future">🔮 Futuro (Concepto)</option>
+                                            </select>
+
+                                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Duración</label>
+                                            <select
+                                                value={duration} onChange={(e) => setDuration(e.target.value)}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-2 text-sm text-white focus:border-purple-500 outline-none"
+                                            >
+                                                <option value="15 seconds">15 Segundos (Stories)</option>
+                                                <option value="30 seconds">30 Segundos (Reels)</option>
+                                                <option value="60 seconds">1 Minuto (TikTok)</option>
+                                            </select>
+                                        </div>
+                                    )}
+
+                                    {/* Generate Button (only show if not autopilot data or if topic is manually entered) */}
+                                    <button
+                                        onClick={handleGenerate}
+                                        disabled={loading || !topic}
+                                        className="w-full py-4 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-purple-900/20 flex items-center justify-center gap-2"
+                                    >
+                                        {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                                        Generar con IA
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Content Display Area */}
+                            <div className="flex-1 bg-black/40 p-6 flex flex-col overflow-hidden">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h4 className="text-sm font-bold text-white uppercase tracking-widest">Contenido Generado</h4>
+                                    {generatedContent && (
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(generatedContent)
+                                                    alert("Copiado al portapapeles")
+                                                }}
+                                                className="text-xs text-text-secondary hover:text-white flex items-center gap-1"
+                                            >
+                                                <Share2 className="w-3 h-3" /> Copiar
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex-1 bg-black/20 border border-white/5 rounded-2xl p-6 overflow-y-auto whitespace-pre-wrap text-sm text-text-secondary font-mono leading-relaxed custom-scrollbar">
+                                    {loading ? (
+                                        <div className="h-full flex flex-col items-center justify-center text-center opacity-50 space-y-4">
+                                            <RefreshCw className="w-8 h-8 animate-spin text-purple-500" />
+                                            <p className="text-xs uppercase tracking-widest animate-pulse">Creando contenido viral para {targetCountry}...</p>
+                                        </div>
+                                    ) : generatedContent ? (
+                                        generatedContent
+                                    ) : (
+                                        <div className="h-full flex flex-col items-center justify-center text-center opacity-30 space-y-4">
+                                            <Sparkles className="w-12 h-12" />
+                                            <p>Selecciona una opción o usa el piloto automático para comenzar.</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {generatedContent && (
+                                    <div className="pt-4">
+                                        <button
+                                            onClick={handleCreateCampaign}
+                                            className="w-full py-3 bg-white text-black hover:bg-gray-200 rounded-xl font-black text-sm transition shadow-lg flex items-center justify-center gap-2"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            Crear Campaña con este Contenido
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                </motion.div>
+                )
+}
+
+                function CampaignModal({isOpen, onClose, campaign, onSuccess}: any) {
+    const isEditing = !!campaign
+
+                async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+                    event.preventDefault()
+        const formData = new FormData(event.currentTarget)
+
+                    // Handle logic via server actions
+                    let res;
+                    if (isEditing) {
+            // Convert formData to object for update
+            const data: any = { }
+            formData.forEach((value, key) => data[key] = value)
+                    data.socialMediaEnabled = formData.get('socialMediaEnabled') === 'on'
+                    res = await updatePublicityCampaign(campaign.id, data)
+        } else {
+                        res = await createPublicityCampaign(null, formData)
+                    }
+
+                    if (res.success) {
+                        onSuccess()
+                    } else {
+                        alert(res.error)
+                    }
     }
 
                     return (
                     <motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                     >
                         <motion.div
                             initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-                            className="bg-[#111114] border border-white/10 rounded-3xl w-full max-w-5xl h-[85vh] overflow-hidden shadow-2xl flex flex-col"
+                            className="bg-[#111114] border border-white/10 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl"
                         >
-                            {/* Header */}
-                            <div className="p-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-gradient-to-r from-purple-900/10 to-transparent">
-                                <h3 className="text-xl font-black italic tracking-tighter text-white flex items-center gap-2">
-                                    <Sparkles className="w-5 h-5 text-purple-400" /> AI Content Studio
-                                    <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full ml-2">Global Agent</span>
+                            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                                <h3 className="text-lg font-bold text-white">
+                                    {isEditing ? 'Editar Campaña' : 'Nueva Campaña Publicitaria'}
                                 </h3>
                                 <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-text-secondary">
-                                    <XCircle className="w-6 h-6" />
+                                    <XCircle className="w-5 h-5" />
                                 </button>
                             </div>
 
-                            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-                                {/* Controls Sidebar */}
-                                <div className="w-full md:w-80 p-6 border-r border-white/5 bg-black/20 overflow-y-auto custom-scrollbar">
-                                    <div className="space-y-6">
+                            <form onSubmit={onSubmit} className="p-6 space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Título Campaña</label>
+                                    <input name="title" required defaultValue={campaign?.title} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" placeholder="Ej. Promoción Verano 2026" />
+                                </div>
 
-                                        {/* Country Selector */}
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest flex items-center gap-2">
-                                                <Globe className="w-3 h-3" /> Mercado Objetivo
-                                            </label>
-                                            <select
-                                                value={targetCountry} onChange={(e) => setTargetCountry(e.target.value)}
-                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-2 text-sm text-white focus:border-purple-500 outline-none font-bold"
-                                            >
-                                                <option value="MX">🇲🇽 México</option>
-                                                <option value="CO">🇨🇴 Colombia</option>
-                                                <option value="US">🇺🇸 USA (Latino)</option>
-                                                <option value="ES">🇪🇸 España</option>
-                                                <option value="AR">🇦🇷 Argentina</option>
-                                            </select>
-                                        </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Cliente</label>
+                                        <input name="clientName" defaultValue={campaign?.clientName} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" placeholder="Opcional" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">URL Destino</label>
+                                        <input name="targetUrl" defaultValue={campaign?.targetUrl} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" placeholder="https://..." />
+                                    </div>
+                                </div>
 
-                                        {/* Auto Pilot Section */}
-                                        <div className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 p-4 rounded-2xl border border-white/10">
-                                            <h4 className="text-xs font-black text-white uppercase tracking-widest mb-2 flex items-center gap-2">
-                                                <Zap className="w-3 h-3 text-yellow-400" /> Piloto Automático
-                                            </h4>
-                                            <p className="text-[10px] text-text-secondary mb-3">Genera una campaña viral para {targetCountry === 'MX' ? 'México' : targetCountry} automáticamente.</p>
-                                            <button
-                                                onClick={handleAutoPilot}
-                                                disabled={loading}
-                                                className="w-full py-2 bg-white text-black hover:bg-gray-200 disabled:opacity-50 rounded-lg font-black text-xs transition shadow-lg flex items-center justify-center gap-2"
-                                            >
-                                                {loading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                                                ¡Sorpréndeme!
-                                            </button>
-                                        </div>
-
-                                        <hr className="border-white/5" />
-
-                                        <div>
-                                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest block mb-2">Creación Manual</label>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                {[
-                                                    { id: 'text', icon: Megaphone, label: 'Post' },
-                                                    { id: 'image', icon: ImageIcon, label: 'Imagen' },
-                                                    { id: 'video', icon: Share2, label: 'Video' }
-                                                ].map(type => (
-                                                    <button
-                                                        key={type.id}
-                                                        onClick={() => {
-                                                            setActiveTab(type.id as any)
-                                                            setGeneratedContent(
-                                                                autoPilotData
-                                                                    ? (type.id === 'text' ? autoPilotData.campaignData.caption
-                                                                        : type.id === 'image' ? autoPilotData.campaignData.imagePrompt
-                                                                            : autoPilotData.campaignData.videoScript)
-                                                                    : ""
-                                                            )
-                                                        }}
-                                                        className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${activeTab === type.id
-                                                            ? 'bg-purple-600 border-purple-500 text-white'
-                                                            : 'bg-white/5 border-white/10 text-text-secondary hover:bg-white/10'
-                                                            }`}
-                                                    >
-                                                        <type.icon className="w-5 h-5" />
-                                                        <span className="text-[10px] font-bold uppercase">{type.label}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Tema / Auto / Producto</label>
-                                            <textarea
-                                                value={topic}
-                                                onChange={(e) => setTopic(e.target.value)}
-                                                placeholder="Ej. Venta de Ford Mustang 2024..."
-                                                className="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:border-purple-500 outline-none resize-none"
-                                            />
-                                        </div>
-
-                                        {/* Dynamic Options based on Tab */}
-                                        {activeTab === 'text' && (
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Tono</label>
-                                                <select
-                                                    value={tone} onChange={(e) => setTone(e.target.value)}
-                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2 text-sm text-white focus:border-purple-500 outline-none"
-                                                >
-                                                    <option value="professional">Profesional</option>
-                                                    <option value="funny">Divertido / Viral</option>
-                                                    <option value="urgent">Urgente / Oferta</option>
-                                                    <option value="luxury">Lujo / Elegante</option>
-                                                </select>
-                                            </div>
-                                        )}
-
-                                        {activeTab === 'image' && (
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Estilo Visual</label>
-                                                <select
-                                                    value={style} onChange={(e) => setStyle(e.target.value)}
-                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2 text-sm text-white focus:border-purple-500 outline-none"
-                                                >
-                                                    <option value="realistic">Fotorealista (8k)</option>
-                                                    <option value="studio">Estudio Automotriz</option>
-                                                    <option value="cyberpunk">Cyberpunk / Neón</option>
-                                                    <option value="minimalist">Minimalista</option>
-                                                </select>
-                                            </div>
-                                        )}
-
-                                        {activeTab === 'video' && (
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Estilo de Video</label>
-                                                <select
-                                                    value={videoStyle} onChange={(e) => setVideoStyle(e.target.value)}
-                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2 text-sm text-white focus:border-purple-500 outline-none mb-2"
-                                                >
-                                                    <option value="showcase">🔥 Showcase (Cinemático)</option>
-                                                    <option value="funny">🎭 Sketch Gracioso</option>
-                                                    <option value="emotional">🥺 Reflexivo / Emocional</option>
-                                                    <option value="educational">💡 Consejo / Tutorial</option>
-                                                    <option value="versus">🆚 Versus / Batalla</option>
-                                                    <option value="myths">🕵️‍♂️ Desmintiendo Mitos</option>
-                                                    <option value="trivia">❓ Trivia / Adivinanza</option>
-                                                    <option value="safety">🆘 Seguridad Vial (SOS)</option>
-                                                    <option value="security">🛡️ Anti-Estafa / Compra Segura</option>
-                                                    <option value="success">🤝 Historia de Éxito</option>
-                                                    <option value="dreams">🤩 Aspiracional / Sueños</option>
-                                                    <option value="future">🔮 Futuro (Concepto)</option>
-                                                </select>
-
-                                                <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Duración</label>
-                                                <select
-                                                    value={duration} onChange={(e) => setDuration(e.target.value)}
-                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2 text-sm text-white focus:border-purple-500 outline-none"
-                                                >
-                                                    <option value="15 seconds">15 Segundos (Stories)</option>
-                                                    <option value="30 seconds">30 Segundos (Reels)</option>
-                                                    <option value="60 seconds">1 Minuto (TikTok)</option>
-                                                </select>
-                                            </div>
-                                        )}
-
-                                        {/* Generate Button (only show if not autopilot data or if topic is manually entered) */}
-                                        <button
-                                            onClick={handleGenerate}
-                                            disabled={loading || !topic}
-                                            className="w-full py-4 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-purple-900/20 flex items-center justify-center gap-2"
-                                        >
-                                            {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                                            Generar con IA
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">URL Imagen / Banner</label>
+                                    <div className="flex gap-2">
+                                        <input name="imageUrl" required defaultValue={campaign?.imageUrl} className="flex-1 bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" placeholder="https://..." />
+                                        <button type="button" className="p-2 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10">
+                                            <ImageIcon className="w-5 h-5 text-text-secondary" />
                                         </button>
                                     </div>
                                 </div>
 
-                                {/* Content Display Area */}
-                                <div className="flex-1 bg-black/40 p-6 flex flex-col overflow-hidden">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h4 className="text-sm font-bold text-white uppercase tracking-widest">Contenido Generado</h4>
-                                        {generatedContent && (
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(generatedContent)
-                                                        alert("Copiado al portapapeles")
-                                                    }}
-                                                    className="text-xs text-text-secondary hover:text-white flex items-center gap-1"
-                                                >
-                                                    <Share2 className="w-3 h-3" /> Copiar
-                                                </button>
-                                            </div>
-                                        )}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Inicio</label>
+                                        <input type="date" name="startDate" required defaultValue={campaign?.startDate ? new Date(campaign.startDate).toISOString().split('T')[0] : ''} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" />
                                     </div>
-
-                                    <div className="flex-1 bg-black/20 border border-white/5 rounded-2xl p-6 overflow-y-auto whitespace-pre-wrap text-sm text-text-secondary font-mono leading-relaxed custom-scrollbar">
-                                        {loading ? (
-                                            <div className="h-full flex flex-col items-center justify-center text-center opacity-50 space-y-4">
-                                                <RefreshCw className="w-8 h-8 animate-spin text-purple-500" />
-                                                <p className="text-xs uppercase tracking-widest animate-pulse">Creando contenido viral para {targetCountry}...</p>
-                                            </div>
-                                        ) : generatedContent ? (
-                                            generatedContent
-                                        ) : (
-                                            <div className="h-full flex flex-col items-center justify-center text-center opacity-30 space-y-4">
-                                                <Sparkles className="w-12 h-12" />
-                                                <p>Selecciona una opción o usa el piloto automático para comenzar.</p>
-                                            </div>
-                                        )}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Fin</label>
+                                        <input type="date" name="endDate" required defaultValue={campaign?.endDate ? new Date(campaign.endDate).toISOString().split('T')[0] : ''} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" />
                                     </div>
-
-                                    {generatedContent && (
-                                        <div className="pt-4">
-                                            <button
-                                                onClick={handleCreateCampaign}
-                                                className="w-full py-3 bg-white text-black hover:bg-gray-200 rounded-xl font-black text-sm transition shadow-lg flex items-center justify-center gap-2"
-                                            >
-                                                <Plus className="w-4 h-4" />
-                                                Crear Campaña con este Contenido
-                                            </button>
-                                        </div>
-                                    )}
                                 </div>
-                            </div>
+
+                                <div className="p-4 bg-primary-600/5 border border-primary-600/10 rounded-xl space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Share2 className="w-4 h-4 text-primary-400" />
+                                            <span className="text-sm font-bold text-primary-100">Automatización Social</span>
+                                        </div>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" name="socialMediaEnabled" className="sr-only peer" defaultChecked={campaign?.socialMediaEnabled} />
+                                            <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                                        </label>
+                                    </div>
+                                    <p className="text-[10px] text-text-secondary leading-normal">
+                                        Si se activa, el anuncio se publicará automáticamente en las cuentas conectadas (Facebook/Instagram) cada 6 horas.
+                                    </p>
+                                </div>
+
+                                <div className="pt-4 flex gap-3">
+                                    <button type="button" onClick={onClose} className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold text-sm transition">Cancelar</button>
+                                    <button type="submit" className="flex-1 py-3 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-primary-900/20">
+                                        {isEditing ? 'Guardar Cambios' : 'Lanzar Campaña'}
+                                    </button>
+                                </div>
+                            </form>
                         </motion.div>
                     </motion.div>
                     )
-}
-
-                    function CampaignModal({isOpen, onClose, campaign, onSuccess}: any) {
-    const isEditing = !!campaign
-
-                    async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-                        event.preventDefault()
-        const formData = new FormData(event.currentTarget)
-
-                        // Handle logic via server actions
-                        let res;
-                        if (isEditing) {
-            // Convert formData to object for update
-            const data: any = { }
-            formData.forEach((value, key) => data[key] = value)
-                        data.socialMediaEnabled = formData.get('socialMediaEnabled') === 'on'
-                        res = await updatePublicityCampaign(campaign.id, data)
-        } else {
-                            res = await createPublicityCampaign(null, formData)
-                        }
-
-                        if (res.success) {
-                            onSuccess()
-                        } else {
-                            alert(res.error)
-                        }
-    }
-
-                        return (
-                        <motion.div
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                        >
-                            <motion.div
-                                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-                                className="bg-[#111114] border border-white/10 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl"
-                            >
-                                <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                                    <h3 className="text-lg font-bold text-white">
-                                        {isEditing ? 'Editar Campaña' : 'Nueva Campaña Publicitaria'}
-                                    </h3>
-                                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-text-secondary">
-                                        <XCircle className="w-5 h-5" />
-                                    </button>
-                                </div>
-
-                                <form onSubmit={onSubmit} className="p-6 space-y-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Título Campaña</label>
-                                        <input name="title" required defaultValue={campaign?.title} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" placeholder="Ej. Promoción Verano 2026" />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Cliente</label>
-                                            <input name="clientName" defaultValue={campaign?.clientName} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" placeholder="Opcional" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">URL Destino</label>
-                                            <input name="targetUrl" defaultValue={campaign?.targetUrl} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" placeholder="https://..." />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">URL Imagen / Banner</label>
-                                        <div className="flex gap-2">
-                                            <input name="imageUrl" required defaultValue={campaign?.imageUrl} className="flex-1 bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" placeholder="https://..." />
-                                            <button type="button" className="p-2 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10">
-                                                <ImageIcon className="w-5 h-5 text-text-secondary" />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Inicio</label>
-                                            <input type="date" name="startDate" required defaultValue={campaign?.startDate ? new Date(campaign.startDate).toISOString().split('T')[0] : ''} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Fin</label>
-                                            <input type="date" name="endDate" required defaultValue={campaign?.endDate ? new Date(campaign.endDate).toISOString().split('T')[0] : ''} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary-500 outline-none" />
-                                        </div>
-                                    </div>
-
-                                    <div className="p-4 bg-primary-600/5 border border-primary-600/10 rounded-xl space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <Share2 className="w-4 h-4 text-primary-400" />
-                                                <span className="text-sm font-bold text-primary-100">Automatización Social</span>
-                                            </div>
-                                            <label className="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" name="socialMediaEnabled" className="sr-only peer" defaultChecked={campaign?.socialMediaEnabled} />
-                                                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-                                            </label>
-                                        </div>
-                                        <p className="text-[10px] text-text-secondary leading-normal">
-                                            Si se activa, el anuncio se publicará automáticamente en las cuentas conectadas (Facebook/Instagram) cada 6 horas.
-                                        </p>
-                                    </div>
-
-                                    <div className="pt-4 flex gap-3">
-                                        <button type="button" onClick={onClose} className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold text-sm transition">Cancelar</button>
-                                        <button type="submit" className="flex-1 py-3 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-primary-900/20">
-                                            {isEditing ? 'Guardar Cambios' : 'Lanzar Campaña'}
-                                        </button>
-                                    </div>
-                                </form>
-                            </motion.div>
-                        </motion.div>
-                        )
 }
