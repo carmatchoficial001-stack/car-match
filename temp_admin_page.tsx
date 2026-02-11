@@ -35,7 +35,7 @@ import {
     Coins,
     Megaphone
 } from 'lucide-react'
-import dynamic from 'next/dynamic'
+// removed duplicate dynamic import
 // ... imports
 import dynamic from 'next/dynamic'
 const AdminHeatMap = dynamic(() => import('@/components/AdminHeatMap'), { ssr: false })
