@@ -636,28 +636,13 @@ function InventoryTab({ vehicles }: { vehicles: any[] }) {
                         </div>
 
                         {/* Actions Footer */}
-                        <div className="pt-3 border-t border-white/5 flex gap-2">
-                            <div className="flex-1">
-                                <AdminGenericAction
-                                    apiPath={`/api/vehicles/${vehicle.id}`}
-                                    method="PATCH"
-                                    body={{ status: vehicle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
-                                    label={vehicle.status === 'ACTIVE' ? 'Ocultar' : 'Publicar'}
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <AdminGenericAction
-                                    apiPath={`/api/vehicles/${vehicle.id}`}
-                                    method="DELETE"
-                                    label="Eliminar"
-                                    danger
-                                />
-                            </div>
-                        </div>
                     </div>
-                ))}
-            </div>
+                        </div>
         </div>
+    ))
+}
+            </div >
+        </div >
     )
 }
 
