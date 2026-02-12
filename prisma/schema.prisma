@@ -18,6 +18,7 @@ model User {
   password                String?
   phone                   String?
   city                    String?
+  country                 String?                   @default("MX")
   credits                 Int                       @default(0)
   isActive                Boolean                   @default(true)
   createdAt               DateTime                  @default(now())
