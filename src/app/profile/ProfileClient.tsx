@@ -233,18 +233,7 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                                             Gestionar
                                                         </Link>
                                                     </div>
-                                                ) : (
-                                                    <span
-                                                        className={`px-3 py-1 rounded-full text-sm font-bold ${vehicle.status === "ACTIVE"
-                                                            ? "bg-green-900/30 text-green-400 border border-green-900/50"
-                                                            : vehicle.status === "SOLD"
-                                                                ? "bg-blue-900/30 text-blue-400 border border-blue-900/50"
-                                                                : "bg-surface-highlight text-text-secondary border border-surface-highlight"
-                                                            }`}
-                                                    >
-                                                        {t(`profile.status.${statusKey}`) || vehicle.status}
-                                                    </span>
-                                                )}
+                                                ) : null}
                                             </div>
                                         </div>
                                     </div>
