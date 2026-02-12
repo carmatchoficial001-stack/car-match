@@ -495,76 +495,71 @@ export async function analyzeMultipleImages(
       const galleryImages = images.slice(1, 10); // Analizar las 9 fotos de la galería (Total 10 con portada)
 
       const galleryPrompt = `
-        ERES UN ASISTENTE EXPERTO EN ANÁLISIS UNIVERSAL DE VEHÍCULOS.
+        ERES UN ASISTENTE EXPERTO Y ESTRICTO EN VALIDACIÓN DE VEHÍCULOS.
         
         TU MISIÓN: 
-        1. Validar que las fotos de la galería sean COHERENTES con el vehículo de la portada.
-        2. EXTRAER CADA DETALLE TÉCNICO VISIBLE (Equipamiento, motor, interior).
+        1. Validar que las fotos de la galería sean DEL MISMO VEHÍCULO que la portada.
+        2. ACEPTAR CAPTURAS DE PANTALLA SI SON DEL MISMO VEHÍCULO.
+        3. EXTRAER CADA DETALLE TÉCNICO VISIBLE.
 
         🚗 VEHÍCULO SOBERANO (IDENTIDAD DE PORTADA):
         - Marca: "${IDENTIDAD_SOBERANA_DE_PORTADA.brand || '?'}"
         - Modelo: "${IDENTIDAD_SOBERANA_DE_PORTADA.model || '?'}"
-        - Versión/Edición: "${IDENTIDAD_SOBERANA_DE_PORTADA.version || '?'}"
+        - Versión: "${IDENTIDAD_SOBERANA_DE_PORTADA.version || '?'}"
         - Estilo: "${IDENTIDAD_SOBERANA_DE_PORTADA.type || '?'}"
-
+        
         ESTÁS RECIBIENDO ${galleryImages.length} IMÁGENES SECUNDARIAS.
 
-        ═══ LEY UNIVERSAL PARA GALERÍA (MOTOR + LLANTAS) ═══
-        - ACEPTA (isValid: true) CUALQUIER FOTO QUE MUESTRE PARTE DE UN VEHÍCULO.
-        - ACEPTA detalles (motores, asientos, llantas, tableros, techos).
-        - ACEPTA ángulos raros, fotos oscuras o borrosas si se distingue un vehículo.
-        
-        ❌ RECHAZA (isValid: false) ÚNICAMENTE:
-        - Si es CLARAMENTE UN VEHÍCULO DISTINTO (Marca, Modelo o Color diferente a la portada).
-        - LA PORTADA ES LA VERDAD ABSOLUTA. Si la foto 2 es un Mustang y la portada es un Camaro -> RECHAZA la foto 2.
-        - Si NO ES UN VEHÍCULO NI PARTE DE UNO (Basura, selfies solas, mascotas, memes).
+        ═══ REGLAS DE ORO DE VALIDACIÓN (A CUMPLIR O RECHAZAR) ═══
 
-        🕵️‍♂️ MODO DETECTIVE (LLENADO DE DATOS):
-        - Busca pistas técnicas: Palanca de cambios (Aut/Man), botones 4x4, quemacocos, piel, motor.
-        - Si ves una insignia (ej: "Z71", "AMG", "M-Sport"), ¡ÚSALA PARA CORREGIR LA VERSIÓN!
+        ✅ APRUEBA (isValid: true):
+        - Fotos REALES del MISMO vehículo (mismo color, misma forma).
+        - 📱 CAPTURAS DE PANTALLA (Screenshots) -> ¡SON VÁLIDAS SI MUESTRAN EL MISMO VEHÍCULO!
+        - Interiores (tablero, asientos), Motor, Cajuela, Llantas (aunque no se vea el color del auto).
+        - Fotos en diferentes lugares o ángulos, SIEMPRE QUE SEA EL MISMO AUTO.
+        - Fotos oscuras o movidas SI se distingue que es el vehiculo.
 
+        ❌ RECHAZA ABSOLUTAMENTE (isValid: false):
+        - 🚗 OTRO VEHÍCULO: Si la portada es ROJA y la foto 2 es AZUL -> RECHAZA. (Excepción: luz muy rara, pero ante duda fuerte, rechaza).
+        - 🚗 OTRO MODELO: Si portada es Sedan y foto 2 es Camioneta -> RECHAZA.
+        - 🗑️ NO VEHÍCULO: Personas solas, mascotas, memes, paisajes sin carro.
 
-        🧞‍♂️ MODO ENCICLOPEDIA(AGENCY KNOWLEDGE):
-      - ¡OJO! Ahora que tienes MÁS FOTOS, puedes confirmar la versión exacta(ej: viste la insignia "Limited").
-        - UNA VEZ CONFIRMADA LA VERSIÓN, usa tu base de datos interna para llenar HP, Torque, Motor, etc.
-        - ¡COMPLETA LA FICHA TÉCNICA COMO SI FUERAS EL FABRICANTE!
-        - Mira la parte trasera: ¿Dice "4x4", "Limited", ing "Platinum" ?
-          - USA ESTA INFO PARA CORREGIR O COMPLETAR LOS DATOS DEL VEHÍCULO.
+        🕵️‍♂️ MODO DETECTIVE (CONSISTENCIA):
+        - Si la portada muestra un golpe en la puerta derecha, la foto lateral debería mostrarlo (o no mostrar ese lado).
+        - Si la portada tiene quemacocos, la foto del techo debe tenerlo.
+
+        🧞‍♂️ MODO ENCICLOPEDIA (DATOS TÉCNICOS):
+        - Completa la ficha con lo que veas: Palanca (Transmisión), Botones (Tracción), Motor (Cilindros).
+        - Mejora la versión si ves insignias específicas.
 
         Responde con este JSON:
-      {
-        "analysis": [
-          { "index": number, "isValid": boolean, "reason": "OK" }
-        ],
+        {
+          "analysis": [
+            { "index": number, "isValid": boolean, "reason": "OK" | "Vehículo diferente a portada" | "No es un vehículo" }
+          ],
           "category": "automovil|motocicleta|comercial|industrial|transporte|especial",
-            "details": {
-          "brand": "Marca (Confirmada)",
+          "details": {
+            "brand": "Marca (Confirmada)",
             "model": "Modelo (Confirmado)",
-              "year": number,
-                "version": "Versión exacta detectada en conjunto",
-                  "color": "Color",
-                    "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
-                      "transmission": "Manual|Automática (Busca la palanca en fotos interiores)",
-                        "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-                          "engine": "Especificación motor (¡USAR CONOCIMIENTO DE AGENCIA!)",
-                            "displacement": "Cilindrada",
-                              "traction": "FWD|RWD|4x4|AWD (Busca palancas o botones 4x4)",
-                                "doors": 2 | 3 | 4 | 5,
-                                  "passengers": 2 | 5 | 7 | 9,
-                                    "hp": "Potencia",
-                                      "torque": "Torque",
-                                        "aspiration": "Natural|Turbo|Twin-Turbo|Supercharged",
-                                          "cylinders": 3 | 4 | 5 | 6 | 8 | 10 | 12,
-                                            "batteryCapacity": null,
-                                              "range": null,
-                                                "weight": null,
-                                                  "axles": null,
-                                                    "cargoCapacity": null,
-                                                      "operatingHours": null,
-                                                        "condition": "Nuevo|Usado",
-                                                          "features": ["Lista MUY COMPLETA de equipamiento detectado en TODAS las fotos (portada + galería)"]
+            "year": number,
+            "version": "Versión exacta detectada en conjunto",
+            "color": "Color",
+            "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
+            "transmission": "Manual|Automática",
+            "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
+            "engine": "Especificación motor",
+            "displacement": "Cilindrada",
+            "traction": "FWD|RWD|4x4|AWD",
+            "doors": 2 | 3 | 4 | 5,
+            "passengers": number,
+            "hp": number,
+            "torque": "Torque",
+            "aspiration": "Natural|Turbo|Supercharged",
+            "cylinders": number,
+            "condition": "Nuevo|Usado",
+            "features": ["Lista de equipamiento"]
+          }
         }
-      }
       `;
 
       const imageParts = galleryImages.map(img => ({
