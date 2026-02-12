@@ -387,73 +387,62 @@ export default function MarketFiltersAdvanced({
                 <button type="button" onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
             </div>
 
-            {/* 1. 📍 BARRA DE UBICACIÓN (Prioridad #1) */}
-            <div className="relative mb-2">
-                <label className="block text-xs font-bold text-text-secondary uppercase mb-1 flex items-center gap-1">
-                    <MapPin size={12} className="text-primary-500" />
-                    Ubicación de Búsqueda ({t('common.city')})
-                </label>
-                <div className="relative group z-30">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-500">
-                        <MapPin size={18} />
-                    </div>
-                    <input
-                        type="text"
-                        value={locationInput}
-                        onChange={(e) => {
-                            setLocationInput(e.target.value)
-                            setShowCandidates(false)
-                        }}
-                        onKeyDown={(e) => e.key === 'Enter' && handleLocationSearch(e)}
-                        placeholder="Ciudad o Código Postal..."
-                        className="w-full h-10 pl-10 pr-12 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-500 transition-colors shadow-sm"
-                    />
-                    <button
-                        onClick={handleLocationSearch}
-                        disabled={isSearchingLocation}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-primary-500/10 hover:bg-primary-500/20 text-primary-500 rounded-lg transition"
-                    >
-                        {isSearchingLocation ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
-                    </button>
-
-                    {/* Candidates Dropdown */}
-                    {showCandidates && locationCandidates.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-surface border border-primary-500/30 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 z-50">
-                            <div className="px-3 py-2 bg-primary-900/20 border-b border-primary-500/10">
-                                <p className="text-xs font-bold text-primary-300">¿A cuál te refieres?</p>
-                            </div>
-                            <div className="max-h-48 overflow-y-auto">
-                                {locationCandidates.map((loc, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => selectLocation(loc)}
-                                        className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors flex items-center gap-3 border-b border-white/5 last:border-0"
-                                    >
-                                        <MapPin size={16} className="text-text-secondary shrink-0" />
-                                        <div>
-                                            <p className="font-bold text-sm text-text-primary">{loc.city}</p>
-                                            <p className="text-xs text-text-secondary">{loc.state}, {loc.country}</p>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    {locationError && <p className="text-xs text-red-400 mt-1 absolute">{locationError}</p>}
+            {/* 1. 📍 BARRA DE UBICACIÓN (Ultra Compacta) */}
+            <div className="relative group z-30">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-500">
+                    <MapPin size={16} />
                 </div>
+                <input
+                    type="text"
+                    value={locationInput}
+                    onChange={(e) => {
+                        setLocationInput(e.target.value)
+                        setShowCandidates(false)
+                    }}
+                    onKeyDown={(e) => e.key === 'Enter' && handleLocationSearch(e)}
+                    placeholder="Ciudad o CP..."
+                    className="w-full h-9 pl-9 pr-9 bg-background border border-surface-highlight rounded-lg text-sm text-text-primary focus:border-primary-500 transition-colors shadow-sm placeholder:text-text-secondary/50"
+                />
+                <button
+                    onClick={handleLocationSearch}
+                    disabled={isSearchingLocation}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 hover:bg-surface-highlight rounded-md text-primary-500 transition"
+                >
+                    {isSearchingLocation ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+                </button>
+
+                {/* Candidates Dropdown */}
+                {showCandidates && locationCandidates.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-primary-500/30 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 z-50">
+                        <div className="max-h-48 overflow-y-auto">
+                            {locationCandidates.map((loc, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => selectLocation(loc)}
+                                    className="w-full text-left px-3 py-2 hover:bg-white/5 transition-colors flex items-center gap-2 border-b border-white/5 last:border-0"
+                                >
+                                    <MapPin size={14} className="text-text-secondary shrink-0" />
+                                    <div>
+                                        <p className="font-bold text-xs text-text-primary">{loc.city}</p>
+                                        <p className="text-[10px] text-text-secondary">{loc.state}, {loc.country}</p>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {locationError && <p className="text-[10px] text-red-400 mt-1 absolute">{locationError}</p>}
             </div>
 
-            {/* 2. 🧠 ASESOR INTELIGENTE (Prioridad #2) */}
-            <div className="bg-surface/90 backdrop-blur-sm rounded-xl p-3 relative z-10">
-                {/* Header removed to save space as per user request */}
-
-                <div className="space-y-2">
-                    <div className="relative">
+            {/* 2. 🧠 ASESOR INTELIGENTE (Prioridad #2 - Horizontal) */}
+            <div className="bg-surface/50 rounded-xl p-2 relative z-10 border border-surface-highlight/50">
+                <div className="flex items-end gap-2">
+                    <div className="relative flex-1">
                         <textarea
                             value={aiQuery}
                             onChange={(e) => setAiQuery(e.target.value)}
-                            placeholder={t('smart_search.placeholder') || "¿Qué vehículo me recomiendas para..."}
-                            className="w-full bg-black/50 border border-primary-500/30 rounded-xl p-3 text-sm text-white placeholder-gray-400 focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-all resize-none h-20 shadow-inner"
+                            placeholder={t('smart_search.placeholder') || "¿Qué buscas hoy? (ej. camioneta familiar barata)"}
+                            className="w-full bg-background/50 border border-surface-highlight rounded-lg p-2 text-xs text-text-primary placeholder-text-secondary/50 focus:border-primary-400 focus:ring-0 transition-all resize-none h-10 py-2.5 custom-scrollbar leading-tight"
                             disabled={isAnalyzing}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -462,29 +451,22 @@ export default function MarketFiltersAdvanced({
                                 }
                             }}
                         />
-                        <div className="absolute bottom-2 right-2 text-[10px] text-gray-500 hidden md:block">
-                            Enter para enviar
-                        </div>
                     </div>
 
                     <button
                         type="button"
                         onClick={handleAiSearch}
                         disabled={isAnalyzing || !aiQuery.trim()}
-                        className="w-full py-2 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary-900/30 active:scale-[0.98] text-sm"
+                        className="h-10 w-10 flex-shrink-0 bg-primary-600 text-white rounded-lg hover:bg-primary-500 disabled:opacity-30 transition-all shadow-md flex items-center justify-center active:scale-95"
+                        title="Preguntar al Asesor"
                     >
                         {isAnalyzing ? (
-                            <>
-                                <Loader2 size={16} className="animate-spin text-white" />
-                                <span>{t('smart_search.consulting') || 'Analizando...'}</span>
-                            </>
+                            <Loader2 size={16} className="animate-spin text-white" />
                         ) : (
-                            <>
-                                <span>{t('smart_search.ask_advisor') || 'Preguntar al Asesor'}</span>
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                </svg>
-                            </>
+                            <div className="flex flex-col items-center justify-center">
+                                <span className="text-[8px] font-black uppercase leading-[0.5] mb-[2px]">AI</span>
+                                <Search size={14} strokeWidth={3} />
+                            </div>
                         )}
                     </button>
                 </div>
