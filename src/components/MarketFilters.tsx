@@ -369,7 +369,7 @@ export default function MarketFiltersAdvanced({
         : (availableModels.length > 0 ? availableModels : [])
 
     return (
-        <div className="bg-surface border border-surface-highlight rounded-xl p-6 space-y-6 shadow-sm relative">
+        <div className="bg-surface border border-surface-highlight rounded-xl p-4 space-y-3 shadow-sm relative">
             {/* 🚪 Close Button */}
             {onClose && (
                 <button
@@ -382,13 +382,13 @@ export default function MarketFiltersAdvanced({
                 </button>
             )}
 
-            <div className="flex items-center justify-between mb-2 pr-8">
+            <div className="flex items-center justify-between mb-1 pr-8">
                 <h2 className="text-lg font-bold text-text-primary">{t('market.filters.title')}</h2>
                 <button type="button" onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
             </div>
 
             {/* 1. 📍 BARRA DE UBICACIÓN (Prioridad #1) */}
-            <div className="relative mb-6">
+            <div className="relative mb-2">
                 <label className="block text-xs font-bold text-text-secondary uppercase mb-1 flex items-center gap-1">
                     <MapPin size={12} className="text-primary-500" />
                     Ubicación de Búsqueda ({t('common.city')})
@@ -406,7 +406,7 @@ export default function MarketFiltersAdvanced({
                         }}
                         onKeyDown={(e) => e.key === 'Enter' && handleLocationSearch(e)}
                         placeholder="Ciudad o Código Postal..."
-                        className="w-full h-12 pl-10 pr-12 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-500 transition-colors shadow-sm"
+                        className="w-full h-10 pl-10 pr-12 bg-background border border-surface-highlight rounded-xl text-text-primary focus:border-primary-500 transition-colors shadow-sm"
                     />
                     <button
                         onClick={handleLocationSearch}
@@ -444,16 +444,16 @@ export default function MarketFiltersAdvanced({
             </div>
 
             {/* 2. 🧠 ASESOR INTELIGENTE (Prioridad #2) */}
-            <div className="bg-surface/90 backdrop-blur-sm rounded-xl p-4 md:p-6 relative z-10">
+            <div className="bg-surface/90 backdrop-blur-sm rounded-xl p-3 relative z-10">
                 {/* Header removed to save space as per user request */}
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                     <div className="relative">
                         <textarea
                             value={aiQuery}
                             onChange={(e) => setAiQuery(e.target.value)}
                             placeholder={t('smart_search.placeholder') || "¿Qué vehículo me recomiendas para..."}
-                            className="w-full bg-black/50 border border-primary-500/30 rounded-xl p-4 text-base text-white placeholder-gray-400 focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-all resize-none h-28 shadow-inner"
+                            className="w-full bg-black/50 border border-primary-500/30 rounded-xl p-3 text-sm text-white placeholder-gray-400 focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-all resize-none h-20 shadow-inner"
                             disabled={isAnalyzing}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -462,7 +462,7 @@ export default function MarketFiltersAdvanced({
                                 }
                             }}
                         />
-                        <div className="absolute bottom-3 right-3 text-[10px] text-gray-500 hidden md:block">
+                        <div className="absolute bottom-2 right-2 text-[10px] text-gray-500 hidden md:block">
                             Enter para enviar
                         </div>
                     </div>
@@ -471,11 +471,11 @@ export default function MarketFiltersAdvanced({
                         type="button"
                         onClick={handleAiSearch}
                         disabled={isAnalyzing || !aiQuery.trim()}
-                        className="w-full py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary-900/30 active:scale-[0.98]"
+                        className="w-full py-2 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary-900/30 active:scale-[0.98] text-sm"
                     >
                         {isAnalyzing ? (
                             <>
-                                <Loader2 size={18} className="animate-spin text-white" />
+                                <Loader2 size={16} className="animate-spin text-white" />
                                 <span>{t('smart_search.consulting') || 'Analizando...'}</span>
                             </>
                         ) : (
@@ -494,19 +494,19 @@ export default function MarketFiltersAdvanced({
             {/* 3. 🔽 FILTROS MANUALES (Ocultos por defecto) */}
             <button
                 onClick={() => setShowManualFilters(!showManualFilters)}
-                className="w-full py-3 px-4 bg-surface-highlight/30 hover:bg-surface-highlight/50 border border-surface-highlight rounded-xl flex items-center justify-between text-text-primary transition-all group mb-4"
+                className="w-full py-2 px-3 bg-surface-highlight/30 hover:bg-surface-highlight/50 border border-surface-highlight rounded-xl flex items-center justify-between text-text-primary transition-all group mb-2"
             >
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-surface-highlight rounded-lg text-text-secondary group-hover:text-primary-400 transition-colors">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-surface-highlight rounded-lg text-text-secondary group-hover:text-primary-400 transition-colors">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                         </svg>
                     </div>
-                    <span className="font-bold text-sm uppercase tracking-wide">
+                    <span className="font-bold text-xs uppercase tracking-wide">
                         {showManualFilters ? t('market.hide_filters') || 'Ocultar Filtros Manuales' : 'FILTROS MANUALES'}
                     </span>
                 </div>
-                <ChevronDown className={`w-5 h-5 text-text-secondary transition-transform duration-300 ${showManualFilters ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-text-secondary transition-transform duration-300 ${showManualFilters ? 'rotate-180' : ''}`} />
             </button>
 
             {/* CONTENEDOR COLAPSABLE DE FILTROS MANUALES */}
