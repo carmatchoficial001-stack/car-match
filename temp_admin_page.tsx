@@ -43,6 +43,7 @@ const PublicityTab = dynamic(() => import('@/components/admin/PublicityTab'), { 
 const AdminMobileNav = dynamic(() => import('@/components/admin/AdminMobileNav'), { ssr: false })
 import QRCodeModal from '@/components/QRCodeModal'
 import SimpleLineChart from '@/components/SimpleLineChart'
+import ManageCreditsModal from '@/components/admin/ManageCreditsModal'
 // ... (rest of imports)
 
 // ... inside AdminView type definition
