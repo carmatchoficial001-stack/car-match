@@ -46,137 +46,175 @@ import QRCodeModal from '@/components/QRCodeModal'
 // ... inside AdminView type definition
 type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub' | 'publicity'
 
-// ... inside AdminDashboard component
-const menuItems = [
-    { id: 'overview', icon: LayoutDashboard, label: 'Panel de Control' },
-    { id: 'publicity', icon: Megaphone, label: 'Publicidad' }, // New Item
-    { id: 'intelligence', icon: Activity, label: 'Inteligencia' },
-    { id: 'users', icon: Users, label: 'Usuarios' },
-    { id: 'inventory', icon: Car, label: 'Inventario' },
-    { id: 'map-store', icon: Store, label: 'MapStore' },
-    { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
-    { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports?.filter(r => r.status === 'PENDING').length || 0 },
-    { id: 'logs', icon: Terminal, label: 'Registros' },
-]
+export default function AdminDashboard() {
+    const { data: session } = useSession()
+    const router = useRouter()
+    const [activeView, setActiveView] = useState<AdminView>('overview')
+    const [showQRModal, setShowQRModal] = useState(false)
+    const [isAnalyzing, setIsAnalyzing] = useState(false)
+    const [aiAnalysis, setAiAnalysis] = useState<any>(null)
 
-// ... inside render return
-{ activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} /> }
-{ activeView === 'publicity' && <PublicityTab /> }
-{ activeView === 'intelligence' && <IntelligenceTab /> }
-{ activeView === 'users' && <UsersTab users={stats.users.recent} /> }
-{ activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} /> }
-{ activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} /> }
-{ activeView === 'ai-hub' && <AiHubTab /> }
-{ activeView === 'reports' && <ReportsTab reports={stats.reports} /> }
-{ activeView === 'logs' && <LogsTab logs={stats.logs} /> }
-return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-primary-500/30">
-        {/* Desktop Sidebar */}
-        <aside className="fixed left-0 top-0 bottom-0 w-72 bg-[#09090b] border-r border-white/10 p-6 hidden md:flex flex-col z-50">
-            <div className="flex items-center gap-3 mb-10 px-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary-900/40">
-                    <Terminal className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                    <h1 className="font-black text-xl tracking-tighter italic">CarMatch <span className="text-primary-500">OS</span></h1>
-                    <p className="text-[10px] text-text-secondary font-mono tracking-widest uppercase">Admin Neural Interface</p>
-                </div>
-            </div>
+    // Mock Data State
+    const [stats, setStats] = useState<any>({
+        reports: [],
+        users: { total: 1250, recent: [], growth: [10, 25, 40, 35, 50, 65, 80] },
+        vehicles: { active: 45, recent: [] },
+        businesses: { recent: [] },
+        financials: { totalRevenue: 154000, revenue: [120, 150, 180, 200, 250, 300] },
+        intelligence: null,
+        registrations: { total: 1250, thisMonth: 124 },
+        logs: []
+    })
 
-            <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
-                {menuItems.map((item) => (
-                    <button
-                        key={item.id}
-                        onClick={() => setActiveView(item.id as AdminView)}
-                        className={`w-full flex items-center justify-between p-3 rounded-xl transition-all group ${activeView === item.id
-                            ? 'bg-white/10 text-white shadow-lg border border-white/5'
-                            : 'text-text-secondary hover:bg-white/5 hover:text-white'
-                            }`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <item.icon className={`w-5 h-5 ${activeView === item.id ? 'text-primary-400' : 'group-hover:text-primary-400 transition-colors'}`} />
-                            <span className="text-sm font-bold tracking-tight">{item.label}</span>
-                        </div>
-                        {item.badge && (
-                            <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg shadow-red-900/40 animate-pulse">
-                                {item.badge}
-                            </span>
-                        )}
-                    </button>
-                ))}
-            </nav>
+    const handleRunAnalyst = () => {
+        setIsAnalyzing(true)
+        setTimeout(() => {
+            setIsAnalyzing(false)
+            setAiAnalysis({
+                summary: 'Análisis de mercado completado. Tendencia alcista en SUVs híbridas.',
+                insights: [
+                    { observation: 'Aumento del 15% en búsquedas de autos eléctricos.', recommendation: 'Promover inventario EV en homepage.' },
+                    { observation: 'Baja actividad en MapStore zona Norte.', recommendation: 'Lanzar campaña de registro para talleres en Norte.' }
+                ],
+                businessOppotunities: [
+                    { title: 'Alta Demanda de Lavados', location: 'Zona Centro', roiScore: 94, reason: 'Escasez de servicios vs. volumen de autos.' },
+                    { title: 'Taller Especializado', location: 'Sur Residencial', roiScore: 88, reason: 'Flota de alta gama sin servicio cercano.' }
+                ]
+            })
+        }, 2000)
+    }
 
-            <div className="mt-6 pt-6 border-t border-white/10 space-y-2">
-                <button onClick={() => setShowQRModal(true)} className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
-                    <QrCode className="w-5 h-5" />
-                    <span className="text-sm font-bold">Descargar App</span>
-                </button>
-                <button className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
-                    <Settings className="w-5 h-5" />
-                    <span className="text-sm font-bold">Configuración</span>
-                </button>
-                <div className="p-4 bg-gradient-to-br from-white/5 to-transparent rounded-2xl border border-white/5 mt-4">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
-                            <span className="font-black text-indigo-400">R</span>
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold text-white">Ruben Admin</p>
-                            <p className="text-[10px] text-text-secondary">Super User</p>
-                        </div>
+    // ... inside AdminDashboard component
+    const menuItems = [
+        { id: 'overview', icon: LayoutDashboard, label: 'Panel de Control' },
+        { id: 'publicity', icon: Megaphone, label: 'Publicidad' }, // New Item
+        { id: 'intelligence', icon: Activity, label: 'Inteligencia' },
+        { id: 'users', icon: Users, label: 'Usuarios' },
+        { id: 'inventory', icon: Car, label: 'Inventario' },
+        { id: 'map-store', icon: Store, label: 'MapStore' },
+        { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
+        { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports?.filter(r => r.status === 'PENDING').length || 0 },
+        { id: 'logs', icon: Terminal, label: 'Registros' },
+    ]
+
+    // ... inside render return
+    { activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} /> }
+    { activeView === 'publicity' && <PublicityTab /> }
+    { activeView === 'intelligence' && <IntelligenceTab /> }
+    { activeView === 'users' && <UsersTab users={stats.users.recent} /> }
+    { activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} /> }
+    { activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} /> }
+    { activeView === 'ai-hub' && <AiHubTab /> }
+    { activeView === 'reports' && <ReportsTab reports={stats.reports} /> }
+    { activeView === 'logs' && <LogsTab logs={stats.logs} /> }
+    return (
+        <div className="min-h-screen bg-black text-white font-sans selection:bg-primary-500/30">
+            {/* Desktop Sidebar */}
+            <aside className="fixed left-0 top-0 bottom-0 w-72 bg-[#09090b] border-r border-white/10 p-6 hidden md:flex flex-col z-50">
+                <div className="flex items-center gap-3 mb-10 px-2">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary-900/40">
+                        <Terminal className="w-6 h-6 text-white" />
                     </div>
-                    <button className="w-full py-2 bg-white/5 hover:bg-red-500/20 hover:text-red-500 text-text-secondary rounded-lg text-xs font-bold transition flex items-center justify-center gap-2">
-                        <LogOut className="w-3 h-3" /> Cerrar Sesión
+                    <div>
+                        <h1 className="font-black text-xl tracking-tighter italic">CarMatch <span className="text-primary-500">OS</span></h1>
+                        <p className="text-[10px] text-text-secondary font-mono tracking-widest uppercase">Admin Neural Interface</p>
+                    </div>
+                </div>
+
+                <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
+                    {menuItems.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveView(item.id as AdminView)}
+                            className={`w-full flex items-center justify-between p-3 rounded-xl transition-all group ${activeView === item.id
+                                ? 'bg-white/10 text-white shadow-lg border border-white/5'
+                                : 'text-text-secondary hover:bg-white/5 hover:text-white'
+                                }`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <item.icon className={`w-5 h-5 ${activeView === item.id ? 'text-primary-400' : 'group-hover:text-primary-400 transition-colors'}`} />
+                                <span className="text-sm font-bold tracking-tight">{item.label}</span>
+                            </div>
+                            {item.badge && (
+                                <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg shadow-red-900/40 animate-pulse">
+                                    {item.badge}
+                                </span>
+                            )}
+                        </button>
+                    ))}
+                </nav>
+
+                <div className="mt-6 pt-6 border-t border-white/10 space-y-2">
+                    <button onClick={() => setShowQRModal(true)} className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
+                        <QrCode className="w-5 h-5" />
+                        <span className="text-sm font-bold">Descargar App</span>
                     </button>
+                    <button className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
+                        <Settings className="w-5 h-5" />
+                        <span className="text-sm font-bold">Configuración</span>
+                    </button>
+                    <div className="p-4 bg-gradient-to-br from-white/5 to-transparent rounded-2xl border border-white/5 mt-4">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                                <span className="font-black text-indigo-400">R</span>
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-white">Ruben Admin</p>
+                                <p className="text-[10px] text-text-secondary">Super User</p>
+                            </div>
+                        </div>
+                        <button className="w-full py-2 bg-white/5 hover:bg-red-500/20 hover:text-red-500 text-text-secondary rounded-lg text-xs font-bold transition flex items-center justify-center gap-2">
+                            <LogOut className="w-3 h-3" /> Cerrar Sesión
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </aside>
+            </aside>
 
-        {/* Main Content Area */}
-        <main className="md:pl-72 min-h-screen bg-[#000000] relative pb-24 md:pb-0">
+            {/* Main Content Area */}
+            <main className="md:pl-72 min-h-screen bg-[#000000] relative pb-24 md:pb-0">
 
-            {/* Mobile Header */}
-            <div className="md:hidden p-6 pb-2 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-xl z-40 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                    <Terminal className="w-5 h-5 text-primary-500" />
-                    <h1 className="font-black text-lg tracking-tighter italic">CarMatch OS</h1>
+                {/* Mobile Header */}
+                <div className="md:hidden p-6 pb-2 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-xl z-40 border-b border-white/10">
+                    <div className="flex items-center gap-2">
+                        <Terminal className="w-5 h-5 text-primary-500" />
+                        <h1 className="font-black text-lg tracking-tighter italic">CarMatch OS</h1>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-surface-highlight overflow-hidden">
+                        <img src={session?.user?.image || "https://ui-avatars.com/api/?name=Admin"} alt="Profile" />
+                    </div>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-surface-highlight overflow-hidden">
-                    <img src={session?.user?.image || "https://ui-avatars.com/api/?name=Admin"} alt="Profile" />
+
+                <div className="p-4 md:p-10 max-w-7xl mx-auto space-y-8">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeView}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            {activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} />}
+                            {activeView === 'publicity' && <PublicityTab />}
+                            {activeView === 'intelligence' && <IntelligenceTab />}
+                            {activeView === 'users' && <UsersTab users={stats.users.recent} />}
+                            {activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} />}
+                            {activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} />}
+                            {activeView === 'ai-hub' && <AiHubTab />}
+                            {activeView === 'reports' && <ReportsTab reports={stats.reports} />}
+                            {activeView === 'logs' && <LogsTab logs={stats.logs} />}
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
-            </div>
+            </main>
 
-            <div className="p-4 md:p-10 max-w-7xl mx-auto space-y-8">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={activeView}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        {activeView === 'overview' && <OverviewTab stats={stats} handleRunAnalyst={handleRunAnalyst} isAnalyzing={isAnalyzing} aiAnalysis={aiAnalysis} />}
-                        {activeView === 'publicity' && <PublicityTab />}
-                        {activeView === 'intelligence' && <IntelligenceTab />}
-                        {activeView === 'users' && <UsersTab users={stats.users.recent} />}
-                        {activeView === 'inventory' && <InventoryTab vehicles={stats.vehicles.recent} />}
-                        {activeView === 'map-store' && <MapStoreTab businesses={stats.businesses.recent} />}
-                        {activeView === 'ai-hub' && <AiHubTab />}
-                        {activeView === 'reports' && <ReportsTab reports={stats.reports} />}
-                        {activeView === 'logs' && <LogsTab logs={stats.logs} />}
-                    </motion.div>
-                </AnimatePresence>
-            </div>
-        </main>
+            <AdminMobileNav activeView={activeView} setActiveView={setActiveView} menuItems={menuItems} />
 
-        <AdminMobileNav activeView={activeView} setActiveView={setActiveView} menuItems={menuItems} />
-
-        <QRCodeModal
-            isOpen={showQRModal}
-            onClose={() => setShowQRModal(false)}
-        />
-    </div>
-)
+            <QRCodeModal
+                isOpen={showQRModal}
+                onClose={() => setShowQRModal(false)}
+            />
+        </div>
+    )
 }
 
 function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) {
