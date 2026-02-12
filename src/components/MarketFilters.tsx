@@ -393,13 +393,8 @@ export default function MarketFiltersAdvanced({
                 </button>
             )}
 
-            <div className="flex items-center justify-between mb-1 pr-8">
-                <h2 className="text-lg font-bold text-text-primary">{t('market.filters.title')}</h2>
-                <button type="button" onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
-            </div>
-
-            {/* 1. 📍 BARRA DE UBICACIÓN (Ultra Compacta) */}
-            <div className="relative group z-30">
+            {/* 1. 📍 BARRA DE UBICACIÓN (Ultra Compacta - Moved to Top) */}
+            <div className="relative group z-30 mb-2">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-500">
                     <MapPin size={16} />
                 </div>
@@ -443,6 +438,11 @@ export default function MarketFiltersAdvanced({
                     </div>
                 )}
                 {locationError && <p className="text-[10px] text-red-400 mt-1 absolute">{locationError}</p>}
+            </div>
+
+            <div className="flex items-center justify-between mb-1 pr-8">
+                <h2 className="text-lg font-bold text-text-primary">{t('market.filters.title')}</h2>
+                <button type="button" onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
             </div>
 
             {/* 2. 🧠 ASESOR INTELIGENTE (Prioridad #2 - Horizontal) */}
