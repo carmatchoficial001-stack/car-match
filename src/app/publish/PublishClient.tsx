@@ -1350,12 +1350,7 @@ export default function PublishClient() {
                                             </div>
                                         ))}
                                         {/* Placeholder si se borraron muchas */}
-                                        {images.filter((_, idx) => rejectedIndices.has(idx)).length > 0 && (
-                                            <div className="aspect-square rounded-xl border border-dashed border-surface-highlight bg-surface/30 flex flex-col items-center justify-center p-2 text-center opacity-40">
-                                                <X size={16} className="text-text-secondary mb-1" />
-                                                <span className="text-[10px] font-medium leading-tight">Fotos depuradas por la IA</span>
-                                            </div>
-                                        )}
+                                        {/* Placeholder de depuradas ELIMINADO por solicitud del usuario */}
                                     </div>
                                 </div>
 

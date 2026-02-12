@@ -528,6 +528,8 @@ export async function analyzeMultipleImages(
         ❌ RECHAZA ABSOLUTAMENTE (isValid: false):
         - 🚗 OTRO VEHÍCULO: Si la portada es ROJA y la foto 2 es AZUL -> RECHAZA. (Excepción: luz muy rara, pero ante duda fuerte, rechaza).
         - 🚗 OTRO MODELO: Si portada es Sedan y foto 2 es Camioneta -> RECHAZA.
+        - 🛋️ INTERIOR FALSO: Si la portada es un auto del 2020 y el interior se ve viejo/ochentero -> RECHAZA.
+        - 🚪 DETALLES INCOHERENTES: Si en la portada se ve que los asientos son negros y en la foto del interior son beige -> RECHAZA.
         - 🗑️ NO VEHÍCULO: Personas solas, mascotas, memes, paisajes sin carro.
 
         🕵️‍♂️ MODO DETECTIVE (CONSISTENCIA):
