@@ -40,7 +40,7 @@ export default async function SwipePage() {
 
         ? await prisma.user.findUnique({
             where: { email: session.user.email },
-            select: { id: true, isAdmin: true }
+            select: { id: true, isAdmin: true, country: true }
         })
         : null
 
@@ -60,18 +60,19 @@ export default async function SwipePage() {
             }
         }
     }
-
-    // Si NO es admin y hay usuario, ocultar propios. Invitados ven todo.
-    // 🔥 NEW: En Modo Invitado (soft_logout) sí permitimos ver sus propios vehículos
-    // 🔥 REGLA: El usuario puede ver sus propios vehículos en el deslizamiento
-    // para asegurar que su publicación está "Viva" en el sistema.
-
+    // 🔥 DIGITAL BORDER CONTROL: Filtrar por país del usuario
+    if (currentUser && currentUser.country) {
+        vehiclesWhere.country = currentUser.country
+    } else if (currentUser && !currentUser.country) {
+        // Fallback: Si el usuario no tiene país, asumir MX por defecto (Regla de Negocio)
+        vehiclesWhere.country = { in: ['Mexico', 'México', 'MX'] }
+    }
 
     const vehicles = await prisma.vehicle.findMany({
         where: vehiclesWhere,
         select: {
             id: true,
-            userId: true,  // 🆕 Needed to track ownership
+            userId: true,
             title: true,
             brand: true,
             model: true,
@@ -81,7 +82,7 @@ export default async function SwipePage() {
             latitude: true,
             longitude: true,
             country: true,
-            description: true, // ✅ Fetched for swipe card details
+            description: true,
             images: true,
             user: {
                 select: {
