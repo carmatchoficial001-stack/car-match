@@ -83,7 +83,9 @@ export default function MarketFiltersAdvanced({
     const [locationError, setLocationError] = useState<string | null>(null)
 
     // 📍 SYNC LOCATION INPUT ON MOUNT/UPDATE (If empty)
+    // 📍 SYNC LOCATION INPUT ON MOUNT/UPDATE (If empty)
     useEffect(() => {
+        // Only run when location changes externally, NOT when input changes manually
         if (!locationInput && (manualLocation?.city || location?.city)) {
             const city = manualLocation?.city || location?.city
             const state = manualLocation?.state || location?.state
@@ -91,7 +93,8 @@ export default function MarketFiltersAdvanced({
                 setLocationInput(state ? `${city}, ${state}` : city)
             }
         }
-    }, [manualLocation, location, locationInput])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [manualLocation, location])
 
     const handleLocationSearch = async (e?: React.FormEvent) => {
         e?.preventDefault()
