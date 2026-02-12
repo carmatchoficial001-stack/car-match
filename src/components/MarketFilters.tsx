@@ -82,6 +82,17 @@ export default function MarketFiltersAdvanced({
     const [showCandidates, setShowCandidates] = useState(false)
     const [locationError, setLocationError] = useState<string | null>(null)
 
+    // 📍 SYNC LOCATION INPUT ON MOUNT/UPDATE (If empty)
+    useEffect(() => {
+        if (!locationInput && (manualLocation?.city || location?.city)) {
+            const city = manualLocation?.city || location?.city
+            const state = manualLocation?.state || location?.state
+            if (city) {
+                setLocationInput(state ? `${city}, ${state}` : city)
+            }
+        }
+    }, [manualLocation, location, locationInput])
+
     const handleLocationSearch = async (e?: React.FormEvent) => {
         e?.preventDefault()
         if (!locationInput.trim() || isSearchingLocation) return
@@ -463,10 +474,7 @@ export default function MarketFiltersAdvanced({
                         {isAnalyzing ? (
                             <Loader2 size={16} className="animate-spin text-white" />
                         ) : (
-                            <div className="flex flex-col items-center justify-center">
-                                <span className="text-[8px] font-black uppercase leading-[0.5] mb-[2px]">AI</span>
-                                <Search size={14} strokeWidth={3} />
-                            </div>
+                            <Search size={18} strokeWidth={3} />
                         )}
                     </button>
                 </div>
