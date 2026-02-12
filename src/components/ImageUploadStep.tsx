@@ -2,7 +2,7 @@
 // ⚠️ CRITICAL WARNING: FILE PROTECTED BY PROJECT RULES.
 // DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER INSTRUCTION.
 
-﻿"use client"
+"use client"
 
 import { useState, useRef } from 'react'
 import { uploadMultipleToCloudinary } from '@/lib/cloudinary'
@@ -59,16 +59,21 @@ export default function ImageUploadStep({ images, onImagesChange, invalidImageUr
         setError(null)
 
         // Validar que no exceda 9 en galería
-        const totalGallery = galleryImages.length + files.length
-        if (totalGallery > 9) {
-            setError(`Solo puedes tener máximo 9 fotos en la galería. Tienes ${galleryImages.length} y estás intentando agregar ${files.length}.`)
+        // ✂️ AUTO-CORTE: Calcular espacios disponibles (Límite 9)
+        const slotsRemaining = 9 - galleryImages.length
+
+        if (slotsRemaining <= 0) {
+            setError('Tu galería ya está llena (máximo 9 fotos).')
             return
         }
+
+        const filesArray = Array.from(files).slice(0, slotsRemaining)
+
 
         setUploadingGallery(true)
 
         try {
-            const urls = await uploadMultipleToCloudinary(Array.from(files))
+            const urls = await uploadMultipleToCloudinary(filesArray)
 
             // Agregar a galería (después de la portada)
             if (coverImage) {
