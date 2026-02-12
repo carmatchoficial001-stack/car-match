@@ -389,12 +389,18 @@ export async function analyzeMultipleImages(
        REGLA DE ORO DE VALIDACIÓN: ¿TIENE MOTOR Y LLANTAS? -> ¡ES VÁLIDO!
        (Autos, Jeeps, Camionetas, Motos, Camiones, Maquinaria -> TODO ES VÁLIDO).
 
+       👁️ ENFOQUE SELECTIVO (ANTI-RUIDO DE FONDO):
+       - En fotos de LOTES DE AUTOS o tráfico, ignora los vehículos de atrás/al lado.
+       - Tu objetivo es ÚNICAMENTE el vehículo PRINCIPAL (el que está en primer plano, centrado o más grande).
+       - Si hay duda, el vehículo "sujeto" es el que ocupa más espacio en la foto.
+       - NO mezcles datos: Si el carro principal es un Ferrari y atrás hay un Vocho, ¡NO DIGAS QUE TIENE MOTOR DE VOCHO!
+
        📋 CONTEXTO DEL USUARIO:
        - Marca: "${context?.brand || '?'}", Modelo: "${context?.model || '?'}", Año: "${context?.year || '?'}"
        
         🚀 INSTRUCCIONES:
         1. VALIDEZ (@Index 0): Si la foto 0 es un vehículo, "isValidCover": true.
-        2. IDENTIDAD: Identifica la VERSIÓN EXACTA (ej: Limited, Rubicon, GT).
+        2. IDENTIDAD: Identifica la VERSIÓN EXACTA (ej: Limited, Rubicon, GT) del vehículo PRINCIPAL.
         3. DATOS TÉCNICOS: Usa tu CONOCIMIENTO DE AGENCIA para llenar el motor, HP, etc. de esa versión.
         4. EQUIPAMIENTO: Lista lo que ves Y lo que sabes que tiene de serie.
 
