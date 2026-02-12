@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
                         title: '👋 ¡Checa las novedades!',
                         body: 'Hay nueva actividad en tu zona y vehículos que podrían interesarte. ¡Entra ahora!',
                         url: '/market', // Llevar al mercado general
-                        icon: '/icon-512x512.png'
+                        icon: '/icon-512-v20.png?v=22'
                     }
 
                     // Enviar a todas las suscripciones del usuario

@@ -70,6 +70,19 @@ self.addEventListener('push', function (event) {
             )
         } catch (e) {
             console.error('Error parseando push data:', e)
+            // 🛡️ FALLBACK: Siempre mostrar ALGO para evitar la "Notificación Fantasma" de Chrome
+            // Chrome castiga si llega un push y no se muestra nada.
+            const title = 'CarMatch'
+            const options = {
+                body: 'Tienes una nueva actualización.',
+                icon: '/icon-192-v20.png?v=22',
+                badge: '/favicon-v19.png?v=21',
+                tag: 'fallback-notification',
+                renotify: true
+            }
+            event.waitUntil(
+                self.registration.showNotification(title, options)
+            )
         }
     }
 })
