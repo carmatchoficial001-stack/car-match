@@ -515,7 +515,8 @@ export async function analyzeMultipleImages(
         - ACEPTA ángulos raros, fotos oscuras o borrosas si se distingue un vehículo.
         
         ❌ RECHAZA (isValid: false) ÚNICAMENTE:
-        - Si es OBVIAMENTE un vehículo totalmente distinto (ej: Portada Ford -> Foto Toyota).
+        - Si es CLARAMENTE UN VEHÍCULO DISTINTO (Marca, Modelo o Color diferente a la portada).
+        - LA PORTADA ES LA VERDAD ABSOLUTA. Si la foto 2 es un Mustang y la portada es un Camaro -> RECHAZA la foto 2.
         - Si NO ES UN VEHÍCULO NI PARTE DE UNO (Basura, selfies solas, mascotas, memes).
 
         🕵️‍♂️ MODO DETECTIVE (LLENADO DE DATOS):
