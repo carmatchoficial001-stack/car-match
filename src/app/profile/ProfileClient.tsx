@@ -121,6 +121,30 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                 <div className="bg-surface rounded-2xl shadow-xl p-8 border border-surface-highlight">
 
 
+                    {/* Botón de Actualizar / Barajar para Visitantes (Solo si hay vehículos) */}
+                    {!isOwner && vehiclesToShow.length > 0 && (
+                        <div className="flex justify-end mb-4">
+                            <button
+                                onClick={() => {
+                                    // 🔄 Hack simple: Forzar recarga completa para re-barajar en el servidor o reordenar local
+                                    // Opción local visual más rápida:
+                                    const shuffled = [...vehiclesToShow].sort(() => Math.random() - 0.5)
+                                    // Necesitaríamos estado local para esto, pero como fallback rápido usaremos router.refresh
+                                    // window.location.reload() // Fuerza bruta pero efectiva para "pull-to-refresh" real
+
+                                    // Mejor UX: Router refresh (mantiene estado pero recarga data del server)
+                                    const btn = document.getElementById('btn-refresh-inventory')
+                                    if (btn) btn.classList.add('animate-spin')
+                                    window.location.reload()
+                                }}
+                                className="flex items-center gap-2 text-primary-400 text-sm font-bold hover:text-primary-300 transition"
+                            >
+                                <RefreshCw id="btn-refresh-inventory" className="w-4 h-4" />
+                                {t('common.refresh' as any) || 'Actualizar Inventario'}
+                            </button>
+                        </div>
+                    )}
+
                     {vehiclesToShow.length === 0 ? (
                         <div className="text-center py-12 text-text-secondary bg-background/50 rounded-xl border border-surface-highlight border-dashed">
                             <div className="w-16 h-16 bg-surface rounded-xl flex items-center justify-center mx-auto mb-4">
