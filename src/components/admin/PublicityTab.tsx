@@ -19,7 +19,10 @@ import {
     togglePublicityStatus,
     manualTriggerSocialPost
 } from '@/app/admin/actions/publicity-actions'
-import { generateSocialCaption, generateImagePrompt, generateVideoScript, suggestCampaignFromInventory } from '@/app/admin/actions/ai-content-actions'
+import {
+    generateSocialCaption, generateImagePrompt, generateVideoScript, suggestCampaignFromInventory,
+    chatWithPublicityAgent
+} from '@/app/admin/actions/ai-content-actions'
 import SocialQueue from '@/components/admin/SocialQueue'
 
 interface PublicityCampaign {
@@ -358,10 +361,41 @@ export default function PublicityTab() {
 
 function AIStudioModal({ isOpen, onClose }: any) {
     const [topic, setTopic] = useState("")
-    const [activeTab, setActiveTab] = useState<'text' | 'image' | 'video'>('text')
+    const [activeTab, setActiveTab] = useState<'text' | 'image' | 'video' | 'chat'>('text')
     const [generatedContent, setGeneratedContent] = useState("")
     const [loading, setLoading] = useState(false)
     const [autoPilotData, setAutoPilotData] = useState<any>(null)
+
+    // Chat State
+    const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'model', content: string }[]>([])
+    const [chatInput, setChatInput] = useState("")
+    const [isChatting, setIsChatting] = useState(false)
+
+    const handleChatSubmit = async (e?: React.FormEvent) => {
+        e?.preventDefault()
+        if (!chatInput.trim()) return
+
+        const newUserMsg = { role: 'user' as const, content: chatInput }
+        setChatMessages(prev => [...prev, newUserMsg])
+        setChatInput("")
+        setIsChatting(true)
+
+        try {
+            // Include history
+            const history = [...chatMessages, newUserMsg]
+            const res = await chatWithPublicityAgent(history, targetCountry)
+
+            if (res.success && res.message) {
+                setChatMessages(prev => [...prev, { role: 'model', content: res.message }])
+            } else {
+                setChatMessages(prev => [...prev, { role: 'model', content: "Error de conexión con el agente." }])
+            }
+        } catch (err) {
+            console.error(err)
+        } finally {
+            setIsChatting(false)
+        }
+    }
 
     // Country / Market Target
     const [targetCountry, setTargetCountry] = useState("MX")
@@ -498,7 +532,8 @@ function AIStudioModal({ isOpen, onClose }: any) {
                                     {[
                                         { id: 'text', icon: Megaphone, label: 'Post' },
                                         { id: 'image', icon: ImageIcon, label: 'Imagen' },
-                                        { id: 'video', icon: Share2, label: 'Video' }
+                                        { id: 'video', icon: Share2, label: 'Video' },
+                                        { id: 'chat', icon: Sparkles, label: 'Chat / Ideas' }
                                     ].map(type => (
                                         <button
                                             key={type.id}
@@ -599,22 +634,26 @@ function AIStudioModal({ isOpen, onClose }: any) {
                             )}
 
                             {/* Generate Button (only show if not autopilot data or if topic is manually entered) */}
-                            <button
-                                onClick={handleGenerate}
-                                disabled={loading || !topic}
-                                className="w-full py-4 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-purple-900/20 flex items-center justify-center gap-2"
-                            >
-                                {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                                Generar con IA
-                            </button>
+                            {activeTab !== 'chat' && (
+                                <button
+                                    onClick={handleGenerate}
+                                    disabled={loading || !topic}
+                                    className="w-full py-4 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-purple-900/20 flex items-center justify-center gap-2"
+                                >
+                                    {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                                    Generar con IA
+                                </button>
+                            )}
                         </div>
                     </div>
 
                     {/* Content Display Area */}
                     <div className="flex-1 bg-black/40 p-6 flex flex-col overflow-hidden">
                         <div className="flex items-center justify-between mb-4">
-                            <h4 className="text-sm font-bold text-white uppercase tracking-widest">Contenido Generado</h4>
-                            {generatedContent && (
+                            <h4 className="text-sm font-bold text-white uppercase tracking-widest">
+                                {activeTab === 'chat' ? 'Marketing Director Agent' : 'Contenido Generado'}
+                            </h4>
+                            {generatedContent && activeTab !== 'chat' && (
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => {
@@ -629,21 +668,72 @@ function AIStudioModal({ isOpen, onClose }: any) {
                             )}
                         </div>
 
-                        <div className="flex-1 bg-black/20 border border-white/5 rounded-2xl p-6 overflow-y-auto whitespace-pre-wrap text-sm text-text-secondary font-mono leading-relaxed custom-scrollbar">
-                            {loading ? (
-                                <div className="h-full flex flex-col items-center justify-center text-center opacity-50 space-y-4">
-                                    <RefreshCw className="w-8 h-8 animate-spin text-purple-500" />
-                                    <p className="text-xs uppercase tracking-widest animate-pulse">Creando contenido viral para {targetCountry}...</p>
+                        {activeTab === 'chat' ? (
+                            <div className="flex-1 flex flex-col bg-black/20 border border-white/5 rounded-2xl overflow-hidden">
+                                {/* Messages Area */}
+                                <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                                    {chatMessages.length === 0 && (
+                                        <div className="text-center text-text-secondary opacity-50 mt-10">
+                                            <Sparkles className="w-10 h-10 mx-auto mb-2" />
+                                            <p className="text-xs">Soy tu Director de Marketing IA.</p>
+                                            <p className="text-xs">Pregúntame ideas para campañas, guiones o estrategias.</p>
+                                        </div>
+                                    )}
+                                    {chatMessages.map((msg, i) => (
+                                        <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                            <div className={`max-w-[85%] rounded-2xl p-3 text-sm ${msg.role === 'user'
+                                                ? 'bg-purple-600 text-white rounded-br-none'
+                                                : 'bg-white/10 text-white rounded-bl-none'
+                                                }`}>
+                                                <p className="whitespace-pre-wrap">{msg.content}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {isChatting && (
+                                        <div className="flex justify-start">
+                                            <div className="bg-white/5 rounded-2xl p-3 rounded-bl-none flex gap-1">
+                                                <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce" />
+                                                <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce [animation-delay:0.1s]" />
+                                                <div className="w-2 h-2 bg-text-secondary rounded-full animate-bounce [animation-delay:0.2s]" />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            ) : generatedContent ? (
-                                generatedContent
-                            ) : (
-                                <div className="h-full flex flex-col items-center justify-center text-center opacity-30 space-y-4">
-                                    <Sparkles className="w-12 h-12" />
-                                    <p>Selecciona una opción o usa el piloto automático para comenzar.</p>
-                                </div>
-                            )}
-                        </div>
+
+                                {/* Input Area */}
+                                <form onSubmit={handleChatSubmit} className="p-3 bg-white/5 border-t border-white/5 flex gap-2">
+                                    <input
+                                        value={chatInput}
+                                        onChange={e => setChatInput(e.target.value)}
+                                        placeholder="Escribe tu idea o pregunta..."
+                                        className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-purple-500 outline-none"
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={!chatInput.trim() || isChatting}
+                                        className="p-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl transition disabled:opacity-50"
+                                    >
+                                        <Share2 className="w-5 h-5 rotate-90" />
+                                    </button>
+                                </form>
+                            </div>
+                        ) : (
+                            <div className="flex-1 bg-black/20 border border-white/5 rounded-2xl p-6 overflow-y-auto whitespace-pre-wrap text-sm text-text-secondary font-mono leading-relaxed custom-scrollbar">
+                                {loading ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-center opacity-50 space-y-4">
+                                        <RefreshCw className="w-8 h-8 animate-spin text-purple-500" />
+                                        <p className="text-xs uppercase tracking-widest animate-pulse">Creando contenido viral para {targetCountry}...</p>
+                                    </div>
+                                ) : generatedContent ? (
+                                    generatedContent
+                                ) : (
+                                    <div className="h-full flex flex-col items-center justify-center text-center opacity-30 space-y-4">
+                                        <Sparkles className="w-12 h-12" />
+                                        <p>Selecciona una opción o usa el piloto automático para comenzar.</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {generatedContent && (
                             <div className="pt-4">

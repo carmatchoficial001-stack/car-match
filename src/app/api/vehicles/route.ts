@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
         const user = await prisma.user.findUnique({
             where: { email: session.user.email! },
-            select: { id: true, fraudStrikes: true, isAdmin: true, lifetimeVehicleCount: true }
+            select: { id: true, fraudStrikes: true, isAdmin: true, lifetimeVehicleCount: true, country: true }
         })
 
         if (!user) {
@@ -285,21 +285,42 @@ export async function POST(request: NextRequest) {
             // No bloqueamos la respuesta, lo hacemos async
             (async () => {
                 try {
+                    const restrictedAdminEmail = 'carmatchoficial001@gmail.com'
+
+                    // 🛡️ REGLA ESTRICTA: Este admin solo puede publicar en MÉXICO
+                    if (session.user.email === restrictedAdminEmail) {
+                        console.log('🔒 Enforcing Digital Border: Restricted Admin -> Force MX')
+                        await prisma.vehicle.update({
+                            where: { id: vehicle.id },
+                            data: { country: 'MX' }
+                        })
+                        return // Skip geocoding
+                    }
+
                     // Intento de resolución de país (Nominatim libre)
                     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=3&addressdetails=1`, {
                         headers: { 'User-Agent': 'CarMatchApp/1.0' }
                     })
+
+                    let countryCode = 'MX' // Default final fallback
+
                     if (res.ok) {
                         const data = await res.json()
-                        const countryCode = data.address?.country_code?.toUpperCase() || 'MX'
-
-                        // Actualizar vehículo con el código de país real
-                        // Mapeo básico: 'mx' -> 'MX', 'us' -> 'US'
-                        await prisma.vehicle.update({
-                            where: { id: vehicle.id },
-                            data: { country: countryCode }
-                        })
+                        countryCode = data.address?.country_code?.toUpperCase()
                     }
+
+                    // Si falló Nominatim, usar país del usuario como fallback inteligente
+                    if (!countryCode) {
+                        countryCode = user.country || 'MX'
+                    }
+
+                    // Actualizar vehículo con el código de país real
+                    // Mapeo básico: 'mx' -> 'MX', 'us' -> 'US'
+                    await prisma.vehicle.update({
+                        where: { id: vehicle.id },
+                        data: { country: countryCode }
+                    })
+
                 } catch (err) {
                     console.error('Error detectando país del vehículo:', err)
                 }

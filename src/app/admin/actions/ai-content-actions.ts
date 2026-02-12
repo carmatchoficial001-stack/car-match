@@ -313,12 +313,72 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
 
             return { success: true, vehicle: vehicleMock, campaignData }
         } catch (e) {
-            console.error('Error parsing JSON from Gemini:', e)
             return { success: false, error: 'Error al interpretar la respuesta de IA.' }
         }
 
     } catch (error) {
         console.error('Error in auto-pilot:', error)
         return { success: false, error: 'Error interno en piloto automático.' }
+    }
+}
+
+// --- AI Chat for Publicity Agent ---
+export async function chatWithPublicityAgent(messages: any[], targetCountry: string = 'MX') {
+    try {
+        const country = getCountryContext(targetCountry)
+
+        const systemPrompt = `
+            You are "CarMatch Marketing Director", an elite AI marketing strategist specialized in the automotive industry in ${country.name}.
+            
+            Your Goal: Help the user create viral marketing campaigns, brainstorm ideas, and write scripts/copy for CarMatch.
+            
+            Tone: Professional, creative, enthusiastic, data-driven.
+            Language: Spanish (localized for ${country.name}).
+            
+            Key Capabilities:
+            1. Suggest Hook angles for specific cars.
+            2. Write video scripts (TikTok/Reels).
+            3. Create image prompts for DALL-E/Midjourney.
+            4. Analyze trends in ${country.name}.
+            
+            Context about CarMatch:
+            - "The Tinder for Cars" (Swipe feature).
+            - Map Store (Find mechanics/services).
+            - Safe, Verified, Fast.
+            
+            Keep responses concise and actionable. Use emojis.
+        `
+
+        // Convert messages to Gemini format
+        const historyParts = [
+            {
+                role: "user",
+                parts: [{ text: systemPrompt }],
+            },
+            {
+                role: "model",
+                parts: [{ text: `Entendido. Soy el Director de Marketing de CarMatch para ${country.name}. ¿En qué puedo ayudarte hoy? 🚀` }],
+            },
+            ...messages.slice(0, -1).map((m: any) => ({
+                role: m.role === 'user' ? 'user' : 'model',
+                parts: [{ text: m.content }],
+            }))
+        ]
+
+        const chat = geminiFlashConversational.startChat({
+            history: historyParts,
+            generationConfig: {
+                maxOutputTokens: 1000,
+            },
+        });
+
+        const lastMessage = messages[messages.length - 1].content
+        const result = await chat.sendMessage(lastMessage)
+        const response = result.response.text()
+
+        return { success: true, message: response }
+    } catch (error) {
+        console.error('Error in chatWithPublicityAgent:', error)
+        return { success: false, error: 'Error connecting to AI Agent.' }
     }
 }

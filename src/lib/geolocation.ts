@@ -94,11 +94,8 @@ async function getLocationFromIP(): Promise<Coordinates> {
         }
         throw new Error('IP localization failed')
     } catch (error) {
-        // Fallback final: Ciudad de México si todo falla
-        return {
-            latitude: 19.4326,
-            longitude: -99.1332
-        }
+        // Fallback REMOVIDO: Lanzar error para forzar selección manual (Global App)
+        throw new Error('IP localization failed')
     }
 }
 
@@ -145,10 +142,10 @@ export async function getUserLocation(): Promise<Coordinates> {
 }
 /**
  * Convierte coordenadas GPS a nombre de ciudad usando MapBox Geocoding API
- * @param latitude Latitud
- * @param longitude Longitud
- * @returns Promise con información de ubicación
- */
+    * @param latitude Latitud
+        * @param longitude Longitud
+            * @returns Promise con información de ubicación
+                */
 export async function reverseGeocode(
     latitude: number,
     longitude: number

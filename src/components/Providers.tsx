@@ -1,7 +1,3 @@
-// 🛡️ PROHIBIDO MODIFICAR SIN ORDEN EXPLÍCITA DEL USUARIO (Ver PROJECT_RULES.md)
-// ⚠️ CRITICAL WARNING: FILE PROTECTED BY PROJECT RULES.
-// DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER INSTRUCTION.
-
 "use client"
 
 import { SessionProvider } from "next-auth/react"
@@ -11,6 +7,8 @@ import dynamic from "next/dynamic"
 
 import QueryProvider from "./QueryProvider"
 import HistoryShield from "@/components/HistoryShield";
+import GlobalLocationGate from "@/components/GlobalLocationGate";
+
 const AIChatbot = dynamic(() => import("@/components/AIChatbot"), { ssr: false });
 const RegisterSW = dynamic(() => import("@/components/RegisterSW"), { ssr: false });
 const PushNotificationRequest = dynamic(() => import("@/components/PushNotificationRequest"), { ssr: false });
@@ -25,6 +23,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                         <PushNotificationRequest />
                         <HistoryShield />
                         {children}
+                        <GlobalLocationGate />
                         <AIChatbot />
                     </LocationProvider>
                 </LanguageProvider>
