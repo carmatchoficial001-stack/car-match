@@ -536,9 +536,15 @@ export async function analyzeMultipleImages(
         - Si la portada muestra un golpe en la puerta derecha, la foto lateral debería mostrarlo (o no mostrar ese lado).
         - Si la portada tiene quemacocos, la foto del techo debe tenerlo.
 
-        🧞‍♂️ MODO ENCICLOPEDIA (DATOS TÉCNICOS):
-        - Completa la ficha con lo que veas: Palanca (Transmisión), Botones (Tracción), Motor (Cilindros).
-        - Mejora la versión si ves insignias específicas.
+        🧞‍♂️ MODO ENCICLOPEDIA (DATOS TÉCNICOS - CERO ALUCINACIONES):
+        - TU OBJETIVO ES LA PRECISIÓN, NO LLENAR POR LLENAR.
+        - Si identificas la VERSIÓN EXACTA (ej: "High Country", "GTI", "Rubicon"), USA SUS DATOS OFICIALES DE AGENCIA (Motor, HP, Torque).
+        - SI NO ESTÁS 100% SEGURO DE LA VERSIÓN, SOLO PON LO QUE VEAS O LO QUE SEA ESTÁNDAR PARA EL MODELO BASE.
+        - 🚫 PROHIBIDO INVENTAR:
+          - No pongas "Turbo" si no ves la insignia o la entrada de aire.
+          - No pongas "AWD" si no ves la insignia o el diferencial.
+          - No inventes HP o Torque si no confirmarste la versión exacta.
+        - Si no sabes el dato exacto, déjalo en NULL. ES MEJOR NULL QUE UN DATO FALSO.
 
         Responde con este JSON:
         {
