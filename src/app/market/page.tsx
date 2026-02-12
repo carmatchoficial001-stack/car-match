@@ -90,10 +90,9 @@ export default async function MarketPage({
     const currentUser = session?.user?.email
         ? await prisma.user.findUnique({
             where: { email: session.user.email },
-            select: { id: true, isAdmin: true, lastLatitude: true, lastLongitude: true }
+            select: { id: true, isAdmin: true, country: true, lastLatitude: true, lastLongitude: true }
         })
         : null
-
     const isAdmin = currentUser?.isAdmin || currentUser?.id === process.env.ADMIN_EMAIL
     const currentUserId = currentUser?.id || 'guest'
 
@@ -102,13 +101,13 @@ export default async function MarketPage({
         status: "ACTIVE",
     }
 
-    // Si NO es admin, ocultar propios. Si ES admin, mostrarlos. Invitados ven todo.
-    // 🔥 NEW: Si está en Modo Invitado (soft_logout), sí mostramos sus vehículos para que pueda ver cómo quedaron.
-    // 🔥 REGLA: Los usuarios ahora sí pueden ver sus propios vehículos en el feed
-    // para feedback inmediato (BD Viva). Solo ocultamos si el usuario lo pide explícitamente.
-
-
-
+    // 🔥 DIGITAL BORDER CONTROL: Filtrar por país del usuario
+    if (currentUser && currentUser.country) {
+        where.country = currentUser.country
+    } else if (currentUser && !currentUser.country) {
+        // Fallback: Si el usuario no tiene país, asumir MX por defecto (Regla de Negocio)
+        where.country = { in: ['Mexico', 'México', 'MX'] }
+    }
     // 🧠 MEJORA IA: Interpretación de búsqueda en lenguaje natural
     // 💰 CON CACHÉ: Ahorra 80-90% en llamadas a Gemini para búsquedas populares
     let aiReasoning = ""
