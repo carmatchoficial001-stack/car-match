@@ -505,8 +505,8 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                             ? 'Cuéntale a tu asesor qué falla tiene tu auto...'
                                             : t('map_store.how_to_diagnose')}
                                     </p>
-                                    <div className="space-y-3">
-                                        <div className="relative">
+                                    <div className="flex items-end gap-2">
+                                        <div className="relative flex-1">
                                             <textarea
                                                 value={searchQuery}
                                                 onChange={(e) => {
@@ -515,22 +515,26 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                                     setHasSearched(false)
                                                 }}
                                                 placeholder={t('map_store.smart_search_placeholder')}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:border-primary-500/50 focus:outline-none transition-all resize-none h-24"
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white focus:border-primary-500/50 focus:outline-none transition-all resize-none h-12 py-3 custom-scrollbar"
                                                 disabled={isAnalyzing}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                                        e.preventDefault();
+                                                        handleSmartSearch();
+                                                    }
+                                                }}
                                             />
                                         </div>
                                         <button
                                             onClick={handleSmartSearch}
                                             disabled={isAnalyzing || !searchQuery.trim()}
-                                            className="w-full py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-500 disabled:opacity-30 transition-all shadow-lg flex items-center justify-center gap-2 font-bold uppercase tracking-wide text-xs"
+                                            className="h-12 w-12 flex-shrink-0 bg-primary-600 text-white rounded-xl hover:bg-primary-500 disabled:opacity-30 transition-all shadow-lg flex items-center justify-center active:scale-95"
+                                            title="Preguntar al Asesor"
                                         >
                                             {isAnalyzing ? (
                                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                             ) : (
-                                                <>
-                                                    <Sparkles size={16} />
-                                                    Preguntar al Asesor
-                                                </>
+                                                <Sparkles size={20} />
                                             )}
                                         </button>
                                     </div>
