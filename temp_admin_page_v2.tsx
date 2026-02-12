@@ -57,6 +57,32 @@ export default function AdminDashboard() {
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [aiAnalysis, setAiAnalysis] = useState<any>(null)
 
+    // 🛡️ DIGITAL BORDER CONTROL: Mexico Admin Layout
+    // Solo el correo autorizado para México puede acceder a este dashboard.
+    // Futura expansión: Agregar lógica para mapping { 'MX': [...], 'US': [...] }
+    const authorizedAdmin = 'carmatchoficial001-stack@gmail.com'
+
+    if (session?.user?.email !== authorizedAdmin) {
+        return (
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 text-center">
+                <ShieldCheck className="w-16 h-16 text-red-600 mb-6 animate-pulse" />
+                <h1 className="text-3xl font-black italic tracking-tighter text-white mb-2 uppercase">
+                    Acceso Restringido
+                </h1>
+                <p className="text-text-secondary max-w-md mb-8">
+                    Esta cuenta no tiene permisos de administración para la región <span className="text-white font-bold">México (MX)</span>.
+                    <br /><span className="text-xs opacity-50">Border Control ID: {Date.now().toString().slice(-6)}</span>
+                </p>
+                <button
+                    onClick={() => router.push('/')}
+                    className="bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2"
+                >
+                    <ChevronRight className="w-4 h-4 rotate-180" /> Volver al Inicio
+                </button>
+            </div>
+        )
+    }
+
     // Mock Data State
     const [stats, setStats] = useState<any>({
         reports: [],
