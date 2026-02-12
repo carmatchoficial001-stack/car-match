@@ -115,7 +115,7 @@ export default function MarketClient({
     const [isFiltering, setIsFiltering] = useState(true)
 
     // ANILLOS PROGRESIVOS
-    const RADIUS_TIERS = [12, 100, 250, 500, 1000, 2500, 5000]
+    const RADIUS_TIERS = [25, 50, 100, 250, 500, 1000, 2500, 5000]
     const [tierIndex, setTierIndex] = useState(0)
     const searchRadius = RADIUS_TIERS[tierIndex]
 
