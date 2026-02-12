@@ -536,15 +536,14 @@ export async function analyzeMultipleImages(
         - Si la portada muestra un golpe en la puerta derecha, la foto lateral debería mostrarlo (o no mostrar ese lado).
         - Si la portada tiene quemacocos, la foto del techo debe tenerlo.
 
-        🧞‍♂️ MODO ENCICLOPEDIA (DATOS TÉCNICOS - CERO ALUCINACIONES):
-        - TU OBJETIVO ES LA PRECISIÓN, NO LLENAR POR LLENAR.
-        - Si identificas la VERSIÓN EXACTA (ej: "High Country", "GTI", "Rubicon"), USA SUS DATOS OFICIALES DE AGENCIA (Motor, HP, Torque).
-        - SI NO ESTÁS 100% SEGURO DE LA VERSIÓN, SOLO PON LO QUE VEAS O LO QUE SEA ESTÁNDAR PARA EL MODELO BASE.
-        - 🚫 PROHIBIDO INVENTAR:
-          - No pongas "Turbo" si no ves la insignia o la entrada de aire.
-          - No pongas "AWD" si no ves la insignia o el diferencial.
-          - No inventes HP o Torque si no confirmarste la versión exacta.
-        - Si no sabes el dato exacto, déjalo en NULL. ES MEJOR NULL QUE UN DATO FALSO.
+        🧞‍♂️ MODO ENCICLOPEDIA (DATOS TÉCNICOS - EQUILIBRIO):
+        - PRIORIDAD 1: Si identificas la VERSIÓN EXACTA (ej: "Raptor", "GTI", "AMG"), USA SUS DATOS ESPECÍFICOS.
+        - PRIORIDAD 2: Si NO estás seguro de la versión, USA LOS DATOS DEL "MODELO BASE" O "MÁS COMÚN" PARA ESE AÑO.
+          (Ej: Si ves un Jetta 2018 pero no sabes si es Trendline o Comfortline, pon el motor 2.5L estándar, NO LO DEJES VACÍO).
+        - 🚫 PROHIBIDO INVENTAR CARACTERÍSTICAS "PREMIUM" SIN EVIDENCIA:
+          - NO pongas "Turbo" ni "4x4" ni "Piel" a menos que lo veas o sea estándar en TODAS las versiones.
+          - Si el dato varía mucho entre versiones (ej: motor), usa el del modelo de entrada.
+          - SÉ ÚTIL: Es mejor tener la ficha técnica del modelo base que tener todo en blanco.
 
         Responde con este JSON:
         {
