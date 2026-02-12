@@ -41,6 +41,9 @@ const AdminHeatMap = dynamic(() => import('@/components/AdminHeatMap'), { ssr: f
 const PublicityTab = dynamic(() => import('@/components/admin/PublicityTab'), { ssr: false })
 const AdminMobileNav = dynamic(() => import('@/components/admin/AdminMobileNav'), { ssr: false })
 import QRCodeModal from '@/components/QRCodeModal'
+import SimpleLineChart from '@/components/SimpleLineChart'
+import ManageCreditsModal from '@/components/admin/ManageCreditsModal'
+import Link from 'next/link'
 // ... (rest of imports)
 
 // ... inside AdminView type definition
