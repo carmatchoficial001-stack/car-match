@@ -93,7 +93,7 @@ export default function AdminDashboard() {
         { id: 'inventory', icon: Car, label: 'Inventario' },
         { id: 'map-store', icon: Store, label: 'MapStore' },
         { id: 'ai-hub', icon: Cpu, label: 'AI Hub' },
-        { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports?.filter(r => r.status === 'PENDING').length || 0 },
+        { id: 'reports', icon: Flag, label: 'Reportes', badge: stats.reports?.filter((r: any) => r.status === 'PENDING').length || 0 },
         { id: 'logs', icon: Terminal, label: 'Registros' },
     ]
 
