@@ -107,13 +107,11 @@ export default async function MapPage() {
 
     return (
         <div className="h-full w-full bg-background">
-            return (
-            <div className="h-full w-full bg-background">
-                <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-                <MapClient
-                    businesses={serializeDecimal(businesses) as any}
-                    user={serializeDecimal(user) as any}
-                />
-            </div>
-            )
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+            <MapClient
+                businesses={businesses.map(b => serializeDecimal(b)) as any}
+                user={user ? serializeDecimal(user) as any : null}
+            />
+        </div>
+    )
 }
