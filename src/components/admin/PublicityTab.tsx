@@ -338,7 +338,7 @@ const PLATFORMS = [
     { id: 'twitter_x', label: 'X (Twitter)', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" className="w-4 h-4 invert" />, color: 'bg-slate-800' },
     { id: 'threads', label: 'Threads', icon: <span className="font-bold text-lg select-none">@</span>, color: 'bg-black' },
     { id: 'snapchat_ads', label: 'Snapchat', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670166.png" className="w-4 h-4 invert" />, color: 'bg-yellow-400 text-black' },
-    { id: 'messaging_apps', label: 'WhatsApp / Telegram', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670051.png" className="w-4 h-4 invert" />, color: 'bg-green-500' },
+    { id: 'whatsapp_channel', label: 'WhatsApp Channel', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670051.png" className="w-4 h-4 invert" />, color: 'bg-green-500' },
 ]
 
 function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
@@ -450,8 +450,13 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
         } else if (activePlatform === 'facebook_marketplace' || activePlatform === 'youtube_shorts') {
             titleToDisplay = platformData.title
             contentToDisplay = platformData.description
+        } else if (activePlatform === 'snapchat_ads') {
+            titleToDisplay = platformData.headline
+            contentToDisplay = platformData.caption
+        } else if (activePlatform === 'whatsapp_channel') {
+            contentToDisplay = platformData.update
         } else {
-            contentToDisplay = platformData.caption || platformData.script_notes || platformData.text || platformData.body || platformData.post
+            contentToDisplay = platformData.caption || platformData.script_notes || platformData.text || platformData.body || platformData.post || JSON.stringify(platformData, null, 2)
         }
 
         return (

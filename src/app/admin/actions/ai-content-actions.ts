@@ -432,7 +432,7 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                     "twitter_x": { "tweets": ["Tweet 1 (News/Update style)", "Tweet 2 (Thread)"] },
                     "threads": { "text": "Casual, authentic, question-based sales hook to start a conversation (Soft sell)." },
                     "snapchat_ads": { "headline": "Urgent/Fun headline", "caption": "Short caption for Spotlight" },
-                    "messaging_apps": { "broadcast_message": "Direct, exclusive offer text for WhatsApp/Telegram Channels (High FOMO)" }
+                    "whatsapp_channel": { "update": "Exclusive 'Drop' or 'Breaking News' style update. Short, exciting, link-focused. NO questions." }
                 }
             }
             
