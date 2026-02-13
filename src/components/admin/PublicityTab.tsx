@@ -10,7 +10,7 @@ import {
     Megaphone, Plus, Search, Filter, MoreVertical,
     Calendar, Globe, Share2, Trash2, Edit, CheckCircle2,
     XCircle, Clock, ExternalLink, Image as ImageIcon, Sparkles, RefreshCw, Zap,
-    Bot, User, Download, ImagePlus, Send, Save, X
+    Bot, User, Download, ImagePlus, Send, Save, X, Copy, Check, Video, ArrowRight, Info
 } from 'lucide-react'
 import {
     getPublicityCampaigns,
@@ -329,28 +329,170 @@ export default function PublicityTab() {
     )
 }
 
+const PLATFORMS = [
+    { id: 'meta_ads', label: 'Meta Ads (FB/IG)', icon: <img src="https://cdn-icons-png.flaticon.com/512/6033/6033716.png" className="w-4 h-4 invert" />, color: 'bg-blue-600' },
+    { id: 'facebook_marketplace', label: 'Marketplace', icon: <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" className="w-4 h-4 invert" />, color: 'bg-blue-700' },
+    { id: 'google_ads', label: 'Google Ads', icon: <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" className="w-4 h-4 invert" />, color: 'bg-green-600' },
+    { id: 'tiktok_ads', label: 'TikTok Ads', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" className="w-4 h-4 invert" />, color: 'bg-black' },
+    { id: 'youtube_shorts', label: 'YouTube Shorts', icon: <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" className="w-4 h-4 invert" />, color: 'bg-red-600' },
+    { id: 'twitter_x', label: 'X (Twitter)', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" className="w-4 h-4 invert" />, color: 'bg-slate-800' },
+    { id: 'threads', label: 'Threads', icon: <span className="font-bold text-lg select-none">@</span>, color: 'bg-black' },
+    { id: 'snapchat_ads', label: 'Snapchat', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670166.png" className="w-4 h-4 invert" />, color: 'bg-yellow-400 text-black' },
+    { id: 'messaging_apps', label: 'WhatsApp / Telegram', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670051.png" className="w-4 h-4 invert" />, color: 'bg-green-500' },
+]
+
 function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
     if (!isOpen || !assets) return null
+    const [activePlatform, setActivePlatform] = useState('meta_ads')
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [copiedKey, setCopiedKey] = useState<string | null>(null)
+
+    const handleCopy = (text: string, key: string) => {
+        navigator.clipboard.writeText(text)
+        setCopiedKey(key)
+        setTimeout(() => setCopiedKey(null), 2000)
+    }
+
+    const renderContent = () => {
+        const platformData = assets.platforms?.[activePlatform]
+        if (!platformData) return (
+            <div className="flex flex-col items-center justify-center p-10 text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+                    <Sparkles className="w-8 h-8 text-white/20" />
+                </div>
+                <p className="text-zinc-500 italic">Contenido optimizado no disponible para esta vista.</p>
+            </div>
+        )
+
+        // GOOGLE ADS SPECIAL VIEW
+        if (activePlatform === 'google_ads') {
+            return (
+                <div className="space-y-8 animate-in fade-in slide-in-from-right duration-300">
+                    <div className="space-y-4">
+                        <label className="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Headlines (Títulos)
+                        </label>
+                        {platformData.headlines?.map((h: string, i: number) => (
+                            <div key={i} className="flex gap-2">
+                                <div className="flex-1 bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white text-sm font-medium">{h}</div>
+                                <button onClick={() => handleCopy(h, `h-${i}`)} className="px-3 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition">
+                                    {copiedKey === `h-${i}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="space-y-4">
+                        <label className="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Descriptions
+                        </label>
+                        {platformData.descriptions?.map((d: string, i: number) => (
+                            <div key={i} className="flex gap-2">
+                                <div className="flex-1 bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-text-secondary text-sm">{d}</div>
+                                <button onClick={() => handleCopy(d, `d-${i}`)} className="px-3 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition">
+                                    {copiedKey === `d-${i}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                        <p className="text-xs text-blue-200 flex items-center gap-2">
+                            <Info className="w-4 h-4" /> Google recomienda rotar estos títulos y descripciones.
+                        </p>
+                    </div>
+                </div>
+            )
+        }
+
+        // META ADS SPECIAL VIEW
+        if (activePlatform === 'meta_ads') {
+            return (
+                <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Primary Text (Texto Principal)</label>
+                            <button onClick={() => handleCopy(platformData.primary_text, 'primary')} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
+                                {copiedKey === 'primary' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />} Copiar
+                            </button>
+                        </div>
+                        <textarea readOnly value={platformData.primary_text} className="w-full h-32 bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-secondary resize-none custom-scrollbar focus:outline-none focus:border-purple-500/50" />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                                <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Headline (Título)</label>
+                                <button onClick={() => handleCopy(platformData.headline, 'head')} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
+                                    {copiedKey === 'head' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                                </button>
+                            </div>
+                            <input readOnly value={platformData.headline} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white font-bold text-sm" />
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                                <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Description (Opcional)</label>
+                                <button onClick={() => handleCopy(platformData.description, 'desc')} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
+                                    {copiedKey === 'desc' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                                </button>
+                            </div>
+                            <input readOnly value={platformData.description} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-text-secondary text-sm" />
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+
+        // STANDARD VIEW (Marketplace, TikTok, Threads, etc)
+        let contentToDisplay = ''
+        let titleToDisplay = ''
+
+        if (activePlatform === 'twitter_x' && platformData.tweets) {
+            contentToDisplay = platformData.tweets.join('\n\n---\n\n')
+        } else if (activePlatform === 'facebook_marketplace' || activePlatform === 'youtube_shorts') {
+            titleToDisplay = platformData.title
+            contentToDisplay = platformData.description
+        } else {
+            contentToDisplay = platformData.caption || platformData.script_notes || platformData.text || platformData.body || platformData.post
+        }
+
+        return (
+            <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
+                {titleToDisplay && (
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Título SEO</label>
+                            <button onClick={() => handleCopy(titleToDisplay, 'title')} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
+                                {copiedKey === 'title' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />} Copiar
+                            </button>
+                        </div>
+                        <div className="bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white font-bold select-all">{titleToDisplay}</div>
+                    </div>
+                )}
+                <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Descripción / Copy</label>
+                        <button onClick={() => handleCopy(contentToDisplay, 'content')} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
+                            {copiedKey === 'content' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />} Copiar
+                        </button>
+                    </div>
+                    <textarea readOnly value={contentToDisplay} className="w-full h-48 bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-secondary resize-none custom-scrollbar leading-relaxed focus:outline-none focus:border-purple-500/50" />
+                </div>
+            </div>
+        )
+    }
 
     const handleSave = async () => {
         setIsSubmitting(true)
         try {
-            // Append Video Script/Prompt to description or notes
-            const fullDescription = `${assets.caption}\n\n[VIDEO SCRIPT]\n${assets.videoScript}\n\n[VEO PROMPT]\n${assets.videoPrompt}`
+            // Default content for campaign save
+            const mainContent = assets.platforms?.meta_ads?.primary_text || assets.platforms?.facebook_marketplace?.description || ''
 
-            // Create FormData to reuse existing action
             const formData = new FormData()
-            formData.append('title', assets.title)
+            formData.append('title', assets.internal_title || 'Campaña Global Ads')
             formData.append('imageUrl', assets.imageUrl)
-            formData.append('copywriting', fullDescription) // We might need to handle this in the backend action if it expects specific field
-            // Mock required fields
+            formData.append('copywriting', mainContent)
             formData.append('startDate', new Date().toISOString())
             formData.append('endDate', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString())
-            formData.append('clientName', 'AI Generated')
-
-            // Note: The createPublicityCampaign action might need adjustment if it doesn't accept 'copywriting' directly in FormData
-            // or we map it correctly. For now assuming basic fields.
+            formData.append('clientName', 'AI Generated Pack')
 
             await createPublicityCampaign(null, formData)
             onSuccess()
@@ -364,74 +506,105 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
 
     return (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <div className="bg-[#111114] w-full max-w-4xl rounded-3xl border border-white/10 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-                <div className="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
-                    <h2 className="text-xl font-black text-white flex items-center gap-2 italic">
-                        <Sparkles className="w-6 h-6 text-purple-500" />
-                        CAMPAÑA GENERADA (GRAVITY)
-                    </h2>
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition">
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
+            <div className="bg-[#111114] w-full max-w-6xl h-[85vh] rounded-3xl border border-white/10 overflow-hidden shadow-2xl flex flex-col md:flex-row">
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Visual Asset Column */}
-                    <div className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Imagen (Flux Realism)</label>
-                            <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl relative group">
-                                <img src={assets.imageUrl} alt="AI Generated" className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                    <a href={assets.imageUrl} download target="_blank" className="px-4 py-2 bg-white text-black rounded-lg font-bold text-xs flex items-center gap-2 hover:scale-105 transition">
-                                        <Download className="w-4 h-4" /> Descargar 4K
-                                    </a>
+                {/* SIDEBAR */}
+                <div className="w-full md:w-64 bg-black/40 border-r border-white/5 flex flex-col">
+                    <div className="p-6 border-b border-white/5 bg-purple-900/10">
+                        <h2 className="text-xs font-black text-white flex items-center gap-2 italic uppercase tracking-wider">
+                            <Globe className="w-4 h-4 text-purple-400" />
+                            Global Ad Pack
+                        </h2>
+                        <p className="text-[10px] text-purple-300 mt-1 opacity-70">Mass Diffusion Reach</p>
+                    </div>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
+                        {PLATFORMS.map(p => (
+                            <button
+                                key={p.id}
+                                onClick={() => setActivePlatform(p.id)}
+                                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-xs font-bold transition-all ${activePlatform === p.id
+                                    ? 'bg-white text-black shadow-lg translate-x-1'
+                                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                    }`}
+                            >
+                                <div className={`w-6 h-6 rounded-md flex items-center justify-center ${activePlatform === p.id ? 'bg-black text-white' : 'bg-white/10'}`}>
+                                    {p.icon}
                                 </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-purple-900/20 border border-purple-500/20 p-4 rounded-2xl">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
-                                <label className="text-xs font-bold text-purple-300 uppercase tracking-widest">Video (Gravity / Veo 3)</label>
-                            </div>
-                            <div className="bg-black/40 p-3 rounded-lg border border-purple-500/10">
-                                <p className="text-[10px] text-purple-200 font-mono mb-2">PROMPT TÉCNICO VEO 3:</p>
-                                <p className="text-xs text-text-secondary italic leading-relaxed select-all cursor-text mb-4">
-                                    {assets.videoPrompt}
-                                </p>
-                                <button className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-900/20 transition">
-                                    <Zap className="w-3 h-3" /> Renderizar en Gravity Cloud
-                                </button>
-                            </div>
-                        </div>
+                                {p.label}
+                            </button>
+                        ))}
                     </div>
-
-                    {/* Text Assets Column */}
-                    <div className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Título Interno</label>
-                            <input readOnly value={assets.title} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white font-bold" />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Copy Instagram / Facebook</label>
-                            <textarea readOnly value={assets.caption} className="w-full h-40 bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-secondary resize-none custom-scrollbar leading-relaxed" />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Guion de Video (Script)</label>
-                            <textarea readOnly value={assets.videoScript} className="w-full h-40 bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-text-secondary resize-none custom-scrollbar" />
+                    <div className="p-4 border-t border-white/5">
+                        <div className="bg-gradient-to-r from-orange-500/10 to-purple-500/10 rounded-lg p-3 border border-white/5">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Zap className="w-3 h-3 text-orange-400" />
+                                <span className="text-[10px] font-bold text-orange-200">Ad Focus</span>
+                            </div>
+                            <p className="text-[10px] text-zinc-500 leading-tight">Optimizado para Meta Ads, Google y TikTok.</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="p-4 border-t border-white/10 bg-zinc-900/50 flex justify-end gap-3">
-                    <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-bold text-white/50 hover:text-white hover:bg-white/5 transition">Cancelar</button>
-                    <button onClick={handleSave} disabled={isSubmitting} className="px-8 py-3 bg-white text-black hover:bg-gray-200 rounded-xl text-sm font-black shadow-lg shadow-white/10 transition disabled:opacity-50 flex items-center gap-2">
-                        {isSubmitting ? 'Guardando...' : 'GUARDAR CAMPAÑA'} <Save className="w-4 h-4" />
-                    </button>
+                {/* MAIN CONTENT */}
+                <div className="flex-1 flex flex-col min-w-0">
+                    <div className="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/50 flex items-center justify-center">
+                                <Megaphone className="w-4 h-4 text-purple-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-white font-bold text-base">{assets.internal_title}</h3>
+                                <p className="text-xs text-zinc-500">Campaña de Difusión Global</p>
+                            </div>
+                        </div>
+                        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-0 bg-black/20">
+                        <div className="max-w-4xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            {/* Left Column: Visuals */}
+                            <div className="lg:col-span-1 space-y-6">
+                                <div className="space-y-3">
+                                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Asset Visual</label>
+                                    <div className="aspect-square rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl relative group">
+                                        <img src={assets.imageUrl} className="w-full h-full object-cover" />
+                                        <a href={assets.imageUrl} download target="_blank" className="absolute bottom-3 right-3 p-2 bg-white text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
+                                            <Download className="w-4 h-4" />
+                                        </a>
+                                    </div>
+                                    <p className="text-[10px] text-zinc-600 text-center">Generated by Flux.1 Realism</p>
+                                </div>
+
+                                {assets.videoPrompt && (
+                                    <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4 space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <Video className="w-3 h-3 text-purple-500" />
+                                            <span className="text-[10px] font-bold text-white uppercase">Video Prompt</span>
+                                        </div>
+                                        <p className="text-[10px] text-zinc-500 leading-relaxed max-h-32 overflow-y-auto custom-scrollbar">
+                                            {assets.videoPrompt}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Right Column: Platform Content */}
+                            <div className="lg:col-span-2">
+                                {renderContent()}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-4 border-t border-white/10 bg-zinc-900/50 flex justify-end gap-3 z-10">
+                        <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-bold text-white/50 hover:text-white hover:bg-white/5 transition">Descartar</button>
+                        <button onClick={handleSave} disabled={isSubmitting} className="px-6 py-3 bg-white text-black hover:bg-gray-200 rounded-xl text-sm font-black shadow-lg shadow-white/10 transition disabled:opacity-50 flex items-center gap-2">
+                            {isSubmitting ? 'Guardando...' : 'GUARDAR CAMPAÑA'} <ArrowRight className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
+
             </div>
         </div>
     )
