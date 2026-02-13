@@ -405,7 +405,7 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                 "internal_title": "Campaign Name",
                 "imagePrompt": "Photorealistic prompt...",
                 "videoPrompt": "Veo 3 technical prompt...",
-                "videoScript": "Viral 15s script...",
+                "videoScript": "Viral 15s Reels/TikTok script (Visual Hook or Sketch style). Detailed scene description.",
                 
                 "platforms": {
                     "meta_ads": { 
@@ -432,7 +432,7 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                     "twitter_x": { "tweets": ["Tweet 1 (News/Update style)", "Tweet 2 (Thread)"] },
                     "threads": { "text": "Casual, authentic, question-based sales hook to start a conversation (Soft sell)." },
                     "snapchat_ads": { "headline": "Urgent/Fun headline", "caption": "Short caption for Spotlight" },
-                    "whatsapp_channel": { "update": "Exclusive 'Drop' or 'Breaking News' style update. Short, exciting, link-focused. NO questions." }
+                    "messaging_apps": { "broadcast_message": "Direct, exclusive offer text for WhatsApp/Telegram Channels (High FOMO). Short & Urgent." }
                 }
             }
             
