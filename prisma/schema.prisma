@@ -60,6 +60,35 @@ model User {
 
   @@index([email])
   @@index([city])
+
+  // AI Studio Relations
+  aiSessions              AIStudioSession[]
+}
+
+model AIStudioSession {
+  id        String            @id @default(cuid())
+  userId    String
+  name      String            @default("Nueva Sesión")
+  mode      String            @default("CHAT") // CHAT, COPYWRITER, IMAGE_GEN, STRATEGY
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  AIStudioMessage[]
+
+  @@index([userId])
+  @@index([updatedAt])
+}
+
+model AIStudioMessage {
+  id        String          @id @default(cuid())
+  sessionId String
+  role      String          // 'user' | 'assistant'
+  content   String          @db.Text
+  createdAt DateTime        @default(now())
+  session   AIStudioSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([createdAt])
 }
 
 model SystemLog {

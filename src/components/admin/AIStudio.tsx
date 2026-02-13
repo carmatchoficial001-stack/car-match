@@ -3,9 +3,11 @@
 import { useState, useRef, useEffect } from 'react'
 import {
     Sparkles, User, Send, ImageIcon, ImagePlus, Zap,
-    Type, Video, Hash, MousePointer2, Copy, Check, Star
+    Type, Video, Hash, MousePointer2, Copy, Check, Star,
+    MessageSquare, Plus, Trash2, History
 } from 'lucide-react'
 import { chatWithPublicityAgent, suggestCampaignFromInventory } from '@/app/admin/actions/ai-content-actions'
+import { getAISessions, getAISession, createAISession, saveAIMessage, deleteAISession, AIStudioSessionWithMessages } from '@/app/admin/actions/ai-studio-actions'
 
 type AIMode = 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'STRATEGY'
 
@@ -18,36 +20,118 @@ export default function AIStudio() {
     const [isGenerating, setIsGenerating] = useState(false)
     const [selectedTone, setSelectedTone] = useState('Professional')
     const [selectedPlatform, setSelectedPlatform] = useState('Instagram')
+
+    // Persistence State
+    const [sessions, setSessions] = useState<any[]>([])
+    const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
 
+    // Load sessions on mount
+    useEffect(() => {
+        loadSessions()
+    }, [])
+
     useEffect(() => {
         scrollToBottom()
     }, [messages])
 
+    const loadSessions = async () => {
+        const res = await getAISessions()
+        if (res.success && res.chats) {
+            setSessions(res.chats)
+        }
+    }
+
+    const handleNewChat = () => {
+        setCurrentSessionId(null)
+        setMessages([{ role: 'assistant', content: '¡Hola! Soy tu Director Creativo de IA. ¿En qué trabajamos hoy? 🚀' }])
+        setMode('CHAT')
+    }
+
+    const handleSelectSession = async (sessionId: string) => {
+        if (currentSessionId === sessionId) return
+
+        setIsLoadingHistory(true)
+        setCurrentSessionId(sessionId)
+
+        const res = await getAISession(sessionId)
+        if (res.success && res.chat) {
+            // Convert DB messages to UI messages
+            const uiMessages = res.chat.messages.map((m: any) => ({
+                role: m.role,
+                content: m.content
+            }))
+            setMessages(uiMessages.length > 0 ? uiMessages : [{ role: 'assistant', content: 'Sesión vacía.' }])
+            setMode((res.chat.mode as AIMode) || 'CHAT')
+        }
+        setIsLoadingHistory(false)
+    }
+
+    const handleDeleteSession = async (e: React.MouseEvent, sessionId: string) => {
+        e.stopPropagation()
+        if (confirm('¿Eliminar este chat?')) {
+            await deleteAISession(sessionId)
+            if (currentSessionId === sessionId) handleNewChat()
+            loadSessions()
+        }
+    }
+
     const handleSend = async () => {
         if (!prompt.trim()) return
 
-        const userMsg = { role: 'user', content: prompt }
+        const userText = prompt
+        const userMsg = { role: 'user', content: userText }
+
+        // Optimistic update
         setMessages(prev => [...prev, userMsg])
         setPrompt('')
         setIsGenerating(true)
 
         try {
-            // Enhanced context based on selected tools
-            const contextPrompt = `[Context: Tone=${selectedTone}, Platform=${selectedPlatform}, Mode=${mode}] ${userMsg.content}`
+            // 1. Ensure Session Exists
+            let sessionId = currentSessionId
+            if (!sessionId) {
+                const newSessionRes = await createAISession(mode, userText)
+                if (newSessionRes.success && newSessionRes.chat) {
+                    sessionId = newSessionRes.chat.id
+                    setCurrentSessionId(sessionId)
+                    loadSessions() // Refresh list to show new chat
+                }
+            }
+
+            // 2. Save User Message (background)
+            if (sessionId) {
+                saveAIMessage(sessionId, 'user', userText)
+            }
+
+            // 3. Get AI Response
+            const contextPrompt = `[Context: Tone=${selectedTone}, Platform=${selectedPlatform}, Mode=${mode}] ${userText}`
             const apiMsg = { role: 'user', content: contextPrompt }
 
-            const response = await chatWithPublicityAgent([...messages, apiMsg], 'MX')
+            // Only send recent history to AI to save tokens context
+            const historyForAI = messages.slice(-10)
 
+            const response = await chatWithPublicityAgent([...historyForAI, apiMsg], 'MX')
+
+            let aiContent = 'Tuve un problema. Intenta de nuevo.'
             if (response.success && response.message) {
-                setMessages(prev => [...prev, { role: 'assistant', content: response.message }])
-            } else {
-                setMessages(prev => [...prev, { role: 'assistant', content: 'Tuve un problema. Intenta de nuevo.' }])
+                aiContent = response.message
             }
+
+            // 4. Update UI with AI Response
+            setMessages(prev => [...prev, { role: 'assistant', content: aiContent }])
+
+            // 5. Save AI Message
+            if (sessionId) {
+                await saveAIMessage(sessionId, 'assistant', aiContent)
+            }
+
         } catch (error) {
             setMessages(prev => [...prev, { role: 'assistant', content: 'Error de conexión.' }])
         } finally {
@@ -58,12 +142,30 @@ export default function AIStudio() {
     const handleAutoPilot = async () => {
         setIsGenerating(true)
         setMessages(prev => [...prev, { role: 'user', content: '✨ Generando Campaña Viral Automática...' }])
+
+        // Create session if needed
+        let sessionId = currentSessionId
+        if (!sessionId) {
+            const newSessionRes = await createAISession('STRATEGY', 'Piloto Automático')
+            if (newSessionRes.success && newSessionRes.chat) {
+                sessionId = newSessionRes.chat.id
+                setCurrentSessionId(sessionId)
+                loadSessions()
+            }
+        }
+
         try {
             const res = await suggestCampaignFromInventory('MX')
             if (res.success && res.campaignData) {
                 const data = res.campaignData
                 const content = `**Estrategia Viral Detectada:** ${data.strategy}\n\n**Copy Sugerido:**\n"${data.caption}"\n\n**Script de Video:**\n${data.videoScript}`
+
                 setMessages(prev => [...prev, { role: 'assistant', content }])
+
+                if (sessionId) {
+                    await saveAIMessage(sessionId, 'user', 'Generar Campaña Automática')
+                    await saveAIMessage(sessionId, 'assistant', content)
+                }
             } else {
                 setMessages(prev => [...prev, { role: 'assistant', content: 'No pude generar la campaña automática.' }])
             }
@@ -78,17 +180,30 @@ export default function AIStudio() {
         <div className="flex h-full bg-[#0a0a0a] text-white overflow-hidden rounded-2xl border border-white/5">
             {/* Sidebar Tools */}
             <div className="w-16 md:w-64 border-r border-white/5 bg-zinc-900/50 flex flex-col">
-                <div className="p-4 border-b border-white/5 flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-900/20">
-                        <Sparkles className="w-4 h-4 text-white" />
+                <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-900/20">
+                            <Sparkles className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="font-bold text-sm hidden md:block tracking-wide">AI Studio</span>
                     </div>
-                    <span className="font-bold text-sm hidden md:block tracking-wide">AI Studio Pro</span>
+
                 </div>
 
-                <div className="p-2 space-y-1 overflow-y-auto flex-1">
+                <div className="p-3">
+                    <button
+                        onClick={handleNewChat}
+                        className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition"
+                    >
+                        <Plus className="w-3.5 h-3.5" /> <span className="hidden md:inline">Nuevo Chat</span>
+                    </button>
+                </div>
+
+                <div className="p-2 space-y-1 overflow-y-auto flex-1 custom-scrollbar">
+                    <div className="px-2 py-1 text-[10px] font-black text-zinc-500 uppercase tracking-wider hidden md:block">Herramientas</div>
                     <SidebarItem
-                        icon={<Sparkles />}
-                        label="Chat Creativo"
+                        icon={<MessageSquare />}
+                        label="Chat"
                         active={mode === 'CHAT'}
                         onClick={() => setMode('CHAT')}
                     />
@@ -99,17 +214,39 @@ export default function AIStudio() {
                         onClick={() => setMode('COPYWRITER')}
                     />
                     <SidebarItem
-                        icon={<ImageIcon />}
-                        label="Generador Imagen"
-                        active={mode === 'IMAGE_GEN'}
-                        onClick={() => setMode('IMAGE_GEN')}
-                    />
-                    <SidebarItem
                         icon={<Hash />}
                         label="Estrategia"
                         active={mode === 'STRATEGY'}
                         onClick={() => setMode('STRATEGY')}
                     />
+
+                    <div className="mt-6 px-2 py-1 text-[10px] font-black text-zinc-500 uppercase tracking-wider hidden md:block">Historial</div>
+                    <div className="space-y-0.5">
+                        {sessions.map(session => (
+                            <button
+                                key={session.id}
+                                onClick={() => handleSelectSession(session.id)}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-left transition-all group relative ${currentSessionId === session.id
+                                        ? 'bg-purple-500/10 text-purple-300 border border-purple-500/20'
+                                        : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                    }`}
+                            >
+                                <History className="w-3.5 h-3.5 shrink-0 opacity-50" />
+                                <span className="truncate hidden md:block flex-1">{session.name}</span>
+                                <div
+                                    onClick={(e) => handleDeleteSession(e, session.id)}
+                                    className="md:opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded-md transition"
+                                >
+                                    <Trash2 className="w-3 h-3" />
+                                </div>
+                            </button>
+                        ))}
+                        {sessions.length === 0 && (
+                            <div className="text-center py-4 text-[10px] text-zinc-600 italic hidden md:block">
+                                Sin historial reciente
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="p-4 border-t border-white/5">
@@ -141,6 +278,7 @@ export default function AIStudio() {
                             onChange={setSelectedPlatform}
                         />
                     </div>
+                    {isLoadingHistory && <span className="text-xs text-zinc-500 animate-pulse">Cargando...</span>}
                 </div>
 
                 {/* Chat/Content Area */}
@@ -212,9 +350,9 @@ function SidebarItem({ icon, label, active, onClick }: any) {
     return (
         <button
             onClick={onClick}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${active
-                    ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
-                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${active
+                ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
         >
             <span className={active ? 'text-purple-400' : 'text-zinc-400'}>{icon}</span>
