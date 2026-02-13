@@ -447,14 +447,19 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
 
         if (activePlatform === 'twitter_x' && platformData.tweets) {
             contentToDisplay = platformData.tweets.join('\n\n---\n\n')
-        } else if (activePlatform === 'facebook_marketplace' || activePlatform === 'youtube_shorts') {
+        } else if (activePlatform === 'facebook_marketplace') {
             titleToDisplay = platformData.title
             contentToDisplay = platformData.description
+        } else if (activePlatform === 'youtube_shorts') {
+            titleToDisplay = platformData.title
+            contentToDisplay = `${platformData.description}\n\n=== VIDEO SCRIPT ===\n${assets.videoScript || 'N/A'}`
+        } else if (activePlatform === 'tiktok_ads') {
+            contentToDisplay = `${platformData.caption}\n\n=== VIDEO SCRIPT ===\n${assets.videoScript || 'N/A'}\n\n[Visual Notes]: ${platformData.script_notes}`
         } else if (activePlatform === 'snapchat_ads') {
             titleToDisplay = platformData.headline
-            contentToDisplay = platformData.caption
-        } else if (activePlatform === 'whatsapp_channel') {
-            contentToDisplay = platformData.update
+            contentToDisplay = `${platformData.caption}\n\n=== VIDEO SCRIPT ===\n${assets.videoScript || 'N/A'}`
+        } else if (activePlatform === 'messaging_apps') {
+            contentToDisplay = platformData.broadcast_message
         } else {
             contentToDisplay = platformData.caption || platformData.script_notes || platformData.text || platformData.body || platformData.post || JSON.stringify(platformData, null, 2)
         }
@@ -569,9 +574,9 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-0 bg-black/20">
                         <div className="max-w-4xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            {/* Left Column: Visual Strategy */}
+                            {/* Left Column: Visual Strategy (Multi-Format) */}
                             <div className="lg:col-span-1 space-y-6">
-                                {/* CARD 1: IMAGE ASSET */}
+                                {/* CARD 1: IMAGE ASSETS */}
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between">
                                         <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
@@ -580,54 +585,81 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
                                         </label>
                                         <span className="text-[10px] bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded border border-purple-500/20">Flux.1 Realism</span>
                                     </div>
+
+                                    {/* Format Selector */}
+                                    <div className="flex bg-black/40 rounded-lg p-1 border border-white/5">
+                                        <button className="flex-1 py-1 text-[10px] font-bold text-white bg-white/10 rounded">Square (1:1)</button>
+                                        <button className="flex-1 py-1 text-[10px] font-bold text-zinc-500 hover:text-white">Vertical (9:16)</button>
+                                        <button className="flex-1 py-1 text-[10px] font-bold text-zinc-500 hover:text-white">Land (16:9)</button>
+                                    </div>
+
                                     <div className="aspect-square rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl relative group">
-                                        <img src={assets.imageUrl} className="w-full h-full object-cover" />
-                                        <a href={assets.imageUrl} download target="_blank" className="absolute bottom-3 right-3 p-2 bg-white text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
+                                        <img src={assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
+                                        <a href={assets.images?.square || assets.imageUrl} download target="_blank" className="absolute bottom-3 right-3 p-2 bg-white text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
                                             <Download className="w-4 h-4" />
                                         </a>
+                                        <div className="absolute bottom-3 left-3 px-2 py-1 bg-black/60 backdrop-blur text-[9px] font-mono text-white rounded border border-white/10">
+                                            1080x1080
+                                        </div>
                                     </div>
-                                    <p className="text-[10px] text-zinc-600">Optimizado para: IG Feed, FB Post, LinkedIn.</p>
+                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                        <div className="relative group rounded-xl overflow-hidden border border-white/5 aspect-[9/16]">
+                                            <img src={assets.images?.vertical || assets.imageUrl} className="w-full h-full object-cover opacity-60 hover:opacity-100 transition" />
+                                            <a href={assets.images?.vertical} download className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40">
+                                                <Download className="w-3 h-3 text-white" />
+                                            </a>
+                                        </div>
+                                        <div className="relative group rounded-xl overflow-hidden border border-white/5 aspect-video">
+                                            <img src={assets.images?.horizontal || assets.imageUrl} className="w-full h-full object-cover opacity-60 hover:opacity-100 transition" />
+                                            <a href={assets.images?.horizontal} download className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40">
+                                                <Download className="w-3 h-3 text-white" />
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {/* CARD 2: VIDEO ASSET */}
-                                {assets.videoPrompt && (
-                                    <div className="space-y-3 pt-6 border-t border-white/5">
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                                                <Video className="w-3 h-3 text-red-400" />
-                                                Visual 2: Video Viral
-                                            </label>
-                                            <span className="text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20">Veo / Runway</span>
+                                {/* CARD 2: VIDEO ASSETS */}
+                                <div className="space-y-3 pt-6 border-t border-white/5">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                                            <Video className="w-3 h-3 text-red-400" />
+                                            Visual 2: Video Viral
+                                        </label>
+                                        <span className="text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20">Veo / Vertex</span>
+                                    </div>
+
+                                    {/* Video Format Prompts */}
+                                    <div className="space-y-2">
+                                        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-3 space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[9px] font-bold text-zinc-400 uppercase">Vertical (Reels/TikTok)</span>
+                                                <Copy className="w-3 h-3 text-zinc-500 cursor-pointer hover:text-white" onClick={() => navigator.clipboard.writeText(assets.videoPrompt_vertical || assets.videoPrompt)} />
+                                            </div>
+                                            <p className="text-[10px] text-zinc-500 line-clamp-2">{assets.videoPrompt_vertical || assets.videoPrompt}</p>
                                         </div>
 
-                                        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4 space-y-3">
-                                            <div className="flex justify-between items-start">
-                                                <span className="text-[10px] font-bold text-white uppercase opacity-50">Prompt Técnico</span>
-                                                <button onClick={() => navigator.clipboard.writeText(assets.videoPrompt)} className="p-1 hover:bg-white/10 rounded">
-                                                    <Copy className="w-3 h-3 text-zinc-500" />
-                                                </button>
+                                        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-3 space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[9px] font-bold text-zinc-400 uppercase">Horizontal (YouTube)</span>
+                                                <Copy className="w-3 h-3 text-zinc-500 cursor-pointer hover:text-white" onClick={() => navigator.clipboard.writeText(assets.videoPrompt_horizontal || assets.videoPrompt)} />
                                             </div>
-                                            <p className="text-[10px] text-zinc-400 leading-relaxed max-h-32 overflow-y-auto custom-scrollbar">
-                                                {assets.videoPrompt}
+                                            <p className="text-[10px] text-zinc-500 line-clamp-2">{assets.videoPrompt_horizontal || assets.videoPrompt}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* VIDEO SCRIPT PREVIEW */}
+                                    {assets.videoScript && (
+                                        <div className="bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <Type className="w-3 h-3 text-blue-400" />
+                                                <span className="text-[10px] font-bold text-blue-200 uppercase">Script (Guión)</span>
+                                            </div>
+                                            <p className="text-[10px] text-blue-300/70 leading-relaxed line-clamp-3">
+                                                {assets.videoScript}
                                             </p>
                                         </div>
-
-                                        {/* VIDEO SCRIPT PREVIEW */}
-                                        {assets.videoScript && (
-                                            <div className="bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 space-y-2">
-                                                <div className="flex items-center gap-2">
-                                                    <Type className="w-3 h-3 text-blue-400" />
-                                                    <span className="text-[10px] font-bold text-blue-200 uppercase">Script (Guión)</span>
-                                                </div>
-                                                <p className="text-[10px] text-blue-300/70 leading-relaxed line-clamp-3">
-                                                    {assets.videoScript}
-                                                </p>
-                                                <button className="text-[10px] text-blue-400 hover:text-blue-300 underline">Ver guión completo en TikTok tab</button>
-                                            </div>
-                                        )}
-                                        <p className="text-[10px] text-zinc-600">Optimizado para: Reels, TikTok, Shorts.</p>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
 
                             {/* Right Column: Platform Content */}

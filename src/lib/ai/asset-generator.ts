@@ -1,4 +1,4 @@
-export async function generatePollinationsImage(prompt: string): Promise<string> {
+export async function generatePollinationsImage(prompt: string, width: number = 1080, height: number = 1350): Promise<string> {
     try {
         // Encode prompt for URL
         const encodedPrompt = encodeURIComponent(prompt.trim())
@@ -8,8 +8,7 @@ export async function generatePollinationsImage(prompt: string): Promise<string>
 
         // Construct URL with high quality parameters
         // Model: flux (best for realism)
-        // Size: 1080x1350 (Vertical for social media)
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1350&model=flux&seed=${randomSeed}&nologo=true`
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=flux&seed=${randomSeed}&nologo=true`
 
         return imageUrl
     } catch (error) {
