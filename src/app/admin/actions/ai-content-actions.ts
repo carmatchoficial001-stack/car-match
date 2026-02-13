@@ -391,10 +391,11 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         const country = getCountryContext(targetCountry)
 
         // 1. Context Analysis Prompt
-        // 1. Context Analysis Prompt - MEGA SOCIAL PACK EDITION
+        // 1. Context Analysis Prompt - MASS DIFFUSION & ADS EDITION
         const prompt = `
-            Act as a World-Class Social Media Manager. Analyze the chat history.
-            Goal: Create a COMPLETE "COPY & PASTE" SOCIAL MEDIA PACK for 9+ PLatforms.
+            Act as a Senior Performance Marketer. Analyze the chat history.
+            Goal: Create a HIGH-CONVERSION GLOBAL AD CAMPAIGN PACK (Meta, Google, TikTok).
+            Target Audience: Mass Market (2.8B+ users). Access to vehicle buyers.
             
             Context: The user wants to sell/promote in ${country.name}.
             
@@ -407,15 +408,28 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                 "videoScript": "Viral 15s script...",
                 
                 "platforms": {
-                    "facebook_feed": { "text": "Emotional/Viral post with emojis" },
-                    "facebook_marketplace": { "title": "SEO Optimized Title", "description": "Technical details, price context, location context (Selling mode)" },
-                    "instagram": { "caption": "Aesthetic caption + 30 hashtags block" },
-                    "twitter": { "tweets": ["Tweet 1 (Hook)", "Tweet 2 (Value)", "Tweet 3 (Link)"] },
-                    "linkedin": { "text": "Professional B2B/Networking tone. Focus on business value." },
-                    "reddit": { "title": "Catchy but honest title", "body": "Storytelling/Advice format. No emojis. Community focus." },
-                    "tiktok": { "caption": "Short, trendy, highly viral caption + hashtags" },
-                    "pinterest": { "title": "Inspirational Title", "description": "Keyword rich description for SEO" },
-                    "threads": { "text": "Conversational, casual, asking a question." }
+                    "meta_ads": { 
+                        "primary_text": "Main ad copy (persuasive, benefit-driven, clear offer)",
+                        "headline": "Short, punchy headline (5-7 words max)",
+                        "description": "Link description (Social proof or urgency)"
+                    },
+                    "facebook_marketplace": { 
+                        "title": "SEO Optimized Title for maximum reach", 
+                        "description": "Detailed description with keywords for search visibility" 
+                    },
+                    "google_ads": {
+                        "headlines": ["Headline 1 (Keyword)", "Headline 2 (Benefit)", "Headline 3 (Offer)"],
+                        "descriptions": ["Description 1 (Features)", "Description 2 (Call to Action)"]
+                    },
+                    "tiktok_ads": { 
+                        "caption": "Viral hook caption with trending hashtags",
+                        "script_notes": "Visual direction for a high-retention video ad"
+                    },
+                    "youtube_shorts": {
+                        "title": "Clickbaity Title",
+                        "description": "SEO description with links"
+                    },
+                    "twitter_x": { "tweets": ["Tweet 1 (News/Update style)", "Tweet 2 (Thread)"] }
                 }
             }
             
