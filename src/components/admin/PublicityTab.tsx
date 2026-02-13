@@ -58,6 +58,20 @@ export default function PublicityTab() {
     const [viewMode, setViewMode] = useState<'CAMPAIGNS' | 'AI_STUDIO' | 'QUEUE'>('CAMPAIGNS')
     const [selectedCampaign, setSelectedCampaign] = useState<PublicityCampaign | null>(null)
 
+    // Assets Generation State
+    const [generatedAssets, setGeneratedAssets] = useState<any>(null)
+    const [showAssetsModal, setShowAssetsModal] = useState(false)
+
+    useEffect(() => {
+        const handleOpenAssets = (e: any) => {
+            setGeneratedAssets(e.detail)
+            setShowAssetsModal(true)
+            // Switch to CAMPAIGNS view if needed, but the modal overlays everything so it's fine
+        }
+        window.addEventListener('open-campaign-assets', handleOpenAssets)
+        return () => window.removeEventListener('open-campaign-assets', handleOpenAssets)
+    }, [])
+
     useEffect(() => {
         if (viewMode === 'CAMPAIGNS') {
             fetchCampaigns()
@@ -301,6 +315,124 @@ export default function PublicityTab() {
                     setShowModal(false)
                 }}
             />
+
+            <CampaignAssetsModal
+                isOpen={showAssetsModal}
+                onClose={() => setShowAssetsModal(false)}
+                assets={generatedAssets}
+                onSuccess={() => {
+                    fetchCampaigns()
+                    setShowAssetsModal(false)
+                }}
+            />
+        </div>
+    )
+}
+
+function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
+    if (!isOpen || !assets) return null
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const handleSave = async () => {
+        setIsSubmitting(true)
+        try {
+            // Append Video Script/Prompt to description or notes
+            const fullDescription = `${assets.caption}\n\n[VIDEO SCRIPT]\n${assets.videoScript}\n\n[VEO PROMPT]\n${assets.videoPrompt}`
+
+            // Create FormData to reuse existing action
+            const formData = new FormData()
+            formData.append('title', assets.title)
+            formData.append('imageUrl', assets.imageUrl)
+            formData.append('copywriting', fullDescription) // We might need to handle this in the backend action if it expects specific field
+            // Mock required fields
+            formData.append('startDate', new Date().toISOString())
+            formData.append('endDate', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString())
+            formData.append('clientName', 'AI Generated')
+
+            // Note: The createPublicityCampaign action might need adjustment if it doesn't accept 'copywriting' directly in FormData
+            // or we map it correctly. For now assuming basic fields.
+
+            await createPublicityCampaign(null, formData)
+            onSuccess()
+        } catch (error) {
+            console.error(error)
+            alert('Error al guardar campaña')
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    return (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div className="bg-[#111114] w-full max-w-4xl rounded-3xl border border-white/10 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                <div className="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
+                    <h2 className="text-xl font-black text-white flex items-center gap-2 italic">
+                        <Sparkles className="w-6 h-6 text-purple-500" />
+                        CAMPAÑA GENERADA (GRAVITY)
+                    </h2>
+                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Visual Asset Column */}
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Imagen (Flux Realism)</label>
+                            <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl relative group">
+                                <img src={assets.imageUrl} alt="AI Generated" className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                    <a href={assets.imageUrl} download target="_blank" className="px-4 py-2 bg-white text-black rounded-lg font-bold text-xs flex items-center gap-2 hover:scale-105 transition">
+                                        <Download className="w-4 h-4" /> Descargar 4K
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-purple-900/20 border border-purple-500/20 p-4 rounded-2xl">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+                                <label className="text-xs font-bold text-purple-300 uppercase tracking-widest">Video (Gravity / Veo 3)</label>
+                            </div>
+                            <div className="bg-black/40 p-3 rounded-lg border border-purple-500/10">
+                                <p className="text-[10px] text-purple-200 font-mono mb-2">PROMPT TÉCNICO VEO 3:</p>
+                                <p className="text-xs text-text-secondary italic leading-relaxed select-all cursor-text mb-4">
+                                    {assets.videoPrompt}
+                                </p>
+                                <button className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-900/20 transition">
+                                    <Zap className="w-3 h-3" /> Renderizar en Gravity Cloud
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Text Assets Column */}
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Título Interno</label>
+                            <input readOnly value={assets.title} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white font-bold" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Copy Instagram / Facebook</label>
+                            <textarea readOnly value={assets.caption} className="w-full h-40 bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-secondary resize-none custom-scrollbar leading-relaxed" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Guion de Video (Script)</label>
+                            <textarea readOnly value={assets.videoScript} className="w-full h-40 bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-text-secondary resize-none custom-scrollbar" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-4 border-t border-white/10 bg-zinc-900/50 flex justify-end gap-3">
+                    <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-bold text-white/50 hover:text-white hover:bg-white/5 transition">Cancelar</button>
+                    <button onClick={handleSave} disabled={isSubmitting} className="px-8 py-3 bg-white text-black hover:bg-gray-200 rounded-xl text-sm font-black shadow-lg shadow-white/10 transition disabled:opacity-50 flex items-center gap-2">
+                        {isSubmitting ? 'Guardando...' : 'GUARDAR CAMPAÑA'} <Save className="w-4 h-4" />
+                    </button>
+                </div>
+            </div>
         </div>
     )
 }

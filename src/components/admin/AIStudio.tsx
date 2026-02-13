@@ -6,12 +6,14 @@ import {
     Type, Video, Hash, MousePointer2, Copy, Check, Star,
     MessageSquare, Plus, Trash2, History
 } from 'lucide-react'
-import { chatWithPublicityAgent, suggestCampaignFromInventory } from '@/app/admin/actions/ai-content-actions'
+import { useRouter } from 'next/navigation'
+import { chatWithPublicityAgent, suggestCampaignFromInventory, generateCampaignAssets } from '@/app/admin/actions/ai-content-actions'
 import { getAISessions, getAISession, createAISession, saveAIMessage, deleteAISession, AIStudioSessionWithMessages } from '@/app/admin/actions/ai-studio-actions'
 
 type AIMode = 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'STRATEGY'
 
 export default function AIStudio() {
+    const router = useRouter()
     const [mode, setMode] = useState<AIMode>('CHAT')
     const [prompt, setPrompt] = useState('')
     const [messages, setMessages] = useState<any[]>([
@@ -25,6 +27,33 @@ export default function AIStudio() {
     const [sessions, setSessions] = useState<any[]>([])
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
     const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+
+    const handleUseInCampaign = async (history: any[]) => {
+        setIsGenerating(true)
+        setMessages(prev => [...prev, { role: 'assistant', content: '🎨 Generando Assets Reales (Imagen Flux + Copy + Script Veo)... Espera un momento.' }])
+
+        try {
+            const res = await generateCampaignAssets(history, 'MX')
+            if (res.success && res.assets) {
+                // Save assets to local storage or dispatch event to notify PublicityTab
+                // Ideally this should use a global store, but for now we'll use a custom event or URL params
+                // Or simply switching the view if we are in the same parent component
+
+                // Dispatch event for AdminPanel to catch
+                const event = new CustomEvent('open-campaign-assets', { detail: res.assets });
+                window.dispatchEvent(event);
+
+                setMessages(prev => [...prev, { role: 'assistant', content: '✅ Assets generados. Abriendo editor de campaña.' }])
+            } else {
+                setMessages(prev => [...prev, { role: 'assistant', content: 'Error al generar assets.' }])
+            }
+        } catch (error) {
+            console.error(error)
+            setMessages(prev => [...prev, { role: 'assistant', content: 'Error crítico en generación.' }])
+        } finally {
+            setIsGenerating(false)
+        }
+    }
 
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -227,8 +256,8 @@ export default function AIStudio() {
                                 key={session.id}
                                 onClick={() => handleSelectSession(session.id)}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-left transition-all group relative ${currentSessionId === session.id
-                                        ? 'bg-purple-500/10 text-purple-300 border border-purple-500/20'
-                                        : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                    ? 'bg-purple-500/10 text-purple-300 border border-purple-500/20'
+                                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
                                     }`}
                             >
                                 <History className="w-3.5 h-3.5 shrink-0 opacity-50" />
@@ -295,7 +324,11 @@ export default function AIStudio() {
                                 {msg.role === 'assistant' && (
                                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity pl-2">
                                         <ActionButton icon={<Copy className="w-3 h-3" />} label="Copiar" onClick={() => navigator.clipboard.writeText(msg.content)} />
-                                        <ActionButton icon={<Check className="w-3 h-3" />} label="Usar en Campaña" onClick={() => alert('Próximamente: Crear campaña desde respuesta')} />
+                                        <ActionButton
+                                            icon={<Check className="w-3 h-3" />}
+                                            label="Usar en Campaña"
+                                            onClick={() => handleUseInCampaign(messages)}
+                                        />
                                     </div>
                                 )}
                             </div>
