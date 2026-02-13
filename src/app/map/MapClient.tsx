@@ -147,21 +147,43 @@ export default function MapClient({ businesses, user }: MapClientProps) {
         }
     }, [selectedCategories])
 
-    const handleSmartSearch = async () => {
-        if (!searchQuery.trim()) return
+    const [showAiQuestion, setShowAiQuestion] = useState(false)
+    const [aiQuestion, setAiQuestion] = useState('')
+    const [aiUserResponse, setAiUserResponse] = useState('')
+
+    const handleSmartSearch = async (eOrQuery?: React.FormEvent | string) => {
+        // 🛡️ TYPE GUARD: Resolver si es Evento o String (Respuesta del usuario)
+        const isEvent = eOrQuery && typeof eOrQuery === 'object' && 'preventDefault' in eOrQuery;
+        if (isEvent) {
+            (eOrQuery as React.FormEvent).preventDefault();
+        }
+
+        const overrideQuery = typeof eOrQuery === 'string' ? eOrQuery : undefined;
+        const queryToUse = overrideQuery || searchQuery
+
+        if (!queryToUse.trim()) return
+
+        // Si es override, no reseteamos todo para mantener flujo
+        if (!overrideQuery) {
+            setSearchSuccess(false)
+            setHasSearched(false)
+            setSelectedCategories([])
+        }
 
         setIsAnalyzing(true)
-        setSearchSuccess(false)
-        setHasSearched(false)
-        setSelectedCategories([]) // 🔥 RESET MAP IMMEDIATELY ON NEW SEARCH
+        setShowAiQuestion(false)
+
         let successFound = false
 
         try {
+            // Contexto combinado si es respuesta
+            const finalQuery = overrideQuery ? `${searchQuery} ${overrideQuery}` : searchQuery
+
             const response = await fetch('/api/ai/analyze-problem', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    query: searchQuery,
+                    query: finalQuery,
                     categories: CATEGORIES.map(cat => ({
                         id: cat.id,
                         label: cat.label,
@@ -174,16 +196,32 @@ export default function MapClient({ businesses, user }: MapClientProps) {
 
             const data = await response.json()
 
+            // 🧠 MODO CONVERSACIONAL (MapStore)
+            if (data.isConversational && data.nextQuestion) {
+                setAiQuestion(data.nextQuestion)
+                setShowAiQuestion(true)
+                setIsAnalyzing(false)
+                return // 🛑 ESPERAR AL USUARIO
+            }
+
             if (data.categories && data.categories.length > 0) {
                 // 🔥 Ensure all IDs are lowercase to match taxonomy
                 const normalizedCats = data.categories.map((c: string) => c.toLowerCase())
                 setSelectedCategories(normalizedCats)
                 setSearchSuccess(true)
                 successFound = true
+
+                // Si hubo conversación, limpiar respuesta usuario
+                setAiUserResponse('')
             } else {
                 throw new Error('NO_CATEGORIES_FOUND')
             }
         } catch (error: any) {
+            // ... (Fallback logic remains mostly same, but using finalQuery logic implicitly via searchQuery state? 
+            // Fallback logic uses `searchQuery` state directly. If we are in conversational mode fallback, 
+            // we should probably just use the original query or the combined one?
+            // For simplicity in fallback, we stick to `searchQuery` (original input).
+
             // Fallback a búsqueda básica mejorada
             const query = searchQuery.toLowerCase()
             const detectedCats: string[] = []
@@ -633,6 +671,66 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                     </div>
                 </div>
             </div>
+
+            {/* 🧠 AI QUESTION MODAL - "EL EXPERTO" */}
+            {showAiQuestion && (
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-[#1a243d] border border-indigo-500/50 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300 relative">
+                        {/* Header Gradient */}
+                        <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+
+                        <div className="p-6">
+                            <div className="flex items-start gap-4 mb-4">
+                                <div className="p-3 bg-indigo-500/20 rounded-xl">
+                                    <Sparkles className="w-8 h-8 text-indigo-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-white mb-1">Diagnóstico IA</h3>
+                                    <p className="text-white/60 text-sm">Necesito aclarar un detalle...</p>
+                                </div>
+                            </div>
+
+                            <p className="text-xl font-medium text-white mb-6 leading-relaxed">
+                                {aiQuestion}
+                            </p>
+
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault()
+                                    handleSmartSearch(aiUserResponse)
+                                }}
+                                className="relative"
+                            >
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    value={aiUserResponse}
+                                    onChange={(e) => setAiUserResponse(e.target.value)}
+                                    placeholder="Respuesta breve (Ej: 'Un chillido'...)"
+                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition mb-4"
+                                />
+
+                                <div className="flex gap-3 justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAiQuestion(false)} // Cancelar
+                                        className="px-4 py-2 text-white/40 hover:text-white transition font-medium"
+                                    >
+                                        Omitir
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={!aiUserResponse.trim() || isAnalyzing}
+                                        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition shadow-lg shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                        {isAnalyzing ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Responder'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* 🌍 MODAL DE UBICACIÓN MANUAL */}
             {showLocationModal && (

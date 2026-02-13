@@ -390,19 +390,43 @@ export default function MarketClient({
     const [searchText, setSearchText] = useState(searchParams.search || '')
     const [isSearching, setIsSearching] = useState(false)
 
-    const handleSmartSearch = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!searchText.trim()) return
+    const [showAiQuestion, setShowAiQuestion] = useState(false)
+    const [aiQuestion, setAiQuestion] = useState('')
+    const [aiUserResponse, setAiUserResponse] = useState('')
+
+    const handleSmartSearch = async (e: React.FormEvent, overrideQuery?: string) => {
+        e?.preventDefault()
+        const queryToUse = overrideQuery || searchText
+        if (!queryToUse.trim()) return
+
         setIsSearching(true)
+        setShowAiQuestion(false) // Hide previous question if any
+
         try {
+            // Si es una respuesta a una pregunta, combinamos contexto
+            const finalQuery = overrideQuery ? `${searchText} ${overrideQuery}` : searchText
+
             const res = await fetch('/api/ai/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: searchText, context: 'MARKET' })
+                body: JSON.stringify({ query: finalQuery, context: 'MARKET' })
             })
             const filters = await res.json()
+
+            // 🧠 MODO CONVERSACIONAL: Si la IA tiene dudas, preguntamos al usuario
+            if (filters.isConversational && filters.nextQuestion) {
+                setAiQuestion(filters.nextQuestion)
+                setShowAiQuestion(true)
+                setIsSearching(false)
+                return // 🛑 DETENER NAVEGACIÓN, esperar respuesta usuario
+            }
+
             const params = new URLSearchParams()
-            params.set('search', searchText)
+            // Si hubo conversación, usamos la query compuesta para el registro, pero limpia en la UI? 
+            // Mejor dejamos la original para no confundir, o la compuesta?
+            // Dejamos la original en UI (searchText state) pero params lleva la interpretada implícita en los filtros.
+
+            // params.set('search', searchText) // No forzamos search text si hay filtros
 
             // 🧠 AI INSIGHT: Si la IA nos dio una explicación, la pasamos a la URL para mostrarla
             if (filters.aiReasoning) {
@@ -435,10 +459,12 @@ export default function MarketClient({
                 params.delete('search')
             } else {
                 // Si no encontró nada estructurado, mantenemos la búsqueda de texto como fallback
-                params.set('search', searchText)
+                params.set('search', finalQuery)
             }
 
             router.push(`/market?${params.toString()}`)
+            // Resetear estado conversacional al tener éxito
+            setAiUserResponse('')
         } catch (error) {
             router.push(`/market?search=${encodeURIComponent(searchText)}`)
         } finally {
@@ -606,6 +632,68 @@ export default function MarketClient({
                     {/* Mobile Distance Indicator */}
                     {/* El indicador de radio se movió dentro de los estados específicos */}
                 </header>
+
+                {/* 🧠 AI QUESTION MODAL - "EL CONSULTOR" */}
+                {showAiQuestion && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                        <div className="bg-surface border border-indigo-500/30 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300 relative">
+                            {/* Header Gradient */}
+                            <div className="h-1.5 w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+
+                            <div className="p-6">
+                                <div className="flex items-start gap-4 mb-4">
+                                    <div className="p-3 bg-indigo-500/10 rounded-xl">
+                                        <svg className="w-8 h-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white mb-1">CarMatch AI</h3>
+                                        <p className="text-zinc-400 text-sm">Necesito un poco más de detalle...</p>
+                                    </div>
+                                </div>
+
+                                <p className="text-xl font-medium text-white mb-6 leading-relaxed">
+                                    {aiQuestion}
+                                </p>
+
+                                <form
+                                    onSubmit={(e) => {
+                                        e.preventDefault()
+                                        handleSmartSearch(e, aiUserResponse)
+                                    }}
+                                    className="relative"
+                                >
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        value={aiUserResponse}
+                                        onChange={(e) => setAiUserResponse(e.target.value)}
+                                        placeholder="Escribe tu respuesta..."
+                                        className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition mb-4"
+                                    />
+
+                                    <div className="flex gap-3 justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAiQuestion(false)} // Cancelar
+                                            className="px-4 py-2 text-zinc-400 hover:text-white transition font-medium"
+                                        >
+                                            Omitir
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={!aiUserResponse.trim() || isSearching}
+                                            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition shadow-lg shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2"
+                                        >
+                                            {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Responder'}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* 🧠 AI INSIGHT BANNER */}
                 {(searchParams.ai_msg || aiReasoning) && (

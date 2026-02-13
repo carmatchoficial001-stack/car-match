@@ -7,6 +7,10 @@
         {
             "path": "/api/cron/update-vehicles",
             "schedule": "0 0 * * 0"
+        },
+        {
+            "path": "/api/cron/update-taxonomy",
+            "schedule": "0 3 * * 0"
         }
     ]
 }

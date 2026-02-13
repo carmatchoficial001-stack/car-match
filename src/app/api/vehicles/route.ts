@@ -203,8 +203,9 @@ export async function POST(request: NextRequest) {
         // Regenerar título respetando datos del usuario
         const finalBrand = brand || 'Desconocido'
         const finalModel = model || 'N/A'
+        const finalVersion = body.version || ''
         const finalYear = parseInt(year) || new Date().getFullYear()
-        const finalTitle = `${finalBrand} ${finalModel} ${finalYear}`
+        const finalTitle = `${finalBrand} ${finalModel} ${finalVersion} ${finalYear}`.replace(/\s+/g, ' ').trim()
 
         // Crear vehículo
         const vehicle = await prisma.vehicle.create({
@@ -214,6 +215,7 @@ export async function POST(request: NextRequest) {
                 description,
                 brand: finalBrand,
                 model: finalModel,
+                version: finalVersion || null,
                 year: finalYear,
                 price: parseFloat(price),
                 city,

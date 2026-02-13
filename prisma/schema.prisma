@@ -115,6 +115,7 @@ model Vehicle {
   description        String
   brand              String
   model              String
+  version            String?
   year               Int
   price              Decimal          @db.Decimal(15, 2)
   city               String

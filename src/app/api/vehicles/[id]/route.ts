@@ -68,7 +68,7 @@ export async function PATCH(
         // Verificar propiedad del vehículo
         const vehicle = await prisma.vehicle.findUnique({
             where: { id },
-            select: { userId: true, status: true, title: true, brand: true, model: true, year: true }
+            select: { userId: true, status: true, title: true, brand: true, model: true, version: true, year: true }
         })
 
         if (!vehicle) {
@@ -155,11 +155,12 @@ export async function PATCH(
             }
 
             // Sincronizar título
-            if (updateData.brand || updateData.model || updateData.year || finalUpdateData.moderationStatus === 'APPROVED') {
+            if (updateData.brand || updateData.model || updateData.year || updateData.version || finalUpdateData.moderationStatus === 'APPROVED') {
                 const nextBrand = updateData.brand || vehicle.brand
                 const nextModel = updateData.model || vehicle.model
+                const nextVersion = updateData.version || (vehicle as any).version || ''
                 const nextYear = updateData.year !== undefined ? updateData.year : (vehicle as any).year
-                finalUpdateData.title = `${nextBrand} ${nextModel} ${nextYear}`
+                finalUpdateData.title = `${nextBrand} ${nextModel} ${nextVersion} ${nextYear}`.replace(/\s+/g, ' ').trim()
             }
 
             if (keyFieldsChanged) {
