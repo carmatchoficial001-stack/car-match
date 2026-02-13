@@ -21,7 +21,7 @@ export default function AIStudio() {
     ])
     const [isGenerating, setIsGenerating] = useState(false)
     const [selectedTone, setSelectedTone] = useState('Professional')
-    const [selectedPlatform, setSelectedPlatform] = useState('Instagram')
+    const [selectedPlatform, setSelectedPlatform] = useState('Global Diffusion')
 
     // Persistence State
     const [sessions, setSessions] = useState<any[]>([])
@@ -303,7 +303,7 @@ export default function AIStudio() {
                         <SelectPill
                             label="Plataforma"
                             value={selectedPlatform}
-                            options={['Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'Email']}
+                            options={['Global Diffusion', 'Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'Email']}
                             onChange={setSelectedPlatform}
                         />
                     </div>
