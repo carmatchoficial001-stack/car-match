@@ -346,6 +346,7 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
     const [activePlatform, setActivePlatform] = useState('meta_ads')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [copiedKey, setCopiedKey] = useState<string | null>(null)
+    const [previewFormat, setPreviewFormat] = useState<'square' | 'vertical' | 'horizontal'>('square')
 
     const handleCopy = (text: string, key: string) => {
         navigator.clipboard.writeText(text)
@@ -588,18 +589,36 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
 
                                     {/* Format Selector */}
                                     <div className="flex bg-black/40 rounded-lg p-1 border border-white/5">
-                                        <button className="flex-1 py-1 text-[10px] font-bold text-white bg-white/10 rounded">Square (1:1)</button>
-                                        <button className="flex-1 py-1 text-[10px] font-bold text-zinc-500 hover:text-white">Vertical (9:16)</button>
-                                        <button className="flex-1 py-1 text-[10px] font-bold text-zinc-500 hover:text-white">Land (16:9)</button>
+                                        <button
+                                            onClick={() => setPreviewFormat('square')}
+                                            className={`flex-1 py-1 text-[10px] font-bold rounded transition ${previewFormat === 'square' ? 'text-white bg-white/10' : 'text-zinc-500 hover:text-white'}`}
+                                        >
+                                            Square (1:1)
+                                        </button>
+                                        <button
+                                            onClick={() => setPreviewFormat('vertical')}
+                                            className={`flex-1 py-1 text-[10px] font-bold rounded transition ${previewFormat === 'vertical' ? 'text-white bg-white/10' : 'text-zinc-500 hover:text-white'}`}
+                                        >
+                                            Vertical (9:16)
+                                        </button>
+                                        <button
+                                            onClick={() => setPreviewFormat('horizontal')}
+                                            className={`flex-1 py-1 text-[10px] font-bold rounded transition ${previewFormat === 'horizontal' ? 'text-white bg-white/10' : 'text-zinc-500 hover:text-white'}`}
+                                        >
+                                            Land (16:9)
+                                        </button>
                                     </div>
 
                                     <div className="aspect-square rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl relative group">
-                                        <img src={assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
-                                        <a href={assets.images?.square || assets.imageUrl} download target="_blank" className="absolute bottom-3 right-3 p-2 bg-white text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
+                                        <img
+                                            src={assets.images?.[previewFormat] || assets.imageUrl}
+                                            className={`w-full h-full object-cover transition-all duration-500 ${previewFormat === 'vertical' ? 'object-contain scale-90' : 'object-cover'}`}
+                                        />
+                                        <a href={assets.images?.[previewFormat] || assets.imageUrl} download target="_blank" className="absolute bottom-3 right-3 p-2 bg-white text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
                                             <Download className="w-4 h-4" />
                                         </a>
                                         <div className="absolute bottom-3 left-3 px-2 py-1 bg-black/60 backdrop-blur text-[9px] font-mono text-white rounded border border-white/10">
-                                            1080x1080
+                                            {previewFormat === 'square' ? '1080x1080' : previewFormat === 'vertical' ? '1080x1920' : '1920x1080'}
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2 mt-2">
