@@ -23,7 +23,6 @@ function urlBase64ToUint8Array(base64String: string) {
     }
     return outputArray
 }
-
 export default function PushNotificationRequest() {
     const { data: session, status } = useSession()
     const [showPrompt, setShowPrompt] = useState(false)
@@ -159,7 +158,6 @@ export default function PushNotificationRequest() {
                     <div className="w-12 h-12 bg-primary-500/10 rounded-full flex items-center justify-center flex-shrink-0">
                         <Bell className="text-primary-600" size={24} />
                     </div>
-
                     {/* Contenido */}
                     <div className="flex-1 pr-6">
                         <h4 className="font-bold text-text-primary mb-1">Activar Notificaciones</h4>

@@ -13,6 +13,7 @@ import Header from "@/components/Header";
 import RestoringSessionOverlay from "@/components/RestoringSessionOverlay";
 import RestoreSessionModal from "@/components/RestoreSessionModal";
 
+import InstallInvasiveBanner from "@/components/InstallInvasiveBanner";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import CookieConsentBanner from "@/components/CookieConsentBanner";
 
@@ -144,6 +145,8 @@ export const viewport: Viewport = {
 };
 
 
+
+import PushNotificationRequest from "@/components/PushNotificationRequest";
 
 export default function RootLayout({
     children,
@@ -294,7 +297,8 @@ export default function RootLayout({
                 />
                 <GoogleAnalytics />
                 <Providers>
-
+                    <InstallInvasiveBanner />
+                    <PushNotificationRequest />
                     <OpenInBrowserBanner />
                     <ResponsiveViewportFix />
                     <RestoringSessionOverlay />
