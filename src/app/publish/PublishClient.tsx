@@ -144,8 +144,120 @@ export default function PublishClient() {
         })
     }
 
-    // 🔒 Track which fields user has manually edited (to prevent AI from overwriting)
+    // 🔒 Track which fields user has manually edited
     const [userEditedFields, setUserEditedFields] = useState<Set<string>>(new Set())
+
+    // 💾 AUTOSAVE LOGIC (New Feature)
+    // Guardar borrador automáticamente cada vez que cambien los datos clave
+    useEffect(() => {
+        // No guardar si estamos editando un vehículo existente o si ya se publicó
+        if (editId) return
+
+        const draftData = {
+            timestamp: Date.now(),
+            step: currentStep,
+            // Datos del formulario
+            vehicleCategory, vehicleType,
+            images,
+            description, brand, model, version, year, price, currency,
+            mileage, mileageUnit, transmission, fuel, engine, doors, color, condition, traction, passengers,
+            displacement, cargoCapacity, operatingHours, hp, torque, aspiration, cylinders,
+            batteryCapacity, range, weight, axles, status,
+            latitude, longitude, city, stateLocation, countryLocation,
+            selectedFeatures,
+            userEditedFields: Array.from(userEditedFields) // Convertir Set a Array para JSON
+        }
+
+        // Debounce simple: Guardar
+        const timer = setTimeout(() => {
+            localStorage.setItem('carmatch_publish_draft', JSON.stringify(draftData))
+            // console.log('💾 Borrador guardado automáticamente')
+        }, 1000)
+
+        return () => clearTimeout(timer)
+    }, [
+        editId, currentStep,
+        vehicleCategory, vehicleType, images, description, brand, model, version, year, price, currency,
+        mileage, mileageUnit, transmission, fuel, engine, doors, color, condition, traction, passengers,
+        displacement, cargoCapacity, operatingHours, hp, torque, aspiration, cylinders,
+        batteryCapacity, range, weight, axles, status,
+        latitude, longitude, city, stateLocation, countryLocation,
+        selectedFeatures, userEditedFields
+    ])
+
+    // 🔄 RESTORE DRAFT LOGIC
+    useEffect(() => {
+        // Solo intentar restaurar si NO es edición
+        if (editId) return
+
+        const savedDraft = localStorage.getItem('carmatch_publish_draft')
+        if (savedDraft) {
+            try {
+                const data = JSON.parse(savedDraft)
+
+                // Opcional: Verificar antigüedad del borrador (ej: > 24 horas descartar?)
+                // Por ahora restauramos siempre que haya algo.
+
+                // Restaurar estados
+                if (data.step) setCurrentStep(data.step as FormStep)
+                if (data.vehicleCategory) setVehicleCategory(data.vehicleCategory)
+                if (data.vehicleType) setVehicleType(data.vehicleType)
+                if (data.images) setImages(data.images)
+                if (data.description) setDescription(data.description)
+                if (data.brand) setBrand(data.brand)
+                if (data.model) setModel(data.model)
+                if (data.version) setVersion(data.version)
+                if (data.year) setYear(data.year)
+                if (data.price) setPrice(data.price)
+                if (data.currency) setCurrency(data.currency)
+
+                // Specs
+                if (data.mileage) setMileage(data.mileage)
+                if (data.mileageUnit) setMileageUnit(data.mileageUnit)
+                if (data.transmission) setTransmission(data.transmission)
+                if (data.fuel) setFuel(data.fuel)
+                if (data.engine) setEngine(data.engine)
+                if (data.doors) setDoors(data.doors)
+                if (data.color) setColor(data.color)
+                if (data.condition) setCondition(data.condition)
+                if (data.traction) setTraction(data.traction)
+                if (data.passengers) setPassengers(data.passengers)
+
+                if (data.displacement) setDisplacement(data.displacement)
+                if (data.cargoCapacity) setCargoCapacity(data.cargoCapacity)
+                if (data.operatingHours) setOperatingHours(data.operatingHours)
+                if (data.hp) setHp(data.hp)
+                if (data.torque) setTorque(data.torque)
+                if (data.aspiration) setAspiration(data.aspiration)
+                if (data.cylinders) setCylinders(data.cylinders)
+                if (data.batteryCapacity) setBatteryCapacity(data.batteryCapacity)
+                if (data.range) setRange(data.range)
+                if (data.weight) setWeight(data.weight)
+                if (data.axles) setAxles(data.axles)
+                if (data.status) setStatus(data.status)
+
+                // Location
+                if (data.latitude) setLatitude(data.latitude)
+                if (data.longitude) setLongitude(data.longitude)
+                if (data.city) setCity(data.city)
+                if (data.stateLocation) setStateLocation(data.stateLocation)
+                if (data.countryLocation) setCountryLocation(data.countryLocation)
+
+                // Features
+                if (data.selectedFeatures) setSelectedFeatures(data.selectedFeatures)
+
+                // Meta
+                if (data.userEditedFields) setUserEditedFields(new Set(data.userEditedFields))
+
+                // Notificar discretamente (podría ser un toast, pero por ahora un log está bien, 
+                // el usuario verá sus datos ahí y se alegrará)
+                console.log('♻️ Borrador restaurado exitosamente')
+
+            } catch (e) {
+                console.error('Error restaurando borrador:', e)
+            }
+        }
+    }, [editId])
 
     // Validation for the new flow
     const canProceedFromStep1 = images.length > 0
@@ -660,6 +772,9 @@ export default function PublishClient() {
                 throw new Error(errorData.error || 'Error al publicar vehículo')
             }
             // Forzar actualización de caché del cliente antes de navegar
+            // 🧹 LIMPIEZA: Publicación exitosa, borramos el borrador
+            localStorage.removeItem('carmatch_publish_draft')
+
             router.refresh()
             router.push('/profile?published=true')
         } catch (error) {
