@@ -429,7 +429,8 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                         "title": "Clickbaity Title",
                         "description": "SEO description with links"
                     },
-                    "twitter_x": { "tweets": ["Tweet 1 (News/Update style)", "Tweet 2 (Thread)"] }
+                    "twitter_x": { "tweets": ["Tweet 1 (News/Update style)", "Tweet 2 (Thread)"] },
+                    "threads": { "text": "Casual, authentic, question-based sales hook to start a conversation (Soft sell)." }
                 }
             }
             
