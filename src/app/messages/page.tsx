@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
-import Header from '@/components/Header'
+
 import { formatPrice } from '@/lib/vehicleTaxonomy'
 
 interface Chat {
@@ -76,7 +76,7 @@ export default function MessagesPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-background">
-                <Header />
+
                 <div className="flex items-center justify-center h-[calc(100vh-64px)]">
                     <div className="text-text-secondary">{t('messages.loading_chats')}</div>
                 </div>
@@ -87,7 +87,7 @@ export default function MessagesPage() {
     if (chats.length === 0) {
         return (
             <div className="min-h-screen bg-background">
-                <Header />
+
                 <div className="flex items-center justify-center h-[calc(100vh-64px)]">
                     <div className="text-center max-w-md">
                         <svg className="w-24 h-24 text-text-secondary mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
