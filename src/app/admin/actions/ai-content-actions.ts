@@ -391,18 +391,33 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         const country = getCountryContext(targetCountry)
 
         // 1. Context Analysis Prompt
+        // 1. Context Analysis Prompt - MEGA SOCIAL PACK EDITION
         const prompt = `
-            Act as a Creative Director. Analyze the chat history and the user's last request.
-            Goal: Create a READY-TO-PUBLISH social media campaign pack.
+            Act as a World-Class Social Media Manager. Analyze the chat history.
+            Goal: Create a COMPLETE "COPY & PASTE" SOCIAL MEDIA PACK for 9+ PLatforms.
             
-            Context: The user wants to sell a vehicle or promote a service in ${country.name}.
+            Context: The user wants to sell/promote in ${country.name}.
             
-            Return a JSON object with:
-            1. "title": Catchy internal title for the campaign.
-            2. "caption": Facebook/Instagram caption with emojis and hashtags. Formatted with line breaks.
-            3. "imagePrompt": A highly detailed, photorealistic prompt for generating the image (describing the car/scene).
-            4. "videoScript": A 15-second viral script (Hook -> Value -> CTA).
-            5. "videoPrompt": A technical prompt for Veo 3 / Sora (e.g. "Cinematic drone shot of...").
+            Return a STRICT JSON object with these exact keys:
+            
+            {
+                "internal_title": "Campaign Name",
+                "imagePrompt": "Photorealistic prompt...",
+                "videoPrompt": "Veo 3 technical prompt...",
+                "videoScript": "Viral 15s script...",
+                
+                "platforms": {
+                    "facebook_feed": { "text": "Emotional/Viral post with emojis" },
+                    "facebook_marketplace": { "title": "SEO Optimized Title", "description": "Technical details, price context, location context (Selling mode)" },
+                    "instagram": { "caption": "Aesthetic caption + 30 hashtags block" },
+                    "twitter": { "tweets": ["Tweet 1 (Hook)", "Tweet 2 (Value)", "Tweet 3 (Link)"] },
+                    "linkedin": { "text": "Professional B2B/Networking tone. Focus on business value." },
+                    "reddit": { "title": "Catchy but honest title", "body": "Storytelling/Advice format. No emojis. Community focus." },
+                    "tiktok": { "caption": "Short, trendy, highly viral caption + hashtags" },
+                    "pinterest": { "title": "Inspirational Title", "description": "Keyword rich description for SEO" },
+                    "threads": { "text": "Conversational, casual, asking a question." }
+                }
+            }
             
             Last User Input: "${chatHistory[chatHistory.length - 1].content}"
         `
