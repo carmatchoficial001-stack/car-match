@@ -10,7 +10,7 @@ import {
     Megaphone, Plus, Search, Filter, MoreVertical,
     Calendar, Globe, Share2, Trash2, Edit, CheckCircle2,
     XCircle, Clock, ExternalLink, Image as ImageIcon, Sparkles, RefreshCw, Zap,
-    Bot, User, Download, ImagePlus, Send, Save, X, Copy, Check, Video, ArrowRight, Info
+    Bot, User, Download, ImagePlus, Send, Save, X, Copy, Check, Video, ArrowRight, Info, Type
 } from 'lucide-react'
 import {
     getPublicityCampaigns,
