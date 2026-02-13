@@ -160,7 +160,7 @@ export default function VehicleDetailClient({ vehicle, currentUserEmail, current
         const statusKey = vehicle.status.toLowerCase()
 
         return (
-            <div className="bg-surface-highlight/20 border border-primary-500/20 rounded-3xl p-6 mb-8 shadow-2xl backdrop-blur-sm">
+            <div className="bg-surface-highlight/20 border border-primary-500/20 rounded-3xl p-6 mb-8 shadow-2xl backdrop-blur-sm relative z-[50]">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex-1 space-y-4">
                         <div className="flex items-center gap-3">
