@@ -10,7 +10,7 @@ import {
     Megaphone, Plus, Search, Filter, MoreVertical,
     Calendar, Globe, Share2, Trash2, Edit, CheckCircle2,
     XCircle, Clock, ExternalLink, Image as ImageIcon, Sparkles, RefreshCw, Zap,
-    Bot, User, Download, ImagePlus, Send, Save, X, Copy, Check, Video, ArrowRight, Info, Type
+    Bot, User, Download, ImagePlus, Send, Save, X, Copy, Check, Video, ArrowRight, Info, Type as TypeIcon
 } from 'lucide-react'
 import {
     getPublicityCampaigns,
@@ -670,7 +670,7 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
                                     {assets.videoScript && (
                                         <div className="bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 space-y-2">
                                             <div className="flex items-center gap-2">
-                                                <Type className="w-3 h-3 text-blue-400" />
+                                                <TypeIcon className="w-3 h-3 text-blue-400" />
                                                 <span className="text-[10px] font-bold text-blue-200 uppercase">Script (Guión)</span>
                                             </div>
                                             <p className="text-[10px] text-blue-300/70 leading-relaxed line-clamp-3">
