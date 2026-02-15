@@ -288,18 +288,33 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
             - Micro-Scenario: ${randomScenario}
             - Video Style: ${randomStyle.toUpperCase()}
             
+            CRITICAL LANGUAGE REQUIREMENT:
+            - ALL content MUST be in SPANISH (español de México)
+            - Use Mexican slang: ${country.slang}
+            - NO English words except brand names (CarMatch, TikTok, etc.)
+            
             IMPORTANT:
             - DO NOT promote a specific single car. Promote the APP/PLATFORM.
             - If the style is "Showcase", showcase the APP INTERFACE or a montage of cool cars available.
             - ATTITUDE: Aggressive growth, high energy, "FOMO".
             - **RULE**: "People don't read". Keep text minimal, visual, and punchy.
             
+            CRITICAL: Return ONLY a valid JSON object. No markdown code blocks, no explanations.
+            
             Return a JSON object with:
-            1. "caption": A visual, emoji-rich caption. MAX 3 lines. MUST include CTA: "Descarga CarMatch".
-            2. "imagePrompt": An AI image prompt representing the scenario or the app solution (Photorealistic, 8k).
-            3. "videoScript": A 15-second viral video script in the "${randomStyle}" style. Designed for high retention.
-            4. "videoPrompt": A technical prompt optimized for Google Veo 3 / Sora. (e.g. "Cinematic drone shot of a [Car Model] driving through [Location], 8k, hyperrealistic, slow motion, golden hour lighting").
-            5. "strategy": Why this specific angle will go viral and help reach the 2.8B user goal.
+            {
+                "caption": "Una caption visual con emojis en ESPAÑOL. MAX 3 líneas. DEBE incluir CTA: 'Descarga CarMatch'.",
+                "imagePrompt": "An AI image prompt representing the scenario (Photorealistic, 8k) - THIS CAN BE IN ENGLISH",
+                "videoScript": "Un guión de video de 15 segundos en ESPAÑOL en el estilo '${randomStyle}'. Debe ser UN TEXTO CONTINUO, NO un array.",
+                "videoPrompt": "A technical prompt for Google Veo 3 / Sora in ENGLISH (e.g. 'Cinematic drone shot of a car driving through Mexico City, 8k, hyperrealistic, slow motion, golden hour lighting').",
+                "strategy": "Explicación en ESPAÑOL de por qué este ángulo será viral y ayudará a alcanzar la meta de 2.8B usuarios."
+            }
+            
+            IMPORTANT FOR videoScript:
+            - Must be a SINGLE STRING, not an array
+            - Write it as continuous text with scene descriptions
+            - In SPANISH only
+            - Example format: "Escena 1: Un joven atrapado en el tráfico... Escena 2: Abre CarMatch..."
         `
 
         const result = await geminiFlashConversational.generateContent(prompt)
@@ -310,11 +325,20 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
 
         try {
             const campaignData = JSON.parse(jsonString)
+
+            // Ensure videoScript is a string
+            if (Array.isArray(campaignData.videoScript)) {
+                campaignData.videoScript = campaignData.videoScript.join(' ')
+            } else if (typeof campaignData.videoScript === 'object') {
+                campaignData.videoScript = JSON.stringify(campaignData.videoScript)
+            }
+
             // Mock vehicle object for UI compatibility
             const vehicleMock = { title: `Campaña: ${randomBrandHook.hook}`, price: 0, currency: 'USD', description: campaignData.strategy }
 
             return { success: true, vehicle: vehicleMock, campaignData }
         } catch (e) {
+            console.error('Error parsing campaign JSON:', e)
             return { success: false, error: 'Error al interpretar la respuesta de IA.' }
         }
 
@@ -394,65 +418,78 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
 
         // 1. Context Analysis Prompt - MASS DIFFUSION & ADS EDITION
         const prompt = `
-            Act as a Senior Performance Marketer. Analyze the chat history.
-            Goal: Create a HIGH-CONVERSION GLOBAL AD CAMPAIGN PACK (Meta, Google, TikTok).
-            Target Audience: Mass Market (2.8B+ users). Access to vehicle buyers.
+            Eres un Especialista en Marketing de Alto Rendimiento. Analiza el historial de chat.
+            Objetivo: Crear un PACK COMPLETO DE CAMPAÑA PUBLICITARIA DE ALTA CONVERSIÓN (Meta, Google, TikTok).
+            Audiencia Objetivo: Mercado masivo (2.8B+ usuarios). Compradores de vehículos.
             
-            Context: The user wants to sell/promote in ${country.name}.
+            Contexto: El usuario quiere vender/promocionar en ${country.name}.
+            Slang local: ${country.slang}
             
-            CRITICAL: Return ONLY a valid JSON object, nothing else. No markdown, no explanations.
+            REQUISITO CRÍTICO DE IDIOMA:
+            - TODO el contenido DEBE estar en ESPAÑOL (español de México)
+            - Usa slang mexicano: ${country.slang}
+            - SIN palabras en inglés excepto nombres de marca (CarMatch, Meta, TikTok, etc.)
+            - primary_text, headlines, descriptions, captions, scripts - TODO en ESPAÑOL
             
-            Required JSON structure:
+            CRÍTICO: Devuelve SOLO un objeto JSON válido, nada más. Sin markdown, sin explicaciones.
+            
+            Estructura JSON requerida:
             {
-                "internal_title": "Campaign Name",
-                "imagePrompt": "Photorealistic prompt...",
-                "videoPrompt_vertical": "Veo 3 technical prompt (9:16 Vertical for Reels/TikTok)...",
-                "videoPrompt_horizontal": "Veo 3 technical prompt (16:9 Cinematic for YouTube)...",
-                "videoScript": "Viral 15s Reels/TikTok script (Visual Hook or Sketch style). Detailed scene description.",
+                "internal_title": "Nombre de la Campaña en ESPAÑOL",
+                "imagePrompt": "Prompt fotorealista en INGLÉS (para IA de imágenes)...",
+                "videoPrompt_vertical": "Prompt técnico para Veo 3 en INGLÉS (9:16 Vertical para Reels/TikTok)...",
+                "videoPrompt_horizontal": "Prompt técnico para Veo 3 en INGLÉS (16:9 Cinemático para YouTube)...",
+                "videoScript": "Guión viral de 15s para Reels/TikTok en ESPAÑOL. Debe ser UN TEXTO CONTINUO describiendo las escenas, NO un array. Ejemplo: 'Escena 1: Un joven frustrado... Escena 2: Abre CarMatch...'",
                 
                 "platforms": {
                     "meta_ads": { 
-                        "primary_text": "Main ad copy (persuasive, benefit-driven, clear offer)",
-                        "headline": "Short, punchy headline (5-7 words max)",
-                        "description": "Link description (Social proof or urgency)"
+                        "primary_text": "Copy principal del anuncio en ESPAÑOL (persuasivo, enfocado en beneficios, oferta clara)",
+                        "headline": "Título corto y contundente en ESPAÑOL (máximo 5-7 palabras)",
+                        "description": "Descripción del enlace en ESPAÑOL (prueba social o urgencia)"
                     },
                     "facebook_marketplace": { 
-                        "title": "SEO Optimized Title for maximum reach", 
-                        "description": "Detailed description with keywords for search visibility" 
+                        "title": "Título optimizado SEO en ESPAÑOL para máximo alcance", 
+                        "description": "Descripción detallada en ESPAÑOL con palabras clave para visibilidad" 
                     },
                     "google_ads": {
-                        "headlines": ["Headline 1 (Keyword)", "Headline 2 (Benefit)", "Headline 3 (Offer)"],
-                        "descriptions": ["Description 1 (Features)", "Description 2 (Call to Action)"]
+                        "headlines": ["Título 1 en ESPAÑOL (Palabra clave)", "Título 2 en ESPAÑOL (Beneficio)", "Título 3 en ESPAÑOL (Oferta)"],
+                        "descriptions": ["Descripción 1 en ESPAÑOL (Características)", "Descripción 2 en ESPAÑOL (Llamado a la acción)"]
                     },
                     "tiktok_ads": { 
-                        "caption": "Viral hook caption with trending hashtags",
-                        "script_notes": "Visual direction for a high-retention video ad"
+                        "caption": "Caption de gancho viral en ESPAÑOL con hashtags trending",
+                        "script_notes": "Dirección visual en ESPAÑOL para un video publicitario de alta retención"
                     },
                     "youtube_shorts": {
-                        "title": "Clickbaity Title",
-                        "description": "SEO description with links"
+                        "title": "Título clickbait en ESPAÑOL",
+                        "description": "Descripción SEO en ESPAÑOL con enlaces"
                     },
-                    "twitter_x": { "tweets": ["Tweet 1 (News/Update style)", "Tweet 2 (Thread)"] },
-                    "threads": { "text": "Casual, authentic, question-based sales hook to start a conversation (Soft sell)." },
-                    "snapchat_ads": { "headline": "Urgent/Fun headline", "caption": "Short caption for Spotlight" },
-                    "messaging_apps": { "broadcast_message": "Direct, exclusive offer text for WhatsApp/Telegram Channels (High FOMO). Short & Urgent." }
+                    "twitter_x": { "tweets": ["Tweet 1 en ESPAÑOL (estilo noticias/actualización)", "Tweet 2 en ESPAÑOL (hilo)"] },
+                    "threads": { "text": "Gancho de venta casual y auténtico en ESPAÑOL, basado en preguntas para iniciar conversación (venta suave)." },
+                    "snapchat_ads": { "headline": "Título urgente/divertido en ESPAÑOL", "caption": "Caption corto en ESPAÑOL para Spotlight" },
+                    "messaging_apps": { "broadcast_message": "Texto de oferta directa y exclusiva en ESPAÑOL para Canales de WhatsApp/Telegram (Alto FOMO). Corto y urgente." }
                 }
             }
             
-            Last User Input: "${chatHistory[chatHistory.length - 1].content}"
+            IMPORTANTE para videoScript:
+            - Debe ser UN STRING ÚNICO, NO un array
+            - Escríbelo como texto continuo con descripciones de escenas
+            - Solo en ESPAÑOL
+            - Formato ejemplo: "Escena 1: Un joven atrapado en el tráfico mira su teléfono frustrado. Escena 2: Abre CarMatch y sus ojos se iluminan al ver opciones increíbles. Escena 3: Hace swipe a su carro ideal y sonríe."
+            
+            Último mensaje del usuario: "${chatHistory[chatHistory.length - 1].content}"
         `
 
         console.log('[AI] Generando contenido de campaña...')
         const result = await geminiFlashConversational.generateContent(prompt)
         const text = result.response.text()
         console.log('[AI] Respuesta recibida, parseando JSON...')
-        
+
         // Clean up and validate JSON
         let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim()
-        
+
         // Additional cleanup for common JSON issues
         jsonString = jsonString.replace(/^[^{]*/, '').replace(/[^}]*$/, '')
-        
+
         if (!jsonString.startsWith('{') || !jsonString.endsWith('}')) {
             throw new Error('Respuesta de IA no es JSON válido. Por favor intenta de nuevo.')
         }
@@ -469,6 +506,19 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         // Validate required fields
         if (!data.internal_title || !data.imagePrompt || !data.platforms) {
             throw new Error('La respuesta de IA no contiene todos los campos requeridos')
+        }
+
+        // Ensure videoScript is a string (fix [object Object] issue)
+        if (data.videoScript) {
+            if (Array.isArray(data.videoScript)) {
+                // If it's an array, join with spaces
+                data.videoScript = data.videoScript.join(' ')
+                console.log('[AI] videoScript convertido de array a string')
+            } else if (typeof data.videoScript === 'object' && data.videoScript !== null) {
+                // If it's an object, stringify it
+                data.videoScript = JSON.stringify(data.videoScript)
+                console.log('[AI] videoScript convertido de object a string')
+            }
         }
 
         console.log('[AI] JSON parseado correctamente, generando imágenes...')
@@ -505,8 +555,8 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
 
     } catch (error: any) {
         console.error('[AI] Error crítico en generateCampaignAssets:', error)
-        return { 
-            success: false, 
+        return {
+            success: false,
             error: error.message || 'Error generando los assets de la campaña.',
             details: error.toString()
         }
