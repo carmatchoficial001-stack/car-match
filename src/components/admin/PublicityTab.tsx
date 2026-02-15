@@ -574,115 +574,215 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
                     </div>
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-0 bg-black/20">
-                        <div className="max-w-4xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            {/* Left Column: Visual Strategy (Multi-Format) */}
-                            <div className="lg:col-span-1 space-y-6">
-                                {/* CARD 1: IMAGE ASSETS */}
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                                            <ImageIcon className="w-3 h-3 text-purple-400" />
-                                            Visual 1: Image Feed
-                                        </label>
-                                        <span className="text-[10px] bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded border border-purple-500/20">Flux.1 Realism</span>
+                        <div className="max-w-6xl mx-auto p-8 space-y-8">
+                            {/* SECTION 1: VIDEO CONTENT */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg">
+                                        <Video className="w-5 h-5 text-white" />
                                     </div>
-
-                                    {/* Format Selector */}
-                                    <div className="flex bg-black/40 rounded-lg p-1 border border-white/5">
-                                        <button
-                                            onClick={() => setPreviewFormat('square')}
-                                            className={`flex-1 py-1 text-[10px] font-bold rounded transition ${previewFormat === 'square' ? 'text-white bg-white/10' : 'text-zinc-500 hover:text-white'}`}
-                                        >
-                                            Square (1:1)
-                                        </button>
-                                        <button
-                                            onClick={() => setPreviewFormat('vertical')}
-                                            className={`flex-1 py-1 text-[10px] font-bold rounded transition ${previewFormat === 'vertical' ? 'text-white bg-white/10' : 'text-zinc-500 hover:text-white'}`}
-                                        >
-                                            Vertical (9:16)
-                                        </button>
-                                        <button
-                                            onClick={() => setPreviewFormat('horizontal')}
-                                            className={`flex-1 py-1 text-[10px] font-bold rounded transition ${previewFormat === 'horizontal' ? 'text-white bg-white/10' : 'text-zinc-500 hover:text-white'}`}
-                                        >
-                                            Land (16:9)
-                                        </button>
-                                    </div>
-
-                                    <div className="aspect-square rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl relative group">
-                                        <img
-                                            src={assets.images?.[previewFormat] || assets.imageUrl}
-                                            className={`w-full h-full object-cover transition-all duration-500 ${previewFormat === 'vertical' ? 'object-contain scale-90' : 'object-cover'}`}
-                                        />
-                                        <a href={assets.images?.[previewFormat] || assets.imageUrl} download target="_blank" className="absolute bottom-3 right-3 p-2 bg-white text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
-                                            <Download className="w-4 h-4" />
-                                        </a>
-                                        <div className="absolute bottom-3 left-3 px-2 py-1 bg-black/60 backdrop-blur text-[9px] font-mono text-white rounded border border-white/10">
-                                            {previewFormat === 'square' ? '1080x1080' : previewFormat === 'vertical' ? '1080x1920' : '1920x1080'}
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2 mt-2">
-                                        <div className="relative group rounded-xl overflow-hidden border border-white/5 aspect-[9/16]">
-                                            <img src={assets.images?.vertical || assets.imageUrl} className="w-full h-full object-cover opacity-60 hover:opacity-100 transition" />
-                                            <a href={assets.images?.vertical} download className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40">
-                                                <Download className="w-3 h-3 text-white" />
-                                            </a>
-                                        </div>
-                                        <div className="relative group rounded-xl overflow-hidden border border-white/5 aspect-video">
-                                            <img src={assets.images?.horizontal || assets.imageUrl} className="w-full h-full object-cover opacity-60 hover:opacity-100 transition" />
-                                            <a href={assets.images?.horizontal} download className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40">
-                                                <Download className="w-3 h-3 text-white" />
-                                            </a>
-                                        </div>
+                                    <div>
+                                        <h3 className="text-lg font-black text-white uppercase tracking-wide">Contenido para Video</h3>
+                                        <p className="text-xs text-zinc-500">Prompts optimizados para generar videos con Veo/Sora</p>
                                     </div>
                                 </div>
 
-                                {/* CARD 2: VIDEO ASSETS */}
-                                <div className="space-y-3 pt-6 border-t border-white/5">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                                            <Video className="w-3 h-3 text-red-400" />
-                                            Visual 2: Video Viral
-                                        </label>
-                                        <span className="text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20">Veo / Vertex</span>
-                                    </div>
-
-                                    {/* Video Format Prompts */}
-                                    <div className="space-y-2">
-                                        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-3 space-y-2">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-[9px] font-bold text-zinc-400 uppercase">Vertical (Reels/TikTok)</span>
-                                                <Copy className="w-3 h-3 text-zinc-500 cursor-pointer hover:text-white" onClick={() => navigator.clipboard.writeText(assets.videoPrompt_vertical || assets.videoPrompt)} />
-                                            </div>
-                                            <p className="text-[10px] text-zinc-500 line-clamp-2">{assets.videoPrompt_vertical || assets.videoPrompt}</p>
-                                        </div>
-
-                                        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-3 space-y-2">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-[9px] font-bold text-zinc-400 uppercase">Horizontal (YouTube)</span>
-                                                <Copy className="w-3 h-3 text-zinc-500 cursor-pointer hover:text-white" onClick={() => navigator.clipboard.writeText(assets.videoPrompt_horizontal || assets.videoPrompt)} />
-                                            </div>
-                                            <p className="text-[10px] text-zinc-500 line-clamp-2">{assets.videoPrompt_horizontal || assets.videoPrompt}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* VIDEO SCRIPT PREVIEW */}
-                                    {assets.videoScript && (
-                                        <div className="bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 space-y-2">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Vertical Video for Reels/TikTok */}
+                                    <div className="bg-gradient-to-br from-zinc-900/80 to-black/50 border border-white/10 rounded-2xl p-5 space-y-3 hover:border-purple-500/30 transition-all group">
+                                        <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <TypeIcon className="w-3 h-3 text-blue-400" />
-                                                <span className="text-[10px] font-bold text-blue-200 uppercase">Script (Guión)</span>
+                                                <div className="w-8 h-10 bg-gradient-to-b from-purple-500 to-pink-500 rounded-md flex items-center justify-center shadow-lg">
+                                                    <span className="text-white text-xs font-black">9:16</span>
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-white">Video Vertical</h4>
+                                                    <p className="text-[10px] text-zinc-500">Reels, TikTok, Stories</p>
+                                                </div>
                                             </div>
-                                            <p className="text-[10px] text-blue-300/70 leading-relaxed line-clamp-3">
-                                                {assets.videoScript}
-                                            </p>
+                                            <button
+                                                onClick={() => handleCopy(assets.videoPrompt_vertical || assets.videoPrompt || '', 'video-v')}
+                                                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition flex items-center gap-1.5 text-xs font-bold border border-white/10"
+                                            >
+                                                {copiedKey === 'video-v' ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                                                <span className="hidden sm:inline">Copiar</span>
+                                            </button>
                                         </div>
-                                    )}
+                                        <p className="text-xs text-zinc-400 leading-relaxed bg-black/40 p-3 rounded-lg border border-white/5 max-h-32 overflow-y-auto custom-scrollbar">
+                                            {assets.videoPrompt_vertical || assets.videoPrompt || 'No disponible'}
+                                        </p>
+                                    </div>
+
+                                    {/* Horizontal Video for YouTube */}
+                                    <div className="bg-gradient-to-br from-zinc-900/80 to-black/50 border border-white/10 rounded-2xl p-5 space-y-3 hover:border-red-500/30 transition-all group">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-10 h-8 bg-gradient-to-r from-red-500 to-red-600 rounded-md flex items-center justify-center shadow-lg">
+                                                    <span className="text-white text-xs font-black">16:9</span>
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-white">Video Horizontal</h4>
+                                                    <p className="text-[10px] text-zinc-500">YouTube, Facebook, X</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleCopy(assets.videoPrompt_horizontal || assets.videoPrompt || '', 'video-h')}
+                                                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition flex items-center gap-1.5 text-xs font-bold border border-white/10"
+                                            >
+                                                {copiedKey === 'video-h' ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                                                <span className="hidden sm:inline">Copiar</span>
+                                            </button>
+                                        </div>
+                                        <p className="text-xs text-zinc-400 leading-relaxed bg-black/40 p-3 rounded-lg border border-white/5 max-h-32 overflow-y-auto custom-scrollbar">
+                                            {assets.videoPrompt_horizontal || assets.videoPrompt || 'No disponible'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Video Script */}
+                                {assets.videoScript && (
+                                    <div className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-blue-500/20 rounded-2xl p-5 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <TypeIcon className="w-4 h-4 text-blue-400" />
+                                                <h4 className="text-sm font-bold text-blue-200">Guión de Video (Script)</h4>
+                                            </div>
+                                            <button
+                                                onClick={() => handleCopy(assets.videoScript, 'script')}
+                                                className="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition flex items-center gap-1.5 text-xs font-bold text-blue-300"
+                                            >
+                                                {copiedKey === 'script' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                                                Copiar
+                                            </button>
+                                        </div>
+                                        <p className="text-xs text-blue-100 leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto custom-scrollbar bg-black/30 p-4 rounded-xl border border-blue-500/10">
+                                            {assets.videoScript}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* DIVIDER */}
+                            <div className="relative py-4">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-white/10"></div>
+                                </div>
+                                <div className="relative flex justify-center">
+                                    <span className="bg-[#0F1115] px-4 text-xs font-bold text-zinc-600 uppercase tracking-widest">Contenido Visual</span>
                                 </div>
                             </div>
 
-                            {/* Right Column: Platform Content */}
-                            <div className="lg:col-span-2">
+                            {/* SECTION 2: IMAGE CONTENT */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center shadow-lg">
+                                        <ImageIcon className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-black text-white uppercase tracking-wide">Imágenes Generadas</h3>
+                                        <p className="text-xs text-zinc-500">Múltiples formatos listos para usar</p>
+                                    </div>
+                                </div>
+
+                                {/* Format Selector */}
+                                <div className="flex bg-black/40 rounded-xl p-1.5 border border-white/5 w-fit">
+                                    <button
+                                        onClick={() => setPreviewFormat('square')}
+                                        className={`px-4 py-2 text-xs font-bold rounded-lg transition ${previewFormat === 'square' ? 'text-white bg-white/10 shadow-lg' : 'text-zinc-500 hover:text-white'}`}
+                                    >
+                                        📱 Square (1:1)
+                                    </button>
+                                    <button
+                                        onClick={() => setPreviewFormat('vertical')}
+                                        className={`px-4 py-2 text-xs font-bold rounded-lg transition ${previewFormat === 'vertical' ? 'text-white bg-white/10 shadow-lg' : 'text-zinc-500 hover:text-white'}`}
+                                    >
+                                        📲 Vertical (9:16)
+                                    </button>
+                                    <button
+                                        onClick={() => setPreviewFormat('horizontal')}
+                                        className={`px-4 py-2 text-xs font-bold rounded-lg transition ${previewFormat === 'horizontal' ? 'text-white bg-white/10 shadow-lg' : 'text-zinc-500 hover:text-white'}`}
+                                    >
+                                        🖥️ Horizontal (16:9)
+                                    </button>
+                                </div>
+
+                                {/* Main Image Preview */}
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    {/* Large Preview */}
+                                    <div className="lg:col-span-2">
+                                        <div className="relative rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl group" style={{ aspectRatio: previewFormat === 'square' ? '1/1' : previewFormat === 'vertical' ? '9/16' : '16/9' }}>
+                                            <img
+                                                src={assets.images?.[previewFormat] || assets.imageUrl}
+                                                className="w-full h-full object-cover"
+                                                alt="Generated visual"
+                                            />
+                                            <a href={assets.images?.[previewFormat] || assets.imageUrl} download target="_blank" className="absolute bottom-4 right-4 p-3 bg-white text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
+                                                <Download className="w-5 h-5" />
+                                            </a>
+                                            <div className="absolute top-4 left-4 px-3 py-1.5 bg-black/70 backdrop-blur text-xs font-mono text-white rounded-lg border border-white/20">
+                                                {previewFormat === 'square' ? '1080×1080' : previewFormat === 'vertical' ? '1080×1920' : '1920×1080'} • Flux.1
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Thumbnails */}
+                                    <div className="space-y-3">
+                                        <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Todos los Formatos</h4>
+                                        {/* Square */}
+                                        <div className="relative group rounded-xl overflow-hidden border border-white/10 aspect-square hover:border-purple-500/50 transition cursor-pointer" onClick={() => setPreviewFormat('square')}>
+                                            <img src={assets.images?.square || assets.imageUrl} className={`w-full h-full object-cover transition ${previewFormat === 'square' ? 'opacity-100' : 'opacity-60 hover:opacity-90'}`} />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-3">
+                                                <span className="text-white text-xs font-bold">1:1 Square</span>
+                                            </div>
+                                            <a href={assets.images?.square} download onClick={(e) => e.stopPropagation()} className="absolute top-2 right-2 p-2 bg-white/90 text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
+                                                <Download className="w-3 h-3" />
+                                            </a>
+                                        </div>
+                                        {/* Vertical */}
+                                        <div className="relative group rounded-xl overflow-hidden border border-white/10 aspect-[9/16] hover:border-purple-500/50 transition cursor-pointer" onClick={() => setPreviewFormat('vertical')}>
+                                            <img src={assets.images?.vertical || assets.imageUrl} className={`w-full h-full object-cover transition ${previewFormat === 'vertical' ? 'opacity-100' : 'opacity-60 hover:opacity-90'}`} />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-3">
+                                                <span className="text-white text-xs font-bold">9:16 Vertical</span>
+                                            </div>
+                                            <a href={assets.images?.vertical} download onClick={(e) => e.stopPropagation()} className="absolute top-2 right-2 p-2 bg-white/90 text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
+                                                <Download className="w-3 h-3" />
+                                            </a>
+                                        </div>
+                                        {/* Horizontal */}
+                                        <div className="relative group rounded-xl overflow-hidden border border-white/10 aspect-video hover:border-purple-500/50 transition cursor-pointer" onClick={() => setPreviewFormat('horizontal')}>
+                                            <img src={assets.images?.horizontal || assets.imageUrl} className={`w-full h-full object-cover transition ${previewFormat === 'horizontal' ? 'opacity-100' : 'opacity-60 hover:opacity-90'}`} />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-3">
+                                                <span className="text-white text-xs font-bold">16:9 Landscape</span>
+                                            </div>
+                                            <a href={assets.images?.horizontal} download onClick={(e) => e.stopPropagation()} className="absolute top-2 right-2 p-2 bg-white/90 text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
+                                                <Download className="w-3 h-3" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* DIVIDER */}
+                            <div className="relative py-4">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-white/10"></div>
+                                </div>
+                                <div className="relative flex justify-center">
+                                    <span className="bg-[#0F1115] px-4 text-xs font-bold text-zinc-600 uppercase tracking-widest">Copy por Plataforma</span>
+                                </div>
+                            </div>
+
+                            {/* SECTION 3: PLATFORM CONTENT */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
+                                        <Globe className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-black text-white uppercase tracking-wide">Textos para Redes Sociales</h3>
+                                        <p className="text-xs text-zinc-500">Contenido optimizado por plataforma</p>
+                                    </div>
+                                </div>
                                 {renderContent()}
                             </div>
                         </div>

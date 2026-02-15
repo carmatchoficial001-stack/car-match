@@ -43,13 +43,22 @@ export default function AIStudio() {
                 const event = new CustomEvent('open-campaign-assets', { detail: res.assets });
                 window.dispatchEvent(event);
 
-                setMessages(prev => [...prev, { role: 'assistant', content: '✅ Assets generados. Abriendo editor de campaña.' }])
+                setMessages(prev => [...prev, { role: 'assistant', content: '✅ Assets generados exitosamente. Abriendo editor de campaña.' }])
             } else {
-                setMessages(prev => [...prev, { role: 'assistant', content: 'Error al generar assets.' }])
+                // Show detailed error message
+                const errorMsg = res.error || 'Error desconocido al generar assets.'
+                const detailsMsg = res.details ? `\n\nDetalles técnicos: ${res.details}` : ''
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: `❌ Error al generar assets.\n\n${errorMsg}${detailsMsg}\n\n💡 Intenta:\n• Ser más específico en tu descripción\n• Usar un mensaje más corto\n• Intentar de nuevo en unos segundos`
+                }])
             }
-        } catch (error) {
-            console.error(error)
-            setMessages(prev => [...prev, { role: 'assistant', content: 'Error crítico en generación.' }])
+        } catch (error: any) {
+            console.error('Error en handleUseInCampaign:', error)
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: `❌ Error crítico en generación.\n\nError: ${error.message || 'Desconocido'}\n\n💡 Por favor intenta de nuevo o contacta soporte si el problema persiste.`
+            }])
         } finally {
             setIsGenerating(false)
         }

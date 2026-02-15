@@ -392,7 +392,6 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
     try {
         const country = getCountryContext(targetCountry)
 
-        // 1. Context Analysis Prompt
         // 1. Context Analysis Prompt - MASS DIFFUSION & ADS EDITION
         const prompt = `
             Act as a Senior Performance Marketer. Analyze the chat history.
@@ -401,8 +400,9 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             
             Context: The user wants to sell/promote in ${country.name}.
             
-            Return a STRICT JSON object with these exact keys:
+            CRITICAL: Return ONLY a valid JSON object, nothing else. No markdown, no explanations.
             
+            Required JSON structure:
             {
                 "internal_title": "Campaign Name",
                 "imagePrompt": "Photorealistic prompt...",
@@ -442,37 +442,73 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             Last User Input: "${chatHistory[chatHistory.length - 1].content}"
         `
 
+        console.log('[AI] Generando contenido de campaña...')
         const result = await geminiFlashConversational.generateContent(prompt)
         const text = result.response.text()
-        const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim()
+        console.log('[AI] Respuesta recibida, parseando JSON...')
+        
+        // Clean up and validate JSON
+        let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim()
+        
+        // Additional cleanup for common JSON issues
+        jsonString = jsonString.replace(/^[^{]*/, '').replace(/[^}]*$/, '')
+        
+        if (!jsonString.startsWith('{') || !jsonString.endsWith('}')) {
+            throw new Error('Respuesta de IA no es JSON válido. Por favor intenta de nuevo.')
+        }
 
-        const data = JSON.parse(jsonString)
+        let data
+        try {
+            data = JSON.parse(jsonString)
+        } catch (parseError: any) {
+            console.error('[AI] Error parseando JSON:', parseError)
+            console.error('[AI] JSON recibido:', jsonString.substring(0, 500))
+            throw new Error(`Error parseando respuesta de IA: ${parseError.message}`)
+        }
+
+        // Validate required fields
+        if (!data.internal_title || !data.imagePrompt || !data.platforms) {
+            throw new Error('La respuesta de IA no contiene todos los campos requeridos')
+        }
+
+        console.log('[AI] JSON parseado correctamente, generando imágenes...')
 
         // 2. Generate Real Image URLs using Pollinations (Multi-Format)
         const basePrompt = data.imagePrompt || `Luxury car in ${country.name} street, 8k, photorealistic`
 
-        // Parallel generation for speed
-        const [imgSquare, imgVertical, imgHorizontal] = await Promise.all([
-            generatePollinationsImage(basePrompt, 1080, 1080), // Square (Feed)
-            generatePollinationsImage(basePrompt, 1080, 1920), // Vertical (Stories)
-            generatePollinationsImage(basePrompt, 1920, 1080)  // Horizontal (Web/Thumb)
-        ])
+        // Parallel generation for speed with error handling
+        try {
+            const [imgSquare, imgVertical, imgHorizontal] = await Promise.all([
+                generatePollinationsImage(basePrompt, 1080, 1080), // Square (Feed)
+                generatePollinationsImage(basePrompt, 1080, 1920), // Vertical (Stories)
+                generatePollinationsImage(basePrompt, 1920, 1080)  // Horizontal (Web/Thumb)
+            ])
 
-        return {
-            success: true,
-            assets: {
-                ...data,
-                imageUrl: imgSquare, // Default for preview
-                images: {
-                    square: imgSquare,
-                    vertical: imgVertical,
-                    horizontal: imgHorizontal
+            console.log('[AI] Imágenes generadas exitosamente')
+
+            return {
+                success: true,
+                assets: {
+                    ...data,
+                    imageUrl: imgSquare, // Default for preview
+                    images: {
+                        square: imgSquare,
+                        vertical: imgVertical,
+                        horizontal: imgHorizontal
+                    }
                 }
             }
+        } catch (imageError: any) {
+            console.error('[AI] Error generando imágenes:', imageError)
+            throw new Error(`Error generando imágenes: ${imageError.message}`)
         }
 
-    } catch (error) {
-        console.error('Error generating assets:', error)
-        return { success: false, error: 'Error generando los assets de la campaña.' }
+    } catch (error: any) {
+        console.error('[AI] Error crítico en generateCampaignAssets:', error)
+        return { 
+            success: false, 
+            error: error.message || 'Error generando los assets de la campaña.',
+            details: error.toString()
+        }
     }
 }
