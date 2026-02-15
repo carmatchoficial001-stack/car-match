@@ -50,6 +50,43 @@ export async function createPublicityCampaign(prevState: any, formData: FormData
     }
 }
 
+// Helper function to create campaign directly from code (not from form)
+export async function createCampaignFromAssets(assets: any) {
+    try {
+        const title = `Campaña IA - ${new Date().toLocaleDateString('es-MX', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+
+        const campaign = await prisma.publicityCampaign.create({
+            data: {
+                title,
+                clientName: 'Generado por IA',
+                imageUrl: assets.imageUrl || '',
+                targetUrl: '',
+                startDate: new Date(),
+                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+                socialMediaEnabled: true,
+                isActive: false, // Draft by default
+                // Store AI-generated assets as JSON
+                metadata: JSON.stringify({
+                    generatedByAI: true,
+                    assets: {
+                        copy: assets.copy,
+                        imagePrompt: assets.imagePrompt,
+                        imageUrl: assets.imageUrl,
+                        videoScript: assets.videoScript
+                    }
+                })
+            }
+        })
+
+        revalidatePath('/admin')
+        return { success: true, campaign, message: `Campaña "${title}" creada exitosamente` }
+    } catch (error) {
+        console.error('Error creating campaign from assets:', error)
+        return { success: false, error: 'Error al crear la campaña automáticamente' }
+    }
+}
+
+
 export async function updatePublicityCampaign(id: string, data: any) {
     try {
         await prisma.publicityCampaign.update({

@@ -62,14 +62,34 @@ export default function PublicityTab() {
     const [generatedAssets, setGeneratedAssets] = useState<any>(null)
     const [showAssetsModal, setShowAssetsModal] = useState(false)
 
+    // Campaign Edit Chat State
+    const [showEditChat, setShowEditChat] = useState(false)
+    const [editingCampaign, setEditingCampaign] = useState<PublicityCampaign | null>(null)
+    const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([])
+    const [isRegenerating, setIsRegenerating] = useState(false)
+    const [chatInput, setChatInput] = useState('')
+
     useEffect(() => {
         const handleOpenAssets = (e: any) => {
             setGeneratedAssets(e.detail)
             setShowAssetsModal(true)
-            // Switch to CAMPAIGNS view if needed, but the modal overlays everything so it's fine
+            // Automatically switch to CAMPAIGNS view so user sees where the campaign will be saved
+            setViewMode('CAMPAIGNS')
         }
         window.addEventListener('open-campaign-assets', handleOpenAssets)
         return () => window.removeEventListener('open-campaign-assets', handleOpenAssets)
+    }, [])
+
+    // Listen for campaign created event from AI Studio
+    useEffect(() => {
+        const handleCampaignCreated = (e: any) => {
+            // Automatically switch to CAMPAIGNS view
+            setViewMode('CAMPAIGNS')
+            // Refresh campaigns list
+            fetchCampaigns()
+        }
+        window.addEventListener('campaign-created', handleCampaignCreated)
+        return () => window.removeEventListener('campaign-created', handleCampaignCreated)
     }, [])
 
     useEffect(() => {
@@ -77,6 +97,7 @@ export default function PublicityTab() {
             fetchCampaigns()
         }
     }, [viewMode])
+
 
     const fetchCampaigns = async () => {
         setLoading(true)
@@ -112,11 +133,70 @@ export default function PublicityTab() {
     const handleManualPost = async (id: string) => {
         const res = await manualTriggerSocialPost(id)
         if (res.success) {
-            alert('Publicado exitosamente (Simulación)')
+            alert('✅ Publicado en redes sociales (simulado)')
             fetchCampaigns()
         } else {
             alert('Error al publicar')
         }
+    }
+
+    // Campaign Edit Chat Functions
+    const handleOpenEditChat = (campaign: PublicityCampaign) => {
+        setEditingCampaign(campaign)
+        setChatMessages([{
+            role: 'assistant',
+            content: `¡Hola! Soy tu asistente de edición para la campaña **${campaign.title}**.\n\n✨ Puedo ayudarte a:\n• "Mejora el video"\n• "Cambia la imagen a un auto rojo"\n• "Haz el copy más corto"\n\n¿Qué quieres editar?`
+        }])
+        setShowEditChat(true)
+    }
+
+    const handleSendChatMessage = async () => {
+        if (!chatInput.trim() || !editingCampaign || isRegenerating) return
+
+        const userMessage = chatInput.trim()
+        setChatInput('')
+
+        // Add user message to chat
+        setChatMessages(prev => [...prev, { role: 'user', content: userMessage }])
+        setIsRegenerating(true)
+
+        try {
+            // Get current campaign metadata
+            const metadata = editingCampaign.metadata ? JSON.parse(editingCampaign.metadata as any) : {}
+            const currentAssets = metadata.assets || {}
+
+            // Call regenerate API
+            const { regenerateCampaignElement } = await import('@/app/admin/actions/ai-content-actions')
+            const result = await regenerateCampaignElement(editingCampaign.id, userMessage, currentAssets)
+
+            if (result.success) {
+                setChatMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: result.message + '\n\n✅ La campaña ha sido actualizada. Los cambios ya están guardados.'
+                }])
+                // Refresh campaigns to show updated data
+                fetchCampaigns()
+            } else {
+                setChatMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: `❌ Error: ${result.error}\n\nIntenta ser más específico o usa instrucciones más simples.`
+                }])
+            }
+        } catch (error: any) {
+            setChatMessages(prev => [...prev, {
+                role: 'assistant',
+                content: `❌ Error: ${error.message || 'Error desconocido'}`
+            }])
+        } finally {
+            setIsRegenerating(false)
+        }
+    }
+
+    const handleCloseEditChat = () => {
+        setShowEditChat(false)
+        setEditingCampaign(null)
+        setChatMessages([])
+        setChatInput('')
     }
 
     return (
@@ -288,11 +368,17 @@ export default function PublicityTab() {
                                                         <span className="flex items-center gap-1"><ExternalLink className="w-3 h-3" /> {campaign.clickCount}</span>
                                                     </div>
                                                     <div className="flex gap-2">
-                                                        <button onClick={() => handleManualPost(campaign.id)} className="p-2 bg-white/5 rounded-lg">
-                                                            <Share2 className="w-4 h-4" />
+                                                        <button onClick={() => handleManualPost(campaign.id)} className="p-3 min-h-[44px] min-w-[44px] bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl transition flex items-center justify-center">
+                                                            <Share2 className="w-5 h-5" />
                                                         </button>
-                                                        <button onClick={() => handleEdit(campaign)} className="p-2 bg-white/5 rounded-lg">
-                                                            <Edit className="w-4 h-4" />
+                                                        <button onClick={() => handleEdit(campaign)} className="p-3 min-h-[44px] min-w-[44px] bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl transition flex items-center justify-center">
+                                                            <Edit className="w-5 h-5" />
+                                                        </button>
+                                                        <button onClick={() => handleOpenEditChat(campaign)} className="p-3 min-h-[44px] min-w-[44px] bg-purple-500/10 hover:bg-purple-500/20 active:bg-purple-500/30 text-purple-400 rounded-xl transition flex items-center justify-center" title="Editar con IA">
+                                                            <Sparkles className="w-5 h-5" />
+                                                        </button>
+                                                        <button onClick={() => handleDelete(campaign.id)} className="p-3 min-h-[44px] min-w-[44px] bg-red-500/10 hover:bg-red-500/20 active:bg-red-500/30 text-red-500 rounded-xl transition flex items-center justify-center">
+                                                            <Trash2 className="w-5 h-5" />
                                                         </button>
                                                     </div>
                                                 </div>
@@ -325,6 +411,91 @@ export default function PublicityTab() {
                     setShowAssetsModal(false)
                 }}
             />
+
+            {/* Campaign Edit Chat Modal */}
+            <AnimatePresence>
+                {showEditChat && editingCampaign && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-end bg-black/80 backdrop-blur-sm"
+                        onClick={handleCloseEditChat}
+                    >
+                        <motion.div
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full h-[90vh] bg-gradient-to-b from-[#1a1a2e] to-black rounded-t-3xl shadow-2xl flex flex-col overflow-hidden"
+                        >
+                            {/* Header */}
+                            <div className="p-4 border-b border-white/10 bg-gradient-to-r from-purple-900/20 to-indigo-900/20 flex items-center justify-between backdrop-blur-xl sticky top-0 z-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-900/40">
+                                        <Sparkles className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="font-black text-lg text-white">Editar con IA</h2>
+                                        <p className="text-xs text-purple-300 font-medium">{editingCampaign.title}</p>
+                                    </div>
+                                </div>
+                                <button onClick={handleCloseEditChat} className="p-3 hover:bg-white/10 rounded-xl transition">
+                                    <X className="w-6 h-6 text-white/70" />
+                                </button>
+                            </div>
+
+                            {/* Messages Area */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
+                                {chatMessages.map((msg, idx) => (
+                                    <div key={idx} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                                        <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-lg ${msg.role === 'user' ? 'bg-zinc-700' : 'bg-gradient-to-br from-purple-600 to-indigo-600'}`}>
+                                            {msg.role === 'user' ? <User className='w-5 h-5 text-white' /> : <Sparkles className="w-5 h-5 text-white" />}
+                                        </div>
+                                        <div className={`max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${msg.role === 'user' ? 'bg-zinc-800 text-white rounded-tr-none' : 'bg-[#1A1D21] text-gray-200 border border-white/5 rounded-tl-none'}`}>
+                                            {msg.content}
+                                        </div>
+                                    </div>
+                                ))}
+                                {isRegenerating && (
+                                    <div className="flex gap-3">
+                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shrink-0 animate-pulse">
+                                            <Sparkles className="w-5 h-5 text-white" />
+                                        </div>
+                                        <div className="bg-[#1A1D21] px-4 py-3 rounded-2xl rounded-tl-none border border-white/5 flex items-center gap-2 text-sm text-purple-300">
+                                            <RefreshCw className="w-4 h-4 animate-spin" />
+                                            <span>Regenerando...</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Input Area - Táctil */}
+                            <div className="p-4 border-t border-white/10 bg-black/50 backdrop-blur-xl">
+                                <div className="flex gap-3">
+                                    <input
+                                        type="text"
+                                        value={chatInput}
+                                        onChange={(e) => setChatInput(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && !isRegenerating && handleSendChatMessage()}
+                                        placeholder="Ej: Mejora el video, Cambia la imagen..."
+                                        disabled={isRegenerating}
+                                        className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 disabled:opacity-50 text-base min-h-[52px]"
+                                    />
+                                    <button
+                                        onClick={handleSendChatMessage}
+                                        disabled={!chatInput.trim() || isRegenerating}
+                                        className="min-w-[52px] min-h-[52px] bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl flex items-center justify-center shadow-lg shadow-purple-900/40 transition"
+                                    >
+                                        <Send className="w-6 h-6 text-white" />
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

@@ -584,3 +584,157 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         }
     }
 }
+ * @param campaignId - ID of the campaign to update
+ * @param instruction - Natural language instruction like "mejora el video", "cambia la imagen a un auto rojo"
+ * @param currentAssets - Current campaign assets from metadata
+ */
+export async function regenerateCampaignElement(campaignId: string, instruction: string, currentAssets: any) {
+    try {
+        console.log(`[AI] Regenerando elemento de campaÃ±a ${campaignId}: "${instruction}"`)
+
+        // Detect which element to regenerate based on instruction
+        const lowerInstruction = instruction.toLowerCase()
+        let elementType: 'copy' | 'image' | 'video' | 'all' = 'all'
+
+        if (lowerInstruction.includes('video') || lowerInstruction.includes('script')) {
+            elementType = 'video'
+        } else if (lowerInstruction.includes('imagen') || lowerInstruction.includes('image') || lowerInstruction.includes('foto')) {
+            elementType = 'image'
+        } else if (lowerInstruction.includes('texto') || lowerInstruction.includes('copy') || lowerInstruction.includes('caption') || lowerInstruction.includes('descripciÃ³n')) {
+            elementType = 'copy'
+        }
+
+        const updatedAssets = { ...currentAssets }
+
+        // Regenerate based on detected element type
+        switch (elementType) {
+            case 'copy':
+                console.log('[AI] Regenerando copy...')
+                const copyPrompt = `
+                    Eres un experto en copywriting para redes sociales automotrices.
+                    
+                    Copy actual: "${currentAssets.copy}"
+                    
+                    InstrucciÃ³n del usuario: "${instruction}"
+                    
+                    Genera un nuevo copy siguiendo la instrucciÃ³n. 
+                    - MÃ¡ximo 200 caracteres
+                    - Usa emojis naturalmente ðŸš—ðŸ’¨
+                    - Lenguaje mexicano casual
+                    
+                    Responde SOLO con el nuevo copy, sin explicaciones.
+                `
+                const copyResult = await geminiFlash.generateContent(copyPrompt)
+                updatedAssets.copy = copyResult.response.text().trim()
+                break
+
+            case 'image':
+                console.log('[AI] Regenerando imagen...')
+                const imagePromptText = `
+                    Prompt actual de imagen: "${currentAssets.imagePrompt}"
+                    
+                    InstrucciÃ³n del usuario: "${instruction}"
+                    
+                    Genera un nuevo prompt para Flux AI que genere una imagen siguiendo la instrucciÃ³n.
+                    - Debe ser en inglÃ©s
+                    - Estilo fotorrealista profesional
+                    - Alta calidad, 8K
+                    
+                    Responde SOLO con el prompt, sin explicaciones.
+                `
+                const imagePromptResult = await geminiFlash.generateContent(imagePromptText)
+                const newImagePrompt = imagePromptResult.response.text().trim()
+                updatedAssets.imagePrompt = newImagePrompt
+
+                // Generate new image with Replicate Flux
+                console.log('[AI] Generando nueva imagen con Flux...')
+                const { generateFluxImage } = await import('@/lib/ai/replicate')
+                const imageUrl = await generateFluxImage(newImagePrompt)
+                updatedAssets.imageUrl = imageUrl
+                break
+
+            case 'video':
+                console.log('[AI] Regenerando script de video...')
+                const videoPrompt = `
+                    Script actual: "${currentAssets.videoScript}"
+                    
+                    InstrucciÃ³n del usuario: "${instruction}"
+                    
+                    Genera un nuevo script de video siguiendo la instrucciÃ³n.
+                    - Debe ser para un video de 15-30 segundos
+                    - DescripciÃ³n visual detallada
+                    - Emocional y atractivo
+                    
+                    Responde SOLO con el script, sin explicaciones.
+                `
+                const videoResult = await geminiFlash.generateContent(videoPrompt)
+                updatedAssets.videoScript = videoResult.response.text().trim()
+                break
+
+            case 'all':
+                console.log('[AI] Regenerando todos los elementos...')
+                const allPrompt = `
+                    InstrucciÃ³n: "${instruction}"
+                    
+                    BasÃ¡ndote en esta instrucciÃ³n, genera assets completos para una campaÃ±a automotriz:
+                    
+                    Responde en JSON:
+                    {
+                        "copy": "caption para redes (mÃ¡x 200 chars, con emojis)",
+                        "imagePrompt": "prompt en inglÃ©s para Flux AI",
+                        "videoScript": "script de video 15-30s"
+                    }
+                `
+                const allResult = await geminiFlashConversational.generateContent({
+                    contents: [{ role: 'user', parts: [{ text: allPrompt }] }],
+                    generationConfig: {
+                        responseMimeType: 'application/json',
+                        temperature: 0.8
+                    }
+                })
+                const allData = JSON.parse(allResult.response.text())
+                updatedAssets.copy = allData.copy
+                updatedAssets.imagePrompt = allData.imagePrompt
+                updatedAssets.videoScript = allData.videoScript
+
+                // Generate image
+                const { generateFluxImage: genFlux } = await import('@/lib/ai/replicate')
+                updatedAssets.imageUrl = await genFlux(allData.imagePrompt)
+                break
+        }
+
+        // Update campaign in database
+        const currentMetadata = currentAssets.editHistory ? currentAssets : { ...currentAssets, editHistory: [] }
+        await prisma.publicityCampaign.update({
+            where: { id: campaignId },
+            data: {
+                metadata: JSON.stringify({
+                    generatedByAI: true,
+                    assets: updatedAssets,
+                    lastEdited: new Date().toISOString(),
+                    editHistory: [
+                        ...currentMetadata.editHistory,
+                        { instruction, timestamp: new Date().toISOString() }
+                    ]
+                }),
+                imageUrl: updatedAssets.imageUrl || currentAssets.imageUrl
+            }
+        })
+
+        console.log('[AI] Elemento regenerado exitosamente âœ“')
+        return {
+            success: true,
+            assets: updatedAssets,
+            elementType,
+            message: `âœ… ${elementType === 'all' ? 'Todos los elementos' : elementType === 'copy' ? 'Copy' : elementType === 'image' ? 'Imagen' : 'Video'} regenerado exitosamente`
+        }
+
+    } catch (error: any) {
+        console.error('[AI] Error regenerando elemento:', error)
+        return {
+            success: false,
+            error: error.message || 'Error regenerando el elemento',
+            details: error.toString()
+        }
+    }
+}

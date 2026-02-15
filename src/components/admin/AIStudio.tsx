@@ -33,15 +33,27 @@ export default function AIStudio() {
         try {
             const res = await generateCampaignAssets(history, 'MX')
             if (res.success && res.assets) {
-                // Save assets to local storage or dispatch event to notify PublicityTab
-                // Ideally this should use a global store, but for now we'll use a custom event or URL params
-                // Or simply switching the view if we are in the same parent component
+                // ✨ AUTO-GUARDAR CAMPAÑA
+                setMessages(prev => [...prev, { role: 'assistant', content: '💾 Guardando campaña automáticamente...' }])
 
-                // Dispatch event for AdminPanel to catch
-                const event = new CustomEvent('open-campaign-assets', { detail: res.assets });
-                window.dispatchEvent(event);
+                const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
+                const campaignRes = await createCampaignFromAssets(res.assets)
 
-                setMessages(prev => [...prev, { role: 'assistant', content: '✅ Assets generados exitosamente. Abriendo editor de campaña.' }])
+                if (campaignRes.success) {
+                    // Dispatch event to switch to CAMPAIGNS tab
+                    const event = new CustomEvent('campaign-created', { detail: campaignRes.campaign });
+                    window.dispatchEvent(event);
+
+                    setMessages(prev => [...prev, {
+                        role: 'assistant',
+                        content: `✅ ¡Campaña creada exitosamente!\n\n📋 **${campaignRes.campaign.title}**\n\n🎯 Ahora puedes verla en la sección Campañas.\n💡 Desde ahí puedes editar cualquier elemento con IA.`
+                    }])
+                } else {
+                    setMessages(prev => [...prev, {
+                        role: 'assistant',
+                        content: `✅ Assets generados, pero no pude guardar la campaña automáticamente.\n\n${campaignRes.error || 'Error desconocido'}`
+                    }])
+                }
             } else {
                 // Show detailed error message
                 const errorMsg = res.error || 'Error desconocido al generar assets.'
@@ -61,6 +73,7 @@ export default function AIStudio() {
             setIsGenerating(false)
         }
     }
+
 
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
