@@ -431,7 +431,14 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             - SIN palabras en inglés excepto nombres de marca (CarMatch, Meta, TikTok, etc.)
             - primary_text, headlines, descriptions, captions, scripts - TODO en ESPAÑOL
             
-            CRÍTICO: Devuelve SOLO un objeto JSON válido, nada más. Sin markdown, sin explicaciones.
+            REGLAS CRÍTICAS DE FORMATO JSON:
+            1. Devuelve SOLO un objeto JSON válido
+            2. NO uses comas al final (trailing commas) antes de } o ]
+            3. USA SOLO comillas dobles "", nunca comillas simples ''
+            4. NO incluyas comentarios // o /* */
+            5. NO uses caracteres especiales que rompan el JSON
+            6. Asegúrate que todas las comillas estén balanceadas
+            7. NO agregues texto antes del { inicial o después del } final
             
             Estructura JSON requerida:
             {
@@ -484,27 +491,54 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         const text = result.response.text()
         console.log('[AI] Respuesta recibida, parseando JSON...')
 
-        // Clean up and validate JSON
-        let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim()
+        // Clean up and validate JSON with aggressive cleaning
+        let jsonString = text
+            .replace(/```json/g, '')
+            .replace(/```/g, '')
+            .trim()
 
-        // Additional cleanup for common JSON issues
+        // Remove everything before first { and after last }
         jsonString = jsonString.replace(/^[^{]*/, '').replace(/[^}]*$/, '')
 
+        // Fix common JSON issues
+        jsonString = jsonString
+            // Remove trailing commas before closing braces/brackets
+            .replace(/,(\s*[}\]])/g, '$1')
+            // Fix single quotes to double quotes (but be careful with content)
+            .replace(/([{,]\s*)'/g, '$1"')
+            .replace(/'(\s*[,:}])/g, '"$1')
+            // Remove comments if any
+            .replace(/\/\/.*/g, '')
+            .replace(/\/\*[\s\S]*?\*\//g, '')
+
         if (!jsonString.startsWith('{') || !jsonString.endsWith('}')) {
-            throw new Error('Respuesta de IA no es JSON válido. Por favor intenta de nuevo.')
+            console.error('[AI] JSON no válido - no empieza con { o no termina con }')
+            console.error('[AI] Primeros 200 chars:', jsonString.substring(0, 200))
+            throw new Error('Respuesta de IA no es JSON válido. Por favor intenta de nuevo con un mensaje más simple.')
         }
 
         let data
         try {
             data = JSON.parse(jsonString)
         } catch (parseError: any) {
-            console.error('[AI] Error parseando JSON:', parseError)
-            console.error('[AI] JSON recibido:', jsonString.substring(0, 500))
-            throw new Error(`Error parseando respuesta de IA: ${parseError.message}`)
+            console.error('[AI] Error parseando JSON:', parseError.message)
+            console.error('[AI] JSON problemático (primeros 800 chars):', jsonString.substring(0, 800))
+
+            // Try to find the problematic area
+            const errorMatch = parseError.message.match(/position (\d+)/)
+            if (errorMatch) {
+                const pos = parseInt(errorMatch[1])
+                const contextStart = Math.max(0, pos - 100)
+                const contextEnd = Math.min(jsonString.length, pos + 100)
+                console.error('[AI] Contexto del error:', jsonString.substring(contextStart, contextEnd))
+            }
+
+            throw new Error(`La IA generó un formato inválido. Por favor intenta con un mensaje más específico y corto.`)
         }
 
         // Validate required fields
         if (!data.internal_title || !data.imagePrompt || !data.platforms) {
+            console.error('[AI] Campos faltantes. Data recibida:', Object.keys(data))
             throw new Error('La respuesta de IA no contiene todos los campos requeridos')
         }
 
