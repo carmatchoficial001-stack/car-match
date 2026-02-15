@@ -20,8 +20,6 @@ export default function AIStudio() {
         { role: 'assistant', content: '¡Hola! Soy tu Director Creativo de IA. ¿En qué trabajamos hoy? 🚀' }
     ])
     const [isGenerating, setIsGenerating] = useState(false)
-    const [selectedTone, setSelectedTone] = useState('Professional')
-    const [selectedPlatform, setSelectedPlatform] = useState('Global Diffusion')
 
     // Persistence State
     const [sessions, setSessions] = useState<any[]>([])
@@ -301,21 +299,7 @@ export default function AIStudio() {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0 bg-[#0F1115]">
                 {/* Top Bar / Filters */}
-                <div className="h-14 border-b border-white/5 flex items-center justify-between px-4 bg-zinc-900/30 backdrop-blur-sm">
-                    <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar">
-                        <SelectPill
-                            label="Tono"
-                            value={selectedTone}
-                            options={['Professional', 'Viral', 'Funny', 'Luxury', 'Urgent']}
-                            onChange={setSelectedTone}
-                        />
-                        <SelectPill
-                            label="Plataforma"
-                            value={selectedPlatform}
-                            options={['Global Diffusion', 'Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'Email']}
-                            onChange={setSelectedPlatform}
-                        />
-                    </div>
+                <div className="h-14 border-b border-white/5 flex items-center justify-end px-4 bg-zinc-900/30 backdrop-blur-sm">
                     {isLoadingHistory && <span className="text-xs text-zinc-500 animate-pulse">Cargando...</span>}
                 </div>
 
