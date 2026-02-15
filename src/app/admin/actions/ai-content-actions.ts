@@ -584,6 +584,9 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         }
     }
 }
+
+/**
+ * Regenerate a specific element of a campaign based on user instruction
  * @param campaignId - ID of the campaign to update
  * @param instruction - Natural language instruction like "mejora el video", "cambia la imagen a un auto rojo"
  * @param currentAssets - Current campaign assets from metadata
