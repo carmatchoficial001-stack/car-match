@@ -233,27 +233,7 @@ export default function AIStudio() {
                 </div>
 
                 <div className="p-2 space-y-1 overflow-y-auto flex-1 custom-scrollbar">
-                    <div className="px-2 py-1 text-[10px] font-black text-zinc-500 uppercase tracking-wider">Herramientas</div>
-                    <SidebarItem
-                        icon={<MessageSquare />}
-                        label="Chat"
-                        active={mode === 'CHAT'}
-                        onClick={() => setMode('CHAT')}
-                    />
-                    <SidebarItem
-                        icon={<Type />}
-                        label="Copywriter"
-                        active={mode === 'COPYWRITER'}
-                        onClick={() => setMode('COPYWRITER')}
-                    />
-                    <SidebarItem
-                        icon={<Hash />}
-                        label="Estrategia"
-                        active={mode === 'STRATEGY'}
-                        onClick={() => setMode('STRATEGY')}
-                    />
-
-                    <div className="mt-6 px-2 py-1 text-[10px] font-black text-zinc-500 uppercase tracking-wider">Historial</div>
+                    <div className="px-2 py-1 text-[10px] font-black text-zinc-500 uppercase tracking-wider">Historial</div>
                     <div className="space-y-0.5">
                         {sessions.map(session => (
                             <button

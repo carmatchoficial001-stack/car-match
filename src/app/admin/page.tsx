@@ -125,82 +125,21 @@ export default function AdminPanel() {
 
     return (
         <div className="min-h-screen bg-black text-white font-sans selection:bg-primary-500/30">
-            {/* Desktop Sidebar */}
-            <aside className="fixed left-0 top-0 bottom-0 w-72 bg-[#09090b] border-r border-white/10 p-6 hidden md:flex flex-col z-50">
-                <div className="flex items-center gap-3 mb-10 px-2">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary-900/40">
-                        <Terminal className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                        <h1 className="font-black text-xl tracking-tighter italic">CarMatch <span className="text-primary-500">OS</span></h1>
-                        <p className="text-[10px] text-text-secondary font-mono tracking-widest uppercase">Admin Neural Interface</p>
-                    </div>
-                </div>
+            {/* Main Content Area - Optimized for Mobile Only */}
+            <main className="min-h-screen bg-[#000000] relative pb-24">
 
-                <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
-                    {menuItems.map((item) => (
-                        <button
-                            key={item.id}
-                            onClick={() => setActiveView(item.id as AdminView)}
-                            className={`w-full flex items-center justify-between p-3 rounded-xl transition-all group ${activeView === item.id
-                                ? 'bg-white/10 text-white shadow-lg border border-white/5'
-                                : 'text-text-secondary hover:bg-white/5 hover:text-white'
-                                }`}
-                        >
-                            <div className="flex items-center gap-3">
-                                <item.icon className={`w-5 h-5 ${activeView === item.id ? 'text-primary-400' : 'group-hover:text-primary-400 transition-colors'}`} />
-                                <span className="text-sm font-bold tracking-tight">{item.label}</span>
-                            </div>
-                            {item.badge && (
-                                <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg shadow-red-900/40 animate-pulse">
-                                    {item.badge}
-                                </span>
-                            )}
-                        </button>
-                    ))}
-                </nav>
-
-                <div className="mt-6 pt-6 border-t border-white/10 space-y-2">
-                    <button onClick={() => setShowQRModal(true)} className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
-                        <QrCode className="w-5 h-5" />
-                        <span className="text-sm font-bold">Descargar App</span>
-                    </button>
-                    <button className="w-full flex items-center gap-3 p-3 rounded-xl text-text-secondary hover:bg-white/5 hover:text-white transition-all">
-                        <Settings className="w-5 h-5" />
-                        <span className="text-sm font-bold">Configuración</span>
-                    </button>
-                    <div className="p-4 bg-gradient-to-br from-white/5 to-transparent rounded-2xl border border-white/5 mt-4">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
-                                <span className="font-black text-indigo-400">R</span>
-                            </div>
-                            <div>
-                                <p className="text-xs font-bold text-white">Ruben Admin</p>
-                                <p className="text-[10px] text-text-secondary">Super User</p>
-                            </div>
-                        </div>
-                        <button className="w-full py-2 bg-white/5 hover:bg-red-500/20 hover:text-red-500 text-text-secondary rounded-lg text-xs font-bold transition flex items-center justify-center gap-2">
-                            <LogOut className="w-3 h-3" /> Cerrar Sesión
-                        </button>
-                    </div>
-                </div>
-            </aside>
-
-            {/* Main Content Area */}
-            <main className="md:pl-72 min-h-screen bg-[#000000] relative pb-24 md:pb-0">
-
-                {/* Mobile Header */}
-                <div className="md:hidden p-6 pb-2 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-xl z-40 border-b border-white/10">
+                {/* Mobile Header - Sticky */}
+                <div className="p-4 pb-3 flex items-center justify-between sticky top-0 bg-black/90 backdrop-blur-xl z-40 border-b border-white/10 shadow-lg shadow-black/50">
                     <div className="flex items-center gap-2">
-                        <Terminal className="w-5 h-5 text-primary-500" />
-                        <h1 className="font-black text-lg tracking-tighter italic">CarMatch OS</h1>
+                        <Terminal className="w-6 h-6 text-primary-500" />
+                        <h1 className="font-black text-xl tracking-tighter italic">CarMatch OS</h1>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-surface-highlight overflow-hidden">
-                        <img src={session?.user?.image || "https://ui-avatars.com/api/?name=Admin"} alt="Profile" />
+                    <div className="w-10 h-10 rounded-full bg-surface-highlight overflow-hidden ring-2 ring-primary-500/20">
+                        <img src={session?.user?.image || "https://ui-avatars.com/api/?name=Admin"} alt="Profile" className="w-full h-full object-cover" />
                     </div>
                 </div>
 
-                <div className="p-4 md:p-10 max-w-7xl mx-auto space-y-8">
+                <div className="p-3 max-w-7xl mx-auto space-y-6">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={activeView}
@@ -235,12 +174,12 @@ export default function AdminPanel() {
 
 function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) {
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             {/* Top Grid: Financials & Heatmap */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-3">
 
                 {/* 1. Global Presence Heatmap */}
-                <div className="lg:col-span-2 bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl relative group h-[400px]">
+                <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl relative group h-[320px]">
                     <div className="absolute top-0 left-0 right-0 p-4 border-b border-white/5 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -259,9 +198,9 @@ function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) 
                 </div>
 
                 {/* 2. Growth & Financials Column */}
-                <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-3">
                     {/* User Growth Chart */}
-                    <div className="bg-[#111114] border border-white/5 p-6 rounded-3xl shadow-xl flex flex-col h-[190px] justify-between">
+                    <div className="bg-[#111114] border border-white/5 p-5 rounded-3xl shadow-xl flex flex-col h-[180px] justify-between">
                         <div>
                             <div className="flex items-center justify-between mb-2">
                                 <h4 className="text-xs font-black uppercase tracking-widest text-text-secondary">Crecimiento Usuarios</h4>
@@ -275,7 +214,7 @@ function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) 
                     </div>
 
                     {/* Revenue Chart */}
-                    <div className="bg-[#111114] border border-white/5 p-6 rounded-3xl shadow-xl flex flex-col h-[190px] justify-between">
+                    <div className="bg-[#111114] border border-white/5 p-5 rounded-3xl shadow-xl flex flex-col h-[180px] justify-between">
                         <div>
                             <div className="flex items-center justify-between mb-2">
                                 <h4 className="text-xs font-black uppercase tracking-widest text-text-secondary">Ventas Totales (Est.)</h4>
@@ -291,33 +230,34 @@ function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) 
             </div>
 
             {/* Quick Stats Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-3">
                 <StatCard2 icon={Users} label="Usuarios Registrados" value={stats.registrations?.total || stats.users.total} trend="Total" color="purple" simple />
                 <StatCard2 icon={TrendingUp} label="Registros Este Mes" value={stats.registrations?.thisMonth || 0} trend="+12%" color="green" simple />
                 <StatCard2 icon={Car} label="Inventario" value={stats.vehicles.active} trend="+5%" color="blue" simple />
                 <StatCard2 icon={Flag} label="Reportes" value={stats.reports.filter((r: any) => r.status === 'PENDING').length} trend="Atención" color="red" simple />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 gap-3">
                 {/* AI Analyst Section */}
-                <div className="lg:col-span-2 bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-                    <div className="bg-gradient-to-r from-primary-900/20 to-transparent p-6 border-b border-white/5 flex items-center justify-between">
-                        <div>
-                            <h3 className="text-xl font-black italic tracking-tight flex items-center gap-2 uppercase">
-                                <Activity className="w-6 h-6 text-primary-500" /> Insight Engine AI
-                            </h3>
-                            <p className="text-xs text-text-secondary mt-1">Análisis predictivo de mercado basado en actividad real</p>
+                <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                    <div className="bg-gradient-to-r from-primary-900/20 to-transparent p-4 border-b border-white/5">
+                        <div className="flex items-start gap-3 mb-3">
+                            <Activity className="w-6 h-6 text-primary-500 shrink-0 mt-1" />
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-lg font-black tracking-tight uppercase">Insight Engine AI</h3>
+                                <p className="text-xs text-text-secondary mt-1">Análisis predictivo de mercado</p>
+                            </div>
                         </div>
                         <button
                             onClick={handleRunAnalyst}
                             disabled={isAnalyzing}
-                            className="bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white px-6 py-2 rounded-xl font-bold text-sm transition shadow-lg shadow-primary-900/20 flex items-center gap-2"
+                            className="w-full bg-primary-600 active:bg-primary-700 disabled:opacity-50 text-white px-6 py-3 rounded-xl font-bold text-sm transition shadow-lg shadow-primary-900/20 min-h-[48px]"
                         >
-                            {isAnalyzing ? 'Procesando Data...' : 'Ejecutar Análisis Maestro'}
+                            {isAnalyzing ? 'Procesando Data...' : '✨ Ejecutar Análisis Maestro'}
                         </button>
                     </div>
 
-                    <div className="p-8">
+                    <div className="p-5">
                         {aiAnalysis ? (
                             <div className="space-y-6">
                                 <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
@@ -398,18 +338,18 @@ function StatCard2({ icon: Icon, label, value, trend, color, simple }: any) {
         red: 'text-red-500 bg-red-500/10',
     }
     return (
-        <div className={`bg-[#111114] border border-white/5 p-6 rounded-3xl shadow-xl ${simple ? 'flex flex-col justify-between h-32' : ''}`}>
-            <div className="flex items-center justify-between mb-4">
-                <div className={`p-2 rounded-xl ${variants[color]}`}>
-                    <Icon className="w-5 h-5" />
+        <div className={`bg-[#111114] border border-white/5 p-5 rounded-3xl shadow-xl ${simple ? 'flex flex-col justify-between h-36' : ''}`}>
+            <div className="flex items-center justify-between mb-3">
+                <div className={`p-2.5 rounded-xl ${variants[color]}`}>
+                    <Icon className="w-6 h-6" />
                 </div>
-                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${color === 'red' ? 'bg-red-500 text-white' : 'bg-white/5 text-text-secondary'}`}>
+                <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${color === 'red' ? 'bg-red-500 text-white' : 'bg-white/5 text-text-secondary'}`}>
                     {trend}
                 </span>
             </div>
             <div>
-                <p className="text-text-secondary text-[10px] font-medium uppercase tracking-widest mb-1 truncate">{label}</p>
-                <h4 className="text-2xl font-black italic tracking-tighter">{value.toLocaleString('es-MX')}</h4>
+                <p className="text-text-secondary text-[11px] font-medium uppercase tracking-widest mb-1.5 truncate">{label}</p>
+                <h4 className="text-3xl font-black italic tracking-tighter">{value.toLocaleString('es-MX')}</h4>
             </div>
         </div>
     )
@@ -424,11 +364,11 @@ function UsersTab({ users }: { users: any[] }) {
 
     return (
         <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-            <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                <h3 className="font-bold text-lg">Gestión de Usuarios</h3>
+            <div className="p-4 border-b border-white/5">
+                <h3 className="font-bold text-lg mb-3">Gestión de Usuarios</h3>
                 <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
-                    <input type="text" placeholder="Buscar usuario..." className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary-500" />
+                    <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
+                    <input type="text" placeholder="Buscar usuario..." className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 h-12 text-base focus:outline-none focus:border-primary-500 transition" />
                 </div>
             </div>
             {/* Desktop Table View */}
@@ -595,12 +535,12 @@ function UsersTab({ users }: { users: any[] }) {
 function InventoryTab({ vehicles }: { vehicles: any[] }) {
     return (
         <div className="bg-[#111114] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-            <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                <h3 className="font-bold text-lg">Inventario Global</h3>
+            <div className="p-4 border-b border-white/5">
+                <h3 className="font-bold text-lg mb-3">Inventario Global</h3>
                 <div className="flex gap-2">
-                    <button className="p-2 bg-white/5 border border-white/10 rounded-lg hover:text-primary-500 transition"><Filter className="w-4 h-4" /></button>
-                    <button className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-bold flex items-center gap-2">
-                        <ArrowUpRight className="w-4 h-4" /> Exportar CSV
+                    <button className="p-3 min-h-[44px] min-w-[44px] bg-white/5 border border-white/10 rounded-xl hover:text-primary-500 hover:bg-white/10 active:bg-white/15 transition flex items-center justify-center"><Filter className="w-5 h-5" /></button>
+                    <button className="flex-1 px-4 py-3 min-h-[44px] bg-primary-600 active:bg-primary-700 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2">
+                        <ArrowUpRight className="w-5 h-5" /> Exportar CSV
                     </button>
                 </div>
             </div>
