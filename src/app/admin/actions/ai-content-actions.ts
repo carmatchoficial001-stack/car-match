@@ -487,42 +487,30 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         `
 
         console.log('[AI] Generando contenido de campaña...')
-        const result = await geminiFlashConversational.generateContent(prompt)
+
+        // Use JSON mode for guaranteed valid JSON output
+        const result = await geminiFlashConversational.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: {
+                responseMimeType: 'application/json',
+                temperature: 0.8
+            }
+        })
+
         const text = result.response.text()
-        console.log('[AI] Respuesta recibida, parseando JSON...')
+        console.log('[AI] Respuesta JSON recibida, parseando...')
 
-        // Clean up and validate JSON with aggressive cleaning
-        let jsonString = text
-            .replace(/```json/g, '')
-            .replace(/```/g, '')
-            .trim()
-
-        // Remove everything before first { and after last }
-        jsonString = jsonString.replace(/^[^{]*/, '').replace(/[^}]*$/, '')
-
-        // Fix common JSON issues
-        jsonString = jsonString
-            // Remove trailing commas before closing braces/brackets
-            .replace(/,(\s*[}\]])/g, '$1')
-            // Fix single quotes to double quotes (but be careful with content)
-            .replace(/([{,]\s*)'/g, '$1"')
-            .replace(/'(\s*[,:}])/g, '"$1')
-            // Remove comments if any
-            .replace(/\/\/.*/g, '')
-            .replace(/\/\*[\s\S]*?\*\//g, '')
-
-        if (!jsonString.startsWith('{') || !jsonString.endsWith('}')) {
-            console.error('[AI] JSON no válido - no empieza con { o no termina con }')
-            console.error('[AI] Primeros 200 chars:', jsonString.substring(0, 200))
-            throw new Error('Respuesta de IA no es JSON válido. Por favor intenta de nuevo con un mensaje más simple.')
-        }
+        // With JSON mode, the response should already be valid JSON
+        // Still do minimal cleanup just in case
+        let jsonString = text.trim()
 
         let data
         try {
             data = JSON.parse(jsonString)
+            console.log('[AI] JSON parseado correctamente ✓')
         } catch (parseError: any) {
             console.error('[AI] Error parseando JSON:', parseError.message)
-            console.error('[AI] JSON problemático (primeros 800 chars):', jsonString.substring(0, 800))
+            console.error('[AI] JSON problemático:', jsonString.substring(0, 1000))
 
             // Try to find the problematic area
             const errorMatch = parseError.message.match(/position (\d+)/)
@@ -533,7 +521,7 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                 console.error('[AI] Contexto del error:', jsonString.substring(contextStart, contextEnd))
             }
 
-            throw new Error(`La IA generó un formato inválido. Por favor intenta con un mensaje más específico y corto.`)
+            throw new Error(`Error crítico de parseo. Por favor intenta de nuevo con un mensaje más corto y simple.`)
         }
 
         // Validate required fields

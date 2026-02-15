@@ -147,13 +147,10 @@ export default function AIStudio() {
             }
 
             // 3. Get AI Response
-            const contextPrompt = `[Context: Tone=${selectedTone}, Platform=${selectedPlatform}, Mode=${mode}] ${userText}`
-            const apiMsg = { role: 'user', content: contextPrompt }
-
             // Only send recent history to AI to save tokens context
             const historyForAI = messages.slice(-10)
 
-            const response = await chatWithPublicityAgent([...historyForAI, apiMsg], 'MX')
+            const response = await chatWithPublicityAgent([...historyForAI, { role: 'user', content: userText }], 'MX')
 
             let aiContent = 'Tuve un problema. Intenta de nuevo.'
             if (response.success && response.message) {
@@ -231,12 +228,12 @@ export default function AIStudio() {
                         onClick={handleNewChat}
                         className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition"
                     >
-                        <Plus className="w-3.5 h-3.5" /> <span className="hidden md:inline">Nuevo Chat</span>
+                        <Plus className="w-3.5 h-3.5" /> <span>Nuevo Chat</span>
                     </button>
                 </div>
 
                 <div className="p-2 space-y-1 overflow-y-auto flex-1 custom-scrollbar">
-                    <div className="px-2 py-1 text-[10px] font-black text-zinc-500 uppercase tracking-wider hidden md:block">Herramientas</div>
+                    <div className="px-2 py-1 text-[10px] font-black text-zinc-500 uppercase tracking-wider">Herramientas</div>
                     <SidebarItem
                         icon={<MessageSquare />}
                         label="Chat"
@@ -256,7 +253,7 @@ export default function AIStudio() {
                         onClick={() => setMode('STRATEGY')}
                     />
 
-                    <div className="mt-6 px-2 py-1 text-[10px] font-black text-zinc-500 uppercase tracking-wider hidden md:block">Historial</div>
+                    <div className="mt-6 px-2 py-1 text-[10px] font-black text-zinc-500 uppercase tracking-wider">Historial</div>
                     <div className="space-y-0.5">
                         {sessions.map(session => (
                             <button
@@ -268,17 +265,17 @@ export default function AIStudio() {
                                     }`}
                             >
                                 <History className="w-3.5 h-3.5 shrink-0 opacity-50" />
-                                <span className="truncate hidden md:block flex-1">{session.name}</span>
+                                <span className="truncate flex-1">{session.name}</span>
                                 <div
                                     onClick={(e) => handleDeleteSession(e, session.id)}
-                                    className="md:opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded-md transition"
+                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded-md transition"
                                 >
                                     <Trash2 className="w-3 h-3" />
                                 </div>
                             </button>
                         ))}
                         {sessions.length === 0 && (
-                            <div className="text-center py-4 text-[10px] text-zinc-600 italic hidden md:block">
+                            <div className="text-center py-4 text-[10px] text-zinc-600 italic">
                                 Sin historial reciente
                             </div>
                         )}
@@ -291,7 +288,7 @@ export default function AIStudio() {
                         className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition shadow-lg shadow-orange-900/20"
                     >
                         <Zap className="w-4 h-4" />
-                        <span className="hidden md:inline">Piloto Automático</span>
+                        <span>Piloto Automático</span>
                     </button>
                 </div>
             </div>
