@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import {
     Sparkles, User, Send, ImageIcon, ImagePlus, Zap,
     Type, Video, Hash, MousePointer2, Copy, Check, Star,
-    MessageSquare, Plus, Trash2, History
+    MessageSquare, Plus, Trash2, History, RefreshCw
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { chatWithPublicityAgent, suggestCampaignFromInventory, generateCampaignAssets } from '@/app/admin/actions/ai-content-actions'
