@@ -178,7 +178,7 @@ export default function PublicityTab() {
 
         try {
             // Get current campaign metadata
-            const metadata = editingCampaign.metadata ? JSON.parse(editingCampaign.metadata as any) : {}
+            const metadata = (editingCampaign as any).metadata ? JSON.parse((editingCampaign as any).metadata as any) : {}
             const currentAssets = metadata.assets || {}
 
             // Call regenerate API
