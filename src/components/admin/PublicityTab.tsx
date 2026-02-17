@@ -141,9 +141,10 @@ export default function PublicityTab() {
     }
 
     const handleOpenAdPack = (campaign: PublicityCampaign) => {
-        if (!campaign.metadata) return
+        // Cast to any because metadata might not be in the generated type yet locally
+        if (!(campaign as any).metadata) return
         try {
-            const meta = JSON.parse(campaign.metadata as any)
+            const meta = JSON.parse((campaign as any).metadata as any)
             if (meta.assets) {
                 setGeneratedAssets(meta.assets)
                 setShowAssetsModal(true)
