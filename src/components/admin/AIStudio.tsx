@@ -39,7 +39,7 @@ export default function AIStudio() {
                 const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
                 const campaignRes = await createCampaignFromAssets(res.assets)
 
-                if (campaignRes.success) {
+                if (campaignRes.success && campaignRes.campaign) {
                     // Dispatch event to switch to CAMPAIGNS tab
                     const event = new CustomEvent('campaign-created', { detail: campaignRes.campaign });
                     window.dispatchEvent(event);
