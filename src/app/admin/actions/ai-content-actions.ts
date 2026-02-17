@@ -545,23 +545,26 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
 
         console.log('[AI] JSON parseado correctamente, generando imágenes...')
 
-        // 2. Generate Real Image URLs using Pollinations (Multi-Format)
+        // 2. Generate Real Image URLs using Flux (Multi-Format)
         const basePrompt = data.imagePrompt || `Luxury car in ${country.name} street, 8k, photorealistic`
+
+        // LOGGING FOR DEBUGGING
+        console.log('[AI] Checking Replicate Token:', process.env.REPLICATE_API_TOKEN ? 'PRESENT' : 'MISSING');
 
         // Parallel generation for speed with error handling
         try {
-            console.log('[AI] Generando imágenes y video (Simulación VEO)...')
-            const { generateFluxImage } = await import('@/lib/ai/replicate') // Or keep using pollinations if preferred
+            console.log('[AI] Iniciando generación con Replicate (Flux + Minimax)...')
+            const { generateRealImage } = await import('@/lib/ai/replicate-client')
             const { generateVeoVideo } = await import('@/lib/ai/video-generator')
 
             const [imgSquare, imgVertical, imgHorizontal, videoResult] = await Promise.all([
-                generatePollinationsImage(basePrompt, 1080, 1080), // Square (Feed)
-                generatePollinationsImage(basePrompt, 1080, 1920), // Vertical (Stories)
-                generatePollinationsImage(basePrompt, 1920, 1080),  // Horizontal (Web/Thumb)
+                generateRealImage(basePrompt, 1080, 1080), // Square (Feed)
+                generateRealImage(basePrompt, 1080, 1920), // Vertical (Stories)
+                generateRealImage(basePrompt, 1920, 1080),  // Horizontal (Web/Thumb)
                 generateVeoVideo(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical')
             ])
 
-            console.log('[AI] Assets generados exitosamente')
+            console.log('[AI] Assets generados exitosamente con Replicate')
 
             return {
                 success: true,
@@ -578,8 +581,10 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                 }
             }
         } catch (imageError: any) {
-            console.error('[AI] Error generando imágenes:', imageError)
-            throw new Error(`Error generando imágenes: ${imageError.message}`)
+            console.error('[AI] Error generando assets con Replicate:', imageError)
+            // Fallback to pollination if Replicate fails? 
+            // For now, let's throw so the user knows it failed (as requested "sigue sin crearme nada")
+            throw new Error(`Error generando assets reales: ${imageError.message}`)
         }
 
     } catch (error: any) {
@@ -658,8 +663,8 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
 
                 // Generate new image with Replicate Flux
                 console.log('[AI] Generando nueva imagen con Flux...')
-                const { generateFluxImage } = await import('@/lib/ai/replicate')
-                const imageUrl = await generateFluxImage(newImagePrompt)
+                const { generateRealImage } = await import('@/lib/ai/replicate-client')
+                const imageUrl = await generateRealImage(newImagePrompt, 1024, 1024)
                 updatedAssets.imageUrl = imageUrl
                 break
 
@@ -708,8 +713,8 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                 updatedAssets.videoScript = allData.videoScript
 
                 // Generate image
-                const { generateFluxImage: genFlux } = await import('@/lib/ai/replicate')
-                updatedAssets.imageUrl = await genFlux(allData.imagePrompt)
+                const { generateRealImage: genFlux } = await import('@/lib/ai/replicate-client')
+                updatedAssets.imageUrl = await genFlux(allData.imagePrompt, 1024, 1024)
                 break
         }
 
