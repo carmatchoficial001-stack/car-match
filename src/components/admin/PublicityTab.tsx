@@ -234,31 +234,18 @@ export default function PublicityTab() {
                             <Sparkles className="w-4 h-4" />
                             AI Studio
                         </button>
-                        <button
-                            onClick={() => setViewMode('QUEUE')}
-                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-2 ${viewMode === 'QUEUE' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-white/40 hover:text-white'}`}
-                        >
-                            <Clock className="w-4 h-4" />
-                            Borradores
-                        </button>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={handleCreate}
-                        className="flex px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold text-xs transition shadow-lg border border-white/10 items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        <span className="hidden md:inline">Nueva Manual</span>
-                    </button>
+                    <div className="flex items-center gap-3">
+                        {/* Manual creation button removed */}
+                    </div>
                 </div>
             </div>
 
             <div className="flex-1 bg-zinc-950/50 border border-white/5 rounded-3xl overflow-hidden relative backdrop-blur-sm flex flex-col">
-                {viewMode === 'QUEUE' ? (
-                    <SocialQueue />
-                ) : viewMode === 'AI_STUDIO' ? (
+                {viewMode === 'AI_STUDIO' ? (
                     <AIStudio />
                 ) : (
                     <>
