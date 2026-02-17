@@ -140,6 +140,21 @@ export default function PublicityTab() {
         }
     }
 
+    const handleOpenAdPack = (campaign: PublicityCampaign) => {
+        if (!campaign.metadata) return
+        try {
+            const meta = JSON.parse(campaign.metadata as any)
+            if (meta.assets) {
+                setGeneratedAssets(meta.assets)
+                setShowAssetsModal(true)
+            } else {
+                alert('Esta campaña no tiene assets de IA generados.')
+            }
+        } catch (e) {
+            console.error('Error parsing campaign metadata', e)
+        }
+    }
+
     // Campaign Edit Chat Functions
     const handleOpenEditChat = (campaign: PublicityCampaign) => {
         setEditingCampaign(campaign)
@@ -325,6 +340,9 @@ export default function PublicityTab() {
                                                                 <button onClick={() => handleManualPost(campaign.id)} className="p-2 bg-white/5 hover:bg-blue-500/20 hover:text-blue-500 rounded-lg transition" title="Publicar ahora">
                                                                     <Share2 className="w-4 h-4" />
                                                                 </button>
+                                                                <button onClick={() => handleOpenAdPack(campaign)} className="p-2 bg-white/5 hover:bg-purple-500/20 hover:text-purple-400 rounded-lg transition" title="Ver Global Ad Pack">
+                                                                    <Globe className="w-4 h-4" />
+                                                                </button>
                                                                 <button onClick={() => handleEdit(campaign)} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition" title="Editar">
                                                                     <Edit className="w-4 h-4" />
                                                                 </button>
@@ -370,6 +388,9 @@ export default function PublicityTab() {
                                                     <div className="flex gap-2">
                                                         <button onClick={() => handleManualPost(campaign.id)} className="p-3 min-h-[44px] min-w-[44px] bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl transition flex items-center justify-center">
                                                             <Share2 className="w-5 h-5" />
+                                                        </button>
+                                                        <button onClick={() => handleOpenAdPack(campaign)} className="p-3 min-h-[44px] min-w-[44px] bg-purple-500/10 hover:bg-purple-500/20 active:bg-purple-500/30 text-purple-400 rounded-xl transition flex items-center justify-center" title="Global Ad Pack">
+                                                            <Globe className="w-5 h-5" />
                                                         </button>
                                                         <button onClick={() => handleEdit(campaign)} className="p-3 min-h-[44px] min-w-[44px] bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl transition flex items-center justify-center">
                                                             <Edit className="w-5 h-5" />
@@ -501,23 +522,107 @@ export default function PublicityTab() {
 }
 
 const PLATFORMS = [
-    { id: 'meta_ads', label: 'Meta Ads (FB/IG)', icon: <img src="https://cdn-icons-png.flaticon.com/512/6033/6033716.png" className="w-4 h-4 invert" />, color: 'bg-blue-600' },
-    { id: 'facebook_marketplace', label: 'Marketplace', icon: <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" className="w-4 h-4 invert" />, color: 'bg-blue-700' },
-    { id: 'google_ads', label: 'Google Ads', icon: <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" className="w-4 h-4 invert" />, color: 'bg-green-600' },
-    { id: 'tiktok_ads', label: 'TikTok Ads', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" className="w-4 h-4 invert" />, color: 'bg-black' },
-    { id: 'youtube_shorts', label: 'YouTube Shorts', icon: <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" className="w-4 h-4 invert" />, color: 'bg-red-600' },
-    { id: 'twitter_x', label: 'X (Twitter)', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" className="w-4 h-4 invert" />, color: 'bg-slate-800' },
-    { id: 'threads', label: 'Threads', icon: <span className="font-bold text-lg select-none">@</span>, color: 'bg-black' },
-    { id: 'snapchat_ads', label: 'Snapchat', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670166.png" className="w-4 h-4 invert" />, color: 'bg-yellow-400 text-black' },
-    { id: 'whatsapp_channel', label: 'WhatsApp Channel', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670051.png" className="w-4 h-4 invert" />, color: 'bg-green-500' },
+    { id: 'meta_ads', label: 'Meta Ads (FB/IG)', icon: <img src="https://cdn-icons-png.flaticon.com/512/6033/6033716.png" className="w-5 h-5 invert" />, color: 'bg-blue-600' },
+    { id: 'facebook_marketplace', label: 'Marketplace', icon: <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" className="w-5 h-5 invert" />, color: 'bg-blue-700' },
+    { id: 'google_ads', label: 'Google Ads', icon: <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" className="w-5 h-5 invert" />, color: 'bg-green-600' },
+    { id: 'tiktok_ads', label: 'TikTok Ads', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" className="w-5 h-5 invert" />, color: 'bg-black' },
+    { id: 'youtube_shorts', label: 'YouTube Shorts', icon: <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" className="w-5 h-5 invert" />, color: 'bg-red-600' },
+    { id: 'twitter_x', label: 'X (Twitter)', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" className="w-5 h-5 invert" />, color: 'bg-slate-800' },
+    { id: 'threads', label: 'Threads', icon: <span className="font-bold text-lg select-none leading-none">@</span>, color: 'bg-black' },
+    { id: 'snapchat_ads', label: 'Snapchat', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670166.png" className="w-5 h-5 invert" />, color: 'bg-yellow-400 text-black' },
+    { id: 'whatsapp_channel', label: 'WhatsApp Channel', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670051.png" className="w-5 h-5 invert" />, color: 'bg-green-500' },
 ]
 
 function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
     if (!isOpen || !assets) return null
-    const [activePlatform, setActivePlatform] = useState('meta_ads')
-    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    // Determine title
+    const campaignTitle = assets.internal_title || assets.title || 'Campaña Generada'
+
+    return (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-end sm:items-center justify-center sm:p-4">
+            <motion.div
+                initial={{ y: '100%', opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: '100%', opacity: 0 }}
+                className="bg-[#111114] w-full max-w-2xl h-[92vh] sm:h-[85vh] rounded-t-3xl sm:rounded-3xl border border-white/10 overflow-hidden shadow-2xl flex flex-col"
+            >
+                {/* HEADER */}
+                <div className="p-5 border-b border-white/5 bg-zinc-900/50 flex justify-between items-start shrink-0 relative z-10">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">
+                                Global Ad Pack
+                            </span>
+                        </div>
+                        <h2 className="text-xl font-black text-white leading-tight">{campaignTitle}</h2>
+                        <p className="text-xs text-zinc-500 mt-1">Campaña única optimizada por IA</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 -mr-2 -mt-2 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition">
+                        <X className="w-6 h-6" />
+                    </button>
+                </div>
+
+                {/* SCROLLABLE CONTENT */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+                    {/* VIDEO ASSETS SECTION (Global) */}
+                    {(assets.videoPrompt || assets.videoScript) && (
+                        <div className="mb-6 bg-gradient-to-br from-zinc-900 to-black border border-white/10 rounded-2xl p-5">
+                            <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                                <Video className="w-4 h-4 text-purple-400" />
+                                Assets de Video Globales
+                            </h3>
+                            <div className="grid grid-cols-1 gap-3">
+                                {assets.videoPrompt_vertical && (
+                                    <CopyableBlock
+                                        label="Prompt Vertical (Reels/TikTok)"
+                                        content={assets.videoPrompt_vertical}
+                                        id="v-prompt-vert"
+                                        truncate={true}
+                                    />
+                                )}
+                                {assets.videoScript && (
+                                    <CopyableBlock
+                                        label="Guion de Video"
+                                        content={assets.videoScript}
+                                        id="v-script"
+                                        truncate={true}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* PLATFORMS ACCORDION */}
+                    {PLATFORMS.map(platform => (
+                        <PlatformAccordionItem
+                            key={platform.id}
+                            platform={platform}
+                            data={assets.platforms?.[platform.id]}
+                            assets={assets}
+                        />
+                    ))}
+                </div>
+
+                {/* FOOTER ACTIONS */}
+                <div className="p-4 border-t border-white/10 bg-zinc-900/50 backdrop-blur-md shrink-0 safe-area-bottom">
+                    <button
+                        onClick={onClose}
+                        className="w-full py-3.5 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition shadow-lg shadow-white/5 active:scale-[0.98]"
+                    >
+                        Listo, Cerrar
+                    </button>
+                </div>
+            </motion.div>
+        </div>
+    )
+}
+
+function PlatformAccordionItem({ platform, data, assets }: any) {
+    const [isOpen, setIsOpen] = useState(false)
     const [copiedKey, setCopiedKey] = useState<string | null>(null)
-    const [previewFormat, setPreviewFormat] = useState<'square' | 'vertical' | 'horizontal'>('square')
+
+    if (!data) return null // Don't show platforms without data
 
     const handleCopy = (text: string, key: string) => {
         navigator.clipboard.writeText(text)
@@ -525,449 +630,136 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
         setTimeout(() => setCopiedKey(null), 2000)
     }
 
-    const renderContent = () => {
-        const platformData = assets.platforms?.[activePlatform]
-        if (!platformData) return (
-            <div className="flex flex-col items-center justify-center p-10 text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
-                    <Sparkles className="w-8 h-8 text-white/20" />
-                </div>
-                <p className="text-zinc-500 italic">Contenido optimizado no disponible para esta vista.</p>
-            </div>
-        )
-
-        // GOOGLE ADS SPECIAL VIEW
-        if (activePlatform === 'google_ads') {
-            return (
-                <div className="space-y-8 animate-in fade-in slide-in-from-right duration-300">
-                    <div className="space-y-4">
-                        <label className="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Headlines (Títulos)
-                        </label>
-                        {platformData.headlines?.map((h: string, i: number) => (
-                            <div key={i} className="flex gap-2">
-                                <div className="flex-1 bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white text-sm font-medium">{h}</div>
-                                <button onClick={() => handleCopy(h, `h-${i}`)} className="px-3 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition">
-                                    {copiedKey === `h-${i}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                </button>
-                            </div>
-                        ))}
+    return (
+        <div className={`overflow-hidden transition-all duration-300 border ${isOpen ? 'bg-zinc-900/30 border-purple-500/30 shadow-lg shadow-purple-900/10' : 'bg-white/5 border-white/5 hover:border-white/10'} rounded-2xl`}>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full flex items-center justify-between p-4"
+            >
+                <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-transform ${isOpen ? 'scale-110' : ''} ${isOpen ? 'bg-white text-black' : 'bg-white/10 text-zinc-400'}`}>
+                        {platform.icon}
                     </div>
-                    <div className="space-y-4">
-                        <label className="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Descriptions
-                        </label>
-                        {platformData.descriptions?.map((d: string, i: number) => (
-                            <div key={i} className="flex gap-2">
-                                <div className="flex-1 bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-text-secondary text-sm">{d}</div>
-                                <button onClick={() => handleCopy(d, `d-${i}`)} className="px-3 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition">
-                                    {copiedKey === `d-${i}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-                        <p className="text-xs text-blue-200 flex items-center gap-2">
-                            <Info className="w-4 h-4" /> Google recomienda rotar estos títulos y descripciones.
-                        </p>
+                    <div className="text-left">
+                        <h3 className={`font-bold text-sm ${isOpen ? 'text-white' : 'text-zinc-300'}`}>{platform.label}</h3>
+                        {!isOpen && <p className="text-[10px] text-zinc-500">Click para ver contenido</p>}
                     </div>
                 </div>
-            )
-        }
-
-        // META ADS SPECIAL VIEW
-        if (activePlatform === 'meta_ads') {
-            return (
-                <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Primary Text (Texto Principal)</label>
-                            <button onClick={() => handleCopy(platformData.primary_text, 'primary')} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
-                                {copiedKey === 'primary' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />} Copiar
-                            </button>
-                        </div>
-                        <textarea readOnly value={platformData.primary_text} className="w-full h-32 bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-secondary resize-none custom-scrollbar focus:outline-none focus:border-purple-500/50" />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Headline (Título)</label>
-                                <button onClick={() => handleCopy(platformData.headline, 'head')} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
-                                    {copiedKey === 'head' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                                </button>
-                            </div>
-                            <input readOnly value={platformData.headline} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white font-bold text-sm" />
-                        </div>
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Description (Opcional)</label>
-                                <button onClick={() => handleCopy(platformData.description, 'desc')} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
-                                    {copiedKey === 'desc' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                                </button>
-                            </div>
-                            <input readOnly value={platformData.description} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-text-secondary text-sm" />
-                        </div>
-                    </div>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isOpen ? 'bg-white/10 rotate-180' : 'hover:bg-white/5'}`}>
+                    <ArrowRight className={`w-4 h-4 text-zinc-400 transition-transform ${isOpen ? '-rotate-90' : 'rotate-90'}`} />
                 </div>
-            )
-        }
+            </button>
 
-        // STANDARD VIEW (Marketplace, TikTok, Threads, etc)
-        let contentToDisplay = ''
-        let titleToDisplay = ''
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="border-t border-white/5 bg-black/20"
+                    >
+                        <div className="p-4 space-y-4">
+                            {/* GOOGLE ADS SPECIAL RENDER */}
+                            {platform.id === 'google_ads' ? (
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <h4 className="text-xs font-bold text-blue-400 uppercase tracking-widest">Headlines (Títulos)</h4>
+                                        <div className="space-y-2">
+                                            {data.headlines?.map((h: string, i: number) => (
+                                                <CopyableRow key={i} text={h} id={`gh-${i}`} onCopy={handleCopy} copiedKey={copiedKey} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h4 className="text-xs font-bold text-blue-400 uppercase tracking-widest">Descriptions</h4>
+                                        <div className="space-y-2">
+                                            {data.descriptions?.map((d: string, i: number) => (
+                                                <CopyableRow key={i} text={d} id={`gd-${i}`} onCopy={handleCopy} copiedKey={copiedKey} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* STANDARD PLATFORM RENDER */
+                                <>
+                                    {/* TITLES / HEADLINES */}
+                                    {(data.title || data.headline) && (
+                                        <CopyableBlock
+                                            label="Título / Headline"
+                                            content={data.title || data.headline}
+                                            id={`${platform.id}-title`}
+                                        />
+                                    )}
 
-        if (activePlatform === 'twitter_x' && platformData.tweets) {
-            contentToDisplay = platformData.tweets.join('\n\n---\n\n')
-        } else if (activePlatform === 'facebook_marketplace') {
-            titleToDisplay = platformData.title
-            contentToDisplay = platformData.description
-        } else if (activePlatform === 'youtube_shorts') {
-            titleToDisplay = platformData.title
-            contentToDisplay = `${platformData.description}\n\n=== VIDEO SCRIPT ===\n${assets.videoScript || 'N/A'}`
-        } else if (activePlatform === 'tiktok_ads') {
-            contentToDisplay = `${platformData.caption}\n\n=== VIDEO SCRIPT ===\n${assets.videoScript || 'N/A'}\n\n[Visual Notes]: ${platformData.script_notes}`
-        } else if (activePlatform === 'snapchat_ads') {
-            titleToDisplay = platformData.headline
-            contentToDisplay = `${platformData.caption}\n\n=== VIDEO SCRIPT ===\n${assets.videoScript || 'N/A'}`
-        } else if (activePlatform === 'messaging_apps') {
-            contentToDisplay = platformData.broadcast_message
-        } else {
-            contentToDisplay = platformData.caption || platformData.script_notes || platformData.text || platformData.body || platformData.post || JSON.stringify(platformData, null, 2)
-        }
-
-        return (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
-                {titleToDisplay && (
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                            <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Título SEO</label>
-                            <button onClick={() => handleCopy(titleToDisplay, 'title')} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
-                                {copiedKey === 'title' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />} Copiar
-                            </button>
+                                    {/* PRIMARY TEXT / DESCRIPTION / TWEETS */}
+                                    {data.primary_text && (
+                                        <CopyableBlock label="Texto Principal (Primary Text)" content={data.primary_text} id={`${platform.id}-primary`} />
+                                    )}
+                                    {data.description && platform.id !== 'facebook_marketplace' && (
+                                        <CopyableBlock label="Descripción" content={data.description} id={`${platform.id}-desc`} />
+                                    )}
+                                    {platform.id === 'facebook_marketplace' && data.description && (
+                                        <CopyableBlock label="Descripción para Marketplace" content={data.description} id={`${platform.id}-desc`} isLong={true} />
+                                    )}
+                                    {data.tweets && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Hilo de Tweets</label>
+                                            {data.tweets.map((t: string, i: number) => (
+                                                <CopyableRow key={i} text={t} id={`tweet-${i}`} onCopy={handleCopy} copiedKey={copiedKey} />
+                                            ))}
+                                        </div>
+                                    )}
+                                    {data.caption && (
+                                        <CopyableBlock label="Caption / Pie de foto" content={data.caption} id={`${platform.id}-caption`} isLong={true} />
+                                    )}
+                                    {data.script_notes && (
+                                        <CopyableBlock label="Notas Visuales" content={data.script_notes} id={`${platform.id}-notes`} />
+                                    )}
+                                </>
+                            )}
                         </div>
-                        <div className="bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white font-bold select-all">{titleToDisplay}</div>
-                    </div>
+                    </motion.div>
                 )}
-                <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                        <label className="text-xs font-bold text-text-secondary uppercase tracking-widest">Descripción / Copy</label>
-                        <button onClick={() => handleCopy(contentToDisplay, 'content')} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
-                            {copiedKey === 'content' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />} Copiar
-                        </button>
-                    </div>
-                    <textarea readOnly value={contentToDisplay} className="w-full h-48 bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-secondary resize-none custom-scrollbar leading-relaxed focus:outline-none focus:border-purple-500/50" />
-                </div>
-            </div>
-        )
-    }
+            </AnimatePresence>
+        </div>
+    )
+}
 
-    const handleSave = async () => {
-        setIsSubmitting(true)
-        try {
-            // Default content for campaign save
-            const mainContent = assets.platforms?.meta_ads?.primary_text || assets.platforms?.facebook_marketplace?.description || ''
-
-            const formData = new FormData()
-            formData.append('title', assets.internal_title || 'Campaña Global Ads')
-            formData.append('imageUrl', assets.imageUrl)
-            formData.append('copywriting', mainContent)
-            formData.append('startDate', new Date().toISOString())
-            formData.append('endDate', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString())
-            formData.append('clientName', 'AI Generated Pack')
-
-            await createPublicityCampaign(null, formData)
-            onSuccess()
-        } catch (error) {
-            console.error(error)
-            alert('Error al guardar campaña')
-        } finally {
-            setIsSubmitting(false)
-        }
+function CopyableBlock({ label, content, id, isLong, truncate }: any) {
+    const [copied, setCopied] = useState(false)
+    const handleCopy = () => {
+        navigator.clipboard.writeText(content)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
     }
 
     return (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <div className="bg-[#111114] w-full max-w-6xl h-[85vh] rounded-3xl border border-white/10 overflow-hidden shadow-2xl flex flex-col md:flex-row">
-
-                {/* SIDEBAR */}
-                <div className="w-full md:w-64 bg-black/40 border-r border-white/5 flex flex-col">
-                    <div className="p-6 border-b border-white/5 bg-purple-900/10">
-                        <h2 className="text-xs font-black text-white flex items-center gap-2 italic uppercase tracking-wider">
-                            <Globe className="w-4 h-4 text-purple-400" />
-                            Global Ad Pack
-                        </h2>
-                        <p className="text-[10px] text-purple-300 mt-1 opacity-70">Mass Diffusion Reach</p>
-                    </div>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
-                        {PLATFORMS.map(p => (
-                            <button
-                                key={p.id}
-                                onClick={() => setActivePlatform(p.id)}
-                                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-xs font-bold transition-all ${activePlatform === p.id
-                                    ? 'bg-white text-black shadow-lg translate-x-1'
-                                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                                    }`}
-                            >
-                                <div className={`w-6 h-6 rounded-md flex items-center justify-center ${activePlatform === p.id ? 'bg-black text-white' : 'bg-white/10'}`}>
-                                    {p.icon}
-                                </div>
-                                {p.label}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="p-4 border-t border-white/5">
-                        <div className="bg-gradient-to-r from-orange-500/10 to-purple-500/10 rounded-lg p-3 border border-white/5">
-                            <div className="flex items-center gap-2 mb-1">
-                                <Zap className="w-3 h-3 text-orange-400" />
-                                <span className="text-[10px] font-bold text-orange-200">Ad Focus</span>
-                            </div>
-                            <p className="text-[10px] text-zinc-500 leading-tight">Optimizado para Meta Ads, Google y TikTok.</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* MAIN CONTENT */}
-                <div className="flex-1 flex flex-col min-w-0">
-                    <div className="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/50 flex items-center justify-center">
-                                <Megaphone className="w-4 h-4 text-purple-400" />
-                            </div>
-                            <div>
-                                <h3 className="text-white font-bold text-base">{assets.internal_title}</h3>
-                                <p className="text-xs text-zinc-500">Campaña de Difusión Global</p>
-                            </div>
-                        </div>
-                        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition">
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-0 bg-black/20">
-                        <div className="max-w-6xl mx-auto p-8 space-y-8">
-                            {/* SECTION 1: VIDEO CONTENT */}
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg">
-                                        <Video className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-black text-white uppercase tracking-wide">Contenido para Video</h3>
-                                        <p className="text-xs text-zinc-500">Prompts optimizados para generar videos con Veo/Sora</p>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Vertical Video for Reels/TikTok */}
-                                    <div className="bg-gradient-to-br from-zinc-900/80 to-black/50 border border-white/10 rounded-2xl p-5 space-y-3 hover:border-purple-500/30 transition-all group">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-8 h-10 bg-gradient-to-b from-purple-500 to-pink-500 rounded-md flex items-center justify-center shadow-lg">
-                                                    <span className="text-white text-xs font-black">9:16</span>
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-sm font-bold text-white">Video Vertical</h4>
-                                                    <p className="text-[10px] text-zinc-500">Reels, TikTok, Stories</p>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => handleCopy(assets.videoPrompt_vertical || assets.videoPrompt || '', 'video-v')}
-                                                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition flex items-center gap-1.5 text-xs font-bold border border-white/10"
-                                            >
-                                                {copiedKey === 'video-v' ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-                                                <span className="hidden sm:inline">Copiar</span>
-                                            </button>
-                                        </div>
-                                        <p className="text-xs text-zinc-400 leading-relaxed bg-black/40 p-3 rounded-lg border border-white/5 max-h-32 overflow-y-auto custom-scrollbar">
-                                            {assets.videoPrompt_vertical || assets.videoPrompt || 'No disponible'}
-                                        </p>
-                                    </div>
-
-                                    {/* Horizontal Video for YouTube */}
-                                    <div className="bg-gradient-to-br from-zinc-900/80 to-black/50 border border-white/10 rounded-2xl p-5 space-y-3 hover:border-red-500/30 transition-all group">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-10 h-8 bg-gradient-to-r from-red-500 to-red-600 rounded-md flex items-center justify-center shadow-lg">
-                                                    <span className="text-white text-xs font-black">16:9</span>
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-sm font-bold text-white">Video Horizontal</h4>
-                                                    <p className="text-[10px] text-zinc-500">YouTube, Facebook, X</p>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => handleCopy(assets.videoPrompt_horizontal || assets.videoPrompt || '', 'video-h')}
-                                                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition flex items-center gap-1.5 text-xs font-bold border border-white/10"
-                                            >
-                                                {copiedKey === 'video-h' ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-                                                <span className="hidden sm:inline">Copiar</span>
-                                            </button>
-                                        </div>
-                                        <p className="text-xs text-zinc-400 leading-relaxed bg-black/40 p-3 rounded-lg border border-white/5 max-h-32 overflow-y-auto custom-scrollbar">
-                                            {assets.videoPrompt_horizontal || assets.videoPrompt || 'No disponible'}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Video Script */}
-                                {assets.videoScript && (
-                                    <div className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-blue-500/20 rounded-2xl p-5 space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <TypeIcon className="w-4 h-4 text-blue-400" />
-                                                <h4 className="text-sm font-bold text-blue-200">Guión de Video (Script)</h4>
-                                            </div>
-                                            <button
-                                                onClick={() => handleCopy(assets.videoScript, 'script')}
-                                                className="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition flex items-center gap-1.5 text-xs font-bold text-blue-300"
-                                            >
-                                                {copiedKey === 'script' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                                                Copiar
-                                            </button>
-                                        </div>
-                                        <p className="text-xs text-blue-100 leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto custom-scrollbar bg-black/30 p-4 rounded-xl border border-blue-500/10">
-                                            {assets.videoScript}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* DIVIDER */}
-                            <div className="relative py-4">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-white/10"></div>
-                                </div>
-                                <div className="relative flex justify-center">
-                                    <span className="bg-[#0F1115] px-4 text-xs font-bold text-zinc-600 uppercase tracking-widest">Contenido Visual</span>
-                                </div>
-                            </div>
-
-                            {/* SECTION 2: IMAGE CONTENT */}
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center shadow-lg">
-                                        <ImageIcon className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-black text-white uppercase tracking-wide">Imágenes Generadas</h3>
-                                        <p className="text-xs text-zinc-500">Múltiples formatos listos para usar</p>
-                                    </div>
-                                </div>
-
-                                {/* Format Selector */}
-                                <div className="flex bg-black/40 rounded-xl p-1.5 border border-white/5 w-fit">
-                                    <button
-                                        onClick={() => setPreviewFormat('square')}
-                                        className={`px-4 py-2 text-xs font-bold rounded-lg transition ${previewFormat === 'square' ? 'text-white bg-white/10 shadow-lg' : 'text-zinc-500 hover:text-white'}`}
-                                    >
-                                        📱 Square (1:1)
-                                    </button>
-                                    <button
-                                        onClick={() => setPreviewFormat('vertical')}
-                                        className={`px-4 py-2 text-xs font-bold rounded-lg transition ${previewFormat === 'vertical' ? 'text-white bg-white/10 shadow-lg' : 'text-zinc-500 hover:text-white'}`}
-                                    >
-                                        📲 Vertical (9:16)
-                                    </button>
-                                    <button
-                                        onClick={() => setPreviewFormat('horizontal')}
-                                        className={`px-4 py-2 text-xs font-bold rounded-lg transition ${previewFormat === 'horizontal' ? 'text-white bg-white/10 shadow-lg' : 'text-zinc-500 hover:text-white'}`}
-                                    >
-                                        🖥️ Horizontal (16:9)
-                                    </button>
-                                </div>
-
-                                {/* Main Image Preview */}
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                    {/* Large Preview */}
-                                    <div className="lg:col-span-2">
-                                        <div className="relative rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl group" style={{ aspectRatio: previewFormat === 'square' ? '1/1' : previewFormat === 'vertical' ? '9/16' : '16/9' }}>
-                                            <img
-                                                src={assets.images?.[previewFormat] || assets.imageUrl}
-                                                className="w-full h-full object-cover"
-                                                alt="Generated visual"
-                                            />
-                                            <a href={assets.images?.[previewFormat] || assets.imageUrl} download target="_blank" className="absolute bottom-4 right-4 p-3 bg-white text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
-                                                <Download className="w-5 h-5" />
-                                            </a>
-                                            <div className="absolute top-4 left-4 px-3 py-1.5 bg-black/70 backdrop-blur text-xs font-mono text-white rounded-lg border border-white/20">
-                                                {previewFormat === 'square' ? '1080×1080' : previewFormat === 'vertical' ? '1080×1920' : '1920×1080'} • Flux.1
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Thumbnails */}
-                                    <div className="space-y-3">
-                                        <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Todos los Formatos</h4>
-                                        {/* Square */}
-                                        <div className="relative group rounded-xl overflow-hidden border border-white/10 aspect-square hover:border-purple-500/50 transition cursor-pointer" onClick={() => setPreviewFormat('square')}>
-                                            <img src={assets.images?.square || assets.imageUrl} className={`w-full h-full object-cover transition ${previewFormat === 'square' ? 'opacity-100' : 'opacity-60 hover:opacity-90'}`} />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-3">
-                                                <span className="text-white text-xs font-bold">1:1 Square</span>
-                                            </div>
-                                            <a href={assets.images?.square} download onClick={(e) => e.stopPropagation()} className="absolute top-2 right-2 p-2 bg-white/90 text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
-                                                <Download className="w-3 h-3" />
-                                            </a>
-                                        </div>
-                                        {/* Vertical */}
-                                        <div className="relative group rounded-xl overflow-hidden border border-white/10 aspect-[9/16] hover:border-purple-500/50 transition cursor-pointer" onClick={() => setPreviewFormat('vertical')}>
-                                            <img src={assets.images?.vertical || assets.imageUrl} className={`w-full h-full object-cover transition ${previewFormat === 'vertical' ? 'opacity-100' : 'opacity-60 hover:opacity-90'}`} />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-3">
-                                                <span className="text-white text-xs font-bold">9:16 Vertical</span>
-                                            </div>
-                                            <a href={assets.images?.vertical} download onClick={(e) => e.stopPropagation()} className="absolute top-2 right-2 p-2 bg-white/90 text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
-                                                <Download className="w-3 h-3" />
-                                            </a>
-                                        </div>
-                                        {/* Horizontal */}
-                                        <div className="relative group rounded-xl overflow-hidden border border-white/10 aspect-video hover:border-purple-500/50 transition cursor-pointer" onClick={() => setPreviewFormat('horizontal')}>
-                                            <img src={assets.images?.horizontal || assets.imageUrl} className={`w-full h-full object-cover transition ${previewFormat === 'horizontal' ? 'opacity-100' : 'opacity-60 hover:opacity-90'}`} />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-3">
-                                                <span className="text-white text-xs font-bold">16:9 Landscape</span>
-                                            </div>
-                                            <a href={assets.images?.horizontal} download onClick={(e) => e.stopPropagation()} className="absolute top-2 right-2 p-2 bg-white/90 text-black rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition hover:scale-110">
-                                                <Download className="w-3 h-3" />
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* DIVIDER */}
-                            <div className="relative py-4">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-white/10"></div>
-                                </div>
-                                <div className="relative flex justify-center">
-                                    <span className="bg-[#0F1115] px-4 text-xs font-bold text-zinc-600 uppercase tracking-widest">Copy por Plataforma</span>
-                                </div>
-                            </div>
-
-                            {/* SECTION 3: PLATFORM CONTENT */}
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
-                                        <Globe className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-black text-white uppercase tracking-wide">Textos para Redes Sociales</h3>
-                                        <p className="text-xs text-zinc-500">Contenido optimizado por plataforma</p>
-                                    </div>
-                                </div>
-                                {renderContent()}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="p-4 border-t border-white/10 bg-zinc-900/50 flex justify-end gap-3 z-10">
-                        <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-bold text-white/50 hover:text-white hover:bg-white/5 transition">Descartar</button>
-                        <button onClick={handleSave} disabled={isSubmitting} className="px-6 py-3 bg-white text-black hover:bg-gray-200 rounded-xl text-sm font-black shadow-lg shadow-white/10 transition disabled:opacity-50 flex items-center gap-2">
-                            {isSubmitting ? 'Guardando...' : 'GUARDAR CAMPAÑA'} <ArrowRight className="w-4 h-4" />
-                        </button>
-                    </div>
-                </div>
-
+        <div className="space-y-2 group">
+            <div className="flex justify-between items-center">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest group-hover:text-zinc-300 transition-colors">{label}</label>
+                <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs font-medium text-purple-400 hover:text-purple-300 transition">
+                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? 'Copiado' : 'Copiar'}
+                </button>
             </div>
+            <div className={`bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-zinc-300 font-mono leading-relaxed relative overflow-hidden ${truncate ? 'max-h-24' : ''}`}>
+                {content}
+                {truncate && <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />}
+            </div>
+        </div>
+    )
+}
+
+function CopyableRow({ text, id, onCopy, copiedKey }: any) {
+    return (
+        <div className="flex gap-2 items-center">
+            <div className="flex-1 bg-black/20 border border-white/5 rounded-lg px-3 py-2.5 text-sm text-zinc-300 font-mono">{text}</div>
+            <button
+                onClick={() => onCopy(text, id)}
+                className={`p-2 rounded-lg transition shrink-0 ${copiedKey === id ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'}`}
+            >
+                {copiedKey === id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            </button>
         </div>
     )
 }

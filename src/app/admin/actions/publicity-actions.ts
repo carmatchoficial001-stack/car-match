@@ -68,14 +68,12 @@ export async function createCampaignFromAssets(assets: any) {
                 // Store AI-generated assets as JSON
                 metadata: JSON.stringify({
                     generatedByAI: true,
-                    assets: {
-                        copy: assets.copy,
-                        imagePrompt: assets.imagePrompt,
-                        imageUrl: assets.imageUrl,
-                        videoScript: assets.videoScript
-                    }
-                })
-            }
+                    // Store AI-generated assets as JSON
+                    metadata: JSON.stringify({
+                        generatedByAI: true,
+                        assets: assets // Store FULL assets object to keep platform data
+                    })
+                }
         })
 
         revalidatePath('/admin')
