@@ -568,27 +568,27 @@ const PLATFORMS = [
     { id: 'whatsapp_channel', label: 'WhatsApp Channel', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670051.png" className="w-5 h-5 invert" />, color: 'bg-green-500' },
 ]
 
+// Helper for downloading assets (Standalone)
+const downloadAsset = async (url: string, filename: string) => {
+    try {
+        const response = await fetch(url)
+        const blob = await response.blob()
+        const link = document.createElement('a')
+        link.href = window.URL.createObjectURL(blob)
+        link.download = filename
+        link.click()
+        window.URL.revokeObjectURL(link.href)
+    } catch (error) {
+        console.error('Download failed:', error)
+        window.open(url, '_blank')
+    }
+}
+
 function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
     if (!isOpen || !assets) return null
 
     // Determine title
     const campaignTitle = assets.internal_title || assets.title || 'Campaña Generada'
-
-    // Helper for downloading assets
-    const handleDownload = async (url: string, filename: string) => {
-        try {
-            const response = await fetch(url)
-            const blob = await response.blob()
-            const link = document.createElement('a')
-            link.href = window.URL.createObjectURL(blob)
-            link.download = filename
-            link.click()
-            window.URL.revokeObjectURL(link.href)
-        } catch (error) {
-            console.error('Download failed:', error)
-            window.open(url, '_blank')
-        }
-    }
 
     return (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-end sm:items-center justify-center sm:p-4">
@@ -616,124 +616,8 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
 
                 {/* SCROLLABLE CONTENT */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
-                    {/* VIDEO ASSETS SECTION (Global) */}
-                    {(assets.videoUrl || assets.videoPrompt || assets.videoScript) && (
-                        <div className="mb-6 bg-gradient-to-br from-zinc-900 to-black border border-white/10 rounded-2xl p-5">
-                            <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                                <Video className="w-4 h-4 text-purple-400" />
-                                Assets de Video Globales (VEO / SORA)
-                            </h3>
 
-                            {/* NEW: Video Player if URL exists */}
-                            {assets.videoUrl && (
-                                <div className="mb-4 rounded-xl overflow-hidden border border-white/10 relative group aspect-video">
-                                    <video
-                                        src={assets.videoUrl}
-                                        controls
-                                        className="w-full h-full object-cover"
-                                        poster={assets.imageUrl}
-                                    />
-                                    <div className="absolute top-2 right-2 flex gap-2">
-                                        <button
-                                            onClick={() => handleDownload(assets.videoUrl, `video-campaign-${assets.internal_title || 'cm'}.mp4`)}
-                                            className="bg-black/60 backdrop-blur px-2 py-1 rounded-lg text-xs text-white font-bold border border-white/10 flex items-center gap-1 hover:bg-white/10 transition"
-                                        >
-                                            <Download className="w-3 h-3" />
-                                            Descargar
-                                        </button>
-                                        <div className="bg-black/60 backdrop-blur px-2 py-1 rounded text-[10px] text-white font-mono border border-white/10">
-                                            GENERADO POR IA
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-1 gap-3">
-                                {assets.videoPrompt_vertical && (
-                                    <CopyableBlock
-                                        label="Prompt Vertical (Reels/TikTok)"
-                                        content={assets.videoPrompt_vertical}
-                                        id="v-prompt-vert"
-                                        truncate={true}
-                                    />
-                                )}
-                                {assets.videoScript && (
-                                    <CopyableBlock
-                                        label="Guion de Video"
-                                        content={assets.videoScript}
-                                        id="v-script"
-                                        truncate={true}
-                                    />
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-
-                    {/* IMAGE ASSETS SECTION (Global) */}
-                    {
-                        (assets.images || assets.imageUrl) && (
-                            <div className="mb-6 bg-gradient-to-br from-zinc-900 to-black border border-white/10 rounded-2xl p-5">
-                                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                                    <ImagePlus className="w-4 h-4 text-pink-400" />
-                                    Assets de Imagen (Flux / Midjourney)
-                                </h3>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                    {/* Square */}
-                                    <div className="space-y-2">
-                                        <div className="aspect-square rounded-xl overflow-hidden border border-white/10 relative group">
-                                            <img src={assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                                <button
-                                                    onClick={() => handleDownload(assets.images?.square || assets.imageUrl, `image-square-${assets.internal_title}.jpg`)}
-                                                    className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
-                                                >
-                                                    <Download className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <p className="text-[10px] text-center text-zinc-500 uppercase font-bold">Square (Feed)</p>
-                                    </div>
-                                    {/* Vertical */}
-                                    {assets.images?.vertical && (
-                                        <div className="space-y-2">
-                                            <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group">
-                                                <img src={assets.images.vertical} className="w-full h-full object-cover" />
-                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                                    <button
-                                                        onClick={() => handleDownload(assets.images.vertical, `image-vertical-${assets.internal_title}.jpg`)}
-                                                        className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
-                                                    >
-                                                        <Download className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <p className="text-[10px] text-center text-zinc-500 uppercase font-bold">Vertical (Stories)</p>
-                                        </div>
-                                    )}
-                                    {/* Horizontal */}
-                                    {assets.images?.horizontal && (
-                                        <div className="space-y-2">
-                                            <div className="aspect-video rounded-xl overflow-hidden border border-white/10 relative group">
-                                                <img src={assets.images.horizontal} className="w-full h-full object-cover" />
-                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                                    <button
-                                                        onClick={() => handleDownload(assets.images.horizontal, `image-landscape-${assets.internal_title}.jpg`)}
-                                                        className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
-                                                    >
-                                                        <Download className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <p className="text-[10px] text-center text-zinc-500 uppercase font-bold">Landscape (Web)</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )
-                    }
-
-                    {/* PLATFORMS ACCORDION */}
+                    {/* PLATFORMS ACCORDION - NOW CONTAINS MEDIA */}
                     {
                         PLATFORMS.map(platform => (
                             <PlatformAccordionItem
@@ -801,6 +685,79 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                         className="border-t border-white/5 bg-black/20"
                     >
                         <div className="p-4 space-y-4">
+                            {/* MEDIA ASSETS FOR THIS PLATFORM */}
+                            <div className="mb-4">
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-1">
+                                    <ImagePlus className="w-3 h-3" /> Archivos Multimedia
+                                </h4>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {/* VIDEO LOGIC: Meta, TikTok, Shorts, Snapchat */}
+                                    {['meta_ads', 'tiktok_ads', 'youtube_shorts', 'snapchat_ads'].includes(platform.id) && assets.videoUrl && (
+                                        <div className="col-span-2 sm:col-span-1">
+                                            <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black">
+                                                <video src={assets.videoUrl} className="w-full h-full object-cover opacity-80" />
+                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                                    <button
+                                                        onClick={() => downloadAsset(assets.videoUrl, `${platform.id}-video.mp4`)}
+                                                        className="px-3 py-1.5 bg-white text-black rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-zinc-200 transition"
+                                                    >
+                                                        <Download className="w-3 h-3" /> Video
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* SQUARE IMAGE: Meta, Marketplace, Google, Threads */}
+                                    {['meta_ads', 'facebook_marketplace', 'google_ads', 'threads'].includes(platform.id) && (assets.images?.square || assets.imageUrl) && (
+                                        <div className="aspect-square rounded-xl overflow-hidden border border-white/10 relative group bg-black">
+                                            <img src={assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                                <button
+                                                    onClick={() => downloadAsset(assets.images?.square || assets.imageUrl, `${platform.id}-square.jpg`)}
+                                                    className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
+                                                >
+                                                    <Download className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">1:1</div>
+                                        </div>
+                                    )}
+
+                                    {/* VERTICAL IMAGE: Meta, Snapchat, WhatsApp */}
+                                    {['meta_ads', 'snapchat_ads', 'whatsapp_channel'].includes(platform.id) && assets.images?.vertical && (
+                                        <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black">
+                                            <img src={assets.images.vertical} className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                                <button
+                                                    onClick={() => downloadAsset(assets.images.vertical, `${platform.id}-story.jpg`)}
+                                                    className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
+                                                >
+                                                    <Download className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">9:16</div>
+                                        </div>
+                                    )}
+
+                                    {/* HORIZONTAL IMAGE: Google, X */}
+                                    {['google_ads', 'twitter_x'].includes(platform.id) && assets.images?.horizontal && (
+                                        <div className="col-span-2 sm:col-span-1 aspect-video rounded-xl overflow-hidden border border-white/10 relative group bg-black">
+                                            <img src={assets.images.horizontal} className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                                <button
+                                                    onClick={() => downloadAsset(assets.images.horizontal, `${platform.id}-landscape.jpg`)}
+                                                    className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
+                                                >
+                                                    <Download className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">16:9</div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             {/* GOOGLE ADS SPECIAL RENDER */}
                             {platform.id === 'google_ads' ? (
                                 <div className="space-y-4">
