@@ -77,7 +77,7 @@ export async function createCampaignFromAssets(assets: any) {
         return { success: true, campaign, message: `Campaña "${title}" creada exitosamente` }
     } catch (error) {
         console.error('Error creating campaign from assets:', error)
-        return { success: false, error: 'Error al crear la campaña automáticamente' }
+        return { success: false, error: `Error al crear la campaña: ${error instanceof Error ? error.message : String(error)}` }
     }
 }
 
