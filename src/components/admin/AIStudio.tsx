@@ -249,23 +249,13 @@ export default function AIStudio() {
             <div className="h-16 border-b border-white/5 bg-zinc-900/50 backdrop-blur-md flex items-center justify-between px-4 shrink-0 z-20 relative">
                 <div className="flex items-center gap-4">
                     {/* Brand */}
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-900/20">
-                            <Sparkles className="w-5 h-5 text-white" />
-                        </div>
-                        <span className="font-black text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
-                            CarMatch OS
-                        </span>
-                    </div>
 
-                    {/* Divider */}
-                    <div className="h-6 w-px bg-white/10 hidden md:block"></div>
 
                     {/* Navigation Actions */}
                     <div className="flex items-center gap-2">
                         <button
                             onClick={handleNewChat}
-                            className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white rounded-lg text-xs font-bold transition border border-white/5"
+                            className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white rounded-lg text-xs font-bold transition border border-white/5"
                         >
                             <Plus className="w-3.5 h-3.5" /> Nuevo Chat
                         </button>
@@ -314,13 +304,11 @@ export default function AIStudio() {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={handleAutoPilot}
-                        className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-orange-900/20 hover:scale-105 active:scale-95 transition"
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-orange-900/20 hover:scale-105 active:scale-95 transition"
                     >
                         <Zap className="w-3.5 h-3.5 fill-current" />
-                        Piloto Automático
+                        Campaña Automática
                     </button>
-                    {/* Mobile Menu Toggle (simplified for now) */}
-                    <button className="md:hidden p-2 text-zinc-400" onClick={handleNewChat}><Plus /></button>
                 </div>
             </div>
 
