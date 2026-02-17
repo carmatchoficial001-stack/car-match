@@ -20,16 +20,14 @@ export async function generateRealVideo(prompt: string, aspectRatio: '9:16' | '1
     console.log(`[REPLICATE] Iniciando generación de video real con Luma/Minimax... Prompt: "${prompt.substring(0, 50)}..."`)
 
     try {
-        // MODEL: Luma Ray / Minimax / Kling
-        // Using Minimax (currently very strong for 5s clips) or Luma
-        // Let's use Minimax for high stability and motion
+        // MODEL: Minimax (High quality, reliable for public use)
+        // Luma Ray can also be used but Minimax is great for motion
         const output = await replicate.run(
-            "kwaivgi/kling-v1.6-pro", // Or Minimax/Luma equivalent endpoint
+            "minimax/video-01",
             {
                 input: {
                     prompt: prompt,
-                    aspect_ratio: aspectRatio,
-                    duration: 5 // Start with 5s clips for speed/cost balance
+                    prompt_optimizer: true
                 }
             }
         )
