@@ -35,7 +35,16 @@ export async function generateRealVideo(prompt: string, aspectRatio: '9:16' | '1
         )
 
         // Kling/Minimax usually returns a string URL or an array with the URL
-        console.log('[REPLICATE] Video generado:', output)
+        console.log('[REPLICATE] Video generado RAW:', output)
+
+        if (Array.isArray(output) && output.length > 0) {
+            return String(output[0])
+        }
+
+        if (typeof output === 'object' && output !== null && 'url' in output) {
+            return String((output as any).url)
+        }
+
         return String(output)
 
     } catch (error) {
@@ -77,9 +86,14 @@ export async function generateRealImage(prompt: string, width: number, height: n
 
         // Flux returns a ReadableStream or URL depending on version, check types
         // Usually returns an array of URLs [url1, url2]
+        console.log('[REPLICATE] Imagen generada RAW:', output)
+
         if (Array.isArray(output) && output.length > 0) {
-            console.log('[REPLICATE] Imagen generada:', output[0])
-            return String(output[0]) // Ensure string
+            return String(output[0])
+        }
+
+        if (typeof output === 'object' && output !== null && 'url' in output) {
+            return String((output as any).url)
         }
 
         return String(output)
