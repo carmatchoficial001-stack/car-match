@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from 'react'
 import {
     Sparkles, User, Send, ImageIcon, ImagePlus, Zap,
     Type, Video, Hash, MousePointer2, Copy, Check, Star,
-    MessageSquare, Plus, Trash2, History, RefreshCw
+    MessageSquare, Plus, Trash2, History, RefreshCw,
+    Menu, X, ChevronDown, LayoutGrid
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { chatWithPublicityAgent, suggestCampaignFromInventory, generateCampaignAssets } from '@/app/admin/actions/ai-content-actions'
@@ -26,6 +27,7 @@ export default function AIStudio() {
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
     const [isLoadingHistory, setIsLoadingHistory] = useState(false)
     const [loadError, setLoadError] = useState(false)
+    const [showHistory, setShowHistory] = useState(false) // 🆕 Control visual del historial
 
     const handleUseInCampaign = async (history: any[]) => {
         setIsGenerating(true)
@@ -114,6 +116,7 @@ export default function AIStudio() {
         setCurrentSessionId(null)
         setMessages([{ role: 'assistant', content: '¡Hola! Soy tu Director Creativo de IA. ¿En qué trabajamos hoy? 🚀' }])
         setMode('CHAT')
+        setShowHistory(false)
     }
 
     const handleSelectSession = async (sessionId: string) => {
@@ -121,6 +124,7 @@ export default function AIStudio() {
 
         setIsLoadingHistory(true)
         setCurrentSessionId(sessionId)
+        setShowHistory(false)
 
         const res = await getAISession(sessionId)
         if (res.success && res.chat) {
@@ -239,98 +243,89 @@ export default function AIStudio() {
     }
 
     return (
-        <div className="flex h-full bg-[#0a0a0a] text-white overflow-hidden rounded-2xl border border-white/5">
-            {/* Sidebar Tools */}
-            <div className="w-16 md:w-64 border-r border-white/5 bg-zinc-900/50 flex flex-col">
-                <div className="p-4 border-b border-white/5 flex items-center justify-between">
+        <div className="flex h-full bg-[#0a0a0a] text-white overflow-hidden rounded-2xl border border-white/5 flex-col relative">
+
+            {/* 🆕 TOP NAVBAR */}
+            <div className="h-16 border-b border-white/5 bg-zinc-900/50 backdrop-blur-md flex items-center justify-between px-4 shrink-0 z-20 relative">
+                <div className="flex items-center gap-4">
+                    {/* Brand */}
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-900/20">
-                            <Sparkles className="w-4 h-4 text-white" />
+                            <Sparkles className="w-5 h-5 text-white" />
                         </div>
-                        <span className="font-bold text-sm hidden md:block tracking-wide">AI Studio</span>
+                        <span className="font-black text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
+                            CarMatch OS
+                        </span>
                     </div>
 
-                </div>
+                    {/* Divider */}
+                    <div className="h-6 w-px bg-white/10 hidden md:block"></div>
 
-                <div className="p-3">
-                    <button
-                        onClick={handleNewChat}
-                        className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition"
-                    >
-                        <Plus className="w-3.5 h-3.5" /> <span>Nuevo Chat</span>
-                    </button>
-                </div>
-
-                <div className="p-2 space-y-1 overflow-y-auto flex-1 custom-scrollbar">
-                    <div className="flex items-center justify-between px-2 py-1 mb-1">
-                        <div className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Historial</div>
+                    {/* Navigation Actions */}
+                    <div className="flex items-center gap-2">
                         <button
-                            onClick={() => loadSessions()}
-                            disabled={isLoadingHistory}
-                            className={`p-1 hover:bg-white/10 rounded transition ${isLoadingHistory ? 'animate-spin' : ''}`}
-                            title="Actualizar historial"
+                            onClick={handleNewChat}
+                            className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white rounded-lg text-xs font-bold transition border border-white/5"
                         >
-                            <RefreshCw className="w-3 h-3 text-zinc-500 hover:text-white" />
+                            <Plus className="w-3.5 h-3.5" /> Nuevo Chat
                         </button>
-                    </div>
-                    {loadError && (
-                        <div className="px-2 py-2 mb-2 bg-red-500/10 border border-red-500/20 rounded-lg text-[10px] text-red-400 flex items-center gap-2">
-                            <span>Error al cargar</span>
-                            <button onClick={() => loadSessions()} className="underline hover:text-red-300">Reintentar</button>
-                        </div>
-                    )}
-                    <div className="space-y-0.5">
-                        {sessions.map(session => (
+
+                        <div className="relative">
                             <button
-                                key={session.id}
-                                onClick={() => handleSelectSession(session.id)}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-left transition-all group relative ${currentSessionId === session.id
-                                    ? 'bg-purple-500/10 text-purple-300 border border-purple-500/20'
-                                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                                    }`}
+                                onClick={() => setShowHistory(!showHistory)}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition border border-white/5 ${showHistory ? 'bg-purple-500/10 text-purple-300 border-purple-500/20' : 'bg-white/5 hover:bg-white/10 text-zinc-300'}`}
                             >
-                                <History className="w-3.5 h-3.5 shrink-0 opacity-50" />
-                                <span className="truncate flex-1">{session.name}</span>
-                                <div
-                                    onClick={(e) => handleDeleteSession(e, session.id)}
-                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded-md transition"
-                                    title="Eliminar chat"
-                                >
-                                    <Trash2 className="w-3 h-3" />
-                                </div>
+                                <History className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Historial</span>
+                                <ChevronDown className={`w-3 h-3 transition-transform ${showHistory ? 'rotate-180' : ''}`} />
                             </button>
-                        ))}
-                        {sessions.length === 0 && !isLoadingHistory && !loadError && (
-                            <div className="text-center py-4 text-[10px] text-zinc-600 italic">
-                                Sin historial reciente
-                            </div>
-                        )}
-                        {isLoadingHistory && sessions.length === 0 && (
-                            <div className="text-center py-4 text-[10px] text-zinc-600 animate-pulse">
-                                Cargando...
-                            </div>
-                        )}
+
+                            {/* 📂 HISTORY DROPDOWN (Floating) */}
+                            {showHistory && (
+                                <div className="absolute top-full left-0 mt-2 w-64 bg-[#1A1D21] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                    <div className="p-2 border-b border-white/5 flex items-center justify-between bg-zinc-900/50">
+                                        <span className="text-[10px] uppercase font-bold text-zinc-500">Chats Recientes</span>
+                                        <button onClick={() => loadSessions()} className="p-1 hover:text-white text-zinc-500 rounded"><RefreshCw className="w-3 h-3" /></button>
+                                    </div>
+                                    <div className="max-h-[300px] overflow-y-auto custom-scrollbar p-1 space-y-0.5">
+                                        {sessions.length === 0 && !isLoadingHistory && (
+                                            <div className="p-4 text-center text-xs text-zinc-600">No hay historial</div>
+                                        )}
+                                        {sessions.map(session => (
+                                            <button
+                                                key={session.id}
+                                                onClick={() => handleSelectSession(session.id)}
+                                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left transition group ${currentSessionId === session.id ? 'bg-purple-500/10 text-purple-300' : 'hover:bg-white/5 text-zinc-400'}`}
+                                            >
+                                                <MessageSquare className="w-3.5 h-3.5 shrink-0 opacity-50" />
+                                                <span className="truncate flex-1">{session.name}</span>
+                                                <div onClick={(e) => handleDeleteSession(e, session.id)} className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400">
+                                                    <Trash2 className="w-3 h-3" />
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                <div className="p-4 border-t border-white/5">
+                <div className="flex items-center gap-3">
                     <button
                         onClick={handleAutoPilot}
-                        className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition shadow-lg shadow-orange-900/20"
+                        className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-orange-900/20 hover:scale-105 active:scale-95 transition"
                     >
-                        <Zap className="w-4 h-4" />
-                        <span>Piloto Automático</span>
+                        <Zap className="w-3.5 h-3.5 fill-current" />
+                        Piloto Automático
                     </button>
+                    {/* Mobile Menu Toggle (simplified for now) */}
+                    <button className="md:hidden p-2 text-zinc-400" onClick={handleNewChat}><Plus /></button>
                 </div>
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0 bg-[#0F1115]">
-                {/* Top Bar / Filters */}
-                <div className="h-14 border-b border-white/5 flex items-center justify-end px-4 bg-zinc-900/30 backdrop-blur-sm">
-                    {isLoadingHistory && <span className="text-xs text-zinc-500 animate-pulse">Cargando...</span>}
-                </div>
-
+            <div className="flex-1 flex flex-col min-w-0 bg-[#0F1115] relative z-0">
                 {/* Chat/Content Area */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
                     {messages.map((msg, idx) => (
@@ -370,7 +365,7 @@ export default function AIStudio() {
 
                 {/* Input Area */}
                 <div className="p-4 bg-zinc-900/50 border-t border-white/5 backdrop-blur-md">
-                    <div className="relative flex items-end gap-2 bg-[#1A1D21] border border-white/10 rounded-2xl p-2 focus-within:border-purple-500/50 transition-all shadow-inner">
+                    <div className="relative flex items-end gap-2 bg-[#1A1D21] border border-white/10 rounded-2xl p-2 focus-within:border-purple-500/50 transition-all shadow-inner max-w-4xl mx-auto">
                         <button className="p-2 text-zinc-400 hover:text-white transition rounded-xl hover:bg-white/5 shrink-0" title="Subir Imagen de Referencia">
                             <ImagePlus className="w-5 h-5" />
                         </button>
@@ -396,37 +391,6 @@ export default function AIStudio() {
                     </div>
                 </div>
             </div>
-        </div>
-    )
-}
-
-function SidebarItem({ icon, label, active, onClick }: any) {
-    return (
-        <button
-            onClick={onClick}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${active
-                ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                }`}
-        >
-            <span className={active ? 'text-purple-400' : 'text-zinc-400'}>{icon}</span>
-            <span className="hidden md:inline">{label}</span>
-            {active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)] hidden md:block" />}
-        </button>
-    )
-}
-
-function SelectPill({ label, value, options, onChange }: any) {
-    return (
-        <div className="flex items-center gap-2 bg-[#1A1D21] border border-white/5 pl-3 pr-1 py-1 rounded-lg shrink-0">
-            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{label}</span>
-            <select
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                className="bg-transparent text-xs font-medium text-white appearance-none outline-none cursor-pointer hover:bg-white/5 rounded px-2 py-1"
-            >
-                {options.map((opt: string) => <option key={opt} value={opt} className="bg-zinc-900 text-white">{opt}</option>)}
-            </select>
         </div>
     )
 }
