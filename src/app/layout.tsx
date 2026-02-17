@@ -45,6 +45,17 @@ export const metadata: Metadata = {
     verification: {
         google: "u4BWC_7mrWziSal62PD0Jv6grcjI6Pl2zHOnc0Jcdxg",
     },
+    robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+            index: true,
+            follow: true,
+            'max-video-preview': -1,
+            'max-image-preview': 'large',
+            'max-snippet': -1,
+        },
+    },
     keywords: [
         // HIGH-INTENT COMMERCIAL (Priority #1 for SEO)
         "vender carro gratis", "compra venta autos", "comprar autos usados", "marketplace autos mexico",

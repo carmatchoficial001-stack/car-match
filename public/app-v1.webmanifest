@@ -3,7 +3,7 @@
     "short_name": "CarMatch",
     "description": "Red social para comprar, vender y descubrir vehículos y negocios automotrices en tiempo real",
     "start_url": "/",
-    "display": "standalone",
+    "display": "minimal-ui",
     "background_color": "#0f172a",
     "theme_color": "#0f172a",
     "orientation": "portrait",
