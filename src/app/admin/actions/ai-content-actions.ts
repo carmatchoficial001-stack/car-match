@@ -557,12 +557,20 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             const { generateRealImage } = await import('@/lib/ai/replicate-client')
             const { generateVeoVideo } = await import('@/lib/ai/video-generator')
 
-            const [imgSquare, imgVertical, imgHorizontal, videoResult] = await Promise.all([
-                generateRealImage(basePrompt, 1080, 1080), // Square (Feed)
-                generateRealImage(basePrompt, 1080, 1920), // Vertical (Stories)
-                generateRealImage(basePrompt, 1920, 1080),  // Horizontal (Web/Thumb)
-                generateVeoVideo(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical')
-            ])
+            // SEQUENTIAL GENERATION TO AVOID RATE LIMITS (429)
+            // Replicate free/starter tier has strict concurrency limits.
+
+            console.log('[AI] Generando imagen Cuadrada (1/4)...');
+            const imgSquare = await generateRealImage(basePrompt, 1080, 1080);
+
+            console.log('[AI] Generando imagen Vertical (2/4)...');
+            const imgVertical = await generateRealImage(basePrompt, 1080, 1920);
+
+            console.log('[AI] Generando imagen Horizontal (3/4)...');
+            const imgHorizontal = await generateRealImage(basePrompt, 1920, 1080);
+
+            console.log('[AI] Generando Video (4/4)...');
+            const videoResult = await generateVeoVideo(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical');
 
             console.log('[AI] Assets generados exitosamente con Replicate')
 
