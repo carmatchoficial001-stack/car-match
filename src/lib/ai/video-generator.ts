@@ -10,8 +10,27 @@
  */
 
 export async function generateVeoVideo(prompt: string, style: 'cinematic' | 'vertical' = 'cinematic'): Promise<{ url: string, duration: number }> {
-    console.log(`[VEO-SIMULATION] Generating video with prompt: "${prompt}"...`)
+    console.log(`[VIDEO-GEN] Generating video with prompt: "${prompt}"...`)
 
+    // 1. Try REAL Generation (Replicate: Luma/Minimax)
+    try {
+        const { generateRealVideo } = await import('@/lib/ai/replicate-client')
+        const realUrl = await generateRealVideo(prompt, style === 'vertical' ? '9:16' : '16:9')
+
+        return {
+            url: realUrl,
+            duration: 5 // Usually 5s for these models
+        }
+    } catch (error: any) {
+        // If missing key, just log and fallback
+        if (error.message === 'MISSING_API_KEY') {
+            console.log('[VIDEO-GEN] No Replicate key found. Using VEO SIMULATION.')
+        } else {
+            console.error('[VIDEO-GEN] Error with Replicate, falling back to simulation:', error)
+        }
+    }
+
+    // 2. Fallback: VEO SIMULATION (Stock Footage)
     // Simulate processing delay (Veo takes ~1-2 mins, we simulate 3 seconds for UX demo)
     await new Promise(resolve => setTimeout(resolve, 3000));
 
@@ -32,7 +51,7 @@ export async function generateVeoVideo(prompt: string, style: 'cinematic' | 'ver
     if (p.includes('race') || p.includes('track') || p.includes('speed')) videoUrl = VIDEO_STOCK.RACING;
     if (p.includes('family') || p.includes('trip') || p.includes('travel')) videoUrl = VIDEO_STOCK.FAMILY_DRIVE;
 
-    // Return the result assuming it's from Google Cloud Storage
+    // Return the result
     return {
         url: videoUrl,
         duration: 15 // seconds
