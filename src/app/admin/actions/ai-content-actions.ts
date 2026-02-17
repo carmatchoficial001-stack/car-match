@@ -550,19 +550,26 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
 
         // Parallel generation for speed with error handling
         try {
-            const [imgSquare, imgVertical, imgHorizontal] = await Promise.all([
+            console.log('[AI] Generando imágenes y video (Simulación VEO)...')
+            const { generateFluxImage } = await import('@/lib/ai/replicate') // Or keep using pollinations if preferred
+            const { generateVeoVideo } = await import('@/lib/ai/video-generator')
+
+            const [imgSquare, imgVertical, imgHorizontal, videoResult] = await Promise.all([
                 generatePollinationsImage(basePrompt, 1080, 1080), // Square (Feed)
                 generatePollinationsImage(basePrompt, 1080, 1920), // Vertical (Stories)
-                generatePollinationsImage(basePrompt, 1920, 1080)  // Horizontal (Web/Thumb)
+                generatePollinationsImage(basePrompt, 1920, 1080),  // Horizontal (Web/Thumb)
+                generateVeoVideo(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical')
             ])
 
-            console.log('[AI] Imágenes generadas exitosamente')
+            console.log('[AI] Assets generados exitosamente')
 
             return {
                 success: true,
                 assets: {
                     ...data,
                     imageUrl: imgSquare, // Default for preview
+                    videoUrl: videoResult.url, // NEW: Real video URL
+                    videoDuration: videoResult.duration,
                     images: {
                         square: imgSquare,
                         vertical: imgVertical,

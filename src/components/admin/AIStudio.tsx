@@ -60,10 +60,12 @@ export default function AIStudio() {
             } else {
                 // Show detailed error message
                 const errorMsg = res.error || 'Error desconocido al generar assets.'
-                const detailsMsg = res.details ? `\n\nDetalles técnicos: ${res.details}` : ''
+                // Try to extract more info if available
+                const details = res.details || ''
+
                 setMessages(prev => [...prev, {
                     role: 'assistant',
-                    content: `❌ Error al generar assets.\n\n${errorMsg}${detailsMsg}\n\n💡 Intenta:\n• Ser más específico en tu descripción\n• Usar un mensaje más corto\n• Intentar de nuevo en unos segundos`
+                    content: `❌ Error al generar assets.\n\n${errorMsg}\n${details ? `\nDetalles: ${details}` : ''}\n\n💡 Intenta:\n• Ser más específico en tu descripción\n• Usar un mensaje más corto`
                 }])
             }
         } catch (error: any) {

@@ -1,14 +1,16 @@
 export async function generatePollinationsImage(prompt: string, width: number = 1080, height: number = 1350): Promise<string> {
     try {
-        // Encode prompt for URL
-        const encodedPrompt = encodeURIComponent(prompt.trim())
+        // Limit prompt length to avoid URL errors (Pollinations/Browser limit)
+        const safePrompt = prompt.trim().substring(0, 800)
+        const encodedPrompt = encodeURIComponent(safePrompt)
 
         // Add random seed to ensure variety
         const randomSeed = Math.floor(Math.random() * 1000000)
 
         // Construct URL with high quality parameters
         // Model: flux (best for realism)
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=flux&seed=${randomSeed}&nologo=true`
+        // nologo=true to remove watermark if possible
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=flux&seed=${randomSeed}&nologo=true&enhance=true`
 
         return imageUrl
     } catch (error) {

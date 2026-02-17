@@ -26,6 +26,18 @@ import {
 } from '@/app/admin/actions/ai-content-actions'
 import AIStudio from '@/components/admin/AIStudio'
 
+// Helper for MX Date
+const formatDateMX = (date: Date | string) => {
+    if (!date) return ''
+    return new Date(date).toLocaleDateString('es-MX', {
+        timeZone: 'America/Mexico_City',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    })
+}
+
 interface PublicityCampaign {
     id: string
     title: string
@@ -87,6 +99,27 @@ export default function PublicityTab() {
             setViewMode('CAMPAIGNS')
             // Refresh campaigns list
             fetchCampaigns()
+
+            // ✨ AUTO-OPEN AD PACK for instant gratification
+            if (e.detail) {
+                try {
+                    // e.detail is the campaign object
+                    // We need to parse metadata to get assets
+                    const campaign = e.detail
+                    if (campaign.metadata) {
+                        const meta = typeof campaign.metadata === 'string'
+                            ? JSON.parse(campaign.metadata)
+                            : campaign.metadata
+
+                        if (meta.assets) {
+                            setGeneratedAssets(meta.assets)
+                            setShowAssetsModal(true)
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error auto-opening campaign assets:', error)
+                }
+            }
         }
         window.addEventListener('campaign-created', handleCampaignCreated)
         return () => window.removeEventListener('campaign-created', handleCampaignCreated)
@@ -293,7 +326,14 @@ export default function PublicityTab() {
                                                         <td className="px-6 py-4">
                                                             <div className="flex items-center gap-3">
                                                                 <div className="w-12 h-12 rounded-lg bg-black overflow-hidden border border-white/10 relative">
-                                                                    <img src={campaign.imageUrl} alt={campaign.title} className="w-full h-full object-cover" />
+                                                                    <img
+                                                                        src={campaign.imageUrl}
+                                                                        alt={campaign.title}
+                                                                        className="w-full h-full object-cover"
+                                                                        onError={(e) => {
+                                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1533473359331-0135ef1bcfb0?auto=format&fit=crop&q=80&w=1000'
+                                                                        }}
+                                                                    />
                                                                 </div>
                                                                 <div>
                                                                     <p className="font-bold text-sm text-white">{campaign.title}</p>
@@ -352,7 +392,14 @@ export default function PublicityTab() {
                                                 <div className="flex justify-between items-start">
                                                     <div className="flex gap-3">
                                                         <div className="w-16 h-16 rounded-lg bg-black overflow-hidden border border-white/10">
-                                                            <img src={campaign.imageUrl} alt={campaign.title} className="w-full h-full object-cover" />
+                                                            <img
+                                                                src={campaign.imageUrl}
+                                                                alt={campaign.title}
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => {
+                                                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1533473359331-0135ef1bcfb0?auto=format&fit=crop&q=80&w=1000'
+                                                                }}
+                                                            />
                                                         </div>
                                                         <div>
                                                             <h4 className="font-bold text-white text-sm">{campaign.title}</h4>
@@ -527,6 +574,22 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
     // Determine title
     const campaignTitle = assets.internal_title || assets.title || 'Campaña Generada'
 
+    // Helper for downloading assets
+    const handleDownload = async (url: string, filename: string) => {
+        try {
+            const response = await fetch(url)
+            const blob = await response.blob()
+            const link = document.createElement('a')
+            link.href = window.URL.createObjectURL(blob)
+            link.download = filename
+            link.click()
+            window.URL.revokeObjectURL(link.href)
+        } catch (error) {
+            console.error('Download failed:', error)
+            window.open(url, '_blank')
+        }
+    }
+
     return (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-end sm:items-center justify-center sm:p-4">
             <motion.div
@@ -554,12 +617,37 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
                 {/* SCROLLABLE CONTENT */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
                     {/* VIDEO ASSETS SECTION (Global) */}
-                    {(assets.videoPrompt || assets.videoScript) && (
+                    {(assets.videoUrl || assets.videoPrompt || assets.videoScript) && (
                         <div className="mb-6 bg-gradient-to-br from-zinc-900 to-black border border-white/10 rounded-2xl p-5">
                             <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
                                 <Video className="w-4 h-4 text-purple-400" />
-                                Assets de Video Globales
+                                Assets de Video Globales (VEO / SORA)
                             </h3>
+
+                            {/* NEW: Video Player if URL exists */}
+                            {assets.videoUrl && (
+                                <div className="mb-4 rounded-xl overflow-hidden border border-white/10 relative group aspect-video">
+                                    <video
+                                        src={assets.videoUrl}
+                                        controls
+                                        className="w-full h-full object-cover"
+                                        poster={assets.imageUrl}
+                                    />
+                                    <div className="absolute top-2 right-2 flex gap-2">
+                                        <button
+                                            onClick={() => handleDownload(assets.videoUrl, `video-campaign-${assets.internal_title || 'cm'}.mp4`)}
+                                            className="bg-black/60 backdrop-blur px-2 py-1 rounded-lg text-xs text-white font-bold border border-white/10 flex items-center gap-1 hover:bg-white/10 transition"
+                                        >
+                                            <Download className="w-3 h-3" />
+                                            Descargar
+                                        </button>
+                                        <div className="bg-black/60 backdrop-blur px-2 py-1 rounded text-[10px] text-white font-mono border border-white/10">
+                                            GENERADO POR IA
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-1 gap-3">
                                 {assets.videoPrompt_vertical && (
                                     <CopyableBlock
@@ -581,28 +669,94 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
                         </div>
                     )}
 
+
+                    {/* IMAGE ASSETS SECTION (Global) */}
+                    {
+                        (assets.images || assets.imageUrl) && (
+                            <div className="mb-6 bg-gradient-to-br from-zinc-900 to-black border border-white/10 rounded-2xl p-5">
+                                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                                    <ImagePlus className="w-4 h-4 text-pink-400" />
+                                    Assets de Imagen (Flux / Midjourney)
+                                </h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    {/* Square */}
+                                    <div className="space-y-2">
+                                        <div className="aspect-square rounded-xl overflow-hidden border border-white/10 relative group">
+                                            <img src={assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                                <button
+                                                    onClick={() => handleDownload(assets.images?.square || assets.imageUrl, `image-square-${assets.internal_title}.jpg`)}
+                                                    className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
+                                                >
+                                                    <Download className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-center text-zinc-500 uppercase font-bold">Square (Feed)</p>
+                                    </div>
+                                    {/* Vertical */}
+                                    {assets.images?.vertical && (
+                                        <div className="space-y-2">
+                                            <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group">
+                                                <img src={assets.images.vertical} className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                                    <button
+                                                        onClick={() => handleDownload(assets.images.vertical, `image-vertical-${assets.internal_title}.jpg`)}
+                                                        className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
+                                                    >
+                                                        <Download className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <p className="text-[10px] text-center text-zinc-500 uppercase font-bold">Vertical (Stories)</p>
+                                        </div>
+                                    )}
+                                    {/* Horizontal */}
+                                    {assets.images?.horizontal && (
+                                        <div className="space-y-2">
+                                            <div className="aspect-video rounded-xl overflow-hidden border border-white/10 relative group">
+                                                <img src={assets.images.horizontal} className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                                    <button
+                                                        onClick={() => handleDownload(assets.images.horizontal, `image-landscape-${assets.internal_title}.jpg`)}
+                                                        className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
+                                                    >
+                                                        <Download className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <p className="text-[10px] text-center text-zinc-500 uppercase font-bold">Landscape (Web)</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )
+                    }
+
                     {/* PLATFORMS ACCORDION */}
-                    {PLATFORMS.map(platform => (
-                        <PlatformAccordionItem
-                            key={platform.id}
-                            platform={platform}
-                            data={assets.platforms?.[platform.id]}
-                            assets={assets}
-                        />
-                    ))}
-                </div>
+                    {
+                        PLATFORMS.map(platform => (
+                            <PlatformAccordionItem
+                                key={platform.id}
+                                platform={platform}
+                                data={assets.platforms?.[platform.id]}
+                                assets={assets}
+                            />
+                        ))
+                    }
+                </div >
 
                 {/* FOOTER ACTIONS */}
-                <div className="p-4 border-t border-white/10 bg-zinc-900/50 backdrop-blur-md shrink-0 safe-area-bottom">
+                < div className="p-4 border-t border-white/10 bg-zinc-900/50 backdrop-blur-md shrink-0 safe-area-bottom" >
                     <button
                         onClick={onClose}
                         className="w-full py-3.5 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition shadow-lg shadow-white/5 active:scale-[0.98]"
                     >
                         Listo, Cerrar
                     </button>
-                </div>
-            </motion.div>
-        </div>
+                </div >
+            </motion.div >
+        </div >
     )
 }
 

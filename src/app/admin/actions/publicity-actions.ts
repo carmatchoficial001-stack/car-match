@@ -53,7 +53,7 @@ export async function createPublicityCampaign(prevState: any, formData: FormData
 // Helper function to create campaign directly from code (not from form)
 export async function createCampaignFromAssets(assets: any) {
     try {
-        const title = `Campaña IA - ${new Date().toLocaleDateString('es-MX', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+        const title = `Campaña IA - ${new Date().toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
 
         const campaign = await prisma.publicityCampaign.create({
             data: {
