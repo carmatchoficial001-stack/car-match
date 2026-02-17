@@ -823,6 +823,7 @@ model PublicityCampaign {
   socialMediaEnabled    Boolean   @default(false)
   lastSocialPost        DateTime?
   postingFrequencyHours Int       @default(6)
+  metadata              Json?
   
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
