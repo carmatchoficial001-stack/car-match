@@ -2,8 +2,9 @@ import Replicate from 'replicate'
 
 // Initialize Replicate client
 // Requires REPLICATE_API_TOKEN in .env
+// We initialize lazily or check for token to avoid build failures
 const replicate = new Replicate({
-    auth: process.env.REPLICATE_API_TOKEN,
+    auth: process.env.REPLICATE_API_TOKEN || 'MISSING_TOKEN_DURING_BUILD',
 })
 
 /**
@@ -12,7 +13,7 @@ const replicate = new Replicate({
  * @param duration - Target duration (approximate)
  */
 export async function generateRealVideo(prompt: string, aspectRatio: '9:16' | '16:9' = '9:16'): Promise<string> {
-    if (!process.env.REPLICATE_API_TOKEN) {
+    if (!process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_TOKEN === 'MISSING_TOKEN_DURING_BUILD') {
         console.warn('⚠️ No REPLICATE_API_TOKEN found. Falling back to simulation.')
         throw new Error('MISSING_API_KEY')
     }
@@ -57,7 +58,7 @@ export async function generateRealVideo(prompt: string, aspectRatio: '9:16' | '1
  * @param aspectRatio - Target aspect ratio
  */
 export async function generateRealImage(prompt: string, width: number, height: number): Promise<string> {
-    if (!process.env.REPLICATE_API_TOKEN) {
+    if (!process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_TOKEN === 'MISSING_TOKEN_DURING_BUILD') {
         throw new Error('MISSING_API_KEY')
     }
 
