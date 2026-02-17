@@ -25,6 +25,7 @@ export default function AIStudio() {
     const [sessions, setSessions] = useState<any[]>([])
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
     const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+    const [loadError, setLoadError] = useState(false)
 
     const handleUseInCampaign = async (history: any[]) => {
         setIsGenerating(true)
@@ -91,9 +92,21 @@ export default function AIStudio() {
     }, [messages])
 
     const loadSessions = async () => {
-        const res = await getAISessions()
-        if (res.success && res.chats) {
-            setSessions(res.chats)
+        setIsLoadingHistory(true)
+        setLoadError(false)
+        try {
+            const res = await getAISessions()
+            if (res.success && res.chats) {
+                setSessions(res.chats)
+            } else {
+                console.error('Error loading sessions:', res.error)
+                setLoadError(true)
+            }
+        } catch (error) {
+            console.error('Exception loading sessions:', error)
+            setLoadError(true)
+        } finally {
+            setIsLoadingHistory(false)
         }
     }
 
@@ -151,6 +164,9 @@ export default function AIStudio() {
                     sessionId = newSessionRes.chat.id
                     setCurrentSessionId(sessionId)
                     loadSessions() // Refresh list to show new chat
+                } else {
+                    console.error('Error creating session:', newSessionRes.error)
+                    // Optional: Show error to user via toast or message
                 }
             }
 
@@ -246,7 +262,23 @@ export default function AIStudio() {
                 </div>
 
                 <div className="p-2 space-y-1 overflow-y-auto flex-1 custom-scrollbar">
-                    <div className="px-2 py-1 text-[10px] font-black text-zinc-500 uppercase tracking-wider">Historial</div>
+                    <div className="flex items-center justify-between px-2 py-1 mb-1">
+                        <div className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Historial</div>
+                        <button
+                            onClick={() => loadSessions()}
+                            disabled={isLoadingHistory}
+                            className={`p-1 hover:bg-white/10 rounded transition ${isLoadingHistory ? 'animate-spin' : ''}`}
+                            title="Actualizar historial"
+                        >
+                            <RefreshCw className="w-3 h-3 text-zinc-500 hover:text-white" />
+                        </button>
+                    </div>
+                    {loadError && (
+                        <div className="px-2 py-2 mb-2 bg-red-500/10 border border-red-500/20 rounded-lg text-[10px] text-red-400 flex items-center gap-2">
+                            <span>Error al cargar</span>
+                            <button onClick={() => loadSessions()} className="underline hover:text-red-300">Reintentar</button>
+                        </div>
+                    )}
                     <div className="space-y-0.5">
                         {sessions.map(session => (
                             <button
@@ -262,14 +294,20 @@ export default function AIStudio() {
                                 <div
                                     onClick={(e) => handleDeleteSession(e, session.id)}
                                     className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 hover:text-red-400 rounded-md transition"
+                                    title="Eliminar chat"
                                 >
                                     <Trash2 className="w-3 h-3" />
                                 </div>
                             </button>
                         ))}
-                        {sessions.length === 0 && (
+                        {sessions.length === 0 && !isLoadingHistory && !loadError && (
                             <div className="text-center py-4 text-[10px] text-zinc-600 italic">
                                 Sin historial reciente
+                            </div>
+                        )}
+                        {isLoadingHistory && sessions.length === 0 && (
+                            <div className="text-center py-4 text-[10px] text-zinc-600 animate-pulse">
+                                Cargando...
                             </div>
                         )}
                     </div>
