@@ -2,7 +2,7 @@ export async function generatePollinationsImage(prompt: string, width: number = 
 
     // 1. Try REAL Generation (Replicate: Flux-Schnell)
     try {
-        const { generateRealImage } = await import('@/lib/ai/replicate-client')
+        const { generateRealImage } = await import('./replicate-client')
         const realUrl = await generateRealImage(prompt, width, height)
         return realUrl
     } catch (error: any) {

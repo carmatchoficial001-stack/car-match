@@ -14,7 +14,7 @@ export async function generateVeoVideo(prompt: string, style: 'cinematic' | 'ver
 
     // 1. Try REAL Generation (Replicate: Luma/Minimax)
     try {
-        const { generateRealVideo } = await import('@/lib/ai/replicate-client')
+        const { generateRealVideo } = await import('./replicate-client')
         const realUrl = await generateRealVideo(prompt, style === 'vertical' ? '9:16' : '16:9')
 
         return {
