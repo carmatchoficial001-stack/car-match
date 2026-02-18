@@ -324,11 +324,26 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
             
             Return a JSON object with:
             {
+                "internal_title": "Nombre de la campaña en ESPAÑOL",
                 "caption": "Una caption visual con emojis en ESPAÑOL. MAX 3 líneas. DEBE incluir CTA: 'Descarga CarMatch'.",
                 "imagePrompt": "An AI image prompt representing the scenario (Photorealistic, 8k) - THIS CAN BE IN ENGLISH",
                 "videoScript": "Un guión de video de 15 segundos en ESPAÑOL en el estilo '${randomStyle}'. Debe ser UN TEXTO CONTINUO, NO un array.",
                 "videoPrompt": "A technical prompt for Google Veo 3 / Sora in ENGLISH (e.g. 'Cinematic drone shot of a car driving through Mexico City, 8k, hyperrealistic, slow motion, golden hour lighting').",
-                "strategy": "Explicación en ESPAÑOL de por qué este ángulo será viral y ayudará a alcanzar la meta de 2.8B usuarios."
+                "strategy": "Explicación en ESPAÑOL de por qué este ángulo será viral y ayudará a alcanzar la meta de 2.8B usuarios.",
+                "platforms": {
+                    "meta_ads": { "primary_text": "Copy en ESPAÑOL", "headline": "Título en ESPAÑOL", "description": "Desc en ESPAÑOL" },
+                    "facebook_marketplace": { "title": "Título en ESPAÑOL", "description": "Desc en ESPAÑOL" },
+                    "google_ads": {
+                        "headlines": ["Título 1", "Título 2", "Título 3"],
+                        "descriptions": ["Desc 1", "Desc 2"]
+                    },
+                    "tiktok_ads": { "caption": "Hook en ESPAÑOL", "script_notes": "Dirección en ESPAÑOL" },
+                    "youtube_shorts": { "title": "Título en ESPAÑOL", "description": "Desc en ESPAÑOL" },
+                    "twitter_x": { "tweets": ["Tweet 1", "Tweet 2"] },
+                    "threads": { "caption": "Hebra en ESPAÑOL" },
+                    "snapchat_ads": { "headline": "Título en ESPAÑOL", "caption": "Caption en ESPAÑOL" },
+                    "whatsapp_channel": { "caption": "Mensaje en ESPAÑOL" }
+                }
             }
             
             IMPORTANT FOR videoScript:
@@ -341,11 +356,19 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
         // TIMEOUT & FALLBACK Protection
         let text = "";
         const FALLBACK_STRATEGY_JSON = JSON.stringify({
+            "internal_title": "Campaña de Rescate CarMatch",
             "caption": "🔥 ¿Aun no tienes el auto de tus sueños? 🚗💨 Encuéntralo en CarMatch. La App #1 de compra-venta segura. 👇 ¡Descarga YA!",
             "imagePrompt": "Futuristic smartphone showing CarMatch app with a luxury car coming out of the screen, neon lights, cyber city background, 8k",
             "videoScript": "Escena 1: Primer plano de un celular con CarMatch. Escena 2: Dedo hace Swipe Right. Escena 3: El auto aparece mágicamente en la calle. Escena 4: Conductor feliz sube al auto. Texto: Tu Auto Ideal te Espera.",
             "videoPrompt": "Cinematic transition from smartphone screen to real life luxury car, magical effects, high energy, 8k",
-            "strategy": "Estrategia de Alta Velocidad: Enfocada en la gratificación instantánea y la facilidad de uso de la app (Efecto Tinder)."
+            "strategy": "Estrategia de Alta Velocidad: Enfocada en la gratificación instantánea y la facilidad de uso de la app (Efecto Tinder).",
+            "platforms": {
+                "meta_ads": { "primary_text": "Encuentra tu nave en segundos.", "headline": "Swipe to Drive", "description": "Seguro y veloz" },
+                "facebook_marketplace": { "title": "Auto Ideal CarMatch", "description": "Compra venta segura" },
+                "google_ads": { "headlines": ["Auto Ideal", "CarMatch México", "Compra Segura"], "descriptions": ["La app #1 de autos", "Encuentra tu nave hoy"] },
+                "tiktok_ads": { "caption": "Tu próxima nave está a un swipe #CarMatch", "script_notes": "Cinemática de swipe" },
+                "whatsapp_channel": { "caption": "🔥 Oferta Relámpago en CarMatch" }
+            }
         });
 
         try {

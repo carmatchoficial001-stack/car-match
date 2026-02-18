@@ -108,12 +108,21 @@ export default function PublicityTab() {
                     // We need to parse metadata to get assets
                     const campaign = e.detail
                     if (campaign.metadata) {
-                        const meta = typeof campaign.metadata === 'string'
+                        let meta = typeof campaign.metadata === 'string'
                             ? JSON.parse(campaign.metadata)
                             : campaign.metadata
 
-                        if (meta.assets) {
-                            setGeneratedAssets(meta.assets)
+                        let assets = meta.assets
+                        if (typeof assets === 'string') {
+                            try {
+                                assets = JSON.parse(assets)
+                            } catch (e) {
+                                console.error('Error parsing nested assets string in auto-open', e)
+                            }
+                        }
+
+                        if (assets) {
+                            setGeneratedAssets(assets)
                             setShowAssetsModal(true)
                         }
                     }
