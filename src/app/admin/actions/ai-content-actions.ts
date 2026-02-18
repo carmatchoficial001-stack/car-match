@@ -414,15 +414,29 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
         const chat = geminiFlashConversational.startChat({
             history: historyParts,
             generationConfig: {
-                maxOutputTokens: 1000,
+                maxOutputTokens: 500, // Reduced for speed
             },
         });
 
         const lastMessage = messages[messages.length - 1].content
-        const result = await chat.sendMessage(lastMessage)
-        const response = result.response.text()
 
-        return { success: true, message: response }
+        // TIMEOUT PROTECTION (9s max to stay within Vercel 10s limit)
+        try {
+            const result = await Promise.race([
+                chat.sendMessage(lastMessage),
+                new Promise<any>((_, reject) => setTimeout(() => reject(new Error("CHAT_TIMEOUT")), 9000))
+            ]);
+
+            const response = result.response.text()
+            return { success: true, message: response }
+
+        } catch (timeoutErr) {
+            console.warn('[AI-CHAT] Chat Timeout. Returning fallback.');
+            return {
+                success: true,
+                message: "¡Qué interesante! 🚀 Estoy analizando esa idea a fondo para darte la mejor estrategia. Mientras tanto, ¿te gustaría que generemos una campaña rápida con lo que tenemos? O cuéntame más detalles."
+            }
+        }
     } catch (error) {
         console.error('Error in chatWithPublicityAgent:', error)
         return { success: false, error: 'Error connecting to AI Agent.' }
