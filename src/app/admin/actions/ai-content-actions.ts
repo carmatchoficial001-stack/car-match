@@ -486,19 +486,48 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             Último mensaje del usuario: "${chatHistory[chatHistory.length - 1].content}"
         `
 
-        console.log('[AI] Generando contenido de campaña...')
-
-        // Use JSON mode for guaranteed valid JSON output
-        const result = await geminiFlashConversational.generateContent({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: {
-                responseMimeType: 'application/json',
-                temperature: 0.8
+        const FALLBACK_CAMPAIGN_JSON = JSON.stringify({
+            "internal_title": "Campaña Express (Fallback)",
+            "imagePrompt": `Luxury car in ${country.name} street, 8k, photorealistic`,
+            "videoPrompt_vertical": "Cinematic vertical drone shot of a luxury car driving at sunset",
+            "videoPrompt_horizontal": "Cinematic horizontal shot of a luxury car driving at sunset",
+            "videoScript": "Escena 1: Un auto increíble pasea por la ciudad. Escena 2: Muestra el logo de CarMatch. Escena 3: Descarga la app hoy mismo.",
+            "platforms": {
+                "meta_ads": { "primary_text": "Encuentra tu auto ideal hoy mismo en CarMatch.", "headline": "Tu Dream Car te espera", "description": "Descarga la App Gratis" },
+                "facebook_marketplace": { "title": "Autos Increíbles en Venta - CarMatch", "description": "Miles de autos verificados te esperan. Descarga la app." },
+                "google_ads": { "headlines": ["Compra Autos Seguros", "Vende tu Auto Rápido", "CarMatch App"], "descriptions": ["La mejor forma de comprar y vender autos.", "Seguridad y rapidez garantizada."] },
+                "tiktok_ads": { "caption": "Tu próximo auto está a un swipe de distancia 🚗💨 #CarMatch #AutoNuevo", "script_notes": "Mostrar autos rápidos y gente feliz usando la app." },
+                "youtube_shorts": { "title": "¡Encuentra tu Nave! 🚗🔥", "description": "Descarga CarMatch en iOS y Android." },
+                "twitter_x": { "tweets": ["¿Buscas auto nuevo? 🚗 Descarga CarMatch hoy mismo."] },
+                "threads": { "text": "¿Cuál es el auto de tus sueños? Probablemente esté en CarMatch. 👀🚗" },
+                "snapchat_ads": { "headline": "Swipea tu Auto Ideal", "caption": "Descarga CarMatch Gratis" },
+                "messaging_apps": { "broadcast_message": "¡Ofertas exclusivas en CarMatch! Encuentra tu auto hoy." }
             }
-        })
+        });
 
-        const text = result.response.text()
-        console.log('[AI] Respuesta JSON recibida, parseando...')
+        console.log('[AI] Generando contenido de campaña (Timeout: 4s)...')
+
+        // GEMINI TIMEOUT WRAPPER (4s max)
+        let text = "";
+        try {
+            const result = await Promise.race([
+                geminiFlashConversational.generateContent({
+                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        responseMimeType: 'application/json',
+                        temperature: 0.8
+                    }
+                }),
+                new Promise<any>((_, reject) => setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 4000))
+            ]);
+            text = result.response.text();
+            console.log('[AI] Gemini respondió a tiempo.');
+        } catch (err: any) {
+            console.warn('[AI] Gemini tardó demasiado o falló. Usando JSON Fallback.', err.message);
+            text = FALLBACK_CAMPAIGN_JSON;
+        }
+
+        console.log('[AI] Respuesta JSON recibida/fallback, parseando...')
 
         // With JSON mode, the response should already be valid JSON
         // Still do minimal cleanup just in case
@@ -572,7 +601,18 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                 }
             }
 
-            console.log('[AI] Iniciando generación de assets (PARALELO + Fallback)...');
+            // TIMEOUT HANDLING for Vercel Hobby Plan (10s execution limit)
+            const withTimeout = <T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> => {
+                return Promise.race([
+                    promise,
+                    new Promise<T>((resolve) => setTimeout(() => {
+                        console.warn(`[AI] Timeout de ${ms}ms excedido. Usando Fallback.`);
+                        resolve(fallback);
+                    }, ms))
+                ]);
+            };
+
+            console.log('[AI] Iniciando generación de assets (PARALELO + Fallback + Timeouts)...');
 
             // PARALLEL EXECUTION:
             // We use Promise.all to run all generations at once.
@@ -581,23 +621,42 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             // This prevents Vercel Timeouts (10s limit) which happens with sequential execution.
 
             const [imgSquare, imgVertical, imgHorizontal, videoResult] = await Promise.all([
-                generateImageWithFallback(basePrompt, 1080, 1080, 'Square'),
-                generateImageWithFallback(basePrompt, 1080, 1920, 'Vertical'),
-                generateImageWithFallback(basePrompt, 1920, 1080, 'Horizontal'),
-                // Video also needs to be robust
-                (async () => {
-                    try {
-                        console.log('[AI] Generando Video con Replicate (Veo)...');
-                        // Video generator has its own internal fallback/checks but we wrap it for safety
-                        return await generateVeoVideo(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical');
-                    } catch (videoErr: any) {
-                        console.warn('[AI] Replicate Video wrapper falló. Usando Stock.', videoErr.message);
-                        return {
-                            url: 'https://cdn.pixabay.com/video/2024/02/09/199958-911694865_large.mp4',
-                            duration: 15
-                        };
+                // IMAGES: 5s Timeout per image (Pollinations is fast, Replicate might be slow)
+                withTimeout(
+                    generateImageWithFallback(basePrompt, 1080, 1080, 'Square'),
+                    5000,
+                    'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1080&h=1080'
+                ),
+                withTimeout(
+                    generateImageWithFallback(basePrompt, 1080, 1920, 'Vertical'),
+                    5000,
+                    'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1080&h=1920'
+                ),
+                withTimeout(
+                    generateImageWithFallback(basePrompt, 1920, 1080, 'Horizontal'),
+                    5000,
+                    'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1920&h=1080'
+                ),
+                // VIDEO: 5s Timeout (Critical)
+                withTimeout(
+                    (async () => {
+                        try {
+                            console.log('[AI] Generando Video con Replicate (Veo)...');
+                            return await generateVeoVideo(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical');
+                        } catch (videoErr: any) {
+                            console.warn('[AI] Replicate Video wrapper falló. Usando Stock.', videoErr.message);
+                            return {
+                                url: 'https://cdn.pixabay.com/video/2024/02/09/199958-911694865_large.mp4',
+                                duration: 15
+                            };
+                        }
+                    })(),
+                    5000, // Strict 5s timeout for video
+                    {
+                        url: 'https://cdn.pixabay.com/video/2024/02/09/199958-911694865_large.mp4',
+                        duration: 15
                     }
-                })()
+                )
             ]);
 
             console.log('[AI] Square Image URL:', imgSquare);
