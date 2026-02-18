@@ -801,11 +801,11 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
         }
 
         // Update campaign in database
-        const currentMetadata = currentAssets.editHistory ? currentAssets : { ...currentAssets, editHistory: [] }
+        const currentMetadata = (currentAssets.editHistory ? currentAssets : { ...currentAssets, editHistory: [] }) as any;
         await prisma.publicityCampaign.update({
             where: { id: campaignId },
             data: {
-                metadata: JSON.stringify({
+                metadata: {
                     generatedByAI: true,
                     assets: updatedAssets,
                     lastEdited: new Date().toISOString(),
@@ -813,7 +813,7 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                         ...currentMetadata.editHistory,
                         { instruction, timestamp: new Date().toISOString() }
                     ]
-                }),
+                },
                 imageUrl: updatedAssets.imageUrl || currentAssets.imageUrl
             }
         })

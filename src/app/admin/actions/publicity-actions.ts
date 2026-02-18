@@ -76,11 +76,11 @@ export async function createCampaignFromAssets(assets: any) {
                 endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
                 socialMediaEnabled: true,
                 isActive: false, // Draft by default
-                // Store AI-generated assets as JSON
-                metadata: JSON.stringify({
+                // Store AI-generated assets as JSON directly
+                metadata: {
                     generatedByAI: true,
                     assets: assets
-                })
+                }
             }
         })
 
@@ -148,6 +148,7 @@ export async function manualTriggerSocialPost(id: string) {
         return { success: false, error: 'Error triggering post' }
     }
 }
+
 export async function saveAIAssetUrl(campaignId: string, type: string, url: string) {
     try {
         const campaign = await prisma.publicityCampaign.findUnique({
@@ -156,11 +157,14 @@ export async function saveAIAssetUrl(campaignId: string, type: string, url: stri
 
         if (!campaign) return { success: false, error: 'Campaña no encontrada' };
 
-        const metadata = JSON.parse(campaign.metadata || '{}');
+        // metadata is Json in Prisma, so it's already an object if it exists
+        const metadata = (campaign.metadata as any) || {};
         const assets = metadata.assets || {};
 
         if (type === 'video') {
             assets.videoUrl = url;
+            // Also update the videoPendingId to null since it's finished? 
+            // Or just leave it. The UI uses the URL if present.
         } else if (type.startsWith('image_')) {
             const imgType = type.split('_')[1];
             if (!assets.images) assets.images = {};
@@ -175,7 +179,7 @@ export async function saveAIAssetUrl(campaignId: string, type: string, url: stri
             where: { id: campaignId },
             data: {
                 imageUrl: assets.imageUrl || campaign.imageUrl,
-                metadata: JSON.stringify({ ...metadata, assets })
+                metadata: { ...metadata, assets }
             }
         });
 
