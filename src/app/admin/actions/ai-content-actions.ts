@@ -552,9 +552,9 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                         "description": "Descripción SEO en ESPAÑOL con enlaces"
                     },
                     "twitter_x": { "tweets": ["Tweet 1 en ESPAÑOL (estilo noticias/actualización)", "Tweet 2 en ESPAÑOL (hilo)"] },
-                    "threads": { "text": "Gancho de venta casual y auténtico en ESPAÑOL, basado en preguntas para iniciar conversación (venta suave)." },
+                    "threads": { "caption": "Gancho de venta casual y auténtico en ESPAÑOL, basado en preguntas para iniciar conversación (venta suave)." },
                     "snapchat_ads": { "headline": "Título urgente/divertido en ESPAÑOL", "caption": "Caption corto en ESPAÑOL para Spotlight" },
-                    "messaging_apps": { "broadcast_message": "Texto de oferta directa y exclusiva en ESPAÑOL para Canales de WhatsApp/Telegram (Alto FOMO). Corto y urgente." }
+                    "whatsapp_channel": { "caption": "Texto de oferta directa y exclusiva en ESPAÑOL para Canales de WhatsApp (Alto FOMO). Corto y urgente." }
                 }
             }
             

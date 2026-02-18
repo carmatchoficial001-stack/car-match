@@ -236,9 +236,20 @@ export default function PublicityTab() {
         }
 
         try {
-            const meta = typeof rawMetadata === 'string' ? JSON.parse(rawMetadata) : rawMetadata
-            if (meta.assets) {
-                setGeneratedAssets(meta.assets)
+            let meta = typeof rawMetadata === 'string' ? JSON.parse(rawMetadata) : rawMetadata
+
+            // Handle double-stringified assets if they exist
+            let assets = meta.assets
+            if (typeof assets === 'string') {
+                try {
+                    assets = JSON.parse(assets)
+                } catch (e) {
+                    console.error('Error parsing nested assets string', e)
+                }
+            }
+
+            if (assets) {
+                setGeneratedAssets(assets)
                 setShowAssetsModal(true)
             } else {
                 alert('Esta campaña no tiene assets de IA generados.')
