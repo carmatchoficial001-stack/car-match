@@ -58,9 +58,47 @@ async function testReplicateEnv() {
     }
 }
 
+async function testReplicateGeneration() {
+    console.log('\n--- TESTING REPLICATE BILLING/GENERATION ---');
+    const token = process.env.REPLICATE_API_TOKEN;
+    if (!token) return;
+
+    try {
+        console.log('Sending test request to Replicate (Flux-Schnell)...');
+        const response = await fetch("https://api.replicate.com/v1/predictions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                version: "f410a37340fc405c93836d933e0e11893122c601c402120404070z8e123604", // flux-schnell version (example) or model use
+                // Actually better to use the model endpoint
+                input: { prompt: "test car" }
+            })
+        });
+
+        if (response.status === 401) {
+            console.error('❌ REPLICATE ERROR: 401 Unauthorized. Token is invalid.');
+        } else if (response.status === 402) {
+            console.error('❌ REPLICATE ERROR: 402 Payment Required. BILLING IS NOT ACTIVE.');
+        } else if (response.ok) {
+            console.log('✅ REPLICATE OK - Request accepted (Billing likely active).');
+        } else {
+            // For a generic check, we just want to know if it's a billing error or not.
+            // We might get 400 or 404 if the version is wrong, but 402 is what we care about.
+            const text = await response.text();
+            console.log(`⚠️ REPLICATE STATUS: ${response.status} - ${text.substring(0, 100)}`);
+        }
+    } catch (e) {
+        console.error('❌ REPLICATE NETWORK ERROR:', e.message);
+    }
+}
+
 async function run() {
     console.log('=== DIAGNOSTIC START ===');
     await testReplicateEnv();
+    await testReplicateGeneration(); // NEW
     await testPollinations();
     await testStockVideo();
     console.log('=== DIAGNOSTIC END ===');

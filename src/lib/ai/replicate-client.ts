@@ -85,7 +85,10 @@ export async function generateRealImage(prompt: string, width: number, height: n
                     prompt: prompt,
                     aspect_ratio: aspect_ratio,
                     go_fast: true,
-                    megapixels: "1"
+                    megapixels: "1",
+                    output_format: "jpg",
+                    output_quality: 90,
+                    disable_safety_checker: true
                 }
             }
         )

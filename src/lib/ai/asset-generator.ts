@@ -7,6 +7,8 @@ export async function generatePollinationsImage(prompt: string, width: number = 
 
     // 2. Fallback: Pollinations.ai (Free, good quality)
     try {
+        console.log('[AI-GEN] Attempting Pollinations Image...');
+
         // Limit prompt length to avoid URL errors (Pollinations/Browser limit)
         const safePrompt = prompt.trim().substring(0, 800)
         const encodedPrompt = encodeURIComponent(safePrompt)
@@ -30,13 +32,14 @@ export async function generatePollinationsImage(prompt: string, width: number = 
             console.warn('[AI-GEN] Pollinations unreachable. Using Stock Fallback.');
             // Fallback to a high-quality relevant Unsplash image
             // We can rotate these or select based on context if needed
-            return 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=' + width;
+            const keywords = prompt.split(' ').slice(0, 3).join(',');
+            return `https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=${width}&h=${height}`;
         }
 
         return imageUrl
     } catch (error) {
         console.error('Error generating image URL:', error)
         // Fallback to stock image if something fails (though this is just a URL builder)
-        return 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=' + width;
+        return `https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=${width}&h=${height}`;
     }
 }
