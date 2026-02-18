@@ -572,31 +572,40 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                 }
             }
 
-            console.log('[AI] Iniciando generación de assets (Secuencial + Fallback)...');
+            console.log('[AI] Iniciando generación de assets (PARALELO + Fallback)...');
 
-            const imgSquare = await generateImageWithFallback(basePrompt, 1080, 1080, 'Square');
+            // PARALLEL EXECUTION:
+            // We use Promise.all to run all generations at once.
+            // Since we have individual try/catch blocks in generateImageWithFallback,
+            // if one fails (e.g. Rate Limit), it will fallback individually without stopping the others.
+            // This prevents Vercel Timeouts (10s limit) which happens with sequential execution.
+
+            const [imgSquare, imgVertical, imgHorizontal, videoResult] = await Promise.all([
+                generateImageWithFallback(basePrompt, 1080, 1080, 'Square'),
+                generateImageWithFallback(basePrompt, 1080, 1920, 'Vertical'),
+                generateImageWithFallback(basePrompt, 1920, 1080, 'Horizontal'),
+                // Video also needs to be robust
+                (async () => {
+                    try {
+                        console.log('[AI] Generando Video con Replicate (Veo)...');
+                        // Video generator has its own internal fallback/checks but we wrap it for safety
+                        return await generateVeoVideo(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical');
+                    } catch (videoErr: any) {
+                        console.warn('[AI] Replicate Video wrapper falló. Usando Stock.', videoErr.message);
+                        return {
+                            url: 'https://cdn.pixabay.com/video/2024/02/09/199958-911694865_large.mp4',
+                            duration: 15
+                        };
+                    }
+                })()
+            ]);
+
             console.log('[AI] Square Image URL:', imgSquare);
-
-            const imgVertical = await generateImageWithFallback(basePrompt, 1080, 1920, 'Vertical');
             console.log('[AI] Vertical Image URL:', imgVertical);
-
-            const imgHorizontal = await generateImageWithFallback(basePrompt, 1920, 1080, 'Horizontal');
             console.log('[AI] Horizontal Image URL:', imgHorizontal);
 
-            // Video Generation with Fallback
-            let finalVideoUrl = '';
-            let finalVideoDuration = 0;
-
-            try {
-                console.log('[AI] Generando Video con Replicate (Veo)...');
-                const videoResult = await generateVeoVideo(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical');
-                finalVideoUrl = videoResult.url;
-                finalVideoDuration = videoResult.duration;
-            } catch (videoErr: any) {
-                console.warn('[AI] Replicate Video falló. Usando Stock Simulation.', videoErr.message);
-                finalVideoUrl = 'https://cdn.pixabay.com/video/2024/02/09/199958-911694865_large.mp4'; // Generic Car Fallback
-                finalVideoDuration = 15;
-            }
+            let finalVideoUrl = videoResult.url;
+            let finalVideoDuration = videoResult.duration;
 
             console.log('[AI] Assets generados exitosamente (Replicate o Fallback)')
 

@@ -31,8 +31,8 @@ export async function generateVeoVideo(prompt: string, style: 'cinematic' | 'ver
     }
 
     // 2. Fallback: VEO SIMULATION (Stock Footage)
-    // Simulate processing delay (Veo takes ~1-2 mins, we simulate 3 seconds for UX demo)
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // No artificial delay needed for production fallback
+    // await new Promise(resolve => setTimeout(resolve, 3000));
 
     // Select a high-quality relevant stock video based on keywords in prompt
     // USING RELIABLE DIRECT CDN LINKS (Mixkit/Coverr/Public Buckets) to avoid 403 Forbidden/0KB files
