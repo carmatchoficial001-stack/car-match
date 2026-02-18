@@ -43,7 +43,7 @@ export default function AIStudio() {
                     console.log('Poll Status:', status);
 
                     if (status.status === 'succeeded' && status.videoUrl) {
-                        console.log('✅ Video Terminadod:', status.videoUrl);
+                        console.log('✅ Video Terminado:', status.videoUrl);
 
                         // Update message in UI
                         setMessages(prev => prev.map(msg => {
@@ -77,6 +77,11 @@ export default function AIStudio() {
         }
         return () => clearInterval(interval);
     }, [activePoll]);
+
+    const startPollingVideo = (id: string, msgIndexOverride?: number) => {
+        setActivePoll({ id });
+    };
+
 
     const handleUseInCampaign = async (history: any[]) => {
         setIsGenerating(true)
