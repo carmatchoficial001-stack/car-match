@@ -373,13 +373,33 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
                 campaignData.videoScript = JSON.stringify(campaignData.videoScript)
             }
 
+            // 3. Initiate ASYNC Tasks
+            console.log('[AUTO-PILOT] Iniciando tareas IA asíncronas...')
+            const { createImagePrediction, createVideoPrediction } = await import('@/lib/ai/replicate-client')
+
+            const basePrompt = campaignData.imagePrompt || 'Luxury car in Mexico City, cinematic'
+
+            const [videoPendingId, imgSquareId, imgVerticalId, imgHorizontalId] = await Promise.all([
+                createVideoPrediction(campaignData.videoPrompt || 'Car cinematic', '9:16').catch(() => null),
+                createImagePrediction(basePrompt, 1080, 1080).catch(() => null),
+                createImagePrediction(basePrompt, 1080, 1920).catch(() => null),
+                createImagePrediction(basePrompt, 1920, 1080).catch(() => null)
+            ])
+
+            campaignData.videoPendingId = videoPendingId
+            campaignData.imagePendingIds = {
+                square: imgSquareId,
+                vertical: imgVerticalId,
+                horizontal: imgHorizontalId
+            }
+
             // Mock vehicle object for UI compatibility
             const vehicleMock = { title: `Campaña: ${randomBrandHook.hook}`, price: 0, currency: 'USD', description: campaignData.strategy }
 
             return { success: true, vehicle: vehicleMock, campaignData }
         } catch (e) {
-            console.error('Error parsing campaign JSON:', e)
-            return { success: false, error: 'Error al interpretar la respuesta de IA.' }
+            console.error('Error parsing campaign JSON or starting AI:', e)
+            return { success: false, error: 'Error al generar la estrategia o iniciar IA.' }
         }
 
     } catch (error) {
