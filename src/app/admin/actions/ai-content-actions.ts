@@ -631,107 +631,43 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         // LOGGING FOR DEBUGGING
         console.log('[AI] Checking Replicate Token:', process.env.REPLICATE_API_TOKEN ? 'PRESENT' : 'MISSING');
 
-        // Parallel generation for speed with error handling
+        // 2. Generate ASYNC Predictions
+        console.log('[AI] Iniciando generación ASÍNCRONA (Flux + Minimax)...')
+
         try {
-            console.log('[AI] Iniciando generación con Replicate (Flux + Minimax)...')
-            const { generateRealImage } = await import('@/lib/ai/replicate-client')
-            const { generateVeoVideo } = await import('@/lib/ai/video-generator')
+            const { createImagePrediction, createVideoPrediction } = await import('@/lib/ai/replicate-client')
 
-            // SEQUENTIAL GENERATION WITH FALLBACK TO POLLINATIONS (FREE)
-            // If Replicate fails (Quota/Payment/RateLimit), we use Pollinations.
+            // Start everything in parallel
+            console.log('[AI] Lanzando predicciones en paralelo...');
 
-            // Helper for fallback
-            const generateImageWithFallback = async (prompt: string, width: number, height: number, label: string) => {
-                try {
-                    console.log(`[AI] Generando ${label} con Replicate (Flux)...`)
-                    return await generateRealImage(prompt, width, height)
-                } catch (err: any) {
-                    console.warn(`[AI] Replicate falló para ${label} (${err.message}). Usando Fallback (Pollinations)...`)
-                    // Fallback: Pollinations (Free)
-                    return await generatePollinationsImage(prompt, width, height)
-                }
-            }
-
-            // TIMEOUT HANDLING for Vercel Hobby Plan (10s execution limit)
-            const withTimeout = <T>(promise: Promise<T>, ms: number, fallback: string | T): Promise<T> => {
-                return Promise.race([
-                    promise,
-                    new Promise<T>(async (resolve) => {
-                        await new Promise(r => setTimeout(r, ms));
-                        console.warn(`[AI] Timeout de ${ms}ms excedido. Usando Fallback.`);
-                        // If fallback is a string (URL) and we expect a string, return it
-                        // If T is more complex, we cast
-                        resolve(fallback as T);
-                    })
-                ]);
-            };
-
-            console.log('[AI] Iniciando generación de assets (PARALELO + Fallback + Timeouts)...');
-
-            // DYNAMIC FALLBACKS:
-            // Instead of static URLs, we use Pollinations with a "Safe" prompt for timeouts.
-            // This ensures uniqueness even if the main Replicate call hangs.
-            // We keep more context (300 chars) to ensure the image matches the user's specific request.
-            const timeoutPrompt = basePrompt.substring(0, 300) + ", high quality, 4k, photorealistic";
-
-            // Fallback Video: "Mustang" (Verified Car Content) - Not snowy mountain
-            const FALLBACK_VIDEO = {
-                url: 'https://cdn.pixabay.com/video/2024/05/24/213508_large.mp4',
-                duration: 15
-            };
-
-            // 1. VIDEO: ASYNC START (Non-blocking)
-            let videoPendingId = null;
-
-            try {
-                console.log('[AI] Iniciando Video Asíncrono (Replicate)...');
-                const { createVideoPrediction } = await import('@/lib/ai/replicate-client');
-                videoPendingId = await createVideoPrediction(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', '9:16');
-            } catch (videoErr: any) {
-                console.warn('[AI] Replicate Async Video Failed:', videoErr.message);
-                // We could fallback to a non-unique video here, but per user request we prefer success or "clean" failure
-                // Let's allow images to proceed even if video start fails, but mark it
-            }
-
-            // 2. IMAGES: Generate in parallel with timeout/fallback
-            const [imgSquare, imgVertical, imgHorizontal] = await Promise.all([
-                withTimeout(
-                    generateImageWithFallback(basePrompt, 1080, 1080, 'Square'),
-                    9000,
-                    await generatePollinationsImage(timeoutPrompt, 1080, 1080)
-                ),
-                withTimeout(
-                    generateImageWithFallback(basePrompt, 1080, 1920, 'Vertical'),
-                    9000,
-                    await generatePollinationsImage(timeoutPrompt, 1080, 1920)
-                ),
-                withTimeout(
-                    generateImageWithFallback(basePrompt, 1920, 1080, 'Horizontal'),
-                    9000,
-                    await generatePollinationsImage(timeoutPrompt, 1920, 1080)
-                )
+            const [videoPendingId, imgSquareId, imgVerticalId, imgHorizontalId] = await Promise.all([
+                createVideoPrediction(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', '9:16').catch(e => { console.error('Video Err:', e); return null; }),
+                createImagePrediction(basePrompt, 1080, 1080).catch(e => { console.error('ImgSq Err:', e); return null; }),
+                createImagePrediction(basePrompt, 1080, 1920).catch(e => { console.error('ImgVert Err:', e); return null; }),
+                createImagePrediction(basePrompt, 1920, 1080).catch(e => { console.error('ImgHoriz Err:', e); return null; })
             ]);
 
-            console.log('[AI] Assets generados (Imágenes listas, Video pendiente/ID:', videoPendingId, ')');
+            console.log('[AI] Predicciones iniciadas:', { videoPendingId, imgSquareId, imgVerticalId, imgHorizontalId });
 
             return {
                 success: true,
                 assets: {
                     ...data,
-                    imageUrl: imgSquare,
-                    videoUrl: '', // Will be filled by client polling
-                    videoPendingId: videoPendingId, // Client uses this to poll
-                    images: {
-                        square: imgSquare,
-                        vertical: imgVertical,
-                        horizontal: imgHorizontal
+                    imageUrl: 'PENDING...',
+                    videoUrl: 'PENDING...',
+                    videoPendingId,
+                    imagePendingIds: {
+                        square: imgSquareId,
+                        vertical: imgVerticalId,
+                        horizontal: imgHorizontalId
                     }
                 }
             }
-        } catch (imageError: any) {
-            console.error('[AI] Error crítico generando assets:', imageError)
-            throw new Error(`Error generando assets: ${imageError.message}`)
+        } catch (genError: any) {
+            console.error('[AI] Error iniciando predicciones:', genError)
+            throw new Error(`No se pudieron iniciar las tareas de IA: ${genError.message}`)
         }
+
 
     } catch (error: any) {
         console.error('[AI] Error crítico en generateCampaignAssets:', error)
@@ -901,25 +837,33 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
 }
 
 // --- POLLING ACTION ---
-export async function checkVideoGenerationStatus(predictionId: string) {
+// --- POLLING ACTION ---
+export async function checkAIAssetStatus(predictionId: string) {
     try {
         const { checkPrediction } = await import('@/lib/ai/replicate-client');
         const result = await checkPrediction(predictionId);
 
+        console.log(`[POLL] Status for ${predictionId}: ${result.status}`);
+
         if (result.status === 'succeeded') {
             let url = '';
+            // Flux and Minimax return different output structures
             if (Array.isArray(result.output) && result.output.length > 0) url = String(result.output[0]);
             else if (typeof result.output === 'string') url = result.output;
-            else if (typeof result.output === 'object' && (result.output as any).url) url = (result.output as any).url;
+            else if (typeof result.output === 'object' && result.output !== null && (result.output as any).url) url = (result.output as any).url;
+            else if (typeof result.output === 'object' && result.output !== null) {
+                // Some models return a stream or a URL directly in an object
+                url = String(result.output);
+            }
 
-            return { status: 'succeeded', videoUrl: url };
+            return { status: 'succeeded', url: url };
         } else if (result.status === 'failed' || result.status === 'canceled') {
             return { status: 'failed', error: result.error };
         } else {
             return { status: 'processing' };
         }
     } catch (error) {
-        console.error('Error polling video:', error);
+        console.error('Error polling asset:', error);
         return { status: 'error' };
     }
 }

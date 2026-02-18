@@ -135,15 +135,41 @@ export async function createVideoPrediction(prompt: string, aspectRatio: '9:16' 
     return prediction.id;
 }
 
-export async function checkPrediction(id: string): Promise<{ status: string; output?: string | string[]; error?: any }> {
+/**
+ * ASYNC IMAGE GENERATION (Flux via Predictions)
+ */
+export async function createImagePrediction(prompt: string, width: number, height: number): Promise<string> {
+    if (!process.env.REPLICATE_API_TOKEN) throw new Error('MISSING_API_KEY');
+
+    let aspect_ratio = "1:1"
+    if (width > height) aspect_ratio = "16:9"
+    if (height > width) aspect_ratio = "9:16"
+
+    const prediction = await replicate.predictions.create({
+        model: "black-forest-labs/flux-schnell",
+        input: {
+            prompt: prompt,
+            aspect_ratio: aspect_ratio,
+            go_fast: true,
+            megapixels: "1",
+            output_format: "jpg",
+            output_quality: 90,
+            disable_safety_checker: true
+        }
+    });
+
+    console.log('[REPLICATE] Imagen Predicción iniciada. ID:', prediction.id);
+    return prediction.id;
+}
+
+export async function checkPrediction(id: string): Promise<{ status: string; output?: any; error?: any }> {
     if (!process.env.REPLICATE_API_TOKEN) throw new Error('MISSING_API_KEY');
 
     const prediction = await replicate.predictions.get(id);
 
-    // Status: starting, processing, succeeded, failed, canceled
     return {
         status: prediction.status,
-        output: prediction.output, // URL or Array of URLs
+        output: prediction.output,
         error: prediction.error
     };
 }

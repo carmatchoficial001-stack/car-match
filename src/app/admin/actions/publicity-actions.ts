@@ -148,3 +148,41 @@ export async function manualTriggerSocialPost(id: string) {
         return { success: false, error: 'Error triggering post' }
     }
 }
+export async function saveAIAssetUrl(campaignId: string, type: string, url: string) {
+    try {
+        const campaign = await prisma.publicityCampaign.findUnique({
+            where: { id: campaignId }
+        });
+
+        if (!campaign) return { success: false, error: 'Campaña no encontrada' };
+
+        const metadata = JSON.parse(campaign.metadata || '{}');
+        const assets = metadata.assets || {};
+
+        if (type === 'video') {
+            assets.videoUrl = url;
+        } else if (type.startsWith('image_')) {
+            const imgType = type.split('_')[1];
+            if (!assets.images) assets.images = {};
+            assets.images[imgType] = url;
+            // Also update main imageUrl if it's square
+            if (imgType === 'square') {
+                assets.imageUrl = url;
+            }
+        }
+
+        await prisma.publicityCampaign.update({
+            where: { id: campaignId },
+            data: {
+                imageUrl: assets.imageUrl || campaign.imageUrl,
+                metadata: JSON.stringify({ ...metadata, assets })
+            }
+        });
+
+        revalidatePath('/admin');
+        return { success: true };
+    } catch (error) {
+        console.error('Error saving AI asset URL:', error);
+        return { success: false, error: 'Error al persistir el asset' };
+    }
+}

@@ -29,116 +29,138 @@ export default function AIStudio() {
     const [loadError, setLoadError] = useState(false)
     const [showHistory, setShowHistory] = useState(false) // 🆕 Control visual del historial
 
-    // ⏳ VIDEO POLLING STATE (Async Generation)
-    const [activePoll, setActivePoll] = useState<{ id: string } | null>(null);
+    // ⏳ ASSET POLLING STATE (Async Generation for Video & Images)
+    const [pendingAssets, setPendingAssets] = useState<{ id: string, type: string, campaignId?: string }[]>([]);
 
     useEffect(() => {
-        let interval: NodeJS.Timeout;
-        if (activePoll) {
-            console.log('🔄 Iniciando Polling para Video:', activePoll.id);
-            // Dynamic import to avoid build issues with server actions in client components if not handled correctly
-            import('@/app/admin/actions/ai-content-actions').then(({ checkVideoGenerationStatus }) => {
-                interval = setInterval(async () => {
-                    const status = await checkVideoGenerationStatus(activePoll.id);
-                    console.log('Poll Status:', status);
+        if (pendingAssets.length === 0) return;
 
-                    if (status.status === 'succeeded' && status.videoUrl) {
-                        console.log('✅ Video Terminado:', status.videoUrl);
+        console.log('🔄 Iniciando Polling para Assets:', pendingAssets);
 
-                        // Update message in UI
-                        setMessages(prev => prev.map(msg => {
-                            if (msg.videoPendingId === activePoll.id) {
-                                // Persist the new content locally
-                                const newContent = msg.content.replace('PENDING...', status.videoUrl || '');
-                                return {
-                                    ...msg,
-                                    videoUrl: status.videoUrl,
-                                    content: newContent
-                                }
-                            }
-                            return msg;
-                        }));
-                        setActivePoll(null); // Stop polling
-                    } else if (status.status === 'failed') {
-                        console.error('❌ Video Falló');
-                        setMessages(prev => prev.map(msg => {
-                            if (msg.videoPendingId === activePoll.id) {
-                                return {
-                                    ...msg,
-                                    content: msg.content + '\n\n(Error generando video único)'
-                                }
-                            }
-                            return msg;
-                        }));
-                        setActivePoll(null);
+        const interval = setInterval(async () => {
+            // Poll all pending assets
+            const results = await Promise.all(pendingAssets.map(async (asset) => {
+                try {
+                    const { checkAIAssetStatus } = await import('@/app/admin/actions/ai-content-actions');
+                    const status = await checkAIAssetStatus(asset.id);
+                    return { ...asset, ...status };
+                } catch (err) {
+                    return { ...asset, status: 'error' };
+                }
+            }));
+
+            // Handle successes and failures
+            let anyFinished = false;
+            results.forEach(res => {
+                if (res.status === 'succeeded' && res.url) {
+                    console.log(`✅ Asset ${res.type} Terminado:`, res.url);
+                    anyFinished = true;
+
+                    // ✨ PERSISTIR EN DB SI HAY CAMPAIGN_ID
+                    if (res.campaignId) {
+                        import('@/app/admin/actions/publicity-actions').then(({ saveAIAssetUrl }) => {
+                            saveAIAssetUrl(res.campaignId!, res.type, res.url);
+                        });
                     }
-                }, 4000); // Check every 4s
-            });
-        }
-        return () => clearInterval(interval);
-    }, [activePoll]);
 
-    const startPollingVideo = (id: string, msgIndexOverride?: number) => {
-        setActivePoll({ id });
+                    setMessages(prev => prev.map(msg => {
+                        // Match video
+                        if (res.type === 'video' && msg.videoPendingId === res.id) {
+                            return {
+                                ...msg,
+                                videoUrl: res.url,
+                                content: msg.content.replace('PENDING...', res.url)
+                            };
+                        }
+                        // Match images
+                        if (res.type.startsWith('image') && msg.imagePendingIds?.[res.type.split('_')[1]] === res.id) {
+                            const type = res.type.split('_')[1];
+                            let newContent = msg.content;
+                            if (type === 'square') {
+                                newContent = newContent.replace(/\[IMAGE_PREVIEW\]: PENDING.../, `[IMAGE_PREVIEW]: ${res.url}`);
+                            }
+                            return {
+                                ...msg,
+                                images: { ...(msg.images || {}), [type]: res.url },
+                                content: newContent
+                            };
+                        }
+                        return msg;
+                    }));
+                } else if (res.status === 'failed') {
+                    console.error(`❌ Asset ${res.type} Falló`);
+                    anyFinished = true;
+                }
+            });
+
+            if (anyFinished) {
+                setPendingAssets(prev => prev.filter(p => !results.some(r => r.id === p.id && (r.status === 'succeeded' || r.status === 'failed'))));
+            }
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [pendingAssets]);
+
+    const addPendingAssets = (assets: { id: string, type: any, campaignId?: string }[]) => {
+        setPendingAssets(prev => [...prev, ...assets.filter(a => a.id)]);
     };
 
 
     const handleUseInCampaign = async (history: any[]) => {
         setIsGenerating(true)
-        setMessages(prev => [...prev, { role: 'assistant', content: '🎨 Generando Assets Reales (Imagen Flux + Copy + Script Veo)... Espera un momento.' }])
+        setMessages(prev => [...prev, { role: 'assistant', content: '🎨 Generando Strategy y lanzando tareas IA (Flux + Veo)...' }])
 
         try {
             const res = await generateCampaignAssets(history, 'MX')
             if (res.success && res.assets) {
                 // ✨ AUTO-GUARDAR CAMPAÑA
-                setMessages(prev => [...prev, { role: 'assistant', content: '💾 Guardando campaña automáticamente...' }])
+                setMessages(prev => [...prev, { role: 'assistant', content: '💾 Guardando campaña...' }])
 
                 const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
                 const campaignRes = await createCampaignFromAssets(res.assets)
 
                 if (campaignRes.success && campaignRes.campaign) {
-                    // Dispatch event to switch to CAMPAIGNS tab
                     const event = new CustomEvent('campaign-created', { detail: campaignRes.campaign });
                     window.dispatchEvent(event);
 
-                    const content = `✅ ¡Campaña creada exitosamente!\n\n📋 **${campaignRes.campaign.title}**\n\n🎯 Ahora puedes verla en la sección Campañas.\n💡 Aquí tienes una vista previa del video generado:\n\n[VIDEO_PREVIEW]: ${res.assets.videoUrl || (res.assets.videoPendingId ? 'PENDING...' : '')}`
+                    const content = `✅ ¡Campaña lista para monitorear!\n\n📋 **${campaignRes.campaign.title}**\n\n🎯 La campaña ha sido guardada.\n\n[VIDEO_PREVIEW]: PENDING...\n[IMAGE_PREVIEW]: PENDING...`
 
                     const newMessage = {
                         role: 'assistant',
                         content: content,
-                        videoUrl: res.assets.videoUrl, // Pass the video URL to the message component
-                        videoPendingId: res.assets.videoPendingId
+                        videoPendingId: res.assets.videoPendingId,
+                        imagePendingIds: res.assets.imagePendingIds,
+                        images: {}
                     };
 
                     setMessages(prev => [...prev, newMessage])
 
-                    if (res.assets.videoPendingId) {
-                        console.log('⏳ Video pendiente detectado. Iniciando polling...', res.assets.videoPendingId);
-                        setActivePoll({ id: res.assets.videoPendingId });
-                    }
+                    // Add to polling queue
+                    const toPoll: any[] = [];
+                    if (res.assets.videoPendingId) toPoll.push({ id: res.assets.videoPendingId, type: 'video' });
+                    if (res.assets.imagePendingIds?.square) toPoll.push({ id: res.assets.imagePendingIds.square, type: 'image_square' });
+                    if (res.assets.imagePendingIds?.vertical) toPoll.push({ id: res.assets.imagePendingIds.vertical, type: 'image_vertical' });
+                    if (res.assets.imagePendingIds?.horizontal) toPoll.push({ id: res.assets.imagePendingIds.horizontal, type: 'image_horizontal' });
+
+                    addPendingAssets(toPoll);
 
                 } else {
                     setMessages(prev => [...prev, {
                         role: 'assistant',
-                        content: `✅ Assets generados, pero no pude guardar la campaña automáticamente.\n\n${campaignRes.error || 'Error desconocido'}`
+                        content: `✅ Strategy generada, pero no pude guardar la campaña.\n\n${campaignRes.error || 'Error desconocido'}`
                     }])
                 }
             } else {
-                // Show detailed error message
-                const errorMsg = res.error || 'Error desconocido al generar assets.'
-                // Try to extract more info if available
-                const details = res.details || ''
-
                 setMessages(prev => [...prev, {
                     role: 'assistant',
-                    content: `❌ Error al generar assets.\n\n${errorMsg}\n${details ? `\nDetalles: ${details}` : ''}\n\n💡 Intenta:\n• Ser más específico en tu descripción\n• Usar un mensaje más corto`
+                    content: `❌ Error: ${res.error || 'Error desconocido'}`
                 }])
             }
         } catch (error: any) {
             console.error('Error en handleUseInCampaign:', error)
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: `❌ Error crítico en generación.\n\nError: ${error.message || 'Desconocido'}\n\n💡 Por favor intenta de nuevo o contacta soporte si el problema persiste.`
+                content: `❌ Error crítico: ${error.message}`
             }])
         } finally {
             setIsGenerating(false)
@@ -292,14 +314,23 @@ export default function AIStudio() {
             const res = await suggestCampaignFromInventory('MX')
             if (res.success && res.campaignData) {
                 const data = res.campaignData
-                const content = `**Estrategia Viral Detectada:** ${data.strategy}\n\n**Copy Sugerido:**\n"${data.caption}"\n\n**Script de Video:**\n${data.videoScript}\n\n[VIDEO_PREVIEW]: ${data.videoUrl || 'PENDING...'}\n[IMAGE_PREVIEW]: ${data.imageUrl || ''}`
+                const content = `**Estrategia Viral Detectada:** ${data.strategy}\n\n**Copy Sugerido:**\n"${data.caption}"\n\n**Script de Video:**\n${data.videoScript}\n\n[VIDEO_PREVIEW]: PENDING...\n[IMAGE_PREVIEW]: PENDING...`
 
-                setMessages(prev => [...prev, { role: 'assistant', content, videoUrl: data.videoUrl, videoPendingId: data.videoPendingId }])
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content,
+                    videoPendingId: data.videoPendingId,
+                    imagePendingIds: data.imagePendingIds
+                }])
 
-                // If we have a pending video, we need to handle polling in a useEffect or here roughly
-                if (data.videoPendingId) {
-                    startPollingVideo(data.videoPendingId, messages.length + 1); // rough index approximation, better to use ID
-                }
+                // Add to polling queue
+                const toPoll: any[] = [];
+                if (data.videoPendingId) toPoll.push({ id: data.videoPendingId, type: 'video' });
+                if (data.imagePendingIds?.square) toPoll.push({ id: data.imagePendingIds.square, type: 'image_square' });
+                if (data.imagePendingIds?.vertical) toPoll.push({ id: data.imagePendingIds.vertical, type: 'image_vertical' });
+                if (data.imagePendingIds?.horizontal) toPoll.push({ id: data.imagePendingIds.horizontal, type: 'image_horizontal' });
+
+                addPendingAssets(toPoll);
 
                 if (sessionId) {
                     await saveAIMessage(sessionId, 'user', 'Generar Campaña Automática')
@@ -399,28 +430,41 @@ export default function AIStudio() {
                                     {msg.content.replace(/\[VIDEO_PREVIEW\]:.*\n?|\[IMAGE_PREVIEW\]:.*\n?/g, '')}
 
                                     {/* 🎬 VIDEO PREVIEW (From Prop or Content Tag) */}
-                                    {(msg.videoUrl || (msg.content.match(/\[VIDEO_PREVIEW\]:\s*(http\S+)/)?.[1])) && (
-                                        <div className="mt-4 rounded-xl overflow-hidden border border-white/10 relative group/video">
-                                            <video
-                                                src={msg.videoUrl || (msg.content.match(/\[VIDEO_PREVIEW\]:\s*(http\S+)/)?.[1])}
-                                                controls
-                                                className="w-full aspect-video object-cover bg-black"
-                                                poster="/placeholder-video.jpg"
-                                            />
+                                    {(msg.videoUrl || msg.videoPendingId || (msg.content.match(/\[VIDEO_PREVIEW\]:\s*(\S+)/)?.[1])) && (
+                                        <div className="mt-4 rounded-xl overflow-hidden border border-white/10 relative group/video bg-black/40 min-h-[100px] flex items-center justify-center">
+                                            {((msg.videoUrl && msg.videoUrl !== 'PENDING...') || (msg.content.match(/\[VIDEO_PREVIEW\]:\s*(http\S+)/)?.[1])) ? (
+                                                <video
+                                                    src={msg.videoUrl || (msg.content.match(/\[VIDEO_PREVIEW\]:\s*(http\S+)/)?.[1])}
+                                                    controls
+                                                    className="w-full aspect-video object-cover"
+                                                />
+                                            ) : (
+                                                <div className="flex flex-col items-center gap-2 text-zinc-500 p-8">
+                                                    <RefreshCw className="w-8 h-8 animate-spin text-purple-500" />
+                                                    <span className="text-xs font-medium animate-pulse">Generando Video Único...</span>
+                                                </div>
+                                            )}
                                             <div className="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded-md text-[10px] text-white backdrop-blur-sm">
-                                                AI Video (Preview)
+                                                AI Video
                                             </div>
                                         </div>
                                     )}
 
                                     {/* 🖼️ IMAGE PREVIEW (From Content Tag) */}
-                                    {(msg.content.match(/\[IMAGE_PREVIEW\]:\s*(http\S+)/)?.[1]) && (
-                                        <div className="mt-2 rounded-xl overflow-hidden border border-white/10 relative">
-                                            <img
-                                                src={(msg.content.match(/\[IMAGE_PREVIEW\]:\s*(http\S+)/)?.[1])}
-                                                className="w-full h-auto object-cover"
-                                                alt="AI Generated"
-                                            />
+                                    {(msg.imageUrl || msg.imagePendingIds || (msg.content.match(/\[IMAGE_PREVIEW\]:\s*(\S+)/)?.[1])) && (
+                                        <div className="mt-2 rounded-xl overflow-hidden border border-white/10 relative bg-black/40 min-h-[100px] flex items-center justify-center">
+                                            {((msg.imageUrl && msg.imageUrl !== 'PENDING...') || (msg.content.match(/\[IMAGE_PREVIEW\]:\s*(http\S+)/)?.[1])) ? (
+                                                <img
+                                                    src={msg.imageUrl || (msg.content.match(/\[IMAGE_PREVIEW\]:\s*(http\S+)/)?.[1])}
+                                                    className="w-full h-auto object-cover"
+                                                    alt="AI Generated"
+                                                />
+                                            ) : (
+                                                <div className="flex flex-col items-center gap-2 text-zinc-500 p-8">
+                                                    <ImageIcon className="w-8 h-8 animate-pulse text-indigo-500" />
+                                                    <span className="text-xs font-medium animate-pulse">Generando Imagen Principal...</span>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
