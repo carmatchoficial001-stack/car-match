@@ -341,8 +341,7 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
                     "youtube_shorts": { "title": "Título en ESPAÑOL", "description": "Desc en ESPAÑOL" },
                     "twitter_x": { "tweets": ["Tweet 1", "Tweet 2"] },
                     "threads": { "caption": "Hebra en ESPAÑOL" },
-                    "snapchat_ads": { "headline": "Título en ESPAÑOL", "caption": "Caption en ESPAÑOL" },
-                    "whatsapp_channel": { "caption": "Mensaje en ESPAÑOL" }
+                    "snapchat_ads": { "headline": "Título en ESPAÑOL", "caption": "Caption en ESPAÑOL" }
                 }
             }
             
@@ -366,8 +365,7 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
                 "meta_ads": { "primary_text": "Encuentra tu nave en segundos.", "headline": "Swipe to Drive", "description": "Seguro y veloz" },
                 "facebook_marketplace": { "title": "Auto Ideal CarMatch", "description": "Compra venta segura" },
                 "google_ads": { "headlines": ["Auto Ideal", "CarMatch México", "Compra Segura"], "descriptions": ["La app #1 de autos", "Encuentra tu nave hoy"] },
-                "tiktok_ads": { "caption": "Tu próxima nave está a un swipe #CarMatch", "script_notes": "Cinemática de swipe" },
-                "whatsapp_channel": { "caption": "🔥 Oferta Relámpago en CarMatch" }
+                "tiktok_ads": { "caption": "Tu próxima nave está a un swipe #CarMatch", "script_notes": "Cinemática de swipe" }
             }
         });
 
@@ -576,8 +574,7 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                     },
                     "twitter_x": { "tweets": ["Tweet 1 en ESPAÑOL (estilo noticias/actualización)", "Tweet 2 en ESPAÑOL (hilo)"] },
                     "threads": { "caption": "Gancho de venta casual y auténtico en ESPAÑOL, basado en preguntas para iniciar conversación (venta suave)." },
-                    "snapchat_ads": { "headline": "Título urgente/divertido en ESPAÑOL", "caption": "Caption corto en ESPAÑOL para Spotlight" },
-                    "whatsapp_channel": { "caption": "Texto de oferta directa y exclusiva en ESPAÑOL para Canales de WhatsApp (Alto FOMO). Corto y urgente." }
+                    "snapchat_ads": { "headline": "Título urgente/divertido en ESPAÑOL", "caption": "Caption corto en ESPAÑOL para Spotlight" }
                 }
             }
             

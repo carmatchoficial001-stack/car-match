@@ -646,7 +646,6 @@ const PLATFORMS = [
     { id: 'twitter_x', label: 'X (Twitter)', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" className="w-5 h-5 invert" />, color: 'bg-slate-800' },
     { id: 'threads', label: 'Threads', icon: <span className="font-bold text-lg select-none leading-none">@</span>, color: 'bg-black' },
     { id: 'snapchat_ads', label: 'Snapchat', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670166.png" className="w-5 h-5 invert" />, color: 'bg-yellow-400 text-black' },
-    { id: 'whatsapp_channel', label: 'WhatsApp Channel', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670051.png" className="w-5 h-5 invert" />, color: 'bg-green-500' },
 ]
 
 // Helper for downloading assets (Standalone)
@@ -827,8 +826,8 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                         </div>
                                     )}
 
-                                    {/* VERTICAL IMAGE: Meta, Snapchat, WhatsApp */}
-                                    {['meta_ads', 'snapchat_ads', 'whatsapp_channel'].includes(platform.id) && (
+                                    {/* VERTICAL IMAGE: Meta, Snapchat */}
+                                    {['meta_ads', 'snapchat_ads'].includes(platform.id) && (
                                         <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
                                             {assets.images?.vertical && assets.images.vertical.startsWith('http') ? (
                                                 <>
