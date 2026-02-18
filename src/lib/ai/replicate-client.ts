@@ -44,7 +44,14 @@ export async function generateRealVideo(prompt: string, aspectRatio: '9:16' | '1
             return String((output as any).url)
         }
 
-        return String(output)
+        // VALIDATION: Ensure it looks like a URL
+        const outputStr = String(output)
+        if (outputStr.startsWith('http')) {
+            return outputStr
+        }
+
+        console.warn('[REPLICATE] Output is not a URL:', outputStr)
+        throw new Error('INVALID_OUTPUT_URL')
 
     } catch (error) {
         console.error('[REPLICATE] Error generating video:', error)

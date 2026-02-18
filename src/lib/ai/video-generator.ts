@@ -35,13 +35,13 @@ export async function generateVeoVideo(prompt: string, style: 'cinematic' | 'ver
     await new Promise(resolve => setTimeout(resolve, 3000));
 
     // Select a high-quality relevant stock video based on keywords in prompt
-    // These are copyright-free high-end automotive clips
+    // USING RELIABLE DIRECT CDN LINKS (Mixkit/Coverr/Public Buckets) to avoid 403 Forbidden/0KB files
     const VIDEO_STOCK = {
-        MUSTANG: 'https://videos.pexels.com/video-files/5782728/5782728-uhd_2560_1440_25fps.mp4',
-        LUXURY_CITY: 'https://videos.pexels.com/video-files/3044196/3044196-uhd_3840_2160_25fps.mp4',
-        RACING: 'https://videos.pexels.com/video-files/3206497/3206497-uhd_2560_1440_25fps.mp4',
-        FAMILY_DRIVE: 'https://videos.pexels.com/video-files/4482098/4482098-uhd_2560_1440_25fps.mp4',
-        DEFAULT: 'https://videos.pexels.com/video-files/5782728/5782728-uhd_2560_1440_25fps.mp4' // Red sports car cinematic
+        MUSTANG: 'https://cdn.pixabay.com/video/2024/05/24/213508_large.mp4',
+        LUXURY_CITY: 'https://cdn.pixabay.com/video/2023/10/19/185732-876150041_large.mp4',
+        RACING: 'https://cdn.pixabay.com/video/2023/04/23/160124-820886561_large.mp4',
+        FAMILY_DRIVE: 'https://cdn.pixabay.com/video/2022/10/26/136709-764510006_large.mp4',
+        DEFAULT: 'https://cdn.pixabay.com/video/2024/02/09/199958-911694865_large.mp4' // Red sports car cinematic
     }
 
     const p = prompt.toLowerCase();
