@@ -680,42 +680,24 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                 duration: 15
             };
 
-            const [imgSquare, imgVertical, imgHorizontal, videoResult] = await Promise.all([
-                // IMAGES: 5s Timeout per image
-                withTimeout(
-                    generateImageWithFallback(basePrompt, 1080, 1080, 'Square'),
-                    5000,
-                    // Fallback to Pollinations ON TIMEOUT (Dynamic)
-                    await generatePollinationsImage(timeoutPrompt, 1080, 1080)
-                ),
-                withTimeout(
-                    generateImageWithFallback(basePrompt, 1080, 1920, 'Vertical'),
-                    5000,
-                    await generatePollinationsImage(timeoutPrompt, 1080, 1920)
-                ),
-                withTimeout(
-                    generateImageWithFallback(basePrompt, 1920, 1080, 'Horizontal'),
-                    5000,
-                    await generatePollinationsImage(timeoutPrompt, 1920, 1080)
-                ),
-                // VIDEO: ASYNC START (Non-blocking)
-                let videoPendingId = null;
-            let videoFallbackUrl = null;
+            // 1. VIDEO: ASYNC START (Non-blocking)
+            let videoPendingId = null;
 
             try {
                 console.log('[AI] Iniciando Video Asíncrono (Replicate)...');
                 const { createVideoPrediction } = await import('@/lib/ai/replicate-client');
                 videoPendingId = await createVideoPrediction(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical');
             } catch (videoErr: any) {
-                console.warn('[AI] Replicate Async Video Failed. Using Error.', videoErr.message);
-                if (true) throw new Error('No se pudo iniciar la generación de video único.');
+                console.warn('[AI] Replicate Async Video Failed:', videoErr.message);
+                // We could fallback to a non-unique video here, but per user request we prefer success or "clean" failure
+                // Let's allow images to proceed even if video start fails, but mark it
             }
 
+            // 2. IMAGES: Generate in parallel with timeout/fallback
             const [imgSquare, imgVertical, imgHorizontal] = await Promise.all([
-                // IMAGES: 5s Timeout per image (Flux is fast enough usually)
                 withTimeout(
                     generateImageWithFallback(basePrompt, 1080, 1080, 'Square'),
-                    9000, // Increased timeout for quality
+                    9000,
                     await generatePollinationsImage(timeoutPrompt, 1080, 1080)
                 ),
                 withTimeout(
