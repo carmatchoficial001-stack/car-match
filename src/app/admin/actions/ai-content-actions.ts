@@ -547,22 +547,23 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             Último mensaje del usuario: "${chatHistory[chatHistory.length - 1].content}"
         `
 
+        // DYNAMIC FALLBACK (No more generic "Luxury Car")
         const FALLBACK_CAMPAIGN_JSON = JSON.stringify({
-            "internal_title": "Campaña Express (Fallback)",
-            "imagePrompt": `Luxury car in ${country.name} street, 8k, photorealistic`,
-            "videoPrompt_vertical": "Cinematic vertical drone shot of a luxury car driving at sunset",
-            "videoPrompt_horizontal": "Cinematic horizontal shot of a luxury car driving at sunset",
-            "videoScript": "Escena 1: Un auto increíble pasea por la ciudad. Escena 2: Muestra el logo de CarMatch. Escena 3: Descarga la app hoy mismo.",
+            "internal_title": `Campaña ${randomBrandHook.hook} (Express)`,
+            "imagePrompt": `Professional advertising shot of a car representing '${randomBrandHook.hook}', text '${visualHook}' in neon, cinematic lighting, 8k, commercial`,
+            "videoPrompt_vertical": `vertical cinematic shot of a car, ${randomBrandHook.angle}, luxury, 8k`,
+            "videoPrompt_horizontal": `cinematic shot of a car, ${randomBrandHook.angle}, luxury, 8k`,
+            "videoScript": `Escena 1: ${randomBrandHook.angle}. Escena 2: Tu auto ideal te espera. Escena 3: Descarga CarMatch hoy.`,
             "platforms": {
-                "meta_ads": { "primary_text": "Encuentra tu auto ideal hoy mismo en CarMatch.", "headline": "Tu Dream Car te espera", "description": "Descarga la App Gratis" },
-                "facebook_marketplace": { "title": "Autos Increíbles en Venta - CarMatch", "description": "Miles de autos verificados te esperan. Descarga la app." },
-                "google_ads": { "headlines": ["Compra Autos Seguros", "Vende tu Auto Rápido", "CarMatch App"], "descriptions": ["La mejor forma de comprar y vender autos.", "Seguridad y rapidez garantizada."] },
-                "tiktok_ads": { "caption": "Tu próximo auto está a un swipe de distancia 🚗💨 #CarMatch #AutoNuevo", "script_notes": "Mostrar autos rápidos y gente feliz usando la app." },
-                "youtube_shorts": { "title": "¡Encuentra tu Nave! 🚗🔥", "description": "Descarga CarMatch en iOS y Android." },
-                "twitter_x": { "tweets": ["¿Buscas auto nuevo? 🚗 Descarga CarMatch hoy mismo."] },
-                "threads": { "text": "¿Cuál es el auto de tus sueños? Probablemente esté en CarMatch. 👀🚗" },
-                "snapchat_ads": { "headline": "Swipea tu Auto Ideal", "caption": "Descarga CarMatch Gratis" },
-                "messaging_apps": { "broadcast_message": "¡Ofertas exclusivas en CarMatch! Encuentra tu auto hoy." }
+                "meta_ads": { "primary_text": `${randomBrandHook.angle} Encuentra tu auto ideal hoy mismo en CarMatch.`, "headline": visualHook, "description": "Descarga la App Gratis" },
+                "facebook_marketplace": { "title": `Autos Verificados: ${randomBrandHook.hook}`, "description": "Miles de autos verificados te esperan. Descarga la app." },
+                "google_ads": { "headlines": [randomBrandHook.hook, "Compra Autos Seguros", "CarMatch App"], "descriptions": ["La mejor forma de comprar y vender autos.", "Seguridad y rapidez garantizada."] },
+                "tiktok_ads": { "caption": `${randomBrandHook.hook} 🚗💨 #CarMatch #AutoNuevo`, "script_notes": "Mostrar autos rápidos y gente feliz usando la app." },
+                "youtube_shorts": { "title": `${visualHook} 🚗🔥`, "description": "Descarga CarMatch en iOS y Android." },
+                "twitter_x": { "tweets": [`¿Buscas ${randomBrandHook.hook}? 🚗 Descarga CarMatch hoy mismo.`] },
+                "threads": { "text": `¿Sabías que ${randomBrandHook.angle}? 👀🚗` },
+                "snapchat_ads": { "headline": visualHook, "caption": "Descarga CarMatch Gratis" },
+                "messaging_apps": { "broadcast_message": `¡${randomBrandHook.hook}! Encuentra tu auto hoy en CarMatch.` }
             }
         });
 
@@ -576,7 +577,7 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                     contents: [{ role: 'user', parts: [{ text: prompt }] }],
                     generationConfig: {
                         responseMimeType: 'application/json',
-                        temperature: 0.8
+                        temperature: 0.9 // Higher creativity
                     }
                 }),
                 new Promise<any>((_, reject) => setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 4000))
@@ -584,7 +585,8 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             text = result.response.text();
             console.log('[AI] Gemini respondió a tiempo.');
         } catch (err: any) {
-            console.warn('[AI] Gemini tardó demasiado o falló. Usando JSON Fallback.', err.message);
+            console.warn('[AI] Gemini tardó demasiado o falló. Usando DYNAMIC Fallback.', err.message);
+            console.warn('[AI] Fallback Hook:', randomBrandHook.hook);
             text = FALLBACK_CAMPAIGN_JSON;
         }
 
