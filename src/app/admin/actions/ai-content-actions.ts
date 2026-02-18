@@ -401,10 +401,10 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
             const basePrompt = campaignData.imagePrompt || 'Luxury car in Mexico City, cinematic'
 
             const [videoPendingId, imgSquareId, imgVerticalId, imgHorizontalId] = await Promise.all([
-                createVideoPrediction(campaignData.videoPrompt || 'Car cinematic', '9:16').catch(() => null),
-                createImagePrediction(basePrompt, 1080, 1080).catch(() => null),
-                createImagePrediction(basePrompt, 1080, 1920).catch(() => null),
-                createImagePrediction(basePrompt, 1920, 1080).catch(() => null)
+                createVideoPrediction(campaignData.videoPrompt || 'Car cinematic', '9:16').catch(e => { console.error('[AUTO-PILOT] Video Err:', e); return null; }),
+                createImagePrediction(basePrompt, 1080, 1080).catch(e => { console.error('[AUTO-PILOT] ImgSq Err:', e); return null; }),
+                createImagePrediction(basePrompt, 1080, 1920).catch(e => { console.error('[AUTO-PILOT] ImgVert Err:', e); return null; }),
+                createImagePrediction(basePrompt, 1920, 1080).catch(e => { console.error('[AUTO-PILOT] ImgHoriz Err:', e); return null; })
             ])
 
             campaignData.videoPendingId = videoPendingId
@@ -783,11 +783,25 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                 const newImagePrompt = imagePromptResult.response.text().trim()
                 updatedAssets.imagePrompt = newImagePrompt
 
-                // Generate new image with Replicate Flux
-                console.log('[AI] Generando nueva imagen con Flux...')
-                const { generateRealImage } = await import('@/lib/ai/replicate-client')
-                const imageUrl = await generateRealImage(newImagePrompt, 1024, 1024)
-                updatedAssets.imageUrl = imageUrl
+                // Generate new image with Replicate Flux (all 3 sizes in parallel)
+                console.log('[AI] Generando nuevas imágenes (3 tamaños)...')
+                const { createImagePrediction } = await import('@/lib/ai/replicate-client')
+
+                const [imgSquareId, imgVerticalId, imgHorizontalId] = await Promise.all([
+                    createImagePrediction(newImagePrompt, 1080, 1080).catch(e => { console.error('Regen ImgSq Err:', e); return null; }),
+                    createImagePrediction(newImagePrompt, 1080, 1920).catch(e => { console.error('Regen ImgVert Err:', e); return null; }),
+                    createImagePrediction(newImagePrompt, 1920, 1080).catch(e => { console.error('Regen ImgHoriz Err:', e); return null; })
+                ]);
+
+                updatedAssets.imageUrl = 'PENDING...';
+                updatedAssets.images = { ...(updatedAssets.images || {}) };
+                if (imgSquareId) updatedAssets.imageUrl = 'PENDING...';
+
+                updatedAssets.imagePendingIds = {
+                    square: imgSquareId,
+                    vertical: imgVerticalId,
+                    horizontal: imgHorizontalId
+                };
                 break
 
             case 'video':

@@ -120,19 +120,20 @@ export async function generateRealImage(prompt: string, width: number, height: n
 export async function createVideoPrediction(prompt: string, aspectRatio: '9:16' | '16:9' = '9:16'): Promise<string> {
     if (!process.env.REPLICATE_API_TOKEN) throw new Error('MISSING_API_KEY');
 
-    console.log(`[REPLICATE] Iniciando PREDICCIÓN ASÍNCRONA de video...`);
-
-    // Using Minimax via predictions.create to get an ID immediately
-    const prediction = await replicate.predictions.create({
-        model: "minimax/video-01",
-        input: {
-            prompt: prompt,
-            prompt_optimizer: true
-        }
-    });
-
-    console.log('[REPLICATE] Predicción iniciada. ID:', prediction.id);
-    return prediction.id;
+    try {
+        const prediction = await replicate.predictions.create({
+            model: "minimax/video-01",
+            input: {
+                prompt: prompt,
+                prompt_optimizer: true
+            }
+        });
+        console.log('[REPLICATE] Predicción de video iniciada:', prediction.id);
+        return prediction.id;
+    } catch (error) {
+        console.error('[REPLICATE] Error al crear predicción de video:', error);
+        throw error;
+    }
 }
 
 /**
@@ -145,21 +146,26 @@ export async function createImagePrediction(prompt: string, width: number, heigh
     if (width > height) aspect_ratio = "16:9"
     if (height > width) aspect_ratio = "9:16"
 
-    const prediction = await replicate.predictions.create({
-        model: "black-forest-labs/flux-schnell",
-        input: {
-            prompt: prompt,
-            aspect_ratio: aspect_ratio,
-            go_fast: true,
-            megapixels: "1",
-            output_format: "jpg",
-            output_quality: 90,
-            disable_safety_checker: true
-        }
-    });
+    try {
+        // Flux-Schnell Version Hash: f20c93051410d9e83bd8dc8f47055047b0a70f3f6e1f062363f82fc4c849c719
+        const prediction = await replicate.predictions.create({
+            version: "f20c93051410d9e83bd8dc8f47055047b0a70f3f6e1f062363f82fc4c849c719",
+            input: {
+                prompt: prompt,
+                aspect_ratio: aspect_ratio,
+                go_fast: true,
+                output_format: "jpg",
+                output_quality: 90,
+                disable_safety_checker: true
+            }
+        });
 
-    console.log('[REPLICATE] Imagen Predicción iniciada. ID:', prediction.id);
-    return prediction.id;
+        console.log(`[REPLICATE] Imagen Predicción iniciada (${aspect_ratio}). ID:`, prediction.id);
+        return prediction.id;
+    } catch (error) {
+        console.error(`[REPLICATE] Error crítico en predicción (${aspect_ratio}):`, error);
+        throw error;
+    }
 }
 
 export async function checkPrediction(id: string): Promise<{ status: string; output?: any; error?: any }> {
