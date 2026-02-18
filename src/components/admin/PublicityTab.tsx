@@ -25,7 +25,7 @@ import {
 } from '@/app/admin/actions/publicity-actions'
 import {
     generateSocialCaption, generateImagePrompt, generateVideoScript, suggestCampaignFromInventory,
-    chatWithPublicityAgent, generateCampaignAssets, generateAIElement, checkAIAssetStatus
+    chatWithPublicityAgent, generateCampaignAssets, checkAIAssetStatus
 } from '@/app/admin/actions/ai-content-actions'
 import AIStudio from '@/components/admin/AIStudio'
 
