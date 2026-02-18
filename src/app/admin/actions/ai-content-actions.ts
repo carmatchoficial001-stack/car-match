@@ -419,6 +419,13 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         // 1. Context Analysis Prompt - MASS DIFFUSION & ADS EDITION
         const prompt = `
             Eres un Especialista en Marketing de Alto Rendimiento. Analiza el historial de chat.
+            
+            MODO DE APRENDIZAJE ACTIVO:
+            1. ANALIZA profundamente el historial de chat proporcionado.
+            2. DETECTA patrones de gusto del usuario (¿Qué pidió específicamente? ¿Qué corrigió antes?).
+            3. Si el usuario dijo "No uses emojis" o "hazlo más serio", OBEDECE esa instrucción por encima de cualquier regla general.
+            4. TU OBJETIVO PRINCIPAL es reflejar fielmente la visión del usuario extraída del chat. NO inventes cosas aleatorias si el usuario dio detalles específicos.
+            
             Objetivo: Crear un PACK COMPLETO DE CAMPAÑA PUBLICITARIA DE ALTA CONVERSIÓN (Meta, Google, TikTok).
             Audiencia Objetivo: Mercado masivo (2.8B+ usuarios). Compradores de vehículos.
             
