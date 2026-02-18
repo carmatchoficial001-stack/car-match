@@ -18,6 +18,18 @@ const nextConfig: NextConfig = {
                 protocol: 'https',
                 hostname: 'res.cloudinary.com',
             },
+            {
+                protocol: 'https',
+                hostname: 'image.pollinations.ai',
+            },
+            {
+                protocol: 'https',
+                hostname: 'replicate.delivery',
+            },
+            {
+                protocol: 'https',
+                hostname: 'replicate.com', // Just in case
+            }
         ],
         // 💰 OPTIMIZACIÓN PARA 100M USUARIOS
         formats: ['image/webp', 'image/avif'], // 30-50% más ligero que JPEG

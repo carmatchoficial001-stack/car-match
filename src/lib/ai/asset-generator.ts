@@ -1,18 +1,9 @@
 export async function generatePollinationsImage(prompt: string, width: number = 1080, height: number = 1350): Promise<string> {
 
-    // 1. Try REAL Generation (Replicate: Flux-Schnell)
-    try {
-        const { generateRealImage } = await import('./replicate-client')
-        const realUrl = await generateRealImage(prompt, width, height)
-        return realUrl
-    } catch (error: any) {
-        // If missing key, just log and fallback
-        if (error.message === 'MISSING_API_KEY') {
-            // calculated silence: expected for users without keys
-        } else {
-            console.error('[IMAGE-GEN] Error with Replicate, falling back to Pollinations:', error)
-        }
-    }
+    // 1. DIRECT GENERATION (Pollinations.ai)
+    // This is now purely a fallback/free generator. 
+    // The Replicate logic is handled in the parent function (ai-content-actions.ts)
+    // to avoid circular dependencies and ensure clean fallback.
 
     // 2. Fallback: Pollinations.ai (Free, good quality)
     try {
