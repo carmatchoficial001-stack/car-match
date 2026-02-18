@@ -276,6 +276,7 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
         const randomBrandHook = BRAND_HOOKS[Math.floor(Math.random() * BRAND_HOOKS.length)]
 
         // 2. Ask Gemini to create a full BRAND campaign
+        // 2. Ask Gemini to create a full BRAND campaign
         const prompt = `
             Act as a WORLD-CLASS SOCIAL MEDIA STRATEGIST for CarMatch (The "Tinder for Cars").
             Your goal is to reach a potential audience of 2.8 BILLION users globally.
@@ -317,8 +318,27 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
             - Example format: "Escena 1: Un joven atrapado en el tráfico... Escena 2: Abre CarMatch..."
         `
 
-        const result = await geminiFlashConversational.generateContent(prompt)
-        const text = result.response.text()
+        // TIMEOUT & FALLBACK Protection
+        let text = "";
+        const FALLBACK_STRATEGY_JSON = JSON.stringify({
+            "caption": "🔥 ¿Aun no tienes el auto de tus sueños? 🚗💨 Encuéntralo en CarMatch. La App #1 de compra-venta segura. 👇 ¡Descarga YA!",
+            "imagePrompt": "Futuristic smartphone showing CarMatch app with a luxury car coming out of the screen, neon lights, cyber city background, 8k",
+            "videoScript": "Escena 1: Primer plano de un celular con CarMatch. Escena 2: Dedo hace Swipe Right. Escena 3: El auto aparece mágicamente en la calle. Escena 4: Conductor feliz sube al auto. Texto: Tu Auto Ideal te Espera.",
+            "videoPrompt": "Cinematic transition from smartphone screen to real life luxury car, magical effects, high energy, 8k",
+            "strategy": "Estrategia de Alta Velocidad: Enfocada en la gratificación instantánea y la facilidad de uso de la app (Efecto Tinder)."
+        });
+
+        try {
+            const result = await Promise.race([
+                geminiFlashConversational.generateContent(prompt),
+                new Promise<any>((_, reject) => setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 4000))
+            ]);
+            text = result.response.text();
+            console.log('[AUTO-PILOT] Gemini generated strategy successfully.');
+        } catch (err) {
+            console.warn('[AUTO-PILOT] Gemini Timeout/Error. Using Fallback Strategy.');
+            text = FALLBACK_STRATEGY_JSON;
+        }
 
         // Clean up markdown code blocks if present
         const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim()
