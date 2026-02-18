@@ -29,6 +29,55 @@ export default function AIStudio() {
     const [loadError, setLoadError] = useState(false)
     const [showHistory, setShowHistory] = useState(false) // 🆕 Control visual del historial
 
+    // ⏳ VIDEO POLLING STATE (Async Generation)
+    const [activePoll, setActivePoll] = useState<{ id: string } | null>(null);
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (activePoll) {
+            console.log('🔄 Iniciando Polling para Video:', activePoll.id);
+            // Dynamic import to avoid build issues with server actions in client components if not handled correctly
+            import('@/app/admin/actions/ai-content-actions').then(({ checkVideoGenerationStatus }) => {
+                interval = setInterval(async () => {
+                    const status = await checkVideoGenerationStatus(activePoll.id);
+                    console.log('Poll Status:', status);
+
+                    if (status.status === 'succeeded' && status.videoUrl) {
+                        console.log('✅ Video Terminadod:', status.videoUrl);
+
+                        // Update message in UI
+                        setMessages(prev => prev.map(msg => {
+                            if (msg.videoPendingId === activePoll.id) {
+                                // Persist the new content locally
+                                const newContent = msg.content.replace('PENDING...', status.videoUrl || '');
+                                return {
+                                    ...msg,
+                                    videoUrl: status.videoUrl,
+                                    content: newContent
+                                }
+                            }
+                            return msg;
+                        }));
+                        setActivePoll(null); // Stop polling
+                    } else if (status.status === 'failed') {
+                        console.error('❌ Video Falló');
+                        setMessages(prev => prev.map(msg => {
+                            if (msg.videoPendingId === activePoll.id) {
+                                return {
+                                    ...msg,
+                                    content: msg.content + '\n\n(Error generando video único)'
+                                }
+                            }
+                            return msg;
+                        }));
+                        setActivePoll(null);
+                    }
+                }, 4000); // Check every 4s
+            });
+        }
+        return () => clearInterval(interval);
+    }, [activePoll]);
+
     const handleUseInCampaign = async (history: any[]) => {
         setIsGenerating(true)
         setMessages(prev => [...prev, { role: 'assistant', content: '🎨 Generando Assets Reales (Imagen Flux + Copy + Script Veo)... Espera un momento.' }])
@@ -47,11 +96,22 @@ export default function AIStudio() {
                     const event = new CustomEvent('campaign-created', { detail: campaignRes.campaign });
                     window.dispatchEvent(event);
 
-                    setMessages(prev => [...prev, {
+                    const content = `✅ ¡Campaña creada exitosamente!\n\n📋 **${campaignRes.campaign.title}**\n\n🎯 Ahora puedes verla en la sección Campañas.\n💡 Aquí tienes una vista previa del video generado:\n\n[VIDEO_PREVIEW]: ${res.assets.videoUrl || (res.assets.videoPendingId ? 'PENDING...' : '')}`
+
+                    const newMessage = {
                         role: 'assistant',
-                        content: `✅ ¡Campaña creada exitosamente!\n\n📋 **${campaignRes.campaign.title}**\n\n🎯 Ahora puedes verla en la sección Campañas.\n💡 Aquí tienes una vista previa del video generado:`,
-                        videoUrl: res.assets.videoUrl // Pass the video URL to the message component
-                    }])
+                        content: content,
+                        videoUrl: res.assets.videoUrl, // Pass the video URL to the message component
+                        videoPendingId: res.assets.videoPendingId
+                    };
+
+                    setMessages(prev => [...prev, newMessage])
+
+                    if (res.assets.videoPendingId) {
+                        console.log('⏳ Video pendiente detectado. Iniciando polling...', res.assets.videoPendingId);
+                        setActivePoll({ id: res.assets.videoPendingId });
+                    }
+
                 } else {
                     setMessages(prev => [...prev, {
                         role: 'assistant',
@@ -227,9 +287,14 @@ export default function AIStudio() {
             const res = await suggestCampaignFromInventory('MX')
             if (res.success && res.campaignData) {
                 const data = res.campaignData
-                const content = `**Estrategia Viral Detectada:** ${data.strategy}\n\n**Copy Sugerido:**\n"${data.caption}"\n\n**Script de Video:**\n${data.videoScript}\n\n[VIDEO_PREVIEW]: ${data.videoUrl || ''}\n[IMAGE_PREVIEW]: ${data.imageUrl || ''}`
+                const content = `**Estrategia Viral Detectada:** ${data.strategy}\n\n**Copy Sugerido:**\n"${data.caption}"\n\n**Script de Video:**\n${data.videoScript}\n\n[VIDEO_PREVIEW]: ${data.videoUrl || 'PENDING...'}\n[IMAGE_PREVIEW]: ${data.imageUrl || ''}`
 
-                setMessages(prev => [...prev, { role: 'assistant', content, videoUrl: data.videoUrl }])
+                setMessages(prev => [...prev, { role: 'assistant', content, videoUrl: data.videoUrl, videoPendingId: data.videoPendingId }])
+
+                // If we have a pending video, we need to handle polling in a useEffect or here roughly
+                if (data.videoPendingId) {
+                    startPollingVideo(data.videoPendingId, messages.length + 1); // rough index approximation, better to use ID
+                }
 
                 if (sessionId) {
                     await saveAIMessage(sessionId, 'user', 'Generar Campaña Automática')

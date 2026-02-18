@@ -547,29 +547,8 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             Último mensaje del usuario: "${chatHistory[chatHistory.length - 1].content}"
         `
 
-        // DYNAMIC FALLBACK (No more generic "Luxury Car")
-        const FALLBACK_CAMPAIGN_JSON = JSON.stringify({
-            "internal_title": `Campaña ${randomBrandHook.hook} (Express)`,
-            "imagePrompt": `Professional advertising shot of a car representing '${randomBrandHook.hook}', text '${visualHook}' in neon, cinematic lighting, 8k, commercial`,
-            "videoPrompt_vertical": `vertical cinematic shot of a car, ${randomBrandHook.angle}, luxury, 8k`,
-            "videoPrompt_horizontal": `cinematic shot of a car, ${randomBrandHook.angle}, luxury, 8k`,
-            "videoScript": `Escena 1: ${randomBrandHook.angle}. Escena 2: Tu auto ideal te espera. Escena 3: Descarga CarMatch hoy.`,
-            "platforms": {
-                "meta_ads": { "primary_text": `${randomBrandHook.angle} Encuentra tu auto ideal hoy mismo en CarMatch.`, "headline": visualHook, "description": "Descarga la App Gratis" },
-                "facebook_marketplace": { "title": `Autos Verificados: ${randomBrandHook.hook}`, "description": "Miles de autos verificados te esperan. Descarga la app." },
-                "google_ads": { "headlines": [randomBrandHook.hook, "Compra Autos Seguros", "CarMatch App"], "descriptions": ["La mejor forma de comprar y vender autos.", "Seguridad y rapidez garantizada."] },
-                "tiktok_ads": { "caption": `${randomBrandHook.hook} 🚗💨 #CarMatch #AutoNuevo`, "script_notes": "Mostrar autos rápidos y gente feliz usando la app." },
-                "youtube_shorts": { "title": `${visualHook} 🚗🔥`, "description": "Descarga CarMatch en iOS y Android." },
-                "twitter_x": { "tweets": [`¿Buscas ${randomBrandHook.hook}? 🚗 Descarga CarMatch hoy mismo.`] },
-                "threads": { "text": `¿Sabías que ${randomBrandHook.angle}? 👀🚗` },
-                "snapchat_ads": { "headline": visualHook, "caption": "Descarga CarMatch Gratis" },
-                "messaging_apps": { "broadcast_message": `¡${randomBrandHook.hook}! Encuentra tu auto hoy en CarMatch.` }
-            }
-        });
-
-        console.log('[AI] Generando contenido de campaña (Timeout: 4s)...')
-
         // GEMINI TIMEOUT WRAPPER (4s max)
+        // User demands UNIQUE content. No static fallbacks.
         let text = "";
         try {
             const result = await Promise.race([
@@ -580,17 +559,17 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                         temperature: 0.9 // Higher creativity
                     }
                 }),
-                new Promise<any>((_, reject) => setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 4000))
+                new Promise<any>((_, reject) => setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 9000)) // Increased timeout to 9s to give Gemini a chance
             ]);
             text = result.response.text();
             console.log('[AI] Gemini respondió a tiempo.');
         } catch (err: any) {
-            console.warn('[AI] Gemini tardó demasiado o falló. Usando DYNAMIC Fallback.', err.message);
-            console.warn('[AI] Fallback Hook:', randomBrandHook.hook);
-            text = FALLBACK_CAMPAIGN_JSON;
+            console.error('[AI] Gemini falló o tardó demasiado:', err.message);
+            // THROW ERROR instead of using fallback
+            throw new Error(`La IA tardó demasiado en responder. Por favor intenta de nuevo. (Error: ${err.message})`);
         }
 
-        console.log('[AI] Respuesta JSON recibida/fallback, parseando...')
+        console.log('[AI] Respuesta JSON recibida, parseando...')
 
         // With JSON mode, the response should already be valid JSON
         // Still do minimal cleanup just in case
@@ -603,17 +582,7 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         } catch (parseError: any) {
             console.error('[AI] Error parseando JSON:', parseError.message)
             console.error('[AI] JSON problemático:', jsonString.substring(0, 1000))
-
-            // Try to find the problematic area
-            const errorMatch = parseError.message.match(/position (\d+)/)
-            if (errorMatch) {
-                const pos = parseInt(errorMatch[1])
-                const contextStart = Math.max(0, pos - 100)
-                const contextEnd = Math.min(jsonString.length, pos + 100)
-                console.error('[AI] Contexto del error:', jsonString.substring(contextStart, contextEnd))
-            }
-
-            throw new Error(`Error crítico de parseo. Por favor intenta de nuevo con un mensaje más corto y simple.`)
+            throw new Error(`Error generando la estrategia. Por favor intenta de nuevo.`)
         }
 
         // Validate required fields
@@ -729,39 +698,47 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                     5000,
                     await generatePollinationsImage(timeoutPrompt, 1920, 1080)
                 ),
-                // VIDEO: 5s Timeout (Critical)
+                // VIDEO: ASYNC START (Non-blocking)
+                let videoPendingId = null;
+            let videoFallbackUrl = null;
+
+            try {
+                console.log('[AI] Iniciando Video Asíncrono (Replicate)...');
+                const { createVideoPrediction } = await import('@/lib/ai/replicate-client');
+                videoPendingId = await createVideoPrediction(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical');
+            } catch (videoErr: any) {
+                console.warn('[AI] Replicate Async Video Failed. Using Error.', videoErr.message);
+                if (true) throw new Error('No se pudo iniciar la generación de video único.');
+            }
+
+            const [imgSquare, imgVertical, imgHorizontal] = await Promise.all([
+                // IMAGES: 5s Timeout per image (Flux is fast enough usually)
                 withTimeout(
-                    (async () => {
-                        try {
-                            console.log('[AI] Generando Video con Replicate (Veo)...');
-                            // Internal logic already handles stock fallback
-                            return await generateVeoVideo(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical');
-                        } catch (videoErr: any) {
-                            console.warn('[AI] Replicate Video wrapper falló. Usando Stock.', videoErr.message);
-                            return FALLBACK_VIDEO;
-                        }
-                    })(),
-                    5000,
-                    FALLBACK_VIDEO
+                    generateImageWithFallback(basePrompt, 1080, 1080, 'Square'),
+                    9000, // Increased timeout for quality
+                    await generatePollinationsImage(timeoutPrompt, 1080, 1080)
+                ),
+                withTimeout(
+                    generateImageWithFallback(basePrompt, 1080, 1920, 'Vertical'),
+                    9000,
+                    await generatePollinationsImage(timeoutPrompt, 1080, 1920)
+                ),
+                withTimeout(
+                    generateImageWithFallback(basePrompt, 1920, 1080, 'Horizontal'),
+                    9000,
+                    await generatePollinationsImage(timeoutPrompt, 1920, 1080)
                 )
             ]);
 
-            console.log('[AI] Square Image URL:', imgSquare);
-            console.log('[AI] Vertical Image URL:', imgVertical);
-            console.log('[AI] Horizontal Image URL:', imgHorizontal);
-
-            let finalVideoUrl = videoResult.url;
-            let finalVideoDuration = videoResult.duration;
-
-            console.log('[AI] Assets generados exitosamente (Replicate o Fallback)')
+            console.log('[AI] Assets generados (Imágenes listas, Video pendiente/ID:', videoPendingId, ')');
 
             return {
                 success: true,
                 assets: {
                     ...data,
                     imageUrl: imgSquare,
-                    videoUrl: finalVideoUrl,
-                    videoDuration: finalVideoDuration,
+                    videoUrl: '', // Will be filled by client polling
+                    videoPendingId: videoPendingId, // Client uses this to poll
                     images: {
                         square: imgSquare,
                         vertical: imgVertical,
@@ -938,5 +915,29 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
             error: error.message || 'Error regenerando el elemento',
             details: error.toString()
         }
+    }
+}
+
+// --- POLLING ACTION ---
+export async function checkVideoGenerationStatus(predictionId: string) {
+    try {
+        const { checkPrediction } = await import('@/lib/ai/replicate-client');
+        const result = await checkPrediction(predictionId);
+
+        if (result.status === 'succeeded') {
+            let url = '';
+            if (Array.isArray(result.output) && result.output.length > 0) url = String(result.output[0]);
+            else if (typeof result.output === 'string') url = result.output;
+            else if (typeof result.output === 'object' && (result.output as any).url) url = (result.output as any).url;
+
+            return { status: 'succeeded', videoUrl: url };
+        } else if (result.status === 'failed' || result.status === 'canceled') {
+            return { status: 'failed', error: result.error };
+        } else {
+            return { status: 'processing' };
+        }
+    } catch (error) {
+        console.error('Error polling video:', error);
+        return { status: 'error' };
     }
 }
