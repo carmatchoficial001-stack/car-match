@@ -11,7 +11,7 @@ import {
     Megaphone, Plus, Search, Filter, MoreVertical,
     Calendar, Globe, Share2, Trash2, Edit, CheckCircle2,
     XCircle, Clock, ExternalLink, Image as ImageIcon, Sparkles, RefreshCw, Zap,
-    Bot, User, Download, ImagePlus, Send, Save, X, Copy, Check, Video, ArrowRight, Info, Type as TypeIcon
+    Bot, User, Download, ImagePlus, Send, Save, X, Copy, Check, Video, ArrowRight, Info, Type as TypeIcon, Loader2
 } from 'lucide-react'
 import {
     getPublicityCampaigns,
@@ -19,11 +19,13 @@ import {
     updatePublicityCampaign,
     deletePublicityCampaign,
     togglePublicityStatus,
-    manualTriggerSocialPost
+    manualTriggerSocialPost,
+    createCampaignFromAssets,
+    saveAIAssetUrl
 } from '@/app/admin/actions/publicity-actions'
 import {
     generateSocialCaption, generateImagePrompt, generateVideoScript, suggestCampaignFromInventory,
-    chatWithPublicityAgent
+    chatWithPublicityAgent, generateCampaignAssets, generateAIElement, checkAIAssetStatus
 } from '@/app/admin/actions/ai-content-actions'
 import AIStudio from '@/components/admin/AIStudio'
 
@@ -152,54 +154,63 @@ export default function PublicityTab() {
         setLoading(false)
     }
 
-    // Polling for pending assets when modal is open
+    // Proactive polling for pending assets
     useEffect(() => {
-        let interval: NodeJS.Timeout;
+        if (!showAssetsModal || !generatedAssets) return;
 
-        // Helper to check if any asset is pending in the CURRENTLY viewed assets
-        const hasPending = generatedAssets && (
-            generatedAssets.videoPendingId ||
-            (generatedAssets.imagePendingIds && (
-                generatedAssets.imagePendingIds.square ||
-                generatedAssets.imagePendingIds.vertical ||
-                generatedAssets.imagePendingIds.horizontal
-            ))
-        );
+        const pIds: any[] = [];
+        if (generatedAssets.videoPendingId) pIds.push({ id: generatedAssets.videoPendingId, type: 'video' });
+        if (generatedAssets.imagePendingIds?.square) pIds.push({ id: generatedAssets.imagePendingIds.square, type: 'image_square' });
+        if (generatedAssets.imagePendingIds?.vertical) pIds.push({ id: generatedAssets.imagePendingIds.vertical, type: 'image_vertical' });
+        if (generatedAssets.imagePendingIds?.horizontal) pIds.push({ id: generatedAssets.imagePendingIds.horizontal, type: 'image_horizontal' });
 
-        if (showAssetsModal && hasPending) {
-            console.log('[POLL] Activating background refresh for Global Ad Pack...');
-            interval = setInterval(async () => {
-                const res = await getPublicityCampaigns();
-                if (res.success) {
-                    const allCampaigns = res.data as PublicityCampaign[];
-                    setCampaigns(allCampaigns);
+        if (pIds.length === 0) return;
 
-                    // Try to find the campaign we are currently viewing to update its assets in the modal
-                    // We can use a combination of title and existence of same pending assets to find it
-                    const currentCampaign = allCampaigns.find(c => {
+        console.log('[POLL-ADPACK] Monitoreando assets pendientes...', pIds);
+
+        const interval = setInterval(async () => {
+            const results = await Promise.all(pIds.map(async (p) => {
+                const res = await checkAIAssetStatus(p.id);
+                return { ...p, ...res };
+            }));
+
+            results.forEach(async (res) => {
+                if (res.status === 'succeeded' && res.url) {
+                    console.log(`[POLL-ADPACK] Asset ${res.type} listo!`, res.url);
+
+                    // Find campaign ID to persist
+                    const campaignId = campaigns.find(c => {
                         try {
                             const meta = typeof c.metadata === 'string' ? JSON.parse(c.metadata) : c.metadata;
-                            if (!meta || !meta.assets) return false;
-
-                            // Match if it has the same video pending ID or square pending ID
-                            const matchesVideo = meta.assets.videoPendingId && meta.assets.videoPendingId === generatedAssets.videoPendingId;
-                            const matchesImg = meta.assets.imagePendingIds?.square && meta.assets.imagePendingIds.square === generatedAssets.imagePendingIds?.square;
-
-                            return matchesVideo || matchesImg;
+                            return meta?.assets?.videoPendingId === generatedAssets.videoPendingId ||
+                                meta?.assets?.imagePendingIds?.square === generatedAssets.imagePendingIds?.square;
                         } catch { return false; }
-                    });
+                    })?.id;
 
-                    if (currentCampaign) {
-                        const meta = typeof currentCampaign.metadata === 'string' ? JSON.parse(currentCampaign.metadata) : currentCampaign.metadata;
-                        console.log('[POLL] Updated assets found for campaign:', currentCampaign.title);
-                        setGeneratedAssets(meta.assets);
+                    if (campaignId) {
+                        await saveAIAssetUrl(campaignId, res.type, res.url);
                     }
+
+                    // Refresh UI
+                    setGeneratedAssets((prev: any) => {
+                        if (!prev) return prev;
+                        const next = { ...prev };
+                        if (res.type === 'video') { next.videoUrl = res.url; next.videoPendingId = null; }
+                        else if (res.type.startsWith('image_')) {
+                            const imgType = res.type.split('_')[1];
+                            if (!next.images) next.images = {};
+                            next.images[imgType] = res.url;
+                            if (next.imagePendingIds) next.imagePendingIds[imgType] = null;
+                            if (imgType === 'square') next.imageUrl = res.url;
+                        }
+                        return next;
+                    });
                 }
-            }, 4000);
-        }
+            });
+        }, 5000);
 
         return () => clearInterval(interval);
-    }, [showAssetsModal, generatedAssets]);
+    }, [showAssetsModal, generatedAssets, campaigns]);
 
     useEffect(() => {
         fetchCampaigns()
@@ -829,20 +840,22 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                     {/* VERTICAL IMAGE: Meta, Snapchat */}
                                     {['meta_ads', 'snapchat_ads'].includes(platform.id) && (
                                         <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
-                                            {assets.images?.vertical && assets.images.vertical.startsWith('http') ? (
+                                            {(assets.images?.vertical?.startsWith('http') || assets.images?.square?.startsWith('http') || assets.imageUrl?.startsWith('http')) ? (
                                                 <>
-                                                    <img src={assets.images.vertical} className="w-full h-full object-cover" />
+                                                    <img src={assets.images?.vertical || assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
                                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                                                         <button
-                                                            onClick={() => downloadAsset(assets.images.vertical, `${platform.id}-story.jpg`)}
+                                                            onClick={() => downloadAsset(assets.images?.vertical || assets.images?.square || assets.imageUrl, `${platform.id}-story.jpg`)}
                                                             className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
                                                         >
                                                             <Download className="w-4 h-4" />
                                                         </button>
                                                     </div>
-                                                    <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">9:16</div>
+                                                    <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">
+                                                        {assets.images?.vertical ? '9:16' : '1:1 (Fallback)'}
+                                                    </div>
                                                 </>
-                                            ) : (assets.images?.vertical === 'PENDING...' || assets.imagePendingIds?.vertical) ? (
+                                            ) : (assets.images?.vertical === 'PENDING...' || assets.imagePendingIds?.vertical || assets.imagePendingIds?.square) ? (
                                                 <div className="flex flex-col items-center gap-2 p-4 text-center">
                                                     <RefreshCw className="w-5 h-5 text-indigo-500 animate-spin" />
                                                     <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Generando...</span>
@@ -856,20 +869,22 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                     {/* HORIZONTAL IMAGE: Google, X */}
                                     {['google_ads', 'twitter_x'].includes(platform.id) && (
                                         <div className="col-span-2 sm:col-span-1 aspect-video rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
-                                            {assets.images?.horizontal && assets.images.horizontal.startsWith('http') ? (
+                                            {(assets.images?.horizontal?.startsWith('http') || assets.images?.square?.startsWith('http') || assets.imageUrl?.startsWith('http')) ? (
                                                 <>
-                                                    <img src={assets.images.horizontal} className="w-full h-full object-cover" />
+                                                    <img src={assets.images?.horizontal || assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
                                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                                                         <button
-                                                            onClick={() => downloadAsset(assets.images.horizontal, `${platform.id}-landscape.jpg`)}
+                                                            onClick={() => downloadAsset(assets.images?.horizontal || assets.images?.square || assets.imageUrl, `${platform.id}-landscape.jpg`)}
                                                             className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
                                                         >
                                                             <Download className="w-4 h-4" />
                                                         </button>
                                                     </div>
-                                                    <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">16:9</div>
+                                                    <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">
+                                                        {assets.images?.horizontal ? '16:9' : '1:1 (Fallback)'}
+                                                    </div>
                                                 </>
-                                            ) : (assets.images?.horizontal === 'PENDING...' || assets.imagePendingIds?.horizontal) ? (
+                                            ) : (assets.images?.horizontal === 'PENDING...' || assets.imagePendingIds?.horizontal || assets.imagePendingIds?.square) ? (
                                                 <div className="flex flex-col items-center gap-2 p-2 text-center">
                                                     <RefreshCw className="w-5 h-5 text-green-500 animate-spin" />
                                                     <span className="text-[9px] font-black uppercase text-green-400 tracking-widest">Generando...</span>

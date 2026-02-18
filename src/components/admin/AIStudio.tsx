@@ -9,8 +9,9 @@ import {
     Menu, X, ChevronDown, LayoutGrid
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { chatWithPublicityAgent, suggestCampaignFromInventory, generateCampaignAssets } from '@/app/admin/actions/ai-content-actions'
-import { getAISessions, getAISession, createAISession, saveAIMessage, deleteAISession, AIStudioSessionWithMessages } from '@/app/admin/actions/ai-studio-actions'
+import { createAISession, getAISession, getAISessions, deleteAISession, saveAIMessage, AIStudioSessionWithMessages } from '@/app/admin/actions/ai-studio-actions'
+import { generateCampaignAssets, suggestCampaignFromInventory, checkAIAssetStatus } from '@/app/admin/actions/ai-content-actions'
+import { saveAIAssetUrl } from '@/app/admin/actions/publicity-actions'
 
 type AIMode = 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'STRATEGY'
 
@@ -80,6 +81,11 @@ export default function AIStudio() {
                             if (type === 'square') {
                                 newContent = newContent.replace(/\[IMAGE_PREVIEW\]: PENDING.../, `[IMAGE_PREVIEW]: ${res.url}`);
                             }
+                            // PERSIST TO DB IF CAMPAIGN EXISTS
+                            if (res.campaignId) {
+                                saveAIAssetUrl(res.campaignId, res.type, res.url);
+                            }
+
                             return {
                                 ...msg,
                                 images: { ...(msg.images || {}), [type]: res.url },
