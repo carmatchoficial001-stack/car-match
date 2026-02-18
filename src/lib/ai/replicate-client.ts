@@ -111,38 +111,39 @@ export async function generateRealImage(prompt: string, width: number, height: n
         console.error('[REPLICATE] Error generating image:', error)
         throw error
     }
+}
 
 
-    /**
-     * ASYNC VIDEO GENERATION (Bypasses Vercel 10s Limit)
-     */
-    export async function createVideoPrediction(prompt: string, aspectRatio: '9:16' | '16:9' = '9:16'): Promise<string> {
-        if (!process.env.REPLICATE_API_TOKEN) throw new Error('MISSING_API_KEY');
+/**
+ * ASYNC VIDEO GENERATION (Bypasses Vercel 10s Limit)
+ */
+export async function createVideoPrediction(prompt: string, aspectRatio: '9:16' | '16:9' = '9:16'): Promise<string> {
+    if (!process.env.REPLICATE_API_TOKEN) throw new Error('MISSING_API_KEY');
 
-        console.log(`[REPLICATE] Iniciando PREDICCIÓN ASÍNCRONA de video...`);
+    console.log(`[REPLICATE] Iniciando PREDICCIÓN ASÍNCRONA de video...`);
 
-        // Using Minimax via predictions.create to get an ID immediately
-        const prediction = await replicate.predictions.create({
-            model: "minimax/video-01",
-            input: {
-                prompt: prompt,
-                prompt_optimizer: true
-            }
-        });
+    // Using Minimax via predictions.create to get an ID immediately
+    const prediction = await replicate.predictions.create({
+        model: "minimax/video-01",
+        input: {
+            prompt: prompt,
+            prompt_optimizer: true
+        }
+    });
 
-        console.log('[REPLICATE] Predicción iniciada. ID:', prediction.id);
-        return prediction.id;
-    }
+    console.log('[REPLICATE] Predicción iniciada. ID:', prediction.id);
+    return prediction.id;
+}
 
-    export async function checkPrediction(id: string): Promise<{ status: string; output?: string | string[]; error?: any }> {
-        if (!process.env.REPLICATE_API_TOKEN) throw new Error('MISSING_API_KEY');
+export async function checkPrediction(id: string): Promise<{ status: string; output?: string | string[]; error?: any }> {
+    if (!process.env.REPLICATE_API_TOKEN) throw new Error('MISSING_API_KEY');
 
-        const prediction = await replicate.predictions.get(id);
+    const prediction = await replicate.predictions.get(id);
 
-        // Status: starting, processing, succeeded, failed, canceled
-        return {
-            status: prediction.status,
-            output: prediction.output, // URL or Array of URLs
-            error: prediction.error
-        };
-    }
+    // Status: starting, processing, succeeded, failed, canceled
+    return {
+        status: prediction.status,
+        output: prediction.output, // URL or Array of URLs
+        error: prediction.error
+    };
+}
