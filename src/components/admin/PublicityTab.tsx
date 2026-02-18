@@ -135,11 +135,64 @@ export default function PublicityTab() {
     const fetchCampaigns = async () => {
         setLoading(true)
         const res = await getPublicityCampaigns()
-        if (res.success && res.data) {
-            setCampaigns(res.data)
+        if (res.success) {
+            setCampaigns(res.data as PublicityCampaign[])
         }
         setLoading(false)
     }
+
+    // Polling for pending assets when modal is open
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+
+        // Helper to check if any asset is pending in the CURRENTLY viewed assets
+        const hasPending = generatedAssets && (
+            generatedAssets.videoPendingId ||
+            (generatedAssets.imagePendingIds && (
+                generatedAssets.imagePendingIds.square ||
+                generatedAssets.imagePendingIds.vertical ||
+                generatedAssets.imagePendingIds.horizontal
+            ))
+        );
+
+        if (showAssetsModal && hasPending) {
+            console.log('[POLL] Activating background refresh for Global Ad Pack...');
+            interval = setInterval(async () => {
+                const res = await getPublicityCampaigns();
+                if (res.success) {
+                    const allCampaigns = res.data as PublicityCampaign[];
+                    setCampaigns(allCampaigns);
+
+                    // Try to find the campaign we are currently viewing to update its assets in the modal
+                    // We can use a combination of title and existence of same pending assets to find it
+                    const currentCampaign = allCampaigns.find(c => {
+                        try {
+                            const meta = typeof c.metadata === 'string' ? JSON.parse(c.metadata) : c.metadata;
+                            if (!meta || !meta.assets) return false;
+
+                            // Match if it has the same video pending ID or square pending ID
+                            const matchesVideo = meta.assets.videoPendingId && meta.assets.videoPendingId === generatedAssets.videoPendingId;
+                            const matchesImg = meta.assets.imagePendingIds?.square && meta.assets.imagePendingIds.square === generatedAssets.imagePendingIds?.square;
+
+                            return matchesVideo || matchesImg;
+                        } catch { return false; }
+                    });
+
+                    if (currentCampaign) {
+                        const meta = typeof currentCampaign.metadata === 'string' ? JSON.parse(currentCampaign.metadata) : currentCampaign.metadata;
+                        console.log('[POLL] Updated assets found for campaign:', currentCampaign.title);
+                        setGeneratedAssets(meta.assets);
+                    }
+                }
+            }, 4000);
+        }
+
+        return () => clearInterval(interval);
+    }, [showAssetsModal, generatedAssets]);
+
+    useEffect(() => {
+        fetchCampaigns()
+    }, [])
 
     const handleCreate = () => {
         setSelectedCampaign(null)
@@ -174,10 +227,15 @@ export default function PublicityTab() {
     }
 
     const handleOpenAdPack = (campaign: PublicityCampaign) => {
-        // Cast to any because metadata might not be in the generated type yet locally
-        if (!(campaign as any).metadata) return
+        // Safe metadata handling
+        const rawMetadata = (campaign as any).metadata
+        if (!rawMetadata) {
+            alert('Esta campaña no tiene assets de IA generados.')
+            return
+        }
+
         try {
-            const meta = JSON.parse((campaign as any).metadata as any)
+            const meta = typeof rawMetadata === 'string' ? JSON.parse(rawMetadata) : rawMetadata
             if (meta.assets) {
                 setGeneratedAssets(meta.assets)
                 setShowAssetsModal(true)
@@ -186,6 +244,7 @@ export default function PublicityTab() {
             }
         } catch (e) {
             console.error('Error parsing campaign metadata', e)
+            alert('Error al leer los assets de la campaña.')
         }
     }
 
@@ -692,67 +751,111 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                 </h4>
                                 <div className="grid grid-cols-2 gap-3">
                                     {/* VIDEO LOGIC: Meta, TikTok, Shorts, Snapchat */}
-                                    {['meta_ads', 'tiktok_ads', 'youtube_shorts', 'snapchat_ads'].includes(platform.id) && assets.videoUrl && (
+                                    {['meta_ads', 'tiktok_ads', 'youtube_shorts', 'snapchat_ads'].includes(platform.id) && (
                                         <div className="col-span-2 sm:col-span-1">
-                                            <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black">
-                                                <video src={assets.videoUrl} className="w-full h-full object-cover opacity-80" />
-                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                                    <button
-                                                        onClick={() => downloadAsset(assets.videoUrl, `${platform.id}-video.mp4`)}
-                                                        className="px-3 py-1.5 bg-white text-black rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-zinc-200 transition"
-                                                    >
-                                                        <Download className="w-3 h-3" /> Video
-                                                    </button>
-                                                </div>
+                                            <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
+                                                {assets.videoUrl ? (
+                                                    <>
+                                                        <video src={assets.videoUrl} className="w-full h-full object-cover opacity-80" />
+                                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                                            <button
+                                                                onClick={() => downloadAsset(assets.videoUrl, `${platform.id}-video.mp4`)}
+                                                                className="px-3 py-1.5 bg-white text-black rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-zinc-200 transition"
+                                                            >
+                                                                <Download className="w-3 h-3" /> Video
+                                                            </button>
+                                                        </div>
+                                                    </>
+                                                ) : assets.videoPendingId ? (
+                                                    <div className="flex flex-col items-center gap-2 p-4 text-center">
+                                                        <RefreshCw className="w-6 h-6 text-purple-500 animate-spin" />
+                                                        <span className="text-[10px] font-black uppercase text-purple-400 tracking-widest">Generando Video...</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-[10px] text-zinc-600 font-bold">No hay video</div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
 
                                     {/* SQUARE IMAGE: Meta, Marketplace, Google, Threads */}
-                                    {['meta_ads', 'facebook_marketplace', 'google_ads', 'threads'].includes(platform.id) && (assets.images?.square || assets.imageUrl) && (
-                                        <div className="aspect-square rounded-xl overflow-hidden border border-white/10 relative group bg-black">
-                                            <img src={assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                                <button
-                                                    onClick={() => downloadAsset(assets.images?.square || assets.imageUrl, `${platform.id}-square.jpg`)}
-                                                    className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
-                                                >
-                                                    <Download className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                            <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">1:1</div>
+                                    {['meta_ads', 'facebook_marketplace', 'google_ads', 'threads'].includes(platform.id) && (
+                                        <div className="aspect-square rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
+                                            {assets.images?.square || assets.imageUrl ? (
+                                                <>
+                                                    <img src={assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                                        <button
+                                                            onClick={() => downloadAsset(assets.images?.square || assets.imageUrl, `${platform.id}-square.jpg`)}
+                                                            className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
+                                                        >
+                                                            <Download className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                    <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">1:1</div>
+                                                </>
+                                            ) : assets.imagePendingIds?.square ? (
+                                                <div className="flex flex-col items-center gap-2 p-2 text-center">
+                                                    <RefreshCw className="w-5 h-5 text-blue-500 animate-spin" />
+                                                    <span className="text-[9px] font-black uppercase text-blue-400 tracking-widest">Generando...</span>
+                                                </div>
+                                            ) : (
+                                                <div className="text-[10px] text-zinc-600 font-bold">No hay imagen</div>
+                                            )}
                                         </div>
                                     )}
 
                                     {/* VERTICAL IMAGE: Meta, Snapchat, WhatsApp */}
-                                    {['meta_ads', 'snapchat_ads', 'whatsapp_channel'].includes(platform.id) && assets.images?.vertical && (
-                                        <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black">
-                                            <img src={assets.images.vertical} className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                                <button
-                                                    onClick={() => downloadAsset(assets.images.vertical, `${platform.id}-story.jpg`)}
-                                                    className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
-                                                >
-                                                    <Download className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                            <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">9:16</div>
+                                    {['meta_ads', 'snapchat_ads', 'whatsapp_channel'].includes(platform.id) && (
+                                        <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
+                                            {assets.images?.vertical ? (
+                                                <>
+                                                    <img src={assets.images.vertical} className="w-full h-full object-cover" />
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                                        <button
+                                                            onClick={() => downloadAsset(assets.images.vertical, `${platform.id}-story.jpg`)}
+                                                            className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
+                                                        >
+                                                            <Download className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                    <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">9:16</div>
+                                                </>
+                                            ) : assets.imagePendingIds?.vertical ? (
+                                                <div className="flex flex-col items-center gap-2 p-4 text-center">
+                                                    <RefreshCw className="w-5 h-5 text-indigo-500 animate-spin" />
+                                                    <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Generando...</span>
+                                                </div>
+                                            ) : (
+                                                <div className="text-[10px] text-zinc-600 font-bold">No hay imagen</div>
+                                            )}
                                         </div>
                                     )}
 
                                     {/* HORIZONTAL IMAGE: Google, X */}
-                                    {['google_ads', 'twitter_x'].includes(platform.id) && assets.images?.horizontal && (
-                                        <div className="col-span-2 sm:col-span-1 aspect-video rounded-xl overflow-hidden border border-white/10 relative group bg-black">
-                                            <img src={assets.images.horizontal} className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                                <button
-                                                    onClick={() => downloadAsset(assets.images.horizontal, `${platform.id}-landscape.jpg`)}
-                                                    className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
-                                                >
-                                                    <Download className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                            <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">16:9</div>
+                                    {['google_ads', 'twitter_x'].includes(platform.id) && (
+                                        <div className="col-span-2 sm:col-span-1 aspect-video rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
+                                            {assets.images?.horizontal ? (
+                                                <>
+                                                    <img src={assets.images.horizontal} className="w-full h-full object-cover" />
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                                        <button
+                                                            onClick={() => downloadAsset(assets.images.horizontal, `${platform.id}-landscape.jpg`)}
+                                                            className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
+                                                        >
+                                                            <Download className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                    <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">16:9</div>
+                                                </>
+                                            ) : assets.imagePendingIds?.horizontal ? (
+                                                <div className="flex flex-col items-center gap-2 p-2 text-center">
+                                                    <RefreshCw className="w-5 h-5 text-green-500 animate-spin" />
+                                                    <span className="text-[9px] font-black uppercase text-green-400 tracking-widest">Generando...</span>
+                                                </div>
+                                            ) : (
+                                                <div className="text-[10px] text-zinc-600 font-bold">No hay imagen</div>
+                                            )}
                                         </div>
                                     )}
                                 </div>

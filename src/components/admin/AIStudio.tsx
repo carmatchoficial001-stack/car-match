@@ -315,21 +315,34 @@ export default function AIStudio() {
             const res = await suggestCampaignFromInventory('MX')
             if (res.success && res.campaignData) {
                 const data = res.campaignData
+
+                // ✨ AUTO-GUARDAR CAMPAÑA PARA PERSISTENCIA
+                const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
+                const campaignRes = await createCampaignFromAssets(data)
+
+                let campaignId: string | undefined = undefined;
+                if (campaignRes.success && campaignRes.campaign) {
+                    campaignId = campaignRes.campaign.id;
+                    const event = new CustomEvent('campaign-created', { detail: campaignRes.campaign });
+                    window.dispatchEvent(event);
+                }
+
                 const content = `**Estrategia Viral Detectada:** ${data.strategy}\n\n**Copy Sugerido:**\n"${data.caption}"\n\n**Script de Video:**\n${data.videoScript}\n\n[VIDEO_PREVIEW]: PENDING...\n[IMAGE_PREVIEW]: PENDING...`
 
                 setMessages(prev => [...prev, {
                     role: 'assistant',
                     content,
+                    campaignId: campaignId,
                     videoPendingId: data.videoPendingId,
                     imagePendingIds: data.imagePendingIds
                 }])
 
                 // Add to polling queue
                 const toPoll: any[] = [];
-                if (data.videoPendingId) toPoll.push({ id: data.videoPendingId, type: 'video' });
-                if (data.imagePendingIds?.square) toPoll.push({ id: data.imagePendingIds.square, type: 'image_square' });
-                if (data.imagePendingIds?.vertical) toPoll.push({ id: data.imagePendingIds.vertical, type: 'image_vertical' });
-                if (data.imagePendingIds?.horizontal) toPoll.push({ id: data.imagePendingIds.horizontal, type: 'image_horizontal' });
+                if (data.videoPendingId) toPoll.push({ id: data.videoPendingId, type: 'video', campaignId });
+                if (data.imagePendingIds?.square) toPoll.push({ id: data.imagePendingIds.square, type: 'image_square', campaignId });
+                if (data.imagePendingIds?.vertical) toPoll.push({ id: data.imagePendingIds.vertical, type: 'image_vertical', campaignId });
+                if (data.imagePendingIds?.horizontal) toPoll.push({ id: data.imagePendingIds.horizontal, type: 'image_horizontal', campaignId });
 
                 addPendingAssets(toPoll);
 
