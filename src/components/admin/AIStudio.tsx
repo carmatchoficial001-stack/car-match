@@ -227,9 +227,9 @@ export default function AIStudio() {
             const res = await suggestCampaignFromInventory('MX')
             if (res.success && res.campaignData) {
                 const data = res.campaignData
-                const content = `**Estrategia Viral Detectada:** ${data.strategy}\n\n**Copy Sugerido:**\n"${data.caption}"\n\n**Script de Video:**\n${data.videoScript}`
+                const content = `**Estrategia Viral Detectada:** ${data.strategy}\n\n**Copy Sugerido:**\n"${data.caption}"\n\n**Script de Video:**\n${data.videoScript}\n\n[VIDEO_PREVIEW]: ${data.videoUrl || ''}\n[IMAGE_PREVIEW]: ${data.imageUrl || ''}`
 
-                setMessages(prev => [...prev, { role: 'assistant', content }])
+                setMessages(prev => [...prev, { role: 'assistant', content, videoUrl: data.videoUrl }])
 
                 if (sessionId) {
                     await saveAIMessage(sessionId, 'user', 'Generar Campaña Automática')
@@ -326,19 +326,31 @@ export default function AIStudio() {
                             </div>
                             <div className={`max-w-[85%] sm:max-w-[75%] space-y-2`}>
                                 <div className={`p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${msg.role === 'user' ? 'bg-zinc-800 text-white rounded-tr-none' : 'bg-[#1A1D21] text-gray-200 border border-white/5 rounded-tl-none'}`}>
-                                    {msg.content}
-                                    {/* 🎬 VIDEO PREVIEW */}
-                                    {msg.videoUrl && (
+                                    {msg.content.replace(/\[VIDEO_PREVIEW\]:.*\n?|\[IMAGE_PREVIEW\]:.*\n?/g, '')}
+
+                                    {/* 🎬 VIDEO PREVIEW (From Prop or Content Tag) */}
+                                    {(msg.videoUrl || (msg.content.match(/\[VIDEO_PREVIEW\]:\s*(http\S+)/)?.[1])) && (
                                         <div className="mt-4 rounded-xl overflow-hidden border border-white/10 relative group/video">
                                             <video
-                                                src={msg.videoUrl}
+                                                src={msg.videoUrl || (msg.content.match(/\[VIDEO_PREVIEW\]:\s*(http\S+)/)?.[1])}
                                                 controls
                                                 className="w-full aspect-video object-cover bg-black"
-                                                poster="/placeholder-video.jpg" // Optional
+                                                poster="/placeholder-video.jpg"
                                             />
                                             <div className="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded-md text-[10px] text-white backdrop-blur-sm">
                                                 AI Video (Preview)
                                             </div>
+                                        </div>
+                                    )}
+
+                                    {/* 🖼️ IMAGE PREVIEW (From Content Tag) */}
+                                    {(msg.content.match(/\[IMAGE_PREVIEW\]:\s*(http\S+)/)?.[1]) && (
+                                        <div className="mt-2 rounded-xl overflow-hidden border border-white/10 relative">
+                                            <img
+                                                src={(msg.content.match(/\[IMAGE_PREVIEW\]:\s*(http\S+)/)?.[1])}
+                                                className="w-full h-auto object-cover"
+                                                alt="AI Generated"
+                                            />
                                         </div>
                                     )}
                                 </div>
