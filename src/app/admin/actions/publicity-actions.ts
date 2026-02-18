@@ -53,13 +53,24 @@ export async function createPublicityCampaign(prevState: any, formData: FormData
 // Helper function to create campaign directly from code (not from form)
 export async function createCampaignFromAssets(assets: any) {
     try {
-        const title = `Campaña IA - ${new Date().toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+        console.log('[CAMPAIGN-AUTO-SAVE] Receiving assets:', JSON.stringify(assets, null, 2).substring(0, 500) + '...');
+
+        const title = assets.internal_title
+            ? assets.internal_title
+            : `Campaña IA - ${new Date().toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+
+        // CRITICAL FIX: Ensure valid Image URL or use fallback
+        let campaignImage = assets.imageUrl;
+        if (!campaignImage || typeof campaignImage !== 'string' || campaignImage.length < 5) {
+            console.warn('[CAMPAIGN-AUTO-SAVE] Invalid or missing imageUrl. Using fallback.');
+            campaignImage = 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1080&h=1080';
+        }
 
         const campaign = await prisma.publicityCampaign.create({
             data: {
                 title,
                 clientName: 'Generado por IA',
-                imageUrl: assets.imageUrl || '',
+                imageUrl: campaignImage,
                 targetUrl: '',
                 startDate: new Date(),
                 endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
@@ -73,6 +84,7 @@ export async function createCampaignFromAssets(assets: any) {
             }
         })
 
+        console.log('[CAMPAIGN-AUTO-SAVE] Success! Campaign ID:', campaign.id);
         revalidatePath('/admin')
         return { success: true, campaign, message: `Campaña "${title}" creada exitosamente` }
     } catch (error) {
