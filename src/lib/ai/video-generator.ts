@@ -13,6 +13,9 @@ export async function generateVeoVideo(prompt: string, style: 'cinematic' | 'ver
     console.log(`[VIDEO-GEN] Generating video with prompt: "${prompt}"...`)
 
     // 1. Try REAL Generation (Replicate: Luma/Minimax)
+    // DISABLED FOR VERCEL HOBBY PLAN (Timeout Avoidance)
+    // AI Video takes >30s, Vercel allows 10s. We MUST use Stock Video for now.
+    /*
     try {
         const { generateRealVideo } = await import('./replicate-client')
         const realUrl = await generateRealVideo(prompt, style === 'vertical' ? '9:16' : '16:9')
@@ -22,13 +25,10 @@ export async function generateVeoVideo(prompt: string, style: 'cinematic' | 'ver
             duration: 5 // Usually 5s for these models
         }
     } catch (error: any) {
-        // If missing key, just log and fallback
-        if (error.message === 'MISSING_API_KEY') {
-            console.log('[VIDEO-GEN] No Replicate key found. Using VEO SIMULATION.')
-        } else {
-            console.error('[VIDEO-GEN] Error with Replicate, falling back to simulation:', error)
-        }
+        // ...
     }
+    */
+    console.log('[VIDEO-GEN] AI Video disabled for speed. Using INSTANT STOCK.');
 
     // 2. Fallback: VEO SIMULATION (Stock Footage)
     // No artificial delay needed for production fallback
