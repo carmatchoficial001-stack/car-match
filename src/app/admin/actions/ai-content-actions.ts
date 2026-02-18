@@ -638,6 +638,19 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         // 2. Generate Real Image URLs using Flux (Multi-Format)
         // 🔥 SUPERCHARGE: Force Text/Branding/Commercial Look
         // User wants "Publicidad de verdad", not "Generic Photo"
+
+        // Define hooks locally if not available in scope
+        const BRAND_HOOKS = [
+            { hook: 'Sell Securely', angle: 'No strangers at your house. Verified buyers.' },
+            { hook: 'Find Your Dream Car', angle: 'The Tinder for Cars. Swipe to find.' },
+            { hook: 'Map Store Utility', angle: 'Find mechanics and help near you instantly.' },
+            { hook: 'Price Check', angle: 'Are you overpaying? Check the real market value.' },
+            { hook: 'Scam Protection', angle: 'Don\'t buy a lemon. Verify everything.' },
+            { hook: 'Community', angle: 'Join the biggest car enthusiast network.' },
+            { hook: 'Speed', angle: 'Sell your car in less than 24 hours.' }
+        ]
+        const randomBrandHook = BRAND_HOOKS[Math.floor(Math.random() * BRAND_HOOKS.length)]
+
         const visualHook = randomBrandHook.hook.replace(/[^a-zA-Z0-9 ]/g, '').substring(0, 15); // Clean short text
 
         const basePrompt = data.imagePrompt
