@@ -16,13 +16,27 @@ export async function generatePollinationsImage(prompt: string, width: number = 
 
         // Construct URL with high quality parameters
         // Model: flux (best for realism)
-        // nologo=true to remove watermark if possible
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=flux&seed=${randomSeed}&nologo=true&enhance=true`
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=flux&seed=${randomSeed}&nologo=true`
+
+        // 🛡️ VALIDATION CHECK: Verify the URL actually works (Pollinations often throws 530/500)
+        // If we don't check, Next.js Image component will crash when trying to optimize a broken link.
+        try {
+            const check = await fetch(imageUrl, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+            if (!check.ok) {
+                console.warn(`[AI-GEN] Pollinations check failed (${check.status}). Using Stock Fallback.`);
+                throw new Error(`Pollinations Status ${check.status}`);
+            }
+        } catch (validationErr) {
+            console.warn('[AI-GEN] Pollinations unreachable. Using Stock Fallback.');
+            // Fallback to a high-quality relevant Unsplash image
+            // We can rotate these or select based on context if needed
+            return 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=' + width;
+        }
 
         return imageUrl
     } catch (error) {
         console.error('Error generating image URL:', error)
         // Fallback to stock image if something fails (though this is just a URL builder)
-        return 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1000'
+        return 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=' + width;
     }
 }
