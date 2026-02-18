@@ -602,60 +602,64 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             }
 
             // TIMEOUT HANDLING for Vercel Hobby Plan (10s execution limit)
-            const withTimeout = <T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> => {
+            const withTimeout = <T>(promise: Promise<T>, ms: number, fallback: string | T): Promise<T> => {
                 return Promise.race([
                     promise,
-                    new Promise<T>((resolve) => setTimeout(() => {
+                    new Promise<T>(async (resolve) => {
+                        await new Promise(r => setTimeout(r, ms));
                         console.warn(`[AI] Timeout de ${ms}ms excedido. Usando Fallback.`);
-                        resolve(fallback);
-                    }, ms))
+                        // If fallback is a string (URL) and we expect a string, return it
+                        // If T is more complex, we cast
+                        resolve(fallback as T);
+                    })
                 ]);
             };
 
             console.log('[AI] Iniciando generación de assets (PARALELO + Fallback + Timeouts)...');
 
-            // PARALLEL EXECUTION:
-            // We use Promise.all to run all generations at once.
-            // Since we have individual try/catch blocks in generateImageWithFallback,
-            // if one fails (e.g. Rate Limit), it will fallback individually without stopping the others.
-            // This prevents Vercel Timeouts (10s limit) which happens with sequential execution.
+            // DYNAMIC FALLBACKS:
+            // Instead of static URLs, we use Pollinations with a "Safe" prompt for timeouts.
+            // This ensures uniqueness even if the main Replicate call hangs.
+            const timeoutPrompt = basePrompt.substring(0, 100) + ", high quality, 4k";
+
+            // Fallback Video: "Mustang" (Verified Car Content) - Not snowy mountain
+            const FALLBACK_VIDEO = {
+                url: 'https://cdn.pixabay.com/video/2024/05/24/213508_large.mp4',
+                duration: 15
+            };
 
             const [imgSquare, imgVertical, imgHorizontal, videoResult] = await Promise.all([
-                // IMAGES: 5s Timeout per image (Pollinations is fast, Replicate might be slow)
+                // IMAGES: 5s Timeout per image
                 withTimeout(
                     generateImageWithFallback(basePrompt, 1080, 1080, 'Square'),
                     5000,
-                    'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1080&h=1080'
+                    // Fallback to Pollinations ON TIMEOUT (Dynamic)
+                    await generatePollinationsImage(timeoutPrompt, 1080, 1080)
                 ),
                 withTimeout(
                     generateImageWithFallback(basePrompt, 1080, 1920, 'Vertical'),
                     5000,
-                    'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1080&h=1920'
+                    await generatePollinationsImage(timeoutPrompt, 1080, 1920)
                 ),
                 withTimeout(
                     generateImageWithFallback(basePrompt, 1920, 1080, 'Horizontal'),
                     5000,
-                    'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1920&h=1080'
+                    await generatePollinationsImage(timeoutPrompt, 1920, 1080)
                 ),
                 // VIDEO: 5s Timeout (Critical)
                 withTimeout(
                     (async () => {
                         try {
                             console.log('[AI] Generando Video con Replicate (Veo)...');
+                            // Internal logic already handles stock fallback
                             return await generateVeoVideo(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical');
                         } catch (videoErr: any) {
                             console.warn('[AI] Replicate Video wrapper falló. Usando Stock.', videoErr.message);
-                            return {
-                                url: 'https://cdn.pixabay.com/video/2024/02/09/199958-911694865_large.mp4',
-                                duration: 15
-                            };
+                            return FALLBACK_VIDEO;
                         }
                     })(),
-                    5000, // Strict 5s timeout for video
-                    {
-                        url: 'https://cdn.pixabay.com/video/2024/02/09/199958-911694865_large.mp4',
-                        duration: 15
-                    }
+                    5000,
+                    FALLBACK_VIDEO
                 )
             ]);
 
