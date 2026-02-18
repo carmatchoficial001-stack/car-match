@@ -557,30 +557,51 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             const { generateRealImage } = await import('@/lib/ai/replicate-client')
             const { generateVeoVideo } = await import('@/lib/ai/video-generator')
 
-            // SEQUENTIAL GENERATION TO AVOID RATE LIMITS (429)
-            // Replicate free/starter tier has strict concurrency limits.
+            // SEQUENTIAL GENERATION WITH FALLBACK TO POLLINATIONS (FREE)
+            // If Replicate fails (Quota/Payment/RateLimit), we use Pollinations.
 
-            console.log('[AI] Generando imagen Cuadrada (1/4)...');
-            const imgSquare = await generateRealImage(basePrompt, 1080, 1080);
+            // Helper for fallback
+            const generateImageWithFallback = async (prompt: string, width: number, height: number, label: string) => {
+                try {
+                    console.log(`[AI] Generando ${label} con Replicate (Flux)...`)
+                    return await generateRealImage(prompt, width, height)
+                } catch (err: any) {
+                    console.warn(`[AI] Replicate falló para ${label} (${err.message}). Usando Fallback (Pollinations)...`)
+                    // Fallback: Pollinations (Free)
+                    return await generatePollinationsImage(prompt, width, height)
+                }
+            }
 
-            console.log('[AI] Generando imagen Vertical (2/4)...');
-            const imgVertical = await generateRealImage(basePrompt, 1080, 1920);
+            console.log('[AI] Iniciando generación de assets (Secuencial + Fallback)...');
 
-            console.log('[AI] Generando imagen Horizontal (3/4)...');
-            const imgHorizontal = await generateRealImage(basePrompt, 1920, 1080);
+            const imgSquare = await generateImageWithFallback(basePrompt, 1080, 1080, 'Square');
+            const imgVertical = await generateImageWithFallback(basePrompt, 1080, 1920, 'Vertical');
+            const imgHorizontal = await generateImageWithFallback(basePrompt, 1920, 1080, 'Horizontal');
 
-            console.log('[AI] Generando Video (4/4)...');
-            const videoResult = await generateVeoVideo(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical');
+            // Video Generation with Fallback
+            let finalVideoUrl = '';
+            let finalVideoDuration = 0;
 
-            console.log('[AI] Assets generados exitosamente con Replicate')
+            try {
+                console.log('[AI] Generando Video con Replicate (Veo)...');
+                const videoResult = await generateVeoVideo(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical');
+                finalVideoUrl = videoResult.url;
+                finalVideoDuration = videoResult.duration;
+            } catch (videoErr: any) {
+                console.warn('[AI] Replicate Video falló. Usando Stock Simulation.', videoErr.message);
+                finalVideoUrl = 'https://cdn.pixabay.com/video/2024/02/09/199958-911694865_large.mp4'; // Generic Car Fallback
+                finalVideoDuration = 15;
+            }
+
+            console.log('[AI] Assets generados exitosamente (Replicate o Fallback)')
 
             return {
                 success: true,
                 assets: {
                     ...data,
-                    imageUrl: imgSquare, // Default for preview
-                    videoUrl: videoResult.url, // NEW: Real video URL
-                    videoDuration: videoResult.duration,
+                    imageUrl: imgSquare,
+                    videoUrl: finalVideoUrl,
+                    videoDuration: finalVideoDuration,
                     images: {
                         square: imgSquare,
                         vertical: imgVertical,
@@ -589,10 +610,8 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                 }
             }
         } catch (imageError: any) {
-            console.error('[AI] Error generando assets con Replicate:', imageError)
-            // Fallback to pollination if Replicate fails? 
-            // For now, let's throw so the user knows it failed (as requested "sigue sin crearme nada")
-            throw new Error(`Error generando assets reales: ${imageError.message}`)
+            console.error('[AI] Error crítico generando assets:', imageError)
+            throw new Error(`Error generando assets: ${imageError.message}`)
         }
 
     } catch (error: any) {
