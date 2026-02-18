@@ -575,8 +575,13 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             console.log('[AI] Iniciando generación de assets (Secuencial + Fallback)...');
 
             const imgSquare = await generateImageWithFallback(basePrompt, 1080, 1080, 'Square');
+            console.log('[AI] Square Image URL:', imgSquare);
+
             const imgVertical = await generateImageWithFallback(basePrompt, 1080, 1920, 'Vertical');
+            console.log('[AI] Vertical Image URL:', imgVertical);
+
             const imgHorizontal = await generateImageWithFallback(basePrompt, 1920, 1080, 'Horizontal');
+            console.log('[AI] Horizontal Image URL:', imgHorizontal);
 
             // Video Generation with Fallback
             let finalVideoUrl = '';
