@@ -49,7 +49,8 @@ export default function AIStudio() {
 
                     setMessages(prev => [...prev, {
                         role: 'assistant',
-                        content: `✅ ¡Campaña creada exitosamente!\n\n📋 **${campaignRes.campaign.title}**\n\n🎯 Ahora puedes verla en la sección Campañas.\n💡 Desde ahí puedes editar cualquier elemento con IA.`
+                        content: `✅ ¡Campaña creada exitosamente!\n\n📋 **${campaignRes.campaign.title}**\n\n🎯 Ahora puedes verla en la sección Campañas.\n💡 Aquí tienes una vista previa del video generado:`,
+                        videoUrl: res.assets.videoUrl // Pass the video URL to the message component
                     }])
                 } else {
                     setMessages(prev => [...prev, {
@@ -326,6 +327,20 @@ export default function AIStudio() {
                             <div className={`max-w-[85%] sm:max-w-[75%] space-y-2`}>
                                 <div className={`p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${msg.role === 'user' ? 'bg-zinc-800 text-white rounded-tr-none' : 'bg-[#1A1D21] text-gray-200 border border-white/5 rounded-tl-none'}`}>
                                     {msg.content}
+                                    {/* 🎬 VIDEO PREVIEW */}
+                                    {msg.videoUrl && (
+                                        <div className="mt-4 rounded-xl overflow-hidden border border-white/10 relative group/video">
+                                            <video
+                                                src={msg.videoUrl}
+                                                controls
+                                                className="w-full aspect-video object-cover bg-black"
+                                                poster="/placeholder-video.jpg" // Optional
+                                            />
+                                            <div className="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded-md text-[10px] text-white backdrop-blur-sm">
+                                                AI Video (Preview)
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 {msg.role === 'assistant' && (
                                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity pl-2">
