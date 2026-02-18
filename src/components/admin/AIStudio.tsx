@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createAISession, getAISession, getAISessions, deleteAISession, saveAIMessage, AIStudioSessionWithMessages } from '@/app/admin/actions/ai-studio-actions'
-import { generateCampaignAssets, suggestCampaignFromInventory, checkAIAssetStatus } from '@/app/admin/actions/ai-content-actions'
+import { generateCampaignAssets, suggestCampaignFromInventory, checkAIAssetStatus, chatWithPublicityAgent } from '@/app/admin/actions/ai-content-actions'
 import { saveAIAssetUrl } from '@/app/admin/actions/publicity-actions'
 
 type AIMode = 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'STRATEGY'
