@@ -61,6 +61,7 @@ interface PublicityCampaign {
     locations?: string[]
     targetAudience?: string
     redirectUrl?: string
+    metadata?: any
 }
 
 export default function PublicityTab() {
