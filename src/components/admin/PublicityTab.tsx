@@ -776,7 +776,7 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                     {['meta_ads', 'tiktok_ads', 'youtube_shorts', 'snapchat_ads'].includes(platform.id) && (
                                         <div className="col-span-2 sm:col-span-1">
                                             <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
-                                                {assets.videoUrl ? (
+                                                {assets.videoUrl && assets.videoUrl.startsWith('http') ? (
                                                     <>
                                                         <video src={assets.videoUrl} className="w-full h-full object-cover opacity-80" />
                                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -788,7 +788,7 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                                             </button>
                                                         </div>
                                                     </>
-                                                ) : assets.videoPendingId ? (
+                                                ) : (assets.videoUrl === 'PENDING...' || assets.videoPendingId) ? (
                                                     <div className="flex flex-col items-center gap-2 p-4 text-center">
                                                         <RefreshCw className="w-6 h-6 text-purple-500 animate-spin" />
                                                         <span className="text-[10px] font-black uppercase text-purple-400 tracking-widest">Generando Video...</span>
@@ -803,7 +803,7 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                     {/* SQUARE IMAGE: Meta, Marketplace, Google, Threads */}
                                     {['meta_ads', 'facebook_marketplace', 'google_ads', 'threads'].includes(platform.id) && (
                                         <div className="aspect-square rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
-                                            {assets.images?.square || assets.imageUrl ? (
+                                            {((assets.images?.square && assets.images.square.startsWith('http')) || (assets.imageUrl && assets.imageUrl.startsWith('http'))) ? (
                                                 <>
                                                     <img src={assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
                                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -816,7 +816,7 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                                     </div>
                                                     <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">1:1</div>
                                                 </>
-                                            ) : assets.imagePendingIds?.square ? (
+                                            ) : (assets.imageUrl === 'PENDING...' || assets.imagePendingIds?.square) ? (
                                                 <div className="flex flex-col items-center gap-2 p-2 text-center">
                                                     <RefreshCw className="w-5 h-5 text-blue-500 animate-spin" />
                                                     <span className="text-[9px] font-black uppercase text-blue-400 tracking-widest">Generando...</span>
@@ -830,7 +830,7 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                     {/* VERTICAL IMAGE: Meta, Snapchat, WhatsApp */}
                                     {['meta_ads', 'snapchat_ads', 'whatsapp_channel'].includes(platform.id) && (
                                         <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
-                                            {assets.images?.vertical ? (
+                                            {assets.images?.vertical && assets.images.vertical.startsWith('http') ? (
                                                 <>
                                                     <img src={assets.images.vertical} className="w-full h-full object-cover" />
                                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -843,7 +843,7 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                                     </div>
                                                     <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">9:16</div>
                                                 </>
-                                            ) : assets.imagePendingIds?.vertical ? (
+                                            ) : (assets.images?.vertical === 'PENDING...' || assets.imagePendingIds?.vertical) ? (
                                                 <div className="flex flex-col items-center gap-2 p-4 text-center">
                                                     <RefreshCw className="w-5 h-5 text-indigo-500 animate-spin" />
                                                     <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Generando...</span>
@@ -857,7 +857,7 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                     {/* HORIZONTAL IMAGE: Google, X */}
                                     {['google_ads', 'twitter_x'].includes(platform.id) && (
                                         <div className="col-span-2 sm:col-span-1 aspect-video rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
-                                            {assets.images?.horizontal ? (
+                                            {assets.images?.horizontal && assets.images.horizontal.startsWith('http') ? (
                                                 <>
                                                     <img src={assets.images.horizontal} className="w-full h-full object-cover" />
                                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -870,7 +870,7 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                                     </div>
                                                     <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">16:9</div>
                                                 </>
-                                            ) : assets.imagePendingIds?.horizontal ? (
+                                            ) : (assets.images?.horizontal === 'PENDING...' || assets.imagePendingIds?.horizontal) ? (
                                                 <div className="flex flex-col items-center gap-2 p-2 text-center">
                                                     <RefreshCw className="w-5 h-5 text-green-500 animate-spin" />
                                                     <span className="text-[9px] font-black uppercase text-green-400 tracking-widest">Generando...</span>
