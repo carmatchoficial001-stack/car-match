@@ -686,7 +686,7 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             try {
                 console.log('[AI] Iniciando Video Asíncrono (Replicate)...');
                 const { createVideoPrediction } = await import('@/lib/ai/replicate-client');
-                videoPendingId = await createVideoPrediction(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', 'vertical');
+                videoPendingId = await createVideoPrediction(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', '9:16');
             } catch (videoErr: any) {
                 console.warn('[AI] Replicate Async Video Failed:', videoErr.message);
                 // We could fallback to a non-unique video here, but per user request we prefer success or "clean" failure
