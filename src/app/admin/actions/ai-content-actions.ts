@@ -443,9 +443,9 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             Estructura JSON requerida:
             {
                 "internal_title": "Nombre de la Campaña en ESPAÑOL",
-                "imagePrompt": "Prompt fotorealista en INGLÉS (para IA de imágenes)...",
-                "videoPrompt_vertical": "Prompt técnico para Veo 3 en INGLÉS (9:16 Vertical para Reels/TikTok)...",
-                "videoPrompt_horizontal": "Prompt técnico para Veo 3 en INGLÉS (16:9 Cinemático para YouTube)...",
+                "imagePrompt": "Prompt fotorealista en INGLÉS (para IA de imágenes). Debe ser muy descriptivo.",
+                "videoPrompt_vertical": "Prompt técnico en INGLÉS. IMPRESCINDIBLE incluir PALABRAS CLAVE DE ESTILO: 'luxury', 'race', 'family', 'offroad', 'convertible', 'city', 'night' según corresponda al contexto.",
+                "videoPrompt_horizontal": "Prompt técnico en INGLÉS. IMPRESCINDIBLE incluir PALABRAS CLAVE DE ESTILO: 'luxury', 'race', 'family', 'offroad', 'convertible', 'city', 'night' según corresponda al contexto.",
                 "videoScript": "Guión viral de 15s para Reels/TikTok en ESPAÑOL. Debe ser UN TEXTO CONTINUO describiendo las escenas, NO un array. Ejemplo: 'Escena 1: Un joven frustrado... Escena 2: Abre CarMatch...'",
                 
                 "platforms": {
@@ -620,7 +620,8 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             // DYNAMIC FALLBACKS:
             // Instead of static URLs, we use Pollinations with a "Safe" prompt for timeouts.
             // This ensures uniqueness even if the main Replicate call hangs.
-            const timeoutPrompt = basePrompt.substring(0, 100) + ", high quality, 4k";
+            // We keep more context (300 chars) to ensure the image matches the user's specific request.
+            const timeoutPrompt = basePrompt.substring(0, 300) + ", high quality, 4k, photorealistic";
 
             // Fallback Video: "Mustang" (Verified Car Content) - Not snowy mountain
             const FALLBACK_VIDEO = {
