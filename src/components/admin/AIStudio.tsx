@@ -68,6 +68,11 @@ export default function AIStudio() {
                     setMessages(prev => prev.map(msg => {
                         // Match video
                         if (res.type === 'video' && msg.videoPendingId === res.id) {
+                            // PERSIST TO DB IF CAMPAIGN EXISTS
+                            if (res.campaignId || msg.campaignId) {
+                                saveAIAssetUrl(res.campaignId || msg.campaignId, 'video', res.url);
+                            }
+
                             return {
                                 ...msg,
                                 videoUrl: res.url,
@@ -115,59 +120,68 @@ export default function AIStudio() {
 
     const handleUseInCampaign = async (history: any[]) => {
         setIsGenerating(true)
-        setMessages(prev => [...prev, { role: 'assistant', content: '🎨 Generando Strategy y lanzando tareas IA (Flux + Veo)...' }])
+        setMessages(prev => [...prev, { role: 'assistant', content: '🧠 Analizando historial y diseñando estrategia omnicanal...' }])
 
         try {
-            const res = await generateCampaignAssets(history, 'MX')
-            if (res.success && res.assets) {
-                // ✨ AUTO-GUARDAR CAMPAÑA
-                setMessages(prev => [...prev, { role: 'assistant', content: '💾 Guardando campaña...' }])
+            // Stage 1: Gemini Strategy (Fast)
+            const { generateCampaignStrategy, launchAssetPredictions } = await import('@/app/admin/actions/ai-content-actions')
 
-                const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
-                const campaignRes = await createCampaignFromAssets(res.assets)
-
-                if (campaignRes.success && campaignRes.campaign) {
-                    const event = new CustomEvent('campaign-created', { detail: campaignRes.campaign });
-                    window.dispatchEvent(event);
-
-                    const content = `✅ ¡Campaña lista para monitorear!\n\n📋 **${campaignRes.campaign.title}**\n\n🎯 La campaña ha sido guardada.\n\n[VIDEO_PREVIEW]: PENDING...\n[IMAGE_PREVIEW]: PENDING...`
-
-                    const newMessage = {
-                        role: 'assistant',
-                        content: content,
-                        videoPendingId: res.assets.videoPendingId,
-                        imagePendingIds: res.assets.imagePendingIds,
-                        images: {}
-                    };
-
-                    setMessages(prev => [...prev, newMessage])
-
-                    // Add to polling queue
-                    const toPoll: any[] = [];
-                    if (res.assets.videoPendingId) toPoll.push({ id: res.assets.videoPendingId, type: 'video' });
-                    if (res.assets.imagePendingIds?.square) toPoll.push({ id: res.assets.imagePendingIds.square, type: 'image_square' });
-                    if (res.assets.imagePendingIds?.vertical) toPoll.push({ id: res.assets.imagePendingIds.vertical, type: 'image_vertical' });
-                    if (res.assets.imagePendingIds?.horizontal) toPoll.push({ id: res.assets.imagePendingIds.horizontal, type: 'image_horizontal' });
-
-                    addPendingAssets(toPoll);
-
-                } else {
-                    setMessages(prev => [...prev, {
-                        role: 'assistant',
-                        content: `✅ Strategy generada, pero no pude guardar la campaña.\n\n${campaignRes.error || 'Error desconocido'}`
-                    }])
-                }
-            } else {
-                setMessages(prev => [...prev, {
-                    role: 'assistant',
-                    content: `❌ Error: ${res.error || 'Error desconocido'}`
-                }])
+            const strategyRes = await generateCampaignStrategy(history, 'MX')
+            if (!strategyRes.success || !strategyRes.strategy) {
+                throw new Error(strategyRes.error || 'Error al generar la estrategia.')
             }
+
+            setMessages(prev => [...prev, { role: 'assistant', content: '🚀 Estrategia lista. Lanzando generación de imágenes y video (Omni-Format)...' }])
+
+            // Stage 2: Replicate Predictions (Fast)
+            const predictionRes = await launchAssetPredictions(strategyRes.strategy, 'MX')
+            if (!predictionRes.success || !predictionRes.assets) {
+                throw new Error(predictionRes.error || 'Error al iniciar las predicciones.')
+            }
+
+            const assets = predictionRes.assets;
+
+            // ✨ AUTO-SAVE CAMPAIGN
+            setMessages(prev => [...prev, { role: 'assistant', content: '💾 Guardando en el Ad Pack Global...' }])
+
+            const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
+            const campaignRes = await createCampaignFromAssets(assets)
+
+            if (campaignRes.success && campaignRes.campaign) {
+                const event = new CustomEvent('campaign-created', { detail: campaignRes.campaign });
+                window.dispatchEvent(event);
+
+                const content = `✅ ¡Campaña **"${campaignRes.campaign.title}"** creada exitosamente!\n\n🎯 **Estrategia Omni-Formato**: Se han lanzado tareas para generar:\n- 🎥 Video Viral (9:16)\n- 🖼️ Imagen Cuadrada (Instagram/FB Feed)\n- 📱 Imagen Vertical (Stories/TikTok)\n- 🖥️ Imagen Horizontal (Google Ads/YouTube)\n\n[VIDEO_PREVIEW]: PENDING...\n[IMAGE_PREVIEW]: PENDING...`
+
+                const newMessage = {
+                    role: 'assistant',
+                    content: content,
+                    campaignId: campaignRes.campaign.id,
+                    videoPendingId: assets.videoPendingId,
+                    imagePendingIds: assets.imagePendingIds,
+                    images: {}
+                };
+
+                setMessages(prev => [...prev, newMessage])
+
+                // Add to polling queue
+                const toPoll: any[] = [];
+                if (assets.videoPendingId) toPoll.push({ id: assets.videoPendingId, type: 'video', campaignId: campaignRes.campaign.id });
+                if (assets.imagePendingIds?.square) toPoll.push({ id: assets.imagePendingIds.square, type: 'image_square', campaignId: campaignRes.campaign.id });
+                if (assets.imagePendingIds?.vertical) toPoll.push({ id: assets.imagePendingIds.vertical, type: 'image_vertical', campaignId: campaignRes.campaign.id });
+                if (assets.imagePendingIds?.horizontal) toPoll.push({ id: assets.imagePendingIds.horizontal, type: 'image_horizontal', campaignId: campaignRes.campaign.id });
+
+                addPendingAssets(toPoll);
+
+            } else {
+                throw new Error(campaignRes.error || 'No pude guardar la campaña en la base de datos.')
+            }
+
         } catch (error: any) {
-            console.error('Error en handleUseInCampaign:', error)
+            console.error('[AI-STUDIO] Error:', error)
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: `❌ Error crítico: ${error.message}`
+                content: `❌ Hubo un problema: ${error.message || 'Error desconocido'}. Por favor intenta de nuevo.`
             }])
         } finally {
             setIsGenerating(false)
@@ -482,7 +496,7 @@ export default function AIStudio() {
                                 <span className="text-xs font-black uppercase tracking-widest">
                                     {isGenerating ? 'Generando Pack...' : 'Convertir a Campaña Viral'}
                                 </span>
-                                
+
                                 <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition" />
                             </button>
                         </div>

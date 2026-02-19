@@ -507,216 +507,114 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
 import { generatePollinationsImage } from '@/lib/ai/asset-generator'
 
 // --- FULL CAMPAIGN ASSET GENERATION ---
-export async function generateCampaignAssets(chatHistory: any[], targetCountry: string = 'MX') {
+// --- STAGE 1: STRATEGY GENERATION (Gemini) ---
+export async function generateCampaignStrategy(chatHistory: any[], targetCountry: string = 'MX') {
     try {
         const country = getCountryContext(targetCountry)
 
-        // 1. Context Analysis Prompt - MASS DIFFUSION & ADS EDITION
         const prompt = `
             Eres un Especialista en Marketing de Alto Rendimiento. Analiza el historial de chat.
             
             MODO DE APRENDIZAJE ACTIVO:
-            1. ANALIZA profundamente el historial de chat proporcionado.
-            2. DETECTA patrones de gusto del usuario (¿Qué pidió específicamente? ¿Qué corrigió antes?).
-            3. Si el usuario dijo "No uses emojis" o "hazlo más serio", OBEDECE esa instrucción por encima de cualquier regla general.
-            4. TU OBJETIVO PRINCIPAL es reflejar fielmente la visión del usuario extraída del chat. NO inventes cosas aleatorias si el usuario dio detalles específicos.
+            1. ANALIZA profundamente el historial de chat proporcionado. Te enviaremos los últimos mensajes.
+            2. DETECTA patrones de gusto del usuario.
+            3. OBEDECE instrucciones específicas del usuario sobre tono, estilo o exclusiones.
             
             Objetivo: Crear un PACK COMPLETO DE CAMPAÑA PUBLICITARIA DE ALTA CONVERSIÓN (Meta, Google, TikTok).
-            Audiencia Objetivo: Mercado masivo (2.8B+ usuarios). Compradores de vehículos.
+            Audiencia Objetivo: Mercado masivo. Compradores de vehículos en ${country.name}.
             
-            Contexto: El usuario quiere vender/promocionar en ${country.name}.
-            Slang local: ${country.slang}
-            
-            REQUISITO CRÍTICO DE IDIOMA:
-            - TODO el contenido DEBE estar en ESPAÑOL (español de México)
-            - Usa slang mexicano: ${country.slang}
-            - SIN palabras en inglés excepto nombres de marca (CarMatch, Meta, TikTok, etc.)
-            - primary_text, headlines, descriptions, captions, scripts - TODO en ESPAÑOL
-            
-            REGLAS CRÍTICAS DE FORMATO JSON:
-            1. Devuelve SOLO un objeto JSON válido
-            2. NO uses comas al final (trailing commas) antes de } o ]
-            3. USA SOLO comillas dobles "", nunca comillas simples ''
-            4. NO incluyas comentarios // o /* */
-            5. NO uses caracteres especiales que rompan el JSON
-            6. Asegúrate que todas las comillas estén balanceadas
-            7. NO agregues texto antes del { inicial o después del } final
+            REQUISITO CRÍTICO:
+            - TODO el contenido en ESPAÑOL (México). Slang local: ${country.slang}
             
             Estructura JSON requerida:
             {
-                "internal_title": "Nombre de la Campaña en ESPAÑOL",
-                "imagePrompt": "Prompt fotorealista en INGLÉS (para IA de imágenes). Debe ser muy descriptivo.",
-                "videoPrompt_vertical": "Prompt técnico en INGLÉS. IMPRESCINDIBLE incluir PALABRAS CLAVE DE ESTILO: 'luxury', 'race', 'family', 'offroad', 'convertible', 'city', 'night' según corresponda al contexto.",
-                "videoPrompt_horizontal": "Prompt técnico en INGLÉS. IMPRESCINDIBLE incluir PALABRAS CLAVE DE ESTILO: 'luxury', 'race', 'family', 'offroad', 'convertible', 'city', 'night' según corresponda al contexto.",
-                "videoScript": "Guión viral de 15s para Reels/TikTok en ESPAÑOL. Debe ser UN TEXTO CONTINUO describiendo las escenas, NO un array. Ejemplo: 'Escena 1: Un joven frustrado... Escena 2: Abre CarMatch...'",
-                
+                "internal_title": "Nombre de la Campaña",
+                "imagePrompt": "Prompt fotorealista en INGLÉS",
+                "videoPrompt_vertical": "Prompt técnico en INGLÉS con keywords de estilo",
+                "videoPrompt_horizontal": "Prompt técnico en INGLÉS con keywords de estilo",
+                "videoScript": "Guión viral de 15s en ESPAÑOL",
                 "platforms": {
-                    "meta_ads": { 
-                        "primary_text": "Copy principal del anuncio en ESPAÑOL (persuasivo, enfocado en beneficios, oferta clara)",
-                        "headline": "Título corto y contundente en ESPAÑOL (máximo 5-7 palabras)",
-                        "description": "Descripción del enlace en ESPAÑOL (prueba social o urgencia)"
-                    },
-                    "facebook_marketplace": { 
-                        "title": "Título optimizado SEO en ESPAÑOL para máximo alcance", 
-                        "description": "Descripción detallada en ESPAÑOL con palabras clave para visibilidad" 
-                    },
-                    "google_ads": {
-                        "headlines": ["Título 1 en ESPAÑOL (Palabra clave)", "Título 2 en ESPAÑOL (Beneficio)", "Título 3 en ESPAÑOL (Oferta)"],
-                        "descriptions": ["Descripción 1 en ESPAÑOL (Características)", "Descripción 2 en ESPAÑOL (Llamado a la acción)"]
-                    },
-                    "tiktok_ads": { 
-                        "caption": "Caption de gancho viral en ESPAÑOL con hashtags trending",
-                        "script_notes": "Dirección visual en ESPAÑOL para un video publicitario de alta retención"
-                    },
-                    "youtube_shorts": {
-                        "title": "Título clickbait en ESPAÑOL",
-                        "description": "Descripción SEO en ESPAÑOL con enlaces"
-                    },
-                    "twitter_x": { "tweets": ["Tweet 1 en ESPAÑOL (estilo noticias/actualización)", "Tweet 2 en ESPAÑOL (hilo)"] },
-                    "threads": { "caption": "Gancho de venta casual y auténtico en ESPAÑOL, basado en preguntas para iniciar conversación (venta suave)." },
-                    "snapchat_ads": { "headline": "Título urgente/divertido en ESPAÑOL", "caption": "Caption corto en ESPAÑOL para Spotlight" }
+                    "meta_ads": { "primary_text": "...", "headline": "...", "description": "..." },
+                    "facebook_marketplace": { "title": "...", "description": "..." },
+                    "google_ads": { "headlines": [], "descriptions": [] },
+                    "tiktok_ads": { "caption": "...", "script_notes": "..." },
+                    "youtube_shorts": { "title": "...", "description": "..." },
+                    "twitter_x": { "tweets": [] },
+                    "threads": { "caption": "..." },
+                    "snapchat_ads": { "headline": "...", "caption": "..." }
                 }
             }
-            
-            IMPORTANTE para videoScript:
-            - Debe ser UN STRING ÚNICO, NO un array
-            - Escríbelo como texto continuo con descripciones de escenas
-            - Solo en ESPAÑOL
-            - Formato ejemplo: "Escena 1: Un joven atrapado en el tráfico mira su teléfono frustrado. Escena 2: Abre CarMatch y sus ojos se iluminan al ver opciones increíbles. Escena 3: Hace swipe a su carro ideal y sonríe."
             
             Último mensaje del usuario: "${chatHistory[chatHistory.length - 1].content}"
         `
 
-        // GEMINI TIMEOUT WRAPPER (4s max)
-        // User demands UNIQUE content. No static fallbacks.
         let text = "";
-        try {
-            const result = await Promise.race([
-                geminiFlashConversational.generateContent({
-                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                    generationConfig: {
-                        responseMimeType: 'application/json',
-                        temperature: 0.9 // Higher creativity
-                    }
-                }),
-                new Promise<any>((_, reject) => setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 9000)) // Increased timeout to 9s to give Gemini a chance
-            ]);
-            text = result.response.text();
-            console.log('[AI] Gemini respondió a tiempo.');
-        } catch (err: any) {
-            console.error('[AI] Gemini falló o tardó demasiado:', err.message);
-            // THROW ERROR instead of using fallback
-            throw new Error(`La IA tardó demasiado en responder. Por favor intenta de nuevo. (Error: ${err.message})`);
+        const result = await Promise.race([
+            geminiFlashConversational.generateContent({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: { responseMimeType: 'application/json', temperature: 0.9 }
+            }),
+            new Promise<any>((_, reject) => setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 9000))
+        ]);
+        text = result.response.text();
+
+        const data = JSON.parse(text);
+
+        // Basic sanitization
+        if (data.videoScript && typeof data.videoScript !== 'string') {
+            data.videoScript = JSON.stringify(data.videoScript);
         }
 
-        console.log('[AI] Respuesta JSON recibida, parseando...')
+        return { success: true, strategy: data };
+    } catch (error: any) {
+        console.error('[STRATEGY] Error:', error);
+        return { success: false, error: 'La IA tardó mucho o falló al generar la estrategia.' };
+    }
+}
 
-        // With JSON mode, the response should already be valid JSON
-        // Still do minimal cleanup just in case
-        let jsonString = text.trim()
+// --- STAGE 2: ASSET PREDICTIONS (Replicate) ---
+export async function launchAssetPredictions(strategy: any, targetCountry: string = 'MX') {
+    try {
+        const country = getCountryContext(targetCountry);
+        const { createImagePrediction, createVideoPrediction } = await import('@/lib/ai/replicate-client');
 
-        let data
-        try {
-            data = JSON.parse(jsonString)
-            console.log('[AI] JSON parseado correctamente ✓')
-        } catch (parseError: any) {
-            console.error('[AI] Error parseando JSON:', parseError.message)
-            console.error('[AI] JSON problemático:', jsonString.substring(0, 1000))
-            throw new Error(`Error generando la estrategia. Por favor intenta de nuevo.`)
-        }
+        const basePrompt = strategy.imagePrompt
+            ? `${strategy.imagePrompt}, professional advertisement style, 8k, photorealistic`
+            : `Luxury car in ${country.name}, commercial advertisement, cinematic lighting`;
 
-        // Validate required fields
-        if (!data.internal_title || !data.imagePrompt || !data.platforms) {
-            console.error('[AI] Campos faltantes. Data recibida:', Object.keys(data))
-            throw new Error('La respuesta de IA no contiene todos los campos requeridos')
-        }
+        console.log('[PREDICTIONS] Lanzando tareas en paralelo...');
+        const [videoPendingId, imgSquareId, imgVerticalId, imgHorizontalId] = await Promise.all([
+            createVideoPrediction(strategy.videoPrompt_vertical || 'Car cinematic', '9:16').catch(() => null),
+            createImagePrediction(basePrompt, 1080, 1080).catch(() => null),
+            createImagePrediction(basePrompt, 1080, 1920).catch(() => null),
+            createImagePrediction(basePrompt, 1920, 1080).catch(() => null)
+        ]);
 
-        // Ensure videoScript is a string (fix [object Object] issue)
-        if (data.videoScript) {
-            if (Array.isArray(data.videoScript)) {
-                // If it's an array, join with spaces
-                data.videoScript = data.videoScript.join(' ')
-                console.log('[AI] videoScript convertido de array a string')
-            } else if (typeof data.videoScript === 'object' && data.videoScript !== null) {
-                // If it's an object, stringify it
-                data.videoScript = JSON.stringify(data.videoScript)
-                console.log('[AI] videoScript convertido de object a string')
-            }
-        }
-
-        console.log('[AI] JSON parseado correctamente, generando imágenes...')
-
-        // 2. Generate Real Image URLs using Flux (Multi-Format)
-        // 🔥 SUPERCHARGE: Force Text/Branding/Commercial Look
-        // User wants "Publicidad de verdad", not "Generic Photo"
-
-        // Define hooks locally if not available in scope
-        const BRAND_HOOKS = [
-            { hook: 'Sell Securely', angle: 'No strangers at your house. Verified buyers.' },
-            { hook: 'Find Your Dream Car', angle: 'The Tinder for Cars. Swipe to find.' },
-            { hook: 'Map Store Utility', angle: 'Find mechanics and help near you instantly.' },
-            { hook: 'Price Check', angle: 'Are you overpaying? Check the real market value.' },
-            { hook: 'Scam Protection', angle: 'Don\'t buy a lemon. Verify everything.' },
-            { hook: 'Community', angle: 'Join the biggest car enthusiast network.' },
-            { hook: 'Speed', angle: 'Sell your car in less than 24 hours.' }
-        ]
-        const randomBrandHook = BRAND_HOOKS[Math.floor(Math.random() * BRAND_HOOKS.length)]
-
-        const visualHook = randomBrandHook.hook.replace(/[^a-zA-Z0-9 ]/g, '').substring(0, 15); // Clean short text
-
-        const basePrompt = data.imagePrompt
-            ? `${data.imagePrompt}, text "${visualHook}" written in neon or bold typography, advertisement style, high contrast, commercial photography, award winning`
-            : `Luxury car in ${country.name}, text "CarMatch" in 3D letters, commercial advertisement, 8k, photorealistic, cinematic lighting`;
-
-        // LOGGING FOR DEBUGGING
-        console.log('[AI] Checking Replicate Token:', process.env.REPLICATE_API_TOKEN ? 'PRESENT' : 'MISSING');
-
-        // 2. Generate ASYNC Predictions
-        console.log('[AI] Iniciando generación ASÍNCRONA (Flux + Minimax)...')
-
-        try {
-            const { createImagePrediction, createVideoPrediction } = await import('@/lib/ai/replicate-client')
-
-            // Start everything in parallel
-            console.log('[AI] Lanzando predicciones en paralelo...');
-
-            const [videoPendingId, imgSquareId, imgVerticalId, imgHorizontalId] = await Promise.all([
-                createVideoPrediction(data.videoPrompt_vertical || data.videoPrompt || 'Car cinematic', '9:16').catch(e => { console.error('Video Err:', e); return null; }),
-                createImagePrediction(basePrompt, 1080, 1080).catch(e => { console.error('ImgSq Err:', e); return null; }),
-                createImagePrediction(basePrompt, 1080, 1920).catch(e => { console.error('ImgVert Err:', e); return null; }),
-                createImagePrediction(basePrompt, 1920, 1080).catch(e => { console.error('ImgHoriz Err:', e); return null; })
-            ]);
-
-            console.log('[AI] Predicciones iniciadas:', { videoPendingId, imgSquareId, imgVerticalId, imgHorizontalId });
-
-            return {
-                success: true,
-                assets: {
-                    ...data,
-                    imageUrl: 'PENDING...',
-                    videoUrl: 'PENDING...',
-                    videoPendingId,
-                    imagePendingIds: {
-                        square: imgSquareId,
-                        vertical: imgVerticalId,
-                        horizontal: imgHorizontalId
-                    }
+        return {
+            success: true,
+            assets: {
+                ...strategy,
+                imageUrl: 'PENDING...',
+                videoUrl: 'PENDING...',
+                videoPendingId,
+                imagePendingIds: {
+                    square: imgSquareId,
+                    vertical: imgVerticalId,
+                    horizontal: imgHorizontalId
                 }
             }
-        } catch (genError: any) {
-            console.error('[AI] Error iniciando predicciones:', genError)
-            throw new Error(`No se pudieron iniciar las tareas de IA: ${genError.message}`)
-        }
-
-
+        };
     } catch (error: any) {
-        console.error('[AI] Error crítico en generateCampaignAssets:', error)
-        return {
-            success: false,
-            error: error.message || 'Error generando los assets de la campaña.',
-            details: error.toString()
-        }
+        console.error('[PREDICTIONS] Error:', error);
+        return { success: false, error: 'No se pudieron iniciar las tareas de imagen/video.' };
     }
+}
+
+// Backward Compatibility
+export async function generateCampaignAssets(chatHistory: any[], targetCountry: string = 'MX') {
+    const stratRes = await generateCampaignStrategy(chatHistory, targetCountry);
+    if (!stratRes.success) return stratRes;
+    return await launchAssetPredictions(stratRes.strategy, targetCountry);
 }
 
 /**
