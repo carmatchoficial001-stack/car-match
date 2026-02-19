@@ -124,12 +124,15 @@ export async function createVideoPrediction(prompt: string, aspectRatio: '9:16' 
     }
 
     try {
-        // MODEL: Minimax Video 01 (Reliable high quality)
-        // Using explicit version if possible, but model string is usually preferred for public models
+        // 🎯 CLEAN PROMPT: Trust Gemini/Ruben 100%. No more hardcoded "styles".
+        const cleanPrompt = prompt.trim();
+
+        console.log('[REPLICATE] Iniciando generación de video (Minimax)...');
+
         const prediction = await replicate.predictions.create({
             model: "minimax/video-01",
             input: {
-                prompt: prompt,
+                prompt: cleanPrompt,
                 prompt_optimizer: true
             }
         });
@@ -137,7 +140,9 @@ export async function createVideoPrediction(prompt: string, aspectRatio: '9:16' 
         return prediction.id;
     } catch (error: any) {
         console.error('[REPLICATE] Error al crear predicción de video:', error.message || error);
-        // If it's a 401, Ruben needs to check his token
+        if (error.message?.includes('402')) {
+            console.error('❌ REPLICATE ERROR: Faltan créditos o método de pago. (402 Payment Required)');
+        }
         if (error.message?.includes('401')) {
             console.error('❌ REPLICATE AUTH FAILURE: Check your token in .env');
         }
@@ -156,11 +161,16 @@ export async function createImagePrediction(prompt: string, width: number, heigh
     if (height > width) aspect_ratio = "9:16"
 
     try {
-        // Flux-Schnell Version Hash: f20c93051410d9e83bd8dc8f47055047b0a70f3f6e1f062363f82fc4c849c719
+        // 🎯 CLEAN PROMPT: Trust Gemini/Ruben 100%. No more hardcoded "styles".
+        const cleanPrompt = prompt.trim();
+
+        console.log(`[REPLICATE] Imagen Predicción iniciada (${aspect_ratio})`);
+
+        // Flux-Schnell Version Hash
         const prediction = await replicate.predictions.create({
             version: "f20c93051410d9e83bd8dc8f47055047b0a70f3f6e1f062363f82fc4c849c719",
             input: {
-                prompt: prompt,
+                prompt: cleanPrompt,
                 aspect_ratio: aspect_ratio,
                 go_fast: true,
                 output_format: "jpg",
@@ -169,15 +179,18 @@ export async function createImagePrediction(prompt: string, width: number, heigh
             }
         });
 
-        console.log(`[REPLICATE] Imagen Predicción iniciada (${aspect_ratio}). ID:`, prediction.id);
+        console.log(`[REPLICATE] Predicción de imagen OK:`, prediction.id);
         return prediction.id;
-    } catch (error) {
-        console.error(`[REPLICATE] Error crítico en predicción (${aspect_ratio}):`, error);
+    } catch (error: any) {
+        console.error(`[REPLICATE] Error crítico en predicción (${aspect_ratio}):`, error.message || error);
+        if (error.message?.includes('402')) {
+            console.error('❌ REPLICATE ERROR: Faltan créditos o método de pago. (402 Payment Required)');
+        }
         throw error;
     }
 }
 
-export async function checkPrediction(id: string): Promise<{ status: string; output?: any; error?: any }> {
+export async function checkPrediction(id: string): Promise<{ status: string; output?: any; error?: any; created_at?: string }> {
     if (!process.env.REPLICATE_API_TOKEN) throw new Error('MISSING_API_KEY');
 
     const prediction = await replicate.predictions.get(id);
@@ -185,6 +198,7 @@ export async function checkPrediction(id: string): Promise<{ status: string; out
     return {
         status: prediction.status,
         output: prediction.output,
-        error: prediction.error
+        error: prediction.error,
+        created_at: prediction.created_at
     };
 }

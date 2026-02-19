@@ -512,40 +512,39 @@ export async function generateCampaignStrategy(chatHistory: any[], targetCountry
     try {
         const country = getCountryContext(targetCountry)
 
+        // Format history for Gemini context
+        const contextStr = chatHistory.map(m => `${m.role === 'user' ? 'USUARIO' : 'IA'}: ${m.content}`).join('\n');
+
         const prompt = `
-            Eres un Especialista en Marketing de Alto Rendimiento. Analiza el historial de chat.
+            Eres un Especialista en Marketing de Alto Rendimiento y un Sintetizador de Ideas Maestro.
             
-            MODO DE APRENDIZAJE ACTIVO:
-            1. ANALIZA profundamente el historial de chat proporcionado. Te enviaremos los últimos mensajes.
-            2. DETECTA patrones de gusto del usuario.
-            3. OBEDECE instrucciones específicas del usuario sobre tono, estilo o exclusiones.
+            EXTREMA IMPORTANCIA - REGLAS DE SÍNTESIS:
+            1. ANALIZA TODO el historial de chat para identificar la EVOLUCIÓN de la idea.
+            2. PRIORIZA LAS DECISIONES FINALES: Si el usuario empezó pidiendo un auto y terminó decidiendo otro, el resultado DEBE ser el último decidido.
+            3. EXTRAE DETALLES ESPECÍFICOS: Marca, modelo, color exacto, entorno (ej: ciudad, montaña, estudio), clima e iluminación mencionados.
             
-            Objetivo: Crear un PACK COMPLETO DE CAMPAÑA PUBLICITARIA DE ALTA CONVERSIÓN (Meta, Google, TikTok).
-            Audiencia Objetivo: Mercado masivo. Compradores de vehículos en ${country.name}.
+            Si el usuario no especifica un carro, usa uno de lujo que sea coherente con el tono de la conversación.
             
-            REQUISITO CRÍTICO:
-            - TODO el contenido en ESPAÑOL (México). Slang local: ${country.slang}
+            Objetivo: Crear un PACK COMPLETO DE CAMPAÑA PUBLICITARIA DE ALTA CONVERSIÓN.
+            
+            REQUISITO CRÍTICO DE IDIOMA:
+            - Todo el contenido para el usuario (scripts, copies, títulos) en ESPAÑOL (México). Slang local: ${country.slang}
+            - LOS PROMPTS PARA IA (imagePrompt, videoPrompt) deben ser en INGLÉS EXTREMADAMENTE DETALLADO.
             
             Estructura JSON requerida:
             {
                 "internal_title": "Nombre de la Campaña",
-                "imagePrompt": "Prompt fotorealista en INGLÉS",
-                "videoPrompt_vertical": "Prompt técnico en INGLÉS con keywords de estilo",
-                "videoPrompt_horizontal": "Prompt técnico en INGLÉS con keywords de estilo",
+                "imagePrompt": "Detailed photorealistic prompt in ENGLISH. Include: [Final Car], [Final Color], [Final Environment], [Specific Lighting], 8k, professional photography.",
+                "videoPrompt_vertical": "Technical prompt in ENGLISH for vertical video (9:16). Focusing on camera movement and the final car design.",
+                "videoPrompt_horizontal": "Technical prompt in ENGLISH for horizontal video (16:9).",
                 "videoScript": "Guión viral de 15s en ESPAÑOL",
-                "platforms": {
-                    "meta_ads": { "primary_text": "...", "headline": "...", "description": "..." },
-                    "facebook_marketplace": { "title": "...", "description": "..." },
-                    "google_ads": { "headlines": [], "descriptions": [] },
-                    "tiktok_ads": { "caption": "...", "script_notes": "..." },
-                    "youtube_shorts": { "title": "...", "description": "..." },
-                    "twitter_x": { "tweets": [] },
-                    "threads": { "caption": "..." },
-                    "snapchat_ads": { "headline": "...", "caption": "..." }
-                }
+                "platforms": { ... }
             }
             
-            Último mensaje del usuario: "${chatHistory[chatHistory.length - 1].content}"
+            HISTORIAL DE CONVERSACIÓN (SINTETIZA LA DECISIÓN FINAL):
+            ${contextStr}
+            
+            No inventes si ya hay una decisión clara en el chat. Sé fiel al flujo de Ruben.
         `
 
         let text = "";
@@ -801,6 +800,18 @@ export async function checkAIAssetStatus(predictionId: string) {
         const result = await checkPrediction(predictionId);
 
         console.log(`[POLL] Status for ${predictionId}: ${result.status}`);
+
+        // TIMEOUT CHECK (5 minutes)
+        if (result.created_at) {
+            const created = new Date(result.created_at).getTime();
+            const now = Date.now();
+            const elapsedMinutes = (now - created) / 1000 / 60;
+
+            if (elapsedMinutes > 5 && (result.status === 'processing' || result.status === 'starting')) {
+                console.warn(`[POLL] Timeout reached for ${predictionId} (${elapsedMinutes.toFixed(1)} min). Marking as failed.`);
+                return { status: 'failed', error: 'TIMEOUT_REACHED' };
+            }
+        }
 
         if (result.status === 'succeeded') {
             let url = '';
