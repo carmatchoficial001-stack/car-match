@@ -108,7 +108,7 @@ export async function getTopTrends(type: string, limit: number = 5) {
  */
 export async function extractBrandInsights(sessionId: string) {
     try {
-        const session = await prisma.aiStudioSession.findUnique({
+        const session = await prisma.aIStudioSession.findUnique({
             where: { id: sessionId },
             include: { messages: true }
         })
