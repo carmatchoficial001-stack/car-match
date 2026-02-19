@@ -63,7 +63,7 @@ export async function createCampaignFromAssets(assets: any) {
         let campaignImage = assets.imageUrl;
         if (!campaignImage || typeof campaignImage !== 'string' || campaignImage.length < 5) {
             console.warn('[CAMPAIGN-AUTO-SAVE] Invalid or missing imageUrl. Using dynamic fallback.');
-            const searchTerms = title.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 3).slice(0, 3).join(',');
+            const searchTerms = title.toLowerCase().split(/[^a-z]+/).filter((w: string) => w.length > 3).slice(0, 3).join(',');
             campaignImage = `https://images.unsplash.com/featured/?${searchTerms || 'automotive,car'}&w=1080&h=1080`;
         }
 

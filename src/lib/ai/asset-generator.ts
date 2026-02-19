@@ -31,7 +31,7 @@ export async function generatePollinationsImage(prompt: string, width: number = 
         } catch (validationErr) {
             console.warn('[AI-GEN] Pollinations unreachable. Using Dynamic Stock Fallback.');
             // Fallback to a relevant Unsplash image based on the prompt
-            const keywords = prompt.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 3).slice(0, 3).join(',');
+            const keywords = prompt.toLowerCase().split(/[^a-z]+/).filter((w: string) => w.length > 3).slice(0, 3).join(',');
             return `https://images.unsplash.com/featured/?${keywords || 'car,minimalist'}&w=${width}&h=${height}`;
         }
 
