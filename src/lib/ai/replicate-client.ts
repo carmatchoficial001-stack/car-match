@@ -53,8 +53,11 @@ export async function generateRealVideo(prompt: string, aspectRatio: '9:16' | '1
         console.warn('[REPLICATE] Output is not a URL:', outputStr)
         throw new Error('INVALID_OUTPUT_URL')
 
-    } catch (error) {
-        console.error('[REPLICATE] Error generating video:', error)
+    } catch (error: any) {
+        console.error('[REPLICATE] Error generating video:', error.message || error)
+        if (error.status === 402) {
+            console.error('❌ REPLICATE ERROR: Faltan créditos o método de pago (402 Payment Required)');
+        }
         throw error
     }
 }
@@ -107,8 +110,11 @@ export async function generateRealImage(prompt: string, width: number, height: n
 
         return String(output)
 
-    } catch (error) {
-        console.error('[REPLICATE] Error generating image:', error)
+    } catch (error: any) {
+        console.error('[REPLICATE] Error generating image:', error.message || error)
+        if (error.status === 402) {
+            console.error('❌ REPLICATE ERROR: Faltan créditos o método de pago (402 Payment Required)');
+        }
         throw error
     }
 }
@@ -166,9 +172,9 @@ export async function createImagePrediction(prompt: string, width: number, heigh
 
         console.log(`[REPLICATE] Imagen Predicción iniciada (${aspect_ratio})`);
 
-        // Flux-Schnell Version Hash
+        // 🎯 USE MODEL HANDLE: Always points to latest version and prevents 422 errors.
         const prediction = await replicate.predictions.create({
-            version: "f20c93051410d9e83bd8dc8f47055047b0a70f3f6e1f062363f82fc4c849c719",
+            model: "black-forest-labs/flux-schnell",
             input: {
                 prompt: cleanPrompt,
                 aspect_ratio: aspect_ratio,

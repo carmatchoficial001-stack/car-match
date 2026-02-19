@@ -199,10 +199,11 @@ export default function AIStudio() {
                 const newMessage = {
                     id: Date.now().toString(),
                     role: 'assistant',
-                    content: content,
+                    content: content.replace('[IMAGE_PREVIEW]: PENDING...', `[IMAGE_PREVIEW]: ${assets.imageUrl || 'PENDING...'}`),
                     campaignId: campaignRes.campaign.id,
                     videoPendingId: assets.videoPendingId,
                     imagePendingIds: assets.imagePendingIds,
+                    imageUrl: assets.imageUrl,
                     images: {}
                 };
 
