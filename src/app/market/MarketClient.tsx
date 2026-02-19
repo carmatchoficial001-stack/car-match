@@ -186,6 +186,32 @@ export default function MarketClient({
         })
     }, [activeLocation, searchRadius])
 
+    // 🔥 AI ORCHESTRATOR: Escuchar eventos externos (desde AIChatbot)
+    useEffect(() => {
+        const handleAiFilter = (e: any) => {
+            const params = e.detail
+            console.log('🤖 Market AI Filter Applied:', params)
+
+            const urlParams = new URLSearchParams()
+            if (params.brand) urlParams.set('brand', params.brand)
+            if (params.model) urlParams.set('model', params.model)
+            if (params.category) urlParams.set('category', params.category)
+            if (params.minPrice) urlParams.set('minPrice', params.minPrice)
+            if (params.maxPrice) urlParams.set('maxPrice', params.maxPrice)
+            if (params.search) urlParams.set('search', params.search)
+
+            // Navegar para refrescar datos (SSR)
+            router.push(`/market?${urlParams.toString()}`)
+
+            // Visual feedback
+            setShowFilters(false)
+            setTierIndex(0)
+        }
+
+        window.addEventListener('market-ai-filter', handleAiFilter)
+        return () => window.removeEventListener('market-ai-filter', handleAiFilter)
+    }, [router])
+
     useEffect(() => {
         // 🔄 URL -> Context Synchronization
         const syncUrlCity = async () => {

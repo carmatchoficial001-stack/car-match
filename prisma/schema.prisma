@@ -63,6 +63,58 @@ model User {
 
   // AI Studio Relations
   aiSessions              AIStudioSession[]
+  brandDNA                BrandDNA?
+  userDNA                 UserDNA?
+}
+
+model BrandDNA {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Marketing preferences (Admin AI)
+  tone              String?  @default("professional")
+  targetAudience    String?
+  topSellingAngles  String[]
+  preferredColors   String[]
+  visualStyle       String?  @default("realistic")
+  
+  // Historical successes
+  successfulPrompts String[]
+  
+  updatedAt         DateTime @updatedAt
+  createdAt         DateTime @default(now())
+}
+
+model UserDNA {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Consumer preferences (Marketplace AI)
+  preferredBrands   String[]
+  preferredTypes    String[]
+  budgetRange       Json?    // { min: number, max: number }
+  interests         String[] // e.g., ["off-road", "economy", "luxury"]
+  searchHistory     String[] // Summarized recent queries
+  
+  updatedAt         DateTime @updatedAt
+  createdAt         DateTime @default(now())
+}
+
+model GlobalAIInsight {
+  id                String   @id @default(cuid())
+  type              String   // "TREND", "TOP_BRAND", "EMERGING_KEYWORD"
+  key               String   @unique
+  value             String
+  count             Int      @default(0)
+  metadata          Json?
+  
+  updatedAt         DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  
+  @@index([type])
+  @@index([count])
 }
 
 model AIStudioSession {

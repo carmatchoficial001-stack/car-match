@@ -29,17 +29,16 @@ export async function generatePollinationsImage(prompt: string, width: number = 
                 throw new Error(`Pollinations Status ${check.status}`);
             }
         } catch (validationErr) {
-            console.warn('[AI-GEN] Pollinations unreachable. Using Stock Fallback.');
-            // Fallback to a high-quality relevant Unsplash image
-            // We can rotate these or select based on context if needed
-            const keywords = prompt.split(' ').slice(0, 3).join(',');
-            return `https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=${width}&h=${height}`;
+            console.warn('[AI-GEN] Pollinations unreachable. Using Dynamic Stock Fallback.');
+            // Fallback to a relevant Unsplash image based on the prompt
+            const keywords = prompt.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 3).slice(0, 3).join(',');
+            return `https://images.unsplash.com/featured/?${keywords || 'car,minimalist'}&w=${width}&h=${height}`;
         }
 
         return imageUrl
     } catch (error) {
         console.error('Error generating image URL:', error)
-        // Fallback to stock image if something fails (though this is just a URL builder)
-        return `https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=${width}&h=${height}`;
+        // Fallback to a generic but professional automotive image
+        return `https://images.unsplash.com/featured/?automotive,modern&w=${width}&h=${height}`;
     }
 }

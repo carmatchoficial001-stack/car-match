@@ -5,8 +5,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Send, X, MessageCircle, Users, ChevronRight, Headset } from 'lucide-react'
-import { findBestResponse } from '@/lib/chatbot-data'
+import { Send, X, Users, ChevronRight } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
 
 interface Message {
@@ -61,13 +60,20 @@ export default function AIChatbot() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: userMsg.text,
-                    history: messages.slice(-5) // Enviar últimos mensajes para contexto
+                    history: messages.slice(-5).map(m => ({ sender: m.sender, text: m.text }))
                 })
             })
 
             if (!response.ok) throw new Error('API Error')
 
             const data = await response.json()
+
+            // 🔥 UI ORCHESTRATOR: Despachar comandos si existen
+            if (data.command && data.command.type !== 'NONE') {
+                console.log('🤖 AI Command Received:', data.command)
+                const eventName = data.command.type === 'MARKET_FILTER' ? 'market-ai-filter' : 'map-ai-search';
+                window.dispatchEvent(new CustomEvent(eventName, { detail: data.command.params }))
+            }
 
             const botMsg: Message = {
                 id: Date.now().toString(),
@@ -81,10 +87,9 @@ export default function AIChatbot() {
             setMessages(prev => [...prev, botMsg])
         } catch (error) {
             console.error('Chatbot Error:', error)
-            // Fallback en caso de error
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
-                text: "Lo siento, mi motor de inteligencia está bajo mantenimiento. Pero aquí sigo para ayudarte con lo básico de CarMatch Social.",
+                text: "Lo siento, mi servicio de asesoría experto está en mantenimiento.",
                 sender: 'bot',
                 timestamp: new Date()
             }])
@@ -105,9 +110,6 @@ export default function AIChatbot() {
 
     return (
         <>
-            {/* El botón flotante ha sido removido por solicitud del usuario */}
-            {/* para integrarse en el menú desplegable */}
-
             {/* Ventana de Chat */}
             {isOpen && (
                 <div className="fixed bottom-24 md:bottom-6 right-6 z-50 w-[calc(100vw-3rem)] md:w-[400px] h-[500px] max-h-[calc(100vh-14rem)] bg-background border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
@@ -182,6 +184,7 @@ export default function AIChatbot() {
                     <div className="p-4 bg-surface border-t border-white/10">
                         <div className="flex gap-2">
                             <input
+                                autoFocus
                                 type="text"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}

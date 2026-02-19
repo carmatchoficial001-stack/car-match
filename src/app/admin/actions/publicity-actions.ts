@@ -59,11 +59,12 @@ export async function createCampaignFromAssets(assets: any) {
             ? assets.internal_title
             : `Campaña IA - ${new Date().toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
 
-        // CRITICAL FIX: Ensure valid Image URL or use fallback
+        // 🔥 DYNAMIC FALLBACK: If imageUrl is missing, use a relevant Unsplash image based on title
         let campaignImage = assets.imageUrl;
         if (!campaignImage || typeof campaignImage !== 'string' || campaignImage.length < 5) {
-            console.warn('[CAMPAIGN-AUTO-SAVE] Invalid or missing imageUrl. Using fallback.');
-            campaignImage = 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1080&h=1080';
+            console.warn('[CAMPAIGN-AUTO-SAVE] Invalid or missing imageUrl. Using dynamic fallback.');
+            const searchTerms = title.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 3).slice(0, 3).join(',');
+            campaignImage = `https://images.unsplash.com/featured/?${searchTerms || 'automotive,car'}&w=1080&h=1080`;
         }
 
         const campaign = await prisma.publicityCampaign.create({

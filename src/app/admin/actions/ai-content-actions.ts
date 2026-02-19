@@ -51,44 +51,27 @@ export async function generateImagePrompt(topic: string, style: string = 'realis
         const country = getCountryContext(targetCountry)
 
         const prompt = `
-            Create a detailed AI image generation prompt (Midjourney/DALL-E style) for an automotive subject.
+            Create a detailed AI image generation prompt (Midjourney/DALL-E style) for an automotive or car-culture subject.
             Subject: ${topic}
             Style: ${style}
             
             Context:
             - The setting should look like a location in ${country.name} (streets, landscapes, or architecture typical of ${country.name}).
-            - Lighting: Cinematic, professional automotive photography.
+            - Lighting: Cinematic, professional photography.
             - Quality: 8k, photorealistic, highly detailed.
             
-            Return ONLY the prompt text.
+            IMPORTANT: If the subject is a situation (like a date, a repair, or a person using an app), focus on the HUMAN EMOTION and the SCENE, not just a parked car.
+            
+            Return ONLY the prompt text in English.
         `
 
         const result = await geminiFlash.generateContent(prompt)
         const response = result.response
-        // The following code block was inserted based on the user's instruction.
-        // It appears to be part of a larger asset generation logic, potentially
-        // intended for a different function or a refactored version of this one.
-        // As per instruction, it's placed here, but it introduces new variables
-        // like `videoResult` and changes the return structure to `assets`.
-        // This might lead to compilation errors if `videoResult` is not defined
-        // elsewhere or if the calling code expects a different return type.
-        // The original return was `{ success: true, content: response.text() }`.
-        // The instruction implies `videoUrl` should be part of an `assets` object.
-        // To make it syntactically valid and follow the instruction,
-        // we'll assume `result` is intended to be the `assets` object,
-        // and `videoResult` would need to be defined if this were a complete
-        // and functional change. For now, `videoResult` is undefined.
-        // This change significantly alters the function's purpose and return type.
-        let videoResult: { url: string } | undefined; // Placeholder for videoResult
-        if (videoResult) { // This condition will always be false without actual video generation logic
-            (result as any).videoUrl = videoResult.url // Explicit assignment to ensure it exists
-            console.log('[AI] Video generado/seleccionado:', (result as any).videoUrl);
-        }
 
-        return { success: true, assets: { content: response.text(), videoUrl: (result as any).videoUrl } }
+        return { success: true, content: response.text().trim() }
     } catch (error: any) {
-        console.error('Error generating assets:', error)
-        return { success: false, error: 'Error generando multimedia: ' + error.message }
+        console.error('Error generating image prompt:', error)
+        return { success: false, error: 'Error generating prompt: ' + error.message }
     }
 }
 
@@ -534,9 +517,9 @@ export async function generateCampaignStrategy(chatHistory: any[], targetCountry
             Estructura JSON requerida:
             {
                 "internal_title": "Nombre de la Campaña",
-                "imagePrompt": "Detailed photorealistic prompt in ENGLISH. Include: [Final Car], [Final Color], [Final Environment], [Specific Lighting], 8k, professional photography.",
-                "videoPrompt_vertical": "Technical prompt in ENGLISH for vertical video (9:16). Focusing on camera movement and the final car design.",
-                "videoPrompt_horizontal": "Technical prompt in ENGLISH for horizontal video (16:9).",
+                "imagePrompt": "Detailed photorealistic prompt in ENGLISH. Include: [Final Scene Context], [Dominant Colors], [Emotional Vibe], [Environment], 8k, professional photography. If it's a specific car, specify brand and color. If it's a situation (dating, mechanical, etc.), focus on the actors and the story.",
+                "videoPrompt_vertical": "Technical prompt in ENGLISH for vertical video (9:16). Describe the FIRST 3 SECONDS clearly (The Hook). Focus on motion and high-energy cinematography.",
+                "videoPrompt_horizontal": "Technical prompt in ENGLISH for horizontal video (16:9). More cinematic landscape or slow motion storytelling.",
                 "videoScript": "Guión viral de 15s en ESPAÑOL",
                 "platforms": { ... }
             }
