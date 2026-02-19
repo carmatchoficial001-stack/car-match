@@ -99,7 +99,7 @@ Responde ÚNICAMENTE con el JSON solicitado.`
             // Track trends in background
             const words = message.toLowerCase().split(/\s+/)
             const commonBrands = ['toyota', 'nissan', 'ford', 'honda', 'chevrolet', 'bmw', 'mercedes', 'mazda', 'volkswagen']
-            words.forEach(word => {
+            words.forEach((word: string) => {
                 if (commonBrands.includes(word)) {
                     trackGlobalTrend('SEARCH_BRAND', word).catch(console.error)
                 }
