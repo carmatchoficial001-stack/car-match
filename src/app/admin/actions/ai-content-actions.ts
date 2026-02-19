@@ -309,22 +309,23 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
             {
                 "internal_title": "Nombre de la campaña en ESPAÑOL",
                 "caption": "Una caption visual con emojis en ESPAÑOL. MAX 3 líneas. DEBE incluir CTA: 'Descarga CarMatch'.",
-                "imagePrompt": "An AI image prompt representing the scenario (Photorealistic, 8k) - THIS CAN BE IN ENGLISH",
-                "videoScript": "Un guión de video de 15 segundos en ESPAÑOL en el estilo '${randomStyle}'. Debe ser UN TEXTO CONTINUO, NO un array.",
-                "videoPrompt": "A technical prompt for Google Veo 3 / Sora in ENGLISH (e.g. 'Cinematic drone shot of a car driving through Mexico City, 8k, hyperrealistic, slow motion, golden hour lighting').",
+                "imagePrompt": "An AI image prompt representing the scenario (Photorealistic, 8k, specify car brand and color if mentioned) - THIS MUST BE IN ENGLISH",
+                "videoScript": "Un guión de video de 15 segundos en ESPAÑOL. Debe ser UN TEXTO CONTINUO, NO un array.",
+                "videoPrompt_vertical": "Technical prompt in ENGLISH for vertical video (9:16). Describe the FIRST 3 SECONDS clearly (The Hook). Focus on motion and high-energy cinematography.",
+                "videoPrompt_horizontal": "Technical prompt in ENGLISH for horizontal video (16:9). More cinematic landscape or slow motion storytelling.",
                 "strategy": "Explicación en ESPAÑOL de por qué este ángulo será viral y ayudará a alcanzar la meta de 2.8B usuarios.",
                 "platforms": {
-                    "meta_ads": { "primary_text": "Copy en ESPAÑOL", "headline": "Título en ESPAÑOL", "description": "Desc en ESPAÑOL" },
-                    "facebook_marketplace": { "title": "Título en ESPAÑOL", "description": "Desc en ESPAÑOL" },
+                    "meta_ads": { "primary_text": "Copy en ESPAÑOL", "headline": "Título en ESPAÑOL", "description": "Desc en ESPAÑOL", "caption": "Caption IG en ESPAÑOL" },
+                    "facebook_marketplace": { "title": "Título en ESPAÑOL", "description": "Detalles del auto en ESPAÑOL (precio ficticio coherente, km, estado)" },
                     "google_ads": {
-                        "headlines": ["Título 1", "Título 2", "Título 3"],
-                        "descriptions": ["Desc 1", "Desc 2"]
+                        "headlines": ["Título Gancho 1", "Título Gancho 2", "Título Gancho 3"],
+                        "descriptions": ["Descripción de Ventaja 1", "Descripción de Ventaja 2"]
                     },
-                    "tiktok_ads": { "caption": "Hook en ESPAÑOL", "script_notes": "Dirección en ESPAÑOL" },
-                    "youtube_shorts": { "title": "Título en ESPAÑOL", "description": "Desc en ESPAÑOL" },
-                    "twitter_x": { "tweets": ["Tweet 1", "Tweet 2"] },
-                    "threads": { "caption": "Hebra en ESPAÑOL" },
-                    "snapchat_ads": { "headline": "Título en ESPAÑOL", "caption": "Caption en ESPAÑOL" }
+                    "tiktok_ads": { "caption": "Hook de impacto con hashtags", "script_notes": "Instrucciones de edición rápida" },
+                    "youtube_shorts": { "title": "Título Viral", "description": "Descripción optimizada para SEO" },
+                    "twitter_x": { "tweets": ["Tweet 1 con gancho", "Tweet 2 con CTA"] },
+                    "threads": { "caption": "Hebra narrativa en ESPAÑOL" },
+                    "snapchat_ads": { "headline": "Título Corto", "caption": "Llamada a la acción rápida" }
                 }
             }
             
@@ -588,6 +589,12 @@ export async function launchAssetPredictions(strategy: any, targetCountry: strin
                     square: imgSquareId,
                     vertical: imgVerticalId,
                     horizontal: imgHorizontalId
+                },
+                // 🔥 PLATFORM SAFETY FALLBACK
+                platforms: strategy.platforms || {
+                    meta_ads: { primary_text: strategy.caption || '', headline: strategy.internal_title || '' },
+                    facebook_marketplace: { title: strategy.internal_title || '', description: strategy.caption || '' },
+                    tiktok_ads: { caption: strategy.caption || '' }
                 }
             }
         };
