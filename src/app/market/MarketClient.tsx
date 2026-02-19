@@ -109,6 +109,7 @@ export default function MarketClient({
 }: MarketClientProps) {
     const { t, locale } = useLanguage()
     const [aiReasoning, setAiReasoning] = useState(initialAiReasoning)
+    const router = useRouter()
 
     // 🔥 USANDO CONTEXTO GLOBAL
     const { location, loading: locationLoading, manualLocation, setManualLocation } = useLocation()
@@ -412,7 +413,6 @@ export default function MarketClient({
         filterItems()
     }, [items, searchRadius, activeLocation, locationLoading, userCountry, t])
 
-    const router = useRouter()
     const [searchText, setSearchText] = useState(searchParams.search || '')
     const [isSearching, setIsSearching] = useState(false)
 
