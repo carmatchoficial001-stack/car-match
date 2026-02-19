@@ -460,17 +460,6 @@ export default function AIStudio() {
                         />
 
                         <div className="flex items-center gap-2 shrink-0 pr-2">
-                            {messages.length > 0 && (
-                                <button
-                                    onClick={() => handleUseInCampaign(messages)}
-                                    disabled={isGenerating}
-                                    title="Generar Campaña desde el chat actual"
-                                    className="p-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl shadow-lg shadow-purple-900/40 transition hover:scale-105 active:scale-95 disabled:opacity-50"
-                                >
-                                    <Zap className="w-5 h-5 fill-current" />
-                                </button>
-                            )}
-
                             <button
                                 onClick={handleSend}
                                 disabled={!prompt.trim() || isGenerating}
@@ -480,6 +469,24 @@ export default function AIStudio() {
                             </button>
                         </div>
                     </div>
+
+                    {/* 🚀 VIRAL CAMPAIGN BUTTON (Below input) */}
+                    {messages.length > 0 && (
+                        <div className="flex justify-center mt-3 animate-in fade-in slide-in-from-top-2">
+                            <button
+                                onClick={() => handleUseInCampaign(messages)}
+                                disabled={isGenerating}
+                                className="group relative flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-2xl shadow-xl shadow-purple-900/40 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:shadow-none"
+                            >
+                                <Zap className="w-4 h-4 fill-current text-amber-300 animate-pulse" />
+                                <span className="text-xs font-black uppercase tracking-widest">
+                                    {isGenerating ? 'Generando Pack...' : 'Convertir a Campaña Viral'}
+                                </span>
+                                
+                                <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition" />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
