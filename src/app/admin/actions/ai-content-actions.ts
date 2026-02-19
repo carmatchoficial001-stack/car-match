@@ -577,12 +577,17 @@ export async function launchAssetPredictions(strategy: any, targetCountry: strin
     try {
         const country = getCountryContext(targetCountry);
         const { createImagePrediction, createVideoPrediction } = await import('@/lib/ai/replicate-client');
+        const { generatePollinationsImage } = await import('@/lib/ai/asset-generator');
 
         const basePrompt = strategy.imagePrompt
             ? `${strategy.imagePrompt}, professional advertisement style, 8k, photorealistic`
             : `Luxury car in ${country.name}, commercial advertisement, cinematic lighting`;
 
-        console.log('[PREDICTIONS] Lanzando tareas en paralelo...');
+        console.log('[PREDICTIONS] Generando Preview Instantáneo (Pollinations)...');
+        // ⚡ INSTANT PREVIEW (0.5s - 2s)
+        const instantUrl = await generatePollinationsImage(basePrompt, 1080, 1080).catch(() => null);
+
+        console.log('[PREDICTIONS] Lanzando tareas en paralelo (Replicate)...');
         const [videoPendingId, imgSquareId, imgVerticalId, imgHorizontalId] = await Promise.all([
             createVideoPrediction(strategy.videoPrompt_vertical || 'Car cinematic', '9:16').catch(() => null),
             createImagePrediction(basePrompt, 1080, 1080).catch(() => null),
@@ -594,7 +599,7 @@ export async function launchAssetPredictions(strategy: any, targetCountry: strin
             success: true,
             assets: {
                 ...strategy,
-                imageUrl: 'PENDING...',
+                imageUrl: instantUrl || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7', // Use instant or stock fallback
                 videoUrl: 'PENDING...',
                 videoPendingId,
                 imagePendingIds: {

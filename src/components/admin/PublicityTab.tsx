@@ -799,9 +799,14 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                                         </div>
                                                     </>
                                                 ) : (assets.videoUrl === 'PENDING...' || assets.videoPendingId) ? (
-                                                    <div className="flex flex-col items-center gap-2 p-4 text-center">
-                                                        <RefreshCw className="w-6 h-6 text-purple-500 animate-spin" />
-                                                        <span className="text-[10px] font-black uppercase text-purple-400 tracking-widest">Generando Video...</span>
+                                                    <div className="flex flex-col items-center justify-center relative w-full h-full bg-black">
+                                                        {(assets.imageUrl?.startsWith('http') && assets.imageUrl !== 'PENDING...') && (
+                                                            <img src={assets.imageUrl} className="absolute inset-0 w-full h-full object-cover opacity-20 blur-sm" />
+                                                        )}
+                                                        <div className="relative z-10 flex flex-col items-center gap-2 p-4 text-center">
+                                                            <RefreshCw className="w-6 h-6 text-purple-500 animate-spin" />
+                                                            <span className="text-[10px] font-black uppercase text-purple-400 tracking-widest leading-tight">Generando<br />Video...</span>
+                                                        </div>
                                                     </div>
                                                 ) : (
                                                     <div className="text-[10px] text-zinc-600 font-bold">No hay video</div>
@@ -826,10 +831,12 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                                     </div>
                                                     <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">1:1</div>
                                                 </>
-                                            ) : (assets.imageUrl === 'PENDING...' || assets.imagePendingIds?.square) ? (
-                                                <div className="flex flex-col items-center gap-2 p-2 text-center">
-                                                    <RefreshCw className="w-5 h-5 text-blue-500 animate-spin" />
-                                                    <span className="text-[9px] font-black uppercase text-blue-400 tracking-widest">Generando...</span>
+                                            ) : (assets.images?.square === 'PENDING...' || assets.imagePendingIds?.square || assets.imageUrl === 'PENDING...') ? (
+                                                <div className="flex flex-col items-center justify-center relative w-full h-full bg-black">
+                                                    <div className="flex flex-col items-center gap-2 p-2 text-center">
+                                                        <RefreshCw className="w-5 h-5 text-blue-500 animate-spin" />
+                                                        <span className="text-[9px] font-black uppercase text-blue-400 tracking-widest">Generando...</span>
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <div className="text-[10px] text-zinc-600 font-bold">No hay imagen</div>
@@ -840,7 +847,7 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                     {/* VERTICAL IMAGE: Meta, Snapchat */}
                                     {['meta_ads', 'snapchat_ads'].includes(platform.id) && (
                                         <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
-                                            {(assets.images?.vertical?.startsWith('http') || assets.images?.square?.startsWith('http') || assets.imageUrl?.startsWith('http')) ? (
+                                            {(assets.images?.vertical?.startsWith('http') || assets.images?.square?.startsWith('http') || (assets.imageUrl?.startsWith('http') && assets.imageUrl !== 'PENDING...')) ? (
                                                 <>
                                                     <img src={assets.images?.vertical || assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
                                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -856,9 +863,14 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                                     </div>
                                                 </>
                                             ) : (assets.images?.vertical === 'PENDING...' || assets.imagePendingIds?.vertical || assets.imagePendingIds?.square) ? (
-                                                <div className="flex flex-col items-center gap-2 p-4 text-center">
-                                                    <RefreshCw className="w-5 h-5 text-indigo-500 animate-spin" />
-                                                    <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Generando...</span>
+                                                <div className="flex flex-col items-center justify-center relative w-full h-full bg-black">
+                                                    {(assets.imageUrl?.startsWith('http') && assets.imageUrl !== 'PENDING...') && (
+                                                        <img src={assets.imageUrl} className="absolute inset-0 w-full h-full object-cover opacity-20 blur-sm" />
+                                                    )}
+                                                    <div className="relative z-10 flex flex-col items-center gap-2 p-4 text-center">
+                                                        <RefreshCw className="w-5 h-5 text-indigo-500 animate-spin" />
+                                                        <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Generando...</span>
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <div className="text-[10px] text-zinc-600 font-bold">No hay imagen</div>
@@ -869,7 +881,7 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                     {/* HORIZONTAL IMAGE: Google, X */}
                                     {['google_ads', 'twitter_x'].includes(platform.id) && (
                                         <div className="col-span-2 sm:col-span-1 aspect-video rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
-                                            {(assets.images?.horizontal?.startsWith('http') || assets.images?.square?.startsWith('http') || assets.imageUrl?.startsWith('http')) ? (
+                                            {(assets.images?.horizontal?.startsWith('http') || assets.images?.square?.startsWith('http') || (assets.imageUrl?.startsWith('http') && assets.imageUrl !== 'PENDING...')) ? (
                                                 <>
                                                     <img src={assets.images?.horizontal || assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
                                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -885,9 +897,14 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                                                     </div>
                                                 </>
                                             ) : (assets.images?.horizontal === 'PENDING...' || assets.imagePendingIds?.horizontal || assets.imagePendingIds?.square) ? (
-                                                <div className="flex flex-col items-center gap-2 p-2 text-center">
-                                                    <RefreshCw className="w-5 h-5 text-green-500 animate-spin" />
-                                                    <span className="text-[9px] font-black uppercase text-green-400 tracking-widest">Generando...</span>
+                                                <div className="flex flex-col items-center justify-center relative w-full h-full bg-black">
+                                                    {(assets.imageUrl?.startsWith('http') && assets.imageUrl !== 'PENDING...') && (
+                                                        <img src={assets.imageUrl} className="absolute inset-0 w-full h-full object-cover opacity-20 blur-sm" />
+                                                    )}
+                                                    <div className="relative z-10 flex flex-col items-center gap-2 p-2 text-center">
+                                                        <RefreshCw className="w-5 h-5 text-green-500 animate-spin" />
+                                                        <span className="text-[9px] font-black uppercase text-green-400 tracking-widest">Generando...</span>
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <div className="text-[10px] text-zinc-600 font-bold">No hay imagen</div>

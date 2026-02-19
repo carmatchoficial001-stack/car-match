@@ -118,9 +118,14 @@ export async function generateRealImage(prompt: string, width: number, height: n
  * ASYNC VIDEO GENERATION (Bypasses Vercel 10s Limit)
  */
 export async function createVideoPrediction(prompt: string, aspectRatio: '9:16' | '16:9' = '9:16'): Promise<string> {
-    if (!process.env.REPLICATE_API_TOKEN) throw new Error('MISSING_API_KEY');
+    if (!process.env.REPLICATE_API_TOKEN) {
+        console.error('[REPLICATE] ERROR: Missing REPLICATE_API_TOKEN');
+        throw new Error('MISSING_API_KEY');
+    }
 
     try {
+        // MODEL: Minimax Video 01 (Reliable high quality)
+        // Using explicit version if possible, but model string is usually preferred for public models
         const prediction = await replicate.predictions.create({
             model: "minimax/video-01",
             input: {
@@ -130,8 +135,12 @@ export async function createVideoPrediction(prompt: string, aspectRatio: '9:16' 
         });
         console.log('[REPLICATE] Predicción de video iniciada:', prediction.id);
         return prediction.id;
-    } catch (error) {
-        console.error('[REPLICATE] Error al crear predicción de video:', error);
+    } catch (error: any) {
+        console.error('[REPLICATE] Error al crear predicción de video:', error.message || error);
+        // If it's a 401, Ruben needs to check his token
+        if (error.message?.includes('401')) {
+            console.error('❌ REPLICATE AUTH FAILURE: Check your token in .env');
+        }
         throw error;
     }
 }
