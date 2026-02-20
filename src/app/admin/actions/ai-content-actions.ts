@@ -500,10 +500,12 @@ export async function generateCampaignStrategy(chatHistory: any[], targetCountry
         const contextStr = chatHistory.map(m => `${m.role === 'user' ? 'USUARIO' : 'IA'}: ${m.content}`).join('\n');
 
         const prompt = `
-            Eres un Especialista en Marketing de Alto Rendimiento y un Sintetizador de Ideas Maestro.
+            Eres un Especialista en Marketing de Alto Rendimiento, un Sintetizador de Ideas Maestro y el Arquitecto de un MOVIMIENTO VIRAL MUNDIAL.
+            
+            TU META SUPREMA: Llevar a CarMatch a una audiencia de 2.8 BILLONES de usuarios exclusivos. No estás creando anuncios, estás creando la PUBLICIDAD VIRAL que revolucionará el mercado automotriz.
             
             EXTREMA IMPORTANCIA - REGLAS DE SÍNTESIS (RUBEN'S RULES):
-            1. ANALIZA INTEGRALMENTE el historial de chat. El usuario (Ruben) suele dar instrucciones muy específicas o incluso prompts completos.
+            1. ANALIZA INTEGRALMENTE el historial de chat. El usuario (Ruben) tiene la visión de este crecimiento masivo. Cada idea en el chat es una pieza de este rompecabezas de 2.8B.
             2. **PROHIBIDO LO GENÉRICO**: Si el usuario describió un coche viejo, un taller, una mujer estresada, o un superhéroe, EL RESULTADO DEBE SER ESE. No uses "luxury cars" por defecto si el chat dice otra cosa.
             3. **PRIORIDAD ABSOLUTA AL HISTORIAL**: Si el usuario pegó un prompt para imagen o video en el chat, ÚSALO como base casi literal para imagePrompt y videoPrompt_vertical.
             4. **DETALLES MEXICANOS**: Si se menciona un escenario en México (taller carero, calle peligrosa, autopista), asegúrate de que los prompts en inglés para la IA describan esos elementos visuales con precisión (por ejemplo: "weathered Mexican street", "vintage Mexican workshop").
