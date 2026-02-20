@@ -146,11 +146,11 @@ export async function createVideoPrediction(prompt: string, aspectRatio: '9:16' 
         return prediction.id;
     } catch (error: any) {
         console.error('[REPLICATE] Error al crear predicción de video:', error.message || error);
-        if (error.message?.includes('402')) {
-            console.error('❌ REPLICATE ERROR: Faltan créditos o método de pago. (402 Payment Required)');
+        if (error.message?.includes('402') || error.status === 402) {
+            throw new Error('REPLICATE_PAYMENT_REQUIRED');
         }
-        if (error.message?.includes('401')) {
-            console.error('❌ REPLICATE AUTH FAILURE: Check your token in .env');
+        if (error.message?.includes('401') || error.status === 401) {
+            throw new Error('REPLICATE_AUTH_FAILED');
         }
         throw error;
     }
@@ -189,8 +189,11 @@ export async function createImagePrediction(prompt: string, width: number, heigh
         return prediction.id;
     } catch (error: any) {
         console.error(`[REPLICATE] Error crítico en predicción (${aspect_ratio}):`, error.message || error);
-        if (error.message?.includes('402')) {
-            console.error('❌ REPLICATE ERROR: Faltan créditos o método de pago. (402 Payment Required)');
+        if (error.message?.includes('402') || error.status === 402) {
+            throw new Error('REPLICATE_PAYMENT_REQUIRED');
+        }
+        if (error.message?.includes('401') || error.status === 401) {
+            throw new Error('REPLICATE_AUTH_FAILED');
         }
         throw error;
     }

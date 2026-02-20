@@ -19,19 +19,22 @@ export type AIStudioSessionWithMessages = {
     }[]
 }
 
-// Obtener todas las sesiones del usuario
-export async function getAISessions() {
+// Obtener todas las sesiones del usuario (opcionalmente filtrado por modo)
+export async function getAISessions(mode?: string) {
     try {
         const session = await auth()
         if (!session?.user?.id) return { success: false, error: 'No autorizado' }
 
+        const where: any = { userId: session.user.id }
+        if (mode) where.mode = mode
+
         const chats = await prisma.aIStudioSession.findMany({
-            where: { userId: session.user.id },
+            where,
             orderBy: { updatedAt: 'desc' },
             include: {
                 messages: {
                     orderBy: { createdAt: 'asc' },
-                    take: 1 // Solo para mostrar preview si se necesitara
+                    take: 1
                 }
             }
         })

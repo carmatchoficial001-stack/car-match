@@ -644,6 +644,12 @@ export default function PublishClient() {
     }, [editId])
 
     const handlePublish = async () => {
+        // 🌐 OFFLINE CHECK
+        if (!navigator.onLine) {
+            setAiError('⚠️ No tienes conexión a internet. Tu progreso se ha guardado localmente como borrador y podrás publicar en cuanto recuperes la señal.')
+            return
+        }
+
         setLoading(true)
         setAiError('')
 

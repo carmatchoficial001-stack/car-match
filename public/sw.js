@@ -1,39 +1,87 @@
-// Caching and Fetch handler
-const CACHE_NAME = 'carmatch-v1';
+const CACHE_NAME = 'carmatch-v1.1.0';
 const OFFLINE_URL = '/offline.html';
+
+const PRE_CACHE_RESOURCES = [
+    OFFLINE_URL,
+    '/',
+    '/market',
+    '/swipe',
+    '/map',
+    '/favicon-v19.png',
+    '/icon-192-v20.png',
+    '/logo-v19.png'
+];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll([OFFLINE_URL]);
+            return cache.addAll(PRE_CACHE_RESOURCES);
         })
+    );
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(() => self.clients.claim())
     );
 });
 
-self.addEventListener('fetch', function (event) {
+self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    if (url.pathname.startsWith('/api/auth')) {
+    // Skip Auth and non-GET requests
+    if (url.pathname.startsWith('/api/auth') || event.request.method !== 'GET') {
         return;
     }
 
-    if (event.request.mode === 'navigate') {
+    // Cache First for Images and Static Assets
+    if (event.request.destination === 'image' ||
+        event.request.destination === 'style' ||
+        event.request.destination === 'script' ||
+        event.request.destination === 'font') {
         event.respondWith(
-            fetch(event.request).catch(() => {
-                return caches.open(CACHE_NAME).then((cache) => {
-                    return cache.match(OFFLINE_URL);
+            caches.match(event.request).then((cachedResponse) => {
+                if (cachedResponse) return cachedResponse;
+                return fetch(event.request).then((response) => {
+                    if (!response || response.status !== 200 || response.type !== 'basic') {
+                        return response;
+                    }
+                    const responseToCache = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, responseToCache);
+                    });
+                    return response;
                 });
             })
         );
         return;
     }
 
-    event.respondWith(fetch(event.request));
-});
+    // Network First for Navigation
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).catch(() => {
+                return caches.match(event.request).then((match) => {
+                    return match || caches.match(OFFLINE_URL);
+                });
+            })
+        );
+        return;
+    }
 
-// Reclamar control inmediatamente
-self.addEventListener('activate', function (event) {
-    event.waitUntil(self.clients.claim());
+    // Default: try network, then cache
+    event.respondWith(
+        fetch(event.request).catch(() => caches.match(event.request))
+    );
 });
 
 

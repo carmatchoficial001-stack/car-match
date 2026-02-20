@@ -145,6 +145,30 @@ export default function MarketClient({
     const userCountry = normalizeCountryCode(activeLocation?.countryCode || activeLocation?.country)
     const containerRef = useRef<HTMLElement | null>(null)
 
+    // 💾 OFFLINE CACHE LOGIC
+    useEffect(() => {
+        if (initialItems && initialItems.length > 0) {
+            localStorage.setItem('carmatch_market_cache', JSON.stringify(initialItems))
+        }
+    }, [initialItems])
+
+    useEffect(() => {
+        // Si no hay items del servidor (posible offline o carga fallida)
+        // intentamos recuperar del cache local
+        if ((!initialItems || initialItems.length === 0) && !navigator.onLine) {
+            const cached = localStorage.getItem('carmatch_market_cache')
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached)
+                    setItems(parsed)
+                    console.log('📦 Cargado Market desde cache offline')
+                } catch (e) {
+                    console.error('Error parsing market cache', e)
+                }
+            }
+        }
+    }, [initialItems])
+
     // Pagination
     const CARS_PER_PAGE = 4 // 💰 Optimizado para datos móviles (antes: 6)
     const [visibleCount, setVisibleCount] = useState(CARS_PER_PAGE)

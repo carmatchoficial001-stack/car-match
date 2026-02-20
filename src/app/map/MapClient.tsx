@@ -71,6 +71,29 @@ export default function MapClient({ businesses, user }: MapClientProps) {
     const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null)
     const [activeBusinessId, setActiveBusinessId] = useState<string | null>(null)
     const [dynamicBusinesses, setDynamicBusinesses] = useState<any[]>(businesses)
+
+    // 💾 OFFLINE CACHE LOGIC
+    useEffect(() => {
+        if (businesses && businesses.length > 0) {
+            localStorage.setItem('carmatch_map_cache', JSON.stringify(businesses))
+        }
+    }, [businesses])
+
+    useEffect(() => {
+        if ((!businesses || businesses.length === 0) && !navigator.onLine) {
+            const cached = localStorage.getItem('carmatch_map_cache')
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached)
+                    setDynamicBusinesses(parsed)
+                    console.log('📦 Cargado MapStore desde cache offline')
+                } catch (e) {
+                    console.error('Error parsing map cache', e)
+                }
+            }
+        }
+    }, [businesses])
+
     const [isLoadingBounds, setIsLoadingBounds] = useState(false)
     const debounceTimer = useRef<NodeJS.Timeout | null>(null)
     const currentBoundsRef = useRef<any>(null) // 🔥 Guardar bounds actuales

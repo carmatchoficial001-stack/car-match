@@ -71,7 +71,7 @@ export default function PublicityTab() {
     const [campaigns, setCampaigns] = useState<PublicityCampaign[]>([])
     const [loading, setLoading] = useState(true)
     const [showModal, setShowModal] = useState(false)
-    const [viewMode, setViewMode] = useState<'CAMPAIGNS' | 'AI_STUDIO' | 'QUEUE'>('CAMPAIGNS')
+    const [viewMode, setViewMode] = useState<'CAMPAIGNS' | 'AI_IMAGE' | 'AI_VIDEO' | 'QUEUE'>('CAMPAIGNS')
     const [selectedCampaign, setSelectedCampaign] = useState<PublicityCampaign | null>(null)
 
     // Assets Generation State
@@ -353,11 +353,18 @@ export default function PublicityTab() {
                             Campañas
                         </button>
                         <button
-                            onClick={() => setViewMode('AI_STUDIO')}
-                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-2 ${viewMode === 'AI_STUDIO' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20' : 'text-white/40 hover:text-white'}`}
+                            onClick={() => setViewMode('AI_IMAGE')}
+                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-2 ${viewMode === 'AI_IMAGE' ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/20' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
                         >
-                            <Sparkles className="w-4 h-4" />
-                            AI Studio
+                            <ImageIcon className="w-4 h-4" />
+                            Estudio Imagen
+                        </button>
+                        <button
+                            onClick={() => setViewMode('AI_VIDEO')}
+                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-2 ${viewMode === 'AI_VIDEO' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                        >
+                            <Video className="w-4 h-4" />
+                            Productora Video
                         </button>
                     </div>
                 </div>
@@ -370,8 +377,10 @@ export default function PublicityTab() {
             </div>
 
             <div className="flex-1 bg-zinc-950/50 border border-white/5 rounded-3xl overflow-hidden relative backdrop-blur-sm flex flex-col">
-                {viewMode === 'AI_STUDIO' ? (
-                    <AIStudio />
+                {viewMode === 'AI_IMAGE' ? (
+                    <AIStudio defaultMode="IMAGE_GEN" />
+                ) : viewMode === 'AI_VIDEO' ? (
+                    <AIStudio defaultMode="VIDEO_GEN" />
                 ) : (
                     <>
                         {/* Search Bar & Filters */}

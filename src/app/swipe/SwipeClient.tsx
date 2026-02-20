@@ -2,7 +2,7 @@
 // ⚠️ CRITICAL WARNING: FILE PROTECTED BY PROJECT RULES.
 // DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER INSTRUCTION.
 
-﻿// ✅ DISEÑO DE TARJETAS VALIDADO - ASÍ DEBE SER (Frontera Digital)
+// ✅ DISEÑO DE TARJETAS VALIDADO - ASÍ DEBE SER (Frontera Digital)
 // 🔒 FEATURE LOCKED: CARMATCH SWIPE. DO NOT EDIT WITHOUT EXPLICIT USER OVERRIDE.
 'use client'
 
@@ -114,6 +114,29 @@ export default function SwipeClient({ initialItems, currentUserId }: SwipeClient
 
     // 2. MAZO ESTABLE CON FRONTERA DIGITAL - ESTRATEGIA INCREMENTAL
     const [shuffledItems, setShuffledItems] = useState<FeedItem[]>([])
+
+    // 💾 OFFLINE CACHE LOGIC
+    useEffect(() => {
+        if (initialItems && initialItems.length > 0) {
+            localStorage.setItem('carmatch_swipe_cache', JSON.stringify(initialItems))
+        }
+    }, [initialItems])
+
+    useEffect(() => {
+        if ((!initialItems || initialItems.length === 0) && !navigator.onLine) {
+            const cached = localStorage.getItem('carmatch_swipe_cache')
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached)
+                    setShuffledItems(parsed)
+                    console.log('📦 Cargado Swipe desde cache offline')
+                } catch (e) {
+                    console.error('Error parsing swipe cache', e)
+                }
+            }
+        }
+    }, [initialItems])
+
     const isFirstRun = useRef(true)
 
     // 🚀 RESTAURAR ESTADO DESDE SESSIONSTORAGE (Solo al montar - UNA VEZ)

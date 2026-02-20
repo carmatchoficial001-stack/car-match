@@ -413,31 +413,139 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
     }
 }
 
+// --- NEW SPLIT STRATEGIES FOR VIRAL CONTENT ---
+
+export async function generateImageStrategy(chatHistory: any[], targetCountry: string = 'MX') {
+    try {
+        const country = getCountryContext(targetCountry)
+
+        // Format history
+        const contextStr = chatHistory.map(m => `${m.role === 'user' ? 'USUARIO' : 'IA'}: ${m.content}`).join('\n');
+
+        const prompt = `
+            Eres el DIRECTOR DE VIRALIDAD de CarMatch.
+            Objetivo: 2.8 BILLONES DE USUARIOS.
+            
+            El usuario quiere una IMAGEN para ROMPER INTERNET.
+            NO hagas un anuncio aburrido. Crea CONTENIDO NATIVO (Meme, Shitpost de calidad, Arte Épico, Trivia).
+
+            PRINCIPIOS DE VIRALIDAD (APLICALOS):
+            1. **Relatabilidad**: "Soy yo literal".
+            2. **Debate**: "¿A o B?", "¿Es real?".
+            3. **Sorpresa**: Algo visualmente impactante fuera de contexto.
+
+            HISTORIAL DE CHAT:
+            ${contextStr}
+            
+            INSTRUCCIONES CLAVE:
+            - Si el usuario pide un MEME -> Describe la imagen visualmente graciosa (ej. "A skeleton waiting for a mechanic").
+            - Si pide TRIVIA -> Imagen macro (zoom) de una pieza difícil de identificar.
+            - Si pide ÉPICO -> Estilo cinematográfico, cyberpunk, vaporwave, etc.
+            
+            Output JSON:
+            {
+                "internal_title": "Título interno",
+                "imagePrompt": "PROMPT EN INGLÉS PARA FLUX. Debe ser INCREÍBLEMENTE DETALLADO. Si es un meme, describe la escena, expresiones faciales, estilo 'internet culture'.",
+                "caption": "Caption en ESPAÑOL (${country.slang}). Corto, con gancho, emojis y hashtags (#CarMatch #Viral).",
+                "platforms": { ... }
+            }
+        `;
+
+        const result = await geminiFlashConversational.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: 'application/json' }
+        });
+
+        return { success: true, strategy: JSON.parse(result.response.text()) };
+
+    } catch (error) {
+        console.error('Error creating image strategy:', error);
+        return { success: false, error: 'Error al diseñar la imagen.' };
+    }
+}
+
+export async function generateVideoStrategy(chatHistory: any[], targetCountry: string = 'MX') {
+    try {
+        const country = getCountryContext(targetCountry)
+        const contextStr = chatHistory.map(m => `${m.role === 'user' ? 'USUARIO' : 'IA'}: ${m.content}`).join('\n');
+
+        const prompt = `
+            Eres el GUIONISTA Nº1 DE TIKTOK/REELS DEL MUNDO.
+            Tu único objetivo: RETENCIÓN DE AUDIENCIA.
+            
+            El usuario quiere un VIDEO VIRAL.
+            
+            REGLA DE ORO (3-SECOND RULE):
+            Los primeros 3 segundos deben ser VISUALMENTE IMPACTANTES o el video muere.
+            
+            ESTRATEGIA DE APRENDIZAJE:
+            Usa lo que sabes que funciona hoy:
+            - Cortes rápidos (cada 1.5s).
+            - Texto en pantalla gigante.
+            - Audio en tendencia (sugiérelo).
+            
+            HISTORIAL:
+            ${contextStr}
+            
+            Formato JSON Requerido:
+            {
+                "internal_title": "Título del Video",
+                "videoScript": "Guión COMPLETO en ESPAÑOL. Divide por escenas visuales. INCLUYE TEXTO EN PANTALLA.",
+                "videoPrompt_vertical": "Prompt TÉCNICO en INGLÉS para generar el clip visual principal con IA (Minimax/Veo). Debe describir una escena con MOVIMIENTO ALTO (High Motion), Dinámica y Caótica si es necesario. NO estática.",
+                "platforms": { "tiktok_ads": { "caption": "..." } }
+            }
+        `;
+
+        const result = await geminiFlashConversational.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: 'application/json' }
+        });
+
+        return { success: true, strategy: JSON.parse(result.response.text()) };
+
+    } catch (error) {
+        console.error('Error creating video strategy:', error);
+        return { success: false, error: 'Error al diseñar el video.' };
+    }
+}
+
+
 // --- AI Chat for Publicity Agent ---
 export async function chatWithPublicityAgent(messages: any[], targetCountry: string = 'MX') {
     try {
         const country = getCountryContext(targetCountry)
 
         const systemPrompt = `
-            You are "CarMatch Marketing Director", an elite AI marketing strategist specialized in the automotive industry in ${country.name}.
+            Eres "CarMatch Mastermind", una IA de Marketing Viral de Nivel DIOS.
+            No eres un asistente básico. Eres el cerebro detrás de la expansión global de CarMatch hacia 2.8 BILLONES de usuarios.
+
+            TU MISIÓN: DOMINACIÓN GLOBAL MEDIANTE CONTENIDO.
             
-            Your Goal: Help the user create viral marketing campaigns, brainstorm ideas, and write scripts/copy for CarMatch.
+            Tus Herramientas Psicológicas (ÚSALAS):
+            1. **Curiosidad (The Gap)**: "No creerás lo que encontramos en este Tsuru..."
+            2. **Pertenencia (Tribalism)**: "Solo los verdaderos mecánicos entienden esto..."
+            3. **Escasez/Miedo (FOMO)**: "El error que te está costando miles de pesos..."
+            4. **Controversia (Leve)**: "Por qué los autos eléctricos son una estafa (o no)..."
+            5. **Humor (Relatability)**: Memes de situaciones cotidianas del tráfico/taller.
+
+            TONO Y ESTILO:
+            - **Idioma**: Español (México) con slang natural pero INTELIGENTE (${country.slang}).
+            - **Actitud**: Visionaria, agresiva (tipo Wolf of Wall Street pero ético), divertida, y data-driven.
+            - **Formato**: Usa emojis, listas cortas, y ve GRANO.
             
-            Tone: Professional, creative, enthusiastic, data-driven.
-            Language: Spanish (localized for ${country.name}).
-            
-            Key Capabilities:
-            1. Suggest Hook angles for specific cars.
-            2. Write video scripts (TikTok/Reels).
-            3. Create image prompts for DALL-E/Midjourney.
-            4. Analyze trends in ${country.name}.
-            
-            Context about CarMatch:
-            - "The Tinder for Cars" (Swipe feature).
-            - Map Store (Find mechanics/services).
-            - Safe, Verified, Fast.
-            
-            Keep responses concise and actionable. Use emojis.
+            TUS PODERES CREATIVOS ACTUALIZADOS:
+            - **Meme Architect**: Diseña memes visuales (Expectativa vs Realidad).
+            - **Trivia Master**: Crea trivias difíciles para generar comentarios.
+            - **Trend Surfer**: Conecta autos con tendencias pop (música, películas, noticias).
+            - **Storyteller**: Guiones de video que enganchen en los primeros 0.5 segundos.
+
+            Contexto de CarMatch para vender:
+            - "El Tinder de los Autos" (Desliza y compra).
+            - "Map Store" (Encuentra ayuda real en tiempo real).
+            - Seguridad Total (Adiós estafas).
+
+            SI EL USUARIO PIDE IDEAS, DALE ORO PURO. NO DEDES RESPUESTAS GENÉRICAS.
+            PIENSA EN GRANDE. PIENSA EN VIRALIDAD.
         `
 
         // Convert messages to Gemini format
@@ -606,6 +714,58 @@ export async function launchAssetPredictions(strategy: any, targetCountry: strin
         return { success: false, error: 'No se pudieron iniciar las tareas de imagen/video.' };
     }
 }
+
+// New Specialized Launchers
+export async function launchImageOnlyPrediction(strategy: any) {
+    try {
+        const { createImagePrediction } = await import('@/lib/ai/replicate-client');
+        const { generatePollinationsImage } = await import('@/lib/ai/asset-generator');
+
+        console.log('[IMG-ONLY] Generando imagen viral...');
+
+        // 1. Instant Preview (Pollinations)
+        const instantUrl = await generatePollinationsImage(strategy.imagePrompt, 1080, 1080).catch(() => null);
+
+        // 2. High Quality (Replicate Flux) - Square Only for now to save credits/time, or maybe vertical for Stories?
+        // Let's do Square + Vertical for viral content
+        const [imgSquareId, imgVerticalId] = await Promise.all([
+            createImagePrediction(strategy.imagePrompt, 1080, 1080).catch(() => null),
+            createImagePrediction(strategy.imagePrompt, 1080, 1920).catch(() => null)
+        ]);
+
+        return {
+            success: true,
+            assets: {
+                ...strategy,
+                imageUrl: instantUrl || 'PENDING...',
+                imagePendingIds: { square: imgSquareId, vertical: imgVerticalId }
+            }
+        };
+    } catch (e) {
+        return { success: false, error: 'Fallo al iniciar generación de imagen.' };
+    }
+}
+
+export async function launchVideoOnlyPrediction(strategy: any) {
+    try {
+        const { createVideoPrediction } = await import('@/lib/ai/replicate-client');
+
+        console.log('[VID-ONLY] Generando video viral...');
+        const videoId = await createVideoPrediction(strategy.videoPrompt_vertical || strategy.videoPrompt, '9:16');
+
+        return {
+            success: true,
+            assets: {
+                ...strategy,
+                videoUrl: 'PENDING...',
+                videoPendingId: videoId
+            }
+        };
+    } catch (e) {
+        return { success: false, error: 'Fallo al iniciar generación de video.' };
+    }
+}
+
 
 // Backward Compatibility
 export async function generateCampaignAssets(chatHistory: any[], targetCountry: string = 'MX') {
