@@ -502,33 +502,34 @@ export async function generateCampaignStrategy(chatHistory: any[], targetCountry
         const prompt = `
             Eres un Especialista en Marketing de Alto Rendimiento y un Sintetizador de Ideas Maestro.
             
-            EXTREMA IMPORTANCIA - REGLAS DE SÍNTESIS:
-            1. ANALIZA TODO el historial de chat para identificar la EVOLUCIÓN de la idea.
-            2. PRIORIZA LAS DECISIONES FINALES: Si el usuario empezó pidiendo un auto y terminó decidiendo otro, el resultado DEBE ser el último decidido.
-            3. EXTRAE DETALLES ESPECÍFICOS: Marca, modelo, color exacto, entorno (ej: ciudad, montaña, estudio), clima e iluminación mencionados.
+            EXTREMA IMPORTANCIA - REGLAS DE SÍNTESIS (RUBEN'S RULES):
+            1. ANALIZA INTEGRALMENTE el historial de chat. El usuario (Ruben) suele dar instrucciones muy específicas o incluso prompts completos.
+            2. **PROHIBIDO LO GENÉRICO**: Si el usuario describió un coche viejo, un taller, una mujer estresada, o un superhéroe, EL RESULTADO DEBE SER ESE. No uses "luxury cars" por defecto si el chat dice otra cosa.
+            3. **PRIORIDAD ABSOLUTA AL HISTORIAL**: Si el usuario pegó un prompt para imagen o video en el chat, ÚSALO como base casi literal para imagePrompt y videoPrompt_vertical.
+            4. **DETALLES MEXICANOS**: Si se menciona un escenario en México (taller carero, calle peligrosa, autopista), asegúrate de que los prompts en inglés para la IA describan esos elementos visuales con precisión (por ejemplo: "weathered Mexican street", "vintage Mexican workshop").
             
-            Si el usuario no especifica un carro, usa uno de lujo que sea coherente con el tono de la conversación.
+            Si el usuario escribió literalmente un prompt para imagen, extráelo y tradúcelo si es necesario, pero mantén la ESENCIA EXACTA.
             
-            Objetivo: Crear un PACK COMPLETO DE CAMPAÑA PUBLICITARIA DE ALTA CONVERSIÓN.
+            Objetivo: Crear un PACK COMPLETO DE CAMPAÑA que sea un reflejo FIELD de lo discutido.
             
             REQUISITO CRÍTICO DE IDIOMA:
             - Todo el contenido para el usuario (scripts, copies, títulos) en ESPAÑOL (México). Slang local: ${country.slang}
-            - LOS PROMPTS PARA IA (imagePrompt, videoPrompt) deben ser en INGLÉS EXTREMADAMENTE DETALLADO.
+            - LOS PROMPTS PARA IA (imagePrompt, videoPrompt) deben ser en INGLÉS EXTREMADAMENTE DETALLADO y fiel a la historia.
             
             Estructura JSON requerida:
             {
                 "internal_title": "Nombre de la Campaña",
-                "imagePrompt": "Detailed photorealistic prompt in ENGLISH. Include: [Final Scene Context], [Dominant Colors], [Emotional Vibe], [Environment], 8k, professional photography. If it's a specific car, specify brand and color. If it's a situation (dating, mechanical, etc.), focus on the actors and the story.",
-                "videoPrompt_vertical": "Technical prompt in ENGLISH for vertical video (9:16). Describe the FIRST 3 SECONDS clearly (The Hook). Focus on motion and high-energy cinematography.",
-                "videoPrompt_horizontal": "Technical prompt in ENGLISH for horizontal video (16:9). More cinematic landscape or slow motion storytelling.",
-                "videoScript": "Guión viral de 15s en ESPAÑOL",
+                "imagePrompt": "Detailed realistic prompt in ENGLISH. Use EXACTLY what was discussed in the chat. If there is a car brand, specify it. If there is a specific scenario (broken car, superhero, etc.), include ALL visual details described.",
+                "videoPrompt_vertical": "Technical prompt in ENGLISH for vertical video (9:16). Describe the FIRST 3 SECONDS of the vision discussed in the chat. High energy.",
+                "videoPrompt_horizontal": "Technical prompt in ENGLISH for horizontal video (16:9). Cinematic version of the CHAT STORY.",
+                "videoScript": "Guión viral de 15s en ESPAÑOL, fiel al 100% a lo discutido en el chat.",
                 "platforms": { ... }
             }
             
-            HISTORIAL DE CONVERSACIÓN (SINTETIZA LA DECISIÓN FINAL):
+            HISTORIAL DE CONVERSACIÓN (SINTETIZA LA DECISIÓN FINAL Y LOS DETALLES VISUALES):
             ${contextStr}
             
-            No inventes si ya hay una decisión clara en el chat. Sé fiel al flujo de Ruben.
+            RECUERDA: Ruben odia lo genérico. Si dice un Mustang rojo, es un Mustang rojo. Si dice una mujer atrapada en la carretera con un coche descompuesto, ES EXACTAMENTE ESO. No inventes "autos de lujo" si no vienen al caso.
         `
 
         let text = "";
