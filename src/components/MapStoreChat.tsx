@@ -180,9 +180,9 @@ export const MapStoreChat: React.FC<MapStoreChatProps> = ({
                     <button
                         type="submit"
                         disabled={!inputValue.trim() || isTyping}
-                        className="w-12 h-12 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:bg-white/10 text-white rounded-full flex items-center justify-center transition-all active:scale-95 shrink-0 shadow-lg shadow-blue-500/20 border-2 border-white/20"
+                        className="w-10 h-10 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:bg-white/10 text-white rounded-full flex items-center justify-center transition-all active:scale-90 shrink-0 shadow-lg shadow-blue-500/40 border border-white/20"
                     >
-                        <Send size={22} className="ml-1" />
+                        <Send size={18} />
                     </button>
                 </form>
             </div>
