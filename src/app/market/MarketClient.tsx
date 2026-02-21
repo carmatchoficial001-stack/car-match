@@ -666,19 +666,16 @@ export default function MarketClient({
                             />
                         </div>
 
-                        {/* 🧠 AI INSIGHT BANNER */}
+                        {/* AI Insight Banner Logic ... omitted for brevity in thought, but I'll write the full chunk */}
                         {(searchParams.ai_msg || aiReasoning) && (
                             <div className="mb-6 animate-fade-in-down">
                                 <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-xl p-4 flex items-start gap-3 relative overflow-hidden group">
-                                    {/* Decorative glow */}
                                     <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-purple-500" />
-
                                     <div className="mt-0.5 p-2 bg-indigo-500/10 rounded-lg text-indigo-400 group-hover:scale-110 transition-transform">
                                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                         </svg>
                                     </div>
-
                                     <div className="flex-1">
                                         <h3 className="text-sm font-bold text-indigo-400 uppercase tracking-widest text-[10px] mb-0.5 flex items-center gap-2">
                                             CarMatch AI
@@ -688,7 +685,6 @@ export default function MarketClient({
                                             {searchParams.ai_msg || aiReasoning}
                                         </p>
                                     </div>
-
                                     <button
                                         onClick={() => {
                                             setAiReasoning('')
@@ -701,423 +697,423 @@ export default function MarketClient({
                                 </div>
                             </div>
                         )}
+                    </div>
+                </header>
 
-                        {/* Área de Filtros (Full Width) */}
-                        {
-                            showFilters && (
-                                <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-300">
-                                    <MarketFilters
-                                        brands={brands}
-                                        vehicleTypes={vehicleTypes}
-                                        colors={colors}
-                                        currentFilters={searchParams}
-                                        onClose={() => setShowFilters(false)}
-                                    />
-                                </div>
-                            )
-                        }
+                {/* Área de Filtros (Full Width) */}
+                {
+                    showFilters && (
+                        <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-300">
+                            <MarketFilters
+                                brands={brands}
+                                vehicleTypes={vehicleTypes}
+                                colors={colors}
+                                currentFilters={searchParams}
+                                onClose={() => setShowFilters(false)}
+                            />
+                        </div>
+                    )
+                }
 
-                        {/* Grid de Vehículos */}
-                        <div>
-                            {(isFiltering && items.length === 0) ? (
-                                <div className="flex items-center justify-center py-20">
-                                    <div className="text-center">
-                                        <div className="w-12 h-12 border-4 border-primary-700 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                                        <p className="text-text-secondary">{t('common.searching')}</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <>
-                                    {filteredItems.length > 0 ? (
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-8">
-                                            {filteredItems.slice(0, visibleCount).map((item) => {
-                                                const isBusiness = item.feedType === 'BUSINESS'
-                                                return (
-                                                    <div key={item.id} className={`bg-surface border rounded-2xl overflow-hidden hover:shadow-xl transition group relative ${isBusiness ? 'border-primary-700/30' : 'border-surface-highlight'}`}>
-                                                        {/* Imagen y Badge */}
-                                                        <Link
-                                                            href={isBusiness
-                                                                ? `/map-store?id=${item.id}`
-                                                                : `/comprar/${generateVehicleSlug(item.brand || item.title, item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
-                                                            }
-                                                            className="block relative aspect-[4/3] bg-gray-800 group-hover:opacity-95 transition-opacity"
-                                                        >
-                                                            {item.images && item.images[0] ? (
-                                                                <img
-                                                                    src={item.images[0]}
-                                                                    alt={isBusiness ? `Negocio: ${item.title}` : `Venta de ${item.brand || item.title} ${item.model || ''} ${item.year || ''} en ${item.city} - CarMatch`}
-                                                                    loading="lazy"
-                                                                    className="w-full h-full object-contain bg-black/40"
-                                                                />
+                {/* Grid de Vehículos */}
+                <div>
+                    {(isFiltering && items.length === 0) ? (
+                        <div className="flex items-center justify-center py-20">
+                            <div className="text-center">
+                                <div className="w-12 h-12 border-4 border-primary-700 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                                <p className="text-text-secondary">{t('common.searching')}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            {filteredItems.length > 0 ? (
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-8">
+                                    {filteredItems.slice(0, visibleCount).map((item) => {
+                                        const isBusiness = item.feedType === 'BUSINESS'
+                                        return (
+                                            <div key={item.id} className={`bg-surface border rounded-2xl overflow-hidden hover:shadow-xl transition group relative ${isBusiness ? 'border-primary-700/30' : 'border-surface-highlight'}`}>
+                                                {/* Imagen y Badge */}
+                                                <Link
+                                                    href={isBusiness
+                                                        ? `/map-store?id=${item.id}`
+                                                        : `/comprar/${generateVehicleSlug(item.brand || item.title, item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                    }
+                                                    className="block relative aspect-[4/3] bg-gray-800 group-hover:opacity-95 transition-opacity"
+                                                >
+                                                    {item.images && item.images[0] ? (
+                                                        <img
+                                                            src={item.images[0]}
+                                                            alt={isBusiness ? `Negocio: ${item.title}` : `Venta de ${item.brand || item.title} ${item.model || ''} ${item.year || ''} en ${item.city} - CarMatch`}
+                                                            loading="lazy"
+                                                            className="w-full h-full object-contain bg-black/40"
+                                                        />
+                                                    ) : (
+                                                        <div className="absolute inset-0 flex items-center justify-center text-text-secondary opacity-20">
+                                                            {isBusiness ? (
+                                                                <MapPin className="w-16 h-16" />
                                                             ) : (
-                                                                <div className="absolute inset-0 flex items-center justify-center text-text-secondary opacity-20">
-                                                                    {isBusiness ? (
-                                                                        <MapPin className="w-16 h-16" />
-                                                                    ) : (
-                                                                        <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
-                                                                            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12l-2.08-5.99z" />
-                                                                        </svg>
-                                                                    )}
-                                                                </div>
+                                                                <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
+                                                                    <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12l-2.08-5.99z" />
+                                                                </svg>
                                                             )}
+                                                        </div>
+                                                    )}
 
-                                                            {isBusiness && (
-                                                                <div className="absolute top-3 right-10 z-10 px-2 py-0.5 bg-primary-600 text-[10px] text-white font-bold rounded-full">
-                                                                    {t('market.business_badge')}
-                                                                </div>
-                                                            )}
+                                                    {isBusiness && (
+                                                        <div className="absolute top-3 right-10 z-10 px-2 py-0.5 bg-primary-600 text-[10px] text-white font-bold rounded-full">
+                                                            {t('market.business_badge')}
+                                                        </div>
+                                                    )}
 
 
 
-                                                        </Link>
+                                                </Link>
 
-                                                        <div className="p-2 md:p-4">
+                                                <div className="p-2 md:p-4">
+                                                    <Link
+                                                        href={isBusiness
+                                                            ? `/map-store?id=${item.id}`
+                                                            : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                        }
+                                                        className="block mb-0.5 group-hover:text-primary-400 transition"
+                                                    >
+                                                        <h3 className="font-bold text-xs md:text-lg text-text-primary line-clamp-1">
+                                                            {item.brand ? `${item.brand} ${item.model}` : item.title}
+                                                        </h3>
+                                                    </Link>
+
+                                                    {isBusiness ? (
+                                                        <p className="text-[9px] font-bold text-primary-400 uppercase mb-1">
+                                                            {item.category}
+                                                        </p>
+                                                    ) : (
+                                                        <div className="flex items-center gap-1.5 text-[9px] md:text-xs text-text-secondary">
+                                                            <span>{item.year}</span>
+                                                            <span>•</span>
+                                                            <span>{formatNumber(item.mileage || 0, locale)}</span>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex flex-wrap gap-1 mb-1.5 mt-1">
+                                                        {!isBusiness && item.transmission && (
                                                             <Link
                                                                 href={isBusiness
                                                                     ? `/map-store?id=${item.id}`
-                                                                    : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                                    : `/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
                                                                 }
-                                                                className="block mb-0.5 group-hover:text-primary-400 transition"
+                                                                className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded hover:bg-surface-highlight/80 transition"
                                                             >
-                                                                <h3 className="font-bold text-xs md:text-lg text-text-primary line-clamp-1">
-                                                                    {item.brand ? `${item.brand} ${item.model}` : item.title}
-                                                                </h3>
+                                                                {item.transmission}
                                                             </Link>
+                                                        )}
+                                                        <Link
+                                                            href={isBusiness
+                                                                ? `/map-store?id=${item.id}`
+                                                                : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
+                                                            }
+                                                            className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded hover:bg-surface-highlight/80 transition"
+                                                        >
+                                                            {/* 📍 ADMIN DYNAMIC LOCATION: Override city if it's an admin post */}
+                                                            {item.isBoosted && activeLocation?.city ? activeLocation.city : item.city}
+                                                        </Link>
+                                                    </div>
 
-                                                            {isBusiness ? (
-                                                                <p className="text-[9px] font-bold text-primary-400 uppercase mb-1">
-                                                                    {item.category}
-                                                                </p>
-                                                            ) : (
-                                                                <div className="flex items-center gap-1.5 text-[9px] md:text-xs text-text-secondary">
-                                                                    <span>{item.year}</span>
-                                                                    <span>•</span>
-                                                                    <span>{formatNumber(item.mileage || 0, locale)}</span>
-                                                                </div>
-                                                            )}
-
-                                                            <div className="flex flex-wrap gap-1 mb-1.5 mt-1">
-                                                                {!isBusiness && item.transmission && (
+                                                    <div className="flex items-center justify-between mt-auto">
+                                                        <div className="flex flex-col">
+                                                            {!isBusiness ? (
+                                                                <>
                                                                     <Link
-                                                                        href={isBusiness
-                                                                            ? `/map-store?id=${item.id}`
-                                                                            : `/vehicle/${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
-                                                                        }
-                                                                        className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded hover:bg-surface-highlight/80 transition"
+                                                                        href={`/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`}
+                                                                        className="block group/price"
                                                                     >
-                                                                        {item.transmission}
+                                                                        <p className="font-bold text-sm md:text-xl text-primary-400 group-hover/price:text-primary-300 transition" suppressHydrationWarning>
+                                                                            {formatPrice(item.price || 0, item.currency || 'MXN', locale)}
+                                                                        </p>
                                                                     </Link>
-                                                                )}
-                                                                <Link
-                                                                    href={isBusiness
-                                                                        ? `/map-store?id=${item.id}`
-                                                                        : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`
-                                                                    }
-                                                                    className="text-[9px] md:text-xs text-text-secondary bg-surface-highlight px-1.5 py-0.5 rounded hover:bg-surface-highlight/80 transition"
-                                                                >
-                                                                    {/* 📍 ADMIN DYNAMIC LOCATION: Override city if it's an admin post */}
-                                                                    {item.isBoosted && activeLocation?.city ? activeLocation.city : item.city}
-                                                                </Link>
-                                                            </div>
-
-                                                            <div className="flex items-center justify-between mt-auto">
-                                                                <div className="flex flex-col">
-                                                                    {!isBusiness ? (
-                                                                        <>
-                                                                            <Link
-                                                                                href={`/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`}
-                                                                                className="block group/price"
-                                                                            >
-                                                                                <p className="font-bold text-sm md:text-xl text-primary-400 group-hover/price:text-primary-300 transition" suppressHydrationWarning>
-                                                                                    {formatPrice(item.price || 0, item.currency || 'MXN', locale)}
-                                                                                </p>
-                                                                            </Link>
-                                                                            <div className="flex items-center gap-2 mt-0.5">
-                                                                                <Link
-                                                                                    href={`/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`}
-                                                                                    className="text-[10px] font-bold text-primary-400 uppercase group-hover:text-primary-300"
-                                                                                >
-                                                                                    {t('common.view_more') || 'Ver más'}
-                                                                                </Link>
-                                                                                <ReportImageButton
-                                                                                    imageUrl={item.images?.[0] || ''}
-                                                                                    vehicleId={item.id}
-                                                                                    className="!p-1 bg-transparent hover:text-red-500 scale-75 origin-left"
-                                                                                />
-                                                                            </div>
-                                                                        </>
-                                                                    ) : (
-                                                                        <div className="flex items-center gap-2">
-                                                                            <Link
-                                                                                href={`/map-store?id=${item.id}`}
-                                                                                className="text-[10px] font-bold text-primary-400 hover:underline"
-                                                                            >
-                                                                                {t('market.view_on_map')}
-                                                                            </Link>
-                                                                            <ReportImageButton
-                                                                                imageUrl={item.images?.[0] || ''}
-                                                                                businessId={item.id}
-                                                                                className="!p-1 bg-transparent hover:text-red-500 scale-75 origin-left"
-                                                                            />
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-
-                                                                <div className="flex items-center gap-2">
-                                                                    <div>
-                                                                        <ShareButton
-                                                                            title={item.brand ? `${item.brand} ${item.model}` : item.title}
-                                                                            text={t('market.interest_text').replace('{title}', item.brand ? `${item.brand} ${item.model}` : item.title)}
-                                                                            url={isBusiness
-                                                                                ? `/negocio/${generateBusinessSlug(item.title, item.city)}-${item.id}`
-                                                                                : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}`
-                                                                            }
-                                                                            variant="minimal"
+                                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                                        <Link
+                                                                            href={`/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}${item.isBoosted && activeLocation?.city ? `?contextCity=${encodeURIComponent(activeLocation.city)}` : ''}`}
+                                                                            className="text-[10px] font-bold text-primary-400 uppercase group-hover:text-primary-300"
+                                                                        >
+                                                                            {t('common.view_more') || 'Ver más'}
+                                                                        </Link>
+                                                                        <ReportImageButton
+                                                                            imageUrl={item.images?.[0] || ''}
+                                                                            vehicleId={item.id}
+                                                                            className="!p-1 bg-transparent hover:text-red-500 scale-75 origin-left"
                                                                         />
                                                                     </div>
-                                                                    <FavoriteButton
-                                                                        vehicleId={!isBusiness ? item.id : undefined}
-                                                                        businessId={isBusiness ? item.id : undefined}
-                                                                        initialIsFavorited={item.isFavorited}
-                                                                        size="md"
-                                                                        rounded="rounded-full"
-                                                                        className="shadow-md bg-surface border border-surface-highlight"
+                                                                </>
+                                                            ) : (
+                                                                <div className="flex items-center gap-2">
+                                                                    <Link
+                                                                        href={`/map-store?id=${item.id}`}
+                                                                        className="text-[10px] font-bold text-primary-400 hover:underline"
+                                                                    >
+                                                                        {t('market.view_on_map')}
+                                                                    </Link>
+                                                                    <ReportImageButton
+                                                                        imageUrl={item.images?.[0] || ''}
+                                                                        businessId={item.id}
+                                                                        className="!p-1 bg-transparent hover:text-red-500 scale-75 origin-left"
                                                                     />
                                                                 </div>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="flex items-center gap-2">
+                                                            <div>
+                                                                <ShareButton
+                                                                    title={item.brand ? `${item.brand} ${item.model}` : item.title}
+                                                                    text={t('market.interest_text').replace('{title}', item.brand ? `${item.brand} ${item.model}` : item.title)}
+                                                                    url={isBusiness
+                                                                        ? `/negocio/${generateBusinessSlug(item.title, item.city)}-${item.id}`
+                                                                        : `/comprar/${generateVehicleSlug(item.brand || '', item.model || '', item.year || 0, item.city)}-${item.id}`
+                                                                    }
+                                                                    variant="minimal"
+                                                                />
                                                             </div>
-                                                        </div>
-
-
-
-                                                    </div>
-                                                )
-                                            })}
-
-                                            {/* Action Card (Infinite Scroll Sentinel or Expand) */}
-                                            {visibleCount < filteredItems.length ? (
-                                                <div
-                                                    ref={lastItemRef}
-                                                    className="col-span-2 md:col-span-3 py-10 flex flex-col items-center justify-center space-y-4"
-                                                >
-                                                    <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
-                                                    <p className="text-text-secondary text-sm font-medium animate-pulse">
-                                                        {t('market.loading_more') || 'Cargando más vehículos...'}
-                                                    </p>
-                                                </div>
-                                            ) : (
-                                                <div className="contents">
-                                                    {/* Card 1: Expandir Búsqueda */}
-                                                    <div
-                                                        className="bg-primary-900/20 border-2 border-primary-700/50 hover:border-primary-500 rounded-2xl flex flex-col items-center justify-center p-6 text-center transition group min-h-[250px] relative cursor-pointer"
-                                                        onClick={handleExpandSearch}
-                                                    >
-                                                        <div className="w-16 h-16 bg-primary-700 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-primary-900/50">
-                                                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                                            </svg>
-                                                        </div>
-                                                        <span className="font-bold text-lg text-white">
-                                                            {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search') : t('market.expand_search')}
-                                                        </span>
-                                                        <div className="mt-2 px-3 py-1 bg-white/10 rounded-full border border-white/20">
-                                                            <span className="text-[10px] md:text-xs text-primary-200 font-bold uppercase tracking-wider">
-                                                                {t('market.radius_label').replace('{radius}', searchRadius.toString())} | {displayCity}
-                                                            </span>
-                                                        </div>
-                                                        <span className="text-sm text-primary-200 mt-2">
-                                                            {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search_desc') : t('market.expand_search_desc')}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Card 2: Promo Vende Tu Auto */}
-                                                    <div className="bg-gradient-to-br from-primary-900/20 to-indigo-900/20 border-2 border-primary-500/30 hover:border-primary-500/50 rounded-2xl flex flex-col items-center justify-center p-6 text-center transition group min-h-[250px] relative">
-                                                        <div className="flex flex-col items-center w-full">
-                                                            <p className="text-sm text-primary-200 font-bold uppercase tracking-wider mb-2">Mientras buscas</p>
-                                                            <h3 className="text-xl font-black text-white leading-tight mb-6">
-                                                                ¡GENERA DINERO<br />CON EL TUYO!
-                                                            </h3>
-
-                                                            <Link
-                                                                href="/publish"
-                                                                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary-900 rounded-xl hover:bg-white/90 transition font-black uppercase tracking-wide shadow-lg text-sm group-hover:scale-105 transform duration-200"
-                                                            >
-                                                                <Plus size={18} strokeWidth={3} />
-                                                                Convierte tu auto en dinero
-                                                            </Link>
+                                                            <FavoriteButton
+                                                                vehicleId={!isBusiness ? item.id : undefined}
+                                                                businessId={isBusiness ? item.id : undefined}
+                                                                initialIsFavorited={item.isFavorited}
+                                                                size="md"
+                                                                rounded="rounded-full"
+                                                                className="shadow-md bg-surface border border-surface-highlight"
+                                                            />
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                            )}
+
+
+                                            </div>
+                                        )
+                                    })}
+
+                                    {/* Action Card (Infinite Scroll Sentinel or Expand) */}
+                                    {visibleCount < filteredItems.length ? (
+                                        <div
+                                            ref={lastItemRef}
+                                            className="col-span-2 md:col-span-3 py-10 flex flex-col items-center justify-center space-y-4"
+                                        >
+                                            <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+                                            <p className="text-text-secondary text-sm font-medium animate-pulse">
+                                                {t('market.loading_more') || 'Cargando más vehículos...'}
+                                            </p>
                                         </div>
                                     ) : (
-                                        <div className="mt-12 p-8 bg-surface border border-surface-highlight rounded-2xl text-center flex flex-col items-center mb-8 shadow-xl animate-in zoom-in duration-300">
-
-                                            {/* 📍 Radio Badge movido aquí por petición del usuario */}
-                                            <button
-                                                onClick={() => setShowLocationModal(true)}
-                                                className="mb-8 px-4 py-2 bg-primary-700/10 hover:bg-primary-700/20 active:scale-95 transition-all text-white text-xs rounded-full border border-primary-500/20 shadow-sm flex items-center gap-2 cursor-pointer group"
+                                        <div className="contents">
+                                            {/* Card 1: Expandir Búsqueda */}
+                                            <div
+                                                className="bg-primary-900/20 border-2 border-primary-700/50 hover:border-primary-500 rounded-2xl flex flex-col items-center justify-center p-6 text-center transition group min-h-[250px] relative cursor-pointer"
+                                                onClick={handleExpandSearch}
                                             >
-                                                <MapPin className="w-3 h-3 text-primary-400" />
-                                                <span className="font-bold text-primary-300">
-                                                    {t('market.radius_label').replace('{radius}', searchRadius.toString())} | {displayCity}
-                                                </span>
-                                                <Search className="w-3 h-3 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            </button>
-
-                                            <div className="mb-6">
-                                                <h3 className="text-xl font-bold text-text-primary">
-                                                    {searchRadius >= 5000 ? t('market.no_results') : t('market.cant_find_title')}
-                                                </h3>
-                                                <p className="text-text-secondary">
-                                                    {searchRadius >= 5000 ? t('market.try_adjusting') : t('market.cant_find_desc')}
-                                                </p>
-                                            </div>
-
-                                            {/* Action Buttons for Empty List */}
-                                            <div className="flex flex-col md:flex-row gap-3">
-                                                {/* Always show Expand/Restart button here */}
-                                                <button
-                                                    onClick={handleExpandSearch}
-                                                    className="inline-flex items-center gap-2 px-8 py-4 bg-primary-700 text-text-primary rounded-xl hover:bg-primary-600 transition font-bold shadow-lg justify-center whitespace-nowrap"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <div className="w-16 h-16 bg-primary-700 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-primary-900/50">
+                                                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                                     </svg>
-                                                    {tierIndex === RADIUS_TIERS.length - 1 ? "Volver a empezar" : "Expandir búsqueda"}
-                                                </button>
+                                                </div>
+                                                <span className="font-bold text-lg text-white">
+                                                    {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search') : t('market.expand_search')}
+                                                </span>
+                                                <div className="mt-2 px-3 py-1 bg-white/10 rounded-full border border-white/20">
+                                                    <span className="text-[10px] md:text-xs text-primary-200 font-bold uppercase tracking-wider">
+                                                        {t('market.radius_label').replace('{radius}', searchRadius.toString())} | {displayCity}
+                                                    </span>
+                                                </div>
+                                                <span className="text-sm text-primary-200 mt-2">
+                                                    {tierIndex === RADIUS_TIERS.length - 1 ? t('market.restart_search_desc') : t('market.expand_search_desc')}
+                                                </span>
+                                            </div>
 
-                                                {/* New: Change Location Button */}
-                                                <button
-                                                    onClick={() => setShowLocationModal(true)}
-                                                    className="inline-flex items-center gap-2 px-8 py-4 bg-surface-highlight/50 text-text-primary rounded-xl hover:bg-surface-highlight transition font-medium justify-center whitespace-nowrap"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    </svg>
-                                                    {t('market.change_location')}
-                                                </button>
+                                            {/* Card 2: Promo Vende Tu Auto */}
+                                            <div className="bg-gradient-to-br from-primary-900/20 to-indigo-900/20 border-2 border-primary-500/30 hover:border-primary-500/50 rounded-2xl flex flex-col items-center justify-center p-6 text-center transition group min-h-[250px] relative">
+                                                <div className="flex flex-col items-center w-full">
+                                                    <p className="text-sm text-primary-200 font-bold uppercase tracking-wider mb-2">Mientras buscas</p>
+                                                    <h3 className="text-xl font-black text-white leading-tight mb-6">
+                                                        ¡GENERA DINERO<br />CON EL TUYO!
+                                                    </h3>
 
-                                                {/* Botón de publicar vehículo en estado vacío */}
-                                                <Link
-                                                    href="/publish"
-                                                    className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary-900 rounded-xl hover:bg-white/90 transition font-bold shadow-lg justify-center whitespace-nowrap"
-                                                >
-                                                    <Plus size={20} />
-                                                    {t('market.publish_cta')}
-                                                </Link>
+                                                    <Link
+                                                        href="/publish"
+                                                        className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary-900 rounded-xl hover:bg-white/90 transition font-black uppercase tracking-wide shadow-lg text-sm group-hover:scale-105 transform duration-200"
+                                                    >
+                                                        <Plus size={18} strokeWidth={3} />
+                                                        Convierte tu auto en dinero
+                                                    </Link>
+                                                </div>
                                             </div>
                                         </div>
 
                                     )}
-                                </>
-                            )}
-                        </div>
+                                </div>
+                            ) : (
+                                <div className="mt-12 p-8 bg-surface border border-surface-highlight rounded-2xl text-center flex flex-col items-center mb-8 shadow-xl animate-in zoom-in duration-300">
 
-                        {/* LOCATION MODAL */}
-                        {
-                            showLocationModal && (
-                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4">
-                                    <div className="bg-surface border border-surface-highlight rounded-xl w-full max-w-md p-6 relative">
+                                    {/* 📍 Radio Badge movido aquí por petición del usuario */}
+                                    <button
+                                        onClick={() => setShowLocationModal(true)}
+                                        className="mb-8 px-4 py-2 bg-primary-700/10 hover:bg-primary-700/20 active:scale-95 transition-all text-white text-xs rounded-full border border-primary-500/20 shadow-sm flex items-center gap-2 cursor-pointer group"
+                                    >
+                                        <MapPin className="w-3 h-3 text-primary-400" />
+                                        <span className="font-bold text-primary-300">
+                                            {t('market.radius_label').replace('{radius}', searchRadius.toString())} | {displayCity}
+                                        </span>
+                                        <Search className="w-3 h-3 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </button>
+
+                                    <div className="mb-6">
+                                        <h3 className="text-xl font-bold text-text-primary">
+                                            {searchRadius >= 5000 ? t('market.no_results') : t('market.cant_find_title')}
+                                        </h3>
+                                        <p className="text-text-secondary">
+                                            {searchRadius >= 5000 ? t('market.try_adjusting') : t('market.cant_find_desc')}
+                                        </p>
+                                    </div>
+
+                                    {/* Action Buttons for Empty List */}
+                                    <div className="flex flex-col md:flex-row gap-3">
+                                        {/* Always show Expand/Restart button here */}
                                         <button
-                                            onClick={() => setShowLocationModal(false)}
-                                            className="absolute top-4 right-4 text-text-secondary hover:text-white"
+                                            onClick={handleExpandSearch}
+                                            className="inline-flex items-center gap-2 px-8 py-4 bg-primary-700 text-text-primary rounded-xl hover:bg-primary-600 transition font-bold shadow-lg justify-center whitespace-nowrap"
                                         >
-                                            ✕
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            {tierIndex === RADIUS_TIERS.length - 1 ? "Volver a empezar" : "Expandir búsqueda"}
                                         </button>
 
-                                        <h3 className="text-xl font-bold text-text-primary mb-4">Cambiar Ubicación</h3>
-                                        <p className="text-text-secondary text-sm mb-6">
-                                            {t('market.change_location_desc')}
-                                        </p>
+                                        {/* New: Change Location Button */}
+                                        <button
+                                            onClick={() => setShowLocationModal(true)}
+                                            className="inline-flex items-center gap-2 px-8 py-4 bg-surface-highlight/50 text-text-primary rounded-xl hover:bg-surface-highlight transition font-medium justify-center whitespace-nowrap"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                            {t('market.change_location')}
+                                        </button>
 
-                                        <form onSubmit={searchManualLocation} className="space-y-4">
-                                            <input
-                                                type="text"
-                                                value={locationInput}
-                                                onChange={(e) => {
-                                                    setLocationInput(e.target.value)
-                                                    if (locationError) setLocationError(null)
-                                                    // Ocultar lista si el usuario sigue escribiendo
-                                                    if (showCandidates) setShowCandidates(false)
-                                                }}
-                                                placeholder={t('market.change_location_placeholder')}
-                                                className={`w-full px-4 py-3 bg-background border rounded-lg text-text-primary focus:border-primary-500 outline-none transition ${locationError ? 'border-red-500/50' : 'border-surface-highlight'}`}
-                                                autoFocus
-                                                disabled={isSearchingLocation}
-                                            />
-
-                                            {/* 📋 LISTA DE CANDIDATOS (Disambiguation UI) */}
-                                            {showCandidates && locationCandidates.length > 0 && (
-                                                <div className="bg-background border border-surface-highlight rounded-lg overflow-hidden max-h-48 overflow-y-auto animate-in slide-in-from-top-2">
-                                                    <p className="px-3 py-2 text-xs text-text-secondary bg-surface-highlight/30 font-bold uppercase tracking-wider">
-                                                        ¿A cuál te refieres?
-                                                    </p>
-                                                    {locationCandidates.map((cand, idx) => (
-                                                        <button
-                                                            key={`${cand.city}-${idx}`}
-                                                            type="button"
-                                                            onClick={() => selectLocation(cand)}
-                                                            className="w-full text-left px-4 py-3 hover:bg-surface-highlight transition border-b border-surface-highlight/50 last:border-0 flex items-center gap-3 group"
-                                                        >
-                                                            <MapPin size={16} className="text-primary-500 group-hover:scale-110 transition-transform" />
-                                                            <div>
-                                                                <span className="block font-bold text-text-primary text-sm">
-                                                                    {cand.city}
-                                                                </span>
-                                                                <span className="block text-xs text-text-secondary">
-                                                                    {cand.state}, {cand.country}
-                                                                </span>
-                                                            </div>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-
-                                            {locationError && (
-                                                <p className="text-xs text-red-500 animate-in fade-in slide-in-from-top-1">
-                                                    ⚠️ {locationError}
-                                                </p>
-                                            )}
-
-                                            <div className="flex gap-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setManualLocation(null) // Reset to GPS
-                                                        setShowLocationModal(false)
-                                                        setLocationInput('')
-                                                        setLocationError(null)
-                                                        setShowCandidates(false)
-                                                        setLocationCandidates([])
-                                                    }}
-                                                    disabled={isSearchingLocation}
-                                                    className="flex-1 px-4 py-3 bg-surface-highlight text-text-primary rounded-lg font-medium hover:bg-surface-highlight/80 disabled:opacity-50"
-                                                >
-                                                    {t('market.use_gps')}
-                                                </button>
-                                                <button
-                                                    type="submit"
-                                                    disabled={!locationInput.trim() || isSearchingLocation}
-                                                    className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg font-bold hover:bg-primary-700 disabled:opacity-50 flex items-center justify-center gap-2"
-                                                >
-                                                    {isSearchingLocation ? (
-                                                        <>
-                                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                            <span>Buscando...</span>
-                                                        </>
-                                                    ) : (
-                                                        t('market.search_zone')
-                                                    )}
-                                                </button>
-                                            </div>
-                                        </form>
+                                        {/* Botón de publicar vehículo en estado vacío */}
+                                        <Link
+                                            href="/publish"
+                                            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary-900 rounded-xl hover:bg-white/90 transition font-bold shadow-lg justify-center whitespace-nowrap"
+                                        >
+                                            <Plus size={20} />
+                                            {t('market.publish_cta')}
+                                        </Link>
                                     </div>
                                 </div>
-                            )
-                        }
-                    </div>
+
+                            )}
+                        </>
+                    )}
+                </div>
+
+                {/* LOCATION MODAL ... omitted for brevity in thought, but I'll write the full chunk */}
+                {
+                    showLocationModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4">
+                            <div className="bg-surface border border-surface-highlight rounded-xl w-full max-w-md p-6 relative">
+                                <button
+                                    onClick={() => setShowLocationModal(false)}
+                                    className="absolute top-4 right-4 text-text-secondary hover:text-white"
+                                >
+                                    ✕
+                                </button>
+
+                                <h3 className="text-xl font-bold text-text-primary mb-4">Cambiar Ubicación</h3>
+                                <p className="text-text-secondary text-sm mb-6">
+                                    {t('market.change_location_desc')}
+                                </p>
+
+                                <form onSubmit={searchManualLocation} className="space-y-4">
+                                    <input
+                                        type="text"
+                                        value={locationInput}
+                                        onChange={(e) => {
+                                            setLocationInput(e.target.value)
+                                            if (locationError) setLocationError(null)
+                                            if (showCandidates) setShowCandidates(false)
+                                        }}
+                                        placeholder={t('market.change_location_placeholder')}
+                                        className={`w-full px-4 py-3 bg-background border rounded-lg text-text-primary focus:border-primary-500 outline-none transition ${locationError ? 'border-red-500/50' : 'border-surface-highlight'}`}
+                                        autoFocus
+                                        disabled={isSearchingLocation}
+                                    />
+
+                                    {showCandidates && locationCandidates.length > 0 && (
+                                        <div className="bg-background border border-surface-highlight rounded-lg overflow-hidden max-h-48 overflow-y-auto animate-in slide-in-from-top-2">
+                                            <p className="px-3 py-2 text-xs text-text-secondary bg-surface-highlight/30 font-bold uppercase tracking-wider">
+                                                ¿A cuál te refieres?
+                                            </p>
+                                            {locationCandidates.map((cand, idx) => (
+                                                <button
+                                                    key={`${cand.city}-${idx}`}
+                                                    type="button"
+                                                    onClick={() => selectLocation(cand)}
+                                                    className="w-full text-left px-4 py-3 hover:bg-surface-highlight transition border-b border-surface-highlight/50 last:border-0 flex items-center gap-3 group"
+                                                >
+                                                    <MapPin size={16} className="text-primary-500 group-hover:scale-110 transition-transform" />
+                                                    <div>
+                                                        <span className="block font-bold text-text-primary text-sm">
+                                                            {cand.city}
+                                                        </span>
+                                                        <span className="block text-xs text-text-secondary">
+                                                            {cand.state}, {cand.country}
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {locationError && (
+                                        <p className="text-xs text-red-500 animate-in fade-in slide-in-from-top-1">
+                                            ⚠️ {locationError}
+                                        </p>
+                                    )}
+
+                                    <div className="flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setManualLocation(null)
+                                                setShowLocationModal(false)
+                                                setLocationInput('')
+                                                setLocationError(null)
+                                                setShowCandidates(false)
+                                                setLocationCandidates([])
+                                            }}
+                                            disabled={isSearchingLocation}
+                                            className="flex-1 px-4 py-3 bg-surface-highlight text-text-primary rounded-lg font-medium hover:bg-surface-highlight/80 disabled:opacity-50"
+                                        >
+                                            {t('market.use_gps')}
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={!locationInput.trim() || isSearchingLocation}
+                                            className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg font-bold hover:bg-primary-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                                        >
+                                            {isSearchingLocation ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    <span>Buscando...</span>
+                                                </>
+                                            ) : (
+                                                t('market.search_zone')
+                                            )}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )
+                }
             </div>
-            )
+        </div>
+    )
 }
