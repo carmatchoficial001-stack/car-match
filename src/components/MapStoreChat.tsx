@@ -103,16 +103,7 @@ export const MapStoreChat: React.FC<MapStoreChatProps> = ({
 
     return (
         <div className="w-full flex flex-col gap-4">
-            {/* 🤖 Header del Asistente */}
-            <div className="flex items-center gap-3 px-2">
-                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-900/40">
-                    <Bot className="text-white w-6 h-6" />
-                </div>
-                <div>
-                    <h3 className="text-sm font-black text-white uppercase tracking-widest leading-tight">Asesor CarMatch</h3>
-                    <p className="text-[10px] text-blue-400 font-bold uppercase tracking-tighter">Experto Automotriz IA</p>
-                </div>
-            </div>
+
 
             {/* 💬 Chat Container */}
             <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden flex flex-col shadow-2xl backdrop-blur-md">
@@ -120,7 +111,7 @@ export const MapStoreChat: React.FC<MapStoreChatProps> = ({
                 {/* Historial */}
                 <div
                     ref={scrollRef}
-                    className="h-[300px] overflow-y-auto p-4 space-y-4 custom-scrollbar"
+                    className="h-[200px] overflow-y-auto p-4 space-y-4 custom-scrollbar"
                 >
                     {messages.length === 0 && (
                         <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-4 opacity-40">
@@ -156,8 +147,8 @@ export const MapStoreChat: React.FC<MapStoreChatProps> = ({
                             className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
                             <div className={`max-w-[90%] px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${m.role === 'user'
-                                    ? 'bg-blue-600 text-white rounded-tr-none font-medium'
-                                    : 'bg-white/10 text-white border border-white/10 rounded-tl-none'
+                                ? 'bg-blue-600 text-white rounded-tr-none font-medium'
+                                : 'bg-white/10 text-white border border-white/10 rounded-tl-none'
                                 }`}>
                                 {m.content}
                             </div>
@@ -200,9 +191,7 @@ export const MapStoreChat: React.FC<MapStoreChatProps> = ({
                 </form>
             </div>
 
-            <p className="text-[10px] text-center text-white/20 uppercase tracking-[0.2em] font-black">
-                Poweredy by CarMatch AI Engine
-            </p>
+
         </div>
     )
 }
