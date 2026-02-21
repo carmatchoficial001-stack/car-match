@@ -3,14 +3,14 @@ import {
     Sparkles, User, Send, ImageIcon, ImagePlus, Zap,
     Type, Video, Hash, MousePointer2, Copy, Check, Star,
     MessageSquare, Plus, Trash2, History, RefreshCw,
-    Menu, X, ChevronDown, LayoutGrid
+    Menu, X, ChevronDown, LayoutGrid, Bot
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createAISession, getAISession, getAISessions, deleteAISession, saveAIMessage, AIStudioSessionWithMessages } from '@/app/admin/actions/ai-studio-actions'
 import { generateCampaignAssets, suggestCampaignFromInventory, checkAIAssetStatus, chatWithPublicityAgent } from '@/app/admin/actions/ai-content-actions'
 import { saveAIAssetUrl } from '@/app/admin/actions/publicity-actions'
 
-type AIMode = 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'STRATEGY'
+type AIMode = 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'VIDEO_GEN' | 'STRATEGY'
 
 // 🚀 Memoized Message Item to prevent re-renders when typing
 const MessageItem = memo(({ msg, isGenerating }: { msg: any; isGenerating: boolean }) => {
@@ -92,7 +92,7 @@ const ERROR_MAP: Record<string, string> = {
 
 export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
     const router = useRouter()
-    const [mode, setMode] = useState<AIMode>('CHAT') // 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'VIDEO_GEN'
+    const [mode, setMode] = useState<AIMode>(defaultMode || 'CHAT') // 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'VIDEO_GEN' | 'STRATEGY'
     const [prompt, setPrompt] = useState('')
     const [messages, setMessages] = useState<any[]>([])
     const [isGenerating, setIsGenerating] = useState(false)
