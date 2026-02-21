@@ -741,8 +741,12 @@ export async function launchImageOnlyPrediction(strategy: any) {
                 imagePendingIds: { square: imgSquareId, vertical: imgVerticalId }
             }
         };
-    } catch (e) {
-        return { success: false, error: 'Fallo al iniciar generación de imagen.' };
+    } catch (e: any) {
+        console.error('[IMG-ONLY] Fallo crítico al iniciar generación de imagen:', e);
+        return {
+            success: false,
+            error: `Fallo al iniciar generación de imagen: ${e.message || 'Error desconocido'}`
+        };
     }
 }
 
@@ -761,8 +765,12 @@ export async function launchVideoOnlyPrediction(strategy: any) {
                 videoPendingId: videoId
             }
         };
-    } catch (e) {
-        return { success: false, error: 'Fallo al iniciar generación de video.' };
+    } catch (e: any) {
+        console.error('[VID-ONLY] Fallo crítico al iniciar generación de video:', e);
+        return {
+            success: false,
+            error: `Fallo al iniciar generación de video: ${e.message || 'Error desconocido'}`
+        };
     }
 }
 

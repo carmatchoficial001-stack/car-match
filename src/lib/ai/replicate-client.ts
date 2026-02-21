@@ -130,8 +130,16 @@ export async function createVideoPrediction(prompt: string, aspectRatio: '9:16' 
     }
 
     try {
-        // 🎯 CLEAN PROMPT: Trust Gemini/Ruben 100%. No more hardcoded "styles".
+        if (!prompt || typeof prompt !== 'string') {
+            console.error('[REPLICATE] ERROR: Missing or invalid prompt');
+            throw new Error('MISSING_PROMPT');
+        }
+
         const cleanPrompt = prompt.trim();
+        if (!cleanPrompt) {
+            console.error('[REPLICATE] ERROR: Empty prompt');
+            throw new Error('EMPTY_PROMPT');
+        }
 
         console.log('[REPLICATE] Iniciando generación de video (Minimax)...');
 
