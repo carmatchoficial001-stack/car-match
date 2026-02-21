@@ -111,14 +111,14 @@ export const MapStoreChat: React.FC<MapStoreChatProps> = ({
                 {/* Historial */}
                 <div
                     ref={scrollRef}
-                    className="h-[160px] overflow-y-auto p-4 space-y-3 custom-scrollbar"
+                    className="h-[120px] overflow-y-auto p-4 space-y-3 custom-scrollbar"
                 >
                     {messages.length === 0 && (
                         <div className="h-full flex flex-col items-center justify-center text-center p-2 space-y-3 opacity-80">
-                            <p className="text-[11px] font-black text-white uppercase tracking-[0.2em]">¿En qué te podemos ayudar hoy?</p>
+                            <p className="text-[10px] font-black text-white uppercase tracking-[0.2em] line-clamp-1">¿En qué te podemos ayudar hoy?</p>
 
                             {/* Sugerencias rápidas (solo 3) */}
-                            <div className="flex flex-wrap justify-center gap-2">
+                            <div className="flex flex-wrap justify-center gap-1.5">
                                 {['Mi carro no prende', 'Busco desponchadora', 'Taller de frenos'].map((suggestion) => (
                                     <button
                                         key={suggestion}
@@ -126,7 +126,7 @@ export const MapStoreChat: React.FC<MapStoreChatProps> = ({
                                             setInputValue(suggestion)
                                             inputRef.current?.focus()
                                         }}
-                                        className="text-[9px] bg-white/10 hover:bg-blue-600 border border-white/10 px-3 py-1.5 rounded-full text-white transition-colors uppercase font-black tracking-tighter"
+                                        className="text-[9px] bg-white/10 hover:bg-blue-600 border border-white/10 px-3 py-1 rounded-full text-white transition-colors uppercase font-black tracking-tighter"
                                     >
                                         {suggestion}
                                     </button>

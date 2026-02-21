@@ -433,7 +433,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                 </button>
                             </div>
 
-                            <div className="px-6 py-6 space-y-8 flex-1">
+                            <div className="px-6 py-3 space-y-4 flex-1">
                                 {/* 2. PREGUNTAR AL EXPERTO (NUEVA IA CONVERSACIONAL) */}
                                 <div className="space-y-4">
                                     <MapStoreChat
@@ -459,11 +459,11 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                     />
                                 </div>
 
-                                <div className="h-[1px] bg-white/5 w-full my-6"></div>
+                                <div className="h-[1px] bg-white/5 w-full my-3"></div>
 
                                 {/* 3. LISTA DE CATEGORÍAS SENCILLA */}
                                 <div className="space-y-4">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/40 mb-6">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/40 mb-3">
                                         Todas las Categorías
                                     </h3>
 
@@ -475,7 +475,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                             return (
                                                 <Fragment key={cat.id}>
                                                     {showDivider && (
-                                                        <div className="py-6 flex flex-col gap-6">
+                                                        <div className="py-3 flex flex-col gap-3">
                                                             <div className="h-[1px] bg-white/5 w-full"></div>
                                                             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/40">
                                                                 Servicios Públicos
@@ -485,7 +485,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                                                     <button
                                                         onClick={() => toggleCategory(cat.id)}
                                                         className={`
-                                                            w-full flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all group
+                                                            w-full flex items-center gap-3 py-1.5 px-3 rounded-xl transition-all group
                                                             ${isSelected ? 'bg-white/10 ring-1 ring-white/10' : 'hover:bg-white/5'}
                                                         `}
                                                     >
