@@ -111,26 +111,22 @@ export const MapStoreChat: React.FC<MapStoreChatProps> = ({
                 {/* Historial */}
                 <div
                     ref={scrollRef}
-                    className="h-[200px] overflow-y-auto p-4 space-y-4 custom-scrollbar"
+                    className="h-[160px] overflow-y-auto p-4 space-y-3 custom-scrollbar"
                 >
                     {messages.length === 0 && (
-                        <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-4 opacity-40">
-                            <HelpCircle className="w-12 h-12 text-blue-400" />
-                            <div className="space-y-1">
-                                <p className="text-sm font-bold text-white uppercase tracking-wider">¿En qué te puedo ayudar hoy?</p>
-                                <p className="text-xs text-white/60">Describe un problema mecánico, busca un servicio o pide una recomendación.</p>
-                            </div>
+                        <div className="h-full flex flex-col items-center justify-center text-center p-2 space-y-3 opacity-80">
+                            <p className="text-[11px] font-black text-white uppercase tracking-[0.2em]">¿En qué te podemos ayudar hoy?</p>
 
-                            {/* Sugerencias rápidas */}
-                            <div className="flex flex-wrap justify-center gap-2 pt-2">
-                                {['Mi carro no prende', 'Busco desponchadora', 'Taller de frenos', 'Ruido al frenar'].map((suggestion) => (
+                            {/* Sugerencias rápidas (solo 3) */}
+                            <div className="flex flex-wrap justify-center gap-2">
+                                {['Mi carro no prende', 'Busco desponchadora', 'Taller de frenos'].map((suggestion) => (
                                     <button
                                         key={suggestion}
                                         onClick={() => {
                                             setInputValue(suggestion)
                                             inputRef.current?.focus()
                                         }}
-                                        className="text-[10px] bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full text-white/70 transition-colors uppercase font-bold tracking-tighter"
+                                        className="text-[9px] bg-white/10 hover:bg-blue-600 border border-white/10 px-3 py-1.5 rounded-full text-white transition-colors uppercase font-black tracking-tighter"
                                     >
                                         {suggestion}
                                     </button>
@@ -184,9 +180,9 @@ export const MapStoreChat: React.FC<MapStoreChatProps> = ({
                     <button
                         type="submit"
                         disabled={!inputValue.trim() || isTyping}
-                        className="w-10 h-10 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:bg-white/10 text-white rounded-full flex items-center justify-center transition-all active:scale-90 shrink-0 shadow-lg shadow-blue-900/20"
+                        className="w-12 h-12 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:bg-white/10 text-white rounded-full flex items-center justify-center transition-all active:scale-95 shrink-0 shadow-lg shadow-blue-500/20 border-2 border-white/20"
                     >
-                        <Send size={18} />
+                        <Send size={22} className="ml-1" />
                     </button>
                 </form>
             </div>
