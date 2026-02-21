@@ -26,44 +26,32 @@ export async function POST(req: NextRequest) {
         }
 
         // Prompt de análisis automático (backend - no visible para usuario)
-        const prompt = `Actúa como un COMITÉ DE EXPERTOS EN DIAGNÓSTICO AUTOMOTRIZ ("The CarMatch Service Board").
+        const prompt = `Actúa como un ASESOR EXPERTO DE CARMATCH ("The Service Advisor").
+Tu misión es ayudar al usuario a encontrar el negocio automotriz ideal basándote en su problema o necesidad.
 
-**TU EQUIPO INTERNO:**
-1.  🩺 **EL DIAGNOSTA (Agente 1):** Identifica síntomas y posibles causas basándose en física y mecánica.
-2.  🔎 **EL INVESTIGADOR (Agente 2):** Consulta la "Base de Datos Experta" para ver si es una falla conocida de ese modelo o slang regional.
-3.  ✅ **EL JEFE DE TALLER (Agente 3):** Decide la categoría final y emite la recomendación.
+**TU DOMINIO:** Vehículos terrestres motorizados (autos, motos, camiones, maquinaria).
 
-**TU DOMINIO:** Vehículos terrestres motorizados.
-
-**BASE DE DATOS DE CONOCIMIENTO EXPERTO ("The Knowledge"):**
+**BASE DE DATOS DE CONOCIMIENTO TÉCNICO:**
 ${JSON.stringify(DIAGNOSTICS_DB.COMMON_FAILURES, null, 2)}
 
-**DICCIONARIO DE SLANG:**
-${JSON.stringify(DIAGNOSTICS_DB.SLANG_MAPPING, null, 2)}
+**TAXONOMÍA DE CATEGORÍAS REALES (Grounding):**
+${categories.map((cat: any) => `- [${cat.id}] "${cat.label}": ${cat.keywords.join(', ')}`).join('\n')}
 
-**REGLAS DE DERIVACIÓN:**
-- ⚙️ **Mecánica General:** Si es motor, humo, afinación, fugas o "algo suena mal" internamente -> [mecanico].
-- ⚡ **Eléctrico:** Batería, luces, alternador, marcha -> [electrico].
-- ⛽ **Combustible:** "Gasolina", "Diesel", "Gasolinera" -> [gasolinera] (PRIORIDAD MÁXIMA).
-- 🆘 **Urgencias:** "Llanta baja", "Ponchado", "Grúa" -> [llantera], [gruas].
+**REGLAS DE INTERACCIÓN (1-5 PREGUNTAS):**
+1.  **EFICIENCIA MÁXIMA:** Si el usuario es explícito (ej: "busco desponchadora", "taller de transmisiones", "tengo una llanta ponchada"), devuelve isConversational: false y las categorías de inmediato.
+2.  **DIAGNÓSTICO SI ES NECESARIO:** Si el problema es vago (ej: "mi carro no prende", "tira agua", "hace un ruido raro"), inicia una conversación corta (isConversational: true).
+3.  **LÍMITE DE TURNOS:** Máximo 5 preguntas. Si después de 5 turnos no tienes certeza, da el mejor resultado posible basado en lo que sabes.
+4.  **TONO:** Profesional pero cercano. Usa datos técnicos si ayuda al diagnóstico.
 
 **HISTORIAL DE CHARLA:**
 ${JSON.stringify(history || [], null, 2)}
 
-**REGLA DE EFICIENCIA CRÍTICA:**
-- Si el problema es claro (ej: "busco desponchadora", "taller de frenos", "ponchado"), pon "isConversational": false y devuelve las categorías de inmediato.
-- NO hagas preguntas de relleno. Si ya sabes qué categoría recomendar, DALO.
-- Máximo 5 interacciones. Si llegas al límite de 5 turnos, DEBES parar y dar tu mejor resultado.
-
-**DATOS TÉCNICOS DISPONIBLES:**
-${categories.map((cat: any) => `- [${cat.id}] "${cat.label}": ${cat.keywords.slice(0, 5).join(', ')}...`).join('\n')}
-
 **FORMATO DE RESPUESTA (JSON PURO):**
 {
     "isConversational": boolean,
-    "nextQuestion": "Pregunta corta si isConversational es true",
-    "categories": ["ID_PRIORITARIO", "ID_SECUNDARIO"],
-    "explanation": "Breve nota técnica del Jefe de Taller.",
+    "nextQuestion": "Pregunta corta y específica para refinar la búsqueda",
+    "categories": ["ID_DE_CATEGORIA_1", "ID_DE_CATEGORIA_2"],
+    "explanation": "Breve explicación técnica de por qué recomiendas esto.",
     "isDeepSearch": boolean
 }
 
@@ -72,7 +60,7 @@ ${categories.map((cat: any) => `- [${cat.id}] "${cat.label}": ${cat.keywords.sli
 
 Responde SOLO con el JSON final.`
 
-        console.log('🤖 Analizando query:', query)
+        console.log('🤖 Consultando Asesor Experto para:', query)
         const { geminiPro } = await import('@/lib/ai/geminiModels');
         const response = await safeGenerateContent(prompt, 3, geminiPro);
         const responseText = response.text()
@@ -82,7 +70,13 @@ Responde SOLO con el JSON final.`
             throw new Error('Invalid AI response format')
         }
 
-        // 💾 PASO FINAL: Guardar en caché para futuras consultas idénticas
+        // 🛡️ REFUERZO: Asegurar que las categorías devueltas existan en nuestra taxonomía
+        const validIds = new Set(categories.map((c: any) => c.id));
+        if (aiResponse.categories) {
+            aiResponse.categories = aiResponse.categories.filter((id: string) => validIds.has(id));
+        }
+
+        // 💾 PASO FINAL: Guardar en caché
         aiCache.set(query, aiResponse, 'MAP_PROBLEM');
         return NextResponse.json(aiResponse)
 

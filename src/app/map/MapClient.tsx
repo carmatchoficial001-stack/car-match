@@ -13,7 +13,7 @@ import { BUSINESS_CATEGORIES as CATEGORIES } from '@/lib/businessCategories'
 import { useLocation } from '@/contexts/LocationContext'
 import { Star, Sparkles, MapPin, Settings2, Plus, Check, MessageSquare } from 'lucide-react'
 import CategoryIcon from '@/components/CategoryIcon'
-import { AIPocketSearch } from '@/components/AIPocketSearch'
+import { MapStoreChat } from '@/components/MapStoreChat'
 import { useRestoreSessionModal } from "@/hooks/useRestoreSessionModal"
 
 const MapBoxStoreLocator = dynamic(() => import('@/components/MapBoxStoreLocator'), {
@@ -436,8 +436,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
                             <div className="px-6 py-6 space-y-8 flex-1">
                                 {/* 2. PREGUNTAR AL EXPERTO (NUEVA IA CONVERSACIONAL) */}
                                 <div className="space-y-4">
-                                    <AIPocketSearch
-                                        context="MAP"
+                                    <MapStoreChat
                                         onFilterChange={(filters) => {
                                             if (filters.categories && filters.categories.length > 0) {
                                                 const normalized = filters.categories.map((c: string) => c.toLowerCase())
