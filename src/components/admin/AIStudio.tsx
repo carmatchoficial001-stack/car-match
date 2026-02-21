@@ -183,7 +183,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
             const { generateCampaignStrategy, generateImageStrategy, generateVideoStrategy, launchAssetPredictions, launchImageOnlyPrediction, launchVideoOnlyPrediction } = await import('@/app/admin/actions/ai-content-actions')
 
             let resultAssets;
-            let campaignRes: { success: boolean; campaign: any; error?: string; message?: string } = { success: false, campaign: null, error: '' };
+            let campaignRes: { success: boolean; campaign?: any; error?: string; message?: string } = { success: false, error: '' };
             const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions');
 
             if (mode === 'IMAGE_GEN') {
