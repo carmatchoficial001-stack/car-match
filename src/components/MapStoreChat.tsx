@@ -111,11 +111,11 @@ export const MapStoreChat: React.FC<MapStoreChatProps> = ({
                 {/* Historial */}
                 <div
                     ref={scrollRef}
-                    className="h-[120px] overflow-y-auto p-4 space-y-3 custom-scrollbar"
+                    className="h-[140px] overflow-y-auto p-4 space-y-3 custom-scrollbar"
                 >
                     {messages.length === 0 && (
-                        <div className="h-full flex flex-col items-center justify-center text-center p-2 space-y-3 opacity-80">
-                            <p className="text-[10px] font-black text-white uppercase tracking-[0.2em] line-clamp-1">¿En qué te podemos ayudar hoy?</p>
+                        <div className="h-full flex flex-col items-center justify-center text-center p-2 space-y-4 opacity-100">
+                            <p className="text-sm font-black text-white uppercase tracking-[0.2em]">{t('map_store.smart_search_label')}</p>
 
                             {/* Sugerencias rápidas (solo 3) */}
                             <div className="flex flex-wrap justify-center gap-1.5">
