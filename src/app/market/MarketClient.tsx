@@ -7,7 +7,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { MapPin, Search, Loader2, Plus, RefreshCw, MessageSquare } from 'lucide-react'
-import { AIPocketSearch } from '@/components/AIPocketSearch'
+import { MarketChat } from '@/components/MarketChat'
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -556,10 +556,9 @@ export default function MarketClient({
                             </button>
                         )}
 
-                        {/* 🧠 AIPocketSearch - Nueva Interfaz Conversacional de Élite */}
-                        <div className="hidden md:block flex-1 mb-4">
-                            <AIPocketSearch
-                                context="MARKET"
+                        {/* 🧠 MarketChat - Nueva Interfaz Conversacional de Élite */}
+                        <div className="flex-1 mb-4">
+                            <MarketChat
                                 onFilterChange={(filters) => {
                                     const params = new URLSearchParams()
                                     if (filters.aiReasoning) params.set('ai_msg', filters.aiReasoning)
@@ -571,14 +570,10 @@ export default function MarketClient({
                                     if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString())
                                     if (filters.color) params.set('color', filters.color)
                                     if (filters.sort) params.set('sort', filters.sort)
-                                    if (filters.isDeepSearch) {
-                                        // El backend de Deep Search ya emitió onResultsFound si es necesario, 
-                                        // pero aquí podemos forzar un refresco si queremos.
-                                    }
+
                                     router.push(`/market?${params.toString()}`)
                                 }}
                                 onResultsFound={(results) => {
-                                    // Mapear resultados de Deep Search al feed
                                     if (results && results.length > 0) {
                                         console.log("🔍 Deep Search Results Found:", results.length)
                                     }
