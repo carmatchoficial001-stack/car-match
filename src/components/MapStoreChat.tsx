@@ -167,7 +167,7 @@ export const MapStoreChat: React.FC<MapStoreChatProps> = ({
                 {/* Input Area */}
                 <form
                     onSubmit={handleSend}
-                    className="p-3 border-t border-white/10 bg-white/5 flex items-center gap-2"
+                    className="p-2 border-t border-white/10 bg-white/5 flex items-center gap-2 overflow-hidden"
                 >
                     <input
                         ref={inputRef}
@@ -175,14 +175,14 @@ export const MapStoreChat: React.FC<MapStoreChatProps> = ({
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder={placeholder || "Cuéntame tu problema..."}
-                        className="flex-1 bg-transparent border-none outline-none px-4 py-2.5 text-white placeholder-white/30 text-sm font-medium"
+                        className="flex-1 min-w-0 bg-transparent border-none outline-none px-3 py-2 text-white placeholder-white/30 text-sm font-medium"
                     />
                     <button
                         type="submit"
                         disabled={!inputValue.trim() || isTyping}
-                        className="w-10 h-10 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:bg-white/10 text-white rounded-full flex items-center justify-center transition-all active:scale-90 shrink-0 shadow-lg shadow-blue-500/40 border border-white/20"
+                        className="w-9 h-9 flex-none bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:bg-white/10 text-white rounded-full flex items-center justify-center transition-all active:scale-90 shadow-lg shadow-blue-500/40 border border-white/20 mr-1"
                     >
-                        <Send size={18} />
+                        <Send size={16} />
                     </button>
                 </form>
             </div>
