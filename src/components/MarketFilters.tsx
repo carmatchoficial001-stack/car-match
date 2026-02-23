@@ -19,6 +19,7 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { useLocation } from '@/contexts/LocationContext'
 import { searchCities, LocationData } from '@/lib/geolocation'
 import { MapPin, Search, Loader2, ChevronDown, X } from 'lucide-react'
+import { MarketChat } from '@/components/MarketChat'
 
 interface MarketFiltersAdvancedProps {
     currentFilters: any
@@ -157,97 +158,6 @@ export default function MarketFiltersAdvanced({
     const [showAdvanced, setShowAdvanced] = useState(false)
     const [showManualFilters, setShowManualFilters] = useState(false) // 🔽 Estado para colapsar filtros manuales
 
-    // 🧠 AI SEARCH STATE
-    const [aiQuery, setAiQuery] = useState('')
-    const [isAnalyzing, setIsAnalyzing] = useState(false)
-    const [aiExplanation, setAiExplanation] = useState('')
-
-    const handleAiSearch = async () => {
-        if (!aiQuery.trim()) return
-
-        setIsAnalyzing(true)
-
-
-        try {
-            const res = await fetch('/api/ai/analyze-vehicle-query', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: aiQuery })
-            })
-
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}))
-                console.error('AI Server Error:', errorData)
-                throw new Error(errorData.details || errorData.error || 'AI Search Failed')
-            }
-
-            const data = await res.json()
-            const filters = data // Now flat with explanation included
-            const { explanation } = filters
-
-            if (filters) {
-                // 🚀 DIRECT EXECUTION: Construct URL based on AI filters
-                const params = new URLSearchParams()
-
-                // Preserve location if set
-                if (country) params.set('country', country)
-                if (state) params.set('state', state)
-                if (city) params.set('city', city)
-
-                // ⚓ PRIMARY ANCHOR: Preserve user query for fallback OR search
-                params.set('search', aiQuery)
-                params.set('ai_mode', 'true') // 🧠 SIGNAL: This is an AI search, do not mess with manual UI
-
-                // Add AI filters
-                if (filters.category) params.set('category', filters.category)
-                if (filters.brand) params.set('brand', filters.brand)
-                if (filters.model) params.set('model', filters.model)
-                if (filters.vehicleType) params.set('vehicleType', filters.vehicleType)
-                if (filters.minPrice) params.set('minPrice', filters.minPrice.toString())
-                if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString())
-                if (filters.minYear) params.set('minYear', filters.minYear.toString())
-                if (filters.maxYear) params.set('maxYear', filters.maxYear.toString())
-                if (filters.color) params.set('color', filters.color)
-                if (filters.passengers) params.set('passengers', filters.passengers.toString())
-                if (filters.cylinders) params.set('cylinders', filters.cylinders.toString())
-                if (filters.features && Array.isArray(filters.features)) {
-                    params.set('features', filters.features.join(','))
-                }
-
-                if (filters.transmission) {
-                    const trans = Array.isArray(filters.transmission) ? filters.transmission.join(',') : filters.transmission
-                    params.set('transmission', trans)
-                }
-
-                if (filters.fuel) {
-                    const f = Array.isArray(filters.fuel) ? filters.fuel.join(',') : filters.fuel
-                    params.set('fuel', f)
-                }
-
-                if (filters.traction) params.set('traction', filters.traction)
-                if (filters.doors) params.set('doors', filters.doors.toString())
-
-
-
-
-                // Execute Search with FORCE RELOAD to guarantee results appear
-                // Using window.location.href ensures clean state and server re-fetch
-                window.location.href = `/market?${params.toString()}`
-
-                // 🚀 CLOSE MODAL AFTER NAVIGATION START
-                if (onClose) onClose()
-                // Silencio: Fallback a búsqueda de texto si no hay filtros estructurados
-                window.location.href = `/market?search=${encodeURIComponent(aiQuery)}`
-            }
-        } catch (error: any) {
-            console.error('Error in AI Search:', error)
-            // Silencio: Fallback a búsqueda de texto normal sin asustar al usuario ni interrumpir el flujo
-            window.location.href = `/market?search=${encodeURIComponent(aiQuery)}`
-        }
-        finally {
-            setIsAnalyzing(false)
-        }
-    }
 
     // Reset subtype and brand when category changes
     useEffect(() => {
@@ -448,39 +358,32 @@ export default function MarketFiltersAdvanced({
                 <button type="button" onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
             </div>
 
-            {/* 2. 🧠 ASESOR INTELIGENTE (Prioridad #2 - Horizontal) */}
-            <div className="bg-surface/50 rounded-xl p-2 relative z-10 border border-surface-highlight/50">
-                <div className="flex items-end gap-2">
-                    <div className="relative flex-1">
-                        <textarea
-                            value={aiQuery}
-                            onChange={(e) => setAiQuery(e.target.value)}
-                            placeholder={t('smart_search.placeholder') || "¿Qué buscas hoy? (ej. camioneta familiar barata)"}
-                            className="w-full bg-background/50 border border-surface-highlight rounded-lg p-2 text-xs text-text-primary placeholder-text-secondary/50 focus:border-primary-400 focus:ring-0 transition-all resize-none h-10 py-2.5 custom-scrollbar leading-tight"
-                            disabled={isAnalyzing}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    handleAiSearch();
-                                }
-                            }}
-                        />
-                    </div>
+            {/* 2. 🧠 MARKETCHAT (Prioridad #2) */}
+            <div className="mb-4">
+                <MarketChat
+                    userCity={city || ''}
+                    onFilterChange={(filters) => {
+                        const params = new URLSearchParams(searchParams.toString())
+                        if (filters.aiReasoning) params.set('ai_msg', filters.aiReasoning)
+                        if (filters.category) params.set('category', filters.category)
+                        if (filters.brand) params.set('brand', filters.brand)
+                        if (filters.model) params.set('model', filters.model)
+                        if (filters.vehicleType) params.set('vehicleType', filters.vehicleType)
+                        if (filters.minPrice) params.set('minPrice', filters.minPrice.toString())
+                        if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString())
+                        if (filters.color) params.set('color', filters.color)
 
-                    <button
-                        type="button"
-                        onClick={handleAiSearch}
-                        disabled={isAnalyzing || !aiQuery.trim()}
-                        className="h-10 w-10 flex-shrink-0 bg-primary-600 text-white rounded-lg hover:bg-primary-500 disabled:opacity-30 transition-all shadow-md flex items-center justify-center active:scale-95"
-                        title="Preguntar al Asesor"
-                    >
-                        {isAnalyzing ? (
-                            <Loader2 size={16} className="animate-spin text-white" />
-                        ) : (
-                            <Search size={18} strokeWidth={3} />
-                        )}
-                    </button>
-                </div>
+                        // Execute Search
+                        router.push(`/market?${params.toString()}`)
+                        if (onClose) onClose()
+                    }}
+                    onResultsFound={(results) => {
+                        if (results && results.length > 0) {
+                            console.log("🔍 Deep Search Results Found:", results.length)
+                        }
+                    }}
+                    placeholder={t('market.search_placeholder')}
+                />
             </div>
 
 

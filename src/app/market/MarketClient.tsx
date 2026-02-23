@@ -556,33 +556,6 @@ export default function MarketClient({
                             </button>
                         )}
 
-                        {/* 🧠 MarketChat - Nueva Interfaz Conversacional de Élite */}
-                        <div className="flex-1 mb-4">
-                            <MarketChat
-                                userCity={activeLocation?.city || ''}
-                                onFilterChange={(filters) => {
-                                    const params = new URLSearchParams()
-                                    if (filters.aiReasoning) params.set('ai_msg', filters.aiReasoning)
-                                    if (filters.category) params.set('category', filters.category)
-                                    if (filters.brand) params.set('brand', filters.brand)
-                                    if (filters.model) params.set('model', filters.model)
-                                    if (filters.vehicleType) params.set('vehicleType', filters.vehicleType)
-                                    if (filters.minPrice) params.set('minPrice', filters.minPrice.toString())
-                                    if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString())
-                                    if (filters.color) params.set('color', filters.color)
-                                    if (filters.sort) params.set('sort', filters.sort)
-
-                                    router.push(`/market?${params.toString()}`)
-                                }}
-                                onResultsFound={(results) => {
-                                    if (results && results.length > 0) {
-                                        console.log("🔍 Deep Search Results Found:", results.length)
-                                    }
-                                }}
-                                placeholder={t('market.search_placeholder')}
-                            />
-                        </div>
-
                         {/* AI Insight Banner Logic ... omitted for brevity in thought, but I'll write the full chunk */}
                         {(searchParams.ai_msg || aiReasoning) && (
                             <div className="mb-6 animate-fade-in-down">
