@@ -353,6 +353,36 @@ export default function MarketFiltersAdvanced({
                 {locationError && <p className="text-[10px] text-red-400 mt-1 absolute">{locationError}</p>}
             </div>
 
+            {/* 2. 🧠 MARKETCHAT – IA que busca en la ciudad seleccionada */}
+            <div className="mb-4">
+                <MarketChat
+                    userCity={city || ''}
+                    onFilterChange={(filters) => {
+                        const params = new URLSearchParams(searchParams.toString())
+                        if (filters.aiReasoning) params.set('ai_msg', filters.aiReasoning)
+                        if (filters.category) params.set('category', filters.category)
+                        if (filters.brand) params.set('brand', filters.brand)
+                        if (filters.model) params.set('model', filters.model)
+                        if (filters.vehicleType) params.set('vehicleType', filters.vehicleType)
+                        if (filters.minPrice) params.set('minPrice', filters.minPrice.toString())
+                        if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString())
+                        if (filters.color) params.set('color', filters.color)
+                        // Mantener ciudad activa en la búsqueda
+                        if (city) params.set('city', city)
+                        if (state) params.set('state', state)
+                        if (country) params.set('country', country)
+                        router.push(`/market?${params.toString()}`)
+                        if (onClose) onClose()
+                    }}
+                    onResultsFound={(results) => {
+                        if (results && results.length > 0) {
+                            console.log("🔍 Deep Search Results Found:", results.length)
+                        }
+                    }}
+                    placeholder={t('market.search_placeholder')}
+                />
+            </div>
+
             {/* 3. 🔽 FILTROS MANUALES (Ocultos por defecto) */}
             <button
                 onClick={() => setShowManualFilters(!showManualFilters)}
