@@ -353,40 +353,6 @@ export default function MarketFiltersAdvanced({
                 {locationError && <p className="text-[10px] text-red-400 mt-1 absolute">{locationError}</p>}
             </div>
 
-            <div className="flex items-center justify-between mb-1 pr-8">
-                <h2 className="text-lg font-bold text-text-primary">{t('market.filters.title')}</h2>
-                <button type="button" onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
-            </div>
-
-            {/* 2. 🧠 MARKETCHAT (Prioridad #2) */}
-            <div className="mb-4">
-                <MarketChat
-                    userCity={city || ''}
-                    onFilterChange={(filters) => {
-                        const params = new URLSearchParams(searchParams.toString())
-                        if (filters.aiReasoning) params.set('ai_msg', filters.aiReasoning)
-                        if (filters.category) params.set('category', filters.category)
-                        if (filters.brand) params.set('brand', filters.brand)
-                        if (filters.model) params.set('model', filters.model)
-                        if (filters.vehicleType) params.set('vehicleType', filters.vehicleType)
-                        if (filters.minPrice) params.set('minPrice', filters.minPrice.toString())
-                        if (filters.maxPrice) params.set('maxPrice', filters.maxPrice.toString())
-                        if (filters.color) params.set('color', filters.color)
-
-                        // Execute Search
-                        router.push(`/market?${params.toString()}`)
-                        if (onClose) onClose()
-                    }}
-                    onResultsFound={(results) => {
-                        if (results && results.length > 0) {
-                            console.log("🔍 Deep Search Results Found:", results.length)
-                        }
-                    }}
-                    placeholder={t('market.search_placeholder')}
-                />
-            </div>
-
-
             {/* 3. 🔽 FILTROS MANUALES (Ocultos por defecto) */}
             <button
                 onClick={() => setShowManualFilters(!showManualFilters)}
@@ -407,6 +373,11 @@ export default function MarketFiltersAdvanced({
 
             {/* CONTENEDOR COLAPSABLE DE FILTROS MANUALES */}
             <div className={`space-y-6 overflow-hidden transition-all duration-500 ${showManualFilters ? 'max-h-[3000px] opacity-100 pb-4' : 'max-h-0 opacity-0'}`}>
+
+                {/* Botón Limpiar Todo - Movido al inicio de los filtros manuales */}
+                <div className="flex justify-end mb-2">
+                    <button type="button" onClick={clearFilters} className="text-sm text-primary-400 hover:underline">{t('market.filters.clear_all')}</button>
+                </div>
 
                 {/* A. CATEGORÍA Y FILTROS BÁSICOS */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

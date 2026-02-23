@@ -111,7 +111,7 @@ export const MarketChat: React.FC<MarketChatProps> = ({
                     {messages.length === 0 && (
                         <div className="h-full flex flex-col items-center justify-center text-center p-2 space-y-4">
                             <p className="text-sm font-black text-white uppercase tracking-[0.2em]">
-                                {t('market.filters.ai_pocket_title') || 'Asesor Inteligente'}
+                                {t('market.filters.ia') || 'Asesor Inteligente'}
                             </p>
 
                             <div className="flex flex-wrap justify-center gap-1.5">
