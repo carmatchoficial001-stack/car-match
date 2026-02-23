@@ -14,12 +14,14 @@ interface MarketChatProps {
     onFilterChange?: (filters: any) => void
     onResultsFound?: (results: any[]) => void
     placeholder?: string
+    userCity?: string
 }
 
 export const MarketChat: React.FC<MarketChatProps> = ({
     onFilterChange,
     onResultsFound,
-    placeholder
+    placeholder,
+    userCity
 }) => {
     const { t } = useLanguage()
     const [messages, setMessages] = useState<Message[]>([])
@@ -53,7 +55,8 @@ export const MarketChat: React.FC<MarketChatProps> = ({
                     query: userMessage,
                     context: 'MARKET',
                     history: messages.map(m => ({ role: m.role, content: m.content })),
-                    turn: turnCount + 1
+                    turn: turnCount + 1,
+                    city: userCity
                 })
             })
 

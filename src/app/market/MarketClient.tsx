@@ -559,6 +559,7 @@ export default function MarketClient({
                         {/* 🧠 MarketChat - Nueva Interfaz Conversacional de Élite */}
                         <div className="flex-1 mb-4">
                             <MarketChat
+                                userCity={activeLocation?.city || ''}
                                 onFilterChange={(filters) => {
                                     const params = new URLSearchParams()
                                     if (filters.aiReasoning) params.set('ai_msg', filters.aiReasoning)
