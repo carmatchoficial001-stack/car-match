@@ -491,26 +491,26 @@ export default function PublicityTab() {
                                         {campaigns.map(campaign => (
                                             <div key={campaign.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
                                                 <div className="flex gap-3 items-center">
-                                                        <div className="w-16 h-16 rounded-lg bg-zinc-800 overflow-hidden border border-white/10 flex items-center justify-center shrink-0">
-                                                            {campaign.imageUrl ? (
-                                                                <img
-                                                                    src={campaign.imageUrl}
-                                                                    alt={campaign.title}
-                                                                    className="w-full h-full object-cover"
-                                                                    onError={(e) => {
-                                                                        const el = e.target as HTMLImageElement;
-                                                                        el.style.display = 'none';
-                                                                    }}
-                                                                />
-                                                            ) : (
-                                                                <ImageIcon className="w-7 h-7 text-zinc-600" />
-                                                            )}
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="font-bold text-white text-sm">{campaign.title}</h4>
-                                                            <p className="text-xs text-text-secondary">{campaign.clientName || 'Generado por IA'}</p>
-                                                        </div>
+                                                    <div className="w-16 h-16 rounded-lg bg-zinc-800 overflow-hidden border border-white/10 flex items-center justify-center shrink-0">
+                                                        {campaign.imageUrl ? (
+                                                            <img
+                                                                src={campaign.imageUrl}
+                                                                alt={campaign.title}
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => {
+                                                                    const el = e.target as HTMLImageElement;
+                                                                    el.style.display = 'none';
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <ImageIcon className="w-7 h-7 text-zinc-600" />
+                                                        )}
                                                     </div>
+                                                    <div>
+                                                        <h4 className="font-bold text-white text-sm">{campaign.title}</h4>
+                                                        <p className="text-xs text-text-secondary">{campaign.clientName || 'Generado por IA'}</p>
+                                                    </div>
+                                                </div>
                                                 <div className="flex justify-end items-center border-t border-white/5 pt-3">
                                                     <div className="flex gap-2">
                                                         <button onClick={() => handleOpenAdPack(campaign)} className="p-3 min-h-[44px] min-w-[44px] bg-purple-500/10 hover:bg-purple-500/20 active:bg-purple-500/30 text-purple-400 rounded-xl transition flex items-center justify-center" title="Global Ad Pack">
@@ -886,8 +886,8 @@ function PlatformAccordionItem({ platform, data, assets, isFallback }: any) {
                                     <ImagePlus className="w-3 h-3" /> Archivos Multimedia
                                 </h4>
                                 <div className="grid grid-cols-2 gap-3">
-                                    {/* VIDEO LOGIC: Meta, TikTok, Shorts, Snapchat */}
-                                    {['meta_ads', 'tiktok_ads', 'youtube_shorts', 'snapchat_ads'].includes(platform.id) && (
+                                    {/* VIDEO LOGIC: Meta, TikTok, Shorts, Snapchat — Solo si NO es imagen */}
+                                    {assets.type !== 'image' && ['meta_ads', 'tiktok_ads', 'youtube_shorts', 'snapchat_ads'].includes(platform.id) && (
                                         <div className="col-span-2 sm:col-span-1">
                                             <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
                                                 {assets.videoUrl && assets.videoUrl.startsWith('http') ? (
@@ -919,8 +919,8 @@ function PlatformAccordionItem({ platform, data, assets, isFallback }: any) {
                                         </div>
                                     )}
 
-                                    {/* SQUARE IMAGE: Meta, Marketplace, Google, Threads */}
-                                    {['meta_ads', 'facebook_marketplace', 'google_ads', 'threads'].includes(platform.id) && (
+                                    {/* SQUARE IMAGE: Meta, Marketplace, Google, Threads — Solo si NO es video */}
+                                    {assets.type !== 'video' && ['meta_ads', 'facebook_marketplace', 'google_ads', 'threads'].includes(platform.id) && (
                                         <div className="aspect-square rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
                                             {((assets.images?.square && assets.images.square.startsWith('http')) || (assets.imageUrl && assets.imageUrl.startsWith('http'))) ? (
                                                 <>
@@ -948,8 +948,8 @@ function PlatformAccordionItem({ platform, data, assets, isFallback }: any) {
                                         </div>
                                     )}
 
-                                    {/* VERTICAL IMAGE: Meta, Snapchat */}
-                                    {['meta_ads', 'snapchat_ads'].includes(platform.id) && (
+                                    {/* VERTICAL IMAGE: Meta, Snapchat — Solo si NO es video */}
+                                    {assets.type !== 'video' && ['meta_ads', 'snapchat_ads'].includes(platform.id) && (
                                         <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
                                             {(assets.images?.vertical?.startsWith('http') || assets.images?.square?.startsWith('http') || (assets.imageUrl?.startsWith('http') && assets.imageUrl !== 'PENDING...')) ? (
                                                 <>
@@ -982,8 +982,8 @@ function PlatformAccordionItem({ platform, data, assets, isFallback }: any) {
                                         </div>
                                     )}
 
-                                    {/* HORIZONTAL IMAGE: Google, X */}
-                                    {['google_ads', 'twitter_x'].includes(platform.id) && (
+                                    {/* HORIZONTAL IMAGE: Google, X — Solo si NO es video */}
+                                    {assets.type !== 'video' && ['google_ads', 'twitter_x'].includes(platform.id) && (
                                         <div className="col-span-2 sm:col-span-1 aspect-video rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
                                             {(assets.images?.horizontal?.startsWith('http') || assets.images?.square?.startsWith('http') || (assets.imageUrl?.startsWith('http') && assets.imageUrl !== 'PENDING...')) ? (
                                                 <>
