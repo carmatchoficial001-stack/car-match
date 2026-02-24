@@ -672,6 +672,48 @@ const downloadAsset = async (url: string, filename: string) => {
     }
 }
 
+// Build fallback platform data from general assets
+function buildFallbackPlatformData(platformId: string, assets: any): any {
+    const caption = assets.caption || assets.videoScript || '¡Descarga CarMatch, la app #1 de compra-venta de autos! 🚗🔥'
+    const title = assets.internal_title || 'CarMatch - Tu Auto Ideal'
+
+    const fallbacks: Record<string, any> = {
+        meta_ads: {
+            primary_text: caption,
+            headline: title,
+            description: 'Encuentra o vende tu auto de forma segura y rápida.',
+            caption: caption
+        },
+        facebook_marketplace: {
+            title: title,
+            description: caption
+        },
+        google_ads: {
+            headlines: [title, 'Compra-Venta de Autos', 'CarMatch México'],
+            descriptions: ['Encuentra tu auto ideal en segundos.', 'La app #1 del mercado automotriz.']
+        },
+        tiktok_ads: {
+            caption: caption,
+            script_notes: assets.videoScript || 'Usa el video vertical generado por IA.'
+        },
+        youtube_shorts: {
+            title: title,
+            description: caption
+        },
+        twitter_x: {
+            tweets: [caption, '¡Únete a CarMatch! 🚗💨 #CarMatch #Autos']
+        },
+        threads: {
+            caption: caption
+        },
+        snapchat_ads: {
+            headline: title,
+            caption: '¡Desliza para tu próximo auto! 🚗'
+        }
+    }
+    return fallbacks[platformId] || { caption }
+}
+
 function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
     if (!isOpen || !assets) return null
 
@@ -703,40 +745,100 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
                 </div>
 
                 {/* SCROLLABLE CONTENT */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
 
-                    {/* PLATFORMS ACCORDION - NOW CONTAINS MEDIA */}
+                    {/* IMAGEN / VIDEO PRINCIPAL */}
+                    {(() => {
+                        const hasVideo = assets.videoUrl && assets.videoUrl.startsWith('http')
+                        const pendingVideo = assets.videoUrl === 'PENDING...' || assets.videoPendingId
+                        const hasImage = assets.imageUrl && assets.imageUrl.startsWith('http') && assets.imageUrl !== 'PENDING...'
+                        const pendingImage = assets.imageUrl === 'PENDING...' || assets.imagePendingIds?.square
+                        if (!hasVideo && !pendingVideo && !hasImage && !pendingImage) return null
+                        return (
+                            <div className="rounded-2xl overflow-hidden border border-white/10 bg-black relative">
+                                <div className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-4 pt-3 pb-2 flex items-center gap-1">
+                                    <ImagePlus className="w-3 h-3" /> Archivo Principal
+                                </div>
+                                {hasVideo ? (
+                                    <div className="relative">
+                                        <video src={assets.videoUrl} controls className="w-full max-h-64 object-contain" />
+                                        <button
+                                            onClick={() => downloadAsset(assets.videoUrl, 'campaña-video.mp4')}
+                                            className="absolute top-2 right-2 flex items-center gap-1 bg-white text-black text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition shadow"
+                                        >
+                                            <Download className="w-3 h-3" /> Video
+                                        </button>
+                                    </div>
+                                ) : pendingVideo ? (
+                                    <div className="flex flex-col items-center justify-center gap-3 py-10 bg-black/40">
+                                        <RefreshCw className="w-8 h-8 text-purple-500 animate-spin" />
+                                        <span className="text-xs font-black uppercase text-purple-400 tracking-widest">Generando Video...</span>
+                                        <span className="text-[10px] text-zinc-600">Esto toma unos minutos</span>
+                                    </div>
+                                ) : hasImage ? (
+                                    <div className="relative group">
+                                        <img src={assets.imageUrl} alt="Imagen de campaña" className="w-full object-contain max-h-72" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                            <button
+                                                onClick={() => downloadAsset(assets.imageUrl, 'campaña-imagen.jpg')}
+                                                className="flex items-center gap-1.5 bg-white text-black text-xs font-bold px-4 py-2 rounded-lg hover:bg-zinc-100 transition"
+                                            >
+                                                <Download className="w-4 h-4" /> Descargar Imagen
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center gap-3 py-10 bg-black/40">
+                                        <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
+                                        <span className="text-xs font-black uppercase text-blue-400 tracking-widest">Generando Imagen...</span>
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    })()}
+
+                    {/* CAPTION / GUIÓN GENERAL */}
+                    {(assets.caption || assets.videoScript) && (
+                        <CopyableBlock
+                            label={assets.videoScript ? 'Guión / Caption General' : 'Caption General'}
+                            content={assets.caption || assets.videoScript}
+                            id="general-caption"
+                            isLong={true}
+                        />
+                    )}
+
+                    {/* PLATAFORMAS */}
+                    <div className="text-[10px] font-black uppercase text-zinc-600 tracking-widest pt-1">📢 Copias para Redes Sociales</div>
                     {
                         PLATFORMS.map(platform => (
                             <PlatformAccordionItem
                                 key={platform.id}
                                 platform={platform}
-                                data={assets.platforms?.[platform.id]}
+                                data={assets.platforms?.[platform.id] || buildFallbackPlatformData(platform.id, assets)}
                                 assets={assets}
+                                isFallback={!assets.platforms?.[platform.id]}
                             />
                         ))
                     }
-                </div >
+                </div>
 
                 {/* FOOTER ACTIONS */}
-                < div className="p-4 border-t border-white/10 bg-zinc-900/50 backdrop-blur-md shrink-0 safe-area-bottom" >
+                <div className="p-4 border-t border-white/10 bg-zinc-900/50 backdrop-blur-md shrink-0 safe-area-bottom">
                     <button
                         onClick={onClose}
                         className="w-full py-3.5 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition shadow-lg shadow-white/5 active:scale-[0.98]"
                     >
                         Listo, Cerrar
                     </button>
-                </div >
-            </motion.div >
-        </div >
+                </div>
+            </motion.div>
+        </div>
     )
 }
 
-function PlatformAccordionItem({ platform, data, assets }: any) {
+function PlatformAccordionItem({ platform, data, assets, isFallback }: any) {
     const [isOpen, setIsOpen] = useState(false)
     const [copiedKey, setCopiedKey] = useState<string | null>(null)
-
-    if (!data) return null // Don't show platforms without data
 
     const handleCopy = (text: string, key: string) => {
         navigator.clipboard.writeText(text)
@@ -755,8 +857,13 @@ function PlatformAccordionItem({ platform, data, assets }: any) {
                         {platform.icon}
                     </div>
                     <div className="text-left">
-                        <h3 className={`font-bold text-sm ${isOpen ? 'text-white' : 'text-zinc-300'}`}>{platform.label}</h3>
-                        {!isOpen && <p className="text-[10px] text-zinc-500">Click para ver contenido</p>}
+                        <div className="flex items-center gap-2">
+                            <h3 className={`font-bold text-sm ${isOpen ? 'text-white' : 'text-zinc-300'}`}>{platform.label}</h3>
+                            {isFallback && (
+                                <span className="text-[9px] font-bold uppercase text-zinc-600 border border-zinc-700 px-1.5 py-0.5 rounded">Genérico</span>
+                            )}
+                        </div>
+                        {!isOpen && <p className="text-[10px] text-zinc-500">Toca para ver el copy</p>}
                     </div>
                 </div>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isOpen ? 'bg-white/10 rotate-180' : 'hover:bg-white/5'}`}>
