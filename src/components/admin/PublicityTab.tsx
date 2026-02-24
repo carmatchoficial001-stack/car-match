@@ -26,7 +26,7 @@ import {
 import {
     generateSocialCaption, generateImagePrompt, generateVideoScript, suggestCampaignFromInventory,
     chatWithPublicityAgent, generateCampaignAssets, checkAIAssetStatus,
-    checkMultiSceneStatus, launchSingleSceneVideoPrediction, saveScenePredictionId
+    checkMultiSceneStatus, launchSingleSceneVideoPrediction, saveScenePredictionId, saveSceneResult
 } from '@/app/admin/actions/ai-content-actions'
 import AIStudio from '@/components/admin/AIStudio'
 import MultiSceneVideoPlayer from '@/components/admin/MultiSceneVideoPlayer'
@@ -119,52 +119,71 @@ export default function PublicityTab() {
                 pending.map(s => ({ sceneId: s.sceneId, predictionId: s.predictionId! }))
             )
             if (res.success && res.scenes) {
+                const campaignId = generatedAssets.campaignId || generatedAssets.id
+
                 setSceneClips(prev => prev.map(clip => {
                     const updated = res.scenes.find((r: any) => r.sceneId === clip.sceneId)
-                    return updated ? { ...clip, status: updated.status, url: updated.url } : clip
+                    if (updated) {
+                        // PERSISTENCIA: Si pasó a succeeded, guardamos la URL en la BD
+                        if (updated.status === 'succeeded' && updated.url && clip.status !== 'succeeded') {
+                            if (campaignId && campaignId.length > 5) {
+                                saveSceneResult(campaignId, clip.sceneId, updated.url)
+                            }
+                        }
+                        return { ...clip, status: updated.status, url: updated.url }
+                    }
+                    return clip
                 }))
             }
         }, 5000)
         return () => clearInterval(interval)
     }, [sceneClips.length, sceneClips.filter(s => s.status).join(',')]) // Trigger more precisely
 
-    // Motor de lanzamiento "uno por uno" desde el frontend
+    // Motor de lanzamiento "ESTRICTAMENTE SECUENCIAL" desde el frontend
     useEffect(() => {
-        const toLaunch = sceneClips.find(s => !s.predictionId && s.status === 'pending')
-        if (!toLaunch || !generatedAssets?.master_style) return
+        // Encontrar el primer clip que no tiene predictionId
+        const nextSceneIndex = sceneClips.findIndex(s => !s.predictionId && s.status === 'pending')
+        if (nextSceneIndex === -1 || !generatedAssets?.master_style) return
+
+        const toLaunch = sceneClips[nextSceneIndex]
+
+        // REGLA DE ORO DEL USUARIO: "primero que fabrique uno ya fabricado empieza con el siguiente"
+        // Solo lanzamos la escena N si todas las escenas antes de N son 'succeeded'
+        const previousAreReady = nextSceneIndex === 0 || sceneClips.slice(0, nextSceneIndex).every(s => s.status === 'succeeded')
+
+        if (!previousAreReady) return
+
+        // Evitar que otro efecto de lanzamiento corra al mismo tiempo
+        const isAlreadyStarting = sceneClips.some(s => s.status === 'starting')
+        if (isAlreadyStarting) return
 
         const launchNext = async () => {
-            console.log(`[FRONTEND-LAUNCH] Iniciando escena ${toLaunch.sceneId}...`)
+            console.log(`[STRICT-LAUNCH] Escena anterior lista (o es la primera). Lanzando escena ${toLaunch.sceneId}...`)
 
             // Marcar como 'starting' localmente
             setSceneClips(prev => prev.map(s => s.sceneId === toLaunch.sceneId ? { ...s, status: 'starting' } : s))
 
+            const campaignId = generatedAssets.campaignId || generatedAssets.id
             const res = await launchSingleSceneVideoPrediction({
                 id: toLaunch.sceneId,
                 visual_prompt: (generatedAssets.scenes?.find((s: any) => (s.id || s.sceneId) === toLaunch.sceneId)?.visual_prompt) || ''
-            }, generatedAssets.master_style)
+            }, generatedAssets.master_style, campaignId)
 
             if (res.success && res.predictionId) {
-                console.log(`[FRONTEND-LAUNCH] Escena ${toLaunch.sceneId} lanzada: ${res.predictionId}`)
+                console.log(`[STRICT-LAUNCH] Escena ${toLaunch.sceneId} lanzada correctamente ID: ${res.predictionId}`)
 
-                // Actualizar estado local
+                // Actualizar estado local a processing (ya se guardó en la DB por la acción atómica)
                 setSceneClips(prev => prev.map(s => s.sceneId === toLaunch.sceneId
                     ? { ...s, predictionId: res.predictionId!, status: 'processing' }
                     : s
                 ))
-
-                // PERSISTENCIA: Guardar en la BD si tenemos el ID de campaña
-                const campaignId = generatedAssets.campaignId || generatedAssets.id
-                if (campaignId && campaignId.length > 5) {
-                    await saveScenePredictionId(campaignId, toLaunch.sceneId, res.predictionId!)
-                }
             } else {
+                console.error(`[STRICT-LAUNCH] Fallo al lanzar escena ${toLaunch.sceneId}:`, res.error)
                 setSceneClips(prev => prev.map(s => s.sceneId === toLaunch.sceneId ? { ...s, status: 'error' } : s))
             }
         }
 
-        // Delay de 3s antes de lanzar para asegurar que Replicate no se sature
-        const timer = setTimeout(launchNext, 3000)
+        const timer = setTimeout(launchNext, 2000) // Pequeño buffer de 2s antes de lanzar
         return () => clearTimeout(timer)
     }, [sceneClips, generatedAssets])
 
@@ -366,7 +385,13 @@ export default function PublicityTab() {
         }
     }
 
-    // Campaign Edit Chat Functions
+    const handleRetryScene = (sceneId: number) => {
+        setSceneClips(prev => prev.map(s =>
+            s.sceneId === sceneId
+                ? { ...s, status: 'pending', predictionId: null, url: null }
+                : s
+        ))
+    }
     const handleOpenEditChat = (campaign: PublicityCampaign) => {
         setEditingCampaign(campaign)
         setChatMessages([{
@@ -851,7 +876,10 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = 
 
                     {/* MULTI-SCENE VIDEO PLAYER */}
                     {sceneClips.length > 0 && (
-                        <MultiSceneVideoPlayer scenes={sceneClips} />
+                        <MultiSceneVideoPlayer
+                            scenes={sceneClips}
+                            onRetryScene={handleRetryScene}
+                        />
                     )}
 
                     {/* IMAGEN / VIDEO PRINCIPAL (single-clip) */}

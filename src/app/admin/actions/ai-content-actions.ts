@@ -960,12 +960,19 @@ export async function launchMultiSceneVideoPredictions(
  */
 export async function launchSingleSceneVideoPrediction(
     scene: { id: number; visual_prompt: string },
-    masterStyle: string
+    masterStyle: string,
+    campaignId?: string // Opcional para persistencia inmediata
 ) {
     try {
         const { createVideoPrediction } = await import('@/lib/ai/replicate-client');
         const fullPrompt = `${masterStyle}. Scene ${scene.id}: ${scene.visual_prompt}`;
         const predictionId = await createVideoPrediction(fullPrompt, '9:16');
+
+        // PERSISTENCIA ATÓMICA: Si tenemos campaignId, guardamos de una vez
+        if (campaignId && campaignId.length > 5 && predictionId) {
+            await saveScenePredictionId(campaignId, scene.id, predictionId);
+        }
+
         return { success: true, sceneId: scene.id, predictionId };
     } catch (e: any) {
         console.error(`[SINGLE-SCENE] Error en escena ${scene.id}:`, e);
@@ -1037,6 +1044,37 @@ export async function checkMultiSceneStatus(
     }
 }
 
+/**
+ * Guarda la URL final de una escena cuando ya está lista (succeeded).
+ */
+export async function saveSceneResult(campaignId: string, sceneId: number, url: string) {
+    try {
+        const campaign = await prisma.publicityCampaign.findUnique({ where: { id: campaignId } });
+        if (!campaign) return { success: false, error: 'Campaña no encontrada' };
+
+        const metadata = (campaign.metadata as any) || {};
+        const assets = metadata.assets || {};
+
+        if (!assets.scenes) assets.scenes = [];
+
+        const sceneIdx = assets.scenes.findIndex((s: any) => (s.sceneId || s.id) === sceneId);
+        if (sceneIdx > -1) {
+            assets.scenes[sceneIdx].url = url;
+            assets.scenes[sceneIdx].status = 'succeeded';
+        } else {
+            assets.scenes.push({ sceneId, url, status: 'succeeded' });
+        }
+
+        await prisma.publicityCampaign.update({
+            where: { id: campaignId },
+            data: { metadata: { ...metadata, assets } }
+        });
+
+        return { success: true };
+    } catch (e: any) {
+        return { success: false, error: e.message };
+    }
+}
 
 // Backward Compatibility
 export async function generateCampaignAssets(chatHistory: any[], targetCountry: string = 'MX') {

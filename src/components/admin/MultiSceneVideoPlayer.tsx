@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import { motion } from 'framer-motion'
-import { CheckCircle2, Clock, AlertCircle, Film, Download, Zap, Loader2 } from 'lucide-react'
+import { CheckCircle2, Clock, AlertCircle, Film, Download, Zap, Loader2, RefreshCw } from 'lucide-react'
 import { useVideoStitcher } from '@/hooks/useVideoStitcher'
 
 interface SceneClip {
@@ -14,6 +14,7 @@ interface SceneClip {
 
 interface Props {
     scenes: SceneClip[]
+    onRetryScene?: (sceneId: number) => void
 }
 
 function SceneStatusIcon({ status }: { status: string }) {
@@ -95,10 +96,20 @@ export default function MultiSceneVideoPlayer({ scenes }: Props) {
                         `}
                     >
                         <SceneStatusIcon status={scene.status} />
-                        <div className="min-w-0">
-                            <div className="text-white font-semibold truncate">Escena {scene.sceneId}</div>
+                        <div className="flex-1 min-w-0">
+                            <div className="text-white font-semibold truncate leading-tight">Escena {scene.sceneId}</div>
                             <SceneStatusLabel status={scene.status} />
                         </div>
+
+                        {(scene.status === 'error' || scene.status === 'failed') && onRetryScene && (
+                            <button
+                                onClick={() => onRetryScene(scene.sceneId)}
+                                className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-400 transition-colors"
+                                title="Reintentar escena"
+                            >
+                                <RefreshCw className="w-3.5 h-3.5" />
+                            </button>
+                        )}
                     </div>
                 ))}
             </div>
