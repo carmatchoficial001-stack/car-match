@@ -469,10 +469,17 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
                         "mensaje": "Mensaje de difusión para WhatsApp/Status. Informal, amigable, con emoji al inicio. Max 3 líneas. Incluye link carmatch.app."
                     },
                     "linkedin": {
-                        "post": "Post profesional para LinkedIn. Tono de industria automotriz/tech. 2-3 párrafos. Reflexión + CTA. Máximo 600 chars."
+                        "post": "Post profesional para LinkedIn. Tono industria automotriz/tech. 2-3 párrafos. Reflexión + CTA. Máximo 600 chars."
+                    },
+                    "pinterest": {
+                        "description": "Descripción para PIN de Pinterest. Inspiracional, visual. Max 200 chars. Incluye keywords automotrices y #CarMatch. Termina con link carmatch.app."
+                    },
+                    "google_ads": {
+                        "headline": "Headline Google Display (max 30 chars). Claro y directo.",
+                        "description": "Descripción Google Ads (max 90 chars). Beneficio principal + CTA."
                     },
                     "threads": {
-                        "post": "Post para Threads/Meta. Similar a Twitter pero puede tener hasta 500 chars. Conversacional."
+                        "post": "Post para Threads/Meta. Hasta 500 chars. Conversacional."
                     }
                 }
             }
@@ -572,11 +579,22 @@ export async function generateVideoStrategy(chatHistory: any[], targetCountry: s
                 "viral_angle": "En 1 línea: ángulo viral elegido y POR QUÉ funciona en el algoritmo",
                 "hook_3s": "TEXTO EXACTO de los primeros 1-2 segundos en pantalla/voz. Pattern interrupt aplicado. Corto, impactante.",
                 "hook_3s_visual": "Descripción de lo que se VE en esos primeros 3 segundos (ángulo de cámara, acción, elemento visual de impacto)",
-                "videoScript": "Guión COMPLETO en ESPAÑOL con timing. Duración objetivo: 45-60 segundos. Estructura:\\n[00:00-00:03] HOOK\\n[00:03-00:10] DESARROLLO...\\nTexto en pantalla en MAYÚSCULAS entre [CORCHETES]. 🎵 Sugerencia de audio al final.",
+                "videoScript": "Guión COMPLETO en ESPAÑOL con timing. Duración objetivo: 30-60 segundos, MÁXIMO 90 segundos. Estructura:\\n[00:00-00:03] HOOK\\n[00:03-00:10] DESARROLLO...\\nTexto en pantalla en MAYÚSCULAS entre [CORCHETES]. 🎵 Sugerencia de audio al final.",
                 "monetization_cta": "Texto exacto del CTA al final que lleva a carmatch.app SIN sonar a anuncio. Natural y convincente.",
                 "videoPrompt_vertical": "Prompt TÉCNICO en INGLÉS para IA de video (Minimax/Veo), formato VERTICAL 9:16, duración 45-60s. Incluye: hook visual inicial, 3-4 escenas con transiciones, iluminación, movimiento de cámara, energía alta. NO estático.",
                 "videoPrompt_horizontal": "Mismo concepto en HORIZONTAL 16:9, duración 3-5 minutos. Perspectiva cinematográfica, más escenas, ritmo narrativo.",
                 "recommended_format": "vertical",
+                "master_style": "Descriptor de estilo en INGLÉS compartido por TODAS las escenas (paleta de colores, iluminación, mood, tipo de cámara). Ej: 'Cinematic dark background, neon purple accents, smooth camera motion, high energy car commercial style'",
+                "target_duration_seconds": 60,
+                "scenes": [
+                    {
+                        "id": 1,
+                        "duration_seconds": 8,
+                        "visual_prompt": "PROMPT EN INGLÉS para este clip específico (6-10s). Comienza con: [MASTER_STYLE]. Describe la acción visual específica de esta escena.",
+                        "screen_text": "TEXTO EN PANTALLA para esta escena. Mayúsculas, impactante.",
+                        "voiceover": "Lo que se dice en voz en esta escena"
+                    }
+                ],
                 "platforms": {
                     "tiktok": {
                         "format": "Vertical 9:16",
@@ -605,11 +623,15 @@ export async function generateVideoStrategy(chatHistory: any[], targetCountry: s
                         "duration": "15s–60s (óptimo 15-30s para audiencia joven)",
                         "caption": "Caption Snapchat Spotlight LISTO PARA PEGAR. ULTRA casual, audiencia 13-25. Máx 100 chars. Slang ${country.slang}. 1-2 hashtags máx."
                     },
-                    "youtube_largo": {
-                        "format": "Horizontal 16:9",
-                        "duration": "3min–10min (8min+ activa mid-roll ads y monetización completa)",
-                        "titulo": "Título YouTube Long-form LISTO PARA PEGAR. Max 100 chars. Keyword principal + año. Ej: 'Los 5 mejores carros usados bajo $100k en México 2025 (CarMatch App)'",
-                        "descripcion": "Descripción YouTube completa LISTA PARA PEGAR. 5-8 líneas: intro del canal, keywords automotrices, timestamps, links carmatch.app + redes sociales, #CarMatch #Autos. Optimizada para SEO."
+                    "kwai": {
+                        "format": "Vertical 9:16",
+                        "duration": "15s–90s (viral en LATAM, audiencia MX/BR/CO)",
+                        "caption": "Caption Kwai LISTO PARA PEGAR. Viral, dinámico, lenguaje coloquial LATAM. Max 150 chars. 3-5 hashtags: #CarMatch #Autos + trending Kwai. Termina con pregunta o reacción."
+                    },
+                    "twitter_x": {
+                        "format": "Horizontal o Vertical",
+                        "duration": "15s–140s (max 2:20 en X)",
+                        "caption": "Tweet con video LISTO PARA PEGAR. Max 260 chars. Impactante, provoca retweet o reply. Máx 2 hashtags. Termina con pregunta o dato sorpresa."
                     }
                 }
             }
@@ -890,6 +912,73 @@ export async function launchVideoOnlyPrediction(strategy: any) {
             success: false,
             error: `Fallo al iniciar generación de video: ${e.message || 'Error desconocido'}`
         };
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// MULTI-SCENE VIDEO SYSTEM
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Lanza N predicciones de video en paralelo (una por escena).
+ * Cada escena hereda el master_style para coherencia visual.
+ */
+export async function launchMultiSceneVideoPredictions(
+    scenes: { id: number; visual_prompt: string; duration_seconds: number }[],
+    masterStyle: string
+) {
+    try {
+        const { createVideoPrediction } = await import('@/lib/ai/replicate-client');
+
+        const results = await Promise.all(
+            scenes.map(async (scene) => {
+                const fullPrompt = `${masterStyle}. Scene ${scene.id}: ${scene.visual_prompt}`;
+                try {
+                    const predictionId = await createVideoPrediction(fullPrompt, '9:16');
+                    return { sceneId: scene.id, predictionId, status: 'pending', url: null };
+                } catch (e: any) {
+                    console.error(`[MULTI-SCENE] Error en escena ${scene.id}:`, e);
+                    return { sceneId: scene.id, predictionId: null, status: 'error', url: null };
+                }
+            })
+        );
+
+        return { success: true, scenes: results };
+    } catch (e: any) {
+        console.error('[MULTI-SCENE] Fallo al lanzar predicciones:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+/**
+ * Verifica el estado de todos los clips de una vez.
+ * Retorna array con status + url de cada escena.
+ */
+export async function checkMultiSceneStatus(
+    scenes: { sceneId: number; predictionId: string }[]
+) {
+    try {
+        const { default: Replicate } = await import('replicate');
+        const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
+
+        const results = await Promise.all(
+            scenes.map(async (scene) => {
+                if (!scene.predictionId) return { ...scene, status: 'error', url: null };
+                try {
+                    const prediction = await replicate.predictions.get(scene.predictionId);
+                    const url = prediction.status === 'succeeded'
+                        ? (Array.isArray(prediction.output) ? prediction.output[0] : prediction.output) as string | null
+                        : null;
+                    return { ...scene, status: prediction.status, url };
+                } catch {
+                    return { ...scene, status: 'error', url: null };
+                }
+            })
+        );
+
+        return { success: true, scenes: results };
+    } catch (e: any) {
+        return { success: false, error: e.message };
     }
 }
 

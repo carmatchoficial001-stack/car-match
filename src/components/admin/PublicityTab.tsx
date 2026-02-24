@@ -25,9 +25,11 @@ import {
 } from '@/app/admin/actions/publicity-actions'
 import {
     generateSocialCaption, generateImagePrompt, generateVideoScript, suggestCampaignFromInventory,
-    chatWithPublicityAgent, generateCampaignAssets, checkAIAssetStatus
+    chatWithPublicityAgent, generateCampaignAssets, checkAIAssetStatus,
+    checkMultiSceneStatus
 } from '@/app/admin/actions/ai-content-actions'
 import AIStudio from '@/components/admin/AIStudio'
+import MultiSceneVideoPlayer from '@/components/admin/MultiSceneVideoPlayer'
 
 // Helper for MX Date
 const formatDateMX = (date: Date | string) => {
@@ -78,6 +80,9 @@ export default function PublicityTab() {
     const [generatedAssets, setGeneratedAssets] = useState<any>(null)
     const [showAssetsModal, setShowAssetsModal] = useState(false)
 
+    // Multi-scene video state
+    const [sceneClips, setSceneClips] = useState<{ sceneId: number; predictionId: string | null; status: string; url: string | null }[]>([])
+
     // Campaign Edit Chat State
     const [showEditChat, setShowEditChat] = useState(false)
     const [editingCampaign, setEditingCampaign] = useState<PublicityCampaign | null>(null)
@@ -89,12 +94,39 @@ export default function PublicityTab() {
         const handleOpenAssets = (e: any) => {
             setGeneratedAssets(e.detail)
             setShowAssetsModal(true)
-            // Automatically switch to CAMPAIGNS view so user sees where the campaign will be saved
             setViewMode('CAMPAIGNS')
+            // Si es multi-escena, inicializar sceneClips
+            if (e.detail?.scenes && Array.isArray(e.detail.scenes)) {
+                setSceneClips(e.detail.scenes.map((s: any) => ({
+                    sceneId: s.sceneId ?? s.id,
+                    predictionId: s.predictionId,
+                    status: s.status || 'pending',
+                    url: s.url || null
+                })))
+            }
         }
         window.addEventListener('open-campaign-assets', handleOpenAssets)
         return () => window.removeEventListener('open-campaign-assets', handleOpenAssets)
     }, [])
+
+    // Polling multi-escena: revisa clip por clip hasta que todos estén listos
+    useEffect(() => {
+        const pending = sceneClips.filter(s => s.predictionId && s.status !== 'succeeded' && s.status !== 'failed' && s.status !== 'error')
+        if (pending.length === 0) return
+
+        const interval = setInterval(async () => {
+            const res = await checkMultiSceneStatus(
+                pending.map(s => ({ sceneId: s.sceneId, predictionId: s.predictionId! }))
+            )
+            if (res.success && res.scenes) {
+                setSceneClips(prev => prev.map(clip => {
+                    const updated = res.scenes.find((r: any) => r.sceneId === clip.sceneId)
+                    return updated ? { ...clip, status: updated.status, url: updated.url } : clip
+                }))
+            }
+        }, 5000)
+        return () => clearInterval(interval)
+    }, [sceneClips])
 
     // Listen for campaign created event from AI Studio
     useEffect(() => {
@@ -551,6 +583,7 @@ export default function PublicityTab() {
                 isOpen={showAssetsModal}
                 onClose={() => setShowAssetsModal(false)}
                 assets={generatedAssets}
+                sceneClips={sceneClips}
                 onSuccess={() => {
                     fetchCampaigns()
                     setShowAssetsModal(false)
@@ -647,13 +680,17 @@ export default function PublicityTab() {
 
 const PLATFORMS = [
     { id: 'meta_ads', label: 'Meta Ads (FB/IG)', icon: <img src="https://cdn-icons-png.flaticon.com/512/6033/6033716.png" className="w-5 h-5 invert" />, color: 'bg-blue-600' },
+    { id: 'facebook_reels', label: 'Facebook Reels', icon: <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" className="w-5 h-5 invert" />, color: 'bg-blue-700' },
     { id: 'facebook_marketplace', label: 'Marketplace', icon: <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" className="w-5 h-5 invert" />, color: 'bg-blue-700' },
     { id: 'google_ads', label: 'Google Ads', icon: <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" className="w-5 h-5 invert" />, color: 'bg-green-600' },
-    { id: 'tiktok_ads', label: 'TikTok Ads', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" className="w-5 h-5 invert" />, color: 'bg-black' },
+    { id: 'tiktok_ads', label: 'TikTok', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" className="w-5 h-5 invert" />, color: 'bg-black' },
+    { id: 'kwai', label: 'Kwai', icon: <img src="https://cdn-icons-png.flaticon.com/512/6978/6978255.png" className="w-5 h-5 invert" />, color: 'bg-orange-500' },
     { id: 'youtube_shorts', label: 'YouTube Shorts', icon: <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" className="w-5 h-5 invert" />, color: 'bg-red-600' },
     { id: 'twitter_x', label: 'X (Twitter)', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" className="w-5 h-5 invert" />, color: 'bg-slate-800' },
     { id: 'threads', label: 'Threads', icon: <span className="font-bold text-lg select-none leading-none">@</span>, color: 'bg-black' },
     { id: 'snapchat_ads', label: 'Snapchat', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670166.png" className="w-5 h-5 invert" />, color: 'bg-yellow-400 text-black' },
+    { id: 'pinterest', label: 'Pinterest', icon: <img src="https://cdn-icons-png.flaticon.com/512/174/174863.png" className="w-5 h-5 invert" />, color: 'bg-red-600' },
+    { id: 'linkedin', label: 'LinkedIn', icon: <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" className="w-5 h-5 invert" />, color: 'bg-blue-700' },
 ]
 
 // Helper for downloading assets (Standalone)
@@ -709,12 +746,24 @@ function buildFallbackPlatformData(platformId: string, assets: any): any {
         snapchat_ads: {
             headline: title,
             caption: '¡Desliza para tu próximo auto! 🚗'
+        },
+        kwai: {
+            caption: `${caption} 🔥 #CarMatch #Autos #Kwai`
+        },
+        facebook_reels: {
+            caption: `${caption} 🚗 Comenta y comparte! #CarMatch #FacebookReels`
+        },
+        pinterest: {
+            description: `${title} — ${caption} Descúbrelo en carmatch.app 📌`
+        },
+        linkedin: {
+            post: `CarMatch está revolucionando el mercado automotriz en LATAM. ${caption}\n\nDescúbrelo en carmatch.app #CarMatch #AutosLatam`
         }
     }
     return fallbacks[platformId] || { caption }
 }
 
-function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
+function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = [] }: any) {
     if (!isOpen || !assets) return null
 
     // Determine title
@@ -747,8 +796,13 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
                 {/* SCROLLABLE CONTENT */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
 
-                    {/* IMAGEN / VIDEO PRINCIPAL */}
-                    {(() => {
+                    {/* MULTI-SCENE VIDEO PLAYER */}
+                    {sceneClips.length > 0 && (
+                        <MultiSceneVideoPlayer scenes={sceneClips} />
+                    )}
+
+                    {/* IMAGEN / VIDEO PRINCIPAL (single-clip) */}
+                    {sceneClips.length === 0 && (() => {
                         const hasVideo = assets.videoUrl && assets.videoUrl.startsWith('http')
                         const pendingVideo = assets.videoUrl === 'PENDING...' || assets.videoPendingId
                         const hasImage = assets.imageUrl && assets.imageUrl.startsWith('http') && assets.imageUrl !== 'PENDING...'
@@ -810,15 +864,28 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess }: any) {
                     {/* PLATAFORMAS */}
                     <div className="text-[10px] font-black uppercase text-zinc-600 tracking-widest pt-1">📢 Copias para Redes Sociales</div>
                     {
-                        PLATFORMS.map(platform => (
-                            <PlatformAccordionItem
-                                key={platform.id}
-                                platform={platform}
-                                data={assets.platforms?.[platform.id] || buildFallbackPlatformData(platform.id, assets)}
-                                assets={assets}
-                                isFallback={!assets.platforms?.[platform.id]}
-                            />
-                        ))
+                        (() => {
+                            // 🎬 VIDEO: plataformas con soporte de video corto (15-90s)
+                            const VIDEO_PLATFORMS = ['meta_ads', 'facebook_reels', 'tiktok_ads', 'kwai', 'youtube_shorts', 'snapchat_ads', 'twitter_x']
+                            // 🖼️ IMAGEN: plataformas con soporte de imagen estática o carrusel
+                            const IMAGE_PLATFORMS = ['meta_ads', 'facebook_marketplace', 'google_ads', 'twitter_x', 'threads', 'snapchat_ads', 'pinterest', 'linkedin']
+
+                            const filteredPlatforms = assets.type === 'video'
+                                ? PLATFORMS.filter(p => VIDEO_PLATFORMS.includes(p.id))
+                                : assets.type === 'image'
+                                    ? PLATFORMS.filter(p => IMAGE_PLATFORMS.includes(p.id))
+                                    : PLATFORMS
+
+                            return filteredPlatforms.map(platform => (
+                                <PlatformAccordionItem
+                                    key={platform.id}
+                                    platform={platform}
+                                    data={assets.platforms?.[platform.id] || buildFallbackPlatformData(platform.id, assets)}
+                                    assets={assets}
+                                    isFallback={!assets.platforms?.[platform.id]}
+                                />
+                            ))
+                        })()
                     }
                 </div>
 

@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@fingerprintjs/fingerprintjs": "^5.0.1",
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^6.1.0",

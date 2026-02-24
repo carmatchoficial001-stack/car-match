@@ -541,35 +541,45 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                 // 1️⃣ Mensaje en chat: confirmación instantánea
                 setMessages(prev => [...prev, {
                     id: thinkingId, role: 'assistant',
-                    content: `🎬 Iniciando producción del video en segundo plano...\n\n📁 **Ve a Campañas** para ver el guión, copies y el video cuando esté listo (3-5 min).`
+                    content: `🎬 Analizando tu idea y generando el guión con escenas...`
                 }])
                 setPrompt('')
 
-                // 2️⃣ Generar estrategia (títulos, guión, copies) + lanzar predicción en Replicate
-                const { generateVideoStrategy, launchVideoOnlyPrediction } = await import('@/app/admin/actions/ai-content-actions')
+                // 2️⃣ Generar estrategia multi-escena (guión + scenes[] + copies)
+                const { generateVideoStrategy, launchMultiSceneVideoPredictions } = await import('@/app/admin/actions/ai-content-actions')
                 const strat = await generateVideoStrategy(messages.slice(-10), 'MX')
                 if (!strat.success) throw new Error(strat.error || 'Error en estrategia')
 
-                const prediction = await launchVideoOnlyPrediction(strat.strategy)
-                const assets = (prediction as any).assets || {}
+                const strategy = strat.strategy
+                const scenes: { id: number; visual_prompt: string; duration_seconds: number }[] =
+                    strategy.scenes || [{ id: 1, visual_prompt: strategy.videoPrompt_vertical || strategy.videoPrompt || '', duration_seconds: 8 }]
+                const masterStyle: string = strategy.master_style || 'Cinematic car commercial, dark background, neon purple accents, smooth camera motion, high energy'
 
-                // 3️⃣ Despachar evento → PublicityTab muestra la estrategia de inmediato
-                //    y sigue en polling para el video
+                // Actualizar mensaje: guión listo, lanzando clips
+                setMessages(prev => prev.map(m => m.id === thinkingId
+                    ? { ...m, content: `✅ Guión listo — ${scenes.length} escena${scenes.length > 1 ? 's' : ''} (~${scenes.reduce((a, s) => a + (s.duration_seconds || 8), 0)}s)\n\n🎬 Lanzando ${scenes.length} clips en paralelo... Ve a **Campañas** para ver el progreso.` }
+                    : m
+                ))
+
+                // 3️⃣ Lanzar todas las predicciones de video en paralelo
+                const multiRes = await launchMultiSceneVideoPredictions(scenes, masterStyle)
+                const launchedScenes = multiRes.success ? multiRes.scenes : scenes.map(s => ({ sceneId: s.id, predictionId: null, status: 'error', url: null }))
+
+                // 4️⃣ Despachar evento → PublicityTab inicializa el MultiSceneVideoPlayer
                 window.dispatchEvent(new CustomEvent('open-campaign-assets', {
                     detail: {
-                        strategy: strat.strategy,
-                        videoPendingId: assets.videoPendingId || null,
-                        videoUrl: null,
+                        ...strategy,
                         type: 'video',
+                        scenes: launchedScenes,
                     }
                 }))
 
-                // 4️⃣ Cambiar al tab de Campañas automáticamente
+                // 5️⃣ Cambiar al tab de Campañas automáticamente
                 window.dispatchEvent(new CustomEvent('switch-admin-tab', { detail: { tab: 'publicity' } }))
 
-                // Actualizar mensaje del chat
+                // Actualizar mensaje final
                 setMessages(prev => prev.map(m => m.id === thinkingId
-                    ? { ...m, content: `✅ Video en producción — guión y copies listos en **Campañas** 📁\n\nEl video tardará 3-5 min en generarse. Puedes revisarlo directamente en el panel de Campañas.` }
+                    ? { ...m, content: `🚀 ${scenes.length} clips lanzados en paralelo — ~${scenes.reduce((a, s) => a + (s.duration_seconds || 8), 0)}s de video\n\n📁 Ve a **Campañas** para ver el progreso de cada escena. Cuando todos terminen podrás ensamblar y descargar el video final.` }
                     : m
                 ))
             }
