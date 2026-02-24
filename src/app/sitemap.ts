@@ -3,6 +3,9 @@
 // DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER INSTRUCTION.
 
 import { MetadataRoute } from 'next'
+
+// ⚡ Forzar generación dinámica (runtime) para que Prisma no se ejecute en build time
+export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/db'
 import { generateVehicleSlug, generateBusinessSlug } from '@/lib/slug'
 
