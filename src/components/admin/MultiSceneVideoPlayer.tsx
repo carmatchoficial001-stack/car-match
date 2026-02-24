@@ -32,7 +32,7 @@ function SceneStatusLabel({ status }: { status: string }) {
     return <span className="text-zinc-500">En cola...</span>
 }
 
-export default function MultiSceneVideoPlayer({ scenes }: Props) {
+export default function MultiSceneVideoPlayer({ scenes, onRetryScene }: Props) {
     const downloadRef = useRef<HTMLAnchorElement>(null)
     const { status, progress, finalVideoUrl, error, stitch, reset } = useVideoStitcher()
 
