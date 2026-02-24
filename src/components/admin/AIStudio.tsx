@@ -541,45 +541,50 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                 // 1️⃣ Mensaje en chat: confirmación instantánea
                 setMessages(prev => [...prev, {
                     id: thinkingId, role: 'assistant',
-                    content: `🎬 Analizando tu idea y generando el guión con escenas...`
+                    content: `🎬 Analizando tu idea y preparando la producción...`
                 }])
                 setPrompt('')
 
                 // 2️⃣ Generar estrategia multi-escena (guión + scenes[] + copies)
-                const { generateVideoStrategy, launchMultiSceneVideoPredictions } = await import('@/app/admin/actions/ai-content-actions')
+                const { generateVideoStrategy } = await import('@/app/admin/actions/ai-content-actions')
+                const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
+
                 const strat = await generateVideoStrategy(messages.slice(-10), 'MX')
                 if (!strat.success) throw new Error(strat.error || 'Error en estrategia')
 
                 const strategy = strat.strategy
-                const scenes: { id: number; visual_prompt: string; duration_seconds: number }[] =
-                    strategy.scenes || [{ id: 1, visual_prompt: strategy.videoPrompt_vertical || strategy.videoPrompt || '', duration_seconds: 8 }]
-                const masterStyle: string = strategy.master_style || 'Cinematic car commercial, dark background, neon purple accents, smooth camera motion, high energy'
+                const scenesCount = strategy.scenes?.length || 0
+                const duration = strategy.scenes?.reduce((a: number, s: any) => a + (s.duration_seconds || 8), 0) || 0
 
-                // Actualizar mensaje: guión listo, lanzando clips
+                // 3️⃣ GUARDADO AUTOMÁTICO: Crear la campaña en la BD de inmediato
+                const saveRes = await createCampaignFromAssets(strategy)
+                const campaignId = saveRes.success ? (saveRes as any).campaign?.id : null
+
+                // Refrescar lista de campañas en el fondo
+                window.dispatchEvent(new CustomEvent('campaign-created', { detail: saveRes }))
+
+                // Actualizar mensaje: campaña creada, listo para producir
                 setMessages(prev => prev.map(m => m.id === thinkingId
-                    ? { ...m, content: `✅ Guión listo — ${scenes.length} escena${scenes.length > 1 ? 's' : ''} (~${scenes.reduce((a, s) => a + (s.duration_seconds || 8), 0)}s)\n\n🎬 Lanzando ${scenes.length} clips en paralelo... Ve a **Campañas** para ver el progreso.` }
+                    ? { ...m, content: `✅ Guión y copies listos — ${scenesCount} escenas (~${duration}s)\n\n🚀 Guardado en **Campañas**. Iniciando producción de escenas una por una...` }
                     : m
                 ))
 
-                // 3️⃣ Lanzar todas las predicciones de video en paralelo
-                const multiRes = await launchMultiSceneVideoPredictions(scenes, masterStyle)
-                const launchedScenes = multiRes.success ? multiRes.scenes : scenes.map(s => ({ sceneId: s.id, predictionId: null, status: 'error', url: null }))
-
-                // 4️⃣ Despachar evento → PublicityTab inicializa el MultiSceneVideoPlayer
+                // 4️⃣ Despachar evento → PublicityTab recibirá el campaignId y lanzará las escenas
                 window.dispatchEvent(new CustomEvent('open-campaign-assets', {
                     detail: {
                         ...strategy,
+                        campaignId,
                         type: 'video',
-                        scenes: launchedScenes,
+                        scenes: strategy.scenes.map((s: any) => ({ ...s, sceneId: s.id, predictionId: null, status: 'pending' })),
                     }
                 }))
 
                 // 5️⃣ Cambiar al tab de Campañas automáticamente
                 window.dispatchEvent(new CustomEvent('switch-admin-tab', { detail: { tab: 'publicity' } }))
 
-                // Actualizar mensaje final
+                // Mensaje final
                 setMessages(prev => prev.map(m => m.id === thinkingId
-                    ? { ...m, content: `🚀 ${scenes.length} clips lanzados en paralelo — ~${scenes.reduce((a, s) => a + (s.duration_seconds || 8), 0)}s de video\n\n📁 Ve a **Campañas** para ver el progreso de cada escena. Cuando todos terminen podrás ensamblar y descargar el video final.` }
+                    ? { ...m, content: `✨ Producción iniciada. He creado una nueva campaña en el panel de **Campañas** 📁\n\nLos clips se generarán uno por uno para asegurar la mejor calidad. Vuelve ahí para ver el progreso.` }
                     : m
                 ))
             }

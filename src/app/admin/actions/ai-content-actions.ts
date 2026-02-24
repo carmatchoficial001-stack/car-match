@@ -930,22 +930,77 @@ export async function launchMultiSceneVideoPredictions(
     try {
         const { createVideoPrediction } = await import('@/lib/ai/replicate-client');
 
-        const results = await Promise.all(
-            scenes.map(async (scene) => {
-                const fullPrompt = `${masterStyle}. Scene ${scene.id}: ${scene.visual_prompt}`;
-                try {
-                    const predictionId = await createVideoPrediction(fullPrompt, '9:16');
-                    return { sceneId: scene.id, predictionId, status: 'pending', url: null };
-                } catch (e: any) {
-                    console.error(`[MULTI-SCENE] Error en escena ${scene.id}:`, e);
-                    return { sceneId: scene.id, predictionId: null, status: 'error', url: null };
-                }
-            })
-        );
+        const results = [];
+
+        for (const scene of scenes) {
+            const fullPrompt = `${masterStyle}. Scene ${scene.id}: ${scene.visual_prompt}`;
+            try {
+                const predictionId = await createVideoPrediction(fullPrompt, '9:16');
+                results.push({ sceneId: scene.id, predictionId, status: 'pending', url: null });
+            } catch (e: any) {
+                console.error(`[MULTI-SCENE] Error en escena ${scene.id}:`, e);
+                results.push({ sceneId: scene.id, predictionId: null, status: 'error', url: null });
+            }
+            // ⏱️ Delay de 2s entre predicciones para evitar rate limiting de Replicate
+            if (scene.id < scenes[scenes.length - 1].id) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        }
 
         return { success: true, scenes: results };
     } catch (e: any) {
         console.error('[MULTI-SCENE] Fallo al lanzar predicciones:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+/**
+ * Lanza una única predicción para una escena.
+ * Útil para lanzar una por una desde el frontend y evitar timeouts/rate-limits.
+ */
+export async function launchSingleSceneVideoPrediction(
+    scene: { id: number; visual_prompt: string },
+    masterStyle: string
+) {
+    try {
+        const { createVideoPrediction } = await import('@/lib/ai/replicate-client');
+        const fullPrompt = `${masterStyle}. Scene ${scene.id}: ${scene.visual_prompt}`;
+        const predictionId = await createVideoPrediction(fullPrompt, '9:16');
+        return { success: true, sceneId: scene.id, predictionId };
+    } catch (e: any) {
+        console.error(`[SINGLE-SCENE] Error en escena ${scene.id}:`, e);
+        return { success: false, error: e.message };
+    }
+}
+
+/**
+ * Guarda el predictionId de una escena en los metadatos de la campaña.
+ */
+export async function saveScenePredictionId(campaignId: string, sceneId: number, predictionId: string) {
+    try {
+        const campaign = await prisma.publicityCampaign.findUnique({ where: { id: campaignId } });
+        if (!campaign) return { success: false, error: 'Campaña no encontrada' };
+
+        const metadata = (campaign.metadata as any) || {};
+        const assets = metadata.assets || {};
+
+        if (!assets.scenes) assets.scenes = [];
+
+        const sceneIdx = assets.scenes.findIndex((s: any) => (s.sceneId || s.id) === sceneId);
+        if (sceneIdx > -1) {
+            assets.scenes[sceneIdx].predictionId = predictionId;
+            assets.scenes[sceneIdx].status = 'pending';
+        } else {
+            assets.scenes.push({ sceneId, predictionId, status: 'pending' });
+        }
+
+        await prisma.publicityCampaign.update({
+            where: { id: campaignId },
+            data: { metadata: { ...metadata, assets } }
+        });
+
+        return { success: true };
+    } catch (e: any) {
         return { success: false, error: e.message };
     }
 }

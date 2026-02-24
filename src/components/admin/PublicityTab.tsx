@@ -26,7 +26,7 @@ import {
 import {
     generateSocialCaption, generateImagePrompt, generateVideoScript, suggestCampaignFromInventory,
     chatWithPublicityAgent, generateCampaignAssets, checkAIAssetStatus,
-    checkMultiSceneStatus
+    checkMultiSceneStatus, launchSingleSceneVideoPrediction, saveScenePredictionId
 } from '@/app/admin/actions/ai-content-actions'
 import AIStudio from '@/components/admin/AIStudio'
 import MultiSceneVideoPlayer from '@/components/admin/MultiSceneVideoPlayer'
@@ -126,7 +126,47 @@ export default function PublicityTab() {
             }
         }, 5000)
         return () => clearInterval(interval)
-    }, [sceneClips])
+    }, [sceneClips.length, sceneClips.filter(s => s.status).join(',')]) // Trigger more precisely
+
+    // Motor de lanzamiento "uno por uno" desde el frontend
+    useEffect(() => {
+        const toLaunch = sceneClips.find(s => !s.predictionId && s.status === 'pending')
+        if (!toLaunch || !generatedAssets?.master_style) return
+
+        const launchNext = async () => {
+            console.log(`[FRONTEND-LAUNCH] Iniciando escena ${toLaunch.sceneId}...`)
+
+            // Marcar como 'starting' localmente
+            setSceneClips(prev => prev.map(s => s.sceneId === toLaunch.sceneId ? { ...s, status: 'starting' } : s))
+
+            const res = await launchSingleSceneVideoPrediction({
+                id: toLaunch.sceneId,
+                visual_prompt: (generatedAssets.scenes?.find((s: any) => (s.id || s.sceneId) === toLaunch.sceneId)?.visual_prompt) || ''
+            }, generatedAssets.master_style)
+
+            if (res.success && res.predictionId) {
+                console.log(`[FRONTEND-LAUNCH] Escena ${toLaunch.sceneId} lanzada: ${res.predictionId}`)
+
+                // Actualizar estado local
+                setSceneClips(prev => prev.map(s => s.sceneId === toLaunch.sceneId
+                    ? { ...s, predictionId: res.predictionId!, status: 'processing' }
+                    : s
+                ))
+
+                // PERSISTENCIA: Guardar en la BD si tenemos el ID de campaña
+                const campaignId = generatedAssets.campaignId || generatedAssets.id
+                if (campaignId && campaignId.length > 5) {
+                    await saveScenePredictionId(campaignId, toLaunch.sceneId, res.predictionId!)
+                }
+            } else {
+                setSceneClips(prev => prev.map(s => s.sceneId === toLaunch.sceneId ? { ...s, status: 'error' } : s))
+            }
+        }
+
+        // Delay de 3s antes de lanzar para asegurar que Replicate no se sature
+        const timer = setTimeout(launchNext, 3000)
+        return () => clearTimeout(timer)
+    }, [sceneClips, generatedAssets])
 
     // Listen for campaign created event from AI Studio
     useEffect(() => {
@@ -302,7 +342,20 @@ export default function PublicityTab() {
             }
 
             if (assets) {
-                setGeneratedAssets(assets)
+                setGeneratedAssets({ ...assets, id: campaign.id, campaignId: campaign.id })
+
+                // Cargar escenas si existen en los metadatos
+                if (assets.scenes && Array.isArray(assets.scenes)) {
+                    setSceneClips(assets.scenes.map((s: any) => ({
+                        sceneId: s.sceneId ?? s.id,
+                        predictionId: s.predictionId || null,
+                        status: s.status || 'pending',
+                        url: s.url || null
+                    })))
+                } else {
+                    setSceneClips([])
+                }
+
                 setShowAssetsModal(true)
             } else {
                 alert('Esta campaña no tiene assets de IA generados.')
