@@ -1,26 +1,280 @@
 import { useState, useRef, useEffect, memo, useMemo } from 'react'
 import {
-    Sparkles, User, Send, ImageIcon, ImagePlus, Zap,
-    Type, Video, Hash, MousePointer2, Copy, Check, Star,
-    MessageSquare, Plus, Trash2, History, RefreshCw,
-    Menu, X, ChevronDown, LayoutGrid, Bot
+    Sparkles, User, Send, ImageIcon,
+    Video, Copy, Check, Plus, History, RefreshCw,
+    Bot, Download, X, ChevronLeft, ChevronRight
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { createAISession, getAISession, getAISessions, deleteAISession, saveAIMessage, AIStudioSessionWithMessages } from '@/app/admin/actions/ai-studio-actions'
-import { generateCampaignAssets, suggestCampaignFromInventory, checkAIAssetStatus, chatWithPublicityAgent } from '@/app/admin/actions/ai-content-actions'
-import { saveAIAssetUrl } from '@/app/admin/actions/publicity-actions'
+import { createAISession, getAISession, getAISessions, deleteAISession, saveAIMessage } from '@/app/admin/actions/ai-studio-actions'
+import { chatWithPublicityAgent } from '@/app/admin/actions/ai-content-actions'
 
 type AIMode = 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'VIDEO_GEN' | 'STRATEGY'
 
-// 🚀 Memoized Message Item to prevent re-renders when typing
-const MessageItem = memo(({ msg, isGenerating }: { msg: any; isGenerating: boolean }) => {
-    // Memoize the content cleanup and regex matches
-    const { cleanContent, videoUrl, imageUrl } = useMemo(() => {
-        const cleaned = msg.content.replace(/\[VIDEO_PREVIEW\]:.*\n?|\[IMAGE_PREVIEW\]:.*\n?/g, '');
-        const vUrl = msg.videoUrl || (msg.content.match(/\[VIDEO_PREVIEW\]:\s*(http\S+)/)?.[1]);
-        const iUrl = msg.imageUrl || (msg.content.match(/\[IMAGE_PREVIEW\]:\s*(http\S+)/)?.[1]);
-        return { cleanContent: cleaned, videoUrl: vUrl, imageUrl: iUrl };
-    }, [msg.content, msg.videoUrl, msg.imageUrl]);
+// ─── Helper: extract how many images user asked for (1-10) ─────────────────
+function extractImageCount(text: string): number {
+    const patterns = [
+        /(?:crea|genera|hazme|dame|quiero|necesito)\s+(\d+)\s+(?:foto|imagen|fotos|imágenes|imagenes)/i,
+        /(\d+)\s+(?:foto|imagen|fotos|imágenes|imagenes)/i,
+    ]
+    for (const p of patterns) {
+        const m = text.match(p)
+        if (m) {
+            const n = parseInt(m[1])
+            return Math.min(Math.max(n, 1), 10)
+        }
+    }
+    return 1
+}
+
+// ─── Image Grid Component ──────────────────────────────────────────────────
+function ImageGrid({ images, onDownload }: { images: string[], onDownload: (url: string, i: number) => void }) {
+    const [current, setCurrent] = useState(0)
+
+    if (images.length === 1) {
+        return (
+            <div className="relative mt-3 rounded-xl overflow-hidden border border-white/10 group">
+                <img src={images[0]} alt="AI Generated" className="w-full object-cover max-h-80" />
+                <button
+                    onClick={() => onDownload(images[0], 0)}
+                    className="absolute top-2 right-2 p-2 bg-black/70 hover:bg-black/90 text-white rounded-lg transition opacity-0 group-hover:opacity-100"
+                >
+                    <Download className="w-4 h-4" />
+                </button>
+            </div>
+        )
+    }
+
+    return (
+        <div className="mt-3 space-y-2">
+            {/* Main image */}
+            <div className="relative rounded-xl overflow-hidden border border-white/10 group">
+                <img src={images[current]} alt={`Imagen ${current + 1}`} className="w-full object-cover max-h-72" />
+                <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg">
+                    {current + 1} / {images.length}
+                </div>
+                <button
+                    onClick={() => onDownload(images[current], current)}
+                    className="absolute top-2 right-2 p-2 bg-black/70 hover:bg-black/90 text-white rounded-lg transition opacity-0 group-hover:opacity-100"
+                >
+                    <Download className="w-4 h-4" />
+                </button>
+                {images.length > 1 && (
+                    <>
+                        <button
+                            onClick={() => setCurrent(p => (p - 1 + images.length) % images.length)}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/60 hover:bg-black/80 text-white rounded-full transition"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => setCurrent(p => (p + 1) % images.length)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black/60 hover:bg-black/80 text-white rounded-full transition"
+                        >
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </>
+                )}
+            </div>
+            {/* Thumbnails */}
+            <div className="flex gap-2 overflow-x-auto pb-1">
+                {images.map((url, i) => (
+                    <button
+                        key={i}
+                        onClick={() => setCurrent(i)}
+                        className={`shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition ${i === current ? 'border-indigo-500' : 'border-white/10 opacity-60 hover:opacity-100'}`}
+                    >
+                        <img src={url} alt={`Miniatura ${i + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                ))}
+            </div>
+            {/* Download all */}
+            <button
+                onClick={() => images.forEach((url, i) => onDownload(url, i))}
+                className="w-full text-xs font-bold text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 hover:border-indigo-500/60 py-2 rounded-xl transition flex items-center justify-center gap-2"
+            >
+                <Download className="w-3.5 h-3.5" /> Descargar todas ({images.length})
+            </button>
+        </div>
+    )
+}
+
+// ─── Copy Button with feedback ─────────────────────────────────────────────
+function CopyBtn({ text, label }: { text: string; label: string }) {
+    const [copied, setCopied] = useState(false)
+    return (
+        <button
+            onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/5 hover:bg-indigo-500/20 border border-white/10 hover:border-indigo-500/40 rounded-lg text-[10px] font-bold text-zinc-400 hover:text-indigo-300 transition"
+        >
+            {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+            {copied ? '¡Copiado!' : label}
+        </button>
+    )
+}
+
+// ─── Platform row helper ───────────────────────────────────────────────────
+function PlatformRow({ icon, label, text, borderBottom = true }: { icon: string; label: string; text: string; borderBottom?: boolean }) {
+    if (!text) return null
+    return (
+        <div className={`flex items-start justify-between gap-2 px-3 py-2.5 ${borderBottom ? 'border-b border-white/5' : ''}`}>
+            <div className="flex-1 min-w-0">
+                <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-0.5">{icon} {label}</p>
+                <p className="text-xs text-gray-300 whitespace-pre-wrap break-words">{text}</p>
+            </div>
+            <div className="shrink-0"><CopyBtn text={text} label="Copiar" /></div>
+        </div>
+    )
+}
+
+// ─── Content Copies Panel ──────────────────────────────────────────────────
+function ContentPanel({ strategy }: { strategy: any }) {
+    if (!strategy) return null
+    const {
+        internal_title, caption, platforms, videoScript,
+        viral_angle, hook_3s, hook_3s_visual, monetization_cta
+    } = strategy
+
+    // ── Plataformas de IMAGEN (keys antiguas + nuevas) ──────────────────────
+    const imgFb = platforms?.facebook || platforms?.facebook_marketplace || platforms?.meta_ads
+    const imgIg = platforms?.instagram
+    const imgTt = platforms?.tiktok || platforms?.tiktok_ads
+    const imgTw = platforms?.twitter_x
+    const imgYt = platforms?.youtube
+    const imgWa = platforms?.whatsapp
+    const imgLi = platforms?.linkedin
+    const imgTh = platforms?.threads
+
+    // ── Plataformas de VIDEO (keys nuevas de generateVideoStrategy) ──────────
+    const vidTT = platforms?.tiktok
+    const vidIG = platforms?.instagram_reels
+    const vidYTS = platforms?.youtube_shorts
+    const vidFB = platforms?.facebook_reels
+    const vidSC = platforms?.snapchat
+    const vidYTL = platforms?.youtube_largo
+
+    // ── Detectar si es estrategia de VIDEO ──────────────────────────────────
+    const isVideoStrategy = !!(vidIG || vidYTS || vidFB || vidSC || vidYTL)
+
+    const videoRows = isVideoStrategy ? [
+        vidTT  && { icon: '🎵', label: 'TikTok',             badge: vidTT.format  || 'Vertical 9:16',   duration: vidTT.duration  || '30s–60s',   isHoriz: false, text: [vidTT.caption, vidTT.audio_suggestion ? `🎶 Audio: ${vidTT.audio_suggestion}` : ''].filter(Boolean).join('\n') },
+        vidIG  && { icon: '📸', label: 'Instagram Reels',    badge: vidIG.format  || 'Vertical 9:16',   duration: vidIG.duration  || '30s–90s',   isHoriz: false, text: vidIG.caption },
+        vidYTS && { icon: '▶️', label: 'YouTube Shorts',     badge: vidYTS.format || 'Vertical 9:16',   duration: vidYTS.duration || '30s–60s',   isHoriz: false, text: [vidYTS.titulo, vidYTS.descripcion].filter(Boolean).join('\n') },
+        vidFB  && { icon: '📘', label: 'Facebook Reels',     badge: vidFB.format  || 'Vertical 9:16',   duration: vidFB.duration  || '30s–90s',   isHoriz: false, text: vidFB.caption },
+        vidSC  && { icon: '👻', label: 'Snapchat Spotlight', badge: vidSC.format  || 'Vertical 9:16',   duration: vidSC.duration  || '15s–60s',   isHoriz: false, text: vidSC.caption },
+        vidYTL && { icon: '🎬', label: 'YouTube (largo)',    badge: vidYTL.format || 'Horizontal 16:9', duration: vidYTL.duration || '3min–10min', isHoriz: true,  text: [vidYTL.titulo, vidYTL.descripcion].filter(Boolean).join('\n') },
+    ].filter(Boolean) as { icon: string; label: string; badge: string; duration: string; isHoriz: boolean; text: string }[] : []
+
+    const imageRows = !isVideoStrategy ? [
+        imgFb && { icon: '📘', label: 'Facebook', text: [imgFb.titulo || imgFb.title || imgFb.headline, imgFb.descripcion || imgFb.description || imgFb.primary_text].filter(Boolean).join('\n\n') },
+        imgIg && { icon: '📸', label: 'Instagram', text: imgIg.caption },
+        imgTt && { icon: '🎵', label: 'TikTok', text: imgTt.caption },
+        imgTw && { icon: '🐦', label: 'Twitter / X', text: imgTw.tweet },
+        imgYt && { icon: '▶️', label: 'YouTube', text: [imgYt.titulo || imgYt.title, imgYt.descripcion || imgYt.description].filter(Boolean).join('\n') },
+        imgWa && { icon: '💬', label: 'WhatsApp', text: imgWa.mensaje },
+        imgLi && { icon: '💼', label: 'LinkedIn', text: imgLi.post },
+        imgTh && { icon: '🧵', label: 'Threads', text: imgTh.post },
+    ].filter(Boolean) as { icon: string; label: string; text: string }[] : []
+
+    return (
+        <div className="mt-3 border border-white/10 rounded-xl overflow-hidden bg-black/30">
+            {/* Título de campaña */}
+            {internal_title && <PlatformRow icon="📌" label="Título de campaña" text={internal_title} />}
+
+            {/* ─── Sección VIRAL (solo video) ──────────────────────────────────── */}
+            {isVideoStrategy && viral_angle && (
+                <div className="px-3 py-2.5 border-b border-yellow-500/20 bg-yellow-500/5">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-yellow-500 mb-1">🧠 Ángulo viral elegido</p>
+                    <p className="text-xs text-yellow-200/80 italic">{viral_angle}</p>
+                </div>
+            )}
+
+            {/* Hook 3 segundos */}
+            {isVideoStrategy && hook_3s && (
+                <div className="border-b border-red-500/20 bg-red-500/5">
+                    <div className="flex items-start justify-between gap-2 px-3 pt-2.5 pb-1">
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-red-400 mb-1">⚡ Hook — Primeros 3 Segundos</p>
+                            <p className="text-sm font-bold text-white leading-snug">"{hook_3s}"</p>
+                            {hook_3s_visual && (
+                                <p className="text-[10px] text-red-300/70 mt-1 italic">👁 Visual: {hook_3s_visual}</p>
+                            )}
+                        </div>
+                        <div className="shrink-0"><CopyBtn text={hook_3s} label="Copiar" /></div>
+                    </div>
+                    <p className="text-[8px] text-red-400/50 px-3 pb-2 font-bold uppercase tracking-wider">Pattern interrupt — lo que detiene el scroll</p>
+                </div>
+            )}
+
+            {/* Guión del video */}
+            {videoScript && <PlatformRow icon="🎬" label="Guión completo del video" text={videoScript} />}
+
+            {/* CTA de monetización */}
+            {isVideoStrategy && monetization_cta && (
+                <div className="flex items-start justify-between gap-2 px-3 py-2.5 border-b border-green-500/20 bg-green-500/5">
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-green-400 mb-0.5">💰 CTA de monetización</p>
+                        <p className="text-xs text-green-200/80 whitespace-pre-wrap">{monetization_cta}</p>
+                    </div>
+                    <div className="shrink-0"><CopyBtn text={monetization_cta} label="Copiar" /></div>
+                </div>
+            )}
+
+            {/* Caption principal (imágenes) */}
+            {caption && !isVideoStrategy && <PlatformRow icon="✍️" label="Caption principal" text={caption} />}
+
+            {/* ─── Plataformas de VIDEO ─────────────────── */}
+            {isVideoStrategy && videoRows.length > 0 && (
+                <>
+                    <div className="px-3 py-1.5 bg-purple-900/20 border-y border-purple-500/20">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-purple-400">📱 Copies por plataforma de video</p>
+                    </div>
+                    {videoRows.map((row, i) => (
+                        <div key={row.label} className={`flex items-start justify-between gap-2 px-3 py-2.5 ${i < videoRows.length - 1 ? 'border-b border-white/5' : ''}`}>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400">{row.icon} {row.label}</p>
+                                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${row.isHoriz ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}`}>
+                                        {row.badge}
+                                    </span>
+                                    <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400">
+                                        ⏱ {row.duration}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-gray-300 whitespace-pre-wrap break-words">{row.text}</p>
+                            </div>
+                            <div className="shrink-0"><CopyBtn text={row.text} label="Copiar" /></div>
+                        </div>
+                    ))}
+                </>
+            )}
+
+            {/* ─── Plataformas de IMAGEN ─────────────────── */}
+            {!isVideoStrategy && imageRows.length > 0 && (
+                <>
+                    <div className="px-3 py-1.5 bg-white/3 border-y border-white/5">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-indigo-400">🌐 Copies por red social</p>
+                    </div>
+                    {imageRows.map((row, i) => (
+                        <PlatformRow key={row.label} icon={row.icon} label={row.label} text={row.text} borderBottom={i < imageRows.length - 1} />
+                    ))}
+                </>
+            )}
+        </div>
+    )
+}
+
+// ─── Message Item ──────────────────────────────────────────────────────────
+const MessageItem = memo(({ msg, onDownload }: { msg: any; onDownload: (url: string, i: number) => void }) => {
+    const [copied, setCopied] = useState(false)
+
+    const cleanContent = useMemo(() =>
+        msg.content.replace(/\[VIDEO_PREVIEW\]:.*\n?|\[IMAGE_PREVIEW\]:.*\n?/g, '').trim()
+        , [msg.content])
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(cleanContent)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+    }
 
     return (
         <div className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''} group`}>
@@ -31,56 +285,70 @@ const MessageItem = memo(({ msg, isGenerating }: { msg: any; isGenerating: boole
                 <div className={`p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${msg.role === 'user' ? 'bg-zinc-800 text-white rounded-tr-none' : 'bg-[#1A1D21] text-gray-200 border border-white/5 rounded-tl-none'}`}>
                     {cleanContent}
 
-                    {/* 🎬 VIDEO PREVIEW */}
-                    {(videoUrl || msg.videoPendingId) && (
-                        <div className="mt-4 rounded-xl overflow-hidden border border-white/10 relative group/video bg-black/40 min-h-[100px] flex items-center justify-center">
-                            {(videoUrl && videoUrl !== 'PENDING...') ? (
-                                <video
-                                    src={videoUrl}
-                                    controls
-                                    className="w-full aspect-video object-cover"
-                                />
-                            ) : (
-                                <div className="flex flex-col items-center gap-2 text-zinc-500 p-8">
-                                    <RefreshCw className="w-8 h-8 animate-spin text-purple-500" />
-                                    <span className="text-xs font-medium animate-pulse">Generando Video Único...</span>
+                    {/* 🖼️ IMAGES — Solo para modo IMAGE_GEN */}
+                    {msg.type === 'IMAGE_GEN' && (
+                        <>
+                            {/* Imágenes ya listas */}
+                            {msg.images && msg.images.filter(Boolean).length > 0 && (
+                                <ImageGrid images={msg.images.filter(Boolean)} onDownload={onDownload} />
+                            )}
+                            {/* Imágenes en proceso */}
+                            {msg.pendingCount > 0 && (
+                                <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(msg.pendingCount, 3)}, 1fr)` }}>
+                                    {Array.from({ length: msg.pendingCount }).map((_, i) => (
+                                        <div key={i} className="aspect-square rounded-xl bg-black/40 border border-white/10 flex flex-col items-center justify-center gap-2">
+                                            <RefreshCw className="w-5 h-5 text-indigo-500 animate-spin" />
+                                            <span className="text-[9px] text-indigo-400 font-bold uppercase tracking-widest">Generando...</span>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
-                            <div className="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded-md text-[10px] text-white backdrop-blur-sm">
-                                AI Video
-                            </div>
-                        </div>
+                            {/* Copies/Título generados */}
+                            <ContentPanel strategy={msg.strategy} />
+                        </>
                     )}
 
-                    {/* 🖼️ IMAGE PREVIEW */}
-                    {(imageUrl || msg.imagePendingIds) && (
-                        <div className="mt-2 rounded-xl overflow-hidden border border-white/10 relative bg-black/40 min-h-[100px] flex items-center justify-center">
-                            {(imageUrl && imageUrl !== 'PENDING...') ? (
-                                <img
-                                    src={imageUrl}
-                                    className="w-full h-auto object-cover"
-                                    alt="AI Generated"
-                                />
-                            ) : (
-                                <div className="flex flex-col items-center gap-2 text-zinc-500 p-8">
-                                    <ImageIcon className="w-8 h-8 animate-pulse text-indigo-500" />
-                                    <span className="text-xs font-medium animate-pulse">Generando Imagen Principal...</span>
+                    {/* 🎬 VIDEO — Solo para modo VIDEO_GEN */}
+                    {msg.type === 'VIDEO_GEN' && (
+                        <>
+                            {(msg.videoUrl && msg.videoUrl !== 'PENDING...') ? (
+                                <div className="mt-3 rounded-xl overflow-hidden border border-white/10 relative group/video">
+                                    <video src={msg.videoUrl} controls className="w-full aspect-video object-cover" />
+                                    <button
+                                        onClick={() => onDownload(msg.videoUrl, 0)}
+                                        className="absolute top-2 right-2 p-2 bg-black/70 hover:bg-black/90 text-white rounded-lg transition opacity-0 group-hover/video:opacity-100"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                    </button>
                                 </div>
-                            )}
-                        </div>
+                            ) : msg.videoPendingId ? (
+                                <div className="mt-3 rounded-xl overflow-hidden border border-white/10 bg-black/40 min-h-[120px] flex flex-col items-center justify-center gap-2">
+                                    <RefreshCw className="w-8 h-8 animate-spin text-purple-500" />
+                                    <span className="text-xs font-medium text-purple-300 animate-pulse">Generando Video... (puede tardar 3-5 min)</span>
+                                </div>
+                            ) : null}
+                            {/* Guión y copies del video */}
+                            <ContentPanel strategy={msg.strategy} />
+                        </>
                     )}
                 </div>
+
                 {msg.role === 'assistant' && (
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity pl-2">
-                        <ActionButton icon={<Copy className="w-3 h-3" />} label="Copiar" onClick={() => navigator.clipboard.writeText(msg.content)} />
+                        <button
+                            onClick={handleCopy}
+                            className="flex items-center gap-1.5 px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-[10px] text-zinc-400 hover:text-white transition"
+                        >
+                            {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                            {copied ? 'Copiado' : 'Copiar'}
+                        </button>
                     </div>
                 )}
             </div>
         </div>
-    );
-});
-
-MessageItem.displayName = 'MessageItem';
+    )
+})
+MessageItem.displayName = 'MessageItem'
 
 const ERROR_MAP: Record<string, string> = {
     'REPLICATE_PAYMENT_REQUIRED': '❌ Tu cuenta de Replicate no tiene créditos o requiere un método de pago activo. Por favor, revisa tu cuenta en replicate.com.',
@@ -88,219 +356,129 @@ const ERROR_MAP: Record<string, string> = {
     'MISSING_API_KEY': '❌ No se encontró la llave de API (REPLICATE_API_TOKEN). Contáctate con el administrador.',
     'TIMEOUT_REACHED': '⌛ La generación tardó más de lo esperado (timeout). Intenta con un prompt más simple.',
     'INVALID_OUTPUT_URL': '❌ La IA generó un archivo pero el formato no es válido. Intenta de nuevo.'
-};
+}
 
+// ─── Download helper ───────────────────────────────────────────────────────
+async function downloadFile(url: string, filename: string) {
+    try {
+        const res = await fetch(url)
+        const blob = await res.blob()
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = filename
+        a.click()
+        URL.revokeObjectURL(a.href)
+    } catch {
+        window.open(url, '_blank')
+    }
+}
+
+// ─── Main Component ─────────────────────────────────────────────────────────
 export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
-    const router = useRouter()
-    const [mode, setMode] = useState<AIMode>(defaultMode || 'CHAT') // 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'VIDEO_GEN' | 'STRATEGY'
+    const [mode, setMode] = useState<AIMode>(defaultMode || 'CHAT')
     const [prompt, setPrompt] = useState('')
     const [messages, setMessages] = useState<any[]>([])
     const [isGenerating, setIsGenerating] = useState(false)
-
-    // ... persistence state ...
     const [sessions, setSessions] = useState<any[]>([])
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
     const [isLoadingHistory, setIsLoadingHistory] = useState(false)
-    const [loadError, setLoadError] = useState(false)
     const [showHistory, setShowHistory] = useState(false)
-    const [pendingAssets, setPendingAssets] = useState<{ id: string, type: string, campaignId?: string }[]>([]);
+    const [pendingAssets, setPendingAssets] = useState<{ id: string, type: string, msgId: string, imgIdx?: number }[]>([])
 
-    useEffect(() => {
-        if (pendingAssets.length === 0) return;
-        const interval = setInterval(async () => {
-            const { checkAIAssetStatus } = await import('@/app/admin/actions/ai-content-actions');
-            const results = await Promise.all(pendingAssets.map(async (asset) => {
-                try {
-                    const status = await checkAIAssetStatus(asset.id);
-                    return { ...asset, ...status };
-                } catch (err) { return { ...asset, status: 'error' }; }
-            }));
-
-            let anyFinished = false;
-            results.forEach(res => {
-                if (res.status === 'succeeded' && res.url) {
-                    anyFinished = true;
-                    setMessages(prev => prev.map(msg => {
-                        if (res.type === 'video' && msg.videoPendingId === res.id) {
-                            return { ...msg, videoUrl: res.url, content: msg.content.replace('PENDING...', res.url) };
-                        }
-                        if (res.type.startsWith('image') && msg.imagePendingIds?.[res.type.split('_')[1]] === res.id) {
-                            const type = res.type.split('_')[1];
-                            return {
-                                ...msg,
-                                images: { ...(msg.images || {}), [type]: res.url },
-                                imageUrl: type === 'square' ? res.url : msg.imageUrl,
-                                content: msg.content.replace('PENDING...', res.url)
-                            };
-                        }
-                        return msg;
-                    }));
-                } else if (res.status === 'failed') anyFinished = true;
-            });
-
-            if (anyFinished) {
-                setPendingAssets(prev => prev.filter(p => !results.some(r => r.id === p.id && (r.status === 'succeeded' || r.status === 'failed'))));
-            }
-        }, 5000);
-        return () => clearInterval(interval);
-    }, [pendingAssets]);
-    // Fetch history based on mode
-    useEffect(() => {
-        const fetchSessionsForMode = async () => {
-            setIsLoadingHistory(true);
-            try {
-                const res = await getAISessions(mode);
-                if (res.success && res.chats) setSessions(res.chats);
-            } catch { setLoadError(true); }
-            finally { setIsLoadingHistory(false); }
-        }
-        fetchSessionsForMode();
-
-        // Reset messages if no session active
-        if (!currentSessionId) {
-            const initialContent = mode === 'IMAGE_GEN'
-                ? '🎨 **Estudio de Imágenes Virales**\n\n¿Qué tipo de arte quieres crear hoy? Puedo ayudarte con:\n• Memes de autos\n• Trivias visuales\n• Arte conceptual fotorrealista'
-                : mode === 'VIDEO_GEN'
-                    ? '🎥 **Productora de Video Viral**\n\n¡Hagamos el próximo gran video! Pídeme un guion para:\n• Review rápida de vehículo\n• Anuncio dinámico para FB/TikTok\n• Storytelling emocional'
-                    : '¡Hola! Soy tu Director Creativo de IA. ¿Creamos algo viral hoy? 🚀'
-
-            setMessages([{ id: 'initial', role: 'assistant', content: initialContent }])
-        }
-    }, [mode, currentSessionId]);
-
-
-    const handleUseInCampaign = async (history: any[]) => {
-        setIsGenerating(true)
-        const thinkingId = Date.now().toString();
-
-        let thinkingText = '🧠 Diseñando estrategia viral...';
-        if (mode === 'IMAGE_GEN') thinkingText = '🎨 Diseñando imagen viral (Meme/Trivia)...';
-        if (mode === 'VIDEO_GEN') thinkingText = '🎬 Escribiendo guion y planeando video...';
-
-        setMessages(prev => [...prev, { id: thinkingId, role: 'assistant', content: thinkingText }])
-
-        try {
-            const { generateCampaignStrategy, generateImageStrategy, generateVideoStrategy, launchAssetPredictions, launchImageOnlyPrediction, launchVideoOnlyPrediction } = await import('@/app/admin/actions/ai-content-actions')
-
-            let resultAssets;
-            let campaignRes: { success: boolean; campaign?: any; error?: string; message?: string } = { success: false, error: '' };
-            const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions');
-
-            if (mode === 'IMAGE_GEN') {
-                const strat = await generateImageStrategy(history, 'MX');
-                if (!strat.success) throw new Error(strat.error);
-                setMessages(prev => [...prev.filter(m => m.id !== thinkingId), { id: Date.now() + 'p', role: 'assistant', content: '🎨 Generando imagen...' }]);
-
-                const prediction = await launchImageOnlyPrediction(strat.strategy);
-                if (!prediction.success) throw new Error(prediction.error);
-
-                resultAssets = prediction.assets;
-                // Auto-save campaign? Maybe just show it first. Let's save to have ID for persistence where usually needed
-                campaignRes = await createCampaignFromAssets(resultAssets);
-
-            } else if (mode === 'VIDEO_GEN') {
-                const strat = await generateVideoStrategy(history, 'MX');
-                if (!strat.success) throw new Error(strat.error);
-                setMessages(prev => [...prev.filter(m => m.id !== thinkingId), { id: Date.now() + 'p', role: 'assistant', content: '🎬 Produciendo video...' }]);
-
-                const prediction = await launchVideoOnlyPrediction(strat.strategy);
-                if (!prediction.success) throw new Error(prediction.error);
-
-                resultAssets = prediction.assets;
-                campaignRes = await createCampaignFromAssets(resultAssets);
-
-            } else {
-                // FALLBACK / FULL MODE
-                const strat = await generateCampaignStrategy(history, 'MX');
-                if (!strat.success) throw new Error(strat.error);
-                const prediction = await launchAssetPredictions(strat.strategy, 'MX');
-                if (!prediction.success) throw new Error(prediction.error);
-                resultAssets = prediction.assets;
-                campaignRes = await createCampaignFromAssets(resultAssets);
-            }
-
-            if (campaignRes.success && campaignRes.campaign) {
-                const content = mode === 'IMAGE_GEN'
-                    ? `✅ ¡Imagen Viral Creada!\n\n"${campaignRes.campaign.title}"\n[IMAGE_PREVIEW]: PENDING...`
-                    : mode === 'VIDEO_GEN'
-                        ? `✅ ¡Video Viral Iniciado!\n\n"${campaignRes.campaign.title}"\n[VIDEO_PREVIEW]: PENDING...`
-                        : `✅ ¡Campaña Completa!\n[IMAGE_PREVIEW]: PENDING...`;
-
-                const newMessage = {
-                    id: Date.now().toString(),
-                    role: 'assistant',
-                    content: content.replace('PENDING...', (resultAssets.imageUrl || resultAssets.videoUrl || 'PENDING...')),
-                    campaignId: campaignRes.campaign.id,
-                    videoPendingId: resultAssets.videoPendingId,
-                    imagePendingIds: resultAssets.imagePendingIds,
-                    imageUrl: resultAssets.imageUrl,
-                    videoUrl: resultAssets.videoUrl,
-                    images: {}
-                };
-                setMessages(prev => [...prev.filter(m => m.id !== thinkingId && !m.id.endsWith('p')), newMessage]);
-
-                const toPoll: any[] = [];
-                if (resultAssets.videoPendingId) toPoll.push({ id: resultAssets.videoPendingId, type: 'video', campaignId: campaignRes.campaign.id });
-                if (resultAssets.imagePendingIds?.square) toPoll.push({ id: resultAssets.imagePendingIds.square, type: 'image_square', campaignId: campaignRes.campaign.id });
-                if (resultAssets.imagePendingIds?.vertical) toPoll.push({ id: resultAssets.imagePendingIds.vertical, type: 'image_vertical', campaignId: campaignRes.campaign.id });
-
-                addPendingAssets(toPoll);
-            }
-
-        } catch (error: any) {
-            const mappedMessage = ERROR_MAP[error.message] || `❌ Error: ${error.message}`;
-            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: mappedMessage }]);
-        } finally {
-            setIsGenerating(false)
-        }
-    }
-
-    // ... helper functions ...
     const messagesEndRef = useRef<HTMLDivElement>(null)
-    const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-    useEffect(() => { loadSessions() }, [])
+    const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     useEffect(() => { scrollToBottom() }, [messages])
 
-    // ... loadSessions, handleNewChat, handleSelectSession, handleDeleteSession same as before ... 
-    // BUT update handleSelectSession to set correct MODE
-    // ... handleSend same as before ...
+    // Poll Replicate predictions
+    useEffect(() => {
+        if (pendingAssets.length === 0) return
+        const interval = setInterval(async () => {
+            const { checkAIAssetStatus } = await import('@/app/admin/actions/ai-content-actions')
+            const results = await Promise.all(pendingAssets.map(async (asset) => {
+                try {
+                    const status = await checkAIAssetStatus(asset.id)
+                    return { ...asset, ...status }
+                } catch { return { ...asset, status: 'error' } }
+            }))
+
+            let anyDone = false
+            results.forEach(res => {
+                if (res.status === 'succeeded' && res.url) {
+                    anyDone = true
+                    setMessages(prev => prev.map(msg => {
+                        if (msg.id !== res.msgId) return msg
+
+                        if (res.type === 'video') {
+                            return { ...msg, videoUrl: res.url, videoPendingId: null }
+                        }
+                        if (res.type === 'image') {
+                            const newImages = [...(msg.images || [])]
+                            if (res.imgIdx !== undefined) newImages[res.imgIdx] = res.url
+                            const pendingCount = Math.max(0, (msg.pendingCount || 0) - 1)
+                            return { ...msg, images: newImages, pendingCount }
+                        }
+                        return msg
+                    }))
+                } else if (res.status === 'failed' || res.status === 'error') {
+                    anyDone = true
+                }
+            })
+            if (anyDone) {
+                setPendingAssets(prev => prev.filter(p => !results.some(r => r.id === p.id && (r.status === 'succeeded' || r.status === 'failed' || r.status === 'error'))))
+            }
+        }, 5000)
+        return () => clearInterval(interval)
+    }, [pendingAssets])
+
+    // Load sessions / set welcome message
+    useEffect(() => {
+        const fetchSessions = async () => {
+            setIsLoadingHistory(true)
+            try {
+                const res = await getAISessions(mode)
+                if (res.success && res.chats) setSessions(res.chats)
+            } catch { } finally { setIsLoadingHistory(false) }
+        }
+        fetchSessions()
+
+        if (!currentSessionId) {
+            const welcomes: Record<string, string> = {
+                IMAGE_GEN: '🎨 **Estudio de Imágenes**\n\nDime qué foto quieres y cuántas necesitas (máx 10).\n\nEjemplos:\n• "Crea 3 fotos de CarMatch en ciudad nocturna"\n• "Genera 5 imágenes de lujo para Instagram"\n• "Una foto de un Mustang rojo en la carretera"',
+                VIDEO_GEN: '🎬 **Productora de Video**\n\nDescribe el video que necesitas y lo genero.\n\nEjemplos:\n• "Video de 15s para TikTok de CarMatch"\n• "Anuncio cinematográfico de SUV de lujo"\n• "Historia de usuario vendiendo su auto con CarMatch"',
+                CHAT: '¡Hola! Soy tu Director Creativo de IA. ¿Creamos algo viral hoy? 🚀'
+            }
+            setMessages([{ id: 'initial', role: 'assistant', content: welcomes[mode] || welcomes.CHAT }])
+        }
+    }, [mode, currentSessionId])
+
     const loadSessions = async () => {
-        setIsLoadingHistory(true);
         try {
-            const res = await getAISessions(mode);
-            if (res.success && res.chats) setSessions(res.chats);
-        } catch { setLoadError(true); }
-        finally { setIsLoadingHistory(false); }
+            const res = await getAISessions(mode)
+            if (res.success && res.chats) setSessions(res.chats)
+        } catch { }
     }
 
     const handleNewChat = () => {
         setCurrentSessionId(null)
-        setMessages([]) // useEffect handles the rest
+        setMessages([])
         setShowHistory(false)
     }
 
     const handleSelectSession = async (sessionId: string) => {
-        if (currentSessionId === sessionId) return;
-        setIsLoadingHistory(true);
-        setCurrentSessionId(sessionId);
-        setShowHistory(false);
-        const res = await getAISession(sessionId);
+        if (currentSessionId === sessionId) return
+        setIsLoadingHistory(true)
+        setCurrentSessionId(sessionId)
+        setShowHistory(false)
+        const res = await getAISession(sessionId)
         if (res.success && res.chat) {
-            const uiMessages = res.chat.messages.map((m: any) => ({ id: m.id, role: m.role, content: m.content }));
-            setMessages(uiMessages);
-            setMode((res.chat.mode as AIMode) || 'CHAT');
+            const uiMessages = res.chat.messages.map((m: any) => ({ id: m.id, role: m.role, content: m.content }))
+            setMessages(uiMessages)
+            setMode((res.chat.mode as AIMode) || 'CHAT')
         }
-        setIsLoadingHistory(false);
+        setIsLoadingHistory(false)
     }
 
-    const handleDeleteSession = async (e: React.MouseEvent, sessionId: string) => {
-        e.stopPropagation();
-        if (confirm('¿Eliminar este chat?')) {
-            await deleteAISession(sessionId);
-            loadSessions();
-        }
-    }
-
+    // ── handleSend: regular chat (no generation) ──────────────────────────
     const handleSend = async () => {
         if (!prompt.trim() || isGenerating) return
         const userText = prompt
@@ -311,7 +489,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
         try {
             let sessionId = currentSessionId
             if (!sessionId) {
-                const newSessionRes = await createAISession(mode, userText) // Pass current mode!
+                const newSessionRes = await createAISession(mode, userText)
                 if (newSessionRes.success && newSessionRes.chat) {
                     sessionId = newSessionRes.chat.id
                     setCurrentSessionId(sessionId)
@@ -320,131 +498,242 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
             }
             if (sessionId) saveAIMessage(sessionId, 'user', userText)
 
-            // Context logic
             const historyForAI = messages.slice(-10)
             const response = await chatWithPublicityAgent([...historyForAI, { role: 'user', content: userText }], 'MX')
 
-            let aiContent = 'Error.'
-            if (response.success) aiContent = response.message!
-
+            const aiContent = response.success ? response.message! : '❌ Error al procesar tu mensaje.'
             setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: aiContent }])
             if (sessionId) await saveAIMessage(sessionId, 'assistant', aiContent)
         } catch (e: any) {
-            const mappedMessage = ERROR_MAP[e.message] || `❌ Error al procesar solicitud: ${e.message}`;
-            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: mappedMessage }]);
+            const mappedMessage = ERROR_MAP[e.message] || `❌ Error: ${e.message}`
+            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: mappedMessage }])
         } finally {
             setIsGenerating(false)
         }
     }
 
-    const addPendingAssets = (assets: any[]) => setPendingAssets(prev => [...prev, ...assets]);
+    // ── handleGenerate: mode-specific generation ──────────────────────────
+    const handleGenerate = async () => {
+        if (isGenerating) return
+        setIsGenerating(true)
+
+        const msgId = Date.now().toString()
+        const thinkingId = msgId + '_thinking'
+
+        try {
+            if (mode === 'IMAGE_GEN') {
+                // Detect how many images the user wants
+                const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''
+                const count = extractImageCount(lastUserMsg)
+
+                setMessages(prev => [...prev, {
+                    id: thinkingId, role: 'assistant',
+                    content: `🎨 Generando ${count} imagen${count > 1 ? 'es' : ''}...`
+                }])
+
+                const { generateImageStrategy, launchImageOnlyPrediction } = await import('@/app/admin/actions/ai-content-actions')
+                const strat = await generateImageStrategy(messages.slice(-10), 'MX')
+                if (!strat.success) throw new Error(strat.error || 'Error en estrategia')
+
+                // Launch N predictions in parallel
+                const predictions = await Promise.all(
+                    Array.from({ length: count }).map((_, i) =>
+                        launchImageOnlyPrediction({ ...strat.strategy, _seed: i }).catch(e => ({ success: false, error: e.message }))
+                    )
+                )
+
+                const newMsg: any = {
+                    id: msgId,
+                    role: 'assistant',
+                    type: 'IMAGE_GEN',
+                    content: count === 1
+                        ? `✅ Imagen lista — aquí tienes tu resultado:`
+                        : `✅ ${count} imágenes generadas — puedes navegar y descargar cada una:`,
+                    images: [],
+                    pendingCount: 0,
+                    strategy: strat.strategy,
+                }
+
+                const toPoll: any[] = []
+                predictions.forEach((pred, i) => {
+                    if (!pred.success) return
+                    const assets = (pred as any).assets
+                    if (assets?.imageUrl && assets.imageUrl.startsWith('http')) {
+                        newMsg.images.push(assets.imageUrl)
+                    } else {
+                        newMsg.pendingCount++
+                        newMsg.images.push(null)
+                    }
+                    if (assets?.imagePendingIds?.square) {
+                        toPoll.push({ id: assets.imagePendingIds.square, type: 'image', msgId, imgIdx: i })
+                    }
+                })
+
+                setMessages(prev => [...prev.filter(m => m.id !== thinkingId), newMsg])
+                if (toPoll.length > 0) setPendingAssets(prev => [...prev, ...toPoll])
+
+            } else if (mode === 'VIDEO_GEN') {
+                setMessages(prev => [...prev, {
+                    id: thinkingId, role: 'assistant',
+                    content: '🎬 Iniciando producción del video...'
+                }])
+
+                const { generateVideoStrategy, launchVideoOnlyPrediction } = await import('@/app/admin/actions/ai-content-actions')
+                const strat = await generateVideoStrategy(messages.slice(-10), 'MX')
+                if (!strat.success) throw new Error(strat.error || 'Error en estrategia')
+
+                const prediction = await launchVideoOnlyPrediction(strat.strategy)
+                if (!prediction.success) throw new Error((prediction as any).error || 'Error al iniciar video')
+
+                const assets = (prediction as any).assets
+                const newMsg: any = {
+                    id: msgId,
+                    role: 'assistant',
+                    type: 'VIDEO_GEN',
+                    content: `✅ Video en producción — se actualizará aquí cuando esté listo (3-5 min):`,
+                    videoUrl: 'PENDING...',
+                    videoPendingId: assets.videoPendingId,
+                    strategy: strat.strategy,
+                }
+
+                setMessages(prev => [...prev.filter(m => m.id !== thinkingId), newMsg])
+                if (assets.videoPendingId) {
+                    setPendingAssets(prev => [...prev, { id: assets.videoPendingId, type: 'video', msgId }])
+                }
+            }
+
+        } catch (error: any) {
+            const mapped = ERROR_MAP[error.message] || `❌ ${error.message}`
+            setMessages(prev => [...prev.filter(m => m.id !== thinkingId), { id: Date.now().toString(), role: 'assistant', content: mapped }])
+        } finally {
+            setIsGenerating(false)
+        }
+    }
+
+    const handleDownload = (url: string, i: number) => {
+        const ext = mode === 'VIDEO_GEN' ? 'mp4' : 'jpg'
+        downloadFile(url, `carmatch-${mode.toLowerCase()}-${Date.now()}-${i + 1}.${ext}`)
+    }
+
+    const switchMode = (newMode: AIMode) => {
+        setMode(newMode)
+        setCurrentSessionId(null)
+        setMessages([])
+        setPendingAssets([])
+    }
 
     return (
         <div className="flex h-full bg-[#0a0a0a] text-white overflow-hidden rounded-2xl border border-white/5 flex-col relative">
-            {/* HEADER CON TABS DE MODO */}
+            {/* HEADER */}
             <div className="h-16 border-b border-white/5 bg-zinc-900/50 backdrop-blur-md flex items-center justify-between px-4 shrink-0 z-20 relative">
-                <div className="flex items-center gap-4">
-                    <button onClick={handleNewChat} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-zinc-300 transition">
+                <div className="flex items-center gap-3">
+                    <button onClick={handleNewChat} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-zinc-300 transition" title="Nuevo chat">
                         <Plus className="w-4 h-4" />
                     </button>
 
                     <div className="flex bg-zinc-900/80 p-1.5 rounded-2xl border border-white/10 shadow-lg">
                         <button
-                            onClick={() => { setMode('IMAGE_GEN'); setCurrentSessionId(null); setMessages([]); }}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'IMAGE_GEN' ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/40' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                            onClick={() => switchMode('IMAGE_GEN')}
+                            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'IMAGE_GEN' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
                         >
                             <ImageIcon className="w-4 h-4" />
                             <span className="hidden sm:inline">IMÁGENES</span>
                         </button>
                         <button
-                            onClick={() => { setMode('VIDEO_GEN'); setCurrentSessionId(null); setMessages([]); }}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'VIDEO_GEN' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                            onClick={() => switchMode('VIDEO_GEN')}
+                            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'VIDEO_GEN' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/40' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
                         >
                             <Video className="w-4 h-4" />
                             <span className="hidden sm:inline">VIDEO</span>
                         </button>
                         <button
-                            onClick={() => { setMode('CHAT'); setCurrentSessionId(null); setMessages([]); }}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'CHAT' ? 'bg-zinc-700 text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                            onClick={() => switchMode('CHAT')}
+                            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'CHAT' ? 'bg-zinc-700 text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
                         >
                             <Bot className="w-4 h-4" />
                             <span className="hidden sm:inline">GENERAL</span>
                         </button>
                     </div>
                 </div>
+
                 <div className="relative">
                     <button onClick={() => setShowHistory(!showHistory)} className="flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-white transition">
                         <History className="w-3.5 h-3.5" /> Historial
                     </button>
-                    {/* History Dropdown (same as before) */}
                     {showHistory && (
                         <div className="absolute top-full right-0 mt-2 w-64 bg-[#1A1D21] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
-                            <div className="max-h-[300px] overflow-y-auto p-1">
-                                {sessions.map(session => (
-                                    <button key={session.id} onClick={() => handleSelectSession(session.id)} className="w-full text-left p-2 hover:bg-white/5 rounded text-xs text-zinc-400 truncate">
-                                        {session.name}
-                                    </button>
-                                ))}
+                            <div className="p-2 border-b border-white/5 flex items-center justify-between">
+                                <span className="text-xs font-bold text-zinc-400">Chats anteriores</span>
+                                <button onClick={() => setShowHistory(false)}><X className="w-3.5 h-3.5 text-zinc-500" /></button>
+                            </div>
+                            <div className="max-h-[280px] overflow-y-auto p-1">
+                                {sessions.length === 0
+                                    ? <p className="text-xs text-zinc-600 p-3 text-center">No hay historial</p>
+                                    : sessions.map(session => (
+                                        <button key={session.id} onClick={() => handleSelectSession(session.id)} className="w-full text-left p-2 hover:bg-white/5 rounded text-xs text-zinc-400 truncate">
+                                            {session.name}
+                                        </button>
+                                    ))
+                                }
                             </div>
                         </div>
                     )}
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col min-w-0 bg-[#0F1115] relative z-0">
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-                    {messages.map((msg) => (
-                        <MessageItem key={msg.id || msg.content} msg={msg} isGenerating={isGenerating} />
-                    ))}
-                    {isGenerating && (
-                        <div className="flex gap-4 animate-pulse">
-                            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center"><Sparkles className="w-4 h-4 text-white" /></div>
-                            <div className="bg-[#1A1D21] px-4 py-3 rounded-2xl text-sm text-indigo-300">Creando magia viral...</div>
+            {/* MESSAGES */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6 bg-[#0F1115]">
+                {messages.map((msg) => (
+                    <MessageItem key={msg.id || msg.content} msg={msg} onDownload={handleDownload} />
+                ))}
+                {isGenerating && (
+                    <div className="flex gap-4 animate-pulse">
+                        <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
+                            <Sparkles className="w-4 h-4 text-white" />
                         </div>
-                    )}
-                    <div ref={messagesEndRef} />
+                        <div className="bg-[#1A1D21] px-4 py-3 rounded-2xl text-sm text-indigo-300">
+                            {mode === 'IMAGE_GEN' ? 'Creando imágenes con IA...' : mode === 'VIDEO_GEN' ? 'Produciendo video...' : 'Pensando...'}
+                        </div>
+                    </div>
+                )}
+                <div ref={messagesEndRef} />
+            </div>
+
+            {/* INPUT */}
+            <div className="p-4 bg-zinc-900/50 border-t border-white/5 backdrop-blur-md">
+                <div className="relative flex items-end gap-2 bg-[#1A1D21] border border-white/10 rounded-2xl p-2 focus-within:border-indigo-500/50 transition-all shadow-inner max-w-4xl mx-auto">
+                    <textarea
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                        placeholder={
+                            mode === 'IMAGE_GEN' ? 'Ej: "Genera 5 fotos de CarMatch en ciudad nocturna"...' :
+                                mode === 'VIDEO_GEN' ? 'Describe el video que necesitas para TikTok/Reels...' :
+                                    'Escribe un mensaje...'
+                        }
+                        className="w-full bg-transparent border-none focus:ring-0 text-sm text-white placeholder-zinc-500 min-h-[44px] max-h-[160px] py-3 px-2 resize-none custom-scrollbar"
+                    />
+                    <button onClick={handleSend} disabled={!prompt.trim() || isGenerating} className="p-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-xl transition shrink-0 disabled:opacity-40" title="Enviar mensaje">
+                        <Send className="w-5 h-5" />
+                    </button>
                 </div>
 
-                <div className="p-4 bg-zinc-900/50 border-t border-white/5 backdrop-blur-md">
-                    <div className="relative flex items-end gap-2 bg-[#1A1D21] border border-white/10 rounded-2xl p-2 focus-within:border-indigo-500/50 transition-all shadow-inner max-w-4xl mx-auto">
-                        <textarea
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                            placeholder={mode === 'IMAGE_GEN' ? "Describe el meme, trivia o imagen viral que quieres..." : mode === 'VIDEO_GEN' ? "Describe la idea para el video de TikTok/Reels..." : "Escribe un mensaje..."}
-                            className="w-full bg-transparent border-none focus:ring-0 text-sm text-white placeholder-zinc-500 min-h-[44px] max-h-[160px] py-3 px-2 resize-none custom-scrollbar"
-                        />
-                        <button onClick={handleSend} disabled={!prompt.trim() || isGenerating} className="p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition shrink-0 disabled:opacity-50">
-                            <Send className="w-5 h-5" />
+                {/* GENERATE BUTTON — only in IMAGE/VIDEO mode */}
+                {mode !== 'CHAT' && messages.filter(m => m.role === 'user').length > 0 && !isGenerating && (
+                    <div className="flex justify-center mt-3">
+                        <button
+                            onClick={handleGenerate}
+                            className={`group flex items-center gap-3 px-8 py-3 text-white rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 font-black text-xs uppercase tracking-widest ${mode === 'IMAGE_GEN'
+                                ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 shadow-cyan-900/40'
+                                : 'bg-gradient-to-r from-purple-600 to-pink-600 shadow-purple-900/40'
+                                }`}
+                        >
+                            {mode === 'IMAGE_GEN' ? <ImageIcon className="w-4 h-4" /> : <Video className="w-4 h-4" />}
+                            {mode === 'IMAGE_GEN' ? '✨ Generar Imágenes' : '🎬 Producir Video'}
                         </button>
                     </div>
-
-                    {/* ACCIÓN PRINCIPAL: GENERAR */}
-                    {messages.length > 0 && !isGenerating && mode !== 'CHAT' && (
-                        <div className="flex justify-center mt-3 animate-in fade-in slide-in-from-top-2">
-                            <button
-                                onClick={() => handleUseInCampaign(messages)}
-                                className={`group relative flex items-center gap-3 px-8 py-3 text-white rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 ${mode === 'IMAGE_GEN' ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 shadow-cyan-900/40' : 'bg-gradient-to-r from-purple-600 to-pink-600 shadow-purple-900/40'}`}
-                            >
-                                {mode === 'IMAGE_GEN' ? <ImageIcon className="w-4 h-4 fill-current text-white" /> : <Video className="w-4 h-4 fill-current text-white" />}
-                                <span className="text-xs font-black uppercase tracking-widest">
-                                    {mode === 'IMAGE_GEN' ? 'Generar Imagen Viral' : 'Producir Video Viral'}
-                                </span>
-                            </button>
-                        </div>
-                    )}
-                </div>
+                )}
             </div>
         </div>
-    )
-}
-
-
-function ActionButton({ icon, label, onClick }: any) {
-    return (
-        <button onClick={onClick} className="flex items-center gap-1.5 px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-[10px] text-zinc-400 hover:text-white transition">
-            {icon}
-            {label}
-        </button>
     )
 }

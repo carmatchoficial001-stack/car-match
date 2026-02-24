@@ -438,16 +438,43 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
             ${contextStr}
             
             INSTRUCCIONES CLAVE:
-            - Si el usuario pide un MEME -> Describe la imagen visualmente graciosa (ej. "A skeleton waiting for a mechanic").
-            - Si pide TRIVIA -> Imagen macro (zoom) de una pieza difícil de identificar.
+            - Si el usuario pide un MEME -> Describe la imagen visualmente graciosa.
+            - Si pide TRIVIA -> Imagen macro de una pieza difícil de identificar.
             - Si pide ÉPICO -> Estilo cinematográfico, cyberpunk, vaporwave, etc.
             
-            Output JSON:
+            Output JSON EXACTO (sin campos adicionales, sin comentarios):
             {
-                "internal_title": "Título interno",
-                "imagePrompt": "PROMPT EN INGLÉS PARA FLUX. Debe ser INCREÍBLEMENTE DETALLADO. Si es un meme, describe la escena, expresiones faciales, estilo 'internet culture'.",
-                "caption": "Caption en ESPAÑOL (${country.slang}). Corto, con gancho, emojis y hashtags (#CarMatch #Viral).",
-                "platforms": { ... }
+                "internal_title": "Título breve de la campaña",
+                "imagePrompt": "PROMPT EN INGLÉS MUY DETALLADO para generador de imágenes IA (Flux/Midjourney style). Describe escena, iluminación, estilo, colores, perspectiva.",
+                "caption": "Caption principal en ESPAÑOL (${country.slang}). Corto, gancho, emojis y hashtags #CarMatch.",
+                "platforms": {
+                    "facebook": {
+                        "titulo": "Título llamativo para Facebook (max 80 chars)",
+                        "descripcion": "Texto completo para Facebook. Puede ser más largo. Con emojis y CTA claro. Max 3 párrafos cortos."
+                    },
+                    "instagram": {
+                        "caption": "Caption para Instagram. Emojis, line breaks, hasta 5 hashtags al final. Max 220 chars antes de 'ver más'."
+                    },
+                    "tiktok": {
+                        "caption": "Caption corto y viral para TikTok. Max 150 chars. Hashtags trending. Lenguaje Gen-Z (${country.slang})."
+                    },
+                    "twitter_x": {
+                        "tweet": "Tweet corto e impactante. Max 260 chars. Sin hashtags genéricos, máximo 2. Provoca reacción o retweet."
+                    },
+                    "youtube": {
+                        "titulo": "Título SEO para YouTube Shorts (max 100 chars). Incluye keyword automotriz.",
+                        "descripcion": "Descripción corta para YouTube. 2-3 líneas. Incluye #CarMatch #Autos y link ficticio (carmatch.app)."
+                    },
+                    "whatsapp": {
+                        "mensaje": "Mensaje de difusión para WhatsApp/Status. Informal, amigable, con emoji al inicio. Max 3 líneas. Incluye link carmatch.app."
+                    },
+                    "linkedin": {
+                        "post": "Post profesional para LinkedIn. Tono de industria automotriz/tech. 2-3 párrafos. Reflexión + CTA. Máximo 600 chars."
+                    },
+                    "threads": {
+                        "post": "Post para Threads/Meta. Similar a Twitter pero puede tener hasta 500 chars. Conversacional."
+                    }
+                }
             }
         `;
 
@@ -470,35 +497,127 @@ export async function generateVideoStrategy(chatHistory: any[], targetCountry: s
         const contextStr = chatHistory.map(m => `${m.role === 'user' ? 'USUARIO' : 'IA'}: ${m.content}`).join('\n');
 
         const prompt = `
-            Eres el GUIONISTA Nº1 DE TIKTOK/REELS DEL MUNDO.
-            Tu único objetivo: RETENCIÓN DE AUDIENCIA.
+            Eres el ARQUITECTO DE VIRALIDAD Nº1 DEL MUNDO para video en redes sociales.
+            Has estudiado CADA video que pasó de 0 a 10 millones de vistas.
+            Conoces los algoritmos de TikTok, Instagram, YouTube y Snapchat mejor que sus propios ingenieros.
             
-            El usuario quiere un VIDEO VIRAL.
+            TU MISIÓN: Hacer a CarMatch VIRAL y MONETIZABLE en TODAS las plataformas de video.
+
+            ══════════════════════════════════════════════════════
+            ⚡ REGLA DE ORO — LOS PRIMEROS 3 SEGUNDOS SON TODO
+            ══════════════════════════════════════════════════════
+            El scroll se detiene en 0.3 segundos si algo llama la atención.
+            El HOOK de los primeros 3 segundos determina si el video vive o muere.
             
-            REGLA DE ORO (3-SECOND RULE):
-            Los primeros 3 segundos deben ser VISUALMENTE IMPACTANTES o el video muere.
-            
-            ESTRATEGIA DE APRENDIZAJE:
-            Usa lo que sabes que funciona hoy:
-            - Cortes rápidos (cada 1.5s).
-            - Texto en pantalla gigante.
-            - Audio en tendencia (sugiérelo).
-            
-            HISTORIAL:
+            PATTERN INTERRUPTS — usa UNO de estos cinco tipos de hook comprobados:
+            - SHOCK HOOK: Algo que nadie espera ver         → "Este carro se vendió en 3 minutos..."
+            - CURIOSITY GAP: Pregunta sin respuesta al inicio → "El error que comete el 90% al comprar un carro..."
+            - IDENTIDAD: Ataca el ego del viewer            → "Si manejas esto, definitivamente eres..."
+            - CONTROVERSIA LEVE: Opinión polarizante        → "Los autos usados son MEJOR que los nuevos, y aquí está la prueba"
+            - NÚMERO ESPECÍFICO: Específico = credibilidad  → "47 autos en esta app, 3 cuestan menos de $50,000"
+
+            ══════════════════════════════════════════════════════
+            📱 DURACIONES REALES POR PLATAFORMA (MÍNIMO 15 SEGUNDOS)
+            ══════════════════════════════════════════════════════
+            REGLA GLOBAL: Ningún video debe durar menos de 15 segundos.
+            Videos cortos (<15s) no son monetizables y el algoritmo los penaliza.
+
+            🎵 TIKTOK
+              Formato: Vertical 9:16
+              Duración óptima: 30s–60s (monetizable si la cuenta tiene +1000 subs y 10k views)
+              Extra: hasta 3min si tienes una historia que mantiene el watch time
+
+            📸 INSTAGRAM REELS
+              Formato: Vertical 9:16
+              Duración óptima: 30s–90s (el algoritmo premia 30-60s para alcance masivo)
+              Extra: 60s+ mejora el watch time y la retención
+
+            ▶️ YOUTUBE SHORTS
+              Formato: Vertical 9:16
+              Duración óptima: 30s–60s (monetizable con YouTube Partner Program)
+              Extra: el título tiene más peso que TikTok para el descubrimiento
+
+            📘 FACEBOOK REELS
+              Formato: Vertical 9:16
+              Duración óptima: 30s–90s (audiencia LATAM 25-45, alcance orgánico altísimo)
+              Extra: Facebook In-Stream Ads activan desde 60s
+
+            👻 SNAPCHAT SPOTLIGHT
+              Formato: Vertical 9:16
+              Duración óptima: 15s–60s (audiencia 13-25, muy rápida, máx impacto en 15-30s)
+
+            🎬 YOUTUBE LARGO
+              Formato: Horizontal 16:9
+              Duración óptima: 3min–10min (monetizable con AdSense desde 8 minutos para mid-rolls)
+              Extra: Reviews, comparativas de vehículos, tours de CarMatch
+
+            ══════════════════════════════════════════════════════
+            🔄 SISTEMA DE RETENCIÓN (secreto del algoritmo)
+            ══════════════════════════════════════════════════════
+            - Corte visual o cambio cada 3-5 segundos
+            - Texto en pantalla siempre visible (no todos escuchan)
+            - El final conecta con el inicio (loop visual) = +watchtime
+            - Termina con pregunta o CTA que genere comentarios
+
+            ══════════════════════════════════════════════════════
+            💬 CONTEXTO DEL USUARIO
+            ══════════════════════════════════════════════════════
             ${contextStr}
             
-            Formato JSON Requerido:
+            ══════════════════════════════════════════════════════
+            📋 OUTPUT JSON EXACTO — SIN COMENTARIOS
+            ══════════════════════════════════════════════════════
             {
-                "internal_title": "Título del Video",
-                "videoScript": "Guión COMPLETO en ESPAÑOL. Divide por escenas visuales. INCLUYE TEXTO EN PANTALLA.",
-                "videoPrompt_vertical": "Prompt TÉCNICO en INGLÉS para generar el clip visual principal con IA (Minimax/Veo). Debe describir una escena con MOVIMIENTO ALTO (High Motion), Dinámica y Caótica si es necesario. NO estática.",
-                "platforms": { "tiktok_ads": { "caption": "..." } }
+                "internal_title": "Título interno de la campaña (para referencia de Ruben)",
+                "viral_angle": "En 1 línea: ángulo viral elegido y POR QUÉ funciona en el algoritmo",
+                "hook_3s": "TEXTO EXACTO de los primeros 1-2 segundos en pantalla/voz. Pattern interrupt aplicado. Corto, impactante.",
+                "hook_3s_visual": "Descripción de lo que se VE en esos primeros 3 segundos (ángulo de cámara, acción, elemento visual de impacto)",
+                "videoScript": "Guión COMPLETO en ESPAÑOL con timing. Duración objetivo: 45-60 segundos. Estructura:\\n[00:00-00:03] HOOK\\n[00:03-00:10] DESARROLLO...\\nTexto en pantalla en MAYÚSCULAS entre [CORCHETES]. 🎵 Sugerencia de audio al final.",
+                "monetization_cta": "Texto exacto del CTA al final que lleva a carmatch.app SIN sonar a anuncio. Natural y convincente.",
+                "videoPrompt_vertical": "Prompt TÉCNICO en INGLÉS para IA de video (Minimax/Veo), formato VERTICAL 9:16, duración 45-60s. Incluye: hook visual inicial, 3-4 escenas con transiciones, iluminación, movimiento de cámara, energía alta. NO estático.",
+                "videoPrompt_horizontal": "Mismo concepto en HORIZONTAL 16:9, duración 3-5 minutos. Perspectiva cinematográfica, más escenas, ritmo narrativo.",
+                "recommended_format": "vertical",
+                "platforms": {
+                    "tiktok": {
+                        "format": "Vertical 9:16",
+                        "duration": "30s–60s (mín. 15s · monetizable)",
+                        "caption": "Caption TikTok LISTO PARA PEGAR. Español ${country.slang}. Empieza con emoji. MAX 150 chars. 3-5 hashtags: #CarMatch #Autos #FYP + trending. Termina con pregunta que dispare replies.",
+                        "audio_suggestion": "Estilo de audio/sonido ideal para este video en TikTok (describe el mood musical, ej: 'trap suave con build-up en segundo 3' o 'sonido viral de notificación al inicio')"
+                    },
+                    "instagram_reels": {
+                        "format": "Vertical 9:16",
+                        "duration": "30s–90s (mín. 15s · óptimo 60s para alcance)",
+                        "caption": "Caption Instagram LISTO PARA PEGAR. Aspiracional. Gancho primera línea. Emojis naturales. Hashtags al final: #CarMatch #Reels #Autos #MercadoDeAutos + locales. Max 220 chars antes de 'ver más'."
+                    },
+                    "youtube_shorts": {
+                        "format": "Vertical 9:16",
+                        "duration": "30s–60s (mín. 15s · monetizable con YPP)",
+                        "titulo": "Título YouTube Shorts LISTO PARA PEGAR. Max 100 chars. Keyword automotriz + emoción/número. Ej: 'Encontré el Civic 2024 más barato de México (vendido en 2 días)'",
+                        "descripcion": "Descripción YouTube Shorts LISTA PARA PEGAR. 3 líneas. Palabras clave, #Shorts #CarMatch #Autos + link carmatch.app"
+                    },
+                    "facebook_reels": {
+                        "format": "Vertical 9:16",
+                        "duration": "30s–90s (mín. 15s · 60s+ activa In-Stream Ads)",
+                        "caption": "Caption Facebook Reels LISTO PARA PEGAR. Descriptivo, audiencia 25-45 LATAM. Emojis. Explica el video brevemente. CTA claro (comenta, comparte). Termina con #CarMatch"
+                    },
+                    "snapchat": {
+                        "format": "Vertical 9:16",
+                        "duration": "15s–60s (óptimo 15-30s para audiencia joven)",
+                        "caption": "Caption Snapchat Spotlight LISTO PARA PEGAR. ULTRA casual, audiencia 13-25. Máx 100 chars. Slang ${country.slang}. 1-2 hashtags máx."
+                    },
+                    "youtube_largo": {
+                        "format": "Horizontal 16:9",
+                        "duration": "3min–10min (8min+ activa mid-roll ads y monetización completa)",
+                        "titulo": "Título YouTube Long-form LISTO PARA PEGAR. Max 100 chars. Keyword principal + año. Ej: 'Los 5 mejores carros usados bajo $100k en México 2025 (CarMatch App)'",
+                        "descripcion": "Descripción YouTube completa LISTA PARA PEGAR. 5-8 líneas: intro del canal, keywords automotrices, timestamps, links carmatch.app + redes sociales, #CarMatch #Autos. Optimizada para SEO."
+                    }
+                }
             }
         `;
 
         const result = await geminiFlashConversational.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json' }
+            generationConfig: { responseMimeType: 'application/json', temperature: 1.0 }
         });
 
         return { success: true, strategy: JSON.parse(result.response.text()) };
@@ -517,35 +636,35 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
 
         const systemPrompt = `
             Eres "CarMatch Mastermind", una IA de Marketing Viral de Nivel DIOS.
-            No eres un asistente básico. Eres el cerebro detrás de la expansión global de CarMatch hacia 2.8 BILLONES de usuarios.
+            No eres un asistente básico.Eres el cerebro detrás de la expansión global de CarMatch hacia 2.8 BILLONES de usuarios.
 
             TU MISIÓN: DOMINACIÓN GLOBAL MEDIANTE CONTENIDO.
             
-            Tus Herramientas Psicológicas (ÚSALAS):
-            1. **Curiosidad (The Gap)**: "No creerás lo que encontramos en este Tsuru..."
-            2. **Pertenencia (Tribalism)**: "Solo los verdaderos mecánicos entienden esto..."
-            3. **Escasez/Miedo (FOMO)**: "El error que te está costando miles de pesos..."
-            4. **Controversia (Leve)**: "Por qué los autos eléctricos son una estafa (o no)..."
-            5. **Humor (Relatability)**: Memes de situaciones cotidianas del tráfico/taller.
+            Tus Herramientas Psicológicas(ÚSALAS):
+1. ** Curiosidad(The Gap) **: "No creerás lo que encontramos en este Tsuru..."
+2. ** Pertenencia(Tribalism) **: "Solo los verdaderos mecánicos entienden esto..."
+3. ** Escasez / Miedo(FOMO) **: "El error que te está costando miles de pesos..."
+4. ** Controversia(Leve) **: "Por qué los autos eléctricos son una estafa (o no)..."
+5. ** Humor(Relatability) **: Memes de situaciones cotidianas del tráfico / taller.
 
             TONO Y ESTILO:
-            - **Idioma**: Español (México) con slang natural pero INTELIGENTE (${country.slang}).
-            - **Actitud**: Visionaria, agresiva (tipo Wolf of Wall Street pero ético), divertida, y data-driven.
-            - **Formato**: Usa emojis, listas cortas, y ve GRANO.
+            - ** Idioma **: Español(México) con slang natural pero INTELIGENTE(${country.slang}).
+            - ** Actitud **: Visionaria, agresiva(tipo Wolf of Wall Street pero ético), divertida, y data - driven.
+            - ** Formato **: Usa emojis, listas cortas, y ve GRANO.
             
             TUS PODERES CREATIVOS ACTUALIZADOS:
-            - **Meme Architect**: Diseña memes visuales (Expectativa vs Realidad).
-            - **Trivia Master**: Crea trivias difíciles para generar comentarios.
-            - **Trend Surfer**: Conecta autos con tendencias pop (música, películas, noticias).
-            - **Storyteller**: Guiones de video que enganchen en los primeros 0.5 segundos.
+            - ** Meme Architect **: Diseña memes visuales(Expectativa vs Realidad).
+            - ** Trivia Master **: Crea trivias difíciles para generar comentarios.
+            - ** Trend Surfer **: Conecta autos con tendencias pop(música, películas, noticias).
+            - ** Storyteller **: Guiones de video que enganchen en los primeros 0.5 segundos.
 
             Contexto de CarMatch para vender:
-            - "El Tinder de los Autos" (Desliza y compra).
-            - "Map Store" (Encuentra ayuda real en tiempo real).
-            - Seguridad Total (Adiós estafas).
+- "El Tinder de los Autos"(Desliza y compra).
+            - "Map Store"(Encuentra ayuda real en tiempo real).
+            - Seguridad Total(Adiós estafas).
 
-            SI EL USUARIO PIDE IDEAS, DALE ORO PURO. NO DEDES RESPUESTAS GENÉRICAS.
-            PIENSA EN GRANDE. PIENSA EN VIRALIDAD.
+            SI EL USUARIO PIDE IDEAS, DALE ORO PURO.NO DEDES RESPUESTAS GENÉRICAS.
+            PIENSA EN GRANDE.PIENSA EN VIRALIDAD.
         `
 
         // Convert messages to Gemini format
@@ -556,7 +675,7 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
             },
             {
                 role: "model",
-                parts: [{ text: `Entendido. Soy el Director de Marketing de CarMatch para ${country.name}. ¿En qué puedo ayudarte hoy? 🚀` }],
+                parts: [{ text: `Entendido.Soy el Director de Marketing de CarMatch para ${country.name}. ¿En qué puedo ayudarte hoy ? 🚀` }],
             },
             ...messages.slice(0, -1).map((m: any) => ({
                 role: m.role === 'user' ? 'user' : 'model',
@@ -605,41 +724,41 @@ export async function generateCampaignStrategy(chatHistory: any[], targetCountry
         const country = getCountryContext(targetCountry)
 
         // Format history for Gemini context
-        const contextStr = chatHistory.map(m => `${m.role === 'user' ? 'USUARIO' : 'IA'}: ${m.content}`).join('\n');
+        const contextStr = chatHistory.map(m => `${m.role === 'user' ? 'USUARIO' : 'IA'}: ${m.content} `).join('\n');
 
         const prompt = `
             Eres un Especialista en Marketing de Alto Rendimiento, un Sintetizador de Ideas Maestro y el Arquitecto de un MOVIMIENTO VIRAL MUNDIAL.
             
-            TU META SUPREMA: Llevar a CarMatch a una audiencia de 2.8 BILLONES de usuarios exclusivos. No estás creando anuncios, estás creando la PUBLICIDAD VIRAL que revolucionará el mercado automotriz.
+            TU META SUPREMA: Llevar a CarMatch a una audiencia de 2.8 BILLONES de usuarios exclusivos.No estás creando anuncios, estás creando la PUBLICIDAD VIRAL que revolucionará el mercado automotriz.
             
-            EXTREMA IMPORTANCIA - REGLAS DE SÍNTESIS (RUBEN'S RULES):
-            1. ANALIZA INTEGRALMENTE el historial de chat. El usuario (Ruben) tiene la visión de este crecimiento masivo. Cada idea en el chat es una pieza de este rompecabezas de 2.8B.
-            2. **PROHIBIDO LO GENÉRICO**: Si el usuario describió un coche viejo, un taller, una mujer estresada, o un superhéroe, EL RESULTADO DEBE SER ESE. No uses "luxury cars" por defecto si el chat dice otra cosa.
-            3. **PRIORIDAD ABSOLUTA AL HISTORIAL**: Si el usuario pegó un prompt para imagen o video en el chat, ÚSALO como base casi literal para imagePrompt y videoPrompt_vertical.
-            4. **DETALLES MEXICANOS**: Si se menciona un escenario en México (taller carero, calle peligrosa, autopista), asegúrate de que los prompts en inglés para la IA describan esos elementos visuales con precisión (por ejemplo: "weathered Mexican street", "vintage Mexican workshop").
+            EXTREMA IMPORTANCIA - REGLAS DE SÍNTESIS(RUBEN'S RULES):
+            1. ANALIZA INTEGRALMENTE el historial de chat.El usuario(Ruben) tiene la visión de este crecimiento masivo.Cada idea en el chat es una pieza de este rompecabezas de 2.8B.
+            2. ** PROHIBIDO LO GENÉRICO **: Si el usuario describió un coche viejo, un taller, una mujer estresada, o un superhéroe, EL RESULTADO DEBE SER ESE.No uses "luxury cars" por defecto si el chat dice otra cosa.
+            3. ** PRIORIDAD ABSOLUTA AL HISTORIAL **: Si el usuario pegó un prompt para imagen o video en el chat, ÚSALO como base casi literal para imagePrompt y videoPrompt_vertical.
+            4. ** DETALLES MEXICANOS **: Si se menciona un escenario en México(taller carero, calle peligrosa, autopista), asegúrate de que los prompts en inglés para la IA describan esos elementos visuales con precisión(por ejemplo: "weathered Mexican street", "vintage Mexican workshop").
             
             Si el usuario escribió literalmente un prompt para imagen, extráelo y tradúcelo si es necesario, pero mantén la ESENCIA EXACTA.
-            
-            Objetivo: Crear un PACK COMPLETO DE CAMPAÑA que sea un reflejo FIELD de lo discutido.
+
+    Objetivo: Crear un PACK COMPLETO DE CAMPAÑA que sea un reflejo FIELD de lo discutido.
             
             REQUISITO CRÍTICO DE IDIOMA:
-            - Todo el contenido para el usuario (scripts, copies, títulos) en ESPAÑOL (México). Slang local: ${country.slang}
-            - LOS PROMPTS PARA IA (imagePrompt, videoPrompt) deben ser en INGLÉS EXTREMADAMENTE DETALLADO y fiel a la historia.
+    - Todo el contenido para el usuario(scripts, copies, títulos) en ESPAÑOL(México).Slang local: ${country.slang}
+- LOS PROMPTS PARA IA(imagePrompt, videoPrompt) deben ser en INGLÉS EXTREMADAMENTE DETALLADO y fiel a la historia.
             
             Estructura JSON requerida:
-            {
-                "internal_title": "Nombre de la Campaña",
-                "imagePrompt": "Detailed realistic prompt in ENGLISH. Use EXACTLY what was discussed in the chat. If there is a car brand, specify it. If there is a specific scenario (broken car, superhero, etc.), include ALL visual details described.",
-                "videoPrompt_vertical": "Technical prompt in ENGLISH for vertical video (9:16). Describe the FIRST 3 SECONDS of the vision discussed in the chat. High energy.",
-                "videoPrompt_horizontal": "Technical prompt in ENGLISH for horizontal video (16:9). Cinematic version of the CHAT STORY.",
-                "videoScript": "Guión viral de 15s en ESPAÑOL, fiel al 100% a lo discutido en el chat.",
-                "platforms": { ... }
-            }
+    {
+        "internal_title": "Nombre de la Campaña",
+        "imagePrompt": "Detailed realistic prompt in ENGLISH. Use EXACTLY what was discussed in the chat. If there is a car brand, specify it. If there is a specific scenario (broken car, superhero, etc.), include ALL visual details described.",
+        "videoPrompt_vertical": "Technical prompt in ENGLISH for vertical video (9:16). Describe the FIRST 3 SECONDS of the vision discussed in the chat. High energy.",
+        "videoPrompt_horizontal": "Technical prompt in ENGLISH for horizontal video (16:9). Cinematic version of the CHAT STORY.",
+        "videoScript": "Guión viral de 15s en ESPAÑOL, fiel al 100% a lo discutido en el chat.",
+        "platforms": { ... }
+    }
             
-            HISTORIAL DE CONVERSACIÓN (SINTETIZA LA DECISIÓN FINAL Y LOS DETALLES VISUALES):
-            ${contextStr}
+            HISTORIAL DE CONVERSACIÓN(SINTETIZA LA DECISIÓN FINAL Y LOS DETALLES VISUALES):
+    ${contextStr}
             
-            RECUERDA: Ruben odia lo genérico. Si dice un Mustang rojo, es un Mustang rojo. Si dice una mujer atrapada en la carretera con un coche descompuesto, ES EXACTAMENTE ESO. No inventes "autos de lujo" si no vienen al caso.
+            RECUERDA: Ruben odia lo genérico.Si dice un Mustang rojo, es un Mustang rojo.Si dice una mujer atrapada en la carretera con un coche descompuesto, ES EXACTAMENTE ESO.No inventes "autos de lujo" si no vienen al caso.
         `
 
         let text = "";
@@ -819,8 +938,8 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                     
                     Genera un nuevo copy siguiendo la instrucciÃ³n. 
                     - MÃ¡ximo 200 caracteres
-                    - Usa emojis naturalmente ðŸš—ðŸ’¨
-                    - Lenguaje mexicano casual
+- Usa emojis naturalmente ðŸš—ðŸ’¨
+    - Lenguaje mexicano casual
                     
                     Responde SOLO con el nuevo copy, sin explicaciones.
                 `
@@ -837,8 +956,8 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                     
                     Genera un nuevo prompt para Flux AI que genere una imagen siguiendo la instrucciÃ³n.
                     - Debe ser en inglÃ©s
-                    - Estilo fotorrealista profesional
-                    - Alta calidad, 8K
+- Estilo fotorrealista profesional
+- Alta calidad, 8K
                     
                     Responde SOLO con el prompt, sin explicaciones.
                 `
@@ -875,9 +994,9 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                     InstrucciÃ³n del usuario: "${instruction}"
                     
                     Genera un nuevo script de video siguiendo la instrucciÃ³n.
-                    - Debe ser para un video de 15-30 segundos
-                    - DescripciÃ³n visual detallada
-                    - Emocional y atractivo
+                    - Debe ser para un video de 15 - 30 segundos
+- DescripciÃ³n visual detallada
+- Emocional y atractivo
                     
                     Responde SOLO con el script, sin explicaciones.
                 `
@@ -891,14 +1010,14 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                     InstrucciÃ³n: "${instruction}"
                     
                     BasÃ¡ndote en esta instrucciÃ³n, genera assets completos para una campaÃ±a automotriz:
-                    
-                    Responde en JSON:
-                    {
-                        "copy": "caption para redes (mÃ¡x 200 chars, con emojis)",
-                        "imagePrompt": "prompt en inglÃ©s para Flux AI",
-                        "videoScript": "script de video 15-30s"
-                    }
-                `
+
+    Responde en JSON:
+    {
+        "copy": "caption para redes (mÃ¡x 200 chars, con emojis)",
+        "imagePrompt": "prompt en inglÃ©s para Flux AI",
+        "videoScript": "script de video 15-30s"
+    }
+        `
                 const allResult = await geminiFlashConversational.generateContent({
                     contents: [{ role: 'user', parts: [{ text: allPrompt }] }],
                     generationConfig: {
@@ -960,7 +1079,7 @@ export async function checkAIAssetStatus(predictionId: string) {
         const { checkPrediction } = await import('@/lib/ai/replicate-client');
         const result = await checkPrediction(predictionId);
 
-        console.log(`[POLL] Status for ${predictionId}: ${result.status}`);
+        console.log(`[POLL] Status for ${predictionId}: ${result.status} `);
 
         // TIMEOUT CHECK (5 minutes)
         if (result.created_at) {
@@ -969,7 +1088,7 @@ export async function checkAIAssetStatus(predictionId: string) {
             const elapsedMinutes = (now - created) / 1000 / 60;
 
             if (elapsedMinutes > 5 && (result.status === 'processing' || result.status === 'starting')) {
-                console.warn(`[POLL] Timeout reached for ${predictionId} (${elapsedMinutes.toFixed(1)} min). Marking as failed.`);
+                console.warn(`[POLL] Timeout reached for ${predictionId}(${elapsedMinutes.toFixed(1)} min).Marking as failed.`);
                 return { status: 'failed', error: 'TIMEOUT_REACHED' };
             }
         }

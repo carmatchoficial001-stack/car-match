@@ -59,13 +59,18 @@ export async function createCampaignFromAssets(assets: any) {
             ? assets.internal_title
             : `Campaña IA - ${new Date().toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
 
-        // 🔥 DYNAMIC FALLBACK: If imageUrl is missing, use a relevant Unsplash image based on title
+        // 🔥 DYNAMIC FALLBACK: If imageUrl is missing, use a reliable Unsplash photo
         let campaignImage = assets.imageUrl;
         if (!campaignImage || typeof campaignImage !== 'string' || campaignImage.length < 5) {
-            console.warn('[CAMPAIGN-AUTO-SAVE] Invalid or missing imageUrl. Using dynamic fallback.');
-            const searchTerms = title.toLowerCase().split(/[^a-z]+/).filter((w: string) => w.length > 3).slice(0, 3).join(',');
-            campaignImage = `https://images.unsplash.com/featured/?${searchTerms || 'automotive,car'}&w=1080&h=1080`;
+            console.warn('[CAMPAIGN-AUTO-SAVE] Invalid or missing imageUrl. Using automotive fallback.');
+            const fallbacks = [
+                'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1080&q=80',
+                'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1080&q=80',
+                'https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=1080&q=80',
+            ];
+            campaignImage = fallbacks[Math.floor(Math.random() * fallbacks.length)];
         }
+
 
         const campaign = await prisma.publicityCampaign.create({
             data: {
