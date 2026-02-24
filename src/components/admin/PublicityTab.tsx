@@ -490,41 +490,29 @@ export default function PublicityTab() {
                                     <div className="md:hidden space-y-4 p-4">
                                         {campaigns.map(campaign => (
                                             <div key={campaign.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
-                                                <div className="flex justify-between items-start">
-                                                    <div className="flex gap-3">
-                                                        <div className="w-16 h-16 rounded-lg bg-black overflow-hidden border border-white/10">
-                                                            <img
-                                                                src={campaign.imageUrl}
-                                                                alt={campaign.title}
-                                                                className="w-full h-full object-cover"
-                                                                onError={(e) => {
-                                                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1533473359331-0135ef1bcfb0?auto=format&fit=crop&q=80&w=1000'
-                                                                }}
-                                                            />
+                                                <div className="flex gap-3 items-center">
+                                                        <div className="w-16 h-16 rounded-lg bg-zinc-800 overflow-hidden border border-white/10 flex items-center justify-center shrink-0">
+                                                            {campaign.imageUrl ? (
+                                                                <img
+                                                                    src={campaign.imageUrl}
+                                                                    alt={campaign.title}
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        const el = e.target as HTMLImageElement;
+                                                                        el.style.display = 'none';
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <ImageIcon className="w-7 h-7 text-zinc-600" />
+                                                            )}
                                                         </div>
                                                         <div>
                                                             <h4 className="font-bold text-white text-sm">{campaign.title}</h4>
-                                                            <p className="text-xs text-text-secondary">{campaign.clientName || 'Interno'}</p>
-                                                            <div className="mt-2 flex gap-2">
-                                                                <button
-                                                                    onClick={() => handleToggleStatus(campaign.id, campaign.isActive)}
-                                                                    className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border ${campaign.isActive ? 'border-green-500/30 text-green-500' : 'border-red-500/30 text-red-500'}`}
-                                                                >
-                                                                    {campaign.isActive ? 'ACTIVA' : 'PAUSADA'}
-                                                                </button>
-                                                            </div>
+                                                            <p className="text-xs text-text-secondary">{campaign.clientName || 'Generado por IA'}</p>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div className="flex justify-between items-center border-t border-white/5 pt-3">
-                                                    <div className="flex gap-4 text-xs font-mono text-text-secondary">
-                                                        <span className="flex items-center gap-1"><Globe className="w-3 h-3" /> {campaign.impressionCount}</span>
-                                                        <span className="flex items-center gap-1"><ExternalLink className="w-3 h-3" /> {campaign.clickCount}</span>
-                                                    </div>
+                                                <div className="flex justify-end items-center border-t border-white/5 pt-3">
                                                     <div className="flex gap-2">
-                                                        <button onClick={() => handleManualPost(campaign.id)} className="p-3 min-h-[44px] min-w-[44px] bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl transition flex items-center justify-center">
-                                                            <Share2 className="w-5 h-5" />
-                                                        </button>
                                                         <button onClick={() => handleOpenAdPack(campaign)} className="p-3 min-h-[44px] min-w-[44px] bg-purple-500/10 hover:bg-purple-500/20 active:bg-purple-500/30 text-purple-400 rounded-xl transition flex items-center justify-center" title="Global Ad Pack">
                                                             <Globe className="w-5 h-5" />
                                                         </button>
