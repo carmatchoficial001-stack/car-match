@@ -155,12 +155,12 @@ function ContentPanel({ strategy }: { strategy: any }) {
     const isVideoStrategy = !!(vidIG || vidYTS || vidFB || vidSC || vidYTL)
 
     const videoRows = isVideoStrategy ? [
-        vidTT  && { icon: '🎵', label: 'TikTok',             badge: vidTT.format  || 'Vertical 9:16',   duration: vidTT.duration  || '30s–60s',   isHoriz: false, text: [vidTT.caption, vidTT.audio_suggestion ? `🎶 Audio: ${vidTT.audio_suggestion}` : ''].filter(Boolean).join('\n') },
-        vidIG  && { icon: '📸', label: 'Instagram Reels',    badge: vidIG.format  || 'Vertical 9:16',   duration: vidIG.duration  || '30s–90s',   isHoriz: false, text: vidIG.caption },
-        vidYTS && { icon: '▶️', label: 'YouTube Shorts',     badge: vidYTS.format || 'Vertical 9:16',   duration: vidYTS.duration || '30s–60s',   isHoriz: false, text: [vidYTS.titulo, vidYTS.descripcion].filter(Boolean).join('\n') },
-        vidFB  && { icon: '📘', label: 'Facebook Reels',     badge: vidFB.format  || 'Vertical 9:16',   duration: vidFB.duration  || '30s–90s',   isHoriz: false, text: vidFB.caption },
-        vidSC  && { icon: '👻', label: 'Snapchat Spotlight', badge: vidSC.format  || 'Vertical 9:16',   duration: vidSC.duration  || '15s–60s',   isHoriz: false, text: vidSC.caption },
-        vidYTL && { icon: '🎬', label: 'YouTube (largo)',    badge: vidYTL.format || 'Horizontal 16:9', duration: vidYTL.duration || '3min–10min', isHoriz: true,  text: [vidYTL.titulo, vidYTL.descripcion].filter(Boolean).join('\n') },
+        vidTT && { icon: '🎵', label: 'TikTok', badge: vidTT.format || 'Vertical 9:16', duration: vidTT.duration || '30s–60s', isHoriz: false, text: [vidTT.caption, vidTT.audio_suggestion ? `🎶 Audio: ${vidTT.audio_suggestion}` : ''].filter(Boolean).join('\n') },
+        vidIG && { icon: '📸', label: 'Instagram Reels', badge: vidIG.format || 'Vertical 9:16', duration: vidIG.duration || '30s–90s', isHoriz: false, text: vidIG.caption },
+        vidYTS && { icon: '▶️', label: 'YouTube Shorts', badge: vidYTS.format || 'Vertical 9:16', duration: vidYTS.duration || '30s–60s', isHoriz: false, text: [vidYTS.titulo, vidYTS.descripcion].filter(Boolean).join('\n') },
+        vidFB && { icon: '📘', label: 'Facebook Reels', badge: vidFB.format || 'Vertical 9:16', duration: vidFB.duration || '30s–90s', isHoriz: false, text: vidFB.caption },
+        vidSC && { icon: '👻', label: 'Snapchat Spotlight', badge: vidSC.format || 'Vertical 9:16', duration: vidSC.duration || '15s–60s', isHoriz: false, text: vidSC.caption },
+        vidYTL && { icon: '🎬', label: 'YouTube (largo)', badge: vidYTL.format || 'Horizontal 16:9', duration: vidYTL.duration || '3min–10min', isHoriz: true, text: [vidYTL.titulo, vidYTL.descripcion].filter(Boolean).join('\n') },
     ].filter(Boolean) as { icon: string; label: string; badge: string; duration: string; isHoriz: boolean; text: string }[] : []
 
     const imageRows = !isVideoStrategy ? [
@@ -383,52 +383,11 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
     const [isLoadingHistory, setIsLoadingHistory] = useState(false)
     const [showHistory, setShowHistory] = useState(false)
-    const [pendingAssets, setPendingAssets] = useState<{ id: string, type: string, msgId: string, imgIdx?: number }[]>([])
 
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     useEffect(() => { scrollToBottom() }, [messages])
 
-    // Poll Replicate predictions
-    useEffect(() => {
-        if (pendingAssets.length === 0) return
-        const interval = setInterval(async () => {
-            const { checkAIAssetStatus } = await import('@/app/admin/actions/ai-content-actions')
-            const results = await Promise.all(pendingAssets.map(async (asset) => {
-                try {
-                    const status = await checkAIAssetStatus(asset.id)
-                    return { ...asset, ...status }
-                } catch { return { ...asset, status: 'error' } }
-            }))
-
-            let anyDone = false
-            results.forEach(res => {
-                if (res.status === 'succeeded' && res.url) {
-                    anyDone = true
-                    setMessages(prev => prev.map(msg => {
-                        if (msg.id !== res.msgId) return msg
-
-                        if (res.type === 'video') {
-                            return { ...msg, videoUrl: res.url, videoPendingId: null }
-                        }
-                        if (res.type === 'image') {
-                            const newImages = [...(msg.images || [])]
-                            if (res.imgIdx !== undefined) newImages[res.imgIdx] = res.url
-                            const pendingCount = Math.max(0, (msg.pendingCount || 0) - 1)
-                            return { ...msg, images: newImages, pendingCount }
-                        }
-                        return msg
-                    }))
-                } else if (res.status === 'failed' || res.status === 'error') {
-                    anyDone = true
-                }
-            })
-            if (anyDone) {
-                setPendingAssets(prev => prev.filter(p => !results.some(r => r.id === p.id && (r.status === 'succeeded' || r.status === 'failed' || r.status === 'error'))))
-            }
-        }, 5000)
-        return () => clearInterval(interval)
-    }, [pendingAssets])
 
     // Load sessions / set welcome message
     useEffect(() => {
@@ -512,94 +471,107 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
         }
     }
 
-    // ── handleGenerate: mode-specific generation ──────────────────────────
+    // ── handleGenerate: lanza generación en segundo plano → resultado va a Campañas ──
     const handleGenerate = async () => {
         if (isGenerating) return
         setIsGenerating(true)
 
-        const msgId = Date.now().toString()
-        const thinkingId = msgId + '_thinking'
+        const thinkingId = Date.now().toString() + '_thinking'
 
         try {
             if (mode === 'IMAGE_GEN') {
-                // Detect how many images the user wants
                 const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''
                 const count = extractImageCount(lastUserMsg)
 
+                // 1️⃣ Mensaje en chat: confirmación instantánea
                 setMessages(prev => [...prev, {
                     id: thinkingId, role: 'assistant',
-                    content: `🎨 Generando ${count} imagen${count > 1 ? 'es' : ''}...`
+                    content: `🎨 Generando ${count} imagen${count > 1 ? 'es' : ''} en segundo plano...\n\n📁 **Ve a Campañas** para ver el resultado cuando esté listo.`
                 }])
+                setPrompt('')
 
+                // 2️⃣ Generar estrategia + lanzar predicciones en Replicate
                 const { generateImageStrategy, launchImageOnlyPrediction } = await import('@/app/admin/actions/ai-content-actions')
                 const strat = await generateImageStrategy(messages.slice(-10), 'MX')
                 if (!strat.success) throw new Error(strat.error || 'Error en estrategia')
 
-                // Launch N predictions in parallel
                 const predictions = await Promise.all(
                     Array.from({ length: count }).map((_, i) =>
                         launchImageOnlyPrediction({ ...strat.strategy, _seed: i }).catch(e => ({ success: false, error: e.message }))
                     )
                 )
 
-                const newMsg: any = {
-                    id: msgId,
-                    role: 'assistant',
-                    type: 'IMAGE_GEN',
-                    content: count === 1
-                        ? `✅ Imagen lista — aquí tienes tu resultado:`
-                        : `✅ ${count} imágenes generadas — puedes navegar y descargar cada una:`,
-                    images: [],
-                    pendingCount: 0,
-                    strategy: strat.strategy,
-                }
-
-                const toPoll: any[] = []
+                // 3️⃣ Construir el objeto de assets (igual que PublicityTab espera)
+                const imageUrls: string[] = []
+                const imagePendingIds: Record<string, string | null> = {}
                 predictions.forEach((pred, i) => {
                     if (!pred.success) return
                     const assets = (pred as any).assets
-                    if (assets?.imageUrl && assets.imageUrl.startsWith('http')) {
-                        newMsg.images.push(assets.imageUrl)
-                    } else {
-                        newMsg.pendingCount++
-                        newMsg.images.push(null)
+                    if (assets?.imageUrl?.startsWith('http')) {
+                        imageUrls.push(assets.imageUrl)
                     }
                     if (assets?.imagePendingIds?.square) {
-                        toPoll.push({ id: assets.imagePendingIds.square, type: 'image', msgId, imgIdx: i })
+                        imagePendingIds[`img_${i}`] = assets.imagePendingIds.square
+                        imagePendingIds.square = assets.imagePendingIds.square
                     }
                 })
 
-                setMessages(prev => [...prev.filter(m => m.id !== thinkingId), newMsg])
-                if (toPoll.length > 0) setPendingAssets(prev => [...prev, ...toPoll])
+                // 4️⃣ Despachar evento → PublicityTab lo recibe y abre el panel de Campañas
+                window.dispatchEvent(new CustomEvent('open-campaign-assets', {
+                    detail: {
+                        strategy: strat.strategy,
+                        imageUrl: imageUrls[0] || null,
+                        images: imageUrls,
+                        imagePendingIds: Object.keys(imagePendingIds).length > 0 ? imagePendingIds : null,
+                        type: 'image',
+                        count,
+                    }
+                }))
+
+                // 5️⃣ Cambiar al tab de Campañas automáticamente
+                window.dispatchEvent(new CustomEvent('switch-admin-tab', { detail: { tab: 'publicity' } }))
+
+                // Actualizar mensaje del chat con éxito
+                setMessages(prev => prev.map(m => m.id === thinkingId
+                    ? { ...m, content: `✅ ${count} imagen${count > 1 ? 'es iniciadas' : ' iniciada'} — se está generando en **Campañas** 📁\n\nAhí verás el resultado cuando esté listo junto con todos los copies para redes sociales.` }
+                    : m
+                ))
 
             } else if (mode === 'VIDEO_GEN') {
+                // 1️⃣ Mensaje en chat: confirmación instantánea
                 setMessages(prev => [...prev, {
                     id: thinkingId, role: 'assistant',
-                    content: '🎬 Iniciando producción del video...'
+                    content: `🎬 Iniciando producción del video en segundo plano...\n\n📁 **Ve a Campañas** para ver el guión, copies y el video cuando esté listo (3-5 min).`
                 }])
+                setPrompt('')
 
+                // 2️⃣ Generar estrategia (títulos, guión, copies) + lanzar predicción en Replicate
                 const { generateVideoStrategy, launchVideoOnlyPrediction } = await import('@/app/admin/actions/ai-content-actions')
                 const strat = await generateVideoStrategy(messages.slice(-10), 'MX')
                 if (!strat.success) throw new Error(strat.error || 'Error en estrategia')
 
                 const prediction = await launchVideoOnlyPrediction(strat.strategy)
-                if (!prediction.success) throw new Error((prediction as any).error || 'Error al iniciar video')
+                const assets = (prediction as any).assets || {}
 
-                const assets = (prediction as any).assets
-                const newMsg: any = {
-                    id: msgId,
-                    role: 'assistant',
-                    type: 'VIDEO_GEN',
-                    content: `✅ Video en producción — se actualizará aquí cuando esté listo (3-5 min):`,
-                    videoUrl: 'PENDING...',
-                    videoPendingId: assets.videoPendingId,
-                    strategy: strat.strategy,
-                }
+                // 3️⃣ Despachar evento → PublicityTab muestra la estrategia de inmediato
+                //    y sigue en polling para el video
+                window.dispatchEvent(new CustomEvent('open-campaign-assets', {
+                    detail: {
+                        strategy: strat.strategy,
+                        videoPendingId: assets.videoPendingId || null,
+                        videoUrl: null,
+                        type: 'video',
+                    }
+                }))
 
-                setMessages(prev => [...prev.filter(m => m.id !== thinkingId), newMsg])
-                if (assets.videoPendingId) {
-                    setPendingAssets(prev => [...prev, { id: assets.videoPendingId, type: 'video', msgId }])
-                }
+                // 4️⃣ Cambiar al tab de Campañas automáticamente
+                window.dispatchEvent(new CustomEvent('switch-admin-tab', { detail: { tab: 'publicity' } }))
+
+                // Actualizar mensaje del chat
+                setMessages(prev => prev.map(m => m.id === thinkingId
+                    ? { ...m, content: `✅ Video en producción — guión y copies listos en **Campañas** 📁\n\nEl video tardará 3-5 min en generarse. Puedes revisarlo directamente en el panel de Campañas.` }
+                    : m
+                ))
             }
 
         } catch (error: any) {
@@ -619,7 +591,6 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
         setMode(newMode)
         setCurrentSessionId(null)
         setMessages([])
-        setPendingAssets([])
     }
 
     return (

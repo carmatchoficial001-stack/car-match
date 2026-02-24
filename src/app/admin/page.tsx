@@ -70,6 +70,16 @@ export default function AdminPanel() {
     const [aiAnalysis, setAiAnalysis] = useState<any>(null)
     const [showQRModal, setShowQRModal] = useState(false)
 
+    // Listener: AI Studio despacha este evento cuando lanza generación en 2do plano
+    useEffect(() => {
+        const handleSwitchTab = (e: any) => {
+            const tab = e.detail?.tab as AdminView
+            if (tab) setActiveView(tab)
+        }
+        window.addEventListener('switch-admin-tab', handleSwitchTab)
+        return () => window.removeEventListener('switch-admin-tab', handleSwitchTab)
+    }, [])
+
     useEffect(() => {
         const fetchStats = async () => {
             try {
