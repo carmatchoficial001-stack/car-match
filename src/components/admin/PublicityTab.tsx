@@ -662,6 +662,7 @@ export default function PublicityTab() {
                 onClose={() => setShowAssetsModal(false)}
                 assets={generatedAssets}
                 sceneClips={sceneClips}
+                onRetryScene={handleRetryScene}
                 onSuccess={() => {
                     fetchCampaigns()
                     setShowAssetsModal(false)
@@ -841,7 +842,7 @@ function buildFallbackPlatformData(platformId: string, assets: any): any {
     return fallbacks[platformId] || { caption }
 }
 
-function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = [] }: any) {
+function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = [], onRetryScene }: any) {
     if (!isOpen || !assets) return null
 
     // Determine title
@@ -878,7 +879,7 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = 
                     {sceneClips.length > 0 && (
                         <MultiSceneVideoPlayer
                             scenes={sceneClips}
-                            onRetryScene={handleRetryScene}
+                            onRetryScene={onRetryScene}
                         />
                     )}
 
