@@ -266,16 +266,18 @@ function ContentPanel({ strategy }: { strategy: any }) {
 }
 
 // ─── Campaign Proposal Panel ───────────────────────────────────────────────
-function CampaignProposal({ strategy, onConfirm, isGenerating }: { strategy: any; onConfirm: () => void; isGenerating: boolean }) {
+function CampaignProposal({ strategy, onConfirm, isGenerating, mode }: { strategy: any; onConfirm: () => void; isGenerating: boolean; mode: AIMode }) {
     if (!strategy) return null
-    const { internal_title, visualSummary, isTrivia, imagePrompts } = strategy
-    const count = imagePrompts?.length || 0
+    const { internal_title, visualSummary, isTrivia, imagePrompts, scenes } = strategy
+    const imgCount = imagePrompts?.length || 0
+    const scenesCount = scenes?.length || 0
+    const isVideo = mode === 'VIDEO_GEN'
 
     return (
         <div className="mt-3 border border-indigo-500/30 rounded-xl overflow-hidden bg-indigo-500/5 p-4 space-y-3">
             <div className="flex items-center gap-2 mb-1">
                 <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> Propuesta de Campaña
+                    <Sparkles className="w-3 h-3" /> Propuesta de {isVideo ? 'Video' : 'Campaña'}
                 </span>
                 {isTrivia && (
                     <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider">
@@ -284,33 +286,40 @@ function CampaignProposal({ strategy, onConfirm, isGenerating }: { strategy: any
                 )}
             </div>
 
-            <h4 className="text-sm font-bold text-white leading-tight">{internal_title || 'Nueva Campaña CarMatch'}</h4>
+            <h4 className="text-sm font-bold text-white leading-tight">{internal_title || (isVideo ? 'Nueva Producción de Video' : 'Nueva Campaña CarMatch')}</h4>
 
             <div className="bg-black/20 rounded-lg p-3 border border-white/5">
-                <p className="text-[10px] font-black uppercase text-zinc-500 mb-2 tracking-widest">📋 Plan de Generación:</p>
+                <p className="text-[10px] font-black uppercase text-zinc-500 mb-2 tracking-widest">📋 Plan de {isVideo ? 'Producción' : 'Generación'}:</p>
                 <p className="text-xs text-zinc-300 whitespace-pre-wrap leading-relaxed">
-                    {visualSummary || (isTrivia ? `Generaré ${count} imágenes únicas para tu trivia.` : 'Generaré una imagen de alta calidad para tu campaña.')}
+                    {visualSummary || (
+                        isVideo
+                            ? `Generaré un video con ${scenesCount} escenas basadas en tu idea.`
+                            : (isTrivia ? `Generaré ${imgCount} imágenes únicas para tu trivia.` : 'Generaré una imagen de alta calidad para tu campaña.')
+                    )}
                 </p>
             </div>
 
             <button
                 onClick={onConfirm}
                 disabled={isGenerating}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-widest transition shadow-lg shadow-indigo-900/20"
+                className={`w-full flex items-center justify-center gap-2 px-4 py-3 ${isVideo ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-900/20' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20'} disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-widest transition shadow-lg`}
             >
-                {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                {isTrivia ? `✨ Confirmar y Generar ${count} Imágenes` : '✨ Confirmar y Generar Imágenes'}
+                {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : (isVideo ? <Video className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />)}
+                {isVideo
+                    ? '🎥 Confirmar e Iniciar Producción'
+                    : (isTrivia ? `✨ Confirmar y Generar ${imgCount} Imágenes` : '✨ Confirmar y Generar Imágenes')
+                }
             </button>
 
             <p className="text-[9px] text-zinc-500 text-center text-balance italic">
-                *Esto consumirá los créditos correspondientes para generar las imágenes en alta resolución.*
+                *Esto consumirá los créditos correspondientes para generar los assets en alta resolución.*
             </p>
         </div>
     )
 }
 
 // ─── Message Item ──────────────────────────────────────────────────────────
-const MessageItem = memo(({ msg, onDownload, onConfirm }: { msg: any; onDownload: (url: string, i: number) => void, onConfirm?: (strat: any) => void }) => {
+const MessageItem = memo(({ msg, onDownload, onConfirm, currentMode }: { msg: any; onDownload: (url: string, i: number) => void, onConfirm?: (strat: any) => void, currentMode: AIMode }) => {
     const [copied, setCopied] = useState(false)
 
     const cleanContent = useMemo(() =>
@@ -342,6 +351,7 @@ const MessageItem = memo(({ msg, onDownload, onConfirm }: { msg: any; onDownload
                             strategy={msg.strategy}
                             onConfirm={() => onConfirm?.(msg.strategy)}
                             isGenerating={!!msg.isGenerating}
+                            mode={currentMode}
                         />
                     )}
 
@@ -865,15 +875,21 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
             {/* MESSAGES */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6 bg-[#0F1115]">
                 {messages.map((msg) => (
-                    <MessageItem key={msg.id || msg.content} msg={msg} onDownload={handleDownload} />
+                    <MessageItem
+                        key={msg.id || msg.content}
+                        msg={msg}
+                        onDownload={handleDownload}
+                        onConfirm={handleGenerate}
+                        currentMode={mode}
+                    />
                 ))}
                 {isGenerating && (
                     <div className="flex gap-4 animate-pulse">
-                        <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
-                            <Sparkles className="w-4 h-4 text-white" />
+                        <div className="shrink-0">
+                            <Logo className="w-8 h-8 shadow-indigo-950/20 shadow-xl opacity-60" />
                         </div>
-                        <div className="bg-[#1A1D21] px-4 py-3 rounded-2xl text-sm text-indigo-300">
-                            {mode === 'IMAGE_GEN' ? 'Creando imágenes con IA...' : mode === 'VIDEO_GEN' ? 'Produciendo video...' : 'Pensando...'}
+                        <div className="bg-[#1A1D21] px-4 py-3 rounded-2xl text-sm text-indigo-300 border border-white/5">
+                            {mode === 'IMAGE_GEN' ? '🎨 Diseñando imágenes con IA...' : mode === 'VIDEO_GEN' ? '🎬 Produciendo video CarMatch...' : '🧠 Pensando...'}
                         </div>
                     </div>
                 )}
