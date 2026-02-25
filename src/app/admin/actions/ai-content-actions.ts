@@ -442,7 +442,7 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
             INSTRUCCIONES CLAVE:
             - **OMNIPUBLICACIÓN (Carruseles)**: Aunque sean imágenes, plataformas como TikTok y Snapchat las aman como "Photo Swipes" (carruseles con música). Crea los copies pensando en este formato dinámico.
             - **CALIDAD VISUAL**: No seas genérico. Ruben odia lo común. Si pide un coche, describe el modelo exacto, el estado de la pintura, el entorno (calle de México con baches, taller rústico, agencia de lujo).
-            - **DIVERSIDAD EN LISTAS**: Si el usuario pide múltiples fotos, una trivia o una lista, **ES OBLIGATORIO** que el array `imagePrompts` contenga prompts **DISTINTOS** para cada imagen. No repitas el mismo prompt. Cada imagen debe ser una escena diferente relacionada al tema.
+            - DIVERSIDAD EN LISTAS: Si el usuario pide múltiples fotos, una trivia o una lista, **ES OBLIGATORIO** que el array imagePrompts contenga prompts **DISTINTOS** para cada imagen. No repitas el mismo prompt. Cada imagen debe ser una escena diferente relacionada al tema.
             - **TRIVIA**: Si es trivia, cada prompt debe ser un reto visual (un detalle de motor, un interior raro, una silueta) correspondiente a una de las preguntas.
             - **LOGOS**: Menciona que si hay pantallas o letreros, deben decir "CarMatch".
             
