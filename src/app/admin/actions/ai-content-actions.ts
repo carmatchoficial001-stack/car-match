@@ -59,7 +59,9 @@ export async function generateImagePrompt(topic: string, style: string = 'realis
             - The setting should look like a location in ${country.name} (streets, landscapes, or architecture typical of ${country.name}).
             - Lighting: Cinematic, professional photography.
             - Quality: 8k, photorealistic, highly detailed.
-            
+            - **BRANDING**: If the scene includes a smartphone, a store sign, a dealership, or an app interface, it MUST display the "**CarMatch**" brand.
+            - **LOGO INTEGRITY**: Strictly forbidden to modify the logo's official colors, shape, or proportions. It must look professional and original.
+
             IMPORTANT: If the subject is a situation (like a date, a repair, or a person using an app), focus on the HUMAN EMOTION and the SCENE, not just a parked car.
             
             Return ONLY the prompt text in English.
@@ -446,6 +448,9 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
             {
                 "internal_title": "Título breve de la campaña",
                 "imagePrompt": "PROMPT EN INGLÉS MUY DETALLADO para generador de imágenes IA (Flux/Midjourney style). Describe escena, iluminación, estilo, colores, perspectiva.",
+                "imagePrompts": ["Opcional: Si el usuario pide múltiples imágenes, trivia o lista, pon aquí los prompts individuales en INGLÉS detalladamente (hasta 10)."],
+                "isTrivia": true/false (si detectas que es una trivia de preguntas y respuestas),
+                "visualSummary": "Resumen en ESPAÑOL de lo que se generará (lista de escenas/fotos) para que el usuario confirme.",
                 "caption": "Caption principal en ESPAÑOL (${country.slang}). Corto, gancho, emojis y hashtags #CarMatch.",
                 "platforms": {
                     "facebook": {
@@ -498,6 +503,23 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
     }
 }
 
+/**
+ * Genera una propuesta de campaña (sin lanzar generación de Replicate)
+ * para que el usuario la valide en el chat.
+ */
+export async function getCampaignStrategyPreview(history: any[], mode: 'IMAGE' | 'VIDEO' = 'IMAGE', targetCountry: string = 'MX') {
+    try {
+        if (mode === 'IMAGE') {
+            return await generateImageStrategy(history, targetCountry);
+        } else {
+            return await generateVideoStrategy(history, targetCountry);
+        }
+    } catch (error) {
+        console.error('Error getting strategy preview:', error);
+        return { success: false, error: 'Error al generar la propuesta.' };
+    }
+}
+
 export async function generateVideoStrategy(chatHistory: any[], targetCountry: string = 'MX') {
     try {
         const country = getCountryContext(targetCountry)
@@ -509,6 +531,8 @@ export async function generateVideoStrategy(chatHistory: any[], targetCountry: s
             Conoces los algoritmos de TikTok, Instagram, YouTube y Snapchat mejor que sus propios ingenieros.
             
             TU MISIÓN: Hacer a CarMatch VIRAL y MONETIZABLE en TODAS las plataformas de video.
+            IMPORTANTE: Todo branding visual, letreros, apps o concesionarios sugeridos DEBEN usar el nombre o logo de "**CarMatch**".
+            ⚠️ **OBLIGATORIO**: PROHIBIDO alterar colores, forma o proporciones del logo oficial. Debe respetarse la identidad visual original sin distorsiones.
 
             ══════════════════════════════════════════════════════
             ⚡ REGLA DE ORO — LOS PRIMEROS 3 SEGUNDOS SON TODO

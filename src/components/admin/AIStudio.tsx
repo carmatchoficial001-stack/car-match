@@ -8,6 +8,7 @@ import {
 import { createAISession, getAISession, getAISessions, deleteAISession, saveAIMessage, renameAISession } from '@/app/admin/actions/ai-studio-actions'
 import { chatWithPublicityAgent } from '@/app/admin/actions/ai-content-actions'
 import { useVideoProduction } from '@/contexts/VideoProductionContext'
+import { Logo } from '@/components/Logo'
 
 type AIMode = 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'VIDEO_GEN' | 'STRATEGY'
 
@@ -264,8 +265,52 @@ function ContentPanel({ strategy }: { strategy: any }) {
     )
 }
 
+// ─── Campaign Proposal Panel ───────────────────────────────────────────────
+function CampaignProposal({ strategy, onConfirm, isGenerating }: { strategy: any; onConfirm: () => void; isGenerating: boolean }) {
+    if (!strategy) return null
+    const { internal_title, visualSummary, isTrivia, imagePrompts } = strategy
+    const count = imagePrompts?.length || 0
+
+    return (
+        <div className="mt-3 border border-indigo-500/30 rounded-xl overflow-hidden bg-indigo-500/5 p-4 space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+                <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" /> Propuesta de Campaña
+                </span>
+                {isTrivia && (
+                    <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider">
+                        Trivia Detectada
+                    </span>
+                )}
+            </div>
+
+            <h4 className="text-sm font-bold text-white leading-tight">{internal_title || 'Nueva Campaña CarMatch'}</h4>
+
+            <div className="bg-black/20 rounded-lg p-3 border border-white/5">
+                <p className="text-[10px] font-black uppercase text-zinc-500 mb-2 tracking-widest">📋 Plan de Generación:</p>
+                <p className="text-xs text-zinc-300 whitespace-pre-wrap leading-relaxed">
+                    {visualSummary || (isTrivia ? `Generaré ${count} imágenes únicas para tu trivia.` : 'Generaré una imagen de alta calidad para tu campaña.')}
+                </p>
+            </div>
+
+            <button
+                onClick={onConfirm}
+                disabled={isGenerating}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-widest transition shadow-lg shadow-indigo-900/20"
+            >
+                {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                {isTrivia ? `✨ Confirmar y Generar ${count} Imágenes` : '✨ Confirmar y Generar Imágenes'}
+            </button>
+
+            <p className="text-[9px] text-zinc-500 text-center text-balance italic">
+                *Esto consumirá los créditos correspondientes para generar las imágenes en alta resolución.*
+            </p>
+        </div>
+    )
+}
+
 // ─── Message Item ──────────────────────────────────────────────────────────
-const MessageItem = memo(({ msg, onDownload }: { msg: any; onDownload: (url: string, i: number) => void }) => {
+const MessageItem = memo(({ msg, onDownload, onConfirm }: { msg: any; onDownload: (url: string, i: number) => void, onConfirm?: (strat: any) => void }) => {
     const [copied, setCopied] = useState(false)
 
     const cleanContent = useMemo(() =>
@@ -280,12 +325,25 @@ const MessageItem = memo(({ msg, onDownload }: { msg: any; onDownload: (url: str
 
     return (
         <div className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''} group`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-lg ${msg.role === 'user' ? 'bg-zinc-700' : 'bg-gradient-to-br from-purple-600 to-indigo-600'}`}>
-                {msg.role === 'user' ? <User className='w-4 h-4 text-white' /> : <Sparkles className="w-4 h-4 text-white" />}
+            <div className={`shrink-0 ${msg.role === 'user' ? 'w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center shadow-lg' : ''}`}>
+                {msg.role === 'user' ? (
+                    <User className='w-4 h-4 text-white' />
+                ) : (
+                    <Logo className="w-8 h-8 shadow-indigo-950/20 shadow-xl" />
+                )}
             </div>
             <div className={`max-w-[85%] sm:max-w-[75%] space-y-2`}>
                 <div className={`p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${msg.role === 'user' ? 'bg-zinc-800 text-white rounded-tr-none' : 'bg-[#1A1D21] text-gray-200 border border-white/5 rounded-tl-none'}`}>
                     {cleanContent}
+
+                    {/* 📋 PROPOSAL — Antes de generar */}
+                    {msg.type === 'PROPOSAL' && msg.strategy && (
+                        <CampaignProposal
+                            strategy={msg.strategy}
+                            onConfirm={() => onConfirm?.(msg.strategy)}
+                            isGenerating={!!msg.isGenerating}
+                        />
+                    )}
 
                     {/* 🖼️ IMAGES — Solo para modo IMAGE_GEN */}
                     {msg.type === 'IMAGE_GEN' && (
@@ -416,8 +474,8 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
 
         if (!currentSessionId) {
             const welcomes: Record<string, string> = {
-                IMAGE_GEN: '🎨 **Estudio de Imágenes**\n\nDime qué foto quieres y cuántas necesitas (máx 10).\n\nEjemplos:\n• "Crea 3 fotos de CarMatch en ciudad nocturna"\n• "Genera 5 imágenes de lujo para Instagram"\n• "Una foto de un Mustang rojo en la carretera"',
-                VIDEO_GEN: '🎬 **Productora de Video**\n\nDescribe el video que necesitas y lo genero.\n\nEjemplos:\n• "Video de 15s para TikTok de CarMatch"\n• "Anuncio cinematográfico de SUV de lujo"\n• "Historia de usuario vendiendo su auto con CarMatch"',
+                IMAGE_GEN: '🎨 **Estudio de Imágenes (Beta)**\n\n¡Hola! Ruben. Cuéntame qué fotos quieres generar. Ahora puedo crear trivias y listas de hasta 10 imágenes distintas de una vez.\n\nEjemplo: "Crea una trivia de 5 preguntas sobre deportivos alemanes".\n\n*Primero te mostraré una propuesta para tu aprobación.*',
+                VIDEO_GEN: '🎬 **Productora de Video**\n\nDescribe el video que necesitas y lo genero.\n\nEjemplos:\n• "Video de 15s para TikTok de CarMatch"\n• "Anuncio cinematográfico de SUV de lujo"\n\n*Analizaré tu guión y te pediré confirmación antes de la producción.*',
                 CHAT: '¡Hola! Soy tu Director Creativo de IA. ¿Creamos algo viral hoy? 🚀\n\n*Nota: CarMatch facilita la conexión, pero no se involucra en las negociaciones finales ni transacciones entre usuarios.*'
             }
             setMessages([{ id: 'initial', role: 'assistant', content: welcomes[mode] || welcomes.CHAT }])
@@ -498,12 +556,34 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
             }
             if (sessionId) saveAIMessage(sessionId, 'user', userText)
 
-            const historyForAI = messages.slice(-10)
-            const response = await chatWithPublicityAgent([...historyForAI, { role: 'user', content: userText }], 'MX')
+            // 🤖 FLUJO ESPECIAL: Para IMAGE_GEN o VIDEO_GEN, primero generamos propuesta
+            if (mode === 'IMAGE_GEN' || mode === 'VIDEO_GEN') {
+                const { getCampaignStrategyPreview } = await import('@/app/admin/actions/ai-content-actions')
+                const res = await getCampaignStrategyPreview([...messages, { role: 'user', content: userText }], mode === 'IMAGE_GEN' ? 'IMAGE' : 'VIDEO', 'MX')
 
-            const aiContent = response.success ? response.message! : '❌ Error al procesar tu mensaje.'
-            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: aiContent }])
-            if (sessionId) await saveAIMessage(sessionId, 'assistant', aiContent)
+                if (res.success) {
+                    const aiContent = `He analizado tu petición. Aquí tienes mi propuesta estratégica para esta campaña. Revísala y confirma para iniciar la generación de los assets.`
+                    const msgId = Date.now().toString()
+                    setMessages(prev => [...prev, {
+                        id: msgId,
+                        role: 'assistant',
+                        content: aiContent,
+                        type: 'PROPOSAL',
+                        strategy: res.strategy
+                    }])
+                    if (sessionId) await saveAIMessage(sessionId, 'assistant', aiContent)
+                } else {
+                    throw new Error(res.error || 'Error al generar propuesta')
+                }
+            } else {
+                // Modo CHAT tradicional
+                const historyForAI = messages.slice(-10)
+                const response = await chatWithPublicityAgent([...historyForAI, { role: 'user', content: userText }], 'MX')
+
+                const aiContent = response.success ? response.message! : '❌ Error al procesar tu mensaje.'
+                setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: aiContent }])
+                if (sessionId) await saveAIMessage(sessionId, 'assistant', aiContent)
+            }
         } catch (e: any) {
             const mappedMessage = ERROR_MAP[e.message] || `❌ Error: ${e.message}`
             setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: mappedMessage }])
@@ -513,7 +593,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
     }
 
     // ── handleGenerate: lanza generación en segundo plano → resultado va a Campañas ──
-    const handleGenerate = async () => {
+    const handleGenerate = async (confirmedStrategy?: any) => {
         if (isGenerating) return
         setIsGenerating(true)
 
@@ -521,28 +601,55 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
 
         try {
             if (mode === 'IMAGE_GEN') {
-                const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''
-                const count = extractImageCount(lastUserMsg)
+                let strat = confirmedStrategy;
+                let count = strat?.imagePrompts?.length || strat?.count || 1;
 
-                // 1️⃣ Mensaje en chat: confirmación instantánea
-                setMessages(prev => [...prev, {
-                    id: thinkingId, role: 'assistant',
-                    content: `🎨 Generando ${count} imagen${count > 1 ? 'es' : ''} en segundo plano...\n\n📁 **Ve a Campañas** para ver el resultado cuando esté listo.`
-                }])
-                setPrompt('')
+                if (!strat) {
+                    const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || ''
+                    count = extractImageCount(lastUserMsg)
 
-                // 2️⃣ Generar estrategia + lanzar predicciones en Replicate
-                const { generateImageStrategy, launchImageOnlyPrediction } = await import('@/app/admin/actions/ai-content-actions')
-                const strat = await generateImageStrategy(messages.slice(-10), 'MX')
-                if (!strat.success) throw new Error(strat.error || 'Error en estrategia')
+                    // 1️⃣ Mensaje en chat: confirmación instantánea
+                    setMessages(prev => [...prev, {
+                        id: thinkingId, role: 'assistant',
+                        content: `🎨 Generando ${count} imagen${count > 1 ? 'es' : ''} en segundo plano...\n\n📁 **Ve a Campañas** para ver el resultado cuando esté listo.`
+                    }])
+                    setPrompt('')
 
-                const predictions = await Promise.all(
-                    Array.from({ length: count }).map((_, i) =>
-                        launchImageOnlyPrediction({ ...strat.strategy, _seed: i }).catch(e => ({ success: false, error: e.message }))
-                    )
-                )
+                    // 2️⃣ Generar estrategia + lanzar predicciones en Replicate
+                    const { generateImageStrategy } = await import('@/app/admin/actions/ai-content-actions')
+                    const stratRes = await generateImageStrategy(messages.slice(-10), 'MX')
+                    if (!stratRes.success) throw new Error((stratRes as any).error || 'Error en estrategia')
+                    strat = (stratRes as any).strategy;
+                } else {
+                    // Si ya tenemos la estrategia confirmada, solo actualizamos el mensaje
+                    setMessages(prev => [...prev, {
+                        id: thinkingId, role: 'assistant',
+                        content: `🚀 Iniciando generación masiva de ${count} imágenes...`
+                    }])
+                }
 
-                // 3️⃣ Construir el objeto de assets (igual que PublicityTab espera)
+                const { launchImageOnlyPrediction } = await import('@/app/admin/actions/ai-content-actions')
+
+                // 3️⃣ Lanzar predicciones: SECUENCIAL (uno por uno) como pidió Ruben
+                const promptsToGenerate = strat.imagePrompts && Array.isArray(strat.imagePrompts)
+                    ? strat.imagePrompts.slice(0, 10) // Límite de 10
+                    : Array.from({ length: count }).map(() => strat.imagePrompt);
+
+                const predictions = []
+                for (let i = 0; i < promptsToGenerate.length; i++) {
+                    const p = promptsToGenerate[i]
+
+                    // Actualizar mensaje de "Thinking" con progreso
+                    setMessages(prev => prev.map(m => m.id === thinkingId
+                        ? { ...m, content: `🎨 Registrando e iniciando imagen ${i + 1} de ${promptsToGenerate.length}...` }
+                        : m
+                    ))
+
+                    const pred = await launchImageOnlyPrediction({ ...strat, imagePrompt: p, _seed: i }).catch((e: any) => ({ success: false, error: e.message }))
+                    predictions.push(pred)
+                }
+
+                // 4️⃣ Construir el objeto de assets (igual que PublicityTab espera)
                 const imageUrls: string[] = []
                 const imagePendingIds: Record<string, string | null> = {}
                 predictions.forEach((pred, i) => {
@@ -557,43 +664,51 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                     }
                 })
 
-                // 4️⃣ Despachar evento → PublicityTab lo recibe y abre el panel de Campañas
+                // 5️⃣ Despachar evento → PublicityTab lo recibe y abre el panel de Campañas
                 window.dispatchEvent(new CustomEvent('open-campaign-assets', {
                     detail: {
-                        strategy: strat.strategy,
+                        strategy: strat,
                         imageUrl: imageUrls[0] || null,
                         images: imageUrls,
                         imagePendingIds: Object.keys(imagePendingIds).length > 0 ? imagePendingIds : null,
                         type: 'image',
-                        count,
+                        count: promptsToGenerate.length,
                     }
                 }))
 
-                // 5️⃣ Cambiar al tab de Campañas automáticamente
+                // 6️⃣ Cambiar al tab de Campañas automáticamente
                 window.dispatchEvent(new CustomEvent('switch-admin-tab', { detail: { tab: 'publicity' } }))
 
                 // Actualizar mensaje del chat con éxito
                 setMessages(prev => prev.map(m => m.id === thinkingId
-                    ? { ...m, content: `✅ ${count} imagen${count > 1 ? 'es iniciadas' : ' iniciada'} — se está generando en **Campañas** 📁\n\nAhí verás el resultado cuando esté listo junto con todos los copies para redes sociales.` }
+                    ? { ...m, content: `✅ ${promptsToGenerate.length} imagen${promptsToGenerate.length > 1 ? 'es iniciadas' : ' iniciada'} — se está generando en **Campañas** 📁\n\nAhí verás el resultado cuando esté listo junto con todos los copies para redes sociales.` }
                     : m
                 ))
 
             } else if (mode === 'VIDEO_GEN') {
-                // 1️⃣ Mensaje en chat: confirmación instantánea
-                setMessages(prev => [...prev, {
-                    id: thinkingId, role: 'assistant',
-                    content: `🎬 Analizando tu idea y preparando la producción...`
-                }])
-                setPrompt('')
+                let strategy = confirmedStrategy;
 
-                // 2️⃣ Generar estrategia multi-escena (guión + scenes[] + copies)
-                const { generateVideoStrategy } = await import('@/app/admin/actions/ai-content-actions')
+                if (!strategy) {
+                    // 1️⃣ Mensaje en chat: confirmación instantánea
+                    setMessages(prev => [...prev, {
+                        id: thinkingId, role: 'assistant',
+                        content: `🎬 Analizando tu idea y preparando la producción...`
+                    }])
+                    setPrompt('')
+
+                    // 2️⃣ Generar estrategia multi-escena (guión + scenes[] + copies)
+                    const { generateVideoStrategy } = await import('@/app/admin/actions/ai-content-actions')
+                    const strat = await generateVideoStrategy(messages.slice(-10), 'MX')
+                    if (!strat.success) throw new Error((strat as any).error || 'Error en estrategia')
+                    strategy = (strat as any).strategy;
+                } else {
+                    setMessages(prev => [...prev, {
+                        id: thinkingId, role: 'assistant',
+                        content: `🎬 Iniciando producción de video: "${strategy.internal_title}"...`
+                    }])
+                }
+
                 const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
-
-                const strat = await generateVideoStrategy(messages.slice(-10), 'MX')
-                if (!strat.success) throw new Error(strat.error || 'Error en estrategia')
-
-                const strategy = strat.strategy
                 const scenesCount = strategy.scenes?.length || 0
                 const duration = strategy.scenes?.reduce((a: number, s: any) => a + (s.duration_seconds || 8), 0) || 0
 
