@@ -440,15 +440,17 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
             ${contextStr}
             
             INSTRUCCIONES CLAVE:
-            - Si el usuario pide un MEME -> Describe la imagen visualmente graciosa.
-            - Si pide TRIVIA -> Imagen macro de una pieza difícil de identificar.
-            - Si pide ÉPICO -> Estilo cinematográfico, cyberpunk, vaporwave, etc.
+            - **OMNIPUBLICACIÓN (Carruseles)**: Aunque sean imágenes, plataformas como TikTok y Snapchat las aman como "Photo Swipes" (carruseles con música). Crea los copies pensando en este formato dinámico.
+            - **CALIDAD VISUAL**: No seas genérico. Ruben odia lo común. Si pide un coche, describe el modelo exacto, el estado de la pintura, el entorno (calle de México con baches, taller rústico, agencia de lujo).
+            - **DIVERSIDAD EN LISTAS**: Si el usuario pide múltiples fotos, una trivia o una lista, **ES OBLIGATORIO** que el array `imagePrompts` contenga prompts **DISTINTOS** para cada imagen. No repitas el mismo prompt. Cada imagen debe ser una escena diferente relacionada al tema.
+            - **TRIVIA**: Si es trivia, cada prompt debe ser un reto visual (un detalle de motor, un interior raro, una silueta) correspondiente a una de las preguntas.
+            - **LOGOS**: Menciona que si hay pantallas o letreros, deben decir "CarMatch".
             
             Output JSON EXACTO (sin campos adicionales, sin comentarios):
             {
                 "internal_title": "Título breve de la campaña",
-                "imagePrompt": "PROMPT EN INGLÉS MUY DETALLADO para generador de imágenes IA (Flux/Midjourney style). Describe escena, iluminación, estilo, colores, perspectiva.",
-                "imagePrompts": ["Opcional: Si el usuario pide múltiples imágenes, trivia o lista, pon aquí los prompts individuales en INGLÉS detalladamente (hasta 10)."],
+                "imagePrompt": "PROMPT PRINCIPAL EN INGLÉS MUY DETALLADO (Flux style).",
+                "imagePrompts": ["ARRAY DE PROMPTS INDIVIDUALES EN INGLÉS. Obligatorio si el usuario pide más de una imagen o es una trivia. Crea escenas VARIADAS y DETALLADAS. (Hasta 10)."],
                 "isTrivia": true/false (si detectas que es una trivia de preguntas y respuestas),
                 "visualSummary": "Resumen en ESPAÑOL de lo que se generará (lista de escenas/fotos) para que el usuario confirme.",
                 "caption": "Caption principal en ESPAÑOL (${country.slang}). Corto, gancho, emojis y hashtags #CarMatch.",
@@ -461,7 +463,12 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
                         "caption": "Caption para Instagram. Emojis, line breaks, hasta 5 hashtags al final. Max 220 chars antes de 'ver más'."
                     },
                     "tiktok": {
-                        "caption": "Caption corto y viral para TikTok. Max 150 chars. Hashtags trending. Lenguaje Gen-Z (${country.slang})."
+                        "caption": "Caption corto y viral para TikTok (Formato Carrusel/Fotos). Max 150 chars. Hashtags trending. Lenguaje Gen-Z (${country.slang}). Sugerencia de audio viral.",
+                        "swipe_style": "Describe cómo deben deslizarse las fotos (ej: 'Sync with beat', 'Slow transition')"
+                    },
+                    "snapchat": {
+                        "caption": "Caption para Spotlight/Snap (Fotos). ULTRA casual. Max 100 chars.",
+                        "audio_suggestion": "Tipo de música ideal"
                     },
                     "twitter_x": {
                         "tweet": "Tweet corto e impactante. Max 260 chars. Sin hashtags genéricos, máximo 2. Provoca reacción o retweet."
@@ -485,6 +492,19 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
                     },
                     "threads": {
                         "post": "Post para Threads/Meta. Hasta 500 chars. Conversacional."
+                    },
+                    "telegram": {
+                        "mensaje": "Mensaje para Canal de Telegram. Usa negritas, emojis y un tono de 'oportunidad única'. Incluye link carmatch.app."
+                    },
+                    "reddit": {
+                        "post": "Post para r/Autos o similar. Tono menos comercial, más de ayuda o geek. Sin sonar a anuncio."
+                    },
+                    "email": {
+                        "asunto": "Asunto impactante para Newsletter",
+                        "cuerpo": "Cuerpo corto (2 párrafos) con beneficios y CTA claro."
+                    },
+                    "push_sms": {
+                        "texto": "Texto ultra-corto (max 120 chars) para Notificación Push o SMS."
                     }
                 }
             }
@@ -656,6 +676,16 @@ export async function generateVideoStrategy(chatHistory: any[], targetCountry: s
                         "format": "Horizontal o Vertical",
                         "duration": "15s–140s (max 2:20 en X)",
                         "caption": "Tweet con video LISTO PARA PEGAR. Max 260 chars. Impactante, provoca retweet o reply. Máx 2 hashtags. Termina con pregunta o dato sorpresa."
+                    },
+                    "telegram": {
+                        "mensaje": "Video post para Telegram. Negritas y tono de noticia/alerta viral. Link carmatch.app."
+                    },
+                    "reddit": {
+                        "post": "Post para Reddit con video. Tono de discusión o curiosidad. 'Miren este hallazgo en CarMatch...'"
+                    },
+                    "email": {
+                        "asunto": "Mira el video de la semana en CarMatch 🎬",
+                        "cuerpo": "Introducción al video y link para verlo. Enfoque en el valor del video."
                     }
                 }
             }

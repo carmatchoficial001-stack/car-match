@@ -25,6 +25,7 @@ function extractImageCount(text: string): number {
             return Math.min(Math.max(n, 1), 10)
         }
     }
+    if (text.toLowerCase().includes('trivia') || text.toLowerCase().includes('lista')) return 5
     return 1
 }
 
@@ -129,7 +130,7 @@ function PlatformRow({ icon, label, text, borderBottom = true }: { icon: string;
 }
 
 // ─── Content Copies Panel ──────────────────────────────────────────────────
-function ContentPanel({ strategy }: { strategy: any }) {
+function ContentPanel({ strategy, onSaveCampaign }: { strategy: any; onSaveCampaign?: () => void }) {
     if (!strategy) return null
     const {
         internal_title, caption, platforms, videoScript,
@@ -179,6 +180,22 @@ function ContentPanel({ strategy }: { strategy: any }) {
 
     return (
         <div className="mt-3 border border-white/10 rounded-xl overflow-hidden bg-black/30">
+            {/* Botón de crear campaña (Mover aquí según pedido de Ruben) */}
+            {onSaveCampaign && (
+                <div className="p-3 bg-indigo-600/10 border-b border-white/10 flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] font-black uppercase text-indigo-400 tracking-widest">¿Todo listo?</p>
+                        <p className="text-[9px] text-zinc-500">Publica estas ideas como una campaña formal.</p>
+                    </div>
+                    <button
+                        onClick={onSaveCampaign}
+                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-black uppercase tracking-widest transition"
+                    >
+                        <RefreshCw className="w-3.5 h-3.5" /> Crear Campaña
+                    </button>
+                </div>
+            )}
+
             {/* Título de campaña */}
             {internal_title && <PlatformRow icon="📌" label="Título de campaña" text={internal_title} />}
 
@@ -374,7 +391,7 @@ const MessageItem = memo(({ msg, onDownload, onConfirm, currentMode }: { msg: an
                                 </div>
                             )}
                             {/* Copies/Título generados */}
-                            <ContentPanel strategy={msg.strategy} />
+                            <ContentPanel strategy={msg.strategy} onSaveCampaign={() => onConfirm?.(msg.strategy)} />
                         </>
                     )}
 
@@ -398,7 +415,7 @@ const MessageItem = memo(({ msg, onDownload, onConfirm, currentMode }: { msg: an
                                 </div>
                             ) : null}
                             {/* Guión y copies del video */}
-                            <ContentPanel strategy={msg.strategy} />
+                            <ContentPanel strategy={msg.strategy} onSaveCampaign={() => onConfirm?.(msg.strategy)} />
                         </>
                     )}
                 </div>
@@ -674,19 +691,31 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                     }
                 })
 
-                // 5️⃣ Despachar evento → PublicityTab lo recibe y abre el panel de Campañas
+                // 5️⃣ GUARDADO AUTOMÁTICO: Persistir en la base de datos
+                const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
+                const fullAssets = {
+                    ...strat,
+                    imageUrl: imageUrls[0] || null,
+                    images: imageUrls,
+                    imagePendingIds: Object.keys(imagePendingIds).length > 0 ? imagePendingIds : null,
+                    type: 'image',
+                    count: promptsToGenerate.length
+                }
+                const saveRes = await createCampaignFromAssets(fullAssets)
+                const campaignId = saveRes.success ? (saveRes as any).campaign?.id : null
+
+                // Notificar a la UI global que hay una nueva campaña
+                window.dispatchEvent(new CustomEvent('campaign-created', { detail: saveRes }))
+
+                // 6️⃣ Despachar evento local → Abre el panel de preview
                 window.dispatchEvent(new CustomEvent('open-campaign-assets', {
                     detail: {
-                        strategy: strat,
-                        imageUrl: imageUrls[0] || null,
-                        images: imageUrls,
-                        imagePendingIds: Object.keys(imagePendingIds).length > 0 ? imagePendingIds : null,
-                        type: 'image',
-                        count: promptsToGenerate.length,
+                        ...fullAssets,
+                        campaignId
                     }
                 }))
 
-                // 6️⃣ Cambiar al tab de Campañas automáticamente
+                // 7️⃣ Cambiar al tab de Campañas automáticamente
                 window.dispatchEvent(new CustomEvent('switch-admin-tab', { detail: { tab: 'publicity' } }))
 
                 // Actualizar mensaje del chat con éxito
@@ -914,22 +943,6 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                         <Send className="w-5 h-5" />
                     </button>
                 </div>
-
-                {/* GENERATE BUTTON — only in IMAGE/VIDEO mode */}
-                {mode !== 'CHAT' && messages.filter(m => m.role === 'user').length > 0 && !isGenerating && (
-                    <div className="flex justify-center mt-3">
-                        <button
-                            onClick={handleGenerate}
-                            className={`group flex items-center gap-3 px-8 py-3 text-white rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 font-black text-xs uppercase tracking-widest ${mode === 'IMAGE_GEN'
-                                ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 shadow-cyan-900/40'
-                                : 'bg-gradient-to-r from-purple-600 to-pink-600 shadow-purple-900/40'
-                                }`}
-                        >
-                            {mode === 'IMAGE_GEN' ? <ImageIcon className="w-4 h-4" /> : <Video className="w-4 h-4" />}
-                            {mode === 'IMAGE_GEN' ? '✨ Generar Imágenes' : '🎬 Producir Video'}
-                        </button>
-                    </div>
-                )}
             </div>
         </div>
     )
