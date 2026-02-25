@@ -23,13 +23,10 @@ import {
     createCampaignFromAssets,
     saveAIAssetUrl
 } from '@/app/admin/actions/publicity-actions'
-import {
-    generateSocialCaption, generateImagePrompt, generateVideoScript, suggestCampaignFromInventory,
-    chatWithPublicityAgent, generateCampaignAssets, checkAIAssetStatus,
-    checkMultiSceneStatus, launchSingleSceneVideoPrediction, saveScenePredictionId, saveSceneResult
-} from '@/app/admin/actions/ai-content-actions'
+import { chatWithPublicityAgent, generateCampaignAssets, checkAIAssetStatus } from '@/app/admin/actions/ai-content-actions'
 import AIStudio from '@/components/admin/AIStudio'
 import MultiSceneVideoPlayer from '@/components/admin/MultiSceneVideoPlayer'
+import { useVideoProduction } from '@/contexts/VideoProductionContext'
 
 // Helper for MX Date
 const formatDateMX = (date: Date | string) => {
@@ -80,8 +77,7 @@ export default function PublicityTab() {
     const [generatedAssets, setGeneratedAssets] = useState<any>(null)
     const [showAssetsModal, setShowAssetsModal] = useState(false)
 
-    // Multi-scene video state
-    const [sceneClips, setSceneClips] = useState<{ sceneId: number; predictionId: string | null; status: string; url: string | null }[]>([])
+    const { productions, retryScene, getClipsForCampaign, registerProduction } = useVideoProduction()
 
     // Campaign Edit Chat State
     const [showEditChat, setShowEditChat] = useState(false)
@@ -95,97 +91,10 @@ export default function PublicityTab() {
             setGeneratedAssets(e.detail)
             setShowAssetsModal(true)
             setViewMode('CAMPAIGNS')
-            // Si es multi-escena, inicializar sceneClips
-            if (e.detail?.scenes && Array.isArray(e.detail.scenes)) {
-                setSceneClips(e.detail.scenes.map((s: any) => ({
-                    sceneId: s.sceneId ?? s.id,
-                    predictionId: s.predictionId,
-                    status: s.status || 'pending',
-                    url: s.url || null
-                })))
-            }
         }
         window.addEventListener('open-campaign-assets', handleOpenAssets)
         return () => window.removeEventListener('open-campaign-assets', handleOpenAssets)
     }, [])
-
-    // Polling multi-escena: revisa clip por clip hasta que todos estén listos
-    useEffect(() => {
-        const pending = sceneClips.filter(s => s.predictionId && s.status !== 'succeeded' && s.status !== 'failed' && s.status !== 'error')
-        if (pending.length === 0) return
-
-        const interval = setInterval(async () => {
-            const res = await checkMultiSceneStatus(
-                pending.map(s => ({ sceneId: s.sceneId, predictionId: s.predictionId! }))
-            )
-            if (res.success && res.scenes) {
-                const campaignId = generatedAssets.campaignId || generatedAssets.id
-
-                setSceneClips(prev => prev.map(clip => {
-                    const updated = res.scenes.find((r: any) => r.sceneId === clip.sceneId)
-                    if (updated) {
-                        // PERSISTENCIA: Si pasó a succeeded, guardamos la URL en la BD
-                        if (updated.status === 'succeeded' && updated.url && clip.status !== 'succeeded') {
-                            if (campaignId && campaignId.length > 5) {
-                                saveSceneResult(campaignId, clip.sceneId, updated.url)
-                            }
-                        }
-                        return { ...clip, status: updated.status, url: updated.url }
-                    }
-                    return clip
-                }))
-            }
-        }, 5000)
-        return () => clearInterval(interval)
-    }, [sceneClips.length, sceneClips.filter(s => s.status).join(',')]) // Trigger more precisely
-
-    // Motor de lanzamiento "ESTRICTAMENTE SECUENCIAL" desde el frontend
-    useEffect(() => {
-        // Encontrar el primer clip que no tiene predictionId
-        const nextSceneIndex = sceneClips.findIndex(s => !s.predictionId && s.status === 'pending')
-        if (nextSceneIndex === -1 || !generatedAssets?.master_style) return
-
-        const toLaunch = sceneClips[nextSceneIndex]
-
-        // REGLA DE ORO DEL USUARIO: "primero que fabrique uno ya fabricado empieza con el siguiente"
-        // Solo lanzamos la escena N si todas las escenas antes de N son 'succeeded'
-        const previousAreReady = nextSceneIndex === 0 || sceneClips.slice(0, nextSceneIndex).every(s => s.status === 'succeeded')
-
-        if (!previousAreReady) return
-
-        // Evitar que otro efecto de lanzamiento corra al mismo tiempo
-        const isAlreadyStarting = sceneClips.some(s => s.status === 'starting')
-        if (isAlreadyStarting) return
-
-        const launchNext = async () => {
-            console.log(`[STRICT-LAUNCH] Escena anterior lista (o es la primera). Lanzando escena ${toLaunch.sceneId}...`)
-
-            // Marcar como 'starting' localmente
-            setSceneClips(prev => prev.map(s => s.sceneId === toLaunch.sceneId ? { ...s, status: 'starting' } : s))
-
-            const campaignId = generatedAssets.campaignId || generatedAssets.id
-            const res = await launchSingleSceneVideoPrediction({
-                id: toLaunch.sceneId,
-                visual_prompt: (generatedAssets.scenes?.find((s: any) => (s.id || s.sceneId) === toLaunch.sceneId)?.visual_prompt) || ''
-            }, generatedAssets.master_style, campaignId)
-
-            if (res.success && res.predictionId) {
-                console.log(`[STRICT-LAUNCH] Escena ${toLaunch.sceneId} lanzada correctamente ID: ${res.predictionId}`)
-
-                // Actualizar estado local a processing (ya se guardó en la DB por la acción atómica)
-                setSceneClips(prev => prev.map(s => s.sceneId === toLaunch.sceneId
-                    ? { ...s, predictionId: res.predictionId!, status: 'processing' }
-                    : s
-                ))
-            } else {
-                console.error(`[STRICT-LAUNCH] Fallo al lanzar escena ${toLaunch.sceneId}:`, res.error)
-                setSceneClips(prev => prev.map(s => s.sceneId === toLaunch.sceneId ? { ...s, status: 'error' } : s))
-            }
-        }
-
-        const timer = setTimeout(launchNext, 2000) // Pequeño buffer de 2s antes de lanzar
-        return () => clearTimeout(timer)
-    }, [sceneClips, generatedAssets])
 
     // Listen for campaign created event from AI Studio
     useEffect(() => {
@@ -361,18 +270,19 @@ export default function PublicityTab() {
             }
 
             if (assets) {
-                setGeneratedAssets({ ...assets, id: campaign.id, campaignId: campaign.id })
+                const campaignId = campaign.id
+                setGeneratedAssets({ ...assets, id: campaignId, campaignId })
 
-                // Cargar escenas si existen en los metadatos
-                if (assets.scenes && Array.isArray(assets.scenes)) {
-                    setSceneClips(assets.scenes.map((s: any) => ({
+                // Si está en producción activa, el contexto ya lo maneja.
+                // Si no, podríamos registrarlo para que empiece el polling si hay clips pendientes.
+                if (assets.scenes && Array.isArray(assets.scenes) && !productions[campaignId]) {
+                    const clips = assets.scenes.map((s: any) => ({
                         sceneId: s.sceneId ?? s.id,
                         predictionId: s.predictionId || null,
                         status: s.status || 'pending',
                         url: s.url || null
-                    })))
-                } else {
-                    setSceneClips([])
+                    }))
+                    registerProduction(campaignId, assets, clips)
                 }
 
                 setShowAssetsModal(true)
@@ -386,11 +296,10 @@ export default function PublicityTab() {
     }
 
     const handleRetryScene = (sceneId: number) => {
-        setSceneClips(prev => prev.map(s =>
-            s.sceneId === sceneId
-                ? { ...s, status: 'pending', predictionId: null, url: null }
-                : s
-        ))
+        const campaignId = generatedAssets?.campaignId || generatedAssets?.id
+        if (campaignId) {
+            retryScene(campaignId, sceneId)
+        }
     }
     const handleOpenEditChat = (campaign: PublicityCampaign) => {
         setEditingCampaign(campaign)
@@ -661,7 +570,7 @@ export default function PublicityTab() {
                 isOpen={showAssetsModal}
                 onClose={() => setShowAssetsModal(false)}
                 assets={generatedAssets}
-                sceneClips={sceneClips}
+                sceneClips={getClipsForCampaign(generatedAssets?.campaignId || generatedAssets?.id)}
                 onRetryScene={handleRetryScene}
                 onSuccess={() => {
                     fetchCampaigns()

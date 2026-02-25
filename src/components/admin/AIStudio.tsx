@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { createAISession, getAISession, getAISessions, deleteAISession, saveAIMessage } from '@/app/admin/actions/ai-studio-actions'
 import { chatWithPublicityAgent } from '@/app/admin/actions/ai-content-actions'
+import { useVideoProduction } from '@/contexts/VideoProductionContext'
 
 type AIMode = 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'VIDEO_GEN' | 'STRATEGY'
 
@@ -375,6 +376,7 @@ async function downloadFile(url: string, filename: string) {
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
+    const { registerProduction } = useVideoProduction()
     const [mode, setMode] = useState<AIMode>(defaultMode || 'CHAT')
     const [prompt, setPrompt] = useState('')
     const [messages, setMessages] = useState<any[]>([])
@@ -569,13 +571,23 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                     : m
                 ))
 
-                // 4️⃣ Despachar evento → PublicityTab recibirá el campaignId y lanzará las escenas
+                const initialClips = strategy.scenes.map((s: any) => ({
+                    sceneId: s.id,
+                    predictionId: null,
+                    status: 'pending',
+                    url: null
+                }))
+
+                // 4️⃣ REGISTRAR EN CONTEXTO GLOBAL (Para producción en 2do plano real)
+                registerProduction(campaignId, strategy, initialClips)
+
+                // 5️⃣ Despachar evento → PublicityTab recibirá el campaignId y mostrará el progreso
                 window.dispatchEvent(new CustomEvent('open-campaign-assets', {
                     detail: {
                         ...strategy,
                         campaignId,
                         type: 'video',
-                        scenes: strategy.scenes.map((s: any) => ({ ...s, sceneId: s.id, predictionId: null, status: 'pending' })),
+                        scenes: initialClips,
                     }
                 }))
 

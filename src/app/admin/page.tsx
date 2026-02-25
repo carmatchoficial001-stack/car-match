@@ -48,12 +48,21 @@ const PublicityTab = dynamic(() => import('@/components/admin/PublicityTab'), { 
 const AdminMobileNav = dynamic(() => import('@/components/admin/AdminMobileNav'), { ssr: false })
 import ManageCreditsModal from '@/components/admin/ManageCreditsModal'
 import QRCodeModal from '@/components/QRCodeModal'
+import { VideoProductionProvider } from '@/contexts/VideoProductionContext'
 // ... (rest of imports)
 
 // ... inside AdminView type definition
 type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub' | 'publicity'
 
 export default function AdminPanel() {
+    return (
+        <VideoProductionProvider>
+            <AdminPanelContent />
+        </VideoProductionProvider>
+    )
+}
+
+function AdminPanelContent() {
     const { data: session } = useSession()
     const [activeView, setActiveView] = useState<AdminView>('overview')
     const [stats, setStats] = useState<any>({

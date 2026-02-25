@@ -25,11 +25,14 @@ function SceneStatusIcon({ status }: { status: string }) {
 }
 
 function SceneStatusLabel({ status }: { status: string }) {
-    if (status === 'succeeded') return <span className="text-green-400">Listo</span>
-    if (status === 'failed' || status === 'error') return <span className="text-red-400">Error</span>
-    if (status === 'processing') return <span className="text-yellow-400">Procesando...</span>
-    if (status === 'starting') return <span className="text-blue-400">Iniciando...</span>
-    return <span className="text-zinc-500">En cola...</span>
+    if (status === 'succeeded') return <span className="text-green-400 font-bold">Listo</span>
+    if (status === 'failed' || status === 'error') return <span className="text-red-400 font-bold">Error</span>
+    if (status === 'processing' || status === 'starting') return (
+        <span className="text-yellow-400 flex items-center gap-1">
+            <span className="animate-pulse">Generando...</span>
+        </span>
+    )
+    return <span className="text-zinc-500 italic">En cola</span>
 }
 
 export default function MultiSceneVideoPlayer({ scenes, onRetryScene }: Props) {
@@ -65,6 +68,10 @@ export default function MultiSceneVideoPlayer({ scenes, onRetryScene }: Props) {
                     <span className="text-xs text-zinc-500">
                         ~{totalDuration}s final
                     </span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-zinc-900 px-2 py-0.5 rounded-lg border border-white/5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase text-purple-400 tracking-widest">Live</span>
                 </div>
                 <span className="text-xs font-bold text-purple-400">
                     {completedClips.length}/{totalScenes} clips
@@ -178,9 +185,15 @@ export default function MultiSceneVideoPlayer({ scenes, onRetryScene }: Props) {
             )}
 
             {!allReady && status === 'idle' && (
-                <p className="text-xs text-zinc-500 text-center">
-                    Esperando que todos los clips terminen de generarse...
-                </p>
+                <div className="space-y-2">
+                    <p className="text-xs text-zinc-500 text-center">
+                        Esperando que todos los clips terminen de generarse...
+                    </p>
+                    <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-600 font-bold uppercase tracking-widest bg-black/20 py-2 rounded-xl">
+                        <Zap className="w-3 h-3 text-purple-500" />
+                        Producción activa en segundo plano
+                    </div>
+                </div>
             )}
         </div>
     )
