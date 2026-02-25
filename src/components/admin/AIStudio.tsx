@@ -2,9 +2,10 @@ import { useState, useRef, useEffect, memo, useMemo } from 'react'
 import {
     Sparkles, User, Send, ImageIcon,
     Video, Copy, Check, Plus, History, RefreshCw,
-    Bot, Download, X, ChevronLeft, ChevronRight
+    Bot, Download, X, ChevronLeft, ChevronRight,
+    Trash2, Edit
 } from 'lucide-react'
-import { createAISession, getAISession, getAISessions, deleteAISession, saveAIMessage } from '@/app/admin/actions/ai-studio-actions'
+import { createAISession, getAISession, getAISessions, deleteAISession, saveAIMessage, renameAISession } from '@/app/admin/actions/ai-studio-actions'
 import { chatWithPublicityAgent } from '@/app/admin/actions/ai-content-actions'
 import { useVideoProduction } from '@/contexts/VideoProductionContext'
 
@@ -385,10 +386,21 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
     const [isLoadingHistory, setIsLoadingHistory] = useState(false)
     const [showHistory, setShowHistory] = useState(false)
+    const [editingSessionId, setEditingSessionId] = useState<string | null>(null)
+    const [editName, setEditName] = useState('')
 
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     useEffect(() => { scrollToBottom() }, [messages])
+
+    // Sincronizar modo con el panel superior
+    useEffect(() => {
+        if (defaultMode) {
+            setMode(defaultMode)
+            setCurrentSessionId(null)
+            setMessages([])
+        }
+    }, [defaultMode])
 
 
     // Load sessions / set welcome message
@@ -406,7 +418,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
             const welcomes: Record<string, string> = {
                 IMAGE_GEN: '🎨 **Estudio de Imágenes**\n\nDime qué foto quieres y cuántas necesitas (máx 10).\n\nEjemplos:\n• "Crea 3 fotos de CarMatch en ciudad nocturna"\n• "Genera 5 imágenes de lujo para Instagram"\n• "Una foto de un Mustang rojo en la carretera"',
                 VIDEO_GEN: '🎬 **Productora de Video**\n\nDescribe el video que necesitas y lo genero.\n\nEjemplos:\n• "Video de 15s para TikTok de CarMatch"\n• "Anuncio cinematográfico de SUV de lujo"\n• "Historia de usuario vendiendo su auto con CarMatch"',
-                CHAT: '¡Hola! Soy tu Director Creativo de IA. ¿Creamos algo viral hoy? 🚀'
+                CHAT: '¡Hola! Soy tu Director Creativo de IA. ¿Creamos algo viral hoy? 🚀\n\n*Nota: CarMatch facilita la conexión, pero no se involucra en las negociaciones finales ni transacciones entre usuarios.*'
             }
             setMessages([{ id: 'initial', role: 'assistant', content: welcomes[mode] || welcomes.CHAT }])
         }
@@ -426,17 +438,44 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
     }
 
     const handleSelectSession = async (sessionId: string) => {
-        if (currentSessionId === sessionId) return
-        setIsLoadingHistory(true)
-        setCurrentSessionId(sessionId)
-        setShowHistory(false)
-        const res = await getAISession(sessionId)
-        if (res.success && res.chat) {
-            const uiMessages = res.chat.messages.map((m: any) => ({ id: m.id, role: m.role, content: m.content }))
-            setMessages(uiMessages)
-            setMode((res.chat.mode as AIMode) || 'CHAT')
+        if (currentSessionId === sessionId) {
+            setShowHistory(false)
+            return
         }
-        setIsLoadingHistory(false)
+        setIsLoadingHistory(true)
+        setShowHistory(false)
+        try {
+            const res = await getAISession(sessionId)
+            if (res.success && res.chat) {
+                setCurrentSessionId(res.chat.id)
+                const uiMessages = res.chat.messages.map((m: any) => ({ id: m.id, role: m.role, content: m.content }))
+                setMessages(uiMessages)
+                setMode((res.chat.mode as AIMode) || 'CHAT')
+            }
+        } finally {
+            setIsLoadingHistory(false)
+        }
+    }
+
+    const handleDeleteSession = async (sessionId: string) => {
+        if (!confirm('¿Estás seguro de que quieres borrar este chat?')) return
+        const res = await deleteAISession(sessionId)
+        if (res.success) {
+            setSessions(prev => prev.filter(s => s.id !== sessionId))
+            if (currentSessionId === sessionId) {
+                setCurrentSessionId(null)
+                setMessages([])
+            }
+        }
+    }
+
+    const handleRenameSession = async (sessionId: string) => {
+        if (!editName.trim()) return
+        const res = await renameAISession(sessionId, editName)
+        if (res.success) {
+            setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, name: editName } : s))
+            setEditingSessionId(null)
+        }
     }
 
     // ── handleSend: regular chat (no generation) ──────────────────────────
@@ -629,29 +668,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                         <Plus className="w-4 h-4" />
                     </button>
 
-                    <div className="flex bg-zinc-900/80 p-1.5 rounded-2xl border border-white/10 shadow-lg">
-                        <button
-                            onClick={() => switchMode('IMAGE_GEN')}
-                            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'IMAGE_GEN' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
-                        >
-                            <ImageIcon className="w-4 h-4" />
-                            <span className="hidden sm:inline">IMÁGENES</span>
-                        </button>
-                        <button
-                            onClick={() => switchMode('VIDEO_GEN')}
-                            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'VIDEO_GEN' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/40' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
-                        >
-                            <Video className="w-4 h-4" />
-                            <span className="hidden sm:inline">VIDEO</span>
-                        </button>
-                        <button
-                            onClick={() => switchMode('CHAT')}
-                            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${mode === 'CHAT' ? 'bg-zinc-700 text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
-                        >
-                            <Bot className="w-4 h-4" />
-                            <span className="hidden sm:inline">GENERAL</span>
-                        </button>
-                    </div>
+                    {/* Selector de modo eliminado - Se usan los botones superiores del Admin Panel */}
                 </div>
 
                 <div className="relative">
@@ -664,13 +681,64 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                                 <span className="text-xs font-bold text-zinc-400">Chats anteriores</span>
                                 <button onClick={() => setShowHistory(false)}><X className="w-3.5 h-3.5 text-zinc-500" /></button>
                             </div>
-                            <div className="max-h-[280px] overflow-y-auto p-1">
+                            <div className="max-h-[350px] overflow-y-auto p-1 space-y-1">
                                 {sessions.length === 0
-                                    ? <p className="text-xs text-zinc-600 p-3 text-center">No hay historial</p>
+                                    ? <p className="text-xs text-zinc-600 p-3 text-center">No hay historial de {mode === 'IMAGE_GEN' ? 'fotos' : mode === 'VIDEO_GEN' ? 'video' : 'chat'}</p>
                                     : sessions.map(session => (
-                                        <button key={session.id} onClick={() => handleSelectSession(session.id)} className="w-full text-left p-2 hover:bg-white/5 rounded text-xs text-zinc-400 truncate">
-                                            {session.name}
-                                        </button>
+                                        <div key={session.id} className="group relative border border-transparent hover:border-white/10 rounded-lg overflow-hidden transition-all bg-white/0 hover:bg-white/5">
+                                            {editingSessionId === session.id ? (
+                                                <div className="p-2 flex items-center gap-2">
+                                                    <input
+                                                        autoFocus
+                                                        value={editName}
+                                                        onChange={(e) => setEditName(e.target.value)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') handleRenameSession(session.id);
+                                                            if (e.key === 'Escape') setEditingSessionId(null);
+                                                        }}
+                                                        className="flex-1 bg-black/40 border border-indigo-500/50 rounded-md px-2 py-1 text-[11px] outline-none"
+                                                    />
+                                                    <button onClick={() => handleRenameSession(session.id)} className="p-1 text-green-500 hover:text-green-400">
+                                                        <Check className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button onClick={() => setEditingSessionId(null)} className="p-1 text-zinc-500">
+                                                        <X className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-between group/row">
+                                                    <button
+                                                        onClick={() => handleSelectSession(session.id)}
+                                                        className="flex-1 text-left p-2.5 text-[11px] text-zinc-400 truncate hover:text-white transition-colors"
+                                                    >
+                                                        {session.name}
+                                                    </button>
+                                                    <div className="flex items-center pr-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setEditingSessionId(session.id);
+                                                                setEditName(session.name);
+                                                            }}
+                                                            className="p-1.5 text-zinc-500 hover:text-indigo-400"
+                                                            title="Renombrar"
+                                                        >
+                                                            <Edit className="w-3 h-3" />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteSession(session.id);
+                                                            }}
+                                                            className="p-1.5 text-zinc-500 hover:text-red-400"
+                                                            title="Borrar"
+                                                        >
+                                                            <Trash2 className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     ))
                                 }
                             </div>
