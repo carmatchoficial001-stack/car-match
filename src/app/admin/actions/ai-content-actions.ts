@@ -989,7 +989,12 @@ export async function saveScenePredictionId(campaignId: string, sceneId: number,
         if (!campaign) return { success: false, error: 'Campaña no encontrada' };
 
         const metadata = (campaign.metadata as any) || {};
-        const assets = metadata.assets || {};
+        let assets = metadata.assets || {};
+
+        // Robustez: si assets es un string (JSON), lo parseamos
+        if (typeof assets === 'string') {
+            try { assets = JSON.parse(assets); } catch (e) { assets = {}; }
+        }
 
         if (!assets.scenes) assets.scenes = [];
 
@@ -1008,6 +1013,7 @@ export async function saveScenePredictionId(campaignId: string, sceneId: number,
 
         return { success: true };
     } catch (e: any) {
+        console.error('[DATABASE] Error guardando predictionId:', e);
         return { success: false, error: e.message };
     }
 }
@@ -1028,11 +1034,24 @@ export async function checkMultiSceneStatus(
                 if (!scene.predictionId) return { ...scene, status: 'error', url: null };
                 try {
                     const prediction = await replicate.predictions.get(scene.predictionId);
+
+                    // TIMEOUT CHECK (8 minutos para video clips)
+                    if (prediction.created_at) {
+                        const created = new Date(prediction.created_at).getTime();
+                        const now = Date.now();
+                        const elapsedMinutes = (now - created) / 1000 / 60;
+
+                        if (elapsedMinutes > 8 && (prediction.status === 'processing' || prediction.status === 'starting')) {
+                            console.warn(`[POLL-SCENE] Timeout alcanzado para escena ${scene.sceneId} (${elapsedMinutes.toFixed(1)} min)`);
+                            return { ...scene, status: 'failed', url: null, error: 'TIMEOUT' };
+                        }
+                    }
+
                     const url = prediction.status === 'succeeded'
                         ? (Array.isArray(prediction.output) ? prediction.output[0] : prediction.output) as string | null
                         : null;
                     return { ...scene, status: prediction.status, url };
-                } catch {
+                } catch (e) {
                     return { ...scene, status: 'error', url: null };
                 }
             })
@@ -1053,7 +1072,11 @@ export async function saveSceneResult(campaignId: string, sceneId: number, url: 
         if (!campaign) return { success: false, error: 'Campaña no encontrada' };
 
         const metadata = (campaign.metadata as any) || {};
-        const assets = metadata.assets || {};
+        let assets = metadata.assets || {};
+
+        if (typeof assets === 'string') {
+            try { assets = JSON.parse(assets); } catch (e) { assets = {}; }
+        }
 
         if (!assets.scenes) assets.scenes = [];
 
@@ -1072,6 +1095,7 @@ export async function saveSceneResult(campaignId: string, sceneId: number, url: 
 
         return { success: true };
     } catch (e: any) {
+        console.error('[DATABASE] Error guardando resultado de escena:', e);
         return { success: false, error: e.message };
     }
 }
