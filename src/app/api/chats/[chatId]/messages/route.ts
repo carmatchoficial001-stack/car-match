@@ -101,6 +101,16 @@ export async function POST(
         await sendPushToUser(receiverId, {
             title: `Mensaje de ${user.name}`,
             body: content.length > 50 ? content.substring(0, 47) + '...' : content,
+        })
+
+        return NextResponse.json(message)
+
+    } catch (error) {
+        console.error('Error al enviar mensaje:', error)
+        return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
+    }
+}
+
 
 // GET /api/chats/[chatId]/messages - Obtener mensajes de un chat
 export async function GET(
