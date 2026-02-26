@@ -1,5 +1,5 @@
 
-import { interpretSearchQuery } from './e:/carmatchapp/src/lib/ai/searchInterpreter';
+import { interpretSearchQuery } from '../lib/ai/searchInterpreter';
 
 async function testIntelligence() {
     console.log("🧪 Testing Intelligent MarketChat...");
