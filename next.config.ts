@@ -45,6 +45,54 @@ const nextConfig: NextConfig = {
         // your project has ESLint errors.
         ignoreDuringBuilds: true,
     },
+    async headers() {
+        return [
+            {
+                source: '/(.*)',
+                headers: [
+                    {
+                        key: 'Content-Security-Policy',
+                        value: [
+                            "default-src 'self'",
+                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.googletagmanager.com *.google-analytics.com *.google.com *.gstatic.com *.stripe.com *.mapbox.com",
+                            "style-src 'self' 'unsafe-inline' *.googleapis.com *.mapbox.com",
+                            "img-src 'self' data: blob: *.cloudinary.com *.google.com *.googleusercontent.com *.gstatic.com *.stripe.com *.mapbox.com *.pollinations.ai replicate.delivery",
+                            "connect-src 'self' *.google-analytics.com *.googleapis.com *.google.com *.stripe.com *.mapbox.com *.pollinations.ai replicate.com *.replicate.delivery",
+                            "font-src 'self' *.gstatic.com *.googleapis.com data:",
+                            "frame-src 'self' *.stripe.com *.google.com",
+                            "worker-src 'self' blob:",
+                            "manifest-src 'self'",
+                            "object-src 'none'",
+                            "base-uri 'self'",
+                            "form-action 'self'",
+                            "frame-ancestors 'none'",
+                            "upgrade-insecure-requests"
+                        ].join('; ')
+                    },
+                    {
+                        key: 'X-Frame-Options',
+                        value: 'DENY'
+                    },
+                    {
+                        key: 'X-Content-Type-Options',
+                        value: 'nosniff'
+                    },
+                    {
+                        key: 'Referrer-Policy',
+                        value: 'strict-origin-when-cross-origin'
+                    },
+                    {
+                        key: 'Permissions-Policy',
+                        value: 'camera=(), microphone=(), geolocation=(self), browsing-topics=()'
+                    },
+                    {
+                        key: 'X-XSS-Protection',
+                        value: '1; mode=block'
+                    }
+                ]
+            }
+        ];
+    }
 };
 
 
