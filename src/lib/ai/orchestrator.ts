@@ -12,7 +12,7 @@ import { parseNaturalSearch } from "../searchParser";
  * "Servicio 7 Estrellas al Menor Costo"
  */
 
-export type AIAgentRole = 'INTERPRETER' | 'MODERATOR' | 'SECURITY' | 'ANALYST';
+export type AIAgentRole = 'INTERPRETER' | 'MODERATOR' | 'SECURITY' | 'ANALYST' | 'ADVISOR';
 export type AIEfficiencyLevel = 'LOCAL_FIRST' | 'FLASH_ONLY' | 'PRO_VERIFIED';
 
 interface OrchestrationOptions {
@@ -94,6 +94,7 @@ class AIOrchestrator {
             case 'INTERPRETER': return geminiFlashPrecise;
             case 'MODERATOR': return geminiFlashPrecise;
             case 'ANALYST': return geminiFlash;
+            case 'ADVISOR': return geminiFlashConversational;
             default: return geminiFlash;
         }
     }
@@ -124,6 +125,34 @@ class AIOrchestrator {
 
     private buildPrompt(task: string, role: AIAgentRole, context: any) {
         // Micro-prompting según rol
+        if (role === 'ADVISOR') {
+            return `
+                ERES EL "GURÚ AUTOMOTRIZ" DE CARMATCH. 
+                Contexto: ${JSON.stringify(context)}
+                Usuario busca: "${task}"
+                
+                Tu tarea es dar un CONSEJO DE EXPERTO (advisorTip) basado en lo que el usuario busca.
+                - Si es un 4x4: Habla de suspensión o transferencia.
+                - Si es un deportivo: Habla de motor o llantas.
+                - Si es un familiar: Habla de seguridad o espacio.
+                - Si es un eléctrico: Habla de la batería.
+                
+                Responde con un mensaje breve (máx 120 caracteres) y apasionado.
+            `;
+        }
+
+        if (role === 'INTERPRETER') {
+            return `
+                INTERPRETE DE BÚSQUEDA AUTOMOTRIZ.
+                Query: "${task}"
+                Taxonomía: ${JSON.stringify(context.taxonomy || {})}
+                
+                Extrae los filtros técnicos: brand, model, minPrice, maxPrice, minYear, maxYear, color, transmission, fuel, passengers, cylinders, mileage, traction, hp, range, condition, owners.
+                
+                Responde ÚNICAMENTE con el JSON.
+            `;
+        }
+
         return `Rol: ${role}. Tarea: ${task}. Contexto: ${JSON.stringify(context)}. Responde solo JSON.`;
     }
 
