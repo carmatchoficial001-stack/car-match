@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
 import { moderateUserContent } from '@/lib/ai/imageAnalyzer'
+import { auth } from '@/lib/auth'
 
 // Configure Cloudinary
 cloudinary.config({
@@ -14,7 +15,14 @@ cloudinary.config({
 })
 
 export async function POST(request: NextRequest) {
-    console.log('--- RECIBIDA PETICIÓN DE SUBIDA ---')
+    const session = await auth()
+
+    // 🛡️ SECURITY FIX: Solo usuarios logueados pueden subir imágenes
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Debes iniciar sesión para subir imágenes' }, { status: 401 })
+    }
+
+    console.log(`--- RECIBIDA PETICIÓN DE SUBIDA (${session.user.email}) ---`)
     try {
         const formData = await request.formData()
         const file = formData.get('file') as File | null
@@ -36,7 +44,6 @@ export async function POST(request: NextRequest) {
             api_key: !!process.env.CLOUDINARY_API_KEY,
             api_secret: !!process.env.CLOUDINARY_API_SECRET
         }
-        console.log('🔧 Configuración Cloudinary:', configCheck)
 
         if (!configCheck.cloud_name || !configCheck.api_key || !configCheck.api_secret) {
             console.error('❌ Faltan credenciales en .env')

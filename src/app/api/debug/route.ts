@@ -5,8 +5,16 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import Stripe from 'stripe'
+import { auth } from '@/lib/auth'
 
 export async function GET() {
+    const session = await auth()
+
+    // 🛡️ Solo el Administrador Maestro puede ver diagnósticos
+    if (session?.user?.email !== process.env.ADMIN_EMAIL) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const diagnostics: any = {
         timestamp: new Date().toISOString(),
         env: {

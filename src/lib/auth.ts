@@ -41,7 +41,7 @@ export const {
             return true
         }
     },
-    debug: true, // 🔍 Debug habilitado para ver errores en Vercel logs
+    debug: false, // 🔍 Debug desactivado para producción
     events: {
         async createUser({ user }) {
             if (user.email === process.env.ADMIN_EMAIL) {

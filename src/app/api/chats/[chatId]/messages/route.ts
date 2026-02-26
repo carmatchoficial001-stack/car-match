@@ -101,38 +101,6 @@ export async function POST(
         await sendPushToUser(receiverId, {
             title: `Mensaje de ${user.name}`,
             body: content.length > 50 ? content.substring(0, 47) + '...' : content,
-            url: `/messages/${chatId}`,
-            icon: user.image || undefined,
-            tag: `chat-${chatId}`, // 🛡️ Unificado para evitar saturación y agrupar por chat
-            renotify: true
-        })
-
-        // 🚀 3. EMITIR EVENTO SOCKET.IO (Real-time)
-        try {
-            const io = (global as any).io
-            if (io) {
-                // Emitir mensaje al room del chat
-                io.to(`chat:${chatId}`).emit('new-message', message)
-
-                // Emitir notificación visual al usuario que recibe
-                io.to(`user:${receiverId}`).emit('message-update')
-
-                console.log(`✅ [SOCKET] Emitted new-message to chat:${chatId}`)
-            } else {
-                console.warn('⚠️ [SOCKET] Server IO not found (Global var missing)')
-            }
-        } catch (error) {
-            console.error('❌ [SOCKET] Error emitting event:', error)
-            // No fallar el request por error de socket explicitamente
-        }
-
-        return NextResponse.json(message)
-
-    } catch (error) {
-        console.error('Error al enviar mensaje:', error)
-        return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
-    }
-}
 
 // GET /api/chats/[chatId]/messages - Obtener mensajes de un chat
 export async function GET(

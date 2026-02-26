@@ -9,18 +9,14 @@ import { deleteFromCloudinary } from '@/lib/cloudinary'
 /**
  * CRON JOB: Limpieza y Renovación Automática
  * Se ejecuta 1 vez al día.
- * 
- * Lógica:
- * 1. Buscar vehículos/negocios que vencieron Ayer (o antes y no se han procesado).
- * 2. Intentar renovar con créditos del usuario.
- * 3. Si no hay créditos -> Marcar como 'INACTIVE'.
- * 4. Generar notificaciones.
  */
 export async function GET(request: NextRequest) {
     try {
-        // Verificar firma de Cron (Vercel Cron)
-        // const authHeader = request.headers.get('authorization');
-        // if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) { return new Response('Unauthorized', { status: 401 }); }
+        // 🔐 Verificar firma de Cron (Vercel Cron)
+        const authHeader = request.headers.get('authorization');
+        if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+            return new Response('Unauthorized', { status: 401 });
+        }
 
         const log = []
         const today = new Date()
@@ -64,7 +60,6 @@ export async function GET(request: NextRequest) {
                     where: { id: v.id },
                     data: { status: 'INACTIVE' }
                 })
-                // TODO: Enviar notificación push/email "Tu anuncio ha caducado"
                 log.push(`[EXPIRED] Vehicle ${v.id} - No credits`)
             }
         }
@@ -112,8 +107,7 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        // 💰 3. AUTO-DELETE IMÁGENES ANTIGUAS (Ahorro Cloudinary: $50k/mes)
-        // Elimina imágenes de vehículos SOLD/INACTIVE después de 30 días
+        // 💰 3. AUTO-DELETE IMÁGENES ANTIGUAS
         const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
 
         const oldVehicles = await prisma.vehicle.findMany({
@@ -138,7 +132,6 @@ export async function GET(request: NextRequest) {
                 }
             }
 
-            // Limpiar array de imágenes en DB
             await prisma.vehicle.update({
                 where: { id: vehicle.id },
                 data: { images: [] }

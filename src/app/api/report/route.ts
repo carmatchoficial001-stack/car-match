@@ -6,12 +6,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
+/**
+ * REPORT SYSTEM: Reportar publicaciones ofensivas o fraudulentas.
+ * 🛡️ REGLA DE SEGURIDAD: Solo usuarios registrados pueden reportar.
+ * 🛡️ REGLA ANTI-SABOTAJE: El reporte NO oculta la publicación de inmediato 
+ * para evitar que usuarios malintencionados borren la competencia. Solo el admin decide.
+ */
 export async function POST(request: NextRequest) {
     try {
         const session = await auth()
-        // Reporter ID is optional for guest reports
-        const reporterId = session?.user?.id || null
+        
+        // 🛡️ SECURITY FIX: Solo usuarios logueados pueden reportar para evitar spam anónimo masivo
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Debes iniciar sesión para reportar una publicación' }, { status: 401 })
+        }
 
+        const reporterId = session.user.id
         const body = await request.json()
         const { reason, description, imageUrl, vehicleId, businessId, targetUserId } = body
 
@@ -19,38 +29,21 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Faltan datos requeridos (motivo)' }, { status: 400 })
         }
 
-        // Transaction to ensure both report creation and hiding happen together
-        const report = await prisma.$transaction(async (tx) => {
-            const newReport = await tx.report.create({
-                data: {
-                    reporterId: reporterId,
-                    reason,
-                    description,
-                    imageUrl: imageUrl || null,
-                    vehicleId: vehicleId || null,
-                    businessId: businessId || null,
-                    targetUserId: targetUserId || null,
-                    status: 'PENDING'
-                }
-            })
-
-            // 🛡️ ACCIÓN INMEDIATA: Ocultar publicación hasta que el admin decida
-            if (vehicleId) {
-                await tx.vehicle.update({
-                    where: { id: vehicleId },
-                    data: { status: 'INACTIVE' }
-                })
+        const report = await prisma.report.create({
+            data: {
+                reporterId: reporterId,
+                reason,
+                description,
+                imageUrl: imageUrl || null,
+                vehicleId: vehicleId || null,
+                businessId: businessId || null,
+                targetUserId: targetUserId || null,
+                status: 'PENDING'
             }
-
-            if (businessId) {
-                await tx.business.update({
-                    where: { id: businessId },
-                    data: { isActive: false }
-                })
-            }
-
-            return newReport
         })
+
+        // 🛡️ ANTI-SABOTAJE: Ya no ocultamos automáticamente (status: 'INACTIVE') de inmediato.
+        // Se queda en manos del Admin revisar los reportes.
 
         return NextResponse.json(report)
     } catch (error) {

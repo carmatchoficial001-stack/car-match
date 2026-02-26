@@ -19,6 +19,12 @@ import { prisma } from '@/lib/db'
  */
 export async function GET(request: NextRequest) {
     try {
+        // 🔐 Verificar firma de Cron (Vercel Cron)
+        const authHeader = request.headers.get('authorization');
+        if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+            return new Response('Unauthorized', { status: 401 });
+        }
+
         const today = new Date()
         today.setHours(23, 59, 59, 999) // Fin del día
 
@@ -73,9 +79,6 @@ export async function GET(request: NextRequest) {
                     data: { status: 'INACTIVE' }
                 })
                 vehiclesDeactivated++
-
-                // TODO: Enviar notificación al usuario
-                // "Tu publicación '{title}' necesita créditos. Compra para reactivarla."
             }
         }
 
