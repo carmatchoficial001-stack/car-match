@@ -860,6 +860,7 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = 
                             const VIDEO_PLATFORMS = ['meta_ads', 'facebook_reels', 'tiktok_ads', 'kwai', 'youtube_shorts', 'snapchat_ads', 'twitter_x']
                             // 🖼️ IMAGEN: plataformas con soporte de imagen estática o carrusel
                             const IMAGE_PLATFORMS = ['meta_ads', 'facebook_marketplace', 'google_ads', 'twitter_x', 'threads', 'snapchat_ads', 'pinterest', 'linkedin']
+                            const PORTRAIT_PLATFORMS = ['meta_ads', 'linkedin', 'instagram'] // Instagram is part of meta_ads here
 
                             const filteredPlatforms = assets.type === 'video'
                                 ? PLATFORMS.filter(p => VIDEO_PLATFORMS.includes(p.id))
@@ -1006,25 +1007,23 @@ function PlatformAccordionItem({ platform, data, assets, isFallback }: any) {
                                         </div>
                                     )}
 
-                                    {/* VERTICAL IMAGE: Meta, Snapchat — Solo si NO es video */}
+                                    {/* VERTICAL IMAGE (9:16): Meta Stories, Snapchat — Solo si NO es video */}
                                     {assets.type !== 'video' && ['meta_ads', 'snapchat_ads'].includes(platform.id) && (
                                         <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
-                                            {(assets.images?.vertical?.startsWith('http') || assets.images?.square?.startsWith('http') || (assets.imageUrl?.startsWith('http') && assets.imageUrl !== 'PENDING...')) ? (
+                                            {(assets.images?.vertical?.startsWith('http') || (assets.imageUrl?.startsWith('http') && assets.imageUrl !== 'PENDING...')) ? (
                                                 <>
-                                                    <img src={assets.images?.vertical || assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
+                                                    <img src={assets.images?.vertical || assets.imageUrl} className="w-full h-full object-cover" />
                                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                                                         <button
-                                                            onClick={() => downloadAsset(assets.images?.vertical || assets.images?.square || assets.imageUrl, `${platform.id}-story.jpg`)}
+                                                            onClick={() => downloadAsset(assets.images?.vertical || assets.imageUrl, `${platform.id}-story.jpg`)}
                                                             className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
                                                         >
                                                             <Download className="w-4 h-4" />
                                                         </button>
                                                     </div>
-                                                    <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">
-                                                        {assets.images?.vertical ? '9:16' : '1:1 (Fallback)'}
-                                                    </div>
+                                                    <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">9:16</div>
                                                 </>
-                                            ) : (assets.images?.vertical === 'PENDING...' || assets.imagePendingIds?.vertical || assets.imagePendingIds?.square) ? (
+                                            ) : (assets.images?.vertical === 'PENDING...' || assets.imagePendingIds?.vertical) ? (
                                                 <div className="flex flex-col items-center justify-center relative w-full h-full bg-black">
                                                     {(assets.imageUrl?.startsWith('http') && assets.imageUrl !== 'PENDING...') && (
                                                         <img src={assets.imageUrl} className="absolute inset-0 w-full h-full object-cover opacity-20 blur-sm" />
@@ -1035,7 +1034,38 @@ function PlatformAccordionItem({ platform, data, assets, isFallback }: any) {
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div className="text-[10px] text-zinc-600 font-bold">No hay imagen</div>
+                                                <div className="text-[10px] text-zinc-600 font-bold">No hay Historia</div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* PORTRAIT IMAGE (4:5): Meta Feed, LinkedIn — HIGH CONVERSION */}
+                                    {assets.type !== 'video' && ['meta_ads', 'linkedin'].includes(platform.id) && (
+                                        <div className="aspect-[4/5] rounded-xl overflow-hidden border border-white/10 relative group bg-black flex flex-col items-center justify-center">
+                                            {(assets.images?.portrait?.startsWith('http') || assets.images?.square?.startsWith('http') || (assets.imageUrl?.startsWith('http') && assets.imageUrl !== 'PENDING...')) ? (
+                                                <>
+                                                    <img src={assets.images?.portrait || assets.images?.square || assets.imageUrl} className="w-full h-full object-cover" />
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                                        <button
+                                                            onClick={() => downloadAsset(assets.images?.portrait || assets.images?.square || assets.imageUrl, `${platform.id}-portrait.jpg`)}
+                                                            className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
+                                                        >
+                                                            <Download className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                    <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 rounded text-[8px] text-white">
+                                                        {assets.images?.portrait ? '4:5 (Portrait)' : '1:1 (Fallback)'}
+                                                    </div>
+                                                </>
+                                            ) : (assets.images?.portrait === 'PENDING...' || assets.imagePendingIds?.portrait || assets.imagePendingIds?.square) ? (
+                                                <div className="flex flex-col items-center justify-center relative w-full h-full bg-black">
+                                                    <div className="relative z-10 flex flex-col items-center gap-2 p-4 text-center">
+                                                        <RefreshCw className="w-5 h-5 text-purple-500 animate-spin" />
+                                                        <span className="text-[9px] font-black uppercase text-purple-400 tracking-widest text-center">Generando<br />Portrait 4:5...</span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-[10px] text-zinc-600 font-bold">No hay Portrait</div>
                                             )}
                                         </div>
                                     )}

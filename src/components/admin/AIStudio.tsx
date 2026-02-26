@@ -336,7 +336,7 @@ function CampaignProposal({ strategy, onConfirm, isGenerating, mode }: { strateg
 }
 
 // ─── Message Item ──────────────────────────────────────────────────────────
-const MessageItem = memo(({ msg, onDownload, onConfirm, currentMode }: { msg: any; onDownload: (url: string, i: number) => void, onConfirm?: (strat: any) => void, currentMode: AIMode }) => {
+const MessageItem = memo(({ msg, onDownload, onConfirm, onUseInCampaign, currentMode }: { msg: any; onDownload: (url: string, i: number) => void, onConfirm?: (strat: any) => void, onUseInCampaign?: (text: string) => void, currentMode: AIMode }) => {
     const [copied, setCopied] = useState(false)
 
     const cleanContent = useMemo(() =>
@@ -429,6 +429,14 @@ const MessageItem = memo(({ msg, onDownload, onConfirm, currentMode }: { msg: an
                             {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
                             {copied ? 'Copiado' : 'Copiar'}
                         </button>
+                        {msg.type !== 'PROPOSAL' && msg.type !== 'IMAGE_GEN' && msg.type !== 'VIDEO_GEN' && msg.id !== 'initial' && !msg.content.includes('❌ Error') && (
+                            <button
+                                onClick={() => onUseInCampaign?.(msg.content)}
+                                className="flex items-center gap-1.5 px-2 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-[10px] text-indigo-300 hover:text-indigo-200 transition font-bold"
+                            >
+                                <Sparkles className="w-3 h-3" /> ✨ Usar en campaña
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
@@ -583,35 +591,63 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
             }
             if (sessionId) saveAIMessage(sessionId, 'user', userText)
 
-            // 🤖 FLUJO ESPECIAL: Para IMAGE_GEN o VIDEO_GEN, primero generamos propuesta
-            if (mode === 'IMAGE_GEN' || mode === 'VIDEO_GEN') {
-                const { getCampaignStrategyPreview } = await import('@/app/admin/actions/ai-content-actions')
-                const res = await getCampaignStrategyPreview([...messages, { role: 'user', content: userText }], mode === 'IMAGE_GEN' ? 'IMAGE' : 'VIDEO', 'MX')
+            // Modo CHAT tradicional basado en nichos y experiencia
+            const historyForAI = messages.slice(-10)
+            const response = await chatWithPublicityAgent([...historyForAI, { role: 'user', content: userText }], 'MX', mode)
 
-                if (res.success) {
-                    const aiContent = `He analizado tu petición. Aquí tienes mi propuesta estratégica para esta campaña. Revísala y confirma para iniciar la generación de los assets.`
-                    const msgId = Date.now().toString()
-                    setMessages(prev => [...prev, {
-                        id: msgId,
-                        role: 'assistant',
-                        content: aiContent,
-                        type: 'PROPOSAL',
-                        strategy: res.strategy
-                    }])
-                    if (sessionId) await saveAIMessage(sessionId, 'assistant', aiContent)
-                } else {
-                    throw new Error(res.error || 'Error al generar propuesta')
-                }
+            const aiContent = response.success ? response.message! : '❌ Error al procesar tu mensaje.'
+            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: aiContent }])
+            if (sessionId) await saveAIMessage(sessionId, 'assistant', aiContent)
+            
+        } catch (e: any) {
+            const mappedMessage = ERROR_MAP[e.message] || `❌ Error: ${e.message}`
+            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: mappedMessage }])
+        } finally {
+            setIsGenerating(false)
+        }
+    }
+
+    // ── handleUseInCampaign: Genera propuesta estratégica basada en el mensaje ──
+    const handleUseInCampaign = async (ideaText: string) => {
+        if (isGenerating) return
+        setIsGenerating(true)
+
+        try {
+            // Add a temporary "pensando..." message
+            const thinkingId = Date.now().toString() + '_proposal_thinking'
+            setMessages(prev => [...prev, {
+                id: thinkingId,
+                role: 'assistant',
+                content: mode === 'IMAGE_GEN' ? `🎨 Diseñando campaña visual para esta idea...` : `🎬 Estructurando guiones y formatos de video para esta idea...`
+            }])
+
+            const { getCampaignStrategyPreview } = await import('@/app/admin/actions/ai-content-actions')
+            
+            // Pasamos el chat histórico + la idea específica seleccionada
+            const contextMessages = [...messages, { role: 'user', content: `Basado en esta idea: "${ideaText}". Crea la propuesta estratégica definitiva.` }];
+            
+            const res = await getCampaignStrategyPreview(contextMessages, mode === 'IMAGE_GEN' ? 'IMAGE' : 'VIDEO', 'MX')
+
+            // Quitar mensaje "pensando"
+            setMessages(prev => prev.filter(m => m.id !== thinkingId))
+
+            if (res.success) {
+                const aiContent = `He analizado esta idea en profundidad. Aquí tienes mi propuesta estratégica especializada para todas las plataformas. Revísala y confirma para iniciar la generación de los assets.`
+                const msgId = Date.now().toString()
+                setMessages(prev => [...prev, {
+                    id: msgId,
+                    role: 'assistant',
+                    content: aiContent,
+                    type: 'PROPOSAL',
+                    strategy: res.strategy
+                }])
+                if (currentSessionId) await saveAIMessage(currentSessionId, 'assistant', aiContent)
             } else {
-                // Modo CHAT tradicional
-                const historyForAI = messages.slice(-10)
-                const response = await chatWithPublicityAgent([...historyForAI, { role: 'user', content: userText }], 'MX')
-
-                const aiContent = response.success ? response.message! : '❌ Error al procesar tu mensaje.'
-                setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: aiContent }])
-                if (sessionId) await saveAIMessage(sessionId, 'assistant', aiContent)
+                throw new Error(res.error || 'Error al generar propuesta')
             }
         } catch (e: any) {
+            // Remove thinking message if it's there
+            setMessages(prev => prev.filter(m => !m.id?.includes('_proposal_thinking')))
             const mappedMessage = ERROR_MAP[e.message] || `❌ Error: ${e.message}`
             setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: mappedMessage }])
         } finally {
@@ -909,6 +945,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                         msg={msg}
                         onDownload={handleDownload}
                         onConfirm={handleGenerate}
+                        onUseInCampaign={handleUseInCampaign}
                         currentMode={mode}
                     />
                 ))}
