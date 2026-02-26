@@ -330,11 +330,19 @@ export default function PublicityTab() {
             const result = await regenerateCampaignElement(editingCampaign.id, userMessage, currentAssets)
 
             if (result.success) {
+                // Update local editingCampaign state to prevent stale data on next edit
+                const newMetadata = { ...metadata, assets: result.assets }
+                setEditingCampaign({
+                    ...editingCampaign,
+                    metadata: JSON.stringify(newMetadata),
+                    imageUrl: result.assets.imageUrl || editingCampaign.imageUrl
+                } as any)
+
                 setChatMessages(prev => [...prev, {
                     role: 'assistant',
                     content: result.message + '\n\n✅ La campaña ha sido actualizada. Los cambios ya están guardados.'
                 }])
-                // Refresh campaigns to show updated data
+                // Refresh campaigns to show updated data in the list
                 fetchCampaigns()
             } else {
                 setChatMessages(prev => [...prev, {

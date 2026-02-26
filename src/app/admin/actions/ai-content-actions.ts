@@ -1192,8 +1192,9 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                     InstrucciÃ³n: "${instruction}"
                     
                     BasÃ¡ndote en esta instrucciÃ³n, genera assets completos para una campaÃ±a automotriz:
+                    BasÃ¡ndote en esta instrucciÃ³n, genera assets completos para una campaÃ±a automotriz:
 
-    Responde en JSON:
+    Responde SOLO con un JSON vÃ¡lido, sin bloques de cÃ³digo:
     {
         "copy": "caption para redes (mÃ¡x 200 chars, con emojis)",
         "imagePrompt": "prompt en inglÃ©s para Flux AI",
@@ -1207,14 +1208,36 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                         temperature: 0.8
                     }
                 })
-                const allData = JSON.parse(allResult.response.text())
+                
+                let rawAllText = allResult.response.text().trim();
+                // Limpiar posibles bloques markdown de la IA
+                if (rawAllText.startsWith('```json')) rawAllText = rawAllText.replace(/```json/g, '').replace(/```/g, '').trim();
+                else if (rawAllText.startsWith('```')) rawAllText = rawAllText.replace(/```/g, '').trim();
+                
+                const allData = JSON.parse(rawAllText)
                 updatedAssets.copy = allData.copy
                 updatedAssets.imagePrompt = allData.imagePrompt
                 updatedAssets.videoScript = allData.videoScript
 
-                // Generate image
-                const { generateRealImage: genFlux } = await import('@/lib/ai/replicate-client')
-                updatedAssets.imageUrl = await genFlux(allData.imagePrompt, 1024, 1024)
+                // Generate image ASYNC to prevent Vercel timeout
+                console.log('[AI] Lanzando generacion de imagenes (all)...')
+                const { createImagePrediction } = await import('@/lib/ai/replicate-client')
+
+                const [imgSquareAll, imgVerticalAll, imgHorizontalAll] = await Promise.all([
+                    createImagePrediction(allData.imagePrompt, 1080, 1080).catch(e => { console.error('RegenAll ImgSq Err:', e); return null; }),
+                    createImagePrediction(allData.imagePrompt, 1080, 1920).catch(e => { console.error('RegenAll ImgVert Err:', e); return null; }),
+                    createImagePrediction(allData.imagePrompt, 1920, 1080).catch(e => { console.error('RegenAll ImgHoriz Err:', e); return null; })
+                ]);
+
+                updatedAssets.imageUrl = 'PENDING...';
+                updatedAssets.images = { ...(updatedAssets.images || {}) };
+                if (imgSquareAll) updatedAssets.imageUrl = 'PENDING...';
+
+                updatedAssets.imagePendingIds = {
+                    square: imgSquareAll,
+                    vertical: imgVerticalAll,
+                    horizontal: imgHorizontalAll
+                };
                 break
         }
 
@@ -1241,7 +1264,7 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
             success: true,
             assets: updatedAssets,
             elementType,
-            message: `âœ… ${elementType === 'all' ? 'Todos los elementos' : elementType === 'copy' ? 'Copy' : elementType === 'image' ? 'Imagen' : 'Video'} regenerado exitosamente`
+            message: `âœ… ${elementType === 'all' ? 'Campaña' : elementType === 'copy' ? 'Copy' : elementType === 'image' ? 'Imagen' : 'Video'} regenerado exitosamente`
         }
 
     } catch (error: any) {
