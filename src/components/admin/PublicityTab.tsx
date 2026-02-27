@@ -25,6 +25,7 @@ import {
 } from '@/app/admin/actions/publicity-actions'
 import { chatWithPublicityAgent, generateCampaignAssets, checkAIAssetStatus } from '@/app/admin/actions/ai-content-actions'
 import AIStudio from '@/components/admin/AIStudio'
+import SocialQueue from '@/components/admin/SocialQueue'
 import MultiSceneVideoPlayer from '@/components/admin/MultiSceneVideoPlayer'
 import { useVideoProduction } from '@/contexts/VideoProductionContext'
 
@@ -393,6 +394,13 @@ export default function PublicityTab() {
                             <Video className="w-4 h-4" />
                             Productora Video
                         </button>
+                        <button
+                            onClick={() => setViewMode('QUEUE')}
+                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-2 ${viewMode === 'QUEUE' ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/20' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                        >
+                            <Clock className="w-4 h-4" />
+                            Cola Viral
+                        </button>
                     </div>
                 </div>
 
@@ -408,8 +416,46 @@ export default function PublicityTab() {
                     <AIStudio defaultMode="IMAGE_GEN" />
                 ) : viewMode === 'AI_VIDEO' ? (
                     <AIStudio defaultMode="VIDEO_GEN" />
+                ) : viewMode === 'QUEUE' ? (
+                    <SocialQueue />
                 ) : (
                     <>
+                        {/* COMMAND CENTER HEADER */}
+                        <div className="p-8 border-b border-white/5 bg-gradient-to-br from-indigo-500/10 via-transparent to-transparent relative overflow-hidden shrink-0">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] -mr-32 -mt-32 rounded-full" />
+
+                            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <div>
+                                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-1">Centro de Mando</h2>
+                                    <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Gestión de Omnipresencia Viral</p>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-4">
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-3 backdrop-blur-md">
+                                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Alcance Total</p>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xl font-black text-white">{(campaigns.reduce((a, c) => a + c.impressionCount, 0)).toLocaleString()}</span>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                        </div>
+                                    </div>
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-3 backdrop-blur-md">
+                                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Clics Globales</p>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xl font-black text-white">{(campaigns.reduce((a, c) => a + c.clickCount, 0)).toLocaleString()}</span>
+                                            <ExternalLink className="w-3.5 h-3.5 text-indigo-400" />
+                                        </div>
+                                    </div>
+                                    <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl px-5 py-3 backdrop-blur-md">
+                                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Smart Credits</p>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xl font-black text-white italic">∞</span>
+                                            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Search Bar & Filters */}
                         <div className="p-4 border-b border-white/5 flex items-center gap-4 shrink-0">
                             <div className="relative flex-1 max-w-md">
@@ -425,139 +471,114 @@ export default function PublicityTab() {
                             </button>
                         </div>
 
-                        {/* Campaign List */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-0">
+                        {/* Campaign List - PREMIUM GRID */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
                             {loading ? (
-                                <div className="p-12 text-center text-text-secondary animate-pulse">Cargando campañas...</div>
+                                <div className="p-12 text-center text-text-secondary animate-pulse flex flex-col items-center gap-4">
+                                    <RefreshCw className="w-8 h-8 animate-spin text-primary-500" />
+                                    <p className="font-bold tracking-widest text-[10px] uppercase">Sincronizando Campañas...</p>
+                                </div>
                             ) : campaigns.length === 0 ? (
                                 <div className="p-12 text-center text-text-secondary flex flex-col items-center">
-                                    <Megaphone className="w-12 h-12 mb-4 opacity-20" />
-                                    <p>No hay campañas activas</p>
-                                    <button onClick={handleCreate} className="mt-4 text-primary-400 font-bold text-sm">Crear la primera</button>
+                                    <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
+                                        <Megaphone className="w-10 h-10 opacity-20" />
+                                    </div>
+                                    <p className="text-zinc-500 font-medium">No hay campañas iniciadas</p>
+                                    <button onClick={handleCreate} className="mt-4 px-6 py-2 bg-primary-600/20 border border-primary-500/30 text-primary-400 rounded-xl font-bold text-xs hover:bg-primary-600/30 transition shadow-lg shadow-primary-900/10">
+                                        LANZAR MI PRIMERA CAMPAÑA
+                                    </button>
                                 </div>
                             ) : (
-                                <>
-                                    {/* Desktop Table View */}
-                                    <div className="hidden md:block overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead className="bg-[#0f172a] text-[10px] font-black uppercase tracking-widest text-text-secondary sticky top-0 z-10">
-                                                <tr>
-                                                    <th className="px-6 py-4 text-left">Campaña</th>
-                                                    <th className="px-6 py-4 text-left">Estado</th>
-                                                    <th className="px-6 py-4 text-left">Estadísticas</th>
-                                                    <th className="px-6 py-4 text-right">Acciones</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-white/5">
-                                                {campaigns.map(campaign => (
-                                                    <tr key={campaign.id} className="hover:bg-white/5 transition-colors group">
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-12 h-12 rounded-lg bg-black overflow-hidden border border-white/10 relative">
-                                                                    <img
-                                                                        src={campaign.imageUrl}
-                                                                        alt={campaign.title}
-                                                                        className="w-full h-full object-cover"
-                                                                        onError={(e) => {
-                                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1533473359331-0135ef1bcfb0?auto=format&fit=crop&q=80&w=1000'
-                                                                        }}
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="font-bold text-sm text-white">{campaign.title}</p>
-                                                                    <p className="text-xs text-text-secondary">{campaign.clientName || 'Interno'}</p>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <button
-                                                                onClick={() => handleToggleStatus(campaign.id, campaign.isActive)}
-                                                                className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-all ${campaign.isActive
-                                                                    ? 'bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20'
-                                                                    : 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20'
-                                                                    }`}
-                                                            >
-                                                                {campaign.isActive ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                                                                <span className="text-[10px] font-black uppercase">{campaign.isActive ? 'Activa' : 'Pausada'}</span>
-                                                            </button>
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex items-center gap-4 text-xs font-mono text-text-secondary">
-                                                                <div className="flex items-center gap-1" title="Impresiones">
-                                                                    <Globe className="w-3 h-3" /> {campaign.impressionCount}
-                                                                </div>
-                                                                <div className="flex items-center gap-1" title="Clics">
-                                                                    <ExternalLink className="w-3 h-3" /> {campaign.clickCount}
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-right">
-                                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <button onClick={() => handleManualPost(campaign.id)} className="p-2 bg-white/5 hover:bg-blue-500/20 hover:text-blue-500 rounded-lg transition" title="Publicar ahora">
-                                                                    <Share2 className="w-4 h-4" />
-                                                                </button>
-                                                                <button onClick={() => handleOpenAdPack(campaign)} className="p-2 bg-white/5 hover:bg-purple-500/20 hover:text-purple-400 rounded-lg transition" title="Ver Global Ad Pack">
-                                                                    <Globe className="w-4 h-4" />
-                                                                </button>
-                                                                <button onClick={() => handleEdit(campaign)} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition" title="Editar">
-                                                                    <Edit className="w-4 h-4" />
-                                                                </button>
-                                                                <button onClick={() => handleDelete(campaign.id)} className="p-2 bg-white/5 hover:bg-red-500/20 hover:text-red-500 rounded-lg transition" title="Eliminar">
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 pb-20">
+                                    {campaigns.map(campaign => {
+                                        const metadata = campaign.metadata as any || {}
+                                        const isVideo = metadata.type === 'video'
 
-                                    {/* Mobile Card View */}
-                                    <div className="md:hidden space-y-4 p-4">
-                                        {campaigns.map(campaign => (
-                                            <div key={campaign.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
-                                                <div className="flex gap-3 items-center">
-                                                    <div className="w-16 h-16 rounded-lg bg-zinc-800 overflow-hidden border border-white/10 flex items-center justify-center shrink-0">
-                                                        {campaign.imageUrl ? (
-                                                            <img
-                                                                src={campaign.imageUrl}
-                                                                alt={campaign.title}
-                                                                className="w-full h-full object-cover"
-                                                                onError={(e) => {
-                                                                    const el = e.target as HTMLImageElement;
-                                                                    el.style.display = 'none';
-                                                                }}
-                                                            />
-                                                        ) : (
-                                                            <ImageIcon className="w-7 h-7 text-zinc-600" />
+                                        return (
+                                            <div key={campaign.id} className="group relative bg-[#121214] border border-white/5 rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:border-indigo-500/30 hover:shadow-[0_20px_40px_-15px_rgba(99,102,241,0.15)] flex flex-col h-full">
+                                                {/* ASSET PREVIEW */}
+                                                <div className="aspect-[4/5] w-full bg-black relative overflow-hidden group/thumb">
+                                                    <img
+                                                        src={campaign.imageUrl}
+                                                        alt={campaign.title}
+                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover/thumb:scale-110 opacity-80 group-hover/thumb:opacity-100"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1000'
+                                                        }}
+                                                    />
+
+                                                    {/* STATUS BADGE */}
+                                                    <div className="absolute top-4 left-4 flex items-center gap-2">
+                                                        <div className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider backdrop-blur-md border ${campaign.isActive
+                                                            ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                                                            : 'bg-red-500/20 text-red-400 border-red-500/30'}`}>
+                                                            {campaign.isActive ? '• En Vivo' : 'Pausada'}
+                                                        </div>
+                                                        {isVideo && (
+                                                            <div className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 backdrop-blur-md">
+                                                                Video
+                                                            </div>
                                                         )}
                                                     </div>
-                                                    <div>
-                                                        <h4 className="font-bold text-white text-sm">{campaign.title}</h4>
-                                                        <p className="text-xs text-text-secondary">{campaign.clientName || 'Generado por IA'}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-end items-center border-t border-white/5 pt-3">
-                                                    <div className="flex gap-2">
-                                                        <button onClick={() => handleOpenAdPack(campaign)} className="p-3 min-h-[44px] min-w-[44px] bg-purple-500/10 hover:bg-purple-500/20 active:bg-purple-500/30 text-purple-400 rounded-xl transition flex items-center justify-center" title="Global Ad Pack">
-                                                            <Globe className="w-5 h-5" />
+
+                                                    {/* QUICK ACTIONS OVERLAY */}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center p-6 gap-3">
+                                                        <button
+                                                            onClick={() => handleOpenAdPack(campaign)}
+                                                            className="flex-1 bg-white text-black py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-indigo-500 hover:text-white transition-colors duration-300"
+                                                        >
+                                                            <Globe className="w-3.5 h-3.5" /> Ad Pack
                                                         </button>
-                                                        <button onClick={() => handleEdit(campaign)} className="p-3 min-h-[44px] min-w-[44px] bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-xl transition flex items-center justify-center">
-                                                            <Edit className="w-5 h-5" />
-                                                        </button>
-                                                        <button onClick={() => handleOpenEditChat(campaign)} className="p-3 min-h-[44px] min-w-[44px] bg-purple-500/10 hover:bg-purple-500/20 active:bg-purple-500/30 text-purple-400 rounded-xl transition flex items-center justify-center" title="Editar con IA">
+                                                        <button
+                                                            onClick={() => handleOpenEditChat(campaign)}
+                                                            className="w-12 h-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300"
+                                                            title="Editar con IA"
+                                                        >
                                                             <Sparkles className="w-5 h-5" />
                                                         </button>
-                                                        <button onClick={() => handleDelete(campaign.id)} className="p-3 min-h-[44px] min-w-[44px] bg-red-500/10 hover:bg-red-500/20 active:bg-red-500/30 text-red-500 rounded-xl transition flex items-center justify-center">
-                                                            <Trash2 className="w-5 h-5" />
+                                                    </div>
+                                                </div>
+
+                                                {/* CONTENT */}
+                                                <div className="p-6 flex flex-col flex-1">
+                                                    <div className="flex items-start justify-between mb-2">
+                                                        <h4 className="font-black text-sm text-white line-clamp-1 flex-1">{campaign.title}</h4>
+                                                        <div className="flex items-center gap-1.5 ml-2">
+                                                            <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-mono">
+                                                                <Globe className="w-3 h-3" /> {campaign.impressionCount}
+                                                            </div>
+                                                            <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-mono border-l border-white/5 pl-2">
+                                                                <ExternalLink className="w-3 h-3" /> {campaign.clickCount}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-4">
+                                                        {campaign.clientName || 'PRODUCCIÓN INTERNA'}
+                                                    </p>
+
+                                                    <div className="mt-auto flex items-center justify-between gap-4">
+                                                        <button
+                                                            onClick={() => handleToggleStatus(campaign.id, campaign.isActive)}
+                                                            className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
+                                                        >
+                                                            {campaign.isActive ? 'Pausar' : 'Activar'}
                                                         </button>
+
+                                                        <div className="flex items-center gap-2">
+                                                            <button onClick={() => handleEdit(campaign)} className="p-2 text-zinc-500 hover:text-white transition-colors">
+                                                                <Edit className="w-4 h-4" />
+                                                            </button>
+                                                            <button onClick={() => handleDelete(campaign.id)} className="p-2 text-zinc-500 hover:text-red-400 transition-colors">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
-                                </>
+                                        )
+                                    })}
+                                </div>
                             )}
                         </div>
                     </>
@@ -671,6 +692,7 @@ export default function PublicityTab() {
                 )}
             </AnimatePresence>
         </div>
+        </div >
     )
 }
 
@@ -1220,13 +1242,6 @@ function CopyableRow({ text, id, onCopy, copiedKey }: any) {
 }
 
 // Sub-Components
-
-const SocialQueue = () => (
-    <div className="flex flex-col items-center justify-center h-full text-text-secondary opacity-50">
-        <Clock className="w-12 h-12 mb-4" />
-        <p>Cola de publicaciones (Próximamente)</p>
-    </div>
-)
 
 // AIStudio is now imported from @/components/admin/AIStudio
 

@@ -30,31 +30,11 @@ export default async function MapStorePage({ searchParams }: { searchParams: any
         ? await prisma.user.findUnique({ where: { email: session.user.email } })
         : null
 
-    // Fetch active businesses OR businesses owned by the current user (if logged in)
-    let whereCondition: any = {
-        isActive: true
-    }
-
-    if (user?.id) {
-        whereCondition = {
-            OR: [
-                { isActive: true },
-                { userId: user.id }
-            ]
-        }
-    }
-
-    const businesses = await prisma.business.findMany({
-        where: whereCondition,
-        include: {
-            user: {
-                select: {
-                    name: true,
-                    image: true
-                }
-            }
-        }
-    })
+    // 💰 OPTIMIZACIÓN CRÍTICA: 
+    // No descargamos NADA desde el servidor inicialmente. 
+    // Esto evita mostrar negocios irrelevantes de otras partes del mundo.
+    // El MapClient se encargará de pedir los negocios cercanos en cuanto detecte la ubicación del usuario.
+    const businesses: any[] = []
 
     // 🤖 FAQ SCHEMA for MapStore Authority
     const mapStoreFaqLd = {
