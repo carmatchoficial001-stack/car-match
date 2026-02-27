@@ -12,6 +12,24 @@ import { Logo } from '@/components/Logo'
 
 type AIMode = 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'VIDEO_GEN' | 'STRATEGY'
 
+// ─── Helper: parse message content if it's JSON ───────────────────────────
+function parseChatMessage(msg: any) {
+    if (typeof msg.content === 'string' && msg.content.startsWith('{')) {
+        try {
+            const parsed = JSON.parse(msg.content);
+            return {
+                ...msg,
+                content: parsed.content || msg.content,
+                type: parsed.type || msg.type,
+                strategy: parsed.strategy || msg.strategy
+            };
+        } catch (e) {
+            return msg;
+        }
+    }
+    return msg;
+}
+
 // ─── Helper: extract how many images user asked for (1-10) ─────────────────
 function extractImageCount(text: string): number {
     const patterns = [
@@ -244,15 +262,23 @@ function CampaignProposal({ strategy, onConfirm, isGenerating, mode }: { strateg
     return (
         <div
             onClick={() => !isGenerating && setExpanded(!expanded)}
-            className={`mt-3 border ${expanded ? 'border-indigo-500 shadow-lg shadow-indigo-500/10' : 'border-indigo-500/30'} rounded-xl overflow-hidden bg-indigo-500/5 transition-all duration-300 cursor-pointer group/proposal`}
+            className={`mt-4 border ${expanded ? 'border-indigo-500/50 shadow-[0_0_30px_rgba(99,102,241,0.1)] bg-indigo-500/10' : 'border-white/5 hover:border-indigo-500/20 bg-white/5'} rounded-3xl overflow-hidden transition-all duration-500 cursor-pointer group/proposal backdrop-blur-md`}
         >
-            <div className="p-4 space-y-3">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" /> {expanded ? 'Propuesta Detallada' : `Propuesta de ${isVideo ? 'Video' : 'Campaña'}`}
-                    </span>
+            <div className="p-6 space-y-5">
+                <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/20">
+                            <Sparkles className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-[11px] font-black uppercase tracking-[0.2em] text-indigo-400 font-outfit">
+                            {expanded ? 'Propuesta Maestra' : `Estrategia de ${isVideo ? 'Video' : 'Campaña'}`}
+                        </span>
+                    </div>
                     {!expanded && (
-                        <span className="text-[9px] font-bold text-indigo-400 animate-pulse uppercase tracking-wider">Hacer clic para ver detalles</span>
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/5 group-hover/proposal:border-indigo-500/30 transition-colors">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Abrir</span>
+                        </div>
                     )}
                 </div>
 
@@ -312,11 +338,10 @@ function CampaignProposal({ strategy, onConfirm, isGenerating, mode }: { strateg
 
 // ─── Message Item ──────────────────────────────────────────────────────────
 const MessageItem = memo(({ msg, onDownload, onConfirm, onUseInCampaign, currentMode }: { msg: any; onDownload: (url: string, i: number) => void, onConfirm?: (strat: any) => void, onUseInCampaign?: (text: string) => void, currentMode: AIMode }) => {
-    const [copied, setCopied] = useState(false)
-
+    const parsedMsg = useMemo(() => parseChatMessage(msg), [msg])
     const cleanContent = useMemo(() =>
-        msg.content.replace(/\[VIDEO_PREVIEW\]:.*\n?|\[IMAGE_PREVIEW\]:.*\n?/g, '').trim()
-        , [msg.content])
+        parsedMsg.content.replace(/\[VIDEO_PREVIEW\]:.*\n?|\[IMAGE_PREVIEW\]:.*\n?/g, '').trim()
+        , [parsedMsg.content])
 
     const handleCopy = () => {
         navigator.clipboard.writeText(cleanContent)
@@ -326,38 +351,40 @@ const MessageItem = memo(({ msg, onDownload, onConfirm, onUseInCampaign, current
 
     return (
         <div className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''} group`}>
-            <div className={`shrink-0 ${msg.role === 'user' ? 'w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center shadow-lg' : ''}`}>
+            <div className={`shrink-0 ${msg.role === 'user' ? 'w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center shadow-lg ring-4 ring-zinc-900/50' : ''}`}>
                 {msg.role === 'user' ? (
-                    <User className='w-4 h-4 text-white' />
+                    <User className='w-4 h-4 text-white hover:scale-110 transition-transform' />
                 ) : (
-                    <Logo className="w-8 h-8 shadow-indigo-950/20 shadow-xl" />
+                    <div className="p-1.5 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl shadow-xl shadow-indigo-500/20 ring-4 ring-indigo-500/10 transition-transform group-hover:scale-110 duration-500">
+                        <Logo className="w-7 h-7" />
+                    </div>
                 )}
             </div>
-            <div className={`max-w-[85%] sm:max-w-[75%] space-y-2`}>
-                <div className={`p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${msg.role === 'user' ? 'bg-zinc-800 text-white rounded-tr-none' : 'bg-[#1A1D21] text-gray-200 border border-white/5 rounded-tl-none'}`}>
+            <div className={`max-w-[85%] sm:max-w-[75%] space-y-2 group/message`}>
+                <div className={`p-5 rounded-[2rem] text-sm leading-[1.6] whitespace-pre-wrap shadow-xl ${parsedMsg.role === 'user' ? 'bg-zinc-800 text-white rounded-tr-none border border-white/5' : 'bg-[#1A1D21]/80 backdrop-blur-xl text-gray-100 border border-white/10 rounded-tl-none ring-1 ring-white/5'}`}>
                     {cleanContent}
 
                     {/* 📋 PROPOSAL — Antes de generar */}
-                    {msg.type === 'PROPOSAL' && msg.strategy && (
+                    {parsedMsg.type === 'PROPOSAL' && parsedMsg.strategy && (
                         <CampaignProposal
-                            strategy={msg.strategy}
-                            onConfirm={() => onConfirm?.(msg.strategy)}
-                            isGenerating={!!msg.isGenerating}
+                            strategy={parsedMsg.strategy}
+                            onConfirm={() => onConfirm?.(parsedMsg.strategy)}
+                            isGenerating={!!parsedMsg.isGenerating}
                             mode={currentMode}
                         />
                     )}
 
                     {/* 🖼️ IMAGES — Solo para modo IMAGE_GEN */}
-                    {msg.type === 'IMAGE_GEN' && (
+                    {parsedMsg.type === 'IMAGE_GEN' && (
                         <>
                             {/* Imágenes ya listas */}
-                            {msg.images && msg.images.filter(Boolean).length > 0 && (
-                                <ImageGrid images={msg.images.filter(Boolean)} onDownload={onDownload} />
+                            {parsedMsg.images && parsedMsg.images.filter(Boolean).length > 0 && (
+                                <ImageGrid images={parsedMsg.images.filter(Boolean)} onDownload={onDownload} />
                             )}
                             {/* Imágenes en proceso */}
-                            {msg.pendingCount > 0 && (
-                                <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(msg.pendingCount, 3)}, 1fr)` }}>
-                                    {Array.from({ length: msg.pendingCount }).map((_, i) => (
+                            {parsedMsg.pendingCount > 0 && (
+                                <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(parsedMsg.pendingCount, 3)}, 1fr)` }}>
+                                    {Array.from({ length: parsedMsg.pendingCount }).map((_, i) => (
                                         <div key={i} className="aspect-square rounded-xl bg-black/40 border border-white/10 flex flex-col items-center justify-center gap-2">
                                             <RefreshCw className="w-5 h-5 text-indigo-500 animate-spin" />
                                             <span className="text-[9px] text-indigo-400 font-bold uppercase tracking-widest">Generando...</span>
@@ -366,36 +393,36 @@ const MessageItem = memo(({ msg, onDownload, onConfirm, onUseInCampaign, current
                                 </div>
                             )}
                             {/* Copies/Título generados */}
-                            <ContentPanel strategy={msg.strategy} onSaveCampaign={() => onConfirm?.(msg.strategy)} />
+                            <ContentPanel strategy={parsedMsg.strategy} onSaveCampaign={() => onConfirm?.(parsedMsg.strategy)} />
                         </>
                     )}
 
                     {/* 🎬 VIDEO — Solo para modo VIDEO_GEN */}
-                    {msg.type === 'VIDEO_GEN' && (
+                    {parsedMsg.type === 'VIDEO_GEN' && (
                         <>
-                            {(msg.videoUrl && msg.videoUrl !== 'PENDING...') ? (
+                            {(parsedMsg.videoUrl && parsedMsg.videoUrl !== 'PENDING...') ? (
                                 <div className="mt-3 rounded-xl overflow-hidden border border-white/10 relative group/video">
-                                    <video src={msg.videoUrl} controls className="w-full aspect-video object-cover" />
+                                    <video src={parsedMsg.videoUrl} controls className="w-full aspect-video object-cover" />
                                     <button
-                                        onClick={() => onDownload(msg.videoUrl, 0)}
+                                        onClick={() => onDownload(parsedMsg.videoUrl, 0)}
                                         className="absolute top-2 right-2 p-2 bg-black/70 hover:bg-black/90 text-white rounded-lg transition opacity-0 group-hover/video:opacity-100"
                                     >
                                         <Download className="w-4 h-4" />
                                     </button>
                                 </div>
-                            ) : msg.videoPendingId ? (
+                            ) : parsedMsg.videoPendingId ? (
                                 <div className="mt-3 rounded-xl overflow-hidden border border-white/10 bg-black/40 min-h-[120px] flex flex-col items-center justify-center gap-2">
                                     <RefreshCw className="w-8 h-8 animate-spin text-purple-500" />
                                     <span className="text-xs font-medium text-purple-300 animate-pulse">Generando Video... (puede tardar 3-5 min)</span>
                                 </div>
                             ) : null}
                             {/* Guión y copies del video */}
-                            <ContentPanel strategy={msg.strategy} onSaveCampaign={() => onConfirm?.(msg.strategy)} />
+                            <ContentPanel strategy={parsedMsg.strategy} onSaveCampaign={() => onConfirm?.(parsedMsg.strategy)} />
                         </>
                     )}
                 </div>
 
-                {msg.role === 'assistant' && (
+                {parsedMsg.role === 'assistant' && (
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity pl-2">
                         <button
                             onClick={handleCopy}
@@ -404,9 +431,9 @@ const MessageItem = memo(({ msg, onDownload, onConfirm, onUseInCampaign, current
                             {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
                             {copied ? 'Copiado' : 'Copiar'}
                         </button>
-                        {msg.type !== 'PROPOSAL' && msg.type !== 'IMAGE_GEN' && msg.type !== 'VIDEO_GEN' && msg.id !== 'initial' && !msg.content.includes('❌ Error') && (
+                        {parsedMsg.type !== 'PROPOSAL' && parsedMsg.type !== 'IMAGE_GEN' && parsedMsg.type !== 'VIDEO_GEN' && parsedMsg.id !== 'initial' && !parsedMsg.content.includes('❌ Error') && (
                             <button
-                                onClick={() => onUseInCampaign?.(msg.content)}
+                                onClick={() => onUseInCampaign?.(parsedMsg.content)}
                                 className="flex items-center gap-1.5 px-2 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-[10px] text-indigo-300 hover:text-indigo-200 transition font-bold"
                             >
                                 <Sparkles className="w-3 h-3" /> ✨ Usar en campaña
@@ -484,8 +511,8 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
 
         if (!currentSessionId) {
             const welcomes: Record<string, string> = {
-                IMAGE_GEN: '🎨 **Estudio de Imágenes (Beta)**\n\n¡Hola! Ruben. Cuéntame qué fotos quieres generar. Ahora puedo crear trivias y listas de hasta 10 imágenes distintas de una vez.\n\nEjemplo: "Crea una trivia de 5 preguntas sobre deportivos alemanes".\n\n*Primero te mostraré una propuesta para tu aprobación.*',
-                VIDEO_GEN: '🎬 **Productora de Video**\n\nDescribe el video que necesitas y lo genero.\n\nEjemplos:\n• "Video de 15s para TikTok de CarMatch"\n• "Anuncio cinematográfico de SUV de lujo"\n\n*Analizaré tu guión y te pediré confirmación antes de la producción.*',
+                IMAGE_GEN: '🎨 **Estudio de Imágenes (Beta)**\n\n¡Hola! Ruben. Vamos a planear tu próxima gran producción visual. Cuéntame qué tienes en mente, qué coches, qué ambiente o qué historia quieres contar.\n\nPuedo crear series de hasta 50 imágenes distintas para tus redes sociales.\n\n*Cuando estés listo, solo dime "dame el pront final" para ver la propuesta técnica.*',
+                VIDEO_GEN: '🎬 **Productora de Video**\n\n¡Hola! Ruben. Aquí es donde planeamos los videos que romperán el algoritmo. Cuéntame tu idea, el nicho (JDM, Off-road, etc.) y qué quieres lograr.\n\n*Platiquemos la idea y cuando la tengamos, dime "dame el pront final" para generar el guión y clips.*',
                 CHAT: '¡Hola! Soy tu Director Creativo de IA. ¿Creamos algo viral hoy? 🚀\n\n*Nota: CarMatch facilita la conexión, pero no se involucra en las negociaciones finales ni transacciones entre usuarios.*'
             }
             setMessages([{ id: 'initial', role: 'assistant', content: welcomes[mode] || welcomes.CHAT }])
@@ -516,7 +543,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
             const res = await getAISession(sessionId)
             if (res.success && res.chat) {
                 setCurrentSessionId(res.chat.id)
-                const uiMessages = res.chat.messages.map((m: any) => ({ id: m.id, role: m.role, content: m.content }))
+                const uiMessages = res.chat.messages.map((m: any) => parseChatMessage({ id: m.id, role: m.role, content: m.content }))
                 setMessages(uiMessages)
                 setMode((res.chat.mode as AIMode) || 'CHAT')
             }
@@ -570,9 +597,22 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
             const historyForAI = messages.slice(-10)
             const response = await chatWithPublicityAgent([...historyForAI, { role: 'user', content: userText }], 'MX', mode)
 
-            const aiContent = response.success ? response.message! : '❌ Error al procesar tu mensaje.'
-            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: aiContent }])
-            if (sessionId) await saveAIMessage(sessionId, 'assistant', aiContent)
+            const aiResponse = response.success ? response : { success: false, message: '❌ Error al procesar tu mensaje.' }
+
+            const newMessage = {
+                id: Date.now().toString(),
+                role: 'assistant',
+                content: aiResponse.message || '',
+                type: (aiResponse as any).type,
+                strategy: (aiResponse as any).strategy
+            }
+
+            setMessages(prev => [...prev, newMessage])
+            if (sessionId) await saveAIMessage(sessionId, 'assistant', JSON.stringify({
+                content: newMessage.content,
+                type: newMessage.type,
+                strategy: newMessage.strategy
+            }))
 
         } catch (e: any) {
             const mappedMessage = ERROR_MAP[e.message] || `❌ Error: ${e.message}`
@@ -913,47 +953,70 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
             </div>
 
             {/* MESSAGES */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6 bg-[#0F1115]">
-                {messages.map((msg) => (
-                    <MessageItem
-                        key={msg.id || msg.content}
-                        msg={msg}
-                        onDownload={handleDownload}
-                        onConfirm={handleGenerate}
-                        onUseInCampaign={handleUseInCampaign}
-                        currentMode={mode}
-                    />
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 space-y-10 bg-[#0F1115] bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.03)_0%,transparent_50%)]">
+                {messages.map((msg, i) => (
+                    <div key={msg.id || i} className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: `${i * 80}ms` }}>
+                        <MessageItem
+                            msg={msg}
+                            onDownload={handleDownload}
+                            onConfirm={handleGenerate}
+                            onUseInCampaign={handleUseInCampaign}
+                            currentMode={mode}
+                        />
+                    </div>
                 ))}
                 {isGenerating && (
-                    <div className="flex gap-4 animate-pulse">
-                        <div className="shrink-0">
-                            <Logo className="w-8 h-8 shadow-indigo-950/20 shadow-xl opacity-60" />
+                    <div className="flex gap-4 animate-in fade-in slide-in-from-left-4 duration-500">
+                        <div className="shrink-0 p-2 bg-gradient-to-tr from-indigo-600/20 to-purple-600/20 rounded-2xl border border-indigo-500/10 shadow-xl ring-2 ring-indigo-500/5">
+                            <RefreshCw className="w-6 h-6 text-indigo-500 animate-spin" />
                         </div>
-                        <div className="bg-[#1A1D21] px-4 py-3 rounded-2xl text-sm text-indigo-300 border border-white/5">
-                            {mode === 'IMAGE_GEN' ? '🎨 Diseñando imágenes con IA...' : mode === 'VIDEO_GEN' ? '🎬 Produciendo video CarMatch...' : '🧠 Pensando...'}
+                        <div className="bg-[#1A1D21]/60 backdrop-blur-md border border-white/10 rounded-[2.5rem] rounded-tl-none p-6 px-10 shadow-2xl ring-1 ring-white/5 relative overflow-hidden group">
+                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 animate-pulse" />
+                            <div className="flex items-center gap-5 relative z-10">
+                                <div className="flex gap-2">
+                                    <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s] shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                                    <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s] shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                                    <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[11px] font-black uppercase tracking-[0.3em] text-indigo-400">Mastermind IA</span>
+                                    <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">Calculando Estrategia Viral...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
-                <div ref={messagesEndRef} />
+                <div ref={messagesEndRef} className="h-10" />
             </div>
 
-            {/* INPUT */}
-            <div className="p-4 bg-zinc-900/50 border-t border-white/5 backdrop-blur-md">
-                <div className="relative flex items-end gap-2 bg-[#1A1D21] border border-white/10 rounded-2xl p-2 focus-within:border-indigo-500/50 transition-all shadow-inner max-w-4xl mx-auto">
-                    <textarea
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                        placeholder={
-                            mode === 'IMAGE_GEN' ? 'Ej: "Genera 5 fotos de CarMatch en ciudad nocturna"...' :
-                                mode === 'VIDEO_GEN' ? 'Describe el video que necesitas para TikTok/Reels...' :
-                                    'Escribe un mensaje...'
-                        }
-                        className="w-full bg-transparent border-none focus:ring-0 text-sm text-white placeholder-zinc-500 min-h-[44px] max-h-[160px] py-3 px-2 resize-none custom-scrollbar"
-                    />
-                    <button onClick={handleSend} disabled={!prompt.trim() || isGenerating} className="p-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-xl transition shrink-0 disabled:opacity-40" title="Enviar mensaje">
-                        <Send className="w-5 h-5" />
-                    </button>
+            {/* INPUT AREA — Refined Glassmorphism */}
+            <div className="p-6 md:p-8 bg-[#0a0a0a] border-t border-white/5 relative">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent pointer-events-none -top-20" />
+                <div className="relative max-w-5xl mx-auto">
+                    <div className="relative flex items-end gap-3 bg-[#1A1D21]/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-3 focus-within:border-indigo-500/50 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all duration-500 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                        <textarea
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                            placeholder={
+                                mode === 'IMAGE_GEN' ? 'Ej: "Genera una serie de 5 fotos RAW cinematográficas de..." ' :
+                                    mode === 'VIDEO_GEN' ? 'Dime la visión para tu próximo video viral...' :
+                                        'Hablemos de tu próxima gran idea creativa...'
+                            }
+                            className="w-full bg-transparent border-none focus:ring-0 text-sm md:text-base text-gray-100 placeholder-zinc-600 min-h-[52px] max-h-[200px] py-4 px-4 resize-none custom-scrollbar font-medium leading-relaxed"
+                        />
+                        <button
+                            onClick={handleSend}
+                            disabled={!prompt.trim() || isGenerating}
+                            className="group p-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 text-white rounded-[1.5rem] transition-all duration-300 shrink-0 shadow-lg shadow-indigo-600/20 active:scale-95 disabled:opacity-30"
+                        >
+                            {isGenerating ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />}
+                        </button>
+                    </div>
+                    <div className="mt-4 flex items-center justify-center gap-6 opacity-40">
+                        <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"><Zap className="w-3 h-3" /> GPT-4o Optimized</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"><Sparkles className="w-3 h-3" /> Creative Director Mode Active</span>
+                    </div>
                 </div>
             </div>
         </div>

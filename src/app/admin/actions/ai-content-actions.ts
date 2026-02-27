@@ -633,11 +633,11 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
             expertProfile += `
             
             MODO ACTUAL: ESTUDIO DE IMÁGENES 📸
-            Tu meta es conceptualizar FOTOS VIRALES, GALERÍAS (CARRUSELES) y TRIVIAS VISUALES que rompan los algoritmos de Instagram y Facebook.
+            Tu meta es conceptualizar FOTOS VIRALES y GALERÍAS (CARRUSELES) que rompan los algoritmos de Instagram y Facebook.
             Cuando sugieras ideas, piensa en:
             - **Shitposting de calidad**: Expectativa vs Realidad en talleres.
             - **Estética premium**: Tomas macro de piezas de motor, autos sucios en el lodo (realismo), pintura desgastada.
-            - **Aporta valor**: Da prompts al usuario o ideas súper específicas (Ej: "Haz una trivia mostrando solo la calavera trasera de 5 autos japoneses de los 90s").
+            - **Aporta valor**: Da prompts al usuario o ideas súper específicas (Ej: "Crea una serie de 5 imágenes mostrando la evolución de un Nissan Skyline de 1970 a 2024").
             `;
         } else if (currentMode === 'VIDEO_GEN') {
             expertProfile += `
@@ -655,16 +655,16 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
             ${expertProfile}
             
             TONO Y ESTILO:
-            - **Idioma**: Español (México) con slang MUY natural y de barrio/taller, pero inteligente (${country.slang}).
-            - **Formato**: Usa emojis, respuestas rápidas y ve AL GRANO.
+            - **Idioma**: Español (México) con slang MUY natural de la cultura motor (${country.slang}).
+            - **Personalidad**: Eres apasionado, un poco rudo pero extremadamente brillante. Eres el Director Creativo que toda agencia de autos desearía tener.
+            - **Formato**: Usa emojis estratégicos, ve directo al grano y mantén la energía alta.
             
-            FLUJO DE TRABAJO CRÍTICO (REGLAS DE RUBEN):
-            1. **Fase de Planeación**: Cuando el usuario empiece a hablar, NO generes propuestas de campaña de inmediato. Conversa, sugiere ideas de nicho, pregunta qué coches o qué vibe queremos. Vamos planeando juntos.
-            2. **El Momento Final**: SOLO cuando el usuario diga explícitamente "DAME EL PROMPT FINAL" (o algo muy similar como "dame el pront final"), es cuando debes disparar la propuesta estratégica técnica.
-            3. **Contenido del Prompt Final**: El "Prompt Final" debe ser la síntesis maestra de toda nuestra plática, listo para que la IA de imagen lo entienda a la perfección (en inglés detallado).
+            DIRECCIÓN CREATIVA (REGLAS DE RUBEN):
+            1. **Fase de Planeación**: NO lances propuestas genéricas. Platica, cuestiona los gustos del usuario, sugiere combinaciones locas de colores o escenarios.
+            2. **El Comando Sagrado**: SOLO cuando el usuario diga "DAME EL PRONT FINAL" entrega la síntesis técnica.
+            3. **Visión Viral**: Cada sugerencia debe tener un porqué. "¿Por qué esto va a pegar? Porque apela a la nostalgia de los 90s" o "Porque el contraste entre el lodo y el lujo siempre vende".
             
-            SI EL USUARIO PIDE IDEAS, DALE ORO PURO DEL MUNDO MOTOR. NO RESPUESTAS GENÉRICAS CORPORATIVAS.
-            PIENSA EN GRANDE. PIENSA EN MILLONES DE VISTAS.
+            PIENSA COMO UN GENIO. ACTÚA COMO UN EXPERTO. DOMINA EL ALGORITMO.
         `;
 
         // Convert messages to Gemini format
@@ -677,10 +677,22 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
                 role: "model",
                 parts: [{ text: `Listo. Soy el Mastermind Viral. Cuéntame sobre qué nicho o locura motorizada vamos a hablar hoy en ${country.name}. 🚀` }],
             },
-            ...messages.slice(0, -1).map((m: any) => ({
-                role: m.role === 'user' ? 'user' : 'model',
-                parts: [{ text: m.content }],
-            }))
+            ...messages.slice(0, -1).map((m: any) => {
+                let text = m.content;
+                // Si el contenido es JSON (guardado por nosotros), extraemos solo el texto para la IA
+                if (text && text.startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(text);
+                        text = parsed.content || text;
+                    } catch (e) {
+                        // Not JSON, keep as is
+                    }
+                }
+                return {
+                    role: m.role === 'user' ? 'user' : 'model',
+                    parts: [{ text }],
+                };
+            })
         ]
 
         const chat = geminiFlashConversational.startChat({
