@@ -502,10 +502,14 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
             }
         `;
 
-        const result = await geminiPro.generateContent({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json', temperature: 0.7, maxOutputTokens: 4096 }
-        });
+        const result = await Promise.race([
+            geminiFlash.generateContent({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: { responseMimeType: 'application/json', temperature: 0.7, maxOutputTokens: 4096 }
+            }),
+            new Promise<any>((_, reject) => setTimeout(() => reject(new Error("STRATEGY_TIMEOUT")), 9000))
+        ]);
+
 
         return { success: true, strategy: JSON.parse(result.response.text()) };
 
@@ -606,10 +610,14 @@ export async function generateVideoStrategy(chatHistory: any[], targetCountry: s
             }
         `;
 
-        const result = await geminiPro.generateContent({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json', temperature: 0.7, maxOutputTokens: 4096 }
-        });
+        const result = await Promise.race([
+            geminiFlash.generateContent({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: { responseMimeType: 'application/json', temperature: 0.7, maxOutputTokens: 4096 }
+            }),
+            new Promise<any>((_, reject) => setTimeout(() => reject(new Error("STRATEGY_TIMEOUT")), 9000))
+        ]);
+
 
         return { success: true, strategy: JSON.parse(result.response.text()) };
 
@@ -925,12 +933,17 @@ export async function launchBatchImagePredictions(strategy: any, count: number =
         // Solo lanzamos los primeros N para no saturar
         const limitedPrompts = prompts.slice(0, 50);
 
-        const predictions = await Promise.all(limitedPrompts.map((p: string, i: number) =>
-            createImagePrediction(p, 1080, 1080).catch(e => {
-                console.error(`[BATCH-IMG] Error en imagen ${i}:`, e);
-                return null;
-            })
-        ));
+        const result = await Promise.race([
+            Promise.all(limitedPrompts.map((p: string, i: number) =>
+                createImagePrediction(p, 1080, 1080).catch(e => {
+                    console.error(`[BATCH-IMG] Error en imagen ${i}:`, e);
+                    return null;
+                })
+            )),
+            new Promise<any>((_, reject) => setTimeout(() => reject(new Error("REPLICATE_BATCH_TIMEOUT")), 15000))
+        ]);
+
+        const predictions = result;
 
         const imagePendingIds: Record<string, string | null> = {};
         predictions.forEach((id, i) => {
