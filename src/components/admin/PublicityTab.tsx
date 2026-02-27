@@ -692,7 +692,6 @@ export default function PublicityTab() {
                 )}
             </AnimatePresence>
         </div>
-        </div >
     )
 }
 
