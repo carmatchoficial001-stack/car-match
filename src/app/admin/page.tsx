@@ -43,17 +43,16 @@ import {
     Megaphone
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
-// ... imports
+
 const AdminHeatMap = dynamic(() => import('@/components/AdminHeatMap'), { ssr: false })
 const PublicityTab = dynamic(() => import('@/components/admin/PublicityTab'), { ssr: false })
 const AdminMobileNav = dynamic(() => import('@/components/admin/AdminMobileNav'), { ssr: false })
+// 🚀 FORCE BUILD: 2026-02-18 12:22
 import ManageCreditsModal from '@/components/admin/ManageCreditsModal'
 import QRCodeModal from '@/components/QRCodeModal'
 import { VideoProductionProvider } from '@/contexts/VideoProductionContext'
-// ... (rest of imports)
 
-// ... inside AdminView type definition
-type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub' | 'publicity'
+type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub' | 'publicity' | 'more'
 
 export default function AdminPanel() {
     return (

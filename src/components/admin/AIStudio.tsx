@@ -1,4 +1,5 @@
-// 🚀 FORCE BUILD: 2026-02-18 11:45
+'use client'
+// 🚀 FORCE BUILD: 2026-02-18 12:20
 import { useState, useRef, useEffect, memo, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -30,7 +31,12 @@ function parseChatMessage(msg: any) {
                 ...msg,
                 content: parsed.content || msg.content,
                 type: parsed.type || msg.type,
-                strategy: parsed.strategy || msg.strategy
+                strategy: parsed.strategy || msg.strategy,
+                images: parsed.images || msg.images,
+                imageUrls: parsed.imageUrls || msg.imageUrls,
+                videoUrl: parsed.videoUrl || msg.videoUrl,
+                videoPendingId: parsed.videoPendingId || msg.videoPendingId,
+                pendingCount: parsed.pendingCount || msg.pendingCount || 0
             };
         } catch (e) {
             return msg;
