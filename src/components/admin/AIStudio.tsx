@@ -911,111 +911,135 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
     return (
         <div className="flex h-full bg-[#0a0a0a] text-white overflow-hidden rounded-3xl border border-white/10 relative shadow-2xl">
 
-            {/* ─── SIDEBAR — HISTORY & PROJECTS ─── */}
-            <aside className={`${showHistory ? 'w-72 opacity-100' : 'w-0 opacity-0 overflow-hidden'} hidden lg:flex flex-col bg-zinc-900/40 border-r border-white/5 transition-all duration-500 backdrop-blur-2xl relative z-30`}>
-                <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Logo className="w-6 h-6 shadow-[0_0_15px_rgba(99,102,241,0.3)]" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/90">Historial</span>
-                    </div>
-                </div>
+            {/* ─── SIDEBAR / DRAWER — HISTORY & PROJECTS ─── */}
+            <AnimatePresence>
+                {showHistory && (
+                    <>
+                        {/* Mobile Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowHistory(false)}
+                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] lg:hidden"
+                        />
+                        <motion.aside
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="fixed inset-y-0 left-0 w-80 bg-zinc-900 border-r border-white/10 z-[101] flex flex-col shadow-2xl"
+                        >
+                            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Logo className="w-6 h-6 shadow-[0_0_15px_rgba(99,102,241,0.3)]" />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/90">Historial</span>
+                                </div>
+                                <button onClick={() => setShowHistory(false)} className="p-2 hover:bg-white/5 rounded-xl transition">
+                                    <X className="w-5 h-5 text-zinc-500" />
+                                </button>
+                            </div>
 
-                <div className="p-4 border-b border-white/5">
-                    <button
-                        onClick={handleNewChat}
-                        className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-4 text-[10px] font-black tracking-widest uppercase transition-all duration-300 hover:scale-[1.02] hover:border-indigo-500/50 group"
-                    >
-                        <Plus className="w-4 h-4 text-indigo-500 group-hover:rotate-90 transition-transform duration-500" />
-                        NUEVA PRODUCCIÓN
-                    </button>
-                </div>
+                            <div className="p-4 border-b border-white/5">
+                                <button
+                                    onClick={handleNewChat}
+                                    className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 border border-indigo-500/30 rounded-2xl p-4 text-[10px] font-black tracking-widest uppercase transition-all duration-300 active:scale-95 group"
+                                >
+                                    <Plus className="w-4 h-4 text-white group-hover:rotate-90 transition-transform duration-500" />
+                                    NUEVA PRODUCCIÓN
+                                </button>
+                            </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
-                    {sessions.length === 0 ? (
-                        <div className="p-10 text-center opacity-30 select-none">
-                            <Bot className="w-10 h-10 mx-auto mb-4" />
-                            <p className="text-[9px] font-black uppercase tracking-[0.2em]">Sin Proyectos</p>
-                        </div>
-                    ) : (
-                        sessions.map(session => (
-                            <div key={session.id} className="group relative border border-transparent hover:border-white/5 rounded-2xl overflow-hidden transition-all bg-white/0 hover:bg-white/[0.02]">
-                                {editingSessionId === session.id ? (
-                                    <div className="p-3 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-300">
-                                        <input
-                                            autoFocus
-                                            value={editName}
-                                            onChange={(e) => setEditName(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') handleRenameSession(session.id);
-                                                if (e.key === 'Escape') setEditingSessionId(null);
-                                            }}
-                                            className="flex-1 bg-black/40 border border-indigo-500/50 rounded-xl px-3 py-2 text-xs outline-none"
-                                        />
-                                        <button onClick={() => handleRenameSession(session.id)} className="p-1.5 text-green-500 hover:scale-110 transition-transform">
-                                            <Check className="w-4 h-4" />
-                                        </button>
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                                {sessions.length === 0 ? (
+                                    <div className="p-10 text-center opacity-30 select-none">
+                                        <Bot className="w-10 h-10 mx-auto mb-4" />
+                                        <p className="text-[9px] font-black uppercase tracking-[0.2em]">Sin Proyectos</p>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center justify-between p-1">
-                                        <button
-                                            onClick={() => handleSelectSession(session.id)}
-                                            className={`flex-1 text-left p-3.5 text-[11px] truncate transition-all duration-300 ${currentSessionId === session.id ? 'text-indigo-400 font-bold bg-indigo-500/5 rounded-xl' : 'text-zinc-500 hover:text-white'}`}
-                                        >
-                                            {session.name}
-                                        </button>
-                                        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity pr-2">
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); setEditingSessionId(session.id); setEditName(session.name); }}
-                                                className="p-2 text-zinc-500 hover:text-indigo-400 transition-colors"
-                                            >
-                                                <Edit className="w-3.5 h-3.5" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id); }}
-                                                className="p-2 text-zinc-500 hover:text-red-400 transition-colors"
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
+                                    sessions.map(session => (
+                                        <div key={session.id} className="group relative border border-transparent hover:border-white/5 rounded-2xl overflow-hidden transition-all bg-white/0 hover:bg-white/[0.02]">
+                                            {editingSessionId === session.id ? (
+                                                <div className="p-3 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-300">
+                                                    <input
+                                                        autoFocus
+                                                        value={editName}
+                                                        onChange={(e) => setEditName(e.target.value)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') handleRenameSession(session.id);
+                                                            if (e.key === 'Escape') setEditingSessionId(null);
+                                                        }}
+                                                        className="flex-1 bg-black/40 border border-indigo-500/50 rounded-xl px-3 py-2 text-xs outline-none"
+                                                    />
+                                                    <button onClick={() => handleRenameSession(session.id)} className="p-1.5 text-green-500 hover:scale-110 transition-transform">
+                                                        <Check className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-between p-1">
+                                                    <button
+                                                        onClick={() => { handleSelectSession(session.id); setShowHistory(false); }}
+                                                        className={`flex-1 text-left p-3.5 text-[11px] truncate transition-all duration-300 ${currentSessionId === session.id ? 'text-indigo-400 font-bold bg-indigo-500/5 rounded-xl' : 'text-zinc-500 hover:text-white'}`}
+                                                    >
+                                                        {session.name}
+                                                    </button>
+                                                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity pr-2">
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setEditingSessionId(session.id); setEditName(session.name); }}
+                                                            className="p-2 text-zinc-500 hover:text-indigo-400 transition-colors"
+                                                        >
+                                                            <Edit className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id); }}
+                                                            className="p-2 text-zinc-500 hover:text-red-400 transition-colors"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
+                                    ))
                                 )}
                             </div>
-                        ))
-                    )}
-                </div>
-            </aside>
+                        </motion.aside>
+                    </>
+                )}
+            </AnimatePresence>
 
             {/* ─── MAIN CONTENT AREA ─── */}
             <main className="flex-1 flex flex-col relative z-20 min-w-0">
-                {/* MODERN HEADER */}
-                <header className="h-20 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-2xl flex items-center justify-between px-8 shrink-0 relative overflow-hidden group/header">
+                {/* MODERN HEADER — Reducido para Móvil */}
+                <header className="h-16 md:h-20 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-2xl flex items-center justify-between px-4 md:px-8 shrink-0 relative overflow-hidden group/header">
                     <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent opacity-50" />
 
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3 md:gap-6 min-w-0">
                         <button
                             onClick={() => setShowHistory(!showHistory)}
-                            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-all duration-300 active:scale-95"
+                            className="p-2 md:p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-all duration-300 active:scale-95 shrink-0"
                         >
                             <History className={`w-5 h-5 ${showHistory ? 'text-indigo-500' : ''}`} />
                         </button>
 
-                        <div className="flex flex-col">
+                        <div className="flex flex-col min-w-0">
                             <div className="flex items-center gap-2">
-                                <span className={`w-1.5 h-1.5 rounded-full ${isGenerating ? 'bg-indigo-500 animate-pulse' : 'bg-green-500'}`} />
-                                <h1 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/50">
-                                    {mode === 'IMAGE_GEN' ? 'Estudio de Imágenes' : mode === 'VIDEO_GEN' ? 'Laboratorio de Video' : 'Mastermind'}
+                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isGenerating ? 'bg-indigo-500 animate-pulse' : 'bg-green-500'}`} />
+                                <h1 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-white/50 truncate">
+                                    {mode === 'IMAGE_GEN' ? 'Estudio Imagen' : mode === 'VIDEO_GEN' ? 'Lab Video' : 'Mastermind'}
                                 </h1>
                             </div>
-                            <span className="text-xs font-bold text-gray-300 mt-0.5 truncate max-w-[200px] md:max-w-md">
-                                {currentSessionId ? (sessions.find(s => s.id === currentSessionId)?.name || 'Proyecto Actual') : 'Iniciando Producción...'}
+                            <span className="text-[10px] md:text-xs font-bold text-gray-300 mt-0.5 truncate max-w-[120px] md:max-w-md">
+                                {currentSessionId ? (sessions.find(s => s.id === currentSessionId)?.name || 'Proyecto Actual') : 'Nueva Producción'}
                             </span>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5">
-                            <Bot className="w-3.5 h-3.5 text-indigo-500" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">GPT-4o DIRECTOR</span>
+                    <div className="flex items-center gap-2">
+                        {/* Status badge compacto para móvil */}
+                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 border border-white/5">
+                            <Bot className="w-3 h-3 text-indigo-500" />
+                            <span className="text-[8px] font-black uppercase tracking-widest text-zinc-500">v2.0</span>
                         </div>
                     </div>
                 </header>
@@ -1029,7 +1053,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                         {messages.length === 0 ? (
                             <EmptyStateStudio mode={mode} onSelect={(p) => { setPrompt(p); handleSend(); }} />
                         ) : (
-                            <div className="p-6 md:p-12 space-y-12 max-w-5xl mx-auto">
+                            <div className="p-4 md:p-12 space-y-8 md:space-y-12 max-w-5xl mx-auto">
                                 {messages.map((msg, i) => (
                                     <div key={msg.id || i} className="animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out fill-mode-both" style={{ animationDelay: `${i * 100}ms` }}>
                                         <MessageItem
@@ -1069,29 +1093,29 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                     </div>
                 </div>
 
-                {/* INPUT AREA — Floating Control Center */}
-                <div className="p-8 md:p-12 relative z-20">
+                {/* INPUT AREA — Floating Control Center — Optimizado Móvil */}
+                <div className="p-3 md:p-12 relative z-20">
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none -top-32" />
                     <div className="relative max-w-5xl mx-auto group/input">
 
-                        <div className="relative flex items-end gap-3 bg-[#1A1D21]/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-3 focus-within:border-indigo-500/50 focus-within:ring-[12px] focus-within:ring-indigo-500/5 transition-all duration-700 shadow-[0_30px_100px_rgba(0,0,0,0.8)]">
+                        <div className="relative flex items-end gap-2 bg-[#1A1D21]/95 md:bg-[#1A1D21]/90 backdrop-blur-3xl border border-white/10 rounded-3xl md:rounded-[2.5rem] p-2 md:p-3 focus-within:border-indigo-500/50 focus-within:ring-8 md:focus-within:ring-[12px] focus-within:ring-indigo-500/5 transition-all duration-700 shadow-[0_30px_100px_rgba(0,0,0,0.8)]">
                             <textarea
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
                                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                                 placeholder={
-                                    mode === 'IMAGE_GEN' ? 'Concepto visual, detalles técnicos, atmósfera...' :
-                                        mode === 'VIDEO_GEN' ? 'Guión, música, transiciones, vibe...' :
+                                    mode === 'IMAGE_GEN' ? '¿Qué visualizamos hoy?' :
+                                        mode === 'VIDEO_GEN' ? 'Dime tu visión para el video...' :
                                             'Escribe tu visión aquí...'
                                 }
-                                className="w-full bg-transparent border-none focus:ring-0 text-sm md:text-lg text-gray-100 placeholder-zinc-700 min-h-[60px] max-h-[200px] py-4 px-6 resize-none custom-scrollbar font-medium leading-relaxed"
+                                className="w-full bg-transparent border-none focus:ring-0 text-[13px] md:text-lg text-gray-100 placeholder-zinc-700 min-h-[52px] max-h-[200px] py-3 px-3 md:py-4 md:px-6 resize-none custom-scrollbar font-medium leading-relaxed"
                             />
                             <button
                                 onClick={handleSend}
                                 disabled={!prompt.trim() || isGenerating}
-                                className="group p-5 md:p-6 bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 disabled:from-zinc-800 disabled:to-zinc-800 text-white rounded-[2rem] transition-all duration-500 shrink-0 shadow-2xl shadow-indigo-600/30 active:scale-90 disabled:opacity-20 flex items-center justify-center min-w-[64px]"
+                                className="group w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 disabled:from-zinc-800 disabled:to-zinc-800 text-white rounded-2xl md:rounded-[2rem] transition-all duration-500 shrink-0 shadow-2xl shadow-indigo-600/30 active:scale-90 disabled:opacity-20 flex items-center justify-center"
                             >
-                                {isGenerating ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Send className="w-7 h-7 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-500" />}
+                                {isGenerating ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 md:w-7 md:h-7 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-500" />}
                             </button>
                         </div>
 

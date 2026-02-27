@@ -248,12 +248,12 @@ function OverviewTab({ stats, handleRunAnalyst, isAnalyzing, aiAnalysis }: any) 
                 </div>
             </div>
 
-            {/* Quick Stats Row */}
+            {/* Quick Stats Grid — Optimizado Táctil */}
             <div className="grid grid-cols-2 gap-3">
-                <StatCard2 icon={Users} label="Usuarios Registrados" value={stats.registrations?.total || stats.users.total} trend="Total" color="purple" simple />
-                <StatCard2 icon={TrendingUp} label="Registros Este Mes" value={stats.registrations?.thisMonth || 0} trend="+12%" color="green" simple />
-                <StatCard2 icon={Car} label="Inventario" value={stats.vehicles.active} trend="+5%" color="blue" simple />
-                <StatCard2 icon={Flag} label="Reportes" value={stats.reports.filter((r: any) => r.status === 'PENDING').length} trend="Atención" color="red" simple />
+                <StatCard2 icon={Users} label="Usuarios" value={stats.registrations?.total || stats.users.total} trend="Total" color="purple" simple />
+                <StatCard2 icon={TrendingUp} label="Crecimiento" value={stats.registrations?.thisMonth || 0} trend="+12%" color="green" simple />
+                <StatCard2 icon={Car} label="Autos" value={stats.vehicles.active} trend="Stock" color="blue" simple />
+                <StatCard2 icon={Flag} label="Alertas" value={stats.reports.filter((r: any) => r.status === 'PENDING').length} trend="Inbox" color="red" simple />
             </div>
 
             <div className="grid grid-cols-1 gap-3">
@@ -391,106 +391,30 @@ function UsersTab({ users }: { users: any[] }) {
                 </div>
             </div>
             {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto">
-                <table className="w-full">
-                    <thead className="bg-white/5">
-                        <tr>
-                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Usuario</th>
-                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Créditos</th>
-                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Email</th>
-                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Rol</th>
-                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Estado</th>
-                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Registro</th>
-                            <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-text-secondary">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                        {users.map(user => (
-                            <tr key={user.id} className="hover:bg-white/5 transition-colors">
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-surface-highlight overflow-hidden">
-                                            <img src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} className="w-full h-full object-cover" />
-                                        </div>
-                                        <span className="text-sm font-bold">{user.name}</span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-2">
-                                        <span className={`text-sm font-bold ${user.credits > 0 ? 'text-amber-400' : 'text-gray-500'}`}>
-                                            {user.credits}
-                                        </span>
-                                        <button
-                                            onClick={() => {
-                                                setSelectedUser(user)
-                                                setShowCreditModal(true)
-                                            }}
-                                            className="p-1 hover:bg-white/10 rounded-lg text-amber-500/80 hover:text-amber-400 transition"
-                                            title="Gestionar Créditos"
-                                        >
-                                            <Coins size={14} />
-                                        </button>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-sm text-text-secondary">{user.email}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded ${user.isAdmin ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                                        {user.isAdmin ? 'ADMIN' : 'USER'}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className={`text-[10px] font-black flex items-center gap-1.5 ${user.isActive ? 'text-green-500' : 'text-red-500'}`}>
-                                        <div className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
-                                        {user.isActive ? 'ACTIVO' : 'INACTIVO'}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 text-sm text-text-secondary">{new Date(user.createdAt).toLocaleDateString()}</td>
-                                <td className="px-6 py-4">
-                                    <div className="flex gap-2">
-                                        <AdminGenericAction
-                                            apiPath={`/api/admin/users/${user.id}`}
-                                            method="PATCH"
-                                            body={{ isActive: !user.isActive }}
-                                            label={user.isActive ? 'Desactivar' : 'Activar'}
-                                        />
-                                        <AdminGenericAction
-                                            apiPath={`/api/admin/users/${user.id}`}
-                                            method="DELETE"
-                                            label="Eliminar"
-                                            danger
-                                        />
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Mobile Card View */}
-            <div className="md:hidden grid grid-cols-1 gap-4 p-4">
+            {/* Premium Mobile Card View — Eliminada tabla Legacy */}
+            <div className="grid grid-cols-1 gap-4 p-4">
                 {users.map(user => (
-                    <div key={user.id} className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-4">
-                        <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-surface-highlight overflow-hidden">
-                                    <img src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} className="w-full h-full object-cover" />
+                    <div key={user.id} className="bg-[#1a1a1d] border border-white/5 rounded-3xl p-5 shadow-xl space-y-5 transition-all active:scale-[0.98]">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-2xl bg-zinc-800 p-0.5 ring-2 ring-white/5 overflow-hidden">
+                                    <img src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} className="w-full h-full object-cover rounded-[0.9rem]" />
                                 </div>
-                                <div>
-                                    <h4 className="font-bold text-sm text-white">{user.name}</h4>
-                                    <p className="text-xs text-text-secondary">{user.email}</p>
+                                <div className="min-w-0">
+                                    <h4 className="font-black text-base text-white truncate">{user.name}</h4>
+                                    <p className="text-xs text-zinc-500 truncate">{user.email}</p>
                                 </div>
                             </div>
-                            <span className={`text-[9px] font-black px-2 py-1 rounded ${user.isAdmin ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                                {user.isAdmin ? 'ADMIN' : 'USER'}
-                            </span>
+                            <div className={`px-3 py-1 rounded-full text-[9px] font-black tracking-widest ${user.isAdmin ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'}`}>
+                                {user.isAdmin ? 'MASTER' : 'SOCIO'}
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-white/5 rounded-xl p-2 px-3 border border-white/5 flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase text-text-secondary">Créditos</span>
-                                <div className="flex items-center gap-2">
-                                    <span className={`text-sm font-bold ${user.credits > 0 ? 'text-amber-400' : 'text-gray-500'}`}>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-white/[0.03] rounded-2xl p-4 border border-white/5 flex flex-col gap-1">
+                                <span className="text-[9px] font-black uppercase text-zinc-500 tracking-[0.2em]">Créditos</span>
+                                <div className="flex items-center gap-3">
+                                    <span className={`text-xl font-black italic ${user.credits > 0 ? 'text-amber-400' : 'text-zinc-600'}`}>
                                         {user.credits}
                                     </span>
                                     <button
@@ -498,37 +422,38 @@ function UsersTab({ users }: { users: any[] }) {
                                             setSelectedUser(user)
                                             setShowCreditModal(true)
                                         }}
-                                        className="p-1 bg-white/10 rounded-lg text-amber-500/80 hover:text-amber-400"
+                                        className="w-8 h-8 flex items-center justify-center bg-amber-500/10 rounded-xl text-amber-500 active:scale-90 transition-transform"
                                     >
-                                        <Coins size={12} />
+                                        <Coins size={16} />
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="bg-white/5 rounded-xl p-2 px-3 border border-white/5 flex items-center justify-between">
-                                <span className="text-[10px] font-black uppercase text-text-secondary">Estado</span>
-                                <span className={`text-[10px] font-black flex items-center gap-1.5 ${user.isActive ? 'text-green-500' : 'text-red-500'}`}>
-                                    <div className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
-                                    {user.isActive ? 'ACTIVO' : 'INACTIVO'}
-                                </span>
+                            <div className="bg-white/[0.03] rounded-2xl p-4 border border-white/5 flex flex-col gap-1">
+                                <span className="text-[9px] font-black uppercase text-zinc-500 tracking-[0.2em]">Status</span>
+                                <div className={`flex items-center gap-2 text-[11px] font-black tracking-tighter ${user.isActive ? 'text-green-500' : 'text-red-500'}`}>
+                                    <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-red-500'}`} />
+                                    {user.isActive ? 'ACTIVO' : 'BLOQUEADO'}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between pt-3 border-t border-white/5">
-                            <span className="text-[10px] text-text-secondary">
-                                Reg: {new Date(user.createdAt).toLocaleDateString()}
-                            </span>
+                        <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Desde</span>
+                                <span className="text-[10px] font-bold text-zinc-400">{new Date(user.createdAt).toLocaleDateString()}</span>
+                            </div>
                             <div className="flex gap-2">
                                 <AdminGenericAction
                                     apiPath={`/api/admin/users/${user.id}`}
                                     method="PATCH"
                                     body={{ isActive: !user.isActive }}
-                                    label={user.isActive ? 'Bloquear' : 'Activar'}
+                                    label={user.isActive ? 'Suspender' : 'Reactivar'}
                                 />
                                 <AdminGenericAction
                                     apiPath={`/api/admin/users/${user.id}`}
                                     method="DELETE"
-                                    label="Eliminar"
+                                    label="Baja"
                                     danger
                                 />
                             </div>
@@ -564,90 +489,49 @@ function InventoryTab({ vehicles }: { vehicles: any[] }) {
                 </div>
             </div>
             {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
-                <table className="w-full">
-                    <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-text-secondary">
-                        <tr>
-                            <th className="px-6 py-4 text-left">Vehículo</th>
-                            <th className="px-6 py-4 text-left">Vendedor</th>
-                            <th className="px-6 py-4 text-left">Precio</th>
-                            <th className="px-6 py-4 text-left">Estado</th>
-                            <th className="px-6 py-4 text-left">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                        {vehicles.map(vehicle => (
-                            <tr key={vehicle.id} className="hover:bg-white/5 transition-colors">
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-8 rounded-lg bg-black overflow-hidden border border-white/10">
-                                            <img src={vehicle.images?.[0]} className="w-full h-full object-cover" />
-                                        </div>
-                                        <span className="text-sm font-bold">{vehicle.title}</span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-sm text-text-secondary">{vehicle.user.name}</td>
-                                <td className="px-6 py-4 text-sm font-bold text-primary-400">
-                                    {Number(vehicle.price).toLocaleString('es-MX', { style: 'currency', currency: vehicle.currency || 'MXN' })}
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
-                                        }`}>
-                                        {vehicle.status}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex gap-2">
-                                        <AdminGenericAction
-                                            apiPath={`/api/vehicles/${vehicle.id}`}
-                                            method="PATCH"
-                                            body={{ status: vehicle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
-                                            label={vehicle.status === 'ACTIVE' ? 'Ocultar' : 'Mostrar'}
-                                        />
-                                        <AdminGenericAction
-                                            apiPath={`/api/vehicles/${vehicle.id}`}
-                                            method="DELETE"
-                                            label="Eliminar"
-                                            danger
-                                        />
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Mobile Card View */}
-            <div className="md:hidden grid grid-cols-1 gap-4 p-4">
+            {/* Premium Mobile Card View — Eliminada tabla Legacy */}
+            <div className="grid grid-cols-1 gap-4 p-4">
                 {vehicles.map(vehicle => (
-                    <div key={vehicle.id} className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-3">
-                        {/* Header: Image & Title */}
-                        <div className="flex items-start gap-3">
-                            <div className="w-16 h-12 rounded-lg bg-black overflow-hidden border border-white/10 shrink-0">
+                    <div key={vehicle.id} className="bg-[#1a1a1d] border border-white/5 rounded-3xl p-4 shadow-xl space-y-4 transition-all active:scale-[0.98]">
+                        <div className="flex items-start gap-4">
+                            <div className="w-24 h-20 rounded-2xl bg-black overflow-hidden border border-white/10 shrink-0 shadow-inner">
                                 <img src={vehicle.images?.[0]} className="w-full h-full object-cover" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <h4 className="font-bold text-sm text-white line-clamp-1">{vehicle.title}</h4>
-                                <p className="text-xs text-text-secondary truncate">{vehicle.user.name}</p>
-                                <p className="text-sm font-black text-primary-400 mt-1">
+                            <div className="flex-1 min-w-0 py-1">
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className={`text-[8px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                                        {vehicle.status}
+                                    </span>
+                                    <span className="text-[9px] font-bold text-zinc-600 truncate max-w-[80px]">{vehicle.city || 'N/A'}</span>
+                                </div>
+                                <h4 className="font-black text-sm text-white line-clamp-1 leading-tight">{vehicle.title}</h4>
+                                <p className="text-[10px] text-zinc-500 truncate mt-0.5 flex items-center gap-1">
+                                    <Users className="w-3 h-3 saturate-0" /> {vehicle.user.name}
+                                </p>
+                                <p className="text-base font-black text-indigo-400 mt-1 italic italic italic">
                                     {Number(vehicle.price).toLocaleString('es-MX', { style: 'currency', currency: vehicle.currency || 'MXN' })}
                                 </p>
                             </div>
                         </div>
 
-                        {/* Badges Row */}
-                        <div className="flex items-center justify-between">
-                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${vehicle.status === 'ACTIVE' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
-                                }`}>
-                                {vehicle.status}
-                            </span>
-                            <span className="text-[9px] text-text-secondary uppercase tracking-widest">
-                                {vehicle.city || 'Ubicación n/a'}
-                            </span>
+                        <div className="flex gap-2 pt-2 border-t border-white/5">
+                            <div className="flex-1">
+                                <AdminGenericAction
+                                    apiPath={`/api/vehicles/${vehicle.id}`}
+                                    method="PATCH"
+                                    body={{ status: vehicle.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }}
+                                    label={vehicle.status === 'ACTIVE' ? 'Ocultar' : 'Mostrar'}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <AdminGenericAction
+                                    apiPath={`/api/vehicles/${vehicle.id}`}
+                                    method="DELETE"
+                                    label="Eliminar"
+                                    danger
+                                />
+                            </div>
                         </div>
-
-                        {/* Actions Footer */}
                     </div>
                 ))}
             </div>
