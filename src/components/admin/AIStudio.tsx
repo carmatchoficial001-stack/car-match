@@ -774,7 +774,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                 }))
 
                 // Lanzamos la producción masiva en segundo plano
-                launchBatchImagePredictions(strat, promptsToGenerate.length).then(async (batchRes) => {
+                launchBatchImagePredictions(strat, count).then(async (batchRes) => {
                     const imagePendingIds = batchRes.success ? batchRes.imagePendingIds : null;
 
                     // 4️⃣ GUARDADO AUTOMÁTICO: Persistir en la base de datos
@@ -784,7 +784,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                         imageUrl: null, // Se llenará por polling
                         imagePendingIds,
                         type: 'image',
-                        count: promptsToGenerate.length
+                        count: count
                     }
                     const saveRes = await createCampaignFromAssets(fullAssets)
                     const campaignId = saveRes.success ? (saveRes as any).campaign?.id : null
