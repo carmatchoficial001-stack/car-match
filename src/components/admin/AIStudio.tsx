@@ -544,7 +544,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
         const fetchSessions = async () => {
             setIsLoadingHistory(true)
             try {
-                const res = await getAISessions(mode)
+                const res = await getAISessions() // Remove mode filter to show all history
                 if (res.success && res.chats) setSessions(res.chats)
             } catch { } finally { setIsLoadingHistory(false) }
         }
@@ -562,7 +562,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
 
     const loadSessions = async () => {
         try {
-            const res = await getAISessions(mode)
+            const res = await getAISessions() // All sessions
             if (res.success && res.chats) setSessions(res.chats)
         } catch { }
     }
@@ -575,11 +575,9 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
 
     const handleSelectSession = async (sessionId: string) => {
         if (currentSessionId === sessionId) {
-            setShowHistory(false)
             return
         }
         setIsLoadingHistory(true)
-        setShowHistory(false)
         try {
             const res = await getAISession(sessionId)
             if (res.success && res.chat) {
@@ -629,10 +627,10 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                 if (newSessionRes.success && newSessionRes.chat) {
                     sessionId = newSessionRes.chat.id
                     setCurrentSessionId(sessionId)
-                    loadSessions()
+                    await loadSessions()
                 }
             }
-            if (sessionId) saveAIMessage(sessionId, 'user', userText)
+            if (sessionId) await saveAIMessage(sessionId, 'user', userText)
 
             // Modo CHAT tradicional basado en nichos y experiencia
             const historyForAI = messages.slice(-10)
@@ -697,7 +695,11 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                     type: 'PROPOSAL',
                     strategy: res.strategy
                 }])
-                if (currentSessionId) await saveAIMessage(currentSessionId, 'assistant', aiContent)
+                if (currentSessionId) await saveAIMessage(currentSessionId, 'assistant', JSON.stringify({
+                    content: aiContent,
+                    type: 'PROPOSAL',
+                    strategy: res.strategy
+                }))
             } else {
                 throw new Error(res.error || 'Error al generar propuesta')
             }
@@ -811,10 +813,12 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                 window.dispatchEvent(new CustomEvent('switch-admin-tab', { detail: { tab: 'publicity' } }))
 
                 // Actualizar mensaje del chat con éxito
+                const finalContent = `✅ ${promptsToGenerate.length} imagen${promptsToGenerate.length > 1 ? 'es iniciadas' : ' iniciada'} — se está generando en **Campañas** 📁\n\nAhí verás el resultado cuando esté listo junto con todos los copies para redes sociales.`
                 setMessages(prev => prev.map(m => m.id === thinkingId
-                    ? { ...m, content: `✅ ${promptsToGenerate.length} imagen${promptsToGenerate.length > 1 ? 'es iniciadas' : ' iniciada'} — se está generando en **Campañas** 📁\n\nAhí verás el resultado cuando esté listo junto con todos los copies para redes sociales.` }
+                    ? { ...m, content: finalContent }
                     : m
                 ))
+                if (currentSessionId) await saveAIMessage(currentSessionId, 'assistant', finalContent)
 
             } else if (mode === 'VIDEO_GEN') {
                 let strategy = confirmedStrategy;
@@ -880,10 +884,12 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                 window.dispatchEvent(new CustomEvent('switch-admin-tab', { detail: { tab: 'publicity' } }))
 
                 // Mensaje final
+                const finalMsg = `✨ Producción iniciada. He creado una nueva campaña en el panel de **Campañas** 📁\n\nLos clips se generarán uno por uno para asegurar la mejor calidad. Vuelve ahí para ver el progreso.`
                 setMessages(prev => prev.map(m => m.id === thinkingId
-                    ? { ...m, content: `✨ Producción iniciada. He creado una nueva campaña en el panel de **Campañas** 📁\n\nLos clips se generarán uno por uno para asegurar la mejor calidad. Vuelve ahí para ver el progreso.` }
+                    ? { ...m, content: finalMsg }
                     : m
                 ))
+                if (currentSessionId) await saveAIMessage(currentSessionId, 'assistant', finalMsg)
             }
 
         } catch (error: any) {
