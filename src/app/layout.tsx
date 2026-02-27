@@ -80,10 +80,10 @@ export const metadata: Metadata = {
         "grua 24 horas", "mecanico a domicilio", "refacciones cerca de mi",
         "carwash cerca", "llantera abierta ahora", "mapa de negocios", "directorio automotriz",
 
-        // REGIONAL Y CIUDADES
-        "compra venta autos cdmx", "autos usados juarez", "refacciones juarez",
-        "carros usados monterrey", "autos guadalajara", "vender auto tijuana",
-        "marketplace autos mexico", "carros en venta mexico",
+        // REGIONAL Y CIUDADES (Top Tier)
+        "compra venta autos México", "mejor app para vender carros", "marketplace automotriz líder",
+        "carros usados Monterrey", "autos Guadalajara", "vender auto Tijuana",
+        "marketplace autos México", "carros en venta México", "financiamiento seminuevos",
 
         // SAFETY Y TRUST
         "compra segura autos", "cita segura vender auto", "verificar auto usado",
@@ -240,13 +240,13 @@ export default function RootLayout({
                                 "logo": "https://carmatchapp.net/icon-512-v20.png?v=22",
                                 "geo": {
                                     "@type": "GeoCoordinates",
-                                    "latitude": "31.6904",
-                                    "longitude": "-106.4245"
+                                    "latitude": "23.6345",
+                                    "longitude": "-102.5528"
                                 },
                                 "address": {
                                     "@type": "PostalAddress",
                                     "addressCountry": "MX",
-                                    "addressRegion": "Chihuahua"
+                                    "addressRegion": "México"
                                 },
                                 "areaServed": [
                                     {
@@ -255,7 +255,7 @@ export default function RootLayout({
                                     },
                                     {
                                         "@type": "City",
-                                        "name": "Ciudad Juárez"
+                                        "name": "México"
                                     },
                                     {
                                         "@type": "City",
