@@ -455,14 +455,18 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
             - DEBE ser interactivo, polémico, o altamente relatable. NO "anuncios bonitos".
             - Integra la marca "CarMatch" sutilmente, pero dale TODO el peso a la cultura motor.
 
-            HISTORIAL DE CHAT DE REFERENCIA (La última idea es la clave):
+            HISTORIAL DE CHAT DE REFERENCIA (ESTO ES SAGRADO):
             ${contextStr}
             
-            INSTRUCCIONES CLAVE DE FORMATO:
-            - **CARRUSELES O SERIES**: Si en la idea caben varias imágenes, CREA UN ARRAY de prompts INDIVIDUALES Y DISTINTOS para imagePrompts. Cada uno debe describir una escena diferente que cuente una historia o muestre diferentes ángulos. (Máximo 50). Evita llamarlo 'Trivia' a menos que el usuario lo pida explícitamente.
-            - **PROMPTS SUPER DETALLADOS**: Usa lenguaje técnico de fotografía en INGLÉS (ej. "shot on 35mm lens, cinematic lighting, ultra realistic").
-            - **COPIES PARA TODAS LAS REDES**: Las plataformas de META (Instagram/FB) reinan en imagen. Escribe captions largos que cuenten historias, y captions cortos tipo shitpost.
-            - **LOGO ORIGINAL**: Enfatiza en CADA prompt que el logo de "**CarMatch**" debe aparecer de forma realista y profesional en el entorno.
+            REGLAS DE ADHERENCIA CRÍTICA:
+            1. **Escucha cada detalle**: Si el usuario mencionó colores, marcas de autos específicas, o una atmósfera particular (ej: "Monterrey de noche", "Lodo brutal"), DEBES incluirlo.
+            2. **Frecuencia de Ideas**: Si el usuario pidió un número exacto de imágenes, ese es el tamaño de tu array 'imagePrompts'.
+            3. **Logo CarMatch**: El logo debe integrarse como parte de la escena (en uniformes, en carteles, en la app) de forma elegante.
+            
+            INSTRUCCIONES TÉCNICAS DE FORMATO:
+            - **CARRUSELES O SERIES**: Genera un array de prompts INDIVIDUALES Y DISTINTOS para 'imagePrompts'. Cada uno debe ser una toma diferente (Close-up, Wide, Medium) pero bajo la misma narrativa.
+            - **PROMPTS SUPER DETALLADOS**: En INGLÉS técnico de fotografía (ej. "Shot on Fujifilm XT4, cinematic street lighting, hyper-realistic car textures, 8k").
+            - **LOGO ORIGINAL**: Reitera que el logo de "**CarMatch**" debe aparecer de forma realista.
             
             Output JSON EXACTO (sin marcas de markdown):
             {
@@ -498,9 +502,9 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
             }
         `;
 
-        const result = await geminiFlashConversational.generateContent({
+        const result = await geminiPro.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json', temperature: 0.9 }
+            generationConfig: { responseMimeType: 'application/json', temperature: 0.7 }
         });
 
         return { success: true, strategy: JSON.parse(result.response.text()) };
@@ -546,8 +550,13 @@ export async function generateVideoStrategy(chatHistory: any[], targetCountry: s
             - Cortes bruscos, alto dinamismo.
             - Textos grandes en pantalla. 
             
-            HISTORIAL DE CHAT BASE:
+            HISTORIAL DE CHAT BASE (SIGUE LAS ÓRDENES DEL USUARIO):
             ${contextStr}
+            
+            REGLAS DE ADHERENCIA MAESTRA:
+            1. **Cero Genéricos**: Si el usuario planeó algo específico, NO uses el fallback. Adapta el guión exactamente a lo que se platicó.
+            2. **Atención al Detalle**: Si se mencionaron marcas, lugares o sonidos específicos, deben estar en el JSON.
+            3. **Master Style**: Define un estilo visual en inglés que se aplique a TODAS las escenas para que el video no parezca un collage de cosas distintas.
             
             FORMATOS REQUERIDOS EN EL RESULTADO:
             - Guion escena por escena
@@ -597,9 +606,9 @@ export async function generateVideoStrategy(chatHistory: any[], targetCountry: s
             }
         `;
 
-        const result = await geminiFlashConversational.generateContent({
+        const result = await geminiPro.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json', temperature: 0.95 }
+            generationConfig: { responseMimeType: 'application/json', temperature: 0.7 }
         });
 
         return { success: true, strategy: JSON.parse(result.response.text()) };
