@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, memo, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
     Sparkles, User, Send, ImageIcon,
     Video, Copy, Check, Plus, History, RefreshCw,
