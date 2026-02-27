@@ -1,3 +1,4 @@
+// 🚀 FORCE BUILD: 2026-02-18 11:45 (Null safety and build fix)
 // 🛡️ PROHIBIDO MODIFICAR SIN ORDEN EXPLÍCITA DEL USUARIO (Ver PROJECT_RULES.md)
 // ⚠️ CRITICAL WARNING: FILE PROTECTED BY PROJECT RULES.
 // DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER INSTRUCTION.
@@ -506,9 +507,9 @@ function InventoryTab({ vehicles }: { vehicles: any[] }) {
                                 </div>
                                 <h4 className="font-black text-sm text-white line-clamp-1 leading-tight">{vehicle.title}</h4>
                                 <p className="text-[10px] text-zinc-500 truncate mt-0.5 flex items-center gap-1">
-                                    <Users className="w-3 h-3 saturate-0" /> {vehicle.user.name}
+                                    <Users className="w-3 h-3 saturate-0" /> {vehicle.user?.name || 'Sistema'}
                                 </p>
-                                <p className="text-base font-black text-indigo-400 mt-1 italic italic italic">
+                                <p className="text-base font-black text-indigo-400 mt-1 italic">
                                     {Number(vehicle.price).toLocaleString('es-MX', { style: 'currency', currency: vehicle.currency || 'MXN' })}
                                 </p>
                             </div>
