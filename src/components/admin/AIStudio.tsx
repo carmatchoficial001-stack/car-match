@@ -12,6 +12,13 @@ import { Logo } from '@/components/Logo'
 
 type AIMode = 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'VIDEO_GEN' | 'STRATEGY'
 
+const SUGGESTIONS = [
+    { title: "Campaña JDM Nocturna", prompt: "Crea una serie de 5 fotos RAW cinematográficas de un Nissan Skyline R34 en las calles lluviosas de Neo-Tokyo, con luces de neón reflejadas en la pintura mojada.", icon: "🌃" },
+    { title: "Off-Road en el Desierto", prompt: "Genera una campaña visual de una Ford Raptor saltando en dunas de arena al atardecer, estilo GoPro y tomas de drone con mucha acción.", icon: "🏜️" },
+    { title: "Clásicos de Colección", prompt: "Diseña un video para TikTok sobre la restauración de un Mustang 1965 abandonado en un granero, iluminación dramática y texturas de metal oxidado.", icon: "🛠️" },
+    { title: "Lujo y Elegancia", prompt: "Campaña para redes sociales de un Mercedes Clase S frente a una mansión moderna, estética minimalista y 'Old Money'.", icon: "✨" }
+]
+
 // ─── Helper: parse message content if it's JSON ───────────────────────────
 function parseChatMessage(msg: any) {
     if (typeof msg.content === 'string' && msg.content.startsWith('{')) {
@@ -456,6 +463,39 @@ const ERROR_MAP: Record<string, string> = {
     'INVALID_OUTPUT_URL': '❌ La IA generó un archivo pero el formato no es válido. Intenta de nuevo.'
 }
 
+// ─── Empty State — Inspiration Cards ─────────────────────────────────────────
+function EmptyStateStudio({ mode, onSelect }: { mode: AIMode; onSelect: (prompt: string) => void }) {
+    return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 animate-in fade-in zoom-in duration-1000">
+            <div className="relative mb-8">
+                <div className="absolute inset-0 bg-indigo-500/20 blur-[100px] rounded-full animate-pulse" />
+                <Logo className="w-24 h-24 relative z-10 drop-shadow-[0_0_30px_rgba(99,102,241,0.5)]" />
+            </div>
+
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tight font-outfit">
+                Estudio <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">Creativo</span>
+            </h2>
+            <p className="text-zinc-500 text-sm md:text-base max-w-lg mb-12 font-medium">
+                Bienvenido al centro de mando creativo de CarMatch. ¿Qué tipo de producción viral vamos a conceptualizar hoy?
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-6xl">
+                {SUGGESTIONS.map((s, i) => (
+                    <button
+                        key={i}
+                        onClick={() => onSelect(s.prompt)}
+                        className="group relative p-6 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-indigo-500/30 rounded-3xl text-left transition-all duration-500 backdrop-blur-sm"
+                    >
+                        <div className="text-3xl mb-4 group-hover:scale-125 transition-transform duration-500">{s.icon}</div>
+                        <h4 className="text-sm font-black text-white mb-2 group-hover:text-indigo-400 transition-colors uppercase tracking-widest">{s.title}</h4>
+                        <p className="text-[10px] text-zinc-500 line-clamp-2 leading-relaxed font-medium">Click para iniciar esta idea creativa...</p>
+                    </button>
+                ))}
+            </div>
+        </div>
+    )
+}
+
 // ─── Download helper ───────────────────────────────────────────────────────
 async function downloadFile(url: string, filename: string) {
     try {
@@ -481,7 +521,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
     const [sessions, setSessions] = useState<any[]>([])
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
     const [isLoadingHistory, setIsLoadingHistory] = useState(false)
-    const [showHistory, setShowHistory] = useState(false)
+    const [showHistory, setShowHistory] = useState(true)
     const [editingSessionId, setEditingSessionId] = useState<string | null>(null)
     const [editName, setEditName] = useState('')
 
@@ -866,160 +906,218 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
     }
 
     return (
-        <div className="flex h-full bg-[#0a0a0a] text-white overflow-hidden rounded-2xl border border-white/5 flex-col relative">
-            {/* HEADER */}
-            <div className="h-16 border-b border-white/5 bg-zinc-900/50 backdrop-blur-md flex items-center justify-between px-4 shrink-0 z-20 relative">
-                <div className="flex items-center gap-3">
-                    <button onClick={handleNewChat} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-zinc-300 transition" title="Nuevo chat">
-                        <Plus className="w-4 h-4" />
-                    </button>
+        <div className="flex h-full bg-[#0a0a0a] text-white overflow-hidden rounded-3xl border border-white/10 relative shadow-2xl">
 
-                    {/* Selector de modo eliminado - Se usan los botones superiores del Admin Panel */}
+            {/* ─── SIDEBAR — HISTORY & PROJECTS ─── */}
+            <aside className={`${showHistory ? 'w-72 opacity-100' : 'w-0 opacity-0 overflow-hidden'} hidden lg:flex flex-col bg-zinc-900/40 border-r border-white/5 transition-all duration-500 backdrop-blur-2xl relative z-30`}>
+                <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Logo className="w-6 h-6 shadow-[0_0_15px_rgba(99,102,241,0.3)]" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/90">Historial</span>
+                    </div>
                 </div>
 
-                <div className="relative">
-                    <button onClick={() => setShowHistory(!showHistory)} className="flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-white transition">
-                        <History className="w-3.5 h-3.5" /> Historial
+                <div className="p-4 border-b border-white/5">
+                    <button
+                        onClick={handleNewChat}
+                        className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-4 text-[10px] font-black tracking-widest uppercase transition-all duration-300 hover:scale-[1.02] hover:border-indigo-500/50 group"
+                    >
+                        <Plus className="w-4 h-4 text-indigo-500 group-hover:rotate-90 transition-transform duration-500" />
+                        NUEVA PRODUCCIÓN
                     </button>
-                    {showHistory && (
-                        <div className="absolute top-full right-0 mt-2 w-64 bg-[#1A1D21] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
-                            <div className="p-2 border-b border-white/5 flex items-center justify-between">
-                                <span className="text-xs font-bold text-zinc-400">Chats anteriores</span>
-                                <button onClick={() => setShowHistory(false)}><X className="w-3.5 h-3.5 text-zinc-500" /></button>
-                            </div>
-                            <div className="max-h-[350px] overflow-y-auto p-1 space-y-1">
-                                {sessions.length === 0
-                                    ? <p className="text-xs text-zinc-600 p-3 text-center">No hay historial de {mode === 'IMAGE_GEN' ? 'fotos' : mode === 'VIDEO_GEN' ? 'video' : 'chat'}</p>
-                                    : sessions.map(session => (
-                                        <div key={session.id} className="group relative border border-transparent hover:border-white/10 rounded-lg overflow-hidden transition-all bg-white/0 hover:bg-white/5">
-                                            {editingSessionId === session.id ? (
-                                                <div className="p-2 flex items-center gap-2">
-                                                    <input
-                                                        autoFocus
-                                                        value={editName}
-                                                        onChange={(e) => setEditName(e.target.value)}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === 'Enter') handleRenameSession(session.id);
-                                                            if (e.key === 'Escape') setEditingSessionId(null);
-                                                        }}
-                                                        className="flex-1 bg-black/40 border border-indigo-500/50 rounded-md px-2 py-1 text-[11px] outline-none"
-                                                    />
-                                                    <button onClick={() => handleRenameSession(session.id)} className="p-1 text-green-500 hover:text-green-400">
-                                                        <Check className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    <button onClick={() => setEditingSessionId(null)} className="p-1 text-zinc-500">
-                                                        <X className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center justify-between group/row">
-                                                    <button
-                                                        onClick={() => handleSelectSession(session.id)}
-                                                        className="flex-1 text-left p-2.5 text-[11px] text-zinc-400 truncate hover:text-white transition-colors"
-                                                    >
-                                                        {session.name}
-                                                    </button>
-                                                    <div className="flex items-center pr-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setEditingSessionId(session.id);
-                                                                setEditName(session.name);
-                                                            }}
-                                                            className="p-1.5 text-zinc-500 hover:text-indigo-400"
-                                                            title="Renombrar"
-                                                        >
-                                                            <Edit className="w-3 h-3" />
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDeleteSession(session.id);
-                                                            }}
-                                                            className="p-1.5 text-zinc-500 hover:text-red-400"
-                                                            title="Borrar"
-                                                        >
-                                                            <Trash2 className="w-3 h-3" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))
-                                }
-                            </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                    {sessions.length === 0 ? (
+                        <div className="p-10 text-center opacity-30 select-none">
+                            <Bot className="w-10 h-10 mx-auto mb-4" />
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em]">Sin Proyectos</p>
                         </div>
+                    ) : (
+                        sessions.map(session => (
+                            <div key={session.id} className="group relative border border-transparent hover:border-white/5 rounded-2xl overflow-hidden transition-all bg-white/0 hover:bg-white/[0.02]">
+                                {editingSessionId === session.id ? (
+                                    <div className="p-3 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-300">
+                                        <input
+                                            autoFocus
+                                            value={editName}
+                                            onChange={(e) => setEditName(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleRenameSession(session.id);
+                                                if (e.key === 'Escape') setEditingSessionId(null);
+                                            }}
+                                            className="flex-1 bg-black/40 border border-indigo-500/50 rounded-xl px-3 py-2 text-xs outline-none"
+                                        />
+                                        <button onClick={() => handleRenameSession(session.id)} className="p-1.5 text-green-500 hover:scale-110 transition-transform">
+                                            <Check className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between p-1">
+                                        <button
+                                            onClick={() => handleSelectSession(session.id)}
+                                            className={`flex-1 text-left p-3.5 text-[11px] truncate transition-all duration-300 ${currentSessionId === session.id ? 'text-indigo-400 font-bold bg-indigo-500/5 rounded-xl' : 'text-zinc-500 hover:text-white'}`}
+                                        >
+                                            {session.name}
+                                        </button>
+                                        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity pr-2">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setEditingSessionId(session.id); setEditName(session.name); }}
+                                                className="p-2 text-zinc-500 hover:text-indigo-400 transition-colors"
+                                            >
+                                                <Edit className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id); }}
+                                                className="p-2 text-zinc-500 hover:text-red-400 transition-colors"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))
                     )}
                 </div>
-            </div>
+            </aside>
 
-            {/* MESSAGES */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 space-y-10 bg-[#0F1115] bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.03)_0%,transparent_50%)]">
-                {messages.map((msg, i) => (
-                    <div key={msg.id || i} className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ animationDelay: `${i * 80}ms` }}>
-                        <MessageItem
-                            msg={msg}
-                            onDownload={handleDownload}
-                            onConfirm={handleGenerate}
-                            onUseInCampaign={handleUseInCampaign}
-                            currentMode={mode}
-                        />
-                    </div>
-                ))}
-                {isGenerating && (
-                    <div className="flex gap-4 animate-in fade-in slide-in-from-left-4 duration-500">
-                        <div className="shrink-0 p-2 bg-gradient-to-tr from-indigo-600/20 to-purple-600/20 rounded-2xl border border-indigo-500/10 shadow-xl ring-2 ring-indigo-500/5">
-                            <RefreshCw className="w-6 h-6 text-indigo-500 animate-spin" />
+            {/* ─── MAIN CONTENT AREA ─── */}
+            <main className="flex-1 flex flex-col relative z-20 min-w-0">
+                {/* MODERN HEADER */}
+                <header className="h-20 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-2xl flex items-center justify-between px-8 shrink-0 relative overflow-hidden group/header">
+                    <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent opacity-50" />
+
+                    <div className="flex items-center gap-6">
+                        <button
+                            onClick={() => setShowHistory(!showHistory)}
+                            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-all duration-300 active:scale-95"
+                        >
+                            <History className={`w-5 h-5 ${showHistory ? 'text-indigo-500' : ''}`} />
+                        </button>
+
+                        <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                                <span className={`w-1.5 h-1.5 rounded-full ${isGenerating ? 'bg-indigo-500 animate-pulse' : 'bg-green-500'}`} />
+                                <h1 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/50">
+                                    {mode === 'IMAGE_GEN' ? 'Estudio de Imágenes' : mode === 'VIDEO_GEN' ? 'Laboratorio de Video' : 'Mastermind'}
+                                </h1>
+                            </div>
+                            <span className="text-xs font-bold text-gray-300 mt-0.5 truncate max-w-[200px] md:max-w-md">
+                                {currentSessionId ? (sessions.find(s => s.id === currentSessionId)?.name || 'Proyecto Actual') : 'Iniciando Producción...'}
+                            </span>
                         </div>
-                        <div className="bg-[#1A1D21]/60 backdrop-blur-md border border-white/10 rounded-[2.5rem] rounded-tl-none p-6 px-10 shadow-2xl ring-1 ring-white/5 relative overflow-hidden group">
-                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 animate-pulse" />
-                            <div className="flex items-center gap-5 relative z-10">
-                                <div className="flex gap-2">
-                                    <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s] shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
-                                    <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s] shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
-                                    <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[11px] font-black uppercase tracking-[0.3em] text-indigo-400">Mastermind IA</span>
-                                    <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">Calculando Estrategia Viral...</span>
-                                </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5">
+                            <Bot className="w-3.5 h-3.5 text-indigo-500" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">GPT-4o DIRECTOR</span>
+                        </div>
+                    </div>
+                </header>
+
+                {/* MESSAGES / WORKING AREA */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#0a0a0a] relative group/view">
+                    {/* Background Detail */}
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.02)_0%,transparent_50%)] pointer-events-none" />
+
+                    <div className="relative min-h-full">
+                        {messages.length === 0 ? (
+                            <EmptyStateStudio mode={mode} onSelect={(p) => { setPrompt(p); handleSend(); }} />
+                        ) : (
+                            <div className="p-6 md:p-12 space-y-12 max-w-5xl mx-auto">
+                                {messages.map((msg, i) => (
+                                    <div key={msg.id || i} className="animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out fill-mode-both" style={{ animationDelay: `${i * 100}ms` }}>
+                                        <MessageItem
+                                            msg={msg}
+                                            onDownload={handleDownload}
+                                            onConfirm={handleGenerate}
+                                            onUseInCampaign={handleUseInCampaign}
+                                            currentMode={mode}
+                                        />
+                                    </div>
+                                ))}
+
+                                {isGenerating && (
+                                    <div className="flex gap-6 animate-in fade-in slide-in-from-left-6 duration-500 max-w-4xl mx-auto">
+                                        <div className="shrink-0 p-3 bg-gradient-to-tr from-indigo-600/30 to-purple-600/30 rounded-3xl border border-indigo-500/20 shadow-[0_0_40px_rgba(99,102,241,0.2)] ring-4 ring-indigo-500/5">
+                                            <RefreshCw className="w-7 h-7 text-indigo-400 animate-spin" />
+                                        </div>
+                                        <div className="bg-[#1A1D21]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] rounded-tl-none p-8 px-12 shadow-[0_40px_80px_rgba(0,0,0,0.6)] ring-1 ring-white/10 relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 animate-shimmer scale-150" style={{ backgroundSize: '200% 100%' }} />
+                                            <div className="flex items-center gap-8 relative z-10">
+                                                <div className="flex gap-2">
+                                                    <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s] shadow-[0_0_15px_rgba(99,102,241,0.6)]" />
+                                                    <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s] shadow-[0_0_15px_rgba(99,102,241,0.6)]" />
+                                                    <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce shadow-[0_0_15px_rgba(99,102,241,0.6)]" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-black uppercase tracking-[0.4em] text-indigo-400">Mastermind Directing</span>
+                                                    <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mt-1 opacity-70">Procesando Estrategia de Impacto...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                <div ref={messagesEndRef} className="h-20" />
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* INPUT AREA — Floating Control Center */}
+                <div className="p-8 md:p-12 relative z-20">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none -top-32" />
+                    <div className="relative max-w-5xl mx-auto group/input">
+                        {/* Hints above input */}
+                        {messages.length > 0 && messages.length < 5 && (
+                            <div className="flex justify-center mb-6 animate-in slide-in-from-bottom-2 fade-in duration-700">
+                                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 flex items-center gap-2">
+                                    <Sparkles className="w-3 h-3 text-indigo-500" />
+                                    Dile a la IA: <span className="text-zinc-400">"Quiero ver el pront final"</span> para lanzar producción
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="relative flex items-end gap-3 bg-[#1A1D21]/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-3 focus-within:border-indigo-500/50 focus-within:ring-[12px] focus-within:ring-indigo-500/5 transition-all duration-700 shadow-[0_30px_100px_rgba(0,0,0,0.8)]">
+                            <textarea
+                                value={prompt}
+                                onChange={(e) => setPrompt(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                                placeholder={
+                                    mode === 'IMAGE_GEN' ? 'Concepto visual, detalles técnicos, atmósfera...' :
+                                        mode === 'VIDEO_GEN' ? 'Guión, música, transiciones, vibe...' :
+                                            'Escribe tu visión aquí...'
+                                }
+                                className="w-full bg-transparent border-none focus:ring-0 text-sm md:text-lg text-gray-100 placeholder-zinc-700 min-h-[60px] max-h-[200px] py-4 px-6 resize-none custom-scrollbar font-medium leading-relaxed"
+                            />
+                            <button
+                                onClick={handleSend}
+                                disabled={!prompt.trim() || isGenerating}
+                                className="group p-5 md:p-6 bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 disabled:from-zinc-800 disabled:to-zinc-800 text-white rounded-[2rem] transition-all duration-500 shrink-0 shadow-2xl shadow-indigo-600/30 active:scale-90 disabled:opacity-20 flex items-center justify-center min-w-[64px]"
+                            >
+                                {isGenerating ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Send className="w-7 h-7 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-500" />}
+                            </button>
+                        </div>
+
+                        <div className="mt-8 flex flex-wrap items-center justify-center gap-8 md:gap-12 opacity-30 select-none grayscale group-hover/input:grayscale-0 group-hover/input:opacity-60 transition-all duration-700">
+                            <div className="flex items-center gap-2">
+                                <Zap className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em]">FLUX ENGINE 4.0</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Globe className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em]">MX DEEP LEARNING</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-indigo-400">
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em]">MASTERMIND MODE</span>
                             </div>
                         </div>
                     </div>
-                )}
-                <div ref={messagesEndRef} className="h-10" />
-            </div>
-
-            {/* INPUT AREA — Refined Glassmorphism */}
-            <div className="p-6 md:p-8 bg-[#0a0a0a] border-t border-white/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent pointer-events-none -top-20" />
-                <div className="relative max-w-5xl mx-auto">
-                    <div className="relative flex items-end gap-3 bg-[#1A1D21]/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-3 focus-within:border-indigo-500/50 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all duration-500 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-                        <textarea
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                            placeholder={
-                                mode === 'IMAGE_GEN' ? 'Ej: "Genera una serie de 5 fotos RAW cinematográficas de..." ' :
-                                    mode === 'VIDEO_GEN' ? 'Dime la visión para tu próximo video viral...' :
-                                        'Hablemos de tu próxima gran idea creativa...'
-                            }
-                            className="w-full bg-transparent border-none focus:ring-0 text-sm md:text-base text-gray-100 placeholder-zinc-600 min-h-[52px] max-h-[200px] py-4 px-4 resize-none custom-scrollbar font-medium leading-relaxed"
-                        />
-                        <button
-                            onClick={handleSend}
-                            disabled={!prompt.trim() || isGenerating}
-                            className="group p-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 text-white rounded-[1.5rem] transition-all duration-300 shrink-0 shadow-lg shadow-indigo-600/20 active:scale-95 disabled:opacity-30"
-                        >
-                            {isGenerating ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />}
-                        </button>
-                    </div>
-                    <div className="mt-4 flex items-center justify-center gap-6 opacity-40">
-                        <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"><Zap className="w-3 h-3" /> GPT-4o Optimized</span>
-                        <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"><Sparkles className="w-3 h-3" /> Creative Director Mode Active</span>
-                    </div>
                 </div>
-            </div>
+            </main>
         </div>
     )
 }
