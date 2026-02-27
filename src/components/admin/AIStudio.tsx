@@ -1073,15 +1073,6 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                 <div className="p-8 md:p-12 relative z-20">
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none -top-32" />
                     <div className="relative max-w-5xl mx-auto group/input">
-                        {/* Hints above input */}
-                        {messages.length > 0 && messages.length < 5 && (
-                            <div className="flex justify-center mb-6 animate-in slide-in-from-bottom-2 fade-in duration-700">
-                                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 flex items-center gap-2">
-                                    <Sparkles className="w-3 h-3 text-indigo-500" />
-                                    Dile a la IA: <span className="text-zinc-400">"Quiero ver el pront final"</span> para lanzar producción
-                                </p>
-                            </div>
-                        )}
 
                         <div className="relative flex items-end gap-3 bg-[#1A1D21]/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-3 focus-within:border-indigo-500/50 focus-within:ring-[12px] focus-within:ring-indigo-500/5 transition-all duration-700 shadow-[0_30px_100px_rgba(0,0,0,0.8)]">
                             <textarea
@@ -1104,20 +1095,6 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                             </button>
                         </div>
 
-                        <div className="mt-8 flex flex-wrap items-center justify-center gap-8 md:gap-12 opacity-30 select-none grayscale group-hover/input:grayscale-0 group-hover/input:opacity-60 transition-all duration-700">
-                            <div className="flex items-center gap-2">
-                                <Zap className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em]">FLUX ENGINE 4.0</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Globe className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em]">MX DEEP LEARNING</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-indigo-400">
-                                <Sparkles className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em]">MASTERMIND MODE</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </main>

@@ -420,39 +420,12 @@ export default function PublicityTab() {
                     <SocialQueue />
                 ) : (
                     <>
-                        {/* COMMAND CENTER HEADER */}
+                        {/* Header Simplificado */}
                         <div className="p-8 border-b border-white/5 bg-gradient-to-br from-indigo-500/10 via-transparent to-transparent relative overflow-hidden shrink-0">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] -mr-32 -mt-32 rounded-full" />
-
-                            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                <div>
-                                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-1">Centro de Mando</h2>
-                                    <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Gestión de Omnipresencia Viral</p>
-                                </div>
-
-                                <div className="flex flex-wrap items-center gap-4">
-                                    <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-3 backdrop-blur-md">
-                                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Alcance Total</p>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xl font-black text-white">{(campaigns.reduce((a, c) => a + c.impressionCount, 0)).toLocaleString()}</span>
-                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                        </div>
-                                    </div>
-                                    <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-3 backdrop-blur-md">
-                                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Clics Globales</p>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xl font-black text-white">{(campaigns.reduce((a, c) => a + c.clickCount, 0)).toLocaleString()}</span>
-                                            <ExternalLink className="w-3.5 h-3.5 text-indigo-400" />
-                                        </div>
-                                    </div>
-                                    <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl px-5 py-3 backdrop-blur-md">
-                                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Smart Credits</p>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xl font-black text-white italic">∞</span>
-                                            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                                        </div>
-                                    </div>
-                                </div>
+                            <div className="relative z-10">
+                                <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-1">Mis Campañas</h2>
+                                <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Contenido Exclusivo CarMatch</p>
                             </div>
                         </div>
 
