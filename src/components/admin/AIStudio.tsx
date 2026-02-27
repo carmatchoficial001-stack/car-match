@@ -22,7 +22,7 @@ function extractImageCount(text: string): number {
         const m = text.match(p)
         if (m) {
             const n = parseInt(m[1])
-            return Math.min(Math.max(n, 1), 10)
+            return Math.min(Math.max(n, 1), 50)
         }
     }
     if (text.toLowerCase().includes('trivia') || text.toLowerCase().includes('lista')) return 5
@@ -147,36 +147,8 @@ function ContentPanel({ strategy, onSaveCampaign }: { strategy: any; onSaveCampa
     const imgLi = platforms?.linkedin
     const imgTh = platforms?.threads
 
-    // ── Plataformas de VIDEO (keys nuevas de generateVideoStrategy) ──────────
-    const vidTT = platforms?.tiktok
-    const vidIG = platforms?.instagram_reels
-    const vidYTS = platforms?.youtube_shorts
-    const vidFB = platforms?.facebook_reels
-    const vidSC = platforms?.snapchat
-    const vidYTL = platforms?.youtube_largo
-
     // ── Detectar si es estrategia de VIDEO ──────────────────────────────────
-    const isVideoStrategy = !!(vidIG || vidYTS || vidFB || vidSC || vidYTL)
-
-    const videoRows = isVideoStrategy ? [
-        vidTT && { icon: '🎵', label: 'TikTok', badge: vidTT.format || 'Vertical 9:16', duration: vidTT.duration || '30s–60s', isHoriz: false, text: [vidTT.caption, vidTT.audio_suggestion ? `🎶 Audio: ${vidTT.audio_suggestion}` : ''].filter(Boolean).join('\n') },
-        vidIG && { icon: '📸', label: 'Instagram Reels', badge: vidIG.format || 'Vertical 9:16', duration: vidIG.duration || '30s–90s', isHoriz: false, text: vidIG.caption },
-        vidYTS && { icon: '▶️', label: 'YouTube Shorts', badge: vidYTS.format || 'Vertical 9:16', duration: vidYTS.duration || '30s–60s', isHoriz: false, text: [vidYTS.titulo, vidYTS.descripcion].filter(Boolean).join('\n') },
-        vidFB && { icon: '📘', label: 'Facebook Reels', badge: vidFB.format || 'Vertical 9:16', duration: vidFB.duration || '30s–90s', isHoriz: false, text: vidFB.caption },
-        vidSC && { icon: '👻', label: 'Snapchat Spotlight', badge: vidSC.format || 'Vertical 9:16', duration: vidSC.duration || '15s–60s', isHoriz: false, text: vidSC.caption },
-        vidYTL && { icon: '🎬', label: 'YouTube (largo)', badge: vidYTL.format || 'Horizontal 16:9', duration: vidYTL.duration || '3min–10min', isHoriz: true, text: [vidYTL.titulo, vidYTL.descripcion].filter(Boolean).join('\n') },
-    ].filter(Boolean) as { icon: string; label: string; badge: string; duration: string; isHoriz: boolean; text: string }[] : []
-
-    const imageRows = !isVideoStrategy ? [
-        imgFb && { icon: '📘', label: 'Facebook', text: [imgFb.titulo || imgFb.title || imgFb.headline, imgFb.descripcion || imgFb.description || imgFb.primary_text].filter(Boolean).join('\n\n') },
-        imgIg && { icon: '📸', label: 'Instagram', text: imgIg.caption },
-        imgTt && { icon: '🎵', label: 'TikTok', text: imgTt.caption },
-        imgTw && { icon: '🐦', label: 'Twitter / X', text: imgTw.tweet },
-        imgYt && { icon: '▶️', label: 'YouTube', text: [imgYt.titulo || imgYt.title, imgYt.descripcion || imgYt.description].filter(Boolean).join('\n') },
-        imgWa && { icon: '💬', label: 'WhatsApp', text: imgWa.mensaje },
-        imgLi && { icon: '💼', label: 'LinkedIn', text: imgLi.post },
-        imgTh && { icon: '🧵', label: 'Threads', text: imgTh.post },
-    ].filter(Boolean) as { icon: string; label: string; text: string }[] : []
+    const isVideoStrategy = !!(platforms?.tiktok || platforms?.instagram_reels || platforms?.youtube_shorts || platforms?.facebook_reels || platforms?.snapchat || platforms?.youtube_largo)
 
     return (
         <div className="mt-3 border border-white/10 rounded-xl overflow-hidden bg-black/30">
@@ -241,96 +213,99 @@ function ContentPanel({ strategy, onSaveCampaign }: { strategy: any; onSaveCampa
             {/* Caption principal (imágenes) */}
             {caption && !isVideoStrategy && <PlatformRow icon="✍️" label="Caption principal" text={caption} />}
 
-            {/* ─── Plataformas de VIDEO ─────────────────── */}
-            {isVideoStrategy && videoRows.length > 0 && (
-                <>
-                    <div className="px-3 py-1.5 bg-purple-900/20 border-y border-purple-500/20">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-purple-400">📱 Copies por plataforma de video</p>
-                    </div>
-                    {videoRows.map((row, i) => (
-                        <div key={row.label} className={`flex items-start justify-between gap-2 px-3 py-2.5 ${i < videoRows.length - 1 ? 'border-b border-white/5' : ''}`}>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400">{row.icon} {row.label}</p>
-                                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${row.isHoriz ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}`}>
-                                        {row.badge}
-                                    </span>
-                                    <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400">
-                                        ⏱ {row.duration}
-                                    </span>
-                                </div>
-                                <p className="text-xs text-gray-300 whitespace-pre-wrap break-words">{row.text}</p>
-                            </div>
-                            <div className="shrink-0"><CopyBtn text={row.text} label="Copiar" /></div>
-                        </div>
-                    ))}
-                </>
-            )}
-
-            {/* ─── Plataformas de IMAGEN ─────────────────── */}
-            {!isVideoStrategy && imageRows.length > 0 && (
-                <>
-                    <div className="px-3 py-1.5 bg-white/3 border-y border-white/5">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-indigo-400">🌐 Copies por red social</p>
-                    </div>
-                    {imageRows.map((row, i) => (
-                        <PlatformRow key={row.label} icon={row.icon} label={row.label} text={row.text} borderBottom={i < imageRows.length - 1} />
-                    ))}
-                </>
-            )}
+            {/* No se muestran las redes sociales aquí en el chat, 
+                ya que el desglose por plataforma se ve en el Área de Edición / Campañas (Global Ad Pack) 
+            */}
         </div>
     )
 }
 
 // ─── Campaign Proposal Panel ───────────────────────────────────────────────
 function CampaignProposal({ strategy, onConfirm, isGenerating, mode }: { strategy: any; onConfirm: () => void; isGenerating: boolean; mode: AIMode }) {
+    const [expanded, setExpanded] = useState(false)
+    const [copied, setCopied] = useState(false)
     if (!strategy) return null
-    const { internal_title, visualSummary, isTrivia, imagePrompts, scenes } = strategy
+
+    const { internal_title, visualSummary, imagePrompts, scenes, imagePrompt } = strategy
     const imgCount = imagePrompts?.length || 0
     const scenesCount = scenes?.length || 0
     const isVideo = mode === 'VIDEO_GEN'
 
+    const handleCopyPrompt = (e: React.MouseEvent) => {
+        e.stopPropagation()
+        const textToCopy = isVideo ? strategy.master_style : (imagePrompt || (imagePrompts && imagePrompts[0]))
+        if (textToCopy) {
+            navigator.clipboard.writeText(textToCopy)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+        }
+    }
+
     return (
-        <div className="mt-3 border border-indigo-500/30 rounded-xl overflow-hidden bg-indigo-500/5 p-4 space-y-3">
-            <div className="flex items-center gap-2 mb-1">
-                <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> Propuesta de {isVideo ? 'Video' : 'Campaña'}
-                </span>
-                {isTrivia && (
-                    <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider">
-                        Trivia Detectada
+        <div
+            onClick={() => !isGenerating && setExpanded(!expanded)}
+            className={`mt-3 border ${expanded ? 'border-indigo-500 shadow-lg shadow-indigo-500/10' : 'border-indigo-500/30'} rounded-xl overflow-hidden bg-indigo-500/5 transition-all duration-300 cursor-pointer group/proposal`}
+        >
+            <div className="p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" /> {expanded ? 'Propuesta Detallada' : `Propuesta de ${isVideo ? 'Video' : 'Campaña'}`}
                     </span>
+                    {!expanded && (
+                        <span className="text-[9px] font-bold text-indigo-400 animate-pulse uppercase tracking-wider">Hacer clic para ver detalles</span>
+                    )}
+                </div>
+
+                <h4 className="text-sm font-bold text-white leading-tight">{internal_title || (isVideo ? 'Nueva Producción de Video' : 'Nueva Campaña CarMatch')}</h4>
+
+                {expanded && (
+                    <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="bg-black/20 rounded-lg p-3 border border-white/5">
+                            <p className="text-[10px] font-black uppercase text-zinc-500 mb-2 tracking-widest">📋 Plan de {isVideo ? 'Producción' : 'Generación'}:</p>
+                            <p className="text-xs text-zinc-300 whitespace-pre-wrap leading-relaxed">
+                                {visualSummary || (
+                                    isVideo
+                                        ? `Generaré un video con ${scenesCount} escenas basadas en tu idea.`
+                                        : `Generaré ${imgCount > 1 ? imgCount : 'una'} imagen${imgCount > 1 ? 'es' : ''} de alta calidad para tu campaña.`
+                                )}
+                            </p>
+                        </div>
+
+                        {/* Prompt Display */}
+                        <div className="bg-black/40 rounded-lg p-2.5 border border-white/10">
+                            <p className="text-[9px] font-black uppercase text-zinc-500 mb-1.5 tracking-widest">🧬 Prompt Final:</p>
+                            <p className="text-[10px] text-zinc-400 italic line-clamp-3">
+                                {isVideo ? strategy.master_style : (imagePrompt || (imagePrompts && imagePrompts[0]))}
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                onClick={handleCopyPrompt}
+                                className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition"
+                            >
+                                {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                {copied ? 'Copiado' : 'Copiar Prompt'}
+                            </button>
+
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onConfirm(); }}
+                                disabled={isGenerating}
+                                className={`flex items-center justify-center gap-2 px-4 py-2.5 ${isVideo ? 'bg-purple-600 hover:bg-purple-500' : 'bg-indigo-600 hover:bg-indigo-500'} disabled:opacity-50 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition shadow-lg`}
+                            >
+                                {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : (isVideo ? <Video className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />)}
+                                USAR EN CAMPAÑA
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {!expanded && (
+                    <p className="text-[10px] text-zinc-400 line-clamp-1 italic">
+                        {visualSummary?.substring(0, 100)}...
+                    </p>
                 )}
             </div>
-
-            <h4 className="text-sm font-bold text-white leading-tight">{internal_title || (isVideo ? 'Nueva Producción de Video' : 'Nueva Campaña CarMatch')}</h4>
-
-            <div className="bg-black/20 rounded-lg p-3 border border-white/5">
-                <p className="text-[10px] font-black uppercase text-zinc-500 mb-2 tracking-widest">📋 Plan de {isVideo ? 'Producción' : 'Generación'}:</p>
-                <p className="text-xs text-zinc-300 whitespace-pre-wrap leading-relaxed">
-                    {visualSummary || (
-                        isVideo
-                            ? `Generaré un video con ${scenesCount} escenas basadas en tu idea.`
-                            : (isTrivia ? `Generaré ${imgCount} imágenes únicas para tu trivia.` : 'Generaré una imagen de alta calidad para tu campaña.')
-                    )}
-                </p>
-            </div>
-
-            <button
-                onClick={onConfirm}
-                disabled={isGenerating}
-                className={`w-full flex items-center justify-center gap-2 px-4 py-3 ${isVideo ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-900/20' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20'} disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-widest transition shadow-lg`}
-            >
-                {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : (isVideo ? <Video className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />)}
-                {isVideo
-                    ? '🎥 Confirmar e Iniciar Producción'
-                    : (isTrivia ? `✨ Confirmar y Generar ${imgCount} Imágenes` : '✨ Confirmar y Generar Imágenes')
-                }
-            </button>
-
-            <p className="text-[9px] text-zinc-500 text-center text-balance italic">
-                *Esto consumirá los créditos correspondientes para generar los assets en alta resolución.*
-            </p>
         </div>
     )
 }
@@ -598,7 +573,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
             const aiContent = response.success ? response.message! : '❌ Error al procesar tu mensaje.'
             setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: aiContent }])
             if (sessionId) await saveAIMessage(sessionId, 'assistant', aiContent)
-            
+
         } catch (e: any) {
             const mappedMessage = ERROR_MAP[e.message] || `❌ Error: ${e.message}`
             setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: mappedMessage }])
@@ -622,10 +597,10 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
             }])
 
             const { getCampaignStrategyPreview } = await import('@/app/admin/actions/ai-content-actions')
-            
+
             // Pasamos el chat histórico + la idea específica seleccionada
             const contextMessages = [...messages, { role: 'user', content: `Basado en esta idea: "${ideaText}". Crea la propuesta estratégica definitiva.` }];
-            
+
             const res = await getCampaignStrategyPreview(contextMessages, mode === 'IMAGE_GEN' ? 'IMAGE' : 'VIDEO', 'MX')
 
             // Quitar mensaje "pensando"
@@ -695,7 +670,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
 
                 // 3️⃣ Lanzar predicciones: SECUENCIAL (uno por uno) como pidió Ruben
                 const promptsToGenerate = strat.imagePrompts && Array.isArray(strat.imagePrompts)
-                    ? strat.imagePrompts.slice(0, 10) // Límite de 10
+                    ? strat.imagePrompts.slice(0, 50) // Límite de 50
                     : Array.from({ length: count }).map(() => strat.imagePrompt);
 
                 const predictions = []
@@ -704,7 +679,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
 
                     // Actualizar mensaje de "Thinking" con progreso
                     setMessages(prev => prev.map(m => m.id === thinkingId
-                        ? { ...m, content: `🎨 Registrando e iniciando imagen ${i + 1} de ${promptsToGenerate.length}...` }
+                        ? { ...m, content: `🎨 Creando imagen ${i + 1} de ${promptsToGenerate.length}... (Procesando secuencialmente para estabilidad)` }
                         : m
                     ))
 

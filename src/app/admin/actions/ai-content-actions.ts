@@ -6,6 +6,10 @@
 
 import { geminiFlashConversational, geminiFlash, geminiPro } from '@/lib/ai/geminiModels'
 import { prisma } from '@/lib/db'
+import Replicate from 'replicate'
+import { createImagePrediction, createVideoPrediction, checkPrediction } from '@/lib/ai/replicate-client'
+import { generatePollinationsImage } from '@/lib/ai/asset-generator'
+
 
 // Helper to get country specific context
 const getCountryContext = (countryCode: string) => {
@@ -76,8 +80,8 @@ export async function generateImagePrompt(topic: string, style: string = 'realis
             - The setting should look like a location in ${country.name} (streets, landscapes, or architecture typical of ${country.name}).
             - Lighting: Cinematic, professional photography.
             - Quality: 8k, photorealistic, highly detailed.
-            - **BRANDING**: If the scene includes a smartphone, a store sign, a dealership, or an app interface, it MUST display the "**CarMatch**" brand.
-            - **LOGO INTEGRITY**: Strictly forbidden to modify the logo's official colors, shape, or proportions. It must look professional and original.
+            - **BRANDING & LOGO**: The scene MUST prominently and accurately feature the official "**CarMatch**" logo. The logo is the original corporate identity: professional, modern, and associated with a premium automotive marketplace. If the scene shows a dealership, the logo is on the main totem; if it's a smartphone, it's the app's splash screen; if it's a car, it's a discrete decal or on a license plate.
+            - **LOGO INTEGRITY**: DO NOT alter the logo's colors, shape, or proportions. It must look like a high-end, official corporate branding.
 
             IMPORTANT: If the subject is a situation (like a date, a repair, or a person using an app), focus on the HUMAN EMOTION and the SCENE, not just a parked car.
             
@@ -399,7 +403,6 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
 
             // 3. Initiate ASYNC Tasks
             console.log('[AUTO-PILOT] Iniciando tareas IA asíncronas...')
-            const { createImagePrediction, createVideoPrediction } = await import('@/lib/ai/replicate-client')
 
             const basePrompt = campaignData.imagePrompt || 'Luxury car in Mexico City, cinematic'
 
@@ -456,16 +459,16 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
             ${contextStr}
             
             INSTRUCCIONES CLAVE DE FORMATO:
-            - **CARRUSELES O TRIVIAS**: Si en la idea caben varias imágenes, CREA UN ARRAY de prompts INDIVIDUALES Y DISTINTOS para imagePrompts. Cada uno debe describir una escena diferente o un reto de trivia. (Máximo 10).
+            - **CARRUSELES O SERIES**: Si en la idea caben varias imágenes, CREA UN ARRAY de prompts INDIVIDUALES Y DISTINTOS para imagePrompts. Cada uno debe describir una escena diferente que cuente una historia o muestre diferentes ángulos. (Máximo 50). Evita llamarlo 'Trivia' a menos que el usuario lo pida explícitamente.
             - **PROMPTS SUPER DETALLADOS**: Usa lenguaje técnico de fotografía en INGLÉS (ej. "shot on 35mm lens, cinematic lighting, ultra realistic").
             - **COPIES PARA TODAS LAS REDES**: Las plataformas de META (Instagram/FB) reinan en imagen. Escribe captions largos que cuenten historias, y captions cortos tipo shitpost.
+            - **LOGO ORIGINAL**: Enfatiza en CADA prompt que el logo de "**CarMatch**" debe aparecer de forma realista y profesional en el entorno.
             
             Output JSON EXACTO (sin marcas de markdown):
             {
                 "internal_title": "Título estratégico de la campaña",
                 "imagePrompt": "PROMPT PRINCIPAL EN INGLÉS MUY DETALLADO.",
                 "imagePrompts": ["PROMTS INDIVIDUALES. Úsalos si es carrusel o historia de varias fotos. NUNCA repitas el prompt. Haz que narren o completen la idea."],
-                "isTrivia": true/false,
                 "visualSummary": "Resumen en ESPAÑOL de qué fotos se van a generar y por qué (Para ser leído por el usuario).",
                 "caption": "Caption principal en ESPAÑOL (${country.slang}).",
                 "platforms": {
@@ -655,6 +658,11 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
             - **Idioma**: Español (México) con slang MUY natural y de barrio/taller, pero inteligente (${country.slang}).
             - **Formato**: Usa emojis, respuestas rápidas y ve AL GRANO.
             
+            FLUJO DE TRABAJO CRÍTICO (REGLAS DE RUBEN):
+            1. **Fase de Planeación**: Cuando el usuario empiece a hablar, NO generes propuestas de campaña de inmediato. Conversa, sugiere ideas de nicho, pregunta qué coches o qué vibe queremos. Vamos planeando juntos.
+            2. **El Momento Final**: SOLO cuando el usuario diga explícitamente "DAME EL PROMPT FINAL" (o algo muy similar como "dame el pront final"), es cuando debes disparar la propuesta estratégica técnica.
+            3. **Contenido del Prompt Final**: El "Prompt Final" debe ser la síntesis maestra de toda nuestra plática, listo para que la IA de imagen lo entienda a la perfección (en inglés detallado).
+            
             SI EL USUARIO PIDE IDEAS, DALE ORO PURO DEL MUNDO MOTOR. NO RESPUESTAS GENÉRICAS CORPORATIVAS.
             PIENSA EN GRANDE. PIENSA EN MILLONES DE VISTAS.
         `;
@@ -686,6 +694,24 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
 
         // TIMEOUT PROTECTION (9s max to stay within Vercel 10s limit)
         try {
+            // Check if user is asking for the final prompt
+            const isAskingForFinal = lastMessage.toLowerCase().includes('dame el pront final') ||
+                lastMessage.toLowerCase().includes('dame el prompt final') ||
+                lastMessage.toLowerCase().includes('listo la produccion')
+
+            if (isAskingForFinal) {
+                // If asking for final, we trigger the strategy generation immediately
+                const stratRes = await getCampaignStrategyPreview(messages, currentMode === 'VIDEO_GEN' ? 'VIDEO' : 'IMAGE', targetCountry);
+                if (stratRes.success) {
+                    return {
+                        success: true,
+                        message: "¡Excelente decisión! He sintetizado toda nuestra planeación en este Prompt Maestro. Aquí tienes los detalles técnicos para iniciar la producción.",
+                        type: 'PROPOSAL',
+                        strategy: stratRes.strategy
+                    }
+                }
+            }
+
             const result = await Promise.race([
                 chat.sendMessage(lastMessage),
                 new Promise<any>((_, reject) => setTimeout(() => reject(new Error("CHAT_TIMEOUT")), 9000))
@@ -707,7 +733,6 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
     }
 }
 
-import { generatePollinationsImage } from '@/lib/ai/asset-generator'
 
 // --- FULL CAMPAIGN ASSET GENERATION ---
 // --- STAGE 1: STRATEGY GENERATION (Gemini) ---
@@ -740,9 +765,9 @@ export async function generateCampaignStrategy(chatHistory: any[], targetCountry
             Estructura JSON requerida:
     {
         "internal_title": "Nombre de la Campaña",
-        "imagePrompt": "Detailed realistic prompt in ENGLISH. Use EXACTLY what was discussed in the chat. If there is a car brand, specify it. If there is a specific scenario (broken car, superhero, etc.), include ALL visual details described.",
-        "videoPrompt_vertical": "Technical prompt in ENGLISH for vertical video (9:16). Describe the FIRST 3 SECONDS of the vision discussed in the chat. High energy.",
-        "videoPrompt_horizontal": "Technical prompt in ENGLISH for horizontal video (16:9). Cinematic version of the CHAT STORY.",
+        "imagePrompt": "Detailed realistic prompt in ENGLISH. Use EXACTLY what was discussed in the chat. MUST describe the ORIGINAL CarMatch logo appearing naturally in the scene (smartphone screen, dealership totem, etc.). Use photorealistic style, 8k.",
+        "videoPrompt_vertical": "Technical prompt in ENGLISH for vertical video (9:16). Describe the FIRST 3 SECONDS of the vision discussed in the chat. Include CarMatch branding.",
+        "videoPrompt_horizontal": "Technical prompt in ENGLISH for horizontal video (16:9). Cinematic version of the CHAT STORY with CarMatch logo integration.",
         "videoScript": "Guión viral de 15s en el idioma nativo que sea fiel al 100% a lo discutido en el chat.",
         "platforms": { ... }
     }
@@ -785,8 +810,6 @@ export async function generateCampaignStrategy(chatHistory: any[], targetCountry
 export async function launchAssetPredictions(strategy: any, targetCountry: string = 'MX') {
     try {
         const country = getCountryContext(targetCountry);
-        const { createImagePrediction, createVideoPrediction } = await import('@/lib/ai/replicate-client');
-        const { generatePollinationsImage } = await import('@/lib/ai/asset-generator');
 
         const basePrompt = strategy.imagePrompt
             ? `${strategy.imagePrompt}, professional advertisement style, 8k, photorealistic`
@@ -835,8 +858,6 @@ export async function launchAssetPredictions(strategy: any, targetCountry: strin
 // New Specialized Launchers
 export async function launchImageOnlyPrediction(strategy: any) {
     try {
-        const { createImagePrediction } = await import('@/lib/ai/replicate-client');
-        const { generatePollinationsImage } = await import('@/lib/ai/asset-generator');
 
         console.log('[IMG-ONLY] Generando imagen viral...');
 
@@ -869,7 +890,6 @@ export async function launchImageOnlyPrediction(strategy: any) {
 
 export async function launchVideoOnlyPrediction(strategy: any) {
     try {
-        const { createVideoPrediction } = await import('@/lib/ai/replicate-client');
 
         console.log('[VID-ONLY] Generando video viral...');
         const videoId = await createVideoPrediction(strategy.videoPrompt_vertical || strategy.videoPrompt, '9:16');
@@ -904,7 +924,6 @@ export async function launchMultiSceneVideoPredictions(
     masterStyle: string
 ) {
     try {
-        const { createVideoPrediction } = await import('@/lib/ai/replicate-client');
 
         const results = [];
 
@@ -940,7 +959,6 @@ export async function launchSingleSceneVideoPrediction(
     campaignId?: string // Opcional para persistencia inmediata
 ) {
     try {
-        const { createVideoPrediction } = await import('@/lib/ai/replicate-client');
         const fullPrompt = `${masterStyle}. Scene ${scene.id}: ${scene.visual_prompt}`;
         const predictionId = await createVideoPrediction(fullPrompt, '9:16');
 
@@ -1002,7 +1020,6 @@ export async function checkMultiSceneStatus(
     scenes: { sceneId: number; predictionId: string }[]
 ) {
     try {
-        const { default: Replicate } = await import('replicate');
         const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
 
         const results = await Promise.all(
@@ -1149,7 +1166,6 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
 
                 // Generate new image with Replicate Flux (all 3 sizes in parallel)
                 console.log('[AI] Generando nuevas imágenes (3 tamaños)...')
-                const { createImagePrediction } = await import('@/lib/ai/replicate-client')
 
                 const [imgSquareId, imgVerticalId, imgHorizontalId] = await Promise.all([
                     createImagePrediction(newImagePrompt, 1080, 1080).catch(e => { console.error('Regen ImgSq Err:', e); return null; }),
@@ -1208,12 +1224,12 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                         temperature: 0.8
                     }
                 })
-                
+
                 let rawAllText = allResult.response.text().trim();
                 // Limpiar posibles bloques markdown de la IA
                 if (rawAllText.startsWith('```json')) rawAllText = rawAllText.replace(/```json/g, '').replace(/```/g, '').trim();
                 else if (rawAllText.startsWith('```')) rawAllText = rawAllText.replace(/```/g, '').trim();
-                
+
                 const allData = JSON.parse(rawAllText)
                 updatedAssets.copy = allData.copy
                 updatedAssets.imagePrompt = allData.imagePrompt
@@ -1221,7 +1237,6 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
 
                 // Generate image ASYNC to prevent Vercel timeout
                 console.log('[AI] Lanzando generacion de imagenes (all)...')
-                const { createImagePrediction } = await import('@/lib/ai/replicate-client')
 
                 const [imgSquareAll, imgVerticalAll, imgHorizontalAll] = await Promise.all([
                     createImagePrediction(allData.imagePrompt, 1080, 1080).catch(e => { console.error('RegenAll ImgSq Err:', e); return null; }),
@@ -1281,7 +1296,6 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
 // --- POLLING ACTION ---
 export async function checkAIAssetStatus(predictionId: string) {
     try {
-        const { checkPrediction } = await import('@/lib/ai/replicate-client');
         const result = await checkPrediction(predictionId);
 
         console.log(`[POLL] Status for ${predictionId}: ${result.status} `);
