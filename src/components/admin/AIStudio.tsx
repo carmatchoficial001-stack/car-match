@@ -3,7 +3,7 @@ import {
     Sparkles, User, Send, ImageIcon,
     Video, Copy, Check, Plus, History, RefreshCw,
     Bot, Download, X, ChevronLeft, ChevronRight,
-    Trash2, Edit
+    Trash2, Edit, Zap, Layers, Globe, FileText, Terminal
 } from 'lucide-react'
 import { createAISession, getAISession, getAISessions, deleteAISession, saveAIMessage, renameAISession } from '@/app/admin/actions/ai-studio-actions'
 import { chatWithPublicityAgent } from '@/app/admin/actions/ai-content-actions'
@@ -338,6 +338,7 @@ function CampaignProposal({ strategy, onConfirm, isGenerating, mode }: { strateg
 
 // ─── Message Item ──────────────────────────────────────────────────────────
 const MessageItem = memo(({ msg, onDownload, onConfirm, onUseInCampaign, currentMode }: { msg: any; onDownload: (url: string, i: number) => void, onConfirm?: (strat: any) => void, onUseInCampaign?: (text: string) => void, currentMode: AIMode }) => {
+    const [copied, setCopied] = useState(false)
     const parsedMsg = useMemo(() => parseChatMessage(msg), [msg])
     const cleanContent = useMemo(() =>
         parsedMsg.content.replace(/\[VIDEO_PREVIEW\]:.*\n?|\[IMAGE_PREVIEW\]:.*\n?/g, '').trim()
