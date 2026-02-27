@@ -698,17 +698,18 @@ export default function PublicityTab() {
 
 const PLATFORMS = [
     { id: 'meta_ads', label: 'Meta Ads (FB/IG)', icon: <img src="https://cdn-icons-png.flaticon.com/512/6033/6033716.png" className="w-5 h-5 invert" />, color: 'bg-blue-600' },
+    { id: 'tiktok_ads', label: 'TikTok Ads', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" className="w-5 h-5 invert" />, color: 'bg-black' },
+    { id: 'facebook_marketplace', label: 'FB Marketplace', icon: <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" className="w-5 h-5 invert" />, color: 'bg-blue-700' },
     { id: 'facebook_reels', label: 'Facebook Reels', icon: <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" className="w-5 h-5 invert" />, color: 'bg-blue-700' },
-    { id: 'facebook_marketplace', label: 'Marketplace', icon: <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" className="w-5 h-5 invert" />, color: 'bg-blue-700' },
-    { id: 'google_ads', label: 'Google Ads', icon: <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" className="w-5 h-5 invert" />, color: 'bg-green-600' },
-    { id: 'tiktok_ads', label: 'TikTok', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" className="w-5 h-5 invert" />, color: 'bg-black' },
-    { id: 'kwai', label: 'Kwai', icon: <img src="https://cdn-icons-png.flaticon.com/512/6978/6978255.png" className="w-5 h-5 invert" />, color: 'bg-orange-500' },
     { id: 'youtube_shorts', label: 'YouTube Shorts', icon: <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" className="w-5 h-5 invert" />, color: 'bg-red-600' },
+    { id: 'instagram_reels', label: 'Instagram Reels', icon: <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" className="w-5 h-5 invert" />, color: 'bg-pink-600' },
+    { id: 'google_ads', label: 'Google Ads', icon: <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" className="w-5 h-5 invert" />, color: 'bg-green-600' },
     { id: 'twitter_x', label: 'X (Twitter)', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" className="w-5 h-5 invert" />, color: 'bg-slate-800' },
     { id: 'threads', label: 'Threads', icon: <span className="font-bold text-lg select-none leading-none">@</span>, color: 'bg-black' },
-    { id: 'snapchat_ads', label: 'Snapchat', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670166.png" className="w-5 h-5 invert" />, color: 'bg-yellow-400 text-black' },
-    { id: 'pinterest', label: 'Pinterest', icon: <img src="https://cdn-icons-png.flaticon.com/512/174/174863.png" className="w-5 h-5 invert" />, color: 'bg-red-600' },
     { id: 'linkedin', label: 'LinkedIn', icon: <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" className="w-5 h-5 invert" />, color: 'bg-blue-700' },
+    { id: 'snapchat_ads', label: 'Snapchat', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670166.png" className="w-5 h-5 invert" />, color: 'bg-yellow-400 text-black' },
+    { id: 'kwai', label: 'Kwai', icon: <img src="https://cdn-icons-png.flaticon.com/512/6978/6978255.png" className="w-5 h-5 invert" />, color: 'bg-orange-500' },
+    { id: 'pinterest', label: 'Pinterest', icon: <img src="https://cdn-icons-png.flaticon.com/512/174/174863.png" className="w-5 h-5 invert" />, color: 'bg-red-600' },
 ]
 
 // Helper for downloading assets (Standalone)
@@ -898,13 +899,14 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = 
                                     ? PLATFORMS.filter(p => IMAGE_PLATFORMS.includes(p.id))
                                     : PLATFORMS
 
-                            return filteredPlatforms.map(platform => (
+                            return filteredPlatforms.map((platform, idx) => (
                                 <PlatformAccordionItem
                                     key={platform.id}
                                     platform={platform}
                                     data={assets.platforms?.[platform.id] || buildFallbackPlatformData(platform.id, assets)}
                                     assets={assets}
                                     isFallback={!assets.platforms?.[platform.id]}
+                                    defaultOpen={idx === 0} // Auto-expand current first one
                                 />
                             ))
                         })()
@@ -925,8 +927,8 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = 
     )
 }
 
-function PlatformAccordionItem({ platform, data, assets, isFallback }: any) {
-    const [isOpen, setIsOpen] = useState(false)
+function PlatformAccordionItem({ platform, data, assets, isFallback, defaultOpen }: any) {
+    const [isOpen, setIsOpen] = useState(defaultOpen || false)
     const [copiedKey, setCopiedKey] = useState<string | null>(null)
 
     const handleCopy = (text: string, key: string) => {

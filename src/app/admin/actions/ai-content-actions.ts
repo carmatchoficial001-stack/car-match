@@ -504,7 +504,7 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
 
         const result = await geminiPro.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json', temperature: 0.7 }
+            generationConfig: { responseMimeType: 'application/json', temperature: 0.7, maxOutputTokens: 4096 }
         });
 
         return { success: true, strategy: JSON.parse(result.response.text()) };
@@ -608,7 +608,7 @@ export async function generateVideoStrategy(chatHistory: any[], targetCountry: s
 
         const result = await geminiPro.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json', temperature: 0.7 }
+            generationConfig: { responseMimeType: 'application/json', temperature: 0.7, maxOutputTokens: 4096 }
         });
 
         return { success: true, strategy: JSON.parse(result.response.text()) };
@@ -707,7 +707,7 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
         const chat = geminiFlashConversational.startChat({
             history: historyParts,
             generationConfig: {
-                maxOutputTokens: 1000,
+                maxOutputTokens: 4096,
                 temperature: 0.8,
             },
         });
@@ -808,7 +808,7 @@ export async function generateCampaignStrategy(chatHistory: any[], targetCountry
         const result = await Promise.race([
             geminiFlashConversational.generateContent({
                 contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                generationConfig: { responseMimeType: 'application/json', temperature: 0.9 }
+                generationConfig: { responseMimeType: 'application/json', temperature: 0.9, maxOutputTokens: 4096 }
             }),
             new Promise<any>((_, reject) => setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 9000))
         ]);
@@ -907,6 +907,47 @@ export async function launchImageOnlyPrediction(strategy: any) {
             success: false,
             error: `Fallo al iniciar generación de imagen: ${e.message || 'Error desconocido'}`
         };
+    }
+}
+
+/**
+ * Lanza una serie de predicciones de imagen basadas en un array de prompts.
+ * Si no hay array, usa el prompt principal N veces (usando semillas diferentes).
+ */
+export async function launchBatchImagePredictions(strategy: any, count: number = 3) {
+    try {
+        console.log(`[BATCH-IMG] Lanzando producción de ${count} imágenes...`);
+
+        const prompts = strategy.imagePrompts && Array.isArray(strategy.imagePrompts)
+            ? strategy.imagePrompts
+            : Array.from({ length: count }).map(() => strategy.imagePrompt);
+
+        // Solo lanzamos los primeros N para no saturar
+        const limitedPrompts = prompts.slice(0, 50);
+
+        const predictions = await Promise.all(limitedPrompts.map((p: string, i: number) =>
+            createImagePrediction(p, 1080, 1080).catch(e => {
+                console.error(`[BATCH-IMG] Error en imagen ${i}:`, e);
+                return null;
+            })
+        ));
+
+        const imagePendingIds: Record<string, string | null> = {};
+        predictions.forEach((id, i) => {
+            if (id) imagePendingIds[`img_${i}`] = id;
+        });
+
+        // Set the first successful prediction as the main "square" for the campaign
+        const firstSuccess = predictions.find(id => id !== null);
+        if (firstSuccess) imagePendingIds.square = firstSuccess;
+
+        return {
+            success: true,
+            imagePendingIds
+        };
+    } catch (error: any) {
+        console.error('[BATCH-IMG] Error general:', error);
+        return { success: false, error: error.message };
     }
 }
 

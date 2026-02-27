@@ -70,7 +70,7 @@ export const geminiFlash = genAI.getGenerativeModel({
     generationConfig: {
         temperature: 0.3,
         topP: 0.95,
-        maxOutputTokens: 2000,
+        maxOutputTokens: 4096, // Aumentado para evitar truncamiento
     }
 });
 
@@ -84,7 +84,7 @@ export const geminiPro = genAI.getGenerativeModel({
     safetySettings: SHARED_SAFETY_SETTINGS,
     generationConfig: {
         temperature: 0.2,
-        maxOutputTokens: 3000,
+        maxOutputTokens: 4096, // Aumentado para estrategias largas
     }
 });
 
@@ -93,7 +93,7 @@ export const geminiFlashConversational = genAI.getGenerativeModel({
     safetySettings: SHARED_SAFETY_SETTINGS,
     generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 1000,
+        maxOutputTokens: 4096, // Aumentado para evitar truncamiento en el chat
     }
 });
 

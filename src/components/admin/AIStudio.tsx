@@ -749,76 +749,57 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                     }])
                 }
 
-                const { launchImageOnlyPrediction } = await import('@/app/admin/actions/ai-content-actions')
+                // 3️⃣ Lanzar predicciones: BACKGROUND (masivo)
+                const { launchBatchImagePredictions } = await import('@/app/admin/actions/ai-content-actions')
 
-                // 3️⃣ Lanzar predicciones: SECUENCIAL (uno por uno) como pidió Ruben
-                const promptsToGenerate = strat.imagePrompts && Array.isArray(strat.imagePrompts)
-                    ? strat.imagePrompts.slice(0, 50) // Límite de 50
-                    : Array.from({ length: count }).map(() => strat.imagePrompt);
-
-                const predictions = []
-                for (let i = 0; i < promptsToGenerate.length; i++) {
-                    const p = promptsToGenerate[i]
-
-                    // Actualizar mensaje de "Thinking" con progreso
-                    setMessages(prev => prev.map(m => m.id === thinkingId
-                        ? { ...m, content: `🎨 Creando imagen ${i + 1} de ${promptsToGenerate.length}... (Procesando secuencialmente para estabilidad)` }
-                        : m
-                    ))
-
-                    const pred = await launchImageOnlyPrediction({ ...strat, imagePrompt: p, _seed: i }).catch((e: any) => ({ success: false, error: e.message }))
-                    predictions.push(pred)
-                }
-
-                // 4️⃣ Construir el objeto de assets (igual que PublicityTab espera)
-                const imageUrls: string[] = []
-                const imagePendingIds: Record<string, string | null> = {}
-                predictions.forEach((pred, i) => {
-                    if (!pred.success) return
-                    const assets = (pred as any).assets
-                    if (assets?.imageUrl?.startsWith('http')) {
-                        imageUrls.push(assets.imageUrl)
-                    }
-                    if (assets?.imagePendingIds?.square) {
-                        imagePendingIds[`img_${i}`] = assets.imagePendingIds.square
-                        imagePendingIds.square = assets.imagePendingIds.square
-                    }
-                })
-
-                // 5️⃣ GUARDADO AUTOMÁTICO: Persistir en la base de datos
-                const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
-                const fullAssets = {
-                    ...strat,
-                    imageUrl: imageUrls[0] || null,
-                    images: imageUrls,
-                    imagePendingIds: Object.keys(imagePendingIds).length > 0 ? imagePendingIds : null,
-                    type: 'image',
-                    count: promptsToGenerate.length
-                }
-                const saveRes = await createCampaignFromAssets(fullAssets)
-                const campaignId = saveRes.success ? (saveRes as any).campaign?.id : null
-
-                // Notificar a la UI global que hay una nueva campaña
-                window.dispatchEvent(new CustomEvent('campaign-created', { detail: saveRes }))
-
-                // 6️⃣ Despachar evento local → Abre el panel de preview
-                window.dispatchEvent(new CustomEvent('open-campaign-assets', {
-                    detail: {
-                        ...fullAssets,
-                        campaignId
-                    }
-                }))
-
-                // 7️⃣ Cambiar al tab de Campañas automáticamente
-                window.dispatchEvent(new CustomEvent('switch-admin-tab', { detail: { tab: 'publicity' } }))
-
-                // Actualizar mensaje del chat con éxito
-                const finalContent = `✅ ${promptsToGenerate.length} imagen${promptsToGenerate.length > 1 ? 'es iniciadas' : ' iniciada'} — se está generando en **Campañas** 📁\n\nAhí verás el resultado cuando esté listo junto con todos los copies para redes sociales.`
+                // Actualizar mensaje de "Thinking" con confirmación inmediata
+                const finalContent = `ok campaña confirmada`
                 setMessages(prev => prev.map(m => m.id === thinkingId
                     ? { ...m, content: finalContent }
                     : m
                 ))
                 if (currentSessionId) await saveAIMessage(currentSessionId, 'assistant', finalContent)
+
+                // 6️⃣ Cambiar al tab de Campañas automáticamente (INMEDIATO)
+                window.dispatchEvent(new CustomEvent('switch-admin-tab', { detail: { tab: 'publicity' } }))
+
+                // 5️⃣ Despachar evento local → Abre el panel de preview (INMEDIATO con strat temporal)
+                // Usamos strat.id o un temporal para que la UI sepa qué mostrar mientras se guarda
+                window.dispatchEvent(new CustomEvent('open-campaign-assets', {
+                    detail: {
+                        ...strat,
+                        imagePendingIds: { square: 'PENDING...' }, // Indicador visual inmediato
+                        type: 'image'
+                    }
+                }))
+
+                // Lanzamos la producción masiva en segundo plano
+                launchBatchImagePredictions(strat, promptsToGenerate.length).then(async (batchRes) => {
+                    const imagePendingIds = batchRes.success ? batchRes.imagePendingIds : null;
+
+                    // 4️⃣ GUARDADO AUTOMÁTICO: Persistir en la base de datos
+                    const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
+                    const fullAssets = {
+                        ...strat,
+                        imageUrl: null, // Se llenará por polling
+                        imagePendingIds,
+                        type: 'image',
+                        count: promptsToGenerate.length
+                    }
+                    const saveRes = await createCampaignFromAssets(fullAssets)
+                    const campaignId = saveRes.success ? (saveRes as any).campaign?.id : null
+
+                    // Notificar a la UI global que hay una nueva campaña
+                    window.dispatchEvent(new CustomEvent('campaign-created', { detail: saveRes }))
+
+                    // Actualizar el modal con el campaignId real para polling
+                    window.dispatchEvent(new CustomEvent('open-campaign-assets', {
+                        detail: {
+                            ...fullAssets,
+                            campaignId
+                        }
+                    }))
+                });
 
             } else if (mode === 'VIDEO_GEN') {
                 let strategy = confirmedStrategy;
@@ -867,29 +848,45 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                     url: null
                 }))
 
-                // 4️⃣ REGISTRAR EN CONTEXTO GLOBAL (Para producción en 2do plano real)
-                registerProduction(campaignId, strategy, initialClips)
+                // 6️⃣ Cambiar al tab de Campañas automáticamente (INMEDIATO)
+                window.dispatchEvent(new CustomEvent('switch-admin-tab', { detail: { tab: 'publicity' } }))
 
-                // 5️⃣ Despachar evento → PublicityTab recibirá el campaignId y mostrará el progreso
+                // 5️⃣ Abrir assets INMEDIATAMENTE con el guión y estrategia generada
                 window.dispatchEvent(new CustomEvent('open-campaign-assets', {
                     detail: {
                         ...strategy,
-                        campaignId,
                         type: 'video',
-                        scenes: initialClips,
+                        videoPendingId: 'PENDING...'
                     }
                 }))
 
-                // 5️⃣ Cambiar al tab de Campañas automáticamente
-                window.dispatchEvent(new CustomEvent('switch-admin-tab', { detail: { tab: 'publicity' } }))
+                // 4️⃣ Lanzar predicciones en segundo plano sin bloquear el chat
+                const { launchMultiSceneVideoPredictions } = await import('@/app/admin/actions/ai-content-actions')
 
-                // Mensaje final
-                const finalMsg = `✨ Producción iniciada. He creado una nueva campaña en el panel de **Campañas** 📁\n\nLos clips se generarán uno por uno para asegurar la mejor calidad. Vuelve ahí para ver el progreso.`
-                setMessages(prev => prev.map(m => m.id === thinkingId
-                    ? { ...m, content: finalMsg }
-                    : m
-                ))
-                if (currentSessionId) await saveAIMessage(currentSessionId, 'assistant', finalMsg)
+                // 5️⃣ Generación en segundo plano
+                launchMultiSceneVideoPredictions(strategy.scenes, strategy.master_style).then(async (multiRes) => {
+                    const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
+                    const fullAssets = {
+                        ...strategy,
+                        imageUrl: null, // Se llenará por polling
+                        scenes: multiRes.success ? multiRes.scenes : strategy.scenes,
+                        type: 'video',
+                        videoPendingId: (multiRes as any).scenes?.[0]?.predictionId || null // Para polling inicial
+                    }
+                    const saveRes = await createCampaignFromAssets(fullAssets)
+                    const campaignId = saveRes.success ? (saveRes as any).campaign?.id : null
+
+                    // Notificar a la UI global
+                    window.dispatchEvent(new CustomEvent('campaign-created', { detail: saveRes }))
+
+                    // Actualizar modal con ID real
+                    window.dispatchEvent(new CustomEvent('open-campaign-assets', {
+                        detail: {
+                            ...fullAssets,
+                            campaignId
+                        }
+                    }))
+                });
             }
 
         } catch (error: any) {
