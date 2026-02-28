@@ -669,14 +669,14 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
         }
     }
 
-    // ── handleUseInCampaign: Genera propuesta estratégica basada en el mensaje ──
+    // ── handleUseInCampaign: Genera propuesta estratégica y salta directo a Campañas ──
     const handleUseInCampaign = async (ideaText: string) => {
         if (isGenerating) return
         setIsGenerating(true)
 
+        const thinkingId = Date.now().toString() + '_proposal_thinking'
         try {
             // Add a temporary "pensando..." message
-            const thinkingId = Date.now().toString() + '_proposal_thinking'
             setMessages(prev => [...prev, {
                 id: thinkingId,
                 role: 'assistant',
@@ -694,26 +694,31 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
             setMessages(prev => prev.filter(m => m.id !== thinkingId))
 
             if (res.success) {
-                const aiContent = `He analizado esta idea en profundidad. Aquí tienes mi propuesta estratégica especializada para todas las plataformas. Revísala y confirma para iniciar la generación de los assets.`
+                const aiContent = `🚀 ¡Perfecto! He diseñado la estrategia maestra. Te estoy llevando al **Área de Publicidad** para iniciar la producción de tus assets de inmediato. ✨`
                 const msgId = Date.now().toString()
                 setMessages(prev => [...prev, {
                     id: msgId,
                     role: 'assistant',
-                    content: aiContent,
-                    type: 'PROPOSAL',
-                    strategy: res.strategy
+                    content: aiContent
                 }])
-                if (currentSessionId) await saveAIMessage(currentSessionId, 'assistant', JSON.stringify({
-                    content: aiContent,
-                    type: 'PROPOSAL',
-                    strategy: res.strategy
-                }))
+
+                if (currentSessionId) await saveAIMessage(currentSessionId, 'assistant', aiContent)
+
+                // IMPORTANTE: Liberamos el estado de generación para que handleGenerate pueda tomarlo
+                setIsGenerating(false)
+
+                // Esperamos un momento para que el usuario lea y saltamos
+                setTimeout(() => {
+                    handleGenerate(res.strategy)
+                }, 1000)
+
+                return // Salimos para evitar el finally que pondría isGenerating en false de nuevo innecesariamente
             } else {
                 throw new Error(res.error || 'Error al generar propuesta')
             }
         } catch (e: any) {
             // Remove thinking message if it's there
-            setMessages(prev => prev.filter(m => !m.id?.includes('_proposal_thinking')))
+            setMessages(prev => prev.filter(m => m.id !== thinkingId))
             const mappedMessage = ERROR_MAP[e.message] || `❌ Error: ${e.message}`
             setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: mappedMessage }])
         } finally {

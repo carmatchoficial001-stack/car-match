@@ -507,15 +507,26 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
                 contents: [{ role: 'user', parts: [{ text: prompt }] }],
                 generationConfig: { responseMimeType: 'application/json', temperature: 0.7, maxOutputTokens: 4096 }
             }),
-            new Promise<any>((_, reject) => setTimeout(() => reject(new Error("STRATEGY_TIMEOUT")), 9000))
+            new Promise<any>((_, reject) => setTimeout(() => reject(new Error("STRATEGY_TIMEOUT")), 30000))
         ]);
 
+        const responseText = result.response.text();
+        try {
+            return { success: true, strategy: JSON.parse(responseText) };
+        } catch (parseError) {
+            console.error('Invalid JSON from Gemini (Image Strategy):', responseText);
+            throw new Error('FAILED_TO_PARSE_STRATEGY');
+        }
 
-        return { success: true, strategy: JSON.parse(result.response.text()) };
-
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating image strategy:', error);
-        return { success: false, error: 'Error al diseñar la imagen.' };
+
+        // Return a more descriptive error if it's a timeout
+        if (error.message === 'STRATEGY_TIMEOUT') {
+            return { success: false, error: 'La IA tardó demasiado en diseñar la campaña. Intenta con una idea más simple o presiona reintentar.' };
+        }
+
+        return { success: false, error: 'Error al diseñar la imagen estratégica. Intenta de nuevo.' };
     }
 }
 
@@ -615,15 +626,25 @@ export async function generateVideoStrategy(chatHistory: any[], targetCountry: s
                 contents: [{ role: 'user', parts: [{ text: prompt }] }],
                 generationConfig: { responseMimeType: 'application/json', temperature: 0.7, maxOutputTokens: 4096 }
             }),
-            new Promise<any>((_, reject) => setTimeout(() => reject(new Error("STRATEGY_TIMEOUT")), 9000))
+            new Promise<any>((_, reject) => setTimeout(() => reject(new Error("STRATEGY_TIMEOUT")), 30000))
         ]);
 
+        const responseText = result.response.text();
+        try {
+            return { success: true, strategy: JSON.parse(responseText) };
+        } catch (parseError) {
+            console.error('Invalid JSON from Gemini (Video Strategy):', responseText);
+            throw new Error('FAILED_TO_PARSE_STRATEGY');
+        }
 
-        return { success: true, strategy: JSON.parse(result.response.text()) };
-
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating video strategy:', error);
-        return { success: false, error: 'Error al diseñar el video.' };
+
+        if (error.message === 'STRATEGY_TIMEOUT') {
+            return { success: false, error: 'El Lab de Video tardó demasiado. Intenta de nuevo con una idea más corta.' };
+        }
+
+        return { success: false, error: 'Error al diseñar el video estratégico. Intenta de nuevo.' };
     }
 }
 
