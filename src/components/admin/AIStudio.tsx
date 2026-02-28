@@ -828,42 +828,49 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                     pendingIdsObj[`img_${i}`] = 'PENDING...'
                 }
 
-                // 5️⃣ Despachar evento local → Abre el panel de preview (INMEDIATO con strat temporal)
-                // Usamos strat.id o un temporal para que la UI sepa qué mostrar mientras se guarda
+                // 4️⃣ GUARDADO AUTOMÁTICO: Persistir en la base de datos INMEDIATAMENTE con IDs temporales
+                const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
+                const tempAssets = {
+                    ...strat,
+                    imageUrl: null,
+                    imagePendingIds: pendingIdsObj,
+                    type: 'image',
+                    count: count
+                }
+                const tempSaveRes = await createCampaignFromAssets(tempAssets)
+                const campaignId = tempSaveRes.success ? (tempSaveRes as any).campaign?.id : null
+
+                // Notificar a la UI global que hay una nueva campaña (con estado pending)
+                window.dispatchEvent(new CustomEvent('campaign-created', { detail: tempSaveRes }))
+
+                // 5️⃣ Despachar evento local → Abre el panel de preview con el ID REAL de campaña
                 window.dispatchEvent(new CustomEvent('open-campaign-assets', {
                     detail: {
-                        ...strat,
-                        imagePendingIds: pendingIdsObj, // Mostrar todos los recuadros de "Generando"
-                        type: 'image'
+                        ...tempAssets,
+                        campaignId
                     }
                 }))
 
-                // Lanzamos la producción masiva en segundo plano
+                // 6️⃣ Lanzamos la producción masiva en segundo plano
+                // Al terminar, actualizamos la base de datos con los IDs reales de Replicate
                 launchBatchImagePredictions(strat, count).then(async (batchRes) => {
-                    const imagePendingIds = batchRes.success ? batchRes.imagePendingIds : null;
+                    if (batchRes.success && campaignId) {
+                        const { updatePublicityCampaign } = await import('@/app/admin/actions/publicity-actions')
 
-                    // 4️⃣ GUARDADO AUTOMÁTICO: Persistir en la base de datos
-                    const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
-                    const fullAssets = {
-                        ...strat,
-                        imageUrl: null, // Se llenará por polling
-                        imagePendingIds,
-                        type: 'image',
-                        count: count
+                        // Actualizar la base de datos en silencio
+                        await updatePublicityCampaign(campaignId, {
+                            imagePendingIds: batchRes.imagePendingIds
+                        })
+
+                        // Volver a notificar a la UI abierta para que inicie el polling verdadero
+                        window.dispatchEvent(new CustomEvent('open-campaign-assets', {
+                            detail: {
+                                ...tempAssets,
+                                campaignId,
+                                imagePendingIds: batchRes.imagePendingIds
+                            }
+                        }))
                     }
-                    const saveRes = await createCampaignFromAssets(fullAssets)
-                    const campaignId = saveRes.success ? (saveRes as any).campaign?.id : null
-
-                    // Notificar a la UI global que hay una nueva campaña
-                    window.dispatchEvent(new CustomEvent('campaign-created', { detail: saveRes }))
-
-                    // Actualizar el modal con el campaignId real para polling
-                    window.dispatchEvent(new CustomEvent('open-campaign-assets', {
-                        detail: {
-                            ...fullAssets,
-                            campaignId
-                        }
-                    }))
                 });
 
             } else if (mode === 'VIDEO_GEN') {
