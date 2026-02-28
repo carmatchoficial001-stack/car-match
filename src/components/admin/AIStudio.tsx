@@ -45,20 +45,49 @@ function parseChatMessage(msg: any) {
     return msg;
 }
 
-// ─── Helper: extract how many images user asked for (1-10) ─────────────────
+// ─── Helper: extract how many images user asked for (1-50) ─────────────────
 function extractImageCount(text: string): number {
-    const patterns = [
-        /(?:crea|genera|hazme|dame|quiero|necesito)\s+(\d+)\s+(?:foto|imagen|fotos|imágenes|imagenes)/i,
+    const textLower = text.toLowerCase()
+    
+    // 1. Detección de números explícitos (dígitos)
+    const digitPatterns = [
+        /(?:crea|genera|hazme|dame|quiero|necesito|ponme)\s+(\d+)\s+(?:foto|imagen|fotos|imágenes|imagenes)/i,
         /(\d+)\s+(?:foto|imagen|fotos|imágenes|imagenes)/i,
+        /pack de (\d+)/i,
+        /(\d+)\s+ideas/i
     ]
-    for (const p of patterns) {
+    
+    for (const p of digitPatterns) {
         const m = text.match(p)
         if (m) {
             const n = parseInt(m[1])
             return Math.min(Math.max(n, 1), 50)
         }
     }
-    if (text.toLowerCase().includes('trivia') || text.toLowerCase().includes('lista')) return 5
+
+    // 2. Detección de números en palabras (comunes en español)
+    const wordNumbers: Record<string, number> = {
+        'una': 1, 'un': 1, 'dos': 2, 'tres': 3, 'cuatro': 4, 'cinco': 5,
+        'seis': 6, 'siete': 7, 'ocho': 8, 'nueve': 9, 'diez': 10,
+        'doce': 12, 'quince': 15, 'veinte': 20, 'treinta': 30, 'cincuenta': 50
+    }
+    
+    for (const [word, num] of Object.entries(wordNumbers)) {
+        if (textLower.includes(`${word} fotos`) || textLower.includes(`${word} imágenes`) || textLower.includes(`${word} imagenes`)) {
+            return num
+        }
+    }
+
+    // 3. Casos especiales de "variedad" o "comunidad"
+    if (textLower.includes('varias') || textLower.includes('algunas') || textLower.includes('muchas') || 
+        textLower.includes('un pack') || textLower.includes('un paquete') || textLower.includes('una lista')) {
+        return 8 // Subimos el default de "varias" para dar más opciones virales
+    }
+
+    if (textLower.includes('trivia') || textLower.includes('comunidad') || textLower.includes('debate')) {
+        return 6 // Un set decente para interacción
+    }
+
     return 1
 }
 
