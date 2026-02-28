@@ -1313,7 +1313,7 @@ function CampaignModal({ isOpen, onClose, campaign, onSuccess }: any) {
     )
 }
 
-function GalleryImageItem({ id, pId, onStatusUpdate, campaignId }: { id: string, pId: string, onStatusUpdate?: () => void, campaignId?: string }) {
+function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index }: { id: string, pId: string, onStatusUpdate?: () => void, campaignId?: string, index?: number }) {
     const [status, setStatus] = useState<'pending' | 'success' | 'failed'>('pending')
     const [url, setUrl] = useState<string | null>(null)
 
@@ -1358,15 +1358,28 @@ function GalleryImageItem({ id, pId, onStatusUpdate, campaignId }: { id: string,
     if (status === 'success' && url) {
         return (
             <div className="relative group aspect-square rounded-xl overflow-hidden border border-white/10 bg-black">
-                <img src={url} alt="Campaña" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                <img src={url} alt={`Campaña ${index !== undefined ? index + 1 : ''}`} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
+                    <button
+                        onClick={() => window.open(url, '_blank')}
+                        className="p-2 bg-white/20 text-white rounded-lg hover:bg-white/40 backdrop-blur-md transition"
+                        title="Ver completa"
+                    >
+                        <ImageIcon className="w-4 h-4" />
+                    </button>
                     <button
                         onClick={() => downloadAsset(url, `campaña-${id}.jpg`)}
                         className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
+                        title="Descargar"
                     >
                         <Download className="w-4 h-4" />
                     </button>
                 </div>
+                {index !== undefined && (
+                    <div className="absolute top-2 left-2 bg-black/60 px-2 py-0.5 rounded text-[10px] text-white font-bold backdrop-blur-md">
+                        {index + 1}
+                    </div>
+                )}
             </div>
         )
     }
@@ -1406,13 +1419,14 @@ function CampaignGallery({ assets, campaignId }: { assets: any, campaignId?: str
             <div className="text-[10px] font-black uppercase text-zinc-500 tracking-widest flex items-center gap-1 px-1">
                 <ImageIcon className="w-3 h-3" /> Galería de la Campaña ({keys.length} fotos)
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {keys.map(key => (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {keys.map((key, index) => (
                     <GalleryImageItem
                         key={key}
                         id={key}
                         pId={finalUrls[key] || pendingIds[key]}
                         campaignId={campaignId}
+                        index={index}
                     />
                 ))}
             </div>

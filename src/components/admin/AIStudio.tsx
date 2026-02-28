@@ -822,12 +822,18 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                 // 6️⃣ Cambiar al tab de Campañas automáticamente (INMEDIATO)
                 window.dispatchEvent(new CustomEvent('switch-admin-tab', { detail: { tab: 'publicity' } }))
 
+                // Generar los IDs pendientes dinámicos
+                const pendingIdsObj: any = {}
+                for (let i = 0; i < count; i++) {
+                    pendingIdsObj[`img_${i}`] = 'PENDING...'
+                }
+
                 // 5️⃣ Despachar evento local → Abre el panel de preview (INMEDIATO con strat temporal)
                 // Usamos strat.id o un temporal para que la UI sepa qué mostrar mientras se guarda
                 window.dispatchEvent(new CustomEvent('open-campaign-assets', {
                     detail: {
                         ...strat,
-                        imagePendingIds: { square: 'PENDING...' }, // Indicador visual inmediato
+                        imagePendingIds: pendingIdsObj, // Mostrar todos los recuadros de "Generando"
                         type: 'image'
                     }
                 }))
