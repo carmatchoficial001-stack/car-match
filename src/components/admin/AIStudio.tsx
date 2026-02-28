@@ -11,7 +11,7 @@ import {
 import { createAISession, getAISession, getAISessions, deleteAISession, saveAIMessage, renameAISession } from '@/app/admin/actions/ai-studio-actions'
 import { chatWithPublicityAgent } from '@/app/admin/actions/ai-content-actions'
 import { useVideoProduction } from '@/contexts/VideoProductionContext'
-import { Logo } from '@/components/Logo'
+import { useImageProduction } from '@/contexts/ImageProductionContext'
 
 type AIMode = 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'VIDEO_GEN' | 'STRATEGY'
 
@@ -551,6 +551,7 @@ async function downloadFile(url: string, filename: string) {
 // ─── Main Component ─────────────────────────────────────────────────────────
 export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
     const { registerProduction } = useVideoProduction()
+    const { registerImageProduction } = useImageProduction()
     const [mode, setMode] = useState<AIMode>(defaultMode || 'CHAT')
     const [prompt, setPrompt] = useState('')
     const [messages, setMessages] = useState<any[]>([])
@@ -851,53 +852,23 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                     }
                 }))
 
-                // 6️⃣ Lanzamos la producción "En Vivo" desde el cliente
-                // Al hacerlo desde aquí, evitamos el Timeout de Vercel/Next.js (15s) en lotes grandes
-                const { launchSingleImagePrediction } = await import('@/app/admin/actions/ai-content-actions')
-                const { updatePublicityCampaign } = await import('@/app/admin/actions/publicity-actions')
-
+                // 6️⃣ Lanzamos la producción en segundo plano usando el Contexto de React
                 const prompts = strat.imagePrompts && Array.isArray(strat.imagePrompts)
                     ? strat.imagePrompts.map((item: any) => typeof item === 'string' ? item : item.prompt)
                     : Array.from({ length: count }).map(() => strat.imagePrompt);
 
                 const limitedPrompts = prompts.slice(0, 50);
 
-                // Función asíncrona autoejecutable para no bloquear el chat
-                (async () => {
-                    let currentPendingObj = { ...pendingIdsObj };
-
-                    for (let i = 0; i < limitedPrompts.length; i++) {
-                        try {
-                            const res = await launchSingleImagePrediction(limitedPrompts[i]);
-
-                            if (res.success && res.predictionId) {
-                                currentPendingObj[`img_${i}`] = res.predictionId;
-                                if (i === 0) currentPendingObj.square = res.predictionId; // Fallback
-
-                                if (campaignId) {
-                                    // Actualizar la base de datos en silencio
-                                    await updatePublicityCampaign(campaignId, {
-                                        imagePendingIds: currentPendingObj
-                                    });
-
-                                    // Volver a notificar a la UI abierta para que inicie el polling verdadero sin parpadear
-                                    window.dispatchEvent(new CustomEvent('update-campaign-assets', {
-                                        detail: {
-                                            imagePendingIds: currentPendingObj
-                                        }
-                                    }));
-                                }
-                            }
-
-                            // Pausa para evitar Rate Limit de Replicate
-                            if (i < limitedPrompts.length - 1) {
-                                await new Promise(r => setTimeout(r, 1000));
-                            }
-                        } catch (e) {
-                            console.error(`Error generando imagen en vivo ${i}:`, e);
-                        }
-                    }
-                })();
+                if (campaignId) {
+                    const initialClips = limitedPrompts.map((p: string, i: number) => ({
+                        imageId: `img_${i}`,
+                        prompt: p,
+                        predictionId: null,
+                        status: 'pending',
+                        url: null
+                    }));
+                    registerImageProduction(campaignId, initialClips);
+                }
 
             } else if (mode === 'VIDEO_GEN') {
                 let strategy = confirmedStrategy;

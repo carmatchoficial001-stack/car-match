@@ -28,6 +28,7 @@ import AIStudio from '@/components/admin/AIStudio'
 import SocialQueue from '@/components/admin/SocialQueue'
 import MultiSceneVideoPlayer from '@/components/admin/MultiSceneVideoPlayer'
 import { useVideoProduction } from '@/contexts/VideoProductionContext'
+import { useImageProduction } from '@/contexts/ImageProductionContext'
 
 // Helper for MX Date
 const formatDateMX = (date: Date | string) => {
@@ -79,6 +80,7 @@ export default function PublicityTab() {
     const [showAssetsModal, setShowAssetsModal] = useState(false)
 
     const { productions, retryScene, getClipsForCampaign, registerProduction } = useVideoProduction()
+    const { productions: imageProductions, registerImageProduction } = useImageProduction()
 
     // Campaign Edit Chat State
     const [showEditChat, setShowEditChat] = useState(false)
@@ -304,6 +306,27 @@ export default function PublicityTab() {
                         url: s.url || null
                     }))
                     registerProduction(campaignId, assets, clips)
+                }
+
+                // NUEVO: Restore image production
+                if (assets.type === 'image' && assets.imagePendingIds && !imageProductions[campaignId]) {
+                    const prompts = assets.imagePrompts && Array.isArray(assets.imagePrompts)
+                        ? assets.imagePrompts.map((item: any) => typeof item === 'string' ? item : item.prompt)
+                        : Array.from({ length: Object.keys(assets.imagePendingIds).length }).map(() => assets.imagePrompt);
+
+                    const clips = Object.keys(assets.imagePendingIds)
+                        .filter(key => key.startsWith('img_'))
+                        .map((key) => {
+                            const index = parseInt(key.replace('img_', ''), 10);
+                            return {
+                                imageId: key,
+                                prompt: prompts[index] || assets.imagePrompt || '',
+                                predictionId: assets.imagePendingIds[key] !== 'PENDING...' ? assets.imagePendingIds[key] : null,
+                                status: assets.imagePendingIds[key] === 'PENDING...' ? 'pending' : 'processing',
+                                url: assets.images?.[key] || null
+                            };
+                        });
+                    if (clips.length > 0) registerImageProduction(campaignId, clips);
                 }
 
                 setShowAssetsModal(true)
@@ -1341,6 +1364,11 @@ function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index }: { id: 
         if (!pId || pId.startsWith('http')) {
             setStatus('success')
             setUrl(pId)
+            return
+        }
+
+        if (pId === 'PENDING...') {
+            setStatus('pending')
             return
         }
 

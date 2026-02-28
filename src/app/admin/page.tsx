@@ -52,12 +52,16 @@ import ManageCreditsModal from '@/components/admin/ManageCreditsModal'
 import QRCodeModal from '@/components/QRCodeModal'
 import { VideoProductionProvider } from '@/contexts/VideoProductionContext'
 
+import { ImageProductionProvider } from '@/contexts/ImageProductionContext'
+
 type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub' | 'publicity' | 'more'
 
 export default function AdminPanel() {
     return (
         <VideoProductionProvider>
-            <AdminPanelContent />
+            <ImageProductionProvider>
+                <AdminPanelContent />
+            </ImageProductionProvider>
         </VideoProductionProvider>
     )
 }
