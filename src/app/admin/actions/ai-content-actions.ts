@@ -427,6 +427,7 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
             3. **GANCHOS VISUALES**: Usa ángulos extremos (desde el suelo, dron cenital) e iluminación psicológica que resalte el poder del vehículo.
             4. **PSICOLOGÍA SUBLIMINAL**: El logo de CarMatch solo debe aparecer en el ~50% de las imágenes, de forma INTEGRADA y NATURAL (vidrios, pantallas, sutiles decals).
             5. **CORRECCIÓN EXPERTA**: Corrige errores de datos (mustag -> Ford Mustang) y usa el HISTORIAL para ser 100% fiel al usuario.
+            6. **IDIOMA ESTRATÉGICO**: TODO EL TEXTO DIRIGIDO AL USUARIO FINAL (captions, trivia, screen_text, títulos) DEBE ESTAR ESTRICTAMENTE MUY ESTRICTAMENTE EN ESPAÑOL DE MÉXICO. Ni una sola palabra en otro idioma a menos que sea el nombre nativo del auto. El prompt para la IA de imágenes sí va en INGLÉS.
 
             HISTORIAL DE CHAT:
             ${contextStr}
@@ -511,6 +512,7 @@ export async function generateVideoStrategy(chatHistory: any[], targetCountry: s
         1. ** Cero Genéricos **: Si el usuario planeó algo específico, NO uses el fallback.Adapta el guión exactamente a lo que se platicó.
             2. ** Atención al Detalle **: Si se mencionaron marcas, lugares o sonidos específicos, deben estar en el JSON.
             3. ** Master Style **: Define un estilo visual en inglés que se aplique a TODAS las escenas para que el video no parezca un collage de cosas distintas.
+            4. ** IDIOMA ESTRATÉGICO **: TODO EL TEXTO DIRIGIDO AL USUARIO FINAL (captions, trivia, screen_text, guiones, locución, títulos) DEBE ESTAR ESTRICTAMENTE MUY ESTRICTAMENTE EN ESPAÑOL DE MÉXICO. Ni una sola palabra en otro idioma a menos que sea el nombre nativo del auto. Los prompts visuales sí van en INGLÉS.
             
             FORMATOS REQUERIDOS EN EL RESULTADO:
         - Guion escena por escena
@@ -749,8 +751,8 @@ export async function generateCampaignStrategy(chatHistory: any[], targetCountry
             Objetivo: Crear un PACK COMPLETO DE CAMPAÑA que sea un reflejo FIELD de lo discutido.
             
             REQUISITO CRÍTICO DE IDIOMA:
-            - Todo el contenido para el usuario(scripts, copies, títulos) en ESPAÑOL(México).Slang local: ${country.slang}
-        - LOS PROMPTS PARA IA(imagePrompt, videoPrompt) deben ser en INGLÉS EXTREMADAMENTE DETALLADO y fiel a la historia.
+            - TODO EL TEXTO DIRIGIDO AL USUARIO FINAL (scripts, copies, títulos, plataformas) DEBE ESTAR ESTRICTAMENTE MUY ESTRICTAMENTE EN ESPAÑOL DE MÉXICO. Ni una sola palabra en otro idioma a menos que sea el nombre nativo del auto. Slang local: ${country.slang}
+            - LOS PROMPTS PARA IA (imagePrompt, videoPrompt) deben ser en INGLÉS EXTREMADAMENTE DETALLADO y fiel a la historia.
             
             Estructura JSON requerida:
             {
