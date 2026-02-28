@@ -727,12 +727,14 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
 
             // Pasamos el chat histórico + la idea específica seleccionada
             const lastUserMsg = messages.filter(m => m.role === 'user').pop()?.content || ""
+            const count = extractImageCount(lastUserMsg);
+
             const contextMessages = [
                 ...messages.slice(-10), // Solo enviamos los últimos 10 para no saturar tokens pero mantener contexto
                 { role: 'user', content: `Basado en esta conversación y específicamente en mi última petición: "${lastUserMsg}". Diseña la campaña definitiva en formato ${detectedMode === 'IMAGE' ? 'IMAGEN/CARRUSEL' : 'VIDEO VERTIACAL'}.` }
             ];
 
-            const res = await getCampaignStrategyPreview(contextMessages, detectedMode, 'MX')
+            const res = await getCampaignStrategyPreview(contextMessages, detectedMode, 'MX', count)
 
             // Quitar mensaje "pensando"
             setMessages(prev => prev.filter(m => m.id !== thinkingId))
