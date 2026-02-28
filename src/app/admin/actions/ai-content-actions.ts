@@ -896,17 +896,25 @@ export async function launchBatchImagePredictions(strategy: any, count: number =
         // Solo lanzamos los primeros N para no saturar
         const limitedPrompts = prompts.slice(0, 50);
 
-        const result = await Promise.race([
-            Promise.all(limitedPrompts.map((p: string, i: number) =>
-                createImagePrediction(p, 1080, 1080).catch(e => {
-                    console.error(`[BATCH - IMG] Error en imagen ${i}: `, e);
-                    return null;
-                })
-            )),
-            new Promise<any>((_, reject) => setTimeout(() => reject(new Error("REPLICATE_BATCH_TIMEOUT")), 15000))
-        ]);
+        const predictions: (string | null)[] = [];
 
-        const predictions = result;
+        // Ejecución secuencial para no saturar el API y evitar que toda la campaña falle
+        for (let i = 0; i < limitedPrompts.length; i++) {
+            try {
+                const p = limitedPrompts[i];
+                console.log(`[BATCH - IMG] Configurando imagen ${i + 1}/${limitedPrompts.length}...`);
+                const id = await createImagePrediction(p, 1080, 1080);
+                predictions.push(id);
+
+                // Pequeña pausa de seguridad entre llamadas a la API
+                if (i < limitedPrompts.length - 1) {
+                    await new Promise(r => setTimeout(r, 800));
+                }
+            } catch (e) {
+                console.error(`[BATCH - IMG] Error en imagen ${i}: `, e);
+                predictions.push(null);
+            }
+        }
 
         const imagePendingIds: Record<string, string | null> = {};
         predictions.forEach((id: string | null, i: number) => {
