@@ -907,7 +907,7 @@ export async function launchBatchImagePredictions(strategy: any, count: number =
 
         const imagePendingIds: Record<string, string | null> = {};
         predictions.forEach((id: string | null, i: number) => {
-            if (id) imagePendingIds[`img_${i} `] = id;
+            if (id) imagePendingIds[`img_${i}`] = id;
         });
 
         // Set the first successful prediction as the main "square" for the campaign
