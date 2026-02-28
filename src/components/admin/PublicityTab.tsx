@@ -136,7 +136,27 @@ export default function PublicityTab() {
             }
         }
         window.addEventListener('campaign-created', handleCampaignCreated)
-        return () => window.removeEventListener('campaign-created', handleCampaignCreated)
+
+        // Evento para actualizar IDs en tiempo real (Polling Front-end) sin cerrar/parpadear el modal
+        const handleUpdateAssets = (e: any) => {
+            const updatedData = e.detail;
+            setGeneratedAssets((prev: any) => {
+                if (!prev) return updatedData;
+                return {
+                    ...prev,
+                    imagePendingIds: {
+                        ...(prev.imagePendingIds || {}),
+                        ...(updatedData.imagePendingIds || {})
+                    }
+                };
+            });
+        };
+        window.addEventListener('update-campaign-assets', handleUpdateAssets);
+
+        return () => {
+            window.removeEventListener('campaign-created', handleCampaignCreated)
+            window.removeEventListener('update-campaign-assets', handleUpdateAssets)
+        }
     }, [])
 
     useEffect(() => {

@@ -880,11 +880,9 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                                         imagePendingIds: currentPendingObj
                                     });
 
-                                    // Volver a notificar a la UI abierta para que inicie el polling verdadero
-                                    window.dispatchEvent(new CustomEvent('open-campaign-assets', {
+                                    // Volver a notificar a la UI abierta para que inicie el polling verdadero sin parpadear
+                                    window.dispatchEvent(new CustomEvent('update-campaign-assets', {
                                         detail: {
-                                            ...tempAssets,
-                                            campaignId,
                                             imagePendingIds: currentPendingObj
                                         }
                                     }));
