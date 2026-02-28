@@ -851,27 +851,55 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                     }
                 }))
 
-                // 6️⃣ Lanzamos la producción masiva en segundo plano
-                // Al terminar, actualizamos la base de datos con los IDs reales de Replicate
-                launchBatchImagePredictions(strat, count).then(async (batchRes) => {
-                    if (batchRes.success && campaignId) {
-                        const { updatePublicityCampaign } = await import('@/app/admin/actions/publicity-actions')
+                // 6️⃣ Lanzamos la producción "En Vivo" desde el cliente
+                // Al hacerlo desde aquí, evitamos el Timeout de Vercel/Next.js (15s) en lotes grandes
+                const { launchSingleImagePrediction } = await import('@/app/admin/actions/ai-content-actions')
+                const { updatePublicityCampaign } = await import('@/app/admin/actions/publicity-actions')
 
-                        // Actualizar la base de datos en silencio
-                        await updatePublicityCampaign(campaignId, {
-                            imagePendingIds: batchRes.imagePendingIds
-                        })
+                const prompts = strat.imagePrompts && Array.isArray(strat.imagePrompts)
+                    ? strat.imagePrompts.map((item: any) => typeof item === 'string' ? item : item.prompt)
+                    : Array.from({ length: count }).map(() => strat.imagePrompt);
 
-                        // Volver a notificar a la UI abierta para que inicie el polling verdadero
-                        window.dispatchEvent(new CustomEvent('open-campaign-assets', {
-                            detail: {
-                                ...tempAssets,
-                                campaignId,
-                                imagePendingIds: batchRes.imagePendingIds
+                const limitedPrompts = prompts.slice(0, 50);
+
+                // Función asíncrona autoejecutable para no bloquear el chat
+                (async () => {
+                    let currentPendingObj = { ...pendingIdsObj };
+
+                    for (let i = 0; i < limitedPrompts.length; i++) {
+                        try {
+                            const res = await launchSingleImagePrediction(limitedPrompts[i]);
+
+                            if (res.success && res.predictionId) {
+                                currentPendingObj[`img_${i}`] = res.predictionId;
+                                if (i === 0) currentPendingObj.square = res.predictionId; // Fallback
+
+                                if (campaignId) {
+                                    // Actualizar la base de datos en silencio
+                                    await updatePublicityCampaign(campaignId, {
+                                        imagePendingIds: currentPendingObj
+                                    });
+
+                                    // Volver a notificar a la UI abierta para que inicie el polling verdadero
+                                    window.dispatchEvent(new CustomEvent('open-campaign-assets', {
+                                        detail: {
+                                            ...tempAssets,
+                                            campaignId,
+                                            imagePendingIds: currentPendingObj
+                                        }
+                                    }));
+                                }
                             }
-                        }))
+
+                            // Pausa para evitar Rate Limit de Replicate
+                            if (i < limitedPrompts.length - 1) {
+                                await new Promise(r => setTimeout(r, 1000));
+                            }
+                        } catch (e) {
+                            console.error(`Error generando imagen en vivo ${i}:`, e);
+                        }
                     }
-                });
+                })();
 
             } else if (mode === 'VIDEO_GEN') {
                 let strategy = confirmedStrategy;

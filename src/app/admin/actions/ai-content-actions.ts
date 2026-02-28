@@ -884,6 +884,19 @@ export async function launchImageOnlyPrediction(strategy: any) {
 }
 
 /**
+ * Lanza una sola predicción de imagen (usado por el Frontend para orquestación en vivo)
+ */
+export async function launchSingleImagePrediction(prompt: string) {
+    try {
+        const id = await createImagePrediction(prompt, 1080, 1080);
+        return { success: true, predictionId: id };
+    } catch (e: any) {
+        console.error(`[SINGLE - IMG] Error en imagen: `, e);
+        return { success: false, error: e.message };
+    }
+}
+
+/**
  * Lanza una serie de predicciones de imagen basadas en un array de prompts.
  * Si no hay array, usa el prompt principal N veces (usando semillas diferentes).
  */
