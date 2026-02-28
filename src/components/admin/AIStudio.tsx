@@ -685,10 +685,25 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
 
             const { getCampaignStrategyPreview } = await import('@/app/admin/actions/ai-content-actions')
 
-            // Pasamos el chat histórico + la idea específica seleccionada
-            const contextMessages = [...messages, { role: 'user', content: `Basado en esta idea: "${ideaText}". Crea la propuesta estratégica definitiva.` }];
+            // --- INTELIGENCIA DE MODO ---
+            // Si el modo es CHAT o estamos en una duda, escaneamos los últimos mensajes buscando el "espíritu" de la petición
+            let detectedMode: 'IMAGE' | 'VIDEO' = mode === 'VIDEO_GEN' ? 'VIDEO' : 'IMAGE'
 
-            const res = await getCampaignStrategyPreview(contextMessages, mode === 'IMAGE_GEN' ? 'IMAGE' : 'VIDEO', 'MX')
+            if (mode === 'CHAT') {
+                const recentContext = messages.slice(-4).map(m => m.content.toLowerCase()).join(' ')
+                const videoKeywords = ['video', 'clip', 'reels', 'shorts', 'tiktok', 'animación', 'movimiento']
+                const hasVideoIntent = videoKeywords.some(kw => recentContext.includes(kw))
+                detectedMode = hasVideoIntent ? 'VIDEO' : 'IMAGE'
+            }
+
+            // Pasamos el chat histórico + la idea específica seleccionada
+            const lastUserMsg = messages.filter(m => m.role === 'user').pop()?.content || ""
+            const contextMessages = [
+                ...messages.slice(-10), // Solo enviamos los últimos 10 para no saturar tokens pero mantener contexto
+                { role: 'user', content: `Basado en esta conversación y específicamente en mi última petición: "${lastUserMsg}". Diseña la campaña definitiva en formato ${detectedMode === 'IMAGE' ? 'IMAGEN/CARRUSEL' : 'VIDEO VERTIACAL'}.` }
+            ];
+
+            const res = await getCampaignStrategyPreview(contextMessages, detectedMode, 'MX')
 
             // Quitar mensaje "pensando"
             setMessages(prev => prev.filter(m => m.id !== thinkingId))

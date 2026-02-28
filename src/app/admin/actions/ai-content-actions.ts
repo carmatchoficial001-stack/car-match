@@ -450,6 +450,12 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
             Eres el DIRECTOR DE ARTE y VIRALIDAD EXTREMA de CarMatch.
             El usuario CONFIRMÓ una idea genial en el chat, y ahora debes ESTRUCTURARLA LISTA PARA PRODUCCIÓN como IMAGEN/CARRUSEL.
             
+            ⚠️ REGLA DE ADHERENCIA NIVEL DIOS (MANDATORIO):
+            - Revisa el HISTORIAL DE CHAT minuciosamente. 
+            - Si el usuario habló de una TRIVIA, la campaña debe ser de TRIVIA. 
+            - Si el usuario pidió un número específico de fotos (ej: "3 imágenes"), DEBES generar exactamente ese número de prompts en 'imagePrompts'.
+            - NO ALUCINES. Si no se habló de "2JZ" o "lodo", no lo pongas. Cíñete 100% a lo platicado.
+
             SOBRE EL CONTENIDO:
             - Debe ser PROFUNDO en el nicho automotriz hablado. Si es JDM, usa referencias exactas. Si es mecánica, detalles crudos.
             - DEBE ser interactivo, polémico, o altamente relatable. NO "anuncios bonitos".
@@ -459,45 +465,29 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
             ${contextStr}
             
             REGLAS DE ADHERENCIA CRÍTICA:
-            1. **Escucha cada detalle**: Si el usuario mencionó colores, marcas de autos específicas, o una atmósfera particular (ej: "Monterrey de noche", "Lodo brutal"), DEBES incluirlo.
-            2. **Frecuencia de Ideas**: Si el usuario pidió un número exacto de imágenes, ese es el tamaño de tu array 'imagePrompts'.
-            3. **Logo CarMatch**: El logo debe integrarse como parte de la escena (en uniformes, en carteles, en la app) de forma elegante.
+            1. **Escucha cada detalle**: Si el usuario mencionó colores, marcas de autos específicas, o una atmósfera particular, DEBES incluirlo.
+            2. **Frecuencia de Ideas**: El tamaño de tu array 'imagePrompts' debe ser EXACTAMENTE el solicitado por el usuario en el chat.
+            3. **Logo CarMatch**: El logo debe integrarse como parte de la escena de forma elegante.
             
             INSTRUCCIONES TÉCNICAS DE FORMATO:
             - **CARRUSELES O SERIES**: Genera un array de prompts INDIVIDUALES Y DISTINTOS para 'imagePrompts'. Cada uno debe ser una toma diferente (Close-up, Wide, Medium) pero bajo la misma narrativa.
             - **PROMPTS SUPER DETALLADOS**: En INGLÉS técnico de fotografía (ej. "Shot on Fujifilm XT4, cinematic street lighting, hyper-realistic car textures, 8k").
-            - **LOGO ORIGINAL**: Reitera que el logo de "**CarMatch**" debe aparecer de forma realista.
             
             Output JSON EXACTO (sin marcas de markdown):
             {
                 "internal_title": "Título estratégico de la campaña",
                 "imagePrompt": "PROMPT PRINCIPAL EN INGLÉS MUY DETALLADO.",
-                "imagePrompts": ["PROMTS INDIVIDUALES. Úsalos si es carrusel o historia de varias fotos. NUNCA repitas el prompt. Haz que narren o completen la idea."],
-                "visualSummary": "Resumen en ESPAÑOL de qué fotos se van a generar y por qué (Para ser leído por el usuario).",
+                "imagePrompts": ["PROMTS INDIVIDUALES. Uno por cada imagen solicitada. Mínimo 1, máximo lo pedido por el usuario."],
+                "visualSummary": "Resumen en ESPAÑOL de qué fotos se van a generar y por qué.",
                 "caption": "Caption principal en ESPAÑOL (${country.slang}).",
                 "platforms": {
-                    "facebook_marketplace": {
-                        "titulo": "Título clickbait pero real (Max 80 chars)",
-                        "descripcion": "Descripción detallada del valor."
-                    },
-                    "instagram": {
-                        "caption": "Caption largo para IG Carrusel. Atrapa en la primera línea. Espaciado limpio. Hashtags nicho y terminando con #CarMatch #CarCulture"
-                    },
-                    "twitter_x": {
-                        "tweet": "Tweet corto para acompañar foto. Opinión fuerte o pregunta abierta. Máx. 260 chars."
-                    },
-                    "threads": {
-                        "post": "Conversacional de nicho, preguntando algo a la comunidad sobre la foto."
-                    },
-                    "linkedin": {
-                        "post": "Perspectiva de la industria automotriz sobre la imagen. Análisis serio + CTA de CarMatch."
-                    },
-                    "whatsapp": {
-                        "mensaje": "Mensaje para enviar a grupos de Whatsapp de coches. Corto, al grano y mandando a la gente a descargar la app."
-                    },
-                    "pinterest": {
-                        "description": "Texto altamento visual describiendo estética para tableros de inspiración automotriz."
-                    }
+                    "facebook_marketplace": { "titulo": "...", "descripcion": "..." },
+                    "instagram": { "caption": "..." },
+                    "twitter_x": { "tweet": "..." },
+                    "threads": { "post": "..." },
+                    "linkedin": { "post": "..." },
+                    "whatsapp": { "mensaje": "..." },
+                    "pinterest": { "description": "..." }
                 }
             }
         `;

@@ -572,6 +572,7 @@ export default function PublicityTab() {
                 isOpen={showAssetsModal}
                 onClose={() => setShowAssetsModal(false)}
                 assets={generatedAssets}
+                campaignId={generatedAssets?.campaignId || generatedAssets?.id}
                 sceneClips={getClipsForCampaign(generatedAssets?.campaignId || generatedAssets?.id)}
                 onRetryScene={handleRetryScene}
                 onSuccess={() => {
@@ -754,7 +755,7 @@ function buildFallbackPlatformData(platformId: string, assets: any): any {
     return fallbacks[platformId] || { caption }
 }
 
-function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = [], onRetryScene }: any) {
+function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = [], onRetryScene, campaignId }: any) {
     if (!isOpen || !assets) return null
 
     // Determine title
@@ -844,6 +845,9 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = 
                             </div>
                         )
                     })()}
+
+                    {/* GALERÍA DE IMÁGENES (CARRUSEL / TRIVIAS) */}
+                    <CampaignGallery assets={assets} campaignId={campaignId} />
 
                     {/* CAPTION / GUIÓN GENERAL */}
                     {(assets.caption || assets.videoScript) && (
@@ -1304,6 +1308,113 @@ function CampaignModal({ isOpen, onClose, campaign, onSuccess }: any) {
                         {isSubmitting ? 'Guardando...' : 'Guardar Campaña'}
                     </button>
                 </div>
+            </div>
+        </div>
+    )
+}
+
+function GalleryImageItem({ id, pId, onStatusUpdate, campaignId }: { id: string, pId: string, onStatusUpdate?: () => void, campaignId?: string }) {
+    const [status, setStatus] = useState<'pending' | 'success' | 'failed'>('pending')
+    const [url, setUrl] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (!pId || pId.startsWith('http')) {
+            setStatus('success')
+            setUrl(pId)
+            return
+        }
+
+        let isMounted = true
+        const checkStatus = async () => {
+            try {
+                const res = await checkAIAssetStatus(pId)
+                if (!isMounted) return
+
+                if (res.success && res.status === 'succeeded' && res.output) {
+                    const finalUrl = Array.isArray(res.output) ? res.output[0] : res.output
+                    setUrl(finalUrl)
+                    setStatus('success')
+                    if (campaignId && finalUrl) {
+                        try {
+                            await saveAIAssetUrl(campaignId, id, finalUrl)
+                        } catch (e) { /* silent fail on save */ }
+                    }
+                    onStatusUpdate?.()
+                } else if (res.status === 'failed') {
+                    setStatus('failed')
+                } else {
+                    setTimeout(checkStatus, 3000)
+                }
+            } catch (error) {
+                console.error('Error checking asset status:', error)
+                if (isMounted) setStatus('failed')
+            }
+        }
+
+        checkStatus()
+        return () => { isMounted = false }
+    }, [pId, id, campaignId])
+
+    if (status === 'success' && url) {
+        return (
+            <div className="relative group aspect-square rounded-xl overflow-hidden border border-white/10 bg-black">
+                <img src={url} alt="Campaña" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                    <button
+                        onClick={() => downloadAsset(url, `campaña-${id}.jpg`)}
+                        className="p-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition"
+                    >
+                        <Download className="w-4 h-4" />
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    if (status === 'failed') {
+        return (
+            <div className="aspect-square rounded-xl border border-red-500/20 bg-red-500/5 flex flex-col items-center justify-center p-2 text-center">
+                <XCircle className="w-5 h-5 text-red-500 mb-1" />
+                <span className="text-[8px] font-bold text-red-400 uppercase">Error</span>
+            </div>
+        )
+    }
+
+    return (
+        <div className="aspect-square rounded-xl border border-white/5 bg-white/5 flex flex-col items-center justify-center p-2 text-center animate-pulse">
+            <RefreshCw className="w-5 h-5 text-blue-500 animate-spin mb-1" />
+            <span className="text-[8px] font-bold text-blue-400 uppercase">Generando...</span>
+        </div>
+    )
+}
+
+function CampaignGallery({ assets, campaignId }: { assets: any, campaignId?: string }) {
+    // Look for all img_X in pendingIds or assets.images
+    const pendingIds = assets.imagePendingIds || {}
+    const finalUrls = assets.images || {}
+
+    // Combine all unique keys that look like img_X
+    const keys = Array.from(new Set([
+        ...Object.keys(pendingIds).filter(k => k.startsWith('img_')),
+        ...Object.keys(finalUrls).filter(k => k.startsWith('img_'))
+    ])).sort()
+
+    if (keys.length === 0) return null
+
+    return (
+        <div className="space-y-3">
+            <div className="text-[10px] font-black uppercase text-zinc-500 tracking-widest flex items-center gap-1 px-1">
+                <ImageIcon className="w-3 h-3" /> Galería de la Campaña ({keys.length} fotos)
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {keys.map(key => (
+                    <GalleryImageItem
+                        key={key}
+                        id={key}
+                        pId={finalUrls[key] || pendingIds[key]}
+                        campaignId={campaignId}
+                    />
+                ))}
             </div>
         </div>
     )
