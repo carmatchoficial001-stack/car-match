@@ -407,7 +407,7 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
 
 // --- NEW SPLIT STRATEGIES FOR VIRAL CONTENT ---
 
-export async function generateImageStrategy(chatHistory: any[], targetCountry: string = 'MX') {
+export async function generateImageStrategy(chatHistory: any[], targetCountry: string = 'MX', requestedCount: number = 1) {
     try {
         const country = getCountryContext(targetCountry)
 
@@ -473,10 +473,10 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
  * Genera una propuesta de campaña (sin lanzar generación de Replicate)
  * para que el usuario la valide en el chat.
  */
-export async function getCampaignStrategyPreview(history: any[], mode: 'IMAGE' | 'VIDEO' = 'IMAGE', targetCountry: string = 'MX') {
+export async function getCampaignStrategyPreview(history: any[], mode: 'IMAGE' | 'VIDEO' = 'IMAGE', targetCountry: string = 'MX', requestedCount: number = 1) {
     try {
         if (mode === 'IMAGE') {
-            return await generateImageStrategy(history, targetCountry);
+            return await generateImageStrategy(history, targetCountry, requestedCount);
         } else {
             return await generateVideoStrategy(history, targetCountry);
         }
@@ -887,7 +887,7 @@ export async function launchBatchImagePredictions(strategy: any, count: number =
         console.log(`[BATCH - IMG] Lanzando producción de ${count} imágenes...`);
 
         const prompts = strategy.imagePrompts && Array.isArray(strategy.imagePrompts)
-            ? strategy.imagePrompts
+            ? strategy.imagePrompts.map((item: any) => typeof item === 'string' ? item : item.prompt)
             : Array.from({ length: count }).map(() => strategy.imagePrompt);
 
         // Solo lanzamos los primeros N para no saturar

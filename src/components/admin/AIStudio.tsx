@@ -48,7 +48,7 @@ function parseChatMessage(msg: any) {
 // ─── Helper: extract how many images user asked for (1-50) ─────────────────
 function extractImageCount(text: string): number {
     const textLower = text.toLowerCase()
-    
+
     // 1. Detección de números explícitos (dígitos)
     const digitPatterns = [
         /(?:crea|genera|hazme|dame|quiero|necesito|ponme)\s+(\d+)\s+(?:foto|imagen|fotos|imágenes|imagenes)/i,
@@ -56,7 +56,7 @@ function extractImageCount(text: string): number {
         /pack de (\d+)/i,
         /(\d+)\s+ideas/i
     ]
-    
+
     for (const p of digitPatterns) {
         const m = text.match(p)
         if (m) {
@@ -71,7 +71,7 @@ function extractImageCount(text: string): number {
         'seis': 6, 'siete': 7, 'ocho': 8, 'nueve': 9, 'diez': 10,
         'doce': 12, 'quince': 15, 'veinte': 20, 'treinta': 30, 'cincuenta': 50
     }
-    
+
     for (const [word, num] of Object.entries(wordNumbers)) {
         if (textLower.includes(`${word} fotos`) || textLower.includes(`${word} imágenes`) || textLower.includes(`${word} imagenes`)) {
             return num
@@ -79,7 +79,7 @@ function extractImageCount(text: string): number {
     }
 
     // 3. Casos especiales de "variedad" o "comunidad"
-    if (textLower.includes('varias') || textLower.includes('algunas') || textLower.includes('muchas') || 
+    if (textLower.includes('varias') || textLower.includes('algunas') || textLower.includes('muchas') ||
         textLower.includes('un pack') || textLower.includes('un paquete') || textLower.includes('una lista')) {
         return 8 // Subimos el default de "varias" para dar más opciones virales
     }
@@ -795,7 +795,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
 
                     // 2️⃣ Generar estrategia + lanzar predicciones en Replicate
                     const { generateImageStrategy } = await import('@/app/admin/actions/ai-content-actions')
-                    const stratRes = await generateImageStrategy(messages.slice(-10), 'MX')
+                    const stratRes = await generateImageStrategy(messages.slice(-10), 'MX', count)
                     if (!stratRes.success) throw new Error((stratRes as any).error || 'Error en estrategia')
                     strat = (stratRes as any).strategy;
                 } else {
