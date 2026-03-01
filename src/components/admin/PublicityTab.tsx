@@ -1361,9 +1361,17 @@ function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index, clipStat
     const [url, setUrl] = useState<string | null>(null)
 
     useEffect(() => {
-        if (!pId || pId.startsWith('http')) {
+        if (!pId) return;
+
+        if (pId.startsWith('http')) {
             setStatus('success')
             setUrl(pId)
+            return
+        }
+
+        if (pId.startsWith('DONE|')) {
+            setStatus('success')
+            setUrl(pId.split('DONE|')[1])
             return
         }
 
@@ -1378,7 +1386,7 @@ function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index, clipStat
                 const res = await checkAIAssetStatus(pId)
                 if (!isMounted) return
 
-                if (res.success && res.status === 'succeeded' && res.url) {
+                if (res.status === 'succeeded' && res.url) {
                     const finalUrl = Array.isArray(res.url) ? res.url[0] : res.url
                     setUrl(finalUrl)
                     setStatus('success')
