@@ -127,6 +127,10 @@ export function ImageProductionProvider({ children }: { children: ReactNode }) {
             const nextIdx = prod.clips.findIndex(s => (!s.predictionId || s.predictionId === 'PENDING...') && s.status === 'pending')
             if (nextIdx === -1) return
 
+            // Verificar si los anteriores terminaron (éxito o error) para que sea secuencial estricto
+            const previousReady = nextIdx === 0 || prod.clips.slice(0, nextIdx).every(s => s.status === 'succeeded' || s.status === 'error' || s.status === 'failed')
+            if (!previousReady) return
+
             // Evitar lanzamientos duplicados
             if (prod.clips.some(s => s.status === 'starting')) return
 
