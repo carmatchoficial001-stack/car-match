@@ -1378,8 +1378,8 @@ function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index, clipStat
                 const res = await checkAIAssetStatus(pId)
                 if (!isMounted) return
 
-                if (res.success && res.status === 'succeeded' && res.output) {
-                    const finalUrl = Array.isArray(res.output) ? res.output[0] : res.output
+                if (res.success && res.status === 'succeeded' && res.url) {
+                    const finalUrl = Array.isArray(res.url) ? res.url[0] : res.url
                     setUrl(finalUrl)
                     setStatus('success')
                     if (campaignId && finalUrl) {
