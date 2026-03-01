@@ -60,6 +60,22 @@ export async function generatePollinationsImage(prompt: string, width: number = 
             return getRandomFallback();
         }
 
+        // 🛡️ PERSISTENCE: Pollinations generates on-the-fly when the URL is hit. 
+        // We MUST upload it to Cloudinary so that the UI can load it instantly without crashing or getting 530s from Cloudflare.
+        if (process.env.CLOUDINARY_API_KEY) {
+            console.log('[AI-GEN] Uploading Pollinations image to Cloudinary for stability...');
+            try {
+                const uploadResult = await cloudinary.uploader.upload(imageUrl, {
+                    folder: 'carmatch/ai_images',
+                    resource_type: 'image'
+                });
+                return uploadResult.secure_url;
+            } catch (upError) {
+                console.warn('[AI-GEN] Cloudinary upload failed, returning raw pollinations url.', upError);
+                return imageUrl;
+            }
+        }
+
         return imageUrl
     } catch (error) {
         console.error('Error generating image URL:', error)
