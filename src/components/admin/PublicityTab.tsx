@@ -1356,7 +1356,7 @@ function CampaignModal({ isOpen, onClose, campaign, onSuccess }: any) {
     )
 }
 
-function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index }: { id: string, pId: string, onStatusUpdate?: () => void, campaignId?: string, index?: number }) {
+function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index, clipStatus }: { id: string, pId: string, onStatusUpdate?: () => void, campaignId?: string, index?: number, clipStatus?: string }) {
     const [status, setStatus] = useState<'pending' | 'success' | 'failed'>('pending')
     const [url, setUrl] = useState<string | null>(null)
 
@@ -1432,7 +1432,7 @@ function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index }: { id: 
         )
     }
 
-    if (status === 'failed') {
+    if (status === 'failed' || clipStatus === 'failed' || clipStatus === 'error') {
         return (
             <div className="aspect-square rounded-xl border border-red-500/20 bg-red-500/5 flex flex-col items-center justify-center p-2 text-center">
                 <XCircle className="w-5 h-5 text-red-500 mb-1" />
@@ -1443,13 +1443,25 @@ function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index }: { id: 
 
     return (
         <div className="aspect-square rounded-xl border border-white/5 bg-white/5 flex flex-col items-center justify-center p-2 text-center animate-pulse">
-            <RefreshCw className="w-5 h-5 text-blue-500 animate-spin mb-1" />
-            <span className="text-[8px] font-bold text-blue-400 uppercase">Generando...</span>
+            {clipStatus === 'pending' ? (
+                <>
+                    <Clock className="w-5 h-5 text-zinc-500 mb-1" />
+                    <span className="text-[8px] font-bold text-zinc-400 uppercase">En cola</span>
+                </>
+            ) : (
+                <>
+                    <RefreshCw className="w-5 h-5 text-blue-500 animate-spin mb-1" />
+                    <span className="text-[8px] font-bold text-blue-400 uppercase">Generando...</span>
+                </>
+            )}
         </div>
     )
 }
 
 function CampaignGallery({ assets, campaignId }: { assets: any, campaignId?: string }) {
+    const { getClipsForImageCampaign } = useImageProduction()
+    const activeClips = campaignId ? getClipsForImageCampaign(campaignId) : []
+
     // Look for all img_X in pendingIds or assets.images
     const pendingIds = assets.imagePendingIds || {}
     const finalUrls = assets.images || {}
@@ -1468,15 +1480,19 @@ function CampaignGallery({ assets, campaignId }: { assets: any, campaignId?: str
                 <ImageIcon className="w-3 h-3" /> Galería de la Campaña ({keys.length} fotos)
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {keys.map((key, index) => (
-                    <GalleryImageItem
-                        key={key}
-                        id={key}
-                        pId={finalUrls[key] || pendingIds[key]}
-                        campaignId={campaignId}
-                        index={index}
-                    />
-                ))}
+                {keys.map((key, index) => {
+                    const liveClip = activeClips.find(c => c.imageId === key)
+                    return (
+                        <GalleryImageItem
+                            key={key}
+                            id={key}
+                            pId={finalUrls[key] || pendingIds[key]}
+                            campaignId={campaignId}
+                            index={index}
+                            clipStatus={liveClip?.status}
+                        />
+                    )
+                })}
             </div>
         </div>
     )

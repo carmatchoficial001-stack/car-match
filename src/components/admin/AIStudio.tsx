@@ -930,33 +930,11 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
                     }
                 }))
 
-                // 4️⃣ Lanzar predicciones en segundo plano sin bloquear el chat
-                const { launchMultiSceneVideoPredictions } = await import('@/app/admin/actions/ai-content-actions')
-
-                // 5️⃣ Generación en segundo plano
-                launchMultiSceneVideoPredictions(strategy.scenes, strategy.master_style).then(async (multiRes) => {
-                    const { createCampaignFromAssets } = await import('@/app/admin/actions/publicity-actions')
-                    const fullAssets = {
-                        ...strategy,
-                        imageUrl: null, // Se llenará por polling
-                        scenes: multiRes.success ? multiRes.scenes : strategy.scenes,
-                        type: 'video',
-                        videoPendingId: (multiRes as any).scenes?.[0]?.predictionId || null // Para polling inicial
-                    }
-                    const saveRes = await createCampaignFromAssets(fullAssets)
-                    const campaignId = saveRes.success ? (saveRes as any).campaign?.id : null
-
-                    // Notificar a la UI global
-                    window.dispatchEvent(new CustomEvent('campaign-created', { detail: saveRes }))
-
-                    // Actualizar modal con ID real
-                    window.dispatchEvent(new CustomEvent('open-campaign-assets', {
-                        detail: {
-                            ...fullAssets,
-                            campaignId
-                        }
-                    }))
-                });
+                // 4️⃣ Lanzar generación en segundo plano a través del contexto de React
+                // Esto garantiza que se procesen secuencialmente (una por una) previniendo bloqueos o timeouts
+                if (campaignId) {
+                    registerProduction(campaignId, strategy, initialClips)
+                }
             }
 
         } catch (error: any) {
