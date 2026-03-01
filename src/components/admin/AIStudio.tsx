@@ -733,7 +733,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
 
             const contextMessages = [
                 ...messages.slice(-10), // Solo enviamos los últimos 10 para no saturar tokens pero mantener contexto
-                { role: 'user', content: `Basado en esta conversación y específicamente en mi última petición: "${lastUserMsg}". Diseña la campaña definitiva en formato ${detectedMode === 'IMAGE' ? 'IMAGEN/CARRUSEL' : 'VIDEO VERTIACAL'}.` }
+                { role: 'user', content: `El usuario acaba de dar click en el botón "Usar en Campaña" confirmando que quiere usar esta idea/propuesta exacta: "${ideaText}". Diseña la estrategia definitiva basada estrictamente en ese concepto en formato ${detectedMode === 'IMAGE' ? 'IMAGEN/CARRUSEL' : 'VIDEO VERTIACAL'}.` }
             ];
 
             const res = await getCampaignStrategyPreview(contextMessages, detectedMode, 'MX', count)
