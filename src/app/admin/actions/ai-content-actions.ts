@@ -7,8 +7,8 @@
 import { geminiFlashConversational, geminiFlash, geminiPro } from '@/lib/ai/geminiModels'
 import { prisma } from '@/lib/db'
 import Replicate from 'replicate'
-import { createImagePrediction, createVideoPrediction, checkPrediction } from '@/lib/ai/replicate-client'
-import { generatePollinationsImage } from '@/lib/ai/asset-generator'
+import { checkPrediction } from '@/lib/ai/replicate-client'
+import { generatePollinationsImage, generateCloudinaryKenBurnsVideo } from '@/lib/ai/asset-generator'
 
 
 // Helper to get country specific context
@@ -376,10 +376,10 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
 
             const [videoPendingId, imgSquareId, imgVerticalId, imgHorizontalId, imgPortraitId] = await Promise.all([
                 createVideoPrediction(campaignData.videoPrompt || 'Car cinematic', '9:16').catch(e => { console.error('[AUTO-PILOT] Video Err:', e); return null; }),
-                createImagePrediction(basePrompt, 1080, 1080).catch(e => { console.error('[AUTO-PILOT] ImgSq Err:', e); return null; }),
-                createImagePrediction(basePrompt, 1080, 1920).catch(e => { console.error('[AUTO-PILOT] ImgVert Err:', e); return null; }),
-                createImagePrediction(basePrompt, 1920, 1080).catch(e => { console.error('[AUTO-PILOT] ImgHoriz Err:', e); return null; }),
-                createImagePrediction(basePrompt, 1080, 1350).catch(e => { console.error('[AUTO-PILOT] ImgPortrait Err:', e); return null; })
+                generatePollinationsImage(basePrompt, 1080, 1080).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('[AUTO-PILOT] ImgSq Err:', e); return null; }),
+                generatePollinationsImage(basePrompt, 1080, 1920).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('[AUTO-PILOT] ImgVert Err:', e); return null; }),
+                generatePollinationsImage(basePrompt, 1920, 1080).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('[AUTO-PILOT] ImgHoriz Err:', e); return null; }),
+                generatePollinationsImage(basePrompt, 1080, 1350).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('[AUTO-PILOT] ImgPortrait Err:', e); return null; })
             ])
 
             campaignData.videoPendingId = videoPendingId
@@ -817,10 +817,10 @@ export async function launchAssetPredictions(strategy: any, targetCountry: strin
         console.log('[PREDICTIONS] Lanzando tareas en paralelo (Replicate)...');
         const [videoPendingId, imgSquareId, imgVerticalId, imgHorizontalId, imgPortraitId] = await Promise.all([
             createVideoPrediction(strategy.videoPrompt_vertical || 'Car cinematic', '9:16').catch(() => null),
-            createImagePrediction(basePrompt, 1080, 1080).catch(() => null),
-            createImagePrediction(basePrompt, 1080, 1920).catch(() => null),
-            createImagePrediction(basePrompt, 1920, 1080).catch(() => null),
-            createImagePrediction(basePrompt, 1080, 1350).catch(() => null)
+            generatePollinationsImage(basePrompt, 1080, 1080).then(u => u ? 'DONE|' + u : null).catch(() => null),
+            generatePollinationsImage(basePrompt, 1080, 1920).then(u => u ? 'DONE|' + u : null).catch(() => null),
+            generatePollinationsImage(basePrompt, 1920, 1080).then(u => u ? 'DONE|' + u : null).catch(() => null),
+            generatePollinationsImage(basePrompt, 1080, 1350).then(u => u ? 'DONE|' + u : null).catch(() => null)
         ]);
 
         return {
@@ -861,9 +861,9 @@ export async function launchImageOnlyPrediction(strategy: any) {
 
         // 2. High Quality (Replicate Flux) - Square Only for now to save credits/time, or maybe vertical for Stories?
         // Let's do Square + Vertical for viral content
-        const [imgSquareId, imgVerticalId] = await Promise.all([
-            createImagePrediction(strategy.imagePrompt, 1080, 1080).catch(() => null),
-            createImagePrediction(strategy.imagePrompt, 1080, 1920).catch(() => null)
+        const [imgSquareUrl, imgVerticalUrl] = await Promise.all([
+            generatePollinationsImage(strategy.imagePrompt, 1080, 1080).catch(() => null),
+            generatePollinationsImage(strategy.imagePrompt, 1080, 1920).catch(() => null)
         ]);
 
         return {
@@ -871,7 +871,10 @@ export async function launchImageOnlyPrediction(strategy: any) {
             assets: {
                 ...strategy,
                 imageUrl: instantUrl || 'PENDING...',
-                imagePendingIds: { square: imgSquareId, vertical: imgVerticalId }
+                imagePendingIds: {
+                    square: imgSquareUrl ? 'DONE|' + imgSquareUrl : null,
+                    vertical: imgVerticalUrl ? 'DONE|' + imgVerticalUrl : null
+                }
             }
         };
     } catch (e: any) {
@@ -888,8 +891,8 @@ export async function launchImageOnlyPrediction(strategy: any) {
  */
 export async function launchSingleImagePrediction(prompt: string) {
     try {
-        const id = await createImagePrediction(prompt, 1080, 1080);
-        return { success: true, predictionId: id };
+        const url = await generatePollinationsImage(prompt, 1080, 1080);
+        return { success: true, predictionId: 'DONE|' + url };
     } catch (e: any) {
         console.error(`[SINGLE - IMG] Error en imagen: `, e);
         return { success: false, error: e.message };
@@ -918,8 +921,8 @@ export async function launchBatchImagePredictions(strategy: any, count: number =
             try {
                 const p = limitedPrompts[i];
                 console.log(`[BATCH - IMG] Configurando imagen ${i + 1}/${limitedPrompts.length}...`);
-                const id = await createImagePrediction(p, 1080, 1080);
-                predictions.push(id);
+                const url = await generatePollinationsImage(p, 1080, 1080);
+                predictions.push('DONE|' + url);
 
                 // Pequeña pausa de seguridad entre llamadas a la API
                 if (i < limitedPrompts.length - 1) {
@@ -954,14 +957,14 @@ export async function launchVideoOnlyPrediction(strategy: any) {
     try {
 
         console.log('[VID-ONLY] Generando video viral...');
-        const videoId = await createVideoPrediction(strategy.videoPrompt_vertical || strategy.videoPrompt, '9:16');
+        const videoUrl = await generateCloudinaryKenBurnsVideo(strategy.videoPrompt_vertical || strategy.videoPrompt, 1080, 1920);
 
         return {
             success: true,
             assets: {
                 ...strategy,
                 videoUrl: 'PENDING...',
-                videoPendingId: videoId
+                videoPendingId: 'DONE|' + videoUrl
             }
         };
     } catch (e: any) {
@@ -992,8 +995,8 @@ export async function launchMultiSceneVideoPredictions(
         for (const scene of scenes) {
             const fullPrompt = `${masterStyle}. Scene ${scene.id}: ${scene.visual_prompt} `;
             try {
-                const predictionId = await createVideoPrediction(fullPrompt, '9:16');
-                results.push({ sceneId: scene.id, predictionId, status: 'pending', url: null });
+                const videoUrl = await generateCloudinaryKenBurnsVideo(fullPrompt, 1080, 1920);
+                results.push({ sceneId: scene.id, predictionId: 'DONE|' + videoUrl, status: 'pending', url: null });
             } catch (e: any) {
                 console.error(`[MULTI - SCENE] Error en escena ${scene.id}: `, e);
                 results.push({ sceneId: scene.id, predictionId: null, status: 'error', url: null });
@@ -1022,7 +1025,8 @@ export async function launchSingleSceneVideoPrediction(
 ) {
     try {
         const fullPrompt = `${masterStyle}. Scene ${scene.id}: ${scene.visual_prompt} `;
-        const predictionId = await createVideoPrediction(fullPrompt, '9:16');
+        const videoUrl = await generateCloudinaryKenBurnsVideo(fullPrompt, 1080, 1920);
+        const predictionId = 'DONE|' + videoUrl;
 
         // PERSISTENCIA ATÓMICA: Si tenemos campaignId, guardamos de una vez
         if (campaignId && campaignId.length > 5 && predictionId) {
@@ -1087,6 +1091,12 @@ export async function checkMultiSceneStatus(
         const results = await Promise.all(
             scenes.map(async (scene) => {
                 if (!scene.predictionId) return { ...scene, status: 'error', url: null };
+
+                if (scene.predictionId.startsWith('DONE|')) {
+                    const url = scene.predictionId.split('DONE|')[1];
+                    return { ...scene, status: 'succeeded', url };
+                }
+
                 try {
                     const prediction = await replicate.predictions.get(scene.predictionId);
 
@@ -1230,9 +1240,9 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                 console.log('[AI] Generando nuevas imágenes (3 tamaños)...')
 
                 const [imgSquareId, imgVerticalId, imgHorizontalId] = await Promise.all([
-                    createImagePrediction(newImagePrompt, 1080, 1080).catch(e => { console.error('Regen ImgSq Err:', e); return null; }),
-                    createImagePrediction(newImagePrompt, 1080, 1920).catch(e => { console.error('Regen ImgVert Err:', e); return null; }),
-                    createImagePrediction(newImagePrompt, 1920, 1080).catch(e => { console.error('Regen ImgHoriz Err:', e); return null; })
+                    generatePollinationsImage(newImagePrompt, 1080, 1080).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('Regen ImgSq Err:', e); return null; }),
+                    generatePollinationsImage(newImagePrompt, 1080, 1920).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('Regen ImgVert Err:', e); return null; }),
+                    generatePollinationsImage(newImagePrompt, 1920, 1080).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('Regen ImgHoriz Err:', e); return null; })
                 ]);
 
                 updatedAssets.imageUrl = 'PENDING...';
@@ -1301,9 +1311,9 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                 console.log('[AI] Lanzando generacion de imagenes (all)...')
 
                 const [imgSquareAll, imgVerticalAll, imgHorizontalAll] = await Promise.all([
-                    createImagePrediction(allData.imagePrompt, 1080, 1080).catch(e => { console.error('RegenAll ImgSq Err:', e); return null; }),
-                    createImagePrediction(allData.imagePrompt, 1080, 1920).catch(e => { console.error('RegenAll ImgVert Err:', e); return null; }),
-                    createImagePrediction(allData.imagePrompt, 1920, 1080).catch(e => { console.error('RegenAll ImgHoriz Err:', e); return null; })
+                    generatePollinationsImage(allData.imagePrompt, 1080, 1080).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('RegenAll ImgSq Err:', e); return null; }),
+                    generatePollinationsImage(allData.imagePrompt, 1080, 1920).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('RegenAll ImgVert Err:', e); return null; }),
+                    generatePollinationsImage(allData.imagePrompt, 1920, 1080).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('RegenAll ImgHoriz Err:', e); return null; })
                 ]);
 
                 updatedAssets.imageUrl = 'PENDING...';
@@ -1358,6 +1368,10 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
 // --- POLLING ACTION ---
 export async function checkAIAssetStatus(predictionId: string) {
     try {
+        if (predictionId.startsWith('DONE|')) {
+            return { status: 'succeeded', url: predictionId.split('DONE|')[1] };
+        }
+
         const result = await checkPrediction(predictionId);
 
         console.log(`[POLL] Status for ${predictionId}: ${result.status} `);

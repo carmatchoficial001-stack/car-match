@@ -12,6 +12,7 @@ import { createAISession, getAISession, getAISessions, deleteAISession, saveAIMe
 import { chatWithPublicityAgent } from '@/app/admin/actions/ai-content-actions'
 import { useVideoProduction } from '@/contexts/VideoProductionContext'
 import { useImageProduction } from '@/contexts/ImageProductionContext'
+import { Logo } from '@/components/Logo'
 
 type AIMode = 'CHAT' | 'COPYWRITER' | 'IMAGE_GEN' | 'VIDEO_GEN' | 'STRATEGY'
 
@@ -385,7 +386,7 @@ const MessageItem = memo(({ msg, onDownload, onConfirm, onUseInCampaign, current
     const [copied, setCopied] = useState(false)
     const parsedMsg = useMemo(() => parseChatMessage(msg), [msg])
     const cleanContent = useMemo(() =>
-        parsedMsg.content.replace(/\[VIDEO_PREVIEW\]:.*\n?|\[IMAGE_PREVIEW\]:.*\n?/g, '').trim()
+        String(parsedMsg.content || '').replace(/\[VIDEO_PREVIEW\]:.*\n?|\[IMAGE_PREVIEW\]:.*\n?/g, '').trim()
         , [parsedMsg.content])
 
     const handleCopy = () => {
@@ -423,7 +424,7 @@ const MessageItem = memo(({ msg, onDownload, onConfirm, onUseInCampaign, current
                     {parsedMsg.type === 'IMAGE_GEN' && (
                         <>
                             {/* Imágenes ya listas */}
-                            {parsedMsg.images && parsedMsg.images.filter(Boolean).length > 0 && (
+                            {Array.isArray(parsedMsg.images) && parsedMsg.images.filter(Boolean).length > 0 && (
                                 <ImageGrid images={parsedMsg.images.filter(Boolean)} onDownload={onDownload} />
                             )}
                             {/* Imágenes en proceso */}
@@ -476,7 +477,7 @@ const MessageItem = memo(({ msg, onDownload, onConfirm, onUseInCampaign, current
                             {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
                             {copied ? 'Copiado' : 'Copiar'}
                         </button>
-                        {parsedMsg.type !== 'PROPOSAL' && parsedMsg.type !== 'IMAGE_GEN' && parsedMsg.type !== 'VIDEO_GEN' && parsedMsg.id !== 'initial' && !parsedMsg.content.includes('❌ Error') && (
+                        {parsedMsg.type !== 'PROPOSAL' && parsedMsg.type !== 'IMAGE_GEN' && parsedMsg.type !== 'VIDEO_GEN' && parsedMsg.id !== 'initial' && !String(parsedMsg.content || '').includes('❌ Error') && (
                             <button
                                 onClick={() => onUseInCampaign?.(parsedMsg.content)}
                                 className="flex items-center gap-1.5 px-2 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-[10px] text-indigo-300 hover:text-indigo-200 transition font-bold"
