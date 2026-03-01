@@ -374,15 +374,15 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
 
             const basePrompt = campaignData.imagePrompt || 'Luxury car in Mexico City, cinematic'
 
-            const [videoPendingId, imgSquareId, imgVerticalId, imgHorizontalId, imgPortraitId] = await Promise.all([
-                createVideoPrediction(campaignData.videoPrompt || 'Car cinematic', '9:16').catch(e => { console.error('[AUTO-PILOT] Video Err:', e); return null; }),
+            const [videoUrl, imgSquareId, imgVerticalId, imgHorizontalId, imgPortraitId] = await Promise.all([
+                generateCloudinaryKenBurnsVideo(campaignData.videoPrompt || 'Car cinematic', 1080, 1920).catch(e => { console.error('[AUTO-PILOT] Video Err:', e); return null; }),
                 generatePollinationsImage(basePrompt, 1080, 1080).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('[AUTO-PILOT] ImgSq Err:', e); return null; }),
                 generatePollinationsImage(basePrompt, 1080, 1920).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('[AUTO-PILOT] ImgVert Err:', e); return null; }),
                 generatePollinationsImage(basePrompt, 1920, 1080).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('[AUTO-PILOT] ImgHoriz Err:', e); return null; }),
                 generatePollinationsImage(basePrompt, 1080, 1350).then(u => u ? 'DONE|' + u : null).catch(e => { console.error('[AUTO-PILOT] ImgPortrait Err:', e); return null; })
             ])
 
-            campaignData.videoPendingId = videoPendingId
+            campaignData.videoPendingId = videoUrl ? 'DONE|' + videoUrl : null
             campaignData.imagePendingIds = {
                 square: imgSquareId,
                 vertical: imgVerticalId,
@@ -454,7 +454,8 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
 
         const responseText = result.response.text();
         try {
-            return { success: true, strategy: JSON.parse(responseText) };
+            const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+            return { success: true, strategy: JSON.parse(cleanJson) };
         } catch (parseError) {
             console.error('Invalid JSON from Gemini (Image Strategy):', responseText);
             throw new Error('FAILED_TO_PARSE_STRATEGY');
@@ -574,7 +575,8 @@ export async function generateVideoStrategy(chatHistory: any[], targetCountry: s
 
         const responseText = result.response.text();
         try {
-            return { success: true, strategy: JSON.parse(responseText) };
+            const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+            return { success: true, strategy: JSON.parse(cleanJson) };
         } catch (parseError) {
             console.error('Invalid JSON from Gemini (Video Strategy):', responseText);
             throw new Error('FAILED_TO_PARSE_STRATEGY');
@@ -814,9 +816,9 @@ export async function launchAssetPredictions(strategy: any, targetCountry: strin
         // ⚡ INSTANT PREVIEW (0.5s - 2s)
         const instantUrl = await generatePollinationsImage(basePrompt, 1080, 1080).catch(() => null);
 
-        console.log('[PREDICTIONS] Lanzando tareas en paralelo (Replicate)...');
-        const [videoPendingId, imgSquareId, imgVerticalId, imgHorizontalId, imgPortraitId] = await Promise.all([
-            createVideoPrediction(strategy.videoPrompt_vertical || 'Car cinematic', '9:16').catch(() => null),
+        console.log('[PREDICTIONS] Lanzando tareas en paralelo (Replicate/Cloudinary)...');
+        const [videoUrl, imgSquareId, imgVerticalId, imgHorizontalId, imgPortraitId] = await Promise.all([
+            generateCloudinaryKenBurnsVideo(strategy.videoPrompt_vertical || 'Car cinematic', 1080, 1920).catch(() => null),
             generatePollinationsImage(basePrompt, 1080, 1080).then(u => u ? 'DONE|' + u : null).catch(() => null),
             generatePollinationsImage(basePrompt, 1080, 1920).then(u => u ? 'DONE|' + u : null).catch(() => null),
             generatePollinationsImage(basePrompt, 1920, 1080).then(u => u ? 'DONE|' + u : null).catch(() => null),
@@ -829,7 +831,7 @@ export async function launchAssetPredictions(strategy: any, targetCountry: strin
                 ...strategy,
                 imageUrl: instantUrl || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7', // Use instant or stock fallback
                 videoUrl: 'PENDING...',
-                videoPendingId,
+                videoPendingId: videoUrl ? 'DONE|' + videoUrl : null,
                 imagePendingIds: {
                     square: imgSquareId,
                     vertical: imgVerticalId,
