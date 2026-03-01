@@ -583,7 +583,7 @@ export default function AIStudio({ defaultMode }: { defaultMode?: AIMode }) {
         const fetchSessions = async () => {
             setIsLoadingHistory(true)
             try {
-                const res = await getAISessions() // Remove mode filter to show all history
+                const res = await getAISessions(mode) // Re-added mode filter per user request
                 if (res.success && res.chats) setSessions(res.chats)
             } catch { } finally { setIsLoadingHistory(false) }
         }
