@@ -57,6 +57,13 @@ export async function generatePollinationsImage(prompt: string, width: number = 
                 if (!imgRes.ok) throw new Error(`Pollinations returned ${imgRes.status}`);
 
                 const arrayBuffer = await imgRes.arrayBuffer();
+
+                // 🛡️ SECURITY & VALIDATION: Cloudflare might return a 200 OK but the body is HTML (CAPTCHA).
+                // A real 1080x1080 JPEG is > 50KB. If it's smaller than 10KB, it's definitely not an image.
+                if (arrayBuffer.byteLength < 10000) {
+                    throw new Error(`Invalid image payload from Pollinations (size: ${arrayBuffer.byteLength} bytes)`);
+                }
+
                 const buffer = Buffer.from(arrayBuffer);
                 const base64Str = `data:image/jpeg;base64,${buffer.toString('base64')}`;
 
