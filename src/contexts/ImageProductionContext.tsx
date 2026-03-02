@@ -149,6 +149,11 @@ export function ImageProductionProvider({ children }: { children: ReactNode }) {
                 const res = await launchSingleImagePrediction(toLaunch.prompt)
 
                 if (res.success && res.predictionId) {
+                    // Si ya viene con DONE|, lo marcamos como succeeded y extraemos la URL
+                    const isDone = res.predictionId.startsWith('DONE|')
+                    const finalUrl = isDone ? res.predictionId.split('DONE|')[1] : null
+                    const finalStatus = isDone ? 'succeeded' : 'processing'
+
                     setProductions(prev => {
                         const p = prev[campaignId]
                         if (!p) return prev
@@ -157,12 +162,17 @@ export function ImageProductionProvider({ children }: { children: ReactNode }) {
                             [campaignId]: {
                                 ...p,
                                 clips: p.clips.map(c =>
-                                    c.imageId === toLaunch.imageId ? { ...c, predictionId: res.predictionId!, status: 'processing' } : c
+                                    c.imageId === toLaunch.imageId ? { ...c, predictionId: res.predictionId!, status: finalStatus, url: finalUrl } : c
                                 ),
                                 lastUpdate: Date.now()
                             }
                         }
                     })
+
+                    // Si se terminó al instante, guardamos en la BD de inmediato
+                    if (isDone && finalUrl) {
+                        saveAIAssetUrl(campaignId, toLaunch.imageId, finalUrl)
+                    }
 
                     // Actualizar BD con predictionId pendiente
                     const currentProd = productions[campaignId];

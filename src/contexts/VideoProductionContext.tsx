@@ -158,16 +158,24 @@ export function VideoProductionProvider({ children }: { children: ReactNode }) {
             )
 
             if (res.success && res.predictionId) {
+                const isDone = res.predictionId.startsWith('DONE|')
+                const finalUrl = isDone ? res.predictionId.split('DONE|')[1] : null
+                const finalStatus = isDone ? 'succeeded' : 'processing'
+
                 setProductions(prev => ({
                     ...prev,
                     [campaignId]: {
                         ...prev[campaignId],
                         clips: prev[campaignId].clips.map(c =>
-                            c.sceneId === toLaunch.sceneId ? { ...c, predictionId: res.predictionId!, status: 'processing' } : c
+                            c.sceneId === toLaunch.sceneId ? { ...c, predictionId: res.predictionId!, status: finalStatus, url: finalUrl } : c
                         ),
                         lastUpdate: Date.now()
                     }
                 }))
+
+                if (isDone && finalUrl) {
+                    saveSceneResult(campaignId, toLaunch.sceneId, finalUrl)
+                }
             } else {
                 setProductions(prev => ({
                     ...prev,
