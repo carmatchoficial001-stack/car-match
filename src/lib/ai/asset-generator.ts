@@ -47,33 +47,41 @@ export async function generatePollinationsImage(prompt: string, width: number = 
         // Model: flux (best for realism)
         const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=flux&seed=${randomSeed}&nologo=true`
 
-        // 🛡️ VALIDATION CHECK: Verify the URL actually works (Pollinations often throws 530/500)
-        // If we don't check, Next.js Image component will crash when trying to optimize a broken link.
-        try {
-            const check = await fetch(imageUrl, { method: 'HEAD', signal: AbortSignal.timeout(4000) });
-            if (!check.ok) {
-                console.warn(`[AI-GEN] Pollinations check failed (${check.status}). Using Stock Fallback.`);
-                throw new Error(`Pollinations Status ${check.status}`);
-            }
-        } catch (validationErr) {
-            console.warn('[AI-GEN] Pollinations unreachable. Using automotive stock fallback.');
-            return getRandomFallback();
-        }
-
         // 🛡️ PERSISTENCE: Pollinations generates on-the-fly when the URL is hit. 
         // We MUST upload it to Cloudinary so that the UI can load it instantly without crashing or getting 530s from Cloudflare.
         if (process.env.CLOUDINARY_API_KEY) {
-            console.log('[AI-GEN] Uploading Pollinations image to Cloudinary for stability...');
+            console.log('[AI-GEN] Downloading Pollinations image to Vercel memory...');
             try {
-                const uploadResult = await cloudinary.uploader.upload(imageUrl, {
+                // Fetch the image to NextJS server memory directly
+                const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(15000) });
+                if (!imgRes.ok) throw new Error(`Pollinations returned ${imgRes.status}`);
+
+                const arrayBuffer = await imgRes.arrayBuffer();
+                const buffer = Buffer.from(arrayBuffer);
+                const base64Str = `data:image/jpeg;base64,${buffer.toString('base64')}`;
+
+                console.log('[AI-GEN] Uploading base64 buffer to Cloudinary...');
+                const uploadResult = await cloudinary.uploader.upload(base64Str, {
                     folder: 'carmatch/ai_images',
                     resource_type: 'image'
                 });
                 return uploadResult.secure_url;
             } catch (upError) {
-                console.warn('[AI-GEN] Cloudinary upload failed, returning raw pollinations url.', upError);
-                return imageUrl;
+                console.warn('[AI-GEN] Cloudinary upload/fetch failed, returning fallback.', upError);
+                return getRandomFallback();
             }
+        }
+
+        // 🛡️ VALIDATION CHECK for RAW URL (if Cloudinary is NOT configured)
+        try {
+            const check = await fetch(imageUrl, { method: 'HEAD', signal: AbortSignal.timeout(4000) });
+            if (!check.ok) {
+                console.warn(`[AI-GEN] Pollinations check failed (${check.status}). Using Stock Fallback.`);
+                return getRandomFallback();
+            }
+        } catch (validationErr) {
+            console.warn('[AI-GEN] Pollinations unreachable. Using automotive stock fallback.');
+            return getRandomFallback();
         }
 
         return imageUrl
