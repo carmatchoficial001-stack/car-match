@@ -437,10 +437,13 @@ export async function generateImageStrategy(chatHistory: any[], targetCountry: s
             {
                 "internal_title": "Título estratégico VIRAL",
                 "imagePrompts": [
+                    // ¡¡¡ DEBES GENERAR EXACTAMENTE ${requestedCount} OBJETO(S) AQUÍ !!!
                     { "prompt": "4000-char HYPER-DETAILED prompt in ENGLISH. Includes cinematic art direction, camera lens, lighting, and narrative context.", "reasoning": "Por qué este visual detendrá el scroll." }
                 ],
                 "caption": "Caption estratégica en ESPAÑOL que inicie un debate o comunidad."
             }
+            
+            IMPORTANTE: El usuario ha solicitado EXACTAMENTE ${requestedCount} imágenes. Tu array "imagePrompts" DEBE tener exactamente ${requestedCount} elementos distintos.
         `;
 
         const result = await Promise.race([

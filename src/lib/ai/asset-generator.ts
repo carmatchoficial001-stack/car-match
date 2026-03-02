@@ -47,51 +47,11 @@ export async function generatePollinationsImage(prompt: string, width: number = 
         // Model: flux (best for realism)
         const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=flux&seed=${randomSeed}&nologo=true`
 
-        // 🛡️ PERSISTENCE: Pollinations generates on-the-fly when the URL is hit. 
-        // We MUST upload it to Cloudinary so that the UI can load it instantly without crashing or getting 530s from Cloudflare.
-        if (process.env.CLOUDINARY_API_KEY) {
-            console.log('[AI-GEN] Downloading Pollinations image to Vercel memory...');
-            try {
-                // Fetch the image to NextJS server memory directly
-                const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(15000) });
-                if (!imgRes.ok) throw new Error(`Pollinations returned ${imgRes.status}`);
-
-                const arrayBuffer = await imgRes.arrayBuffer();
-
-                // 🛡️ SECURITY & VALIDATION: Cloudflare might return a 200 OK but the body is HTML (CAPTCHA).
-                // A real 1080x1080 JPEG is > 50KB. If it's smaller than 10KB, it's definitely not an image.
-                if (arrayBuffer.byteLength < 10000) {
-                    throw new Error(`Invalid image payload from Pollinations (size: ${arrayBuffer.byteLength} bytes)`);
-                }
-
-                const buffer = Buffer.from(arrayBuffer);
-                const base64Str = `data:image/jpeg;base64,${buffer.toString('base64')}`;
-
-                console.log('[AI-GEN] Uploading base64 buffer to Cloudinary...');
-                const uploadResult = await cloudinary.uploader.upload(base64Str, {
-                    folder: 'carmatch/ai_images',
-                    resource_type: 'image'
-                });
-                return uploadResult.secure_url;
-            } catch (upError) {
-                console.warn('[AI-GEN] Cloudinary upload/fetch failed, returning fallback.', upError);
-                return getRandomFallback();
-            }
-        }
-
-        // 🛡️ VALIDATION CHECK for RAW URL (if Cloudinary is NOT configured)
-        try {
-            const check = await fetch(imageUrl, { method: 'HEAD', signal: AbortSignal.timeout(4000) });
-            if (!check.ok) {
-                console.warn(`[AI-GEN] Pollinations check failed (${check.status}). Using Stock Fallback.`);
-                return getRandomFallback();
-            }
-        } catch (validationErr) {
-            console.warn('[AI-GEN] Pollinations unreachable. Using automotive stock fallback.');
-            return getRandomFallback();
-        }
-
-        return imageUrl
+        // 🛡️ PERSISTENCE: Since Cloudflare consistently blocks Node.js/Vercel IPs (Error 530)
+        // we CANNOT download it from the server and upload it to Cloudinary. 
+        // We will just return the raw URL and let the client browser download it directly.
+        // The browser is not blocked by Cloudflare because it passes Javascript challenges.
+        return imageUrl;
     } catch (error) {
         console.error('Error generating image URL:', error)
         // Fallback to a high-quality automotive stock image

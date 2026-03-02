@@ -609,6 +609,10 @@ export default function PublicityTab() {
                 campaignId={generatedAssets?.campaignId || generatedAssets?.id}
                 sceneClips={getClipsForCampaign(generatedAssets?.campaignId || generatedAssets?.id)}
                 onRetryScene={handleRetryScene}
+                onOpenEditChat={() => {
+                    const c = campaigns.find(cam => cam.id === (generatedAssets?.campaignId || generatedAssets?.id))
+                    if (c) handleOpenEditChat(c)
+                }}
                 onSuccess={() => {
                     fetchCampaigns()
                     setShowAssetsModal(false)
@@ -789,7 +793,9 @@ function buildFallbackPlatformData(platformId: string, assets: any): any {
     return fallbacks[platformId] || { caption }
 }
 
-function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = [], onRetryScene, campaignId }: any) {
+function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = [], onRetryScene, campaignId, onOpenEditChat }: any) {
+    const [fullscreenImage, setFullscreenImage] = useState<{ url: string, id: string } | null>(null)
+
     if (!isOpen || !assets) return null
 
     // Determine title
@@ -797,6 +803,53 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = 
 
     return (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-end sm:items-center justify-center sm:p-4">
+            <AnimatePresence>
+                {fullscreenImage && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 sm:p-8"
+                    >
+                        <button
+                            onClick={() => setFullscreenImage(null)}
+                            className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition backdrop-blur-md"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+
+                        <img
+                            src={fullscreenImage.url}
+                            alt="Vista Completa"
+                            className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl shadow-black/50"
+                        />
+
+                        <div className="mt-8 flex items-center gap-4">
+                            {onOpenEditChat && (
+                                <button
+                                    onClick={() => {
+                                        setFullscreenImage(null)
+                                        onClose()
+                                        onOpenEditChat()
+                                    }}
+                                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-purple-900/40 transition hover:scale-105"
+                                >
+                                    <Sparkles className="w-5 h-5" />
+                                    Editar con IA
+                                </button>
+                            )}
+                            <button
+                                onClick={() => downloadAsset(fullscreenImage.url, `campaña-${fullscreenImage.id}.jpg`)}
+                                className="px-6 py-3 bg-white text-black font-bold rounded-xl flex items-center gap-2 hover:bg-zinc-200 transition shadow-lg shadow-white/10 hover:scale-105"
+                            >
+                                <Download className="w-5 h-5" />
+                                Descargar
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <motion.div
                 initial={{ y: '100%', opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -881,7 +934,12 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = 
                     })()}
 
                     {/* GALERÍA DE IMÁGENES (CARRUSEL / TRIVIAS) */}
-                    <CampaignGallery assets={assets} campaignId={campaignId} />
+                    <CampaignGallery
+                        assets={assets}
+                        campaignId={campaignId}
+                        onOpenEditChat={onOpenEditChat}
+                        onViewFullscreen={(url: string, id: string) => setFullscreenImage({ url, id })}
+                    />
 
                     {/* CAPTION / GUIÓN GENERAL */}
                     {(assets.caption || assets.videoScript) && (
@@ -924,10 +982,22 @@ function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = 
                 </div>
 
                 {/* FOOTER ACTIONS */}
-                <div className="p-4 border-t border-white/10 bg-zinc-900/50 backdrop-blur-md shrink-0 safe-area-bottom">
+                <div className="p-4 border-t border-white/10 bg-zinc-900/50 backdrop-blur-md shrink-0 safe-area-bottom flex gap-3">
+                    {onOpenEditChat && (
+                        <button
+                            onClick={() => {
+                                onClose()
+                                onOpenEditChat()
+                            }}
+                            className="w-12 h-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 shrink-0"
+                            title="Editar toda la campaña con IA"
+                        >
+                            <Sparkles className="w-5 h-5" />
+                        </button>
+                    )}
                     <button
                         onClick={onClose}
-                        className="w-full py-3.5 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition shadow-lg shadow-white/5 active:scale-[0.98]"
+                        className="flex-1 py-3.5 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition shadow-lg shadow-white/5 active:scale-[0.98]"
                     >
                         Listo, Cerrar
                     </button>
@@ -1347,7 +1417,7 @@ function CampaignModal({ isOpen, onClose, campaign, onSuccess }: any) {
     )
 }
 
-function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index, clipStatus }: { id: string, pId: string, onStatusUpdate?: () => void, campaignId?: string, index?: number, clipStatus?: string }) {
+function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index, clipStatus, onOpenEditChat, onCloseModal, onViewFullscreen }: { id: string, pId: string, onStatusUpdate?: () => void, campaignId?: string, index?: number, clipStatus?: string, onOpenEditChat?: () => void, onCloseModal?: () => void, onViewFullscreen?: (url: string, id: string) => void }) {
     const [status, setStatus] = useState<'pending' | 'success' | 'failed'>('pending')
     const [url, setUrl] = useState<string | null>(null)
 
@@ -1407,8 +1477,20 @@ function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index, clipStat
             <div className="relative group aspect-square rounded-xl overflow-hidden border border-white/10 bg-black">
                 <img src={url} alt={`Campaña ${index !== undefined ? index + 1 : ''}`} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
+                    {onOpenEditChat && (
+                        <button
+                            onClick={() => {
+                                if (onCloseModal) onCloseModal();
+                                onOpenEditChat();
+                            }}
+                            className="p-2 bg-purple-500/80 text-white rounded-lg hover:bg-purple-600 backdrop-blur-md transition shadow-lg shadow-purple-900/50"
+                            title="Editar con IA"
+                        >
+                            <Sparkles className="w-4 h-4" />
+                        </button>
+                    )}
                     <button
-                        onClick={() => window.open(url, '_blank')}
+                        onClick={() => onViewFullscreen ? onViewFullscreen(url, id) : window.open(url, '_blank')}
                         className="p-2 bg-white/20 text-white rounded-lg hover:bg-white/40 backdrop-blur-md transition"
                         title="Ver completa"
                     >
@@ -1457,7 +1539,7 @@ function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index, clipStat
     )
 }
 
-function CampaignGallery({ assets, campaignId }: { assets: any, campaignId?: string }) {
+function CampaignGallery({ assets, campaignId, onOpenEditChat, onViewFullscreen }: { assets: any, campaignId?: string, onOpenEditChat?: () => void, onViewFullscreen?: (url: string, id: string) => void }) {
     const { getClipsForImageCampaign } = useImageProduction()
     const activeClips = campaignId ? getClipsForImageCampaign(campaignId) : []
 
@@ -1489,6 +1571,9 @@ function CampaignGallery({ assets, campaignId }: { assets: any, campaignId?: str
                             campaignId={campaignId}
                             index={index}
                             clipStatus={liveClip?.status}
+                            onOpenEditChat={onOpenEditChat}
+                            onCloseModal={() => window.dispatchEvent(new CustomEvent('close-campaign-assets'))}
+                            onViewFullscreen={onViewFullscreen}
                         />
                     )
                 })}

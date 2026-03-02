@@ -180,7 +180,8 @@ export function ImageProductionProvider({ children }: { children: ReactNode }) {
                         const imagePendingIds: any = {}
                         currentProd.clips.forEach(c => {
                             if (c.imageId === toLaunch.imageId) imagePendingIds[c.imageId] = res.predictionId!
-                            else if (c.predictionId && c.predictionId !== 'PENDING...') imagePendingIds[c.imageId] = c.predictionId
+                            else if (c.predictionId) imagePendingIds[c.imageId] = c.predictionId
+                            else imagePendingIds[c.imageId] = 'PENDING...'
                         })
 
                         await updatePublicityCampaign(campaignId, { imagePendingIds })
