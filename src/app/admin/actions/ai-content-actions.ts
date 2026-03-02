@@ -6,8 +6,7 @@
 
 import { geminiFlashConversational, geminiFlash, geminiPro } from '@/lib/ai/geminiModels'
 import { prisma } from '@/lib/db'
-import Replicate from 'replicate'
-import { checkPrediction } from '@/lib/ai/replicate-client'
+
 import { generatePollinationsImage, generateCloudinaryKenBurnsVideo } from '@/lib/ai/asset-generator'
 
 
@@ -1088,8 +1087,6 @@ export async function checkMultiSceneStatus(
     scenes: { sceneId: number; predictionId: string }[]
 ) {
     try {
-        const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
-
         const results = await Promise.all(
             scenes.map(async (scene) => {
                 if (!scene.predictionId) return { ...scene, status: 'error', url: null };
@@ -1099,28 +1096,7 @@ export async function checkMultiSceneStatus(
                     return { ...scene, status: 'succeeded', url };
                 }
 
-                try {
-                    const prediction = await replicate.predictions.get(scene.predictionId);
-
-                    // TIMEOUT CHECK (8 minutos para video clips)
-                    if (prediction.created_at) {
-                        const created = new Date(prediction.created_at).getTime();
-                        const now = Date.now();
-                        const elapsedMinutes = (now - created) / 1000 / 60;
-
-                        if (elapsedMinutes > 8 && (prediction.status === 'processing' || prediction.status === 'starting')) {
-                            console.warn(`[POLL - SCENE] Timeout alcanzado para escena ${scene.sceneId} (${elapsedMinutes.toFixed(1)} min)`);
-                            return { ...scene, status: 'failed', url: null, error: 'TIMEOUT' };
-                        }
-                    }
-
-                    const url = prediction.status === 'succeeded'
-                        ? (Array.isArray(prediction.output) ? prediction.output[0] : prediction.output) as string | null
-                        : null;
-                    return { ...scene, status: prediction.status, url };
-                } catch (e) {
-                    return { ...scene, status: 'error', url: null };
-                }
+                return { ...scene, status: 'processing', url: null };
             })
         );
 
@@ -1374,39 +1350,7 @@ export async function checkAIAssetStatus(predictionId: string) {
             return { status: 'succeeded', url: predictionId.split('DONE|')[1] };
         }
 
-        const result = await checkPrediction(predictionId);
-
-        console.log(`[POLL] Status for ${predictionId}: ${result.status} `);
-
-        // TIMEOUT CHECK (5 minutes)
-        if (result.created_at) {
-            const created = new Date(result.created_at).getTime();
-            const now = Date.now();
-            const elapsedMinutes = (now - created) / 1000 / 60;
-
-            if (elapsedMinutes > 5 && (result.status === 'processing' || result.status === 'starting')) {
-                console.warn(`[POLL] Timeout reached for ${predictionId}(${elapsedMinutes.toFixed(1)} min).Marking as failed.`);
-                return { status: 'failed', error: 'TIMEOUT_REACHED' };
-            }
-        }
-
-        if (result.status === 'succeeded') {
-            let url = '';
-            // Flux and Minimax return different output structures
-            if (Array.isArray(result.output) && result.output.length > 0) url = String(result.output[0]);
-            else if (typeof result.output === 'string') url = result.output;
-            else if (typeof result.output === 'object' && result.output !== null && (result.output as any).url) url = (result.output as any).url;
-            else if (typeof result.output === 'object' && result.output !== null) {
-                // Some models return a stream or a URL directly in an object
-                url = String(result.output);
-            }
-
-            return { status: 'succeeded', url: url };
-        } else if (result.status === 'failed' || result.status === 'canceled') {
-            return { status: 'failed', error: result.error };
-        } else {
-            return { status: 'processing' };
-        }
+        return { status: 'processing' };
     } catch (error) {
         console.error('Error polling asset:', error);
         return { status: 'error' };

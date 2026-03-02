@@ -17,14 +17,15 @@ export async function generateVeoVideo(prompt: string, style: 'cinematic' | 'ver
     // We attempt real generation. If it fails (timeout/error), we catch it.
     try {
         console.log('[VIDEO-GEN] Attempting REAL AI Video generation...');
-        // Dynamic import to avoid build issues if file is missing
-        const { generateRealVideo } = await import('./replicate-client')
-        const realUrl = await generateRealVideo(prompt, style === 'vertical' ? '9:16' : '16:9')
+        const { generateCloudinaryKenBurnsVideo } = await import('./asset-generator')
+        const width = style === 'vertical' ? 1080 : 1920
+        const height = style === 'vertical' ? 1920 : 1080
+        const realUrl = await generateCloudinaryKenBurnsVideo(prompt, width, height)
 
-        if (realUrl) {
+        if (realUrl && !realUrl.includes('unsplash.com')) {
             return {
                 url: realUrl,
-                duration: 5 // AI videos are short
+                duration: 15 // Ken burns is set to 15s in Cloudinary logic
             }
         }
     } catch (error: any) {

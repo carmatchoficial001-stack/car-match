@@ -494,9 +494,7 @@ const MessageItem = memo(({ msg, onDownload, onConfirm, onUseInCampaign, current
 MessageItem.displayName = 'MessageItem'
 
 const ERROR_MAP: Record<string, string> = {
-    'REPLICATE_PAYMENT_REQUIRED': '❌ Tu cuenta de Replicate no tiene créditos o requiere un método de pago activo. Por favor, revisa tu cuenta en replicate.com.',
-    'REPLICATE_AUTH_FAILED': '❌ Error de autenticación con Replicate. Verifica que REPLICATE_API_TOKEN sea correcta en el archivo .env.',
-    'MISSING_API_KEY': '❌ No se encontró la llave de API (REPLICATE_API_TOKEN). Contáctate con el administrador.',
+    'MISSING_API_KEY': '❌ No se encontró la llave de API. Contáctate con el administrador.',
     'TIMEOUT_REACHED': '⌛ La generación tardó más de lo esperado (timeout). Intenta con un prompt más simple.',
     'INVALID_OUTPUT_URL': '❌ La IA generó un archivo pero el formato no es válido. Intenta de nuevo.'
 }
