@@ -25,7 +25,7 @@ import {
 } from '@/app/admin/actions/publicity-actions'
 import { chatWithPublicityAgent, generateCampaignAssets, checkAIAssetStatus } from '@/app/admin/actions/ai-content-actions'
 import AIStudio from '@/components/admin/AIStudio'
-import SocialQueue from '@/components/admin/SocialQueue'
+
 import MultiSceneVideoPlayer from '@/components/admin/MultiSceneVideoPlayer'
 import { useVideoProduction } from '@/contexts/VideoProductionContext'
 import { useImageProduction } from '@/contexts/ImageProductionContext'
@@ -437,13 +437,6 @@ export default function PublicityTab() {
                             <Video className="w-4 h-4" />
                             Productora Video
                         </button>
-                        <button
-                            onClick={() => setViewMode('QUEUE')}
-                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-2 ${viewMode === 'QUEUE' ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/20' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
-                        >
-                            <Clock className="w-4 h-4" />
-                            Cola Viral
-                        </button>
                     </div>
                 </div>
 
@@ -459,8 +452,6 @@ export default function PublicityTab() {
                     <AIStudio defaultMode="IMAGE_GEN" />
                 ) : viewMode === 'AI_VIDEO' ? (
                     <AIStudio defaultMode="VIDEO_GEN" />
-                ) : viewMode === 'QUEUE' ? (
-                    <SocialQueue />
                 ) : (
                     <>
                         {/* Header Simplificado */}
@@ -708,7 +699,7 @@ export default function PublicityTab() {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     )
 }
 
