@@ -8,10 +8,8 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-    Megaphone, Plus, Search, Filter, MoreVertical,
-    Calendar, Globe, Share2, Trash2, Edit, CheckCircle2,
-    XCircle, Clock, ExternalLink, Image as ImageIcon, Sparkles, RefreshCw, Zap,
-    Bot, User, Download, ImagePlus, Send, Save, X, Copy, Check, Video, ArrowRight, Info, Type as TypeIcon, Loader2
+    Bot, User, Download, ImagePlus, Send, Save, X, Copy, Check, Video, ArrowRight, Info, Type as TypeIcon, Loader2,
+    Camera, ChevronDown
 } from 'lucide-react'
 import {
     getPublicityCampaigns,
@@ -744,14 +742,9 @@ function CampaignAssetsModal({ isOpen, onClose, assets, campaignId, onOpenEditCh
     const campaignTitle = assets.internal_title || assets.title || 'Campaña Creativa'
     const prompt = assets.imagePrompt || assets.prompt || ''
 
-    // Safely get image URLs
-    const images = assets.images || {
-        square: assets.imageUrl,
-        vertical: assets.imageUrl,
-        horizontal: assets.imageUrl
-    }
-
-    const currentImageUrl = images[selectedSize] || assets.imageUrl
+    // Use assets.images securely
+    const images = assets.images || {}
+    const currentImageUrl = images[selectedSize] || assets.imageUrl || ''
 
     const handleCopyPrompt = () => {
         navigator.clipboard.writeText(prompt)

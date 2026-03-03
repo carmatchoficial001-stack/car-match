@@ -82,13 +82,64 @@ export async function createCampaignFromAssets(assets: any) {
                 endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
                 socialMediaEnabled: true,
                 isActive: false, // Draft by default
-                // Store AI-generated assets as JSON directly
                 metadata: {
                     generatedByAI: true,
                     assets: assets
                 }
             }
         })
+
+        // 🔥 ASYNC: Upload images to Cloudinary if they are external (Pollinations)
+        const pollinationsDomain = 'pollinations.ai';
+        const hasPollinationsImages = campaignImage.includes(pollinationsDomain) ||
+            (assets.images && Object.values(assets.images).some((url: any) => typeof url === 'string' && url.includes(pollinationsDomain)));
+
+        if (hasPollinationsImages) {
+            const { uploadUrlToCloudinary } = await import('@/lib/cloudinary-server')
+
+            // 1. Upload main image
+            let updatedMainImageUrl = campaignImage;
+            let mainImagePublicId = (campaign.metadata as any)?.assets?.cloudinary_id;
+
+            if (campaignImage.includes(pollinationsDomain)) {
+                const uploadRes = await uploadUrlToCloudinary(campaignImage)
+                if (uploadRes.success) {
+                    updatedMainImageUrl = uploadRes.secure_url!;
+                    mainImagePublicId = uploadRes.public_id;
+                }
+            }
+
+            // 2. Upload variants in assets.images
+            const updatedImages: Record<string, string> = assets.images ? { ...assets.images } : {};
+            if (assets.images) {
+                for (const [key, url] of Object.entries(assets.images)) {
+                    if (typeof url === 'string' && url.includes(pollinationsDomain)) {
+                        const uploadRes = await uploadUrlToCloudinary(url);
+                        if (uploadRes.success) {
+                            updatedImages[key] = uploadRes.secure_url!;
+                        }
+                    }
+                }
+            }
+
+            // 3. Update database with Cloudinary URLs
+            await prisma.publicityCampaign.update({
+                where: { id: campaign.id },
+                data: {
+                    imageUrl: updatedMainImageUrl,
+                    metadata: {
+                        ...((campaign.metadata as any) || {}),
+                        assets: {
+                            ...assets,
+                            imageUrl: updatedMainImageUrl,
+                            images: updatedImages,
+                            cloudinary_id: mainImagePublicId,
+                            processedByCloudinary: true
+                        }
+                    }
+                }
+            })
+        }
 
         console.log('[CAMPAIGN-AUTO-SAVE] Success! Campaign ID:', campaign.id);
         revalidatePath('/admin')

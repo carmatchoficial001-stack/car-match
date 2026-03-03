@@ -521,9 +521,78 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
 // --- STAGE 2: ASSET PREDICTIONS (REMOVED - AI Studio deprecated) ---
 
 
-// Simplified asset generation (image generation removed)
+// Asset generation implementation
 export async function generateCampaignAssets(chatHistory: any[], targetCountry: string = 'MX') {
-    return { success: false, error: 'Asset generation is being redesigned. Coming soon.' };
+    try {
+        const country = getCountryContext(targetCountry)
+        const lastUserMessage = chatHistory[chatHistory.length - 1]?.content || ''
+
+        console.log('[AI-ASSETS] Generando assets para:', lastUserMessage)
+
+        // 1. Generate Strategy and Prompts with Gemini
+        const strategyPrompt = `
+            Act as a TOP TIER ADVERTISING STRATEGIST for CarMatch.
+            Based on this idea: "${lastUserMessage}"
+            
+            Generate a complete creative strategy including:
+            1. An internal title.
+            2. A viral caption for social media (Mexican slang ${country.slang}).
+            3. A hyper-detailed IMAGE PROMPT in English for AI generation.
+            4. A 15-second video script in Spanish.
+            
+            Format as JSON ONLY:
+            {
+                "internal_title": "Title",
+                "caption": "Caption...",
+                "imagePrompt": "Detailed English Prompt...",
+                "videoScript": "Script...",
+                "strategy": "Why this will work..."
+            }
+        `
+
+        const strategyResult = await geminiFlashConversational.generateContent(strategyPrompt)
+        let strategyText = strategyResult.response.text().trim()
+        if (strategyText.startsWith('```json')) strategyText = strategyText.replace(/```json/g, '').replace(/```/g, '').trim()
+        const assets = JSON.parse(strategyText)
+
+        // 2. Generate Image URLs (Pollinations)
+        const seed = Math.floor(Math.random() * 999999)
+        const encodedPrompt = encodeURIComponent(assets.imagePrompt)
+
+        const squareUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1080&seed=${seed}&nologo=true&model=flux`
+        const verticalUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1920&seed=${seed}&nologo=true&model=flux`
+        const horizontalUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=628&seed=${seed}&nologo=true&model=flux`
+
+        // 3. Create the campaign immediately with DRAFT status
+        const { createCampaignFromAssets } = await import('./publicity-actions')
+        const finalAssets = {
+            ...assets,
+            imageUrl: squareUrl,
+            images: {
+                square: squareUrl,
+                vertical: verticalUrl,
+                horizontal: horizontalUrl
+            },
+            imagePendingIds: {
+                square: 'DONE|' + squareUrl,
+                vertical: 'DONE|' + verticalUrl,
+                horizontal: 'DONE|' + horizontalUrl
+            }
+        }
+
+        const res = await createCampaignFromAssets(finalAssets)
+
+        return {
+            success: true,
+            message: 'Assets generated and campaign created in draft mode.',
+            campaign: res.campaign,
+            assets: finalAssets
+        }
+
+    } catch (error: any) {
+        console.error('[AI-ASSETS] Error:', error)
+        return { success: false, error: error.message || 'Error generating assets' }
+    }
 }
 
 
