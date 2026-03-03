@@ -162,6 +162,12 @@ function AdminPanelContent() {
                             {activeView === 'ai-hub' && <AiHubTab />}
                             {activeView === 'reports' && <ReportsTab reports={stats.reports} />}
                             {activeView === 'logs' && <LogsTab logs={stats.logs} />}
+                            {activeView === 'more' && (
+                                <MoreTab
+                                    menuItems={menuItems}
+                                    setActiveView={setActiveView}
+                                />
+                            )}
                         </motion.div>
                     </AnimatePresence>
                 </div>
@@ -173,6 +179,51 @@ function AdminPanelContent() {
                 isOpen={showQRModal}
                 onClose={() => setShowQRModal(false)}
             />
+        </div>
+    )
+}
+
+function MoreTab({ menuItems, setActiveView }: { menuItems: any[], setActiveView: (id: string) => void }) {
+    return (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center justify-between">
+                <h3 className="text-3xl font-black italic tracking-tighter uppercase text-white px-2">Explorar CarMatch</h3>
+                <div className="w-12 h-1 bg-primary-500 rounded-full blur-[2px] opacity-50" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                {menuItems.map((item) => {
+                    const Icon = item.icon
+                    return (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveView(item.id)}
+                            className="bg-[#111114] border border-white/5 p-6 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 transition-all active:scale-95 active:bg-white/5 hover:border-primary-500/30 group relative overflow-hidden h-40"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="p-4 rounded-2xl bg-white/5 text-zinc-400 group-hover:bg-primary-500/10 group-hover:text-primary-500 transition-all shadow-xl group-hover:shadow-primary-500/20">
+                                <Icon className="w-8 h-8" />
+                                {item.badge > 0 && (
+                                    <div className="absolute top-4 right-4 w-6 h-6 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-[#111114]">
+                                        {item.badge}
+                                    </div>
+                                )}
+                            </div>
+                            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-400 group-hover:text-white transition-colors">{item.label}</span>
+                        </button>
+                    )
+                })}
+            </div>
+
+            <div className="p-6 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border border-white/5 rounded-[2.5rem] mt-4 flex items-center gap-6">
+                <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 shrink-0">
+                    <Settings className="w-8 h-8 text-zinc-600" />
+                </div>
+                <div>
+                    <h4 className="text-sm font-black text-white uppercase tracking-widest">Configuración</h4>
+                    <p className="text-[10px] text-zinc-500 font-bold mt-1">PROXIMAMENTE: AJUSTES DE SISTEMA</p>
+                </div>
+            </div>
         </div>
     )
 }
