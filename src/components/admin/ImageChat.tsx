@@ -18,14 +18,12 @@ interface ChatMessage {
     id: string
     role: 'user' | 'assistant'
     content: string
-    type?: 'CHAT' | 'PROMPT_READY'
+    type?: 'CHAT' | 'PROMPT_READY' | 'IMAGE_READY'
     images?: { square: string; vertical: string; horizontal: string }
     imagePrompt?: string
     platforms?: Record<string, any>
     timestamp: Date
 }
-
-type ImageSize = 'square' | 'vertical' | 'horizontal'
 
 const PLATFORM_CONFIG: Record<string, { name: string; icon: string; color: string }> = {
     instagram_feed: { name: 'Instagram', icon: '📸', color: 'from-pink-500 to-purple-600' },
@@ -59,6 +57,12 @@ export default function ImageChat() {
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
 
+    const buildPollinationsUrl = (prompt: string, width: number, height: number) => {
+        const seed = Math.floor(Math.random() * 999999)
+        const encoded = encodeURIComponent(prompt)
+        return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&seed=${seed}&nologo=true&model=flux`
+    }
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }
@@ -79,7 +83,6 @@ export default function ImageChat() {
             id: `user-${Date.now()}`,
             role: 'user',
             content: messageText,
-            type: 'CHAT',
             timestamp: new Date()
         }
 
@@ -88,7 +91,6 @@ export default function ImageChat() {
         setIsLoading(true)
 
         try {
-            // Build history for server action
             const history = [...messages, userMsg].map(m => ({
                 role: m.role,
                 content: m.content
@@ -102,17 +104,22 @@ export default function ImageChat() {
                 content: result.message || '',
                 type: result.type,
                 imagePrompt: result.type === 'PROMPT_READY' ? result.imagePrompt : undefined,
+                images: result.type === 'PROMPT_READY' ? {
+                    square: buildPollinationsUrl(result.imagePrompt!, 1080, 1080),
+                    vertical: buildPollinationsUrl(result.imagePrompt!, 1080, 1920),
+                    horizontal: buildPollinationsUrl(result.imagePrompt!, 1200, 628)
+                } : undefined,
                 platforms: result.type === 'PROMPT_READY' ? result.platforms : undefined,
                 timestamp: new Date()
             }
 
             setMessages(prev => [...prev, assistantMsg])
         } catch (error: any) {
+            console.error('Chat error:', error)
             setMessages(prev => [...prev, {
                 id: `error-${Date.now()}`,
                 role: 'assistant',
                 content: `❌ Error: ${error.message || 'Algo salió mal'}`,
-                type: 'CHAT',
                 timestamp: new Date()
             }])
         } finally {
@@ -120,59 +127,30 @@ export default function ImageChat() {
         }
     }
 
-    const handleVariation = async (originalPrompt: string, instruction: string) => {
-        setIsLoading(true)
-        try {
-            const result = await generateImageVariation(originalPrompt, instruction)
-            if (result.success) {
-                setMessages(prev => [...prev, {
-                    id: `variation-${Date.now()}`,
-                    role: 'assistant',
-                    content: result.message || '🎨 Variación lista',
-                    type: 'IMAGE_READY',
-                    images: result.images,
-                    imagePrompt: result.imagePrompt,
-                    timestamp: new Date()
-                }])
-            }
-        } finally {
-            setIsLoading(false)
-        }
+    const handleVariation = (prompt: string, instruction: string) => {
+        handleSend(`Basado en este prompt: "${prompt}", haz esta variación: ${instruction}`)
     }
 
     const handleSaveToCampaign = async (msg: ChatMessage) => {
         if (!msg.imagePrompt || isSaving) return
         setIsSaving(true)
+
         try {
-            // Generate images in 3 key sizes on the fly
-            const prompt = msg.imagePrompt
-            const seed = Math.floor(Math.random() * 999999)
-            const encoded = encodeURIComponent(prompt)
-            const buildUrl = (w: number, h: number) => `https://image.pollinations.ai/prompt/${encoded}?width=${w}&height=${h}&seed=${seed}&nologo=true&model=flux`
-
-            const images = {
-                square: buildUrl(1080, 1080),
-                vertical: buildUrl(1080, 1920),
-                horizontal: buildUrl(1200, 628)
-            }
-
-            const result = await createCampaignFromAssets({
-                internal_title: `Creativo IA — ${new Date().toLocaleDateString('es-MX')}`,
-                imageUrl: images.square,
-                imagePrompt: prompt,
+            const campaignData = {
+                internal_title: `Campaña IA — ${new Date().toLocaleDateString('es-MX')}`,
+                imagePrompt: msg.imagePrompt,
                 platforms: msg.platforms || {},
-                copy: msg.platforms?.instagram_feed?.caption || msg.content,
-            })
-            if (result.success) {
-                setMessages(prev => [...prev, {
-                    id: `system-${Date.now()}`,
-                    role: 'assistant',
-                    content: '✅ ¡Campaña creada exitosamente! Ve a la lista de "Campañas" para ver tus gráficos fabricados.',
-                    type: 'CHAT',
-                    timestamp: new Date()
-                }])
+                images: msg.images,
+                imageUrl: msg.images?.square
             }
-        } catch (error: any) {
+
+            const res = await createCampaignFromAssets(campaignData)
+
+            if (res.success) {
+                window.dispatchEvent(new CustomEvent('campaign-created'))
+                alert('✅ ¡Campaña creada con éxito! Ve a la lista de "Campañas" para verla.')
+            }
+        } catch (error) {
             console.error('Error saving campaign:', error)
         } finally {
             setIsSaving(false)
@@ -180,11 +158,10 @@ export default function ImageChat() {
     }
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full bg-[#0A0A0B]">
             {/* Header */}
             <div className="p-6 border-b border-white/5 bg-gradient-to-br from-violet-500/10 via-transparent to-fuchsia-500/5 relative overflow-hidden shrink-0">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 blur-[100px] -mr-32 -mt-32 rounded-full" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-fuchsia-500/10 blur-[80px] -ml-24 -mb-24 rounded-full" />
                 <div className="relative z-10 flex items-center justify-between">
                     <div>
                         <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-1 flex items-center gap-3">
@@ -194,56 +171,42 @@ export default function ImageChat() {
                             Estudio de Imágenes
                         </h2>
                         <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">
-                            Director Creativo IA • 8 Plataformas • Generación Instantánea
+                            Director Creativo IA • 8 Plataformas • Vista Previa Real
                         </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {messages.filter(m => m.type === 'IMAGE_READY').length > 0 && (
-                            <div className="px-3 py-1.5 bg-violet-500/20 border border-violet-500/30 rounded-full text-[10px] font-black text-violet-400 uppercase tracking-widest">
-                                {messages.filter(m => m.type === 'IMAGE_READY').length} imágenes
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4" style={{ scrollBehavior: 'smooth' }}>
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
                 {messages.length === 0 && (
-                    <div className="h-full flex flex-col items-center justify-center text-center px-4">
-                        <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/20 flex items-center justify-center mb-6 shadow-2xl shadow-violet-500/10">
+                    <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto">
+                        <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/20 flex items-center justify-center mb-6 shadow-2xl shadow-violet-500/10">
                             <Sparkles className="w-10 h-10 text-violet-400" />
                         </div>
-                        <h3 className="text-xl font-black text-white mb-2">¿Qué imagen quieres crear?</h3>
-                        <p className="text-sm text-zinc-500 mb-8 max-w-md">
-                            Describe tu idea y la IA generará imágenes optimizadas para <span className="text-violet-400 font-bold">8 plataformas</span> con copies listos para publicar.
+                        <h3 className="text-xl font-black text-white mb-2 tracking-tight">¿Qué vamos a crear hoy?</h3>
+                        <p className="text-sm text-zinc-500 mb-8 leading-relaxed">
+                            Describe tu idea y el Director Creativo diseñará la estética perfecta para tus redes sociales.
                         </p>
-
-                        {/* Quick Presets */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full max-w-2xl">
-                            {QUICK_PRESETS.map((preset, i) => (
+                        <div className="grid grid-cols-2 gap-2 w-full">
+                            {QUICK_PRESETS.slice(0, 4).map((preset, i) => (
                                 <button
                                     key={i}
                                     onClick={() => handleSend(preset.prompt)}
-                                    className="group p-4 bg-white/[0.03] border border-white/5 rounded-2xl text-left hover:bg-violet-500/10 hover:border-violet-500/20 transition-all duration-300"
+                                    className="p-3 bg-white/[0.03] border border-white/5 rounded-xl text-left hover:bg-violet-500/10 hover:border-violet-500/20 transition-all text-[10px] font-bold text-zinc-400 hover:text-white"
                                 >
-                                    <div className="text-base mb-1">{preset.label.split(' ')[0]}</div>
-                                    <div className="text-xs font-bold text-zinc-400 group-hover:text-violet-300 transition-colors">
-                                        {preset.label.split(' ').slice(1).join(' ')}
-                                    </div>
+                                    {preset.label}
                                 </button>
                             ))}
                         </div>
                     </div>
                 )}
-
                 <AnimatePresence>
                     {messages.map(msg => (
                         <motion.div
                             key={msg.id}
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3 }}
                         >
                             {msg.role === 'user' ? (
                                 <UserBubble content={msg.content} />
@@ -251,7 +214,9 @@ export default function ImageChat() {
                                 <PromptProposalCard
                                     msg={msg}
                                     onSaveCampaign={handleSaveToCampaign}
+                                    onVariation={handleVariation}
                                     isSaving={isSaving}
+                                    isLoading={isLoading}
                                 />
                             ) : (
                                 <AssistantBubble content={msg.content} />
@@ -259,64 +224,47 @@ export default function ImageChat() {
                         </motion.div>
                     ))}
                 </AnimatePresence>
-
                 {isLoading && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex items-start gap-3"
-                    >
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/20">
-                            <Sparkles className="w-4 h-4 text-white" />
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                            <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />
                         </div>
-                        <div className="bg-white/[0.03] border border-white/5 rounded-2xl rounded-tl-sm px-4 py-3">
-                            <div className="flex items-center gap-2">
-                                <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />
-                                <span className="text-sm text-zinc-400">El Director Creativo está trabajando...</span>
-                            </div>
-                        </div>
-                    </motion.div>
+                        <span className="text-xs text-zinc-500 font-medium animate-pulse">Pensando como un experto...</span>
+                    </div>
                 )}
-
                 <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
-            <div className="shrink-0 p-4 border-t border-white/5 bg-zinc-950/70 backdrop-blur-xl">
-                <div className="flex items-center gap-3 max-w-4xl mx-auto">
-                    <div className="flex-1 relative">
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={input}
-                            onChange={e => setInput(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-                            placeholder="Describe tu imagen... ej: Un Mustang rojo en la lluvia nocturna"
-                            className="w-full bg-white/[0.05] border border-white/10 rounded-2xl pl-5 pr-14 py-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all"
-                            disabled={isLoading}
-                        />
-                        <button
-                            onClick={() => handleSend()}
-                            disabled={!input.trim() || isLoading}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center text-white disabled:opacity-30 hover:shadow-lg hover:shadow-violet-500/30 transition-all duration-300"
-                        >
-                            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                        </button>
-                    </div>
+            <div className="p-6 border-t border-white/5 bg-black/40 backdrop-blur-xl">
+                <div className="max-w-4xl mx-auto flex gap-3">
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={input}
+                        onChange={e => setInput(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleSend()}
+                        placeholder="Nueva idea creativa... ej: Shooting de noche"
+                        className="flex-1 bg-white/[0.05] border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all"
+                        disabled={isLoading}
+                    />
+                    <button
+                        onClick={() => handleSend()}
+                        disabled={!input.trim() || isLoading}
+                        className="w-14 h-14 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-2xl flex items-center justify-center text-white disabled:opacity-30 transition-all active:scale-95 shadow-lg shadow-violet-500/20"
+                    >
+                        <Send className="w-5 h-5" />
+                    </button>
                 </div>
             </div>
         </div>
     )
 }
 
-// ─────────────────────────────────────────────────────────────
-// SUB-COMPONENTS
-// ─────────────────────────────────────────────────────────────
-
 function UserBubble({ content }: { content: string }) {
     return (
         <div className="flex justify-end">
-            <div className="max-w-[80%] bg-gradient-to-br from-violet-600/30 to-fuchsia-600/20 border border-violet-500/20 rounded-2xl rounded-tr-sm px-4 py-3">
+            <div className="max-w-[80%] bg-violet-600/10 border border-violet-500/20 rounded-2xl rounded-tr-sm px-4 py-3">
                 <p className="text-sm text-white leading-relaxed">{content}</p>
             </div>
         </div>
@@ -326,7 +274,7 @@ function UserBubble({ content }: { content: string }) {
 function AssistantBubble({ content }: { content: string }) {
     return (
         <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/20">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shrink-0">
                 <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div className="max-w-[80%] bg-white/[0.03] border border-white/5 rounded-2xl rounded-tl-sm px-4 py-3">
@@ -336,18 +284,18 @@ function AssistantBubble({ content }: { content: string }) {
     )
 }
 
-// ─────────────────────────────────────────────────────────────
-// PROMPT PROPOSAL CARD
-// ─────────────────────────────────────────────────────────────
-
 function PromptProposalCard({
     msg,
     onSaveCampaign,
-    isSaving
+    onVariation,
+    isSaving,
+    isLoading
 }: {
     msg: ChatMessage
     onSaveCampaign: (msg: ChatMessage) => void
+    onVariation: (prompt: string, instruction: string) => void
     isSaving: boolean
+    isLoading: boolean
 }) {
     const [copied, setCopied] = useState(false)
 
@@ -360,58 +308,82 @@ function PromptProposalCard({
 
     return (
         <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/20 mt-1">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shrink-0 mt-1">
                 <Palette className="w-4 h-4 text-white" />
             </div>
 
-            <div className="flex-1 max-w-2xl bg-zinc-900/80 border border-violet-500/20 rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/5 transition-all hover:border-violet-500/40">
+            <div className="flex-1 max-w-2xl bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden shadow-2xl">
                 <div className="p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="px-2 py-0.5 rounded-md bg-violet-500/20 text-[9px] font-black text-violet-400 uppercase tracking-widest border border-violet-500/30">
-                            Propuesta de Diseño Final
-                        </div>
+                    <div className="mb-4">
+                        <span className="px-2 py-0.5 rounded-md bg-violet-500/20 text-[9px] font-black text-violet-400 uppercase tracking-widest border border-violet-500/30">
+                            Concepto Visual Final
+                        </span>
                     </div>
 
                     <p className="text-sm text-white leading-relaxed mb-4">{msg.content}</p>
 
-                    <div className="bg-black/40 rounded-2xl p-4 border border-white/5 relative group">
+                    {/* Image Preview */}
+                    {msg.images?.square && (
+                        <div className="relative aspect-square w-full rounded-2xl overflow-hidden mb-5 border border-white/10 bg-black group/preview">
+                            <img
+                                src={msg.images.square}
+                                alt="Preview"
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover/preview:scale-110"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-end p-4">
+                                <p className="text-[10px] font-bold text-white uppercase tracking-widest bg-violet-600/80 backdrop-blur-md px-3 py-1.5 rounded-lg">Vista Previa 1:1</p>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="bg-black/40 rounded-2xl p-4 border border-white/5 mb-5 relative group">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                                <Camera className="w-3 h-3" /> Prompt de Generación (Inglés)
+                                <Camera className="w-3 h-3" /> Prompt Técnico (Flux)
                             </span>
                             <button
                                 onClick={handleCopyPrompt}
-                                className="p-1 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition flex items-center gap-1.5 text-[9px] font-bold"
+                                className="flex items-center gap-1.5 text-[9px] font-bold text-violet-400 hover:text-white transition"
                             >
-                                {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                                {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                                 {copied ? 'Copiado' : 'Copiar'}
                             </button>
                         </div>
-                        <p className="text-xs text-zinc-400 font-mono italic leading-relaxed line-clamp-3 group-hover:line-clamp-none transition-all cursor-default">
+                        <p className="text-xs text-zinc-400 font-mono italic leading-relaxed line-clamp-3 group-hover:line-clamp-none transition-all">
                             {msg.imagePrompt}
                         </p>
                     </div>
 
-                    <div className="mt-5 flex items-center gap-3">
+                    <div className="flex items-center gap-3">
                         <button
                             onClick={() => onSaveCampaign(msg)}
-                            disabled={isSaving}
-                            className="flex-1 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-[11px] font-black uppercase tracking-wider rounded-xl hover:shadow-lg hover:shadow-violet-500/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 animate-pulse hover:animate-none"
+                            disabled={isSaving || isLoading}
+                            className="flex-1 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-[11px] font-black uppercase tracking-wider rounded-xl hover:shadow-lg hover:shadow-violet-500/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-                            Usar en Campaña
+                            Crear Campaña
+                        </button>
+                        <button
+                            onClick={() => onVariation(msg.imagePrompt!, "Haz una variación creativa manteniendo la esencia")}
+                            disabled={isSaving || isLoading}
+                            className="w-12 h-12 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all border-dashed"
+                            title="Regenerar Variación"
+                        >
+                            <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
                         </button>
                     </div>
                 </div>
 
-                {/* Micro-feed for Platforms Check */}
+                {/* Platforms Mini-Feed */}
                 <div className="bg-black/20 p-3 flex items-center justify-center gap-4 border-t border-white/5">
                     {Object.keys(msg.platforms || {}).slice(0, 5).map(p => (
-                        <span key={p} className="text-lg grayscale hover:grayscale-0 transition-all cursor-default opacity-40 hover:opacity-100" title={p}>
+                        <span key={p} className="text-lg grayscale hover:grayscale-0 transition-all opacity-40 hover:opacity-100" title={p}>
                             {PLATFORM_CONFIG[p]?.icon || '✨'}
                         </span>
                     ))}
-                    <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">+ {Object.keys(msg.platforms || {}).length - 5} plataformas</span>
+                    <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">
+                        + {Math.max(0, Object.keys(msg.platforms || {}).length - 5)} plataformas
+                    </span>
                 </div>
             </div>
         </div>

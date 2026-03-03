@@ -112,6 +112,9 @@ export default function PublicityTab() {
                             ? JSON.parse(campaign.metadata)
                             : campaign.metadata
 
+                        // Handle double-stringified metadata sometimes stored by createCampaignFromAssets
+                        if (typeof meta === 'string') meta = JSON.parse(meta);
+
                         let assets = meta.assets
                         if (typeof assets === 'string') {
                             try {
@@ -325,7 +328,11 @@ export default function PublicityTab() {
 
         try {
             // Get current campaign metadata
-            const metadata = (editingCampaign as any).metadata ? JSON.parse((editingCampaign as any).metadata as any) : {}
+            const rawMeta = (editingCampaign as any).metadata;
+            let metadata: any = {};
+            if (rawMeta) {
+                metadata = typeof rawMeta === 'string' ? JSON.parse(rawMeta) : rawMeta;
+            }
             const currentAssets = metadata.assets || {}
 
             // Call regenerate API

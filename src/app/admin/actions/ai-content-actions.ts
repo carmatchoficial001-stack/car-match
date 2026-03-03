@@ -597,6 +597,15 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
 
 
 /**
+ * Helper to build Pollinations URL
+ */
+function buildPollinationsUrl(prompt: string, width: number, height: number): string {
+    const seed = Math.floor(Math.random() * 999999)
+    const encoded = encodeURIComponent(prompt)
+    return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&seed=${seed}&nologo=true&model=flux`
+}
+
+/**
  * Regenerate a specific element of a campaign based on user instruction
  * @param campaignId - ID of the campaign to update
  * @param instruction - Natural language instruction like "mejora el video", "cambia la imagen a un auto rojo"
@@ -660,8 +669,29 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                 const newImagePrompt = imagePromptResult.response.text().trim()
                 updatedAssets.imagePrompt = newImagePrompt
 
-                // Image generation removed — will be rebuilt with new image chat
-                console.log('[AI] Image prompt updated, generation pending new system.')
+                // 🔥 GENERATE AND UPLOAD NEW IMAGES
+                console.log('[AI] Generating new images for regeneration...')
+                const { uploadUrlToCloudinary } = await import('@/lib/cloudinary-server')
+
+                const newImages = {
+                    square: buildPollinationsUrl(newImagePrompt, 1080, 1080),
+                    vertical: buildPollinationsUrl(newImagePrompt, 1080, 1920),
+                    horizontal: buildPollinationsUrl(newImagePrompt, 1200, 628)
+                }
+
+                // Upload to Cloudinary to make them permanent and bypass blocks
+                const uploadResults = await Promise.all([
+                    uploadUrlToCloudinary(newImages.square),
+                    uploadUrlToCloudinary(newImages.vertical),
+                    uploadUrlToCloudinary(newImages.horizontal)
+                ])
+
+                if (uploadResults[0].success) updatedAssets.imageUrl = uploadResults[0].secure_url;
+                updatedAssets.images = {
+                    square: uploadResults[0].secure_url || newImages.square,
+                    vertical: uploadResults[1].secure_url || newImages.vertical,
+                    horizontal: uploadResults[2].secure_url || newImages.horizontal
+                }
                 break
 
             case 'video':
@@ -715,8 +745,28 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                 updatedAssets.imagePrompt = allData.imagePrompt
                 updatedAssets.videoScript = allData.videoScript
 
-                // Image generation removed — will be rebuilt with new image chat
-                console.log('[AI] All elements updated, image generation pending new system.')
+                // 🔥 GENERATE AND UPLOAD ALL IMAGES
+                console.log('[AI] Generating all new images for "all" regeneration...')
+                const { uploadUrlToCloudinary } = await import('@/lib/cloudinary-server')
+
+                const newImagesFull = {
+                    square: buildPollinationsUrl(allData.imagePrompt, 1080, 1080),
+                    vertical: buildPollinationsUrl(allData.imagePrompt, 1080, 1920),
+                    horizontal: buildPollinationsUrl(allData.imagePrompt, 1200, 628)
+                }
+
+                const uploadResultsFull = await Promise.all([
+                    uploadUrlToCloudinary(newImagesFull.square),
+                    uploadUrlToCloudinary(newImagesFull.vertical),
+                    uploadUrlToCloudinary(newImagesFull.horizontal)
+                ])
+
+                if (uploadResultsFull[0].success) updatedAssets.imageUrl = uploadResultsFull[0].secure_url;
+                updatedAssets.images = {
+                    square: uploadResultsFull[0].secure_url || newImagesFull.square,
+                    vertical: uploadResultsFull[1].secure_url || newImagesFull.vertical,
+                    horizontal: uploadResultsFull[2].secure_url || newImagesFull.horizontal
+                }
                 break
         }
 
