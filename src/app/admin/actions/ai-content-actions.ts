@@ -613,7 +613,7 @@ function buildPollinationsUrl(prompt: string, width: number, height: number): st
  */
 export async function regenerateCampaignElement(campaignId: string, instruction: string, currentAssets: any) {
     try {
-        console.log(`[AI] Regenerando elemento de campaÃ±a ${campaignId}: "${instruction}"`)
+        console.log(`[AI] Regenerando elemento de campaña ${campaignId}: "${instruction}"`)
 
         // Detect which element to regenerate based on instruction
         const lowerInstruction = instruction.toLowerCase()
@@ -788,12 +788,12 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
             }
         })
 
-        console.log('[AI] Elemento regenerado exitosamente âœ“')
+        console.log('[AI] Elemento regenerado exitosamente ✓')
         return {
             success: true,
             assets: updatedAssets,
             elementType,
-            message: `âœ… ${elementType === 'all' ? 'Campaña' : elementType === 'copy' ? 'Copy' : elementType === 'image' ? 'Imagen' : 'Video'} regenerado exitosamente`
+            message: `✅ ${elementType === 'all' ? 'Campaña' : elementType === 'copy' ? 'Copy' : elementType === 'image' ? 'Imagen' : 'Video'} regenerado exitosamente`
         }
 
     } catch (error: any) {

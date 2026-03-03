@@ -21,7 +21,12 @@ import {
     createCampaignFromAssets,
     saveAIAssetUrl
 } from '@/app/admin/actions/publicity-actions'
-import { chatWithPublicityAgent, generateCampaignAssets, checkAIAssetStatus } from '@/app/admin/actions/ai-content-actions'
+import {
+    chatWithPublicityAgent,
+    generateCampaignAssets,
+    checkAIAssetStatus,
+    regenerateCampaignElement
+} from '@/app/admin/actions/ai-content-actions'
 
 import MultiSceneVideoPlayer from '@/components/admin/MultiSceneVideoPlayer'
 import ImageChat from '@/components/admin/ImageChat'
@@ -112,8 +117,15 @@ export default function PublicityTab() {
                             ? JSON.parse(campaign.metadata)
                             : campaign.metadata
 
+                        if (!meta) meta = {};
                         // Handle double-stringified metadata sometimes stored by createCampaignFromAssets
-                        if (typeof meta === 'string') meta = JSON.parse(meta);
+                        if (typeof meta === 'string') {
+                            try {
+                                meta = JSON.parse(meta);
+                            } catch (e) {
+                                meta = {};
+                            }
+                        }
 
                         let assets = meta.assets
                         if (typeof assets === 'string') {
@@ -336,7 +348,6 @@ export default function PublicityTab() {
             const currentAssets = metadata.assets || {}
 
             // Call regenerate API
-            const { regenerateCampaignElement } = await import('@/app/admin/actions/ai-content-actions')
             const result = await regenerateCampaignElement(editingCampaign.id, userMessage, currentAssets)
 
             if (result.success) {

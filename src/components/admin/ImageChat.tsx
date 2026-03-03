@@ -7,7 +7,7 @@ import {
     Loader2, X, ChevronDown, ExternalLink, Zap, Palette,
     Camera, Layers, RefreshCw
 } from 'lucide-react'
-import { chatWithImageDirector, generateImageVariation } from '@/app/admin/actions/image-chat-actions'
+import { chatWithImageDirector } from '@/app/admin/actions/image-chat-actions'
 import { createCampaignFromAssets } from '@/app/admin/actions/publicity-actions'
 
 // ─────────────────────────────────────────────────────────────
