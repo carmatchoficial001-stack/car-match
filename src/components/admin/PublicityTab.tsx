@@ -27,7 +27,6 @@ import { chatWithPublicityAgent, generateCampaignAssets, checkAIAssetStatus } fr
 
 import MultiSceneVideoPlayer from '@/components/admin/MultiSceneVideoPlayer'
 import ImageChat from '@/components/admin/ImageChat'
-import SocialQueue from '@/components/admin/SocialQueue'
 
 // Helper for MX Date
 const formatDateMX = (date: Date | string) => {
@@ -71,7 +70,7 @@ export default function PublicityTab() {
     const [campaigns, setCampaigns] = useState<PublicityCampaign[]>([])
     const [loading, setLoading] = useState(true)
     const [showModal, setShowModal] = useState(false)
-    const [viewMode, setViewMode] = useState<'CAMPAIGNS' | 'QUEUE' | 'IMAGE_CHAT'>('CAMPAIGNS')
+    const [viewMode, setViewMode] = useState<'CAMPAIGNS' | 'IMAGE_CHAT'>('CAMPAIGNS')
     const [selectedCampaign, setSelectedCampaign] = useState<PublicityCampaign | null>(null)
 
     // Assets Generation State
@@ -392,13 +391,6 @@ export default function PublicityTab() {
                             <ImagePlus className="w-4 h-4" />
                             Estudio Imagen
                         </button>
-                        <button
-                            onClick={() => setViewMode('QUEUE')}
-                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-2 ${viewMode === 'QUEUE' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-white/40 hover:text-white'}`}
-                        >
-                            <Clock className="w-4 h-4" />
-                            Cola
-                        </button>
                     </div>
                 </div>
 
@@ -412,7 +404,7 @@ export default function PublicityTab() {
             <div className="flex-1 bg-zinc-950/50 border border-white/5 rounded-3xl overflow-hidden relative backdrop-blur-sm flex flex-col">
                 {viewMode === 'IMAGE_CHAT' ? (
                     <ImageChat />
-                ) : viewMode === 'CAMPAIGNS' ? (
+                ) : (
                     <>
                         {/* Header Simplificado */}
                         <div className="p-8 border-b border-white/5 bg-gradient-to-br from-indigo-500/10 via-transparent to-transparent relative overflow-hidden shrink-0">
@@ -549,8 +541,6 @@ export default function PublicityTab() {
                             )}
                         </div>
                     </>
-                ) : (
-                    <SocialQueue />
                 )}
             </div>
 
