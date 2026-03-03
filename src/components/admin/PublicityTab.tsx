@@ -559,15 +559,9 @@ export default function PublicityTab() {
                 onClose={() => setShowAssetsModal(false)}
                 assets={generatedAssets}
                 campaignId={generatedAssets?.campaignId || generatedAssets?.id}
-                sceneClips={[]}
-                onRetryScene={handleRetryScene}
                 onOpenEditChat={() => {
                     const c = campaigns.find(cam => cam.id === (generatedAssets?.campaignId || generatedAssets?.id))
                     if (c) handleOpenEditChat(c)
-                }}
-                onSuccess={() => {
-                    fetchCampaigns()
-                    setShowAssetsModal(false)
                 }}
             />
 
@@ -741,7 +735,7 @@ function buildFallbackPlatformData(platformId: string, assets: any): any {
     return fallbacks[platformId] || { caption }
 }
 
-function CampaignAssetsModal({ isOpen, onClose, assets, campaignId }: any) {
+function CampaignAssetsModal({ isOpen, onClose, assets, campaignId, onOpenEditChat }: any) {
     const [selectedSize, setSelectedSize] = useState<'square' | 'vertical' | 'horizontal'>('square')
     const [copied, setCopied] = useState(false)
 
@@ -790,8 +784,8 @@ function CampaignAssetsModal({ isOpen, onClose, assets, campaignId }: any) {
                                         key={size}
                                         onClick={() => setSelectedSize(size)}
                                         className={`flex flex-col items-center px-4 py-2 rounded-xl transition-all duration-300 ${selectedSize === size
-                                                ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/20'
-                                                : 'text-zinc-500 hover:text-white'
+                                            ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/20'
+                                            : 'text-zinc-500 hover:text-white'
                                             }`}
                                     >
                                         <span className="text-[10px] font-black uppercase tracking-widest">{size}</span>
@@ -861,12 +855,26 @@ function CampaignAssetsModal({ isOpen, onClose, assets, campaignId }: any) {
                         })}
                     </div>
 
-                    <button
-                        onClick={onClose}
-                        className="mt-6 w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-zinc-200 transition active:scale-95"
-                    >
-                        LISTO
-                    </button>
+                    <div className="mt-6 flex gap-3">
+                        {onOpenEditChat && (
+                            <button
+                                onClick={() => {
+                                    onClose()
+                                    onOpenEditChat()
+                                }}
+                                className="w-14 h-14 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 shrink-0"
+                                title="Editar toda la campaña con IA"
+                            >
+                                <Sparkles className="w-6 h-6" />
+                            </button>
+                        )}
+                        <button
+                            onClick={onClose}
+                            className="flex-1 py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-zinc-200 transition active:scale-95"
+                        >
+                            LISTO
+                        </button>
+                    </div>
                 </div>
             </motion.div>
         </div>
@@ -930,31 +938,6 @@ function PlatformMiniItem({ platform, data }: any) {
     )
 }
 
-{/* FOOTER ACTIONS */ }
-<div className="p-4 border-t border-white/10 bg-zinc-900/50 backdrop-blur-md shrink-0 safe-area-bottom flex gap-3">
-    {onOpenEditChat && (
-        <button
-            onClick={() => {
-                onClose()
-                onOpenEditChat()
-            }}
-            className="w-12 h-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 shrink-0"
-            title="Editar toda la campaña con IA"
-        >
-            <Sparkles className="w-5 h-5" />
-        </button>
-    )}
-    <button
-        onClick={onClose}
-        className="flex-1 py-3.5 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition shadow-lg shadow-white/5 active:scale-[0.98]"
-    >
-        Listo, Cerrar
-    </button>
-</div>
-            </motion.div >
-        </div >
-    )
-}
 
 function PlatformAccordionItem({ platform, data, assets, isFallback, defaultOpen }: any) {
     const [isOpen, setIsOpen] = useState(defaultOpen || false)
