@@ -1431,8 +1431,59 @@ function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index, clipStat
         }
 
         if (pId.startsWith('DONE|')) {
-            setStatus('success')
-            setUrl(pId.split('DONE|')[1])
+            // 🛡️ FIX: Usar CORS proxy → base64 → Cloudinary.
+            // El proxy descarga la imagen en el servidor y la devuelve al browser,
+            // luego enviamos el base64 a Cloudinary (evita Cloudflare 530 en servidor).
+            const rawUrl = pId.split('DONE|')[1]
+            setStatus('pending') // Spinner mientras se sube
+                ; (async () => {
+                    try {
+                        // 1. Descargar via proxy CORS
+                        const proxyUrl = `/api/ai/proxy-image?url=${encodeURIComponent(rawUrl)}`
+                        const imgRes = await fetch(proxyUrl)
+                        if (!imgRes.ok) throw new Error(`Proxy HTTP ${imgRes.status}`)
+                        const blob = await imgRes.blob()
+                        if (!blob.type.startsWith('image/') || blob.size < 1000) {
+                            throw new Error(`Blob inválido: ${blob.type} ${blob.size}b`)
+                        }
+                        // 2. Blob → base64
+                        const imageBase64 = await new Promise<string>((res, rej) => {
+                            const reader = new FileReader()
+                            reader.onloadend = () => res(reader.result as string)
+                            reader.onerror = rej
+                            reader.readAsDataURL(blob)
+                        })
+                        // 3. Subir a Cloudinary
+                        const uploadRes = await fetch('/api/ai/upload-pollinations', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ imageBase64 })
+                        })
+                        const data = await uploadRes.json()
+                        const finalUrl = (data.success && data.cloudinaryUrl) ? data.cloudinaryUrl : (data.fallbackUrl || rawUrl)
+                        setStatus('success')
+                        setUrl(finalUrl)
+                        if (campaignId) saveAIAssetUrl(campaignId, id, finalUrl).catch(() => { })
+                    } catch (err) {
+                        console.error('[GalleryImageItem] Upload error, fallback a URL raw:', err)
+                        // Último fallback: intentar subir solo con URL
+                        try {
+                            const res = await fetch('/api/ai/upload-pollinations', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ pollinationsUrl: rawUrl })
+                            })
+                            const data = await res.json()
+                            const finalUrl = (data.success && data.cloudinaryUrl) ? data.cloudinaryUrl : (data.fallbackUrl || rawUrl)
+                            setStatus('success')
+                            setUrl(finalUrl)
+                            if (campaignId) saveAIAssetUrl(campaignId, id, finalUrl).catch(() => { })
+                        } catch {
+                            setStatus('success')
+                            setUrl(rawUrl)
+                        }
+                    }
+                })()
             return
         }
 

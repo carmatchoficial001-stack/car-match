@@ -4,11 +4,84 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { checkAIAssetStatus, launchSingleImagePrediction } from '@/app/admin/actions/ai-content-actions'
 import { updatePublicityCampaign, saveAIAssetUrl } from '@/app/admin/actions/publicity-actions'
 
+// Convierte un Blob a data URI (base64)
+function blobToDataUri(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(blob)
+    })
+}
+
+// Helper para subir imágenes de Pollinations a Cloudinary via nuestro proxy
+// 🛡️ FIX: El servidor descarga la imagen via proxy (evita CORS y Cloudflare),
+//          luego el browser convierte a base64 y sube a Cloudinary.
+async function promoteToCdnIfNeeded(url: string | null): Promise<string | null> {
+    if (!url) return null;
+    // Si ya está en Cloudinary o es un stock fallback, no hacer nada
+    if (url.includes('res.cloudinary.com') || url.includes('images.unsplash.com')) {
+        return url;
+    }
+
+    try {
+        console.log('[PROMOTION] Downloading via server proxy...', url)
+
+        // 1. Descargar via proxy CORS del servidor (evita CORS y Cloudflare 530)
+        const proxyUrl = `/api/ai/proxy-image?url=${encodeURIComponent(url)}`
+        const imgRes = await fetch(proxyUrl)
+
+        if (!imgRes.ok) {
+            throw new Error(`Proxy HTTP ${imgRes.status}`)
+        }
+
+        const blob = await imgRes.blob()
+        if (!blob.type.startsWith('image/') || blob.size < 1000) {
+            throw new Error(`Respuesta inválida: ${blob.type}, ${blob.size} bytes`)
+        }
+
+        console.log(`[PROMOTION] ✅ Imagen obtenida via proxy: ${(blob.size / 1024).toFixed(1)}KB`)
+
+        // 2. Convertir a data URI y enviar al servidor para subir a Cloudinary
+        const imageBase64 = await blobToDataUri(blob)
+        const res = await fetch('/api/ai/upload-pollinations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageBase64 })
+        })
+        const data = await res.json()
+        if (data.success && data.cloudinaryUrl) {
+            console.log('[PROMOTION] ✅ Cloudinary upload success:', data.cloudinaryUrl)
+            return data.cloudinaryUrl
+        }
+        console.warn('[PROMOTION] Cloudinary upload failed, using fallback:', data.fallbackUrl || url)
+        return data.fallbackUrl || url
+    } catch (e) {
+        console.error('[PROMOTION] Proxy flow failed, trying direct server upload:', e)
+        // Fallback: enviar URL directa al servidor para que intente descargar y subir
+        try {
+            const res = await fetch('/api/ai/upload-pollinations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pollinationsUrl: url })
+            })
+            const data = await res.json()
+            if (data.success && data.cloudinaryUrl) {
+                return data.cloudinaryUrl
+            }
+            return data.fallbackUrl || url
+        } catch {
+            return url
+        }
+    }
+}
+
+
 export interface ImageClip {
     imageId: string // e.g. 'img_0', 'img_1', or 'square', 'vertical'
     prompt: string
     predictionId: string | null
-    status: string // 'pending', 'starting', 'processing', 'succeeded', 'error', 'failed'
+    status: string // 'pending', 'starting', 'processing', 'promoting', 'succeeded', 'error', 'failed'
     url: string | null
 }
 
@@ -95,11 +168,30 @@ export function ImageProductionProvider({ children }: { children: ReactNode }) {
                             const updated = results.find(r => r.imageId === clip.imageId)
                             if (updated && updated.status !== clip.status) {
                                 updatedAny = true
-                                // Guardar en DB si terminó
+                                // Guardar en DB si terminó — pero NO mostrar URL cruda de Pollinations
                                 if (updated.status === 'succeeded' && updated.url && clip.status !== 'succeeded') {
-                                    saveAIAssetUrl(campaignId, clip.imageId, updated.url)
+                                    // PROMOTE TO CLOUDINARY BEFORE SAVING (no mostrar URL raw)
+                                    promoteToCdnIfNeeded(updated.url).then(finalUrl => {
+                                        if (finalUrl) {
+                                            saveAIAssetUrl(campaignId, clip.imageId, finalUrl)
+                                            setProductions(latest => {
+                                                const p = latest[campaignId]
+                                                if (!p) return latest
+                                                return {
+                                                    ...latest,
+                                                    [campaignId]: {
+                                                        ...p,
+                                                        clips: p.clips.map(c => c.imageId === clip.imageId ? { ...c, url: finalUrl, status: 'succeeded' } : c),
+                                                        lastUpdate: Date.now()
+                                                    }
+                                                }
+                                            })
+                                        }
+                                    })
+                                    // Mientras se sube a CDN, mostrar 'promoting' (sin URL cruda)
+                                    return { ...clip, status: 'promoting', url: null }
                                 }
-                                return { ...clip, status: updated.status, url: updated.url || null }
+                                return { ...clip, status: updated.status, url: null }
                             }
                             return clip
                         })
@@ -149,11 +241,12 @@ export function ImageProductionProvider({ children }: { children: ReactNode }) {
                 const res = await launchSingleImagePrediction(toLaunch.prompt)
 
                 if (res.success && res.predictionId) {
-                    // Si ya viene con DONE|, lo marcamos como succeeded y extraemos la URL
+                    // Si ya viene con DONE|, extraemos la URL cruda de Pollinations
                     const isDone = res.predictionId.startsWith('DONE|')
-                    const finalUrl = isDone ? res.predictionId.split('DONE|')[1] : null
-                    const finalStatus = isDone ? 'succeeded' : 'processing'
+                    const rawPollinationsUrl = isDone ? res.predictionId.split('DONE|')[1] : null
 
+                    // 🛡️ ANTI-BLACK-IMAGE: Nunca ponemos la URL cruda de Pollinations como url.
+                    // Mostramos 'promoting' (spinner) hasta tener la URL de Cloudinary.
                     setProductions(prev => {
                         const p = prev[campaignId]
                         if (!p) return prev
@@ -162,16 +255,33 @@ export function ImageProductionProvider({ children }: { children: ReactNode }) {
                             [campaignId]: {
                                 ...p,
                                 clips: p.clips.map(c =>
-                                    c.imageId === toLaunch.imageId ? { ...c, predictionId: res.predictionId!, status: finalStatus, url: finalUrl } : c
+                                    c.imageId === toLaunch.imageId
+                                        ? { ...c, predictionId: res.predictionId!, status: isDone ? 'promoting' : 'processing', url: null }
+                                        : c
                                 ),
                                 lastUpdate: Date.now()
                             }
                         }
                     })
 
-                    // Si se terminó al instante, guardamos en la BD de inmediato
-                    if (isDone && finalUrl) {
-                        saveAIAssetUrl(campaignId, toLaunch.imageId, finalUrl)
+                    // Si ya tenemos la URL, la subimos a Cloudinary y ENTONCES la mostramos
+                    if (isDone && rawPollinationsUrl) {
+                        promoteToCdnIfNeeded(rawPollinationsUrl).then(promotedUrl => {
+                            const cdnUrl = promotedUrl || rawPollinationsUrl
+                            saveAIAssetUrl(campaignId, toLaunch.imageId, cdnUrl)
+                            setProductions(latest => {
+                                const p = latest[campaignId]
+                                if (!p) return latest
+                                return {
+                                    ...latest,
+                                    [campaignId]: {
+                                        ...p,
+                                        clips: p.clips.map(c => c.imageId === toLaunch.imageId ? { ...c, url: cdnUrl, status: 'succeeded' } : c),
+                                        lastUpdate: Date.now()
+                                    }
+                                }
+                            })
+                        })
                     }
 
                     // Actualizar BD con predictionId pendiente
