@@ -24,11 +24,10 @@ import {
     saveAIAssetUrl
 } from '@/app/admin/actions/publicity-actions'
 import { chatWithPublicityAgent, generateCampaignAssets, checkAIAssetStatus } from '@/app/admin/actions/ai-content-actions'
-import AIStudio from '@/components/admin/AIStudio'
 
 import MultiSceneVideoPlayer from '@/components/admin/MultiSceneVideoPlayer'
-import { useVideoProduction } from '@/contexts/VideoProductionContext'
-import { useImageProduction } from '@/contexts/ImageProductionContext'
+import ImageChat from '@/components/admin/ImageChat'
+import SocialQueue from '@/components/admin/SocialQueue'
 
 // Helper for MX Date
 const formatDateMX = (date: Date | string) => {
@@ -72,15 +71,13 @@ export default function PublicityTab() {
     const [campaigns, setCampaigns] = useState<PublicityCampaign[]>([])
     const [loading, setLoading] = useState(true)
     const [showModal, setShowModal] = useState(false)
-    const [viewMode, setViewMode] = useState<'CAMPAIGNS' | 'AI_IMAGE' | 'AI_VIDEO' | 'QUEUE'>('CAMPAIGNS')
+    const [viewMode, setViewMode] = useState<'CAMPAIGNS' | 'QUEUE' | 'IMAGE_CHAT'>('CAMPAIGNS')
     const [selectedCampaign, setSelectedCampaign] = useState<PublicityCampaign | null>(null)
 
     // Assets Generation State
     const [generatedAssets, setGeneratedAssets] = useState<any>(null)
     const [showAssetsModal, setShowAssetsModal] = useState(false)
 
-    const { productions, retryScene, getClipsForCampaign, registerProduction } = useVideoProduction()
-    const { productions: imageProductions, registerImageProduction } = useImageProduction()
 
     // Campaign Edit Chat State
     const [showEditChat, setShowEditChat] = useState(false)
@@ -296,39 +293,6 @@ export default function PublicityTab() {
                 const campaignId = campaign.id
                 setGeneratedAssets({ ...assets, id: campaignId, campaignId })
 
-                // Si está en producción activa, el contexto ya lo maneja.
-                // Si no, podríamos registrarlo para que empiece el polling si hay clips pendientes.
-                if (assets.scenes && Array.isArray(assets.scenes) && !productions[campaignId]) {
-                    const clips = assets.scenes.map((s: any) => ({
-                        sceneId: s.sceneId ?? s.id,
-                        predictionId: s.predictionId || null,
-                        status: s.status || 'pending',
-                        url: s.url || null
-                    }))
-                    registerProduction(campaignId, assets, clips)
-                }
-
-                // NUEVO: Restore image production
-                if (assets.type === 'image' && assets.imagePendingIds && !imageProductions[campaignId]) {
-                    const prompts = assets.imagePrompts && Array.isArray(assets.imagePrompts)
-                        ? assets.imagePrompts.map((item: any) => typeof item === 'string' ? item : item.prompt)
-                        : Array.from({ length: Object.keys(assets.imagePendingIds).length }).map(() => assets.imagePrompt);
-
-                    const clips = Object.keys(assets.imagePendingIds)
-                        .filter(key => key.startsWith('img_'))
-                        .map((key) => {
-                            const index = parseInt(key.replace('img_', ''), 10);
-                            return {
-                                imageId: key,
-                                prompt: prompts[index] || assets.imagePrompt || '',
-                                predictionId: assets.imagePendingIds[key] !== 'PENDING...' ? assets.imagePendingIds[key] : null,
-                                status: assets.imagePendingIds[key] === 'PENDING...' ? 'pending' : 'processing',
-                                url: assets.images?.[key] || null
-                            };
-                        });
-                    if (clips.length > 0) registerImageProduction(campaignId, clips);
-                }
-
                 setShowAssetsModal(true)
             } else {
                 alert('Esta campaña no tiene assets de IA generados.')
@@ -340,10 +304,8 @@ export default function PublicityTab() {
     }
 
     const handleRetryScene = (sceneId: number) => {
-        const campaignId = generatedAssets?.campaignId || generatedAssets?.id
-        if (campaignId) {
-            retryScene(campaignId, sceneId)
-        }
+        // Retry scene not available without production context
+        console.log('Retry scene:', sceneId)
     }
     const handleOpenEditChat = (campaign: PublicityCampaign) => {
         setEditingCampaign(campaign)
@@ -424,18 +386,18 @@ export default function PublicityTab() {
                             Campañas
                         </button>
                         <button
-                            onClick={() => setViewMode('AI_IMAGE')}
-                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-2 ${viewMode === 'AI_IMAGE' ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/20' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                            onClick={() => setViewMode('IMAGE_CHAT')}
+                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-2 ${viewMode === 'IMAGE_CHAT' ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/20' : 'text-white/40 hover:text-white'}`}
                         >
-                            <ImageIcon className="w-4 h-4" />
+                            <ImagePlus className="w-4 h-4" />
                             Estudio Imagen
                         </button>
                         <button
-                            onClick={() => setViewMode('AI_VIDEO')}
-                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-2 ${viewMode === 'AI_VIDEO' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                            onClick={() => setViewMode('QUEUE')}
+                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-2 ${viewMode === 'QUEUE' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-white/40 hover:text-white'}`}
                         >
-                            <Video className="w-4 h-4" />
-                            Productora Video
+                            <Clock className="w-4 h-4" />
+                            Cola
                         </button>
                     </div>
                 </div>
@@ -448,11 +410,9 @@ export default function PublicityTab() {
             </div>
 
             <div className="flex-1 bg-zinc-950/50 border border-white/5 rounded-3xl overflow-hidden relative backdrop-blur-sm flex flex-col">
-                {viewMode === 'AI_IMAGE' ? (
-                    <AIStudio defaultMode="IMAGE_GEN" />
-                ) : viewMode === 'AI_VIDEO' ? (
-                    <AIStudio defaultMode="VIDEO_GEN" />
-                ) : (
+                {viewMode === 'IMAGE_CHAT' ? (
+                    <ImageChat />
+                ) : viewMode === 'CAMPAIGNS' ? (
                     <>
                         {/* Header Simplificado */}
                         <div className="p-8 border-b border-white/5 bg-gradient-to-br from-indigo-500/10 via-transparent to-transparent relative overflow-hidden shrink-0">
@@ -589,6 +549,8 @@ export default function PublicityTab() {
                             )}
                         </div>
                     </>
+                ) : (
+                    <SocialQueue />
                 )}
             </div>
 
@@ -607,7 +569,7 @@ export default function PublicityTab() {
                 onClose={() => setShowAssetsModal(false)}
                 assets={generatedAssets}
                 campaignId={generatedAssets?.campaignId || generatedAssets?.id}
-                sceneClips={getClipsForCampaign(generatedAssets?.campaignId || generatedAssets?.id)}
+                sceneClips={[]}
                 onRetryScene={handleRetryScene}
                 onOpenEditChat={() => {
                     const c = campaigns.find(cam => cam.id === (generatedAssets?.campaignId || generatedAssets?.id))
@@ -1325,8 +1287,6 @@ function CopyableRow({ text, id, onCopy, copiedKey }: any) {
 
 // Sub-Components
 
-// AIStudio is now imported from @/components/admin/AIStudio
-
 
 function CampaignModal({ isOpen, onClose, campaign, onSuccess }: any) {
     if (!isOpen) return null
@@ -1431,59 +1391,10 @@ function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index, clipStat
         }
 
         if (pId.startsWith('DONE|')) {
-            // 🛡️ FIX: Usar CORS proxy → base64 → Cloudinary.
-            // El proxy descarga la imagen en el servidor y la devuelve al browser,
-            // luego enviamos el base64 a Cloudinary (evita Cloudflare 530 en servidor).
             const rawUrl = pId.split('DONE|')[1]
-            setStatus('pending') // Spinner mientras se sube
-                ; (async () => {
-                    try {
-                        // 1. Descargar via proxy CORS
-                        const proxyUrl = `/api/ai/proxy-image?url=${encodeURIComponent(rawUrl)}`
-                        const imgRes = await fetch(proxyUrl)
-                        if (!imgRes.ok) throw new Error(`Proxy HTTP ${imgRes.status}`)
-                        const blob = await imgRes.blob()
-                        if (!blob.type.startsWith('image/') || blob.size < 1000) {
-                            throw new Error(`Blob inválido: ${blob.type} ${blob.size}b`)
-                        }
-                        // 2. Blob → base64
-                        const imageBase64 = await new Promise<string>((res, rej) => {
-                            const reader = new FileReader()
-                            reader.onloadend = () => res(reader.result as string)
-                            reader.onerror = rej
-                            reader.readAsDataURL(blob)
-                        })
-                        // 3. Subir a Cloudinary
-                        const uploadRes = await fetch('/api/ai/upload-pollinations', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ imageBase64 })
-                        })
-                        const data = await uploadRes.json()
-                        const finalUrl = (data.success && data.cloudinaryUrl) ? data.cloudinaryUrl : (data.fallbackUrl || rawUrl)
-                        setStatus('success')
-                        setUrl(finalUrl)
-                        if (campaignId) saveAIAssetUrl(campaignId, id, finalUrl).catch(() => { })
-                    } catch (err) {
-                        console.error('[GalleryImageItem] Upload error, fallback a URL raw:', err)
-                        // Último fallback: intentar subir solo con URL
-                        try {
-                            const res = await fetch('/api/ai/upload-pollinations', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ pollinationsUrl: rawUrl })
-                            })
-                            const data = await res.json()
-                            const finalUrl = (data.success && data.cloudinaryUrl) ? data.cloudinaryUrl : (data.fallbackUrl || rawUrl)
-                            setStatus('success')
-                            setUrl(finalUrl)
-                            if (campaignId) saveAIAssetUrl(campaignId, id, finalUrl).catch(() => { })
-                        } catch {
-                            setStatus('success')
-                            setUrl(rawUrl)
-                        }
-                    }
-                })()
+            setStatus('success')
+            setUrl(rawUrl)
+            if (campaignId) saveAIAssetUrl(campaignId, id, rawUrl).catch(() => { })
             return
         }
 
@@ -1591,8 +1502,7 @@ function GalleryImageItem({ id, pId, onStatusUpdate, campaignId, index, clipStat
 }
 
 function CampaignGallery({ assets, campaignId, onOpenEditChat, onViewFullscreen }: { assets: any, campaignId?: string, onOpenEditChat?: () => void, onViewFullscreen?: (url: string, id: string) => void }) {
-    const { getClipsForImageCampaign } = useImageProduction()
-    const activeClips = campaignId ? getClipsForImageCampaign(campaignId) : []
+    const activeClips: any[] = [] // Image production context removed
 
     // Look for all img_X in pendingIds or assets.images
     const pendingIds = assets.imagePendingIds || {}

@@ -47,22 +47,14 @@ import dynamic from 'next/dynamic'
 const AdminHeatMap = dynamic<any>(() => import('@/components/AdminHeatMap'), { ssr: false })
 const PublicityTab = dynamic<any>(() => import('@/components/admin/PublicityTab'), { ssr: false })
 const AdminMobileNav = dynamic<any>(() => import('@/components/admin/AdminMobileNav'), { ssr: false })
-// 🚀 FORCE BUILD: 2026-02-18 12:22
 import ManageCreditsModal from '@/components/admin/ManageCreditsModal'
 import QRCodeModal from '@/components/QRCodeModal'
-import { VideoProductionProvider } from '@/contexts/VideoProductionContext'
-
-import { ImageProductionProvider } from '@/contexts/ImageProductionContext'
 
 type AdminView = 'overview' | 'users' | 'inventory' | 'map-store' | 'intelligence' | 'reports' | 'logs' | 'ai-hub' | 'publicity' | 'more'
 
 export default function AdminPanel() {
     return (
-        <VideoProductionProvider>
-            <ImageProductionProvider>
-                <AdminPanelContent />
-            </ImageProductionProvider>
-        </VideoProductionProvider>
+        <AdminPanelContent />
     )
 }
 
@@ -82,16 +74,6 @@ function AdminPanelContent() {
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [aiAnalysis, setAiAnalysis] = useState<any>(null)
     const [showQRModal, setShowQRModal] = useState(false)
-
-    // Listener: AI Studio despacha este evento cuando lanza generación en 2do plano
-    useEffect(() => {
-        const handleSwitchTab = (e: any) => {
-            const tab = e.detail?.tab as AdminView
-            if (tab) setActiveView(tab)
-        }
-        window.addEventListener('switch-admin-tab', handleSwitchTab)
-        return () => window.removeEventListener('switch-admin-tab', handleSwitchTab)
-    }, [])
 
     useEffect(() => {
         const fetchStats = async () => {

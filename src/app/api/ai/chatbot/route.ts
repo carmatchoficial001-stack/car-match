@@ -6,7 +6,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { safeGenerateContent, safeExtractJSON } from '@/lib/ai/geminiClient'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { updateUserDNA, trackGlobalTrend, getTopTrends } from '@/app/admin/actions/ai-learning-actions'
 
 export async function POST(req: NextRequest) {
     try {
@@ -18,27 +17,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Mensaje es requerido' }, { status: 400 })
         }
 
-        // --- 🧠 MEMORY INJECTION (DNA & TRENDS) ---
-        let userDNAContext = ""
-        let globalTrendsContext = ""
-
-        if (userId) {
-            const dna = await prisma.userDNA.findUnique({ where: { userId } })
-            if (dna) {
-                userDNAContext = `
-                DECÁLOGO DEL USUARIO (DNA):
-                - Marcas favoritas: ${dna.preferredBrands.slice(-5).join(', ')}
-                - Tipos favoritos: ${dna.preferredTypes.slice(-5).join(', ')}
-                - Intereses: ${dna.interests.slice(-5).join(', ')}
-                - Historial de búsqueda: ${dna.searchHistory.slice(-3).join(' | ')}
-                `
-            }
-        }
-
-        const trends = await getTopTrends('SEARCH_BRAND', 3)
-        if (trends.length > 0) {
-            globalTrendsContext = `TENDENCIAS ACTUALES EN CARMATCH: ${trends.map(t => `${t.key}: ${t.count} búsquedas`).join(', ')}`
-        }
+        // DNA/Trends context removed (AI learning deprecated)
+        const userDNAContext = ""
+        const globalTrendsContext = ""
 
         const prompt = `Actúa como el "SÚPER ASESOR MAESTRO" de la red social CarMatch. Eres un experto absoluto de nivel mundial en la industria automotriz.
 
@@ -91,20 +72,6 @@ Responde ÚNICAMENTE con el JSON solicitado.`
             })
         }
 
-        // --- 🧠 ASYNC LEARNING ---
-        if (userId) {
-            // Learn from user interaction in background
-            updateUserDNA(userId, message).catch(console.error)
-
-            // Track trends in background
-            const words = message.toLowerCase().split(/\s+/)
-            const commonBrands = ['toyota', 'nissan', 'ford', 'honda', 'chevrolet', 'bmw', 'mercedes', 'mazda', 'volkswagen']
-            words.forEach((word: string) => {
-                if (commonBrands.includes(word)) {
-                    trackGlobalTrend('SEARCH_BRAND', word).catch(console.error)
-                }
-            })
-        }
 
         return NextResponse.json(aiResponse)
 
