@@ -660,19 +660,15 @@ export default function PublicityTab() {
 }
 
 const PLATFORMS = [
-    { id: 'meta_ads', label: 'Meta Ads (FB/IG)', icon: <img src="https://cdn-icons-png.flaticon.com/512/6033/6033716.png" className="w-5 h-5 invert" />, color: 'bg-blue-600' },
-    { id: 'tiktok_ads', label: 'TikTok Ads', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" className="w-5 h-5 invert" />, color: 'bg-black' },
-    { id: 'facebook_marketplace', label: 'FB Marketplace', icon: <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" className="w-5 h-5 invert" />, color: 'bg-blue-700' },
-    { id: 'facebook_reels', label: 'Facebook Reels', icon: <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" className="w-5 h-5 invert" />, color: 'bg-blue-700' },
-    { id: 'youtube_shorts', label: 'YouTube Shorts', icon: <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" className="w-5 h-5 invert" />, color: 'bg-red-600' },
-    { id: 'instagram_reels', label: 'Instagram Reels', icon: <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" className="w-5 h-5 invert" />, color: 'bg-pink-600' },
-    { id: 'google_ads', label: 'Google Ads', icon: <img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" className="w-5 h-5 invert" />, color: 'bg-green-600' },
-    { id: 'twitter_x', label: 'X (Twitter)', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" className="w-5 h-5 invert" />, color: 'bg-slate-800' },
-    { id: 'threads', label: 'Threads', icon: <span className="font-bold text-lg select-none leading-none">@</span>, color: 'bg-black' },
-    { id: 'linkedin', label: 'LinkedIn', icon: <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" className="w-5 h-5 invert" />, color: 'bg-blue-700' },
-    { id: 'snapchat_ads', label: 'Snapchat', icon: <img src="https://cdn-icons-png.flaticon.com/512/3670/3670166.png" className="w-5 h-5 invert" />, color: 'bg-yellow-400 text-black' },
-    { id: 'kwai', label: 'Kwai', icon: <img src="https://cdn-icons-png.flaticon.com/512/6978/6978255.png" className="w-5 h-5 invert" />, color: 'bg-orange-500' },
-    { id: 'pinterest', label: 'Pinterest', icon: <img src="https://cdn-icons-png.flaticon.com/512/174/174863.png" className="w-5 h-5 invert" />, color: 'bg-red-600' },
+    { id: 'instagram_feed', label: 'Instagram Feed', icon: '📸', color: 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500' },
+    { id: 'instagram_stories', label: 'Instagram Stories', icon: '📱', color: 'bg-gradient-to-tr from-orange-400 to-pink-600' },
+    { id: 'tiktok', label: 'TikTok', icon: '🎵', color: 'bg-black border border-white/20' },
+    { id: 'facebook', label: 'Facebook', icon: '👤', color: 'bg-[#1877F2]' },
+    { id: 'x_twitter', label: 'X (Twitter)', icon: '𝕏', color: 'bg-black' },
+    { id: 'google_ads', label: 'Google Ads', icon: '🔍', color: 'bg-white text-blue-600' },
+    { id: 'snapchat', label: 'Snapchat', icon: '👻', color: 'bg-[#FFFC00] text-black' },
+    { id: 'kwai', label: 'Kwai', icon: '🎬', color: 'bg-orange-500' },
+    { id: 'threads', label: 'Threads', icon: '@', color: 'bg-black' },
 ]
 
 // Helper for downloading assets (Standalone)
@@ -745,217 +741,218 @@ function buildFallbackPlatformData(platformId: string, assets: any): any {
     return fallbacks[platformId] || { caption }
 }
 
-function CampaignAssetsModal({ isOpen, onClose, assets, onSuccess, sceneClips = [], onRetryScene, campaignId, onOpenEditChat }: any) {
-    const [fullscreenImage, setFullscreenImage] = useState<{ url: string, id: string } | null>(null)
+function CampaignAssetsModal({ isOpen, onClose, assets, campaignId }: any) {
+    const [selectedSize, setSelectedSize] = useState<'square' | 'vertical' | 'horizontal'>('square')
+    const [copied, setCopied] = useState(false)
 
     if (!isOpen || !assets) return null
 
-    // Determine title
-    const campaignTitle = assets.internal_title || assets.title || 'Campaña Generada'
+    const campaignTitle = assets.internal_title || assets.title || 'Campaña Creativa'
+    const prompt = assets.imagePrompt || assets.prompt || ''
+
+    // Safely get image URLs
+    const images = assets.images || {
+        square: assets.imageUrl,
+        vertical: assets.imageUrl,
+        horizontal: assets.imageUrl
+    }
+
+    const currentImageUrl = images[selectedSize] || assets.imageUrl
+
+    const handleCopyPrompt = () => {
+        navigator.clipboard.writeText(prompt)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+    }
+
+    const sizeLabels: Record<string, string> = {
+        'square': 'Instagram / Feed',
+        'vertical': 'TikTok / Reels / Stories',
+        'horizontal': 'Google Ads / X / Meta Ads'
+    }
 
     return (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-end sm:items-center justify-center sm:p-4">
-            <AnimatePresence>
-                {fullscreenImage && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 sm:p-8"
-                    >
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-[#111114] w-full max-w-5xl max-h-[90vh] rounded-3xl border border-white/10 overflow-hidden shadow-2xl flex flex-col md:flex-row"
+            >
+                {/* Left Side: Images & Prompt */}
+                <div className="flex-1 p-8 border-r border-white/5 flex flex-col bg-zinc-900/30 overflow-y-auto custom-scrollbar">
+                    <div className="flex flex-col gap-4 mb-6">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-2xl font-black text-white tracking-tight">{campaignTitle}</h2>
+                            <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5">
+                                {(['square', 'vertical', 'horizontal'] as const).map(size => (
+                                    <button
+                                        key={size}
+                                        onClick={() => setSelectedSize(size)}
+                                        className={`flex flex-col items-center px-4 py-2 rounded-xl transition-all duration-300 ${selectedSize === size
+                                                ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/20'
+                                                : 'text-zinc-500 hover:text-white'
+                                            }`}
+                                    >
+                                        <span className="text-[10px] font-black uppercase tracking-widest">{size}</span>
+                                        <span className={`text-[8px] font-bold mt-0.5 opacity-60 ${selectedSize === size ? 'text-white' : 'text-zinc-600'}`}>
+                                            {sizeLabels[size]}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Preview */}
+                    <div className={`relative bg-black rounded-2xl overflow-hidden mb-6 ${selectedSize === 'vertical' ? 'aspect-[9/16] max-h-96 mx-auto' : selectedSize === 'horizontal' ? 'aspect-[1200/628]' : 'aspect-square max-h-96 mx-auto'
+                        }`}>
+                        <img src={currentImageUrl} alt="Asset" className="w-full h-full object-cover" />
                         <button
-                            onClick={() => setFullscreenImage(null)}
-                            className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition backdrop-blur-md"
+                            onClick={() => downloadAsset(currentImageUrl, `asset-${selectedSize}.jpg`)}
+                            className="absolute bottom-3 right-3 p-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-xl text-white hover:bg-white/40 transition"
                         >
-                            <X className="w-6 h-6" />
+                            <Download className="w-4 h-4" />
                         </button>
+                    </div>
 
-                        <img
-                            src={fullscreenImage.url}
-                            alt="Vista Completa"
-                            className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl shadow-black/50"
-                        />
-
-                        <div className="mt-8 flex items-center gap-4">
-                            {onOpenEditChat && (
-                                <button
-                                    onClick={() => {
-                                        setFullscreenImage(null)
-                                        onClose()
-                                        onOpenEditChat()
-                                    }}
-                                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-purple-900/40 transition hover:scale-105"
-                                >
-                                    <Sparkles className="w-5 h-5" />
-                                    Editar con IA
-                                </button>
-                            )}
+                    {/* Prompt Box */}
+                    <div className="mt-auto">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                                <Camera className="w-3 h-3" /> Creative Prompt
+                            </span>
                             <button
-                                onClick={() => downloadAsset(fullscreenImage.url, `campaña-${fullscreenImage.id}.jpg`)}
-                                className="px-6 py-3 bg-white text-black font-bold rounded-xl flex items-center gap-2 hover:bg-zinc-200 transition shadow-lg shadow-white/10 hover:scale-105"
+                                onClick={handleCopyPrompt}
+                                className="flex items-center gap-1.5 text-[10px] font-bold text-violet-400 hover:text-violet-300 transition"
                             >
-                                <Download className="w-5 h-5" />
-                                Descargar
+                                {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                                {copied ? 'Copiado' : 'Copiar'}
                             </button>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            <motion.div
-                initial={{ y: '100%', opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: '100%', opacity: 0 }}
-                className="bg-[#111114] w-full max-w-2xl h-[92vh] sm:h-[85vh] rounded-t-3xl sm:rounded-3xl border border-white/10 overflow-hidden shadow-2xl flex flex-col"
-            >
-                {/* HEADER */}
-                <div className="p-5 border-b border-white/5 bg-zinc-900/50 flex justify-between items-start shrink-0 relative z-10">
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">
-                                Global Ad Pack
-                            </span>
+                        <div className="p-4 bg-black/40 rounded-2xl border border-white/5 max-h-32 overflow-y-auto custom-scrollbar">
+                            <p className="text-xs text-zinc-400 font-mono italic leading-relaxed">
+                                {prompt}
+                            </p>
                         </div>
-                        <h2 className="text-xl font-black text-white leading-tight">{campaignTitle}</h2>
-                        <p className="text-xs text-zinc-500 mt-1">Campaña única optimizada por IA</p>
                     </div>
-                    <button onClick={onClose} className="p-2 -mr-2 -mt-2 hover:bg-white/10 rounded-full text-white/50 hover:text-white transition">
-                        <X className="w-6 h-6" />
-                    </button>
                 </div>
 
-                {/* SCROLLABLE CONTENT */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
+                {/* Right Side: Platform Copies */}
+                <div className="w-80 p-6 flex flex-col bg-black/20">
+                    <div className="flex items-center justify-between mb-6">
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Plataformas ({Object.keys(assets.platforms || {}).length})</span>
+                        <button onClick={onClose} className="p-2 -mr-2 text-zinc-500 hover:text-white transition">
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
 
-                    {/* MULTI-SCENE VIDEO PLAYER */}
-                    {sceneClips.length > 0 && (
-                        <MultiSceneVideoPlayer
-                            scenes={sceneClips}
-                            onRetryScene={onRetryScene}
-                        />
-                    )}
-
-                    {/* IMAGEN / VIDEO PRINCIPAL (single-clip) */}
-                    {sceneClips.length === 0 && (() => {
-                        const hasVideo = assets.videoUrl && assets.videoUrl.startsWith('http')
-                        const pendingVideo = assets.videoUrl === 'PENDING...' || assets.videoPendingId
-                        const hasImage = assets.imageUrl && assets.imageUrl.startsWith('http') && assets.imageUrl !== 'PENDING...'
-                        const pendingImage = assets.imageUrl === 'PENDING...' || assets.imagePendingIds?.square
-                        if (!hasVideo && !pendingVideo && !hasImage && !pendingImage) return null
-                        return (
-                            <div className="rounded-2xl overflow-hidden border border-white/10 bg-black relative">
-                                <div className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-4 pt-3 pb-2 flex items-center gap-1">
-                                    <ImagePlus className="w-3 h-3" /> Archivo Principal
-                                </div>
-                                {hasVideo ? (
-                                    <div className="relative">
-                                        <video src={assets.videoUrl} controls className="w-full max-h-64 object-contain" />
-                                        <button
-                                            onClick={() => downloadAsset(assets.videoUrl, 'campaña-video.mp4')}
-                                            className="absolute top-2 right-2 flex items-center gap-1 bg-white text-black text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition shadow"
-                                        >
-                                            <Download className="w-3 h-3" /> Video
-                                        </button>
-                                    </div>
-                                ) : pendingVideo ? (
-                                    <div className="flex flex-col items-center justify-center gap-3 py-10 bg-black/40">
-                                        <RefreshCw className="w-8 h-8 text-purple-500 animate-spin" />
-                                        <span className="text-xs font-black uppercase text-purple-400 tracking-widest">Generando Video...</span>
-                                        <span className="text-[10px] text-zinc-600">Esto toma unos minutos</span>
-                                    </div>
-                                ) : hasImage ? (
-                                    <div className="relative group">
-                                        <img src={assets.imageUrl} alt="Imagen de campaña" className="w-full object-contain max-h-72" />
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                            <button
-                                                onClick={() => downloadAsset(assets.imageUrl, 'campaña-imagen.jpg')}
-                                                className="flex items-center gap-1.5 bg-white text-black text-xs font-bold px-4 py-2 rounded-lg hover:bg-zinc-100 transition"
-                                            >
-                                                <Download className="w-4 h-4" /> Descargar Imagen
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center gap-3 py-10 bg-black/40">
-                                        <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
-                                        <span className="text-xs font-black uppercase text-blue-400 tracking-widest">Generando Imagen...</span>
-                                    </div>
-                                )}
-                            </div>
-                        )
-                    })()}
-
-                    {/* GALERÍA DE IMÁGENES (CARRUSEL / TRIVIAS) */}
-                    <CampaignGallery
-                        assets={assets}
-                        campaignId={campaignId}
-                        onOpenEditChat={onOpenEditChat}
-                        onViewFullscreen={(url: string, id: string) => setFullscreenImage({ url, id })}
-                    />
-
-                    {/* CAPTION / GUIÓN GENERAL */}
-                    {(assets.caption || assets.videoScript) && (
-                        <CopyableBlock
-                            label={assets.videoScript ? 'Guión / Caption General' : 'Caption General'}
-                            content={assets.caption || assets.videoScript}
-                            id="general-caption"
-                            isLong={true}
-                        />
-                    )}
-
-                    {/* PLATAFORMAS */}
-                    <div className="text-[10px] font-black uppercase text-zinc-600 tracking-widest pt-1">📢 Copias para Redes Sociales</div>
-                    {
-                        (() => {
-                            // 🎬 VIDEO: plataformas con soporte de video corto (15-90s)
-                            const VIDEO_PLATFORMS = ['meta_ads', 'facebook_reels', 'tiktok_ads', 'kwai', 'youtube_shorts', 'snapchat_ads', 'twitter_x']
-                            // 🖼️ IMAGEN: plataformas con soporte de imagen estática o carrusel
-                            const IMAGE_PLATFORMS = ['meta_ads', 'facebook_marketplace', 'google_ads', 'twitter_x', 'threads', 'snapchat_ads', 'pinterest', 'linkedin']
-                            const PORTRAIT_PLATFORMS = ['meta_ads', 'linkedin', 'instagram'] // Instagram is part of meta_ads here
-
-                            const filteredPlatforms = assets.type === 'video'
-                                ? PLATFORMS.filter(p => VIDEO_PLATFORMS.includes(p.id))
-                                : assets.type === 'image'
-                                    ? PLATFORMS.filter(p => IMAGE_PLATFORMS.includes(p.id))
-                                    : PLATFORMS
-
-                            return filteredPlatforms.map((platform, idx) => (
-                                <PlatformAccordionItem
+                    <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
+                        {PLATFORMS.map(platform => {
+                            const pData = assets.platforms?.[platform.id]
+                            if (!pData) return null
+                            return (
+                                <PlatformMiniItem
                                     key={platform.id}
                                     platform={platform}
-                                    data={assets.platforms?.[platform.id] || buildFallbackPlatformData(platform.id, assets)}
-                                    assets={assets}
-                                    isFallback={!assets.platforms?.[platform.id]}
-                                    defaultOpen={idx === 0} // Auto-expand current first one
+                                    data={pData}
                                 />
-                            ))
-                        })()
-                    }
-                </div>
+                            )
+                        })}
+                    </div>
 
-                {/* FOOTER ACTIONS */}
-                <div className="p-4 border-t border-white/10 bg-zinc-900/50 backdrop-blur-md shrink-0 safe-area-bottom flex gap-3">
-                    {onOpenEditChat && (
-                        <button
-                            onClick={() => {
-                                onClose()
-                                onOpenEditChat()
-                            }}
-                            className="w-12 h-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 shrink-0"
-                            title="Editar toda la campaña con IA"
-                        >
-                            <Sparkles className="w-5 h-5" />
-                        </button>
-                    )}
                     <button
                         onClick={onClose}
-                        className="flex-1 py-3.5 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition shadow-lg shadow-white/5 active:scale-[0.98]"
+                        className="mt-6 w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-zinc-200 transition active:scale-95"
                     >
-                        Listo, Cerrar
+                        LISTO
                     </button>
                 </div>
             </motion.div>
         </div>
+    )
+}
+
+function PlatformMiniItem({ platform, data }: any) {
+    const [isOpen, setIsOpen] = useState(false)
+    const [copied, setCopied] = useState(false)
+
+    const fullCopy = data.caption || data.headline || ''
+    const hashtags = data.hashtags || ''
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(`${fullCopy}\n${hashtags}`)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+    }
+
+    return (
+        <div className={`p-4 rounded-2xl border transition ${isOpen ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/5 hover:border-white/10'}`}>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full flex items-center justify-between"
+            >
+                <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm ${platform.color} font-black`}>
+                        {platform.icon}
+                    </div>
+                    <span className="text-xs font-black text-white">{platform.label}</span>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-zinc-500 transition ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isOpen && (
+                <div className="mt-4 space-y-3">
+                    <p className="text-[11px] text-zinc-300 leading-relaxed font-medium">
+                        {fullCopy}
+                    </p>
+                    {hashtags && (
+                        <p className="text-[10px] text-violet-400 font-bold">
+                            {hashtags}
+                        </p>
+                    )}
+                    {data.audio_suggestion && (
+                        <div className="p-2 bg-blue-500/10 rounded-lg border border-blue-500/10">
+                            <p className="text-[9px] font-black text-blue-400 uppercase tracking-tighter mb-1">🎵 Sugerencia de Audio</p>
+                            <p className="text-[10px] text-blue-300 italic">{data.audio_suggestion}</p>
+                        </div>
+                    )}
+                    <button
+                        onClick={handleCopy}
+                        className="flex items-center gap-1.5 text-[9px] font-black uppercase text-zinc-500 hover:text-white transition"
+                    >
+                        {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                        {copied ? 'Copiado' : 'Copiar Texto'}
+                    </button>
+                </div>
+            )}
+        </div>
+    )
+}
+
+{/* FOOTER ACTIONS */ }
+<div className="p-4 border-t border-white/10 bg-zinc-900/50 backdrop-blur-md shrink-0 safe-area-bottom flex gap-3">
+    {onOpenEditChat && (
+        <button
+            onClick={() => {
+                onClose()
+                onOpenEditChat()
+            }}
+            className="w-12 h-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 shrink-0"
+            title="Editar toda la campaña con IA"
+        >
+            <Sparkles className="w-5 h-5" />
+        </button>
+    )}
+    <button
+        onClick={onClose}
+        className="flex-1 py-3.5 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition shadow-lg shadow-white/5 active:scale-[0.98]"
+    >
+        Listo, Cerrar
+    </button>
+</div>
+            </motion.div >
+        </div >
     )
 }
 

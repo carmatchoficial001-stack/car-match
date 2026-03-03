@@ -196,3 +196,14 @@ export async function saveAIAssetUrl(campaignId: string, type: string, url: stri
         return { success: false, error: 'Error al persistir el asset' };
     }
 }
+
+export async function deleteAllCampaigns() {
+    try {
+        await prisma.publicityCampaign.deleteMany({})
+        revalidatePath('/admin')
+        return { success: true, message: 'Todas las campañas han sido eliminadas' }
+    } catch (error) {
+        console.error('Error deleting all campaigns:', error)
+        return { success: false, error: 'Error al eliminar todas las campañas' }
+    }
+}
