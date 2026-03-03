@@ -94,8 +94,6 @@ Si estás platicando o necesitas más info, responde:
 
 REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
 
-Responde ÚNICAMENTE con JSON válido.`
-
         const result = await Promise.race([
             geminiFlashConversational.generateContent({
                 contents: [{ role: 'user', parts: [{ text: prompt }] }],
