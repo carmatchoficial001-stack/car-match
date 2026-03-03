@@ -18,7 +18,7 @@ interface ChatMessage {
     id: string
     role: 'user' | 'assistant'
     content: string
-    type?: 'CHAT' | 'IMAGE_READY'
+    type?: 'CHAT' | 'PROMPT_READY'
     images?: { square: string; vertical: string; horizontal: string }
     imagePrompt?: string
     platforms?: Record<string, any>
@@ -101,9 +101,8 @@ export default function ImageChat() {
                 role: 'assistant',
                 content: result.message || '',
                 type: result.type,
-                images: result.type === 'IMAGE_READY' ? (result as any).images : undefined,
-                imagePrompt: result.type === 'IMAGE_READY' ? (result as any).imagePrompt : undefined,
-                platforms: result.type === 'IMAGE_READY' ? (result as any).platforms : undefined,
+                imagePrompt: result.type === 'PROMPT_READY' ? result.imagePrompt : undefined,
+                platforms: result.type === 'PROMPT_READY' ? result.platforms : undefined,
                 timestamp: new Date()
             }
 
@@ -142,13 +141,25 @@ export default function ImageChat() {
     }
 
     const handleSaveToCampaign = async (msg: ChatMessage) => {
-        if (!msg.images || isSaving) return
+        if (!msg.imagePrompt || isSaving) return
         setIsSaving(true)
         try {
+            // Generate images in 3 key sizes on the fly
+            const prompt = msg.imagePrompt
+            const seed = Math.floor(Math.random() * 999999)
+            const encoded = encodeURIComponent(prompt)
+            const buildUrl = (w: number, h: number) => `https://image.pollinations.ai/prompt/${encoded}?width=${w}&height=${h}&seed=${seed}&nologo=true&model=flux`
+
+            const images = {
+                square: buildUrl(1080, 1080),
+                vertical: buildUrl(1080, 1920),
+                horizontal: buildUrl(1200, 628)
+            }
+
             const result = await createCampaignFromAssets({
-                internal_title: `Estudio IA — ${new Date().toLocaleDateString('es-MX')}`,
-                imageUrl: msg.images.square,
-                imagePrompt: msg.imagePrompt || '',
+                internal_title: `Creativo IA — ${new Date().toLocaleDateString('es-MX')}`,
+                imageUrl: images.square,
+                imagePrompt: prompt,
                 platforms: msg.platforms || {},
                 copy: msg.platforms?.instagram_feed?.caption || msg.content,
             })
@@ -156,7 +167,7 @@ export default function ImageChat() {
                 setMessages(prev => [...prev, {
                     id: `system-${Date.now()}`,
                     role: 'assistant',
-                    content: '✅ ¡Campaña creada exitosamente! Ve a "Campañas" para verla.',
+                    content: '✅ ¡Campaña creada exitosamente! Ve a la lista de "Campañas" para ver tus gráficos fabricados.',
                     type: 'CHAT',
                     timestamp: new Date()
                 }])
@@ -236,10 +247,9 @@ export default function ImageChat() {
                         >
                             {msg.role === 'user' ? (
                                 <UserBubble content={msg.content} />
-                            ) : msg.type === 'IMAGE_READY' && msg.images ? (
-                                <CreativePackCard
+                            ) : msg.type === 'PROMPT_READY' ? (
+                                <PromptProposalCard
                                     msg={msg}
-                                    onVariation={handleVariation}
                                     onSaveCampaign={handleSaveToCampaign}
                                     isSaving={isSaving}
                                 />
@@ -327,232 +337,81 @@ function AssistantBubble({ content }: { content: string }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// CREATIVE PACK CARD (the star of the show)
+// PROMPT PROPOSAL CARD
 // ─────────────────────────────────────────────────────────────
 
-function CreativePackCard({
+function PromptProposalCard({
     msg,
-    onVariation,
     onSaveCampaign,
     isSaving
 }: {
     msg: ChatMessage
-    onVariation: (prompt: string, instruction: string) => void
     onSaveCampaign: (msg: ChatMessage) => void
     isSaving: boolean
 }) {
-    const [selectedSize, setSelectedSize] = useState<ImageSize>('square')
-    const [selectedPlatform, setSelectedPlatform] = useState<string>('instagram_feed')
     const [copied, setCopied] = useState(false)
-    const [imageLoaded, setImageLoaded] = useState(false)
-    const [showVariationInput, setShowVariationInput] = useState(false)
-    const [variationText, setVariationText] = useState('')
 
-    if (!msg.images) return null
-
-    const currentUrl = msg.images[selectedSize]
-    const platformData = msg.platforms?.[selectedPlatform] || {}
-    const captionText = platformData.caption || platformData.headline || ''
-    const hashtagText = platformData.hashtags || ''
-
-    const handleCopy = () => {
-        const fullText = `${captionText}\n\n${hashtagText}`.trim()
-        navigator.clipboard.writeText(fullText)
+    const handleCopyPrompt = () => {
+        if (!msg.imagePrompt) return
+        navigator.clipboard.writeText(msg.imagePrompt)
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
     }
 
-    const handleDownload = () => {
-        const a = document.createElement('a')
-        a.href = currentUrl
-        a.target = '_blank'
-        a.download = `carmatch-${selectedSize}-${Date.now()}.jpg`
-        a.click()
-    }
-
-    const sizes: { key: ImageSize; label: string; dims: string }[] = [
-        { key: 'square', label: 'Cuadrado', dims: '1080×1080' },
-        { key: 'vertical', label: 'Vertical', dims: '1080×1920' },
-        { key: 'horizontal', label: 'Horizontal', dims: '1200×628' },
-    ]
-
     return (
         <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/20 mt-1">
-                <Camera className="w-4 h-4 text-white" />
+                <Palette className="w-4 h-4 text-white" />
             </div>
 
-            <div className="flex-1 max-w-2xl">
-                {/* AI Message */}
-                <p className="text-sm text-zinc-300 mb-3">{msg.content}</p>
-
-                {/* Image Card */}
-                <div className="bg-zinc-900/80 border border-white/10 rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/5">
-                    {/* Size Tabs */}
-                    <div className="flex items-center gap-1 p-2 bg-black/30 border-b border-white/5">
-                        {sizes.map(s => (
-                            <button
-                                key={s.key}
-                                onClick={() => { setSelectedSize(s.key); setImageLoaded(false) }}
-                                className={`flex-1 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${selectedSize === s.key
-                                    ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
-                                    : 'text-zinc-500 hover:text-zinc-300'
-                                    }`}
-                            >
-                                {s.label} <span className="opacity-50 ml-1">{s.dims}</span>
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Image */}
-                    <div className={`relative bg-black ${selectedSize === 'vertical' ? 'aspect-[9/16] max-h-[500px]' : selectedSize === 'horizontal' ? 'aspect-[1200/628]' : 'aspect-square'} overflow-hidden`}>
-                        {!imageLoaded && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-zinc-900">
-                                <div className="flex flex-col items-center gap-3">
-                                    <div className="w-12 h-12 rounded-2xl bg-violet-500/20 flex items-center justify-center animate-pulse">
-                                        <ImagePlus className="w-6 h-6 text-violet-400" />
-                                    </div>
-                                    <p className="text-xs text-zinc-500 font-bold">Generando imagen...</p>
-                                </div>
-                            </div>
-                        )}
-                        <img
-                            src={currentUrl}
-                            alt="Generated"
-                            className={`w-full h-full object-cover transition-opacity duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                            onLoad={() => setImageLoaded(true)}
-                            onError={() => setImageLoaded(true)}
-                        />
-
-                        {/* Action overlay */}
-                        <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                            <button
-                                onClick={handleDownload}
-                                className="w-9 h-9 bg-black/60 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center text-white hover:bg-white/20 transition"
-                                title="Descargar"
-                            >
-                                <Download className="w-4 h-4" />
-                            </button>
+            <div className="flex-1 max-w-2xl bg-zinc-900/80 border border-violet-500/20 rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/5 transition-all hover:border-violet-500/40">
+                <div className="p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="px-2 py-0.5 rounded-md bg-violet-500/20 text-[9px] font-black text-violet-400 uppercase tracking-widest border border-violet-500/30">
+                            Propuesta de Diseño Final
                         </div>
                     </div>
 
-                    {/* Platform Selector */}
-                    <div className="p-3 border-t border-white/5">
-                        <div className="flex items-center gap-1 overflow-x-auto pb-2 hide-scrollbar">
-                            {Object.entries(PLATFORM_CONFIG).map(([key, cfg]) => (
-                                <button
-                                    key={key}
-                                    onClick={() => setSelectedPlatform(key)}
-                                    className={`shrink-0 px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all flex items-center gap-1.5 ${selectedPlatform === key
-                                        ? `bg-gradient-to-r ${cfg.color} text-white shadow-lg`
-                                        : 'bg-white/5 text-zinc-500 hover:text-white hover:bg-white/10'
-                                        }`}
-                                >
-                                    <span>{cfg.icon}</span>
-                                    <span className="whitespace-nowrap">{cfg.name}</span>
-                                </button>
-                            ))}
+                    <p className="text-sm text-white leading-relaxed mb-4">{msg.content}</p>
+
+                    <div className="bg-black/40 rounded-2xl p-4 border border-white/5 relative group">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                                <Camera className="w-3 h-3" /> Prompt de Generación (Inglés)
+                            </span>
+                            <button
+                                onClick={handleCopyPrompt}
+                                className="p-1 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition flex items-center gap-1.5 text-[9px] font-bold"
+                            >
+                                {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                                {copied ? 'Copiado' : 'Copiar'}
+                            </button>
                         </div>
-
-                        {/* Caption Display */}
-                        {captionText && (
-                            <div className="mt-2 p-3 bg-white/[0.03] rounded-xl border border-white/5">
-                                <p className="text-xs text-zinc-300 leading-relaxed whitespace-pre-wrap">{captionText}</p>
-
-                                {platformData.audio_suggestion && (
-                                    <div className="mt-3 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center">
-                                            <Zap className="w-3 h-3 text-blue-400" />
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] font-black text-blue-300 uppercase tracking-tighter">Sugerencia de Audio</p>
-                                            <p className="text-[10px] text-blue-400/90 italic">{platformData.audio_suggestion}</p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {hashtagText && (
-                                    <p className="text-[10px] text-violet-400/70 mt-2 leading-relaxed">{hashtagText}</p>
-                                )}
-                                <button
-                                    onClick={handleCopy}
-                                    className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 hover:text-violet-400 transition"
-                                >
-                                    {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-                                    {copied ? 'Copiado' : 'Copiar texto'}
-                                </button>
-                            </div>
-                        )}
-
-                        {platformData.headline && (
-                            <div className="mt-2 p-3 bg-white/[0.03] rounded-xl border border-white/5">
-                                <p className="text-xs font-black text-white">{platformData.headline}</p>
-                                {platformData.description && (
-                                    <p className="text-[10px] text-zinc-400 mt-1">{platformData.description}</p>
-                                )}
-                            </div>
-                        )}
+                        <p className="text-xs text-zinc-400 font-mono italic leading-relaxed line-clamp-3 group-hover:line-clamp-none transition-all cursor-default">
+                            {msg.imagePrompt}
+                        </p>
                     </div>
 
-                    {/* Actions */}
-                    <div className="p-3 border-t border-white/5 flex items-center gap-2">
+                    <div className="mt-5 flex items-center gap-3">
                         <button
                             onClick={() => onSaveCampaign(msg)}
                             disabled={isSaving}
-                            className="flex-1 py-2.5 bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-[11px] font-black uppercase tracking-wider rounded-xl hover:shadow-lg hover:shadow-violet-500/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="flex-1 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-[11px] font-black uppercase tracking-wider rounded-xl hover:shadow-lg hover:shadow-violet-500/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 animate-pulse hover:animate-none"
                         >
-                            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
                             Usar en Campaña
                         </button>
-                        <button
-                            onClick={() => setShowVariationInput(!showVariationInput)}
-                            className="px-4 py-2.5 bg-white/5 border border-white/10 text-zinc-400 text-[11px] font-bold rounded-xl hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
-                        >
-                            <RefreshCw className="w-3.5 h-3.5" />
-                            Variación
-                        </button>
                     </div>
+                </div>
 
-                    {/* Variation Input */}
-                    <AnimatePresence>
-                        {showVariationInput && msg.imagePrompt && (
-                            <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="overflow-hidden"
-                            >
-                                <div className="p-3 border-t border-white/5 flex items-center gap-2">
-                                    <input
-                                        type="text"
-                                        value={variationText}
-                                        onChange={e => setVariationText(e.target.value)}
-                                        onKeyDown={e => {
-                                            if (e.key === 'Enter' && variationText.trim()) {
-                                                onVariation(msg.imagePrompt!, variationText)
-                                                setVariationText('')
-                                                setShowVariationInput(false)
-                                            }
-                                        }}
-                                        placeholder="ej: hazlo de noche, cambia a color rojo..."
-                                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-violet-500/50"
-                                    />
-                                    <button
-                                        onClick={() => {
-                                            if (variationText.trim()) {
-                                                onVariation(msg.imagePrompt!, variationText)
-                                                setVariationText('')
-                                                setShowVariationInput(false)
-                                            }
-                                        }}
-                                        className="w-9 h-9 bg-violet-500/20 border border-violet-500/30 rounded-xl flex items-center justify-center text-violet-400 hover:bg-violet-500/30 transition"
-                                    >
-                                        <Send className="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                {/* Micro-feed for Platforms Check */}
+                <div className="bg-black/20 p-3 flex items-center justify-center gap-4 border-t border-white/5">
+                    {Object.keys(msg.platforms || {}).slice(0, 5).map(p => (
+                        <span key={p} className="text-lg grayscale hover:grayscale-0 transition-all cursor-default opacity-40 hover:opacity-100" title={p}>
+                            {PLATFORM_CONFIG[p]?.icon || '✨'}
+                        </span>
+                    ))}
+                    <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">+ {Object.keys(msg.platforms || {}).length - 5} plataformas</span>
                 </div>
             </div>
         </div>

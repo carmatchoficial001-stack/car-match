@@ -45,53 +45,54 @@ export async function chatWithImageDirector(
             `${m.role === 'user' ? 'USUARIO' : 'DIRECTOR CREATIVO'}: ${m.content}`
         ).join('\n')
 
-        // Check if this is the user confirming they want the image
-        const isConfirming = /^(s[ií]|dale|hazlo|genera|listo|ok|va|arre|lánzalo|perfecto|créala|genérala|ya|claro)/i.test(lastMessage.trim())
-        const isFirstMessage = messages.filter(m => m.role === 'user').length === 1
+        // Check if this is the user confirming they want the idea to become a campaign
+        const isConfirming = /^(s[ií]|dale|hazlo|genera|listo|ok|va|arre|lánzalo|perfecto|créala|genérala|ya|claro|adelante|procede)/i.test(lastMessage.trim())
 
-        // If it's the first message or a direct creative request, try to generate directly
-        const wantsImage = isConfirming || isFirstMessage ||
-            /generar?|cre[a-z]*|imagen|foto|diseñ|haz(me)?|quiero|necesito|dame/i.test(lastMessage)
+        const prompt = `Eres el DIRECTOR CREATIVO SUPREMO de CarMatch México.
+Tu personalidad: Eres apasionado, visionario, dominas la jerga creativa y el marketing digital mexicano. 
+Eres un genio capaz de crear publicidad de TODO tipo para CarMatch:
+- Branding y estilo de vida (lifestyle)
+- Eventos y lanzamientos
+- Ofertas y promociones relámpago
+- Memes y contenido viral
+- Fotografía profesional editorial de cualquier vehículo o situación.
 
-        const prompt = `Eres el DIRECTOR CREATIVO SUPREMO de CarMatch, la red social #1 de autos.
-Tu personalidad: Eres apasionado, visionario, hablas con jerga creativa mexicana. 
-Eres un genio del marketing visual que domina TODAS las plataformas sociales.
+Tu objetivo es platicar con el usuario en ESPAÑOL para entender su visión.
+Una vez que la idea esté clara, propón un "PROMPT FINAL" detallado.
 
-REGLA SUPREMA: Cuando el usuario te pida una imagen, NO LE PREGUNTES MÁS. Genera directamente.
-Solo haz preguntas si la idea es MUY vaga (ej: "haz algo bonito" sin contexto).
-Si el usuario da cualquier descripción mínimamente clara, GENERA DE INMEDIATO.
-
-${wantsImage ? `
-🚨 EL USUARIO QUIERE UNA IMAGEN AHORA. DEBES responder con type "IMAGE_READY".
-NO hagas más preguntas. Diseña la mejor imagen posible con la información que tienes.
-` : ''}
+REGLAS DE INTERACCIÓN:
+1. Siempre habla en ESPAÑOL.
+2. Si la idea es vaga, pregunta de forma creativa.
+3. Cuando el usuario diga que la idea le gusta o pida generar/hacer la imagen, responde con "PROMPT_READY".
 
 HISTORIAL:
 ${contextStr}
 
-INSTRUCCIONES DE RESPUESTA:
-Si vas a generar imagen, responde con JSON:
+INSTRUCCIONES DE RESPUESTA JSON:
+Si vas a proponer el diseño final, responde:
 {
-    "type": "IMAGE_READY",
-    "message": "Mensaje entusiasta en ESPAÑOL describiendo lo que creaste (máx 2 líneas)",
-    "imagePrompt": "ULTRA DETAILED prompt in ENGLISH. 4000 chars. Include: exact camera angle, lens (35mm/85mm/fisheye), lighting (golden hour/neon/studio), style (photorealistic 8k/cinematic/editorial), composition details. NEVER include text in the image. Make it STUNNING.",
+    "type": "PROMPT_READY",
+    "message": "Mensaje entusiasta en ESPAÑOL sobre la campaña que diseñaste.",
+    "imagePrompt": "ULTRA DETAILED prompt in ENGLISH (Camera, lens, lighting, composition, 8k, photorealistic). This prompt will be used to generate the image later.",
     "platforms": {
-        "instagram_feed": { "caption": "Caption con emojis 🔥 y 30 hashtags relevantes", "hashtags": "#CarMatch #Autos ..." },
-        "instagram_stories": { "caption": "Hook viral ultra corto para stories" },
-        "tiktok": { "caption": "Caption TikTok viral con slang mexicano 🚗💨", "hashtags": "#CarMatch #AutosDelujo #fyp", "audio_suggestion": "Sugerencia de tipo de música o tendencia (ej: Phonk, Lo-fi chill, Motor roar)" },
-        "facebook": { "caption": "Copy persuasivo con CTA claro para Facebook", "cta": "¡Descubre más en CarMatch!" },
-        "x_twitter": { "caption": "Tweet corto y provocador (máx 280 chars)", "hashtags": "#CarMatch #Autos" },
-        "google_ads": { "headline": "Título Google Ads (max 30 chars)", "description": "Descripción (max 90 chars)" },
-        "snapchat": { "caption": "1 línea Gen-Z + 1 emoji" },
-        "kwai": { "caption": "Caption popular/urbano para Kwai", "audio_suggestion": "Vibra de audio recomendada" }
+        "instagram_feed": { "caption": "Caption viral...", "hashtags": "#CarMatchMX ..." },
+        "instagram_stories": { "caption": "Hook vertical..." },
+        "tiktok": { "caption": "Draft TikTok...", "audio_suggestion": "Tipo de música trendy" },
+        "facebook": { "caption": "Post Facebook persuasivo..." },
+        "x_twitter": { "caption": "Tweet creativo..." },
+        "google_ads": { "headline": "Título Ads", "description": "Descrip Ads" },
+        "snapchat": { "caption": "Snap vibe" },
+        "kwai": { "caption": "Kwai post", "audio_suggestion": "Audio popular" }
     }
 }
 
-Si necesitas más info (SOLO si la idea es extremadamente vaga), responde:
+Si estás platicando o necesitas más info, responde:
 {
     "type": "CHAT",
-    "message": "Tu pregunta creativa en ESPAÑOL (máx 3 líneas, directo al grano)"
+    "message": "Tu respuesta o pregunta creativa en ESPAÑOL (máx 3 líneas)"
 }
+
+REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
 
 Responde ÚNICAMENTE con JSON válido.`
 
@@ -116,21 +117,12 @@ Responde ÚNICAMENTE con JSON válido.`
 
         const data = JSON.parse(responseText)
 
-        if (data.type === 'IMAGE_READY' && data.imagePrompt) {
-            // Generate images in 3 key sizes
-            const imagePrompt = data.imagePrompt
-            const images = {
-                square: buildPollinationsUrl(imagePrompt, 1080, 1080),
-                vertical: buildPollinationsUrl(imagePrompt, 1080, 1920),
-                horizontal: buildPollinationsUrl(imagePrompt, 1200, 628),
-            }
-
+        if (data.type === 'PROMPT_READY' && data.imagePrompt) {
             return {
                 success: true,
-                type: 'IMAGE_READY' as const,
-                message: data.message || '¡Tu imagen está lista! 🔥',
-                imagePrompt,
-                images,
+                type: 'PROMPT_READY' as const,
+                message: data.message || 'Propuesta creativa lista 🔥',
+                imagePrompt: data.imagePrompt,
                 platforms: data.platforms || {},
             }
         }
