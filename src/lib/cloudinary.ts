@@ -17,18 +17,11 @@ export interface CloudinaryUploadResponse {
 }
 
 /**
- * Sube una imagen a Cloudinary
+ * Sube una imagen a Cloudinary (Usa Proxy Interno /api/upload para mayor robustez)
  * @param file Archivo de imagen a subir
  * @returns URL segura de la imagen subida
  */
 export async function uploadToCloudinary(file: File): Promise<string> {
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
-
-    if (!cloudName || !uploadPreset) {
-        throw new Error('Cloudinary no está configurado. Verifica las variables de entorno.')
-    }
-
     // Validar archivo
     const validFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
     if (!validFormats.includes(file.type)) {
@@ -54,33 +47,30 @@ export async function uploadToCloudinary(file: File): Promise<string> {
         console.log(`💰 Imagen comprimida: ${(file.size / 1024).toFixed(0)}KB → ${(processedFile.size / 1024).toFixed(0)}KB`)
     } catch (error) {
         console.warn('⚠️ Error comprimiendo imagen, usando original:', error)
-        // Continuar con archivo original si falla compresión
     }
 
     // Crear FormData
     const formData = new FormData()
     formData.append('file', processedFile)
-    formData.append('upload_preset', uploadPreset)
-    formData.append('folder', 'carmatch/vehicles')
+    // 🛡️ SECURITY: Especificar tipo para moderación en el backend
+    formData.append('imageType', 'vehicle')
 
     try {
-        const response = await fetch(
-            `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-            {
-                method: 'POST',
-                body: formData
-            }
-        )
+        // 🔥 MODIFICADO: Ahora usa el proxy interno para evitar bloqueos y CORS
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        })
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}))
-            throw new Error(errorData.error?.message || 'Error al subir imagen')
+            throw new Error(errorData.error || 'Error al subir imagen')
         }
 
         const data: CloudinaryUploadResponse = await response.json()
         return data.secure_url
     } catch (error) {
-        console.error('Error en Cloudinary upload:', error)
+        console.error('Error en Proxy upload:', error)
         throw error
     }
 }
@@ -118,7 +108,6 @@ export async function uploadMultipleToCloudinary(
 export async function deleteFromCloudinary(publicId: string): Promise<boolean> {
     // Nota: La eliminación desde el cliente requiere configuración especial de Cloudinary
     // Por seguridad, esto debería hacerse desde el servidor
-    // Esta función es un placeholder para implementación futura
     console.warn('deleteFromCloudinary debe implementarse en el servidor')
     return false
 }

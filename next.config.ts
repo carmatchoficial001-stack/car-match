@@ -61,7 +61,7 @@ const nextConfig: NextConfig = {
                             "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.googletagmanager.com *.google-analytics.com *.google.com *.gstatic.com *.stripe.com *.mapbox.com",
                             "style-src 'self' 'unsafe-inline' *.googleapis.com *.mapbox.com",
                             "img-src 'self' data: blob: *.cloudinary.com *.google.com *.googleusercontent.com *.gstatic.com *.stripe.com *.mapbox.com *.pollinations.ai replicate.delivery",
-                            "connect-src 'self' *.google-analytics.com *.googleapis.com *.google.com *.stripe.com *.mapbox.com *.pollinations.ai replicate.com *.replicate.delivery",
+                            "connect-src 'self' *.cloudinary.com *.google-analytics.com *.googleapis.com *.google.com *.stripe.com *.mapbox.com *.pollinations.ai replicate.com *.replicate.delivery",
                             "font-src 'self' *.gstatic.com *.googleapis.com data:",
                             "frame-src 'self' *.stripe.com *.google.com",
                             "worker-src 'self' blob:",
