@@ -57,9 +57,27 @@ model User {
   vehicles                Vehicle[]
   victimAlerts            SOSAlert[]                @relation("VictimAlerts")
   counterpartAlerts       SOSAlert[]                @relation("CounterpartAlerts")
+  studioMessages          StudioMessage[]
 
   @@index([email])
   @@index([city])
+}
+
+model StudioMessage {
+  id           String   @id @default(cuid())
+  userId       String
+  role         String   @default("assistant") // 'user' | 'assistant'
+  content      String   @db.Text
+  type         String?  // 'CHAT' | 'PROMPT_READY' | 'IMAGE_READY'
+  imagePrompt  String?  @db.Text
+  images       Json?    // { square, vertical, horizontal, etc }
+  platforms    Json?    // platform metadata (captions, hashtags)
+  createdAt    DateTime @default(now())
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model SystemLog {

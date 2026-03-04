@@ -5,9 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
     Send, Sparkles, Download, Copy, Check, ImagePlus,
     Loader2, X, ChevronDown, ExternalLink, Zap, Palette,
-    Camera, Layers, RefreshCw
+    Camera, Layers, RefreshCw, Trash2
 } from 'lucide-react'
 import { chatWithImageDirector } from '@/app/admin/actions/image-chat-actions'
+import { getStudioHistory, saveStudioMessage, clearStudioHistory } from '@/app/admin/actions/studio-history-actions'
 
 // ─────────────────────────────────────────────────────────────
 // TYPES
@@ -62,6 +63,17 @@ export default function ImageChat() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }
 
+    // 🔄 LOAD HISTORY ON MOUNT
+    useEffect(() => {
+        const loadHistory = async () => {
+            const res = await getStudioHistory()
+            if (res.success && res.messages) {
+                setMessages(res.messages)
+            }
+        }
+        loadHistory()
+    }, [])
+
     useEffect(() => {
         scrollToBottom()
     }, [messages])
@@ -85,6 +97,12 @@ export default function ImageChat() {
         setInput('')
         setIsLoading(true)
 
+        // 🛡️ PERSIST USER MESSAGE
+        saveStudioMessage({
+            role: 'user',
+            content: messageText
+        })
+
         try {
             const history = [...messages, userMsg].map(m => ({
                 role: m.role,
@@ -99,7 +117,7 @@ export default function ImageChat() {
                 content: result.message || '',
                 type: result.type,
                 imagePrompt: result.type === 'PROMPT_READY' ? result.imagePrompt : undefined,
-                images: result.type === 'PROMPT_READY' ? (result.images || {
+                images: result.type === 'PROMPT_READY' ? (result.images && Object.keys(result.images).length > 0 ? result.images : {
                     square: buildPollinationsUrl(result.imagePrompt!, 1080, 1080),
                     vertical: buildPollinationsUrl(result.imagePrompt!, 1080, 1920),
                     horizontal: buildPollinationsUrl(result.imagePrompt!, 1200, 628)
@@ -107,6 +125,16 @@ export default function ImageChat() {
                 platforms: result.type === 'PROMPT_READY' ? result.platforms : undefined,
                 timestamp: new Date()
             }
+
+            // 🛡️ PERSIST ASSISTANT MESSAGE
+            saveStudioMessage({
+                role: 'assistant',
+                content: assistantMsg.content,
+                type: assistantMsg.type,
+                imagePrompt: assistantMsg.imagePrompt,
+                images: assistantMsg.images,
+                platforms: assistantMsg.platforms
+            })
 
             setMessages(prev => [...prev, assistantMsg])
         } catch (error: any) {
@@ -120,6 +148,16 @@ export default function ImageChat() {
         } finally {
             setIsLoading(false)
         }
+    }
+
+    const handleClearHistory = async () => {
+        if (!confirm('¿Seguro que quieres borrar todo el historial?')) return
+        setIsLoading(true)
+        const res = await clearStudioHistory()
+        if (res.success) {
+            setMessages([])
+        }
+        setIsLoading(false)
     }
 
     const handleVariation = (prompt: string, instruction: string) => {
@@ -160,6 +198,17 @@ export default function ImageChat() {
                             Director Creativo IA • 9 Plataformas • Vista Previa Real
                         </p>
                     </div>
+
+                    {messages.length > 0 && (
+                        <button
+                            onClick={handleClearHistory}
+                            disabled={isLoading}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-[10px] font-black text-red-400 uppercase tracking-widest hover:bg-red-500/20 transition-all disabled:opacity-30"
+                        >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Limpiar Historial
+                        </button>
+                    )}
                 </div>
             </div>
 
