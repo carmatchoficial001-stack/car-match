@@ -7,7 +7,7 @@
 import { geminiFlashConversational, geminiFlash, geminiPro } from '@/lib/ai/geminiModels'
 import { prisma } from '@/lib/db'
 import { createCampaignFromAssets } from './publicity-actions'
-import { uploadUrlToCloudinary } from '@/lib/cloudinary-server'
+import { uploadUrlToCloudinary, robustUploadToCloudinary } from '@/lib/cloudinary-server'
 import { buildPollinationsUrl } from '@/lib/admin/utils'
 
 
@@ -543,13 +543,16 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             3. A hyper-detailed IMAGE PROMPT in English for AI generation.
             4. A 15-second video script in Spanish.
             
+            5. The number of photos requested by the user if any (extract from context), otherwise return 11.
+            
             Format as JSON ONLY:
             {
                 "internal_title": "Title",
                 "caption": "Caption...",
                 "imagePrompt": "Detailed English Prompt...",
                 "videoScript": "Script...",
-                "strategy": "Why this will work..."
+                "strategy": "Why this will work...",
+                "requested_photo_count": 11
             }
         `
 
@@ -558,34 +561,65 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         if (strategyText.startsWith('```json')) strategyText = strategyText.replace(/```json/g, '').replace(/```/g, '').trim()
         const assets = JSON.parse(strategyText)
 
-        // 2. Generate Image URLs (Pollinations)
-        const seed = Math.floor(Math.random() * 999999)
-        const encodedPrompt = encodeURIComponent(assets.imagePrompt)
+        // 2. Generate Image URLs (Pollinations) and Upload Robustly
+        // Remove artificial cap as requested by user. Limit to 100 for safety but "unlimited" feel.
+        const photoCount = Math.max(1, Math.min(100, assets.requested_photo_count || 11));
+        console.log(`[AI-ASSETS] Iniciando generación secuencial de ${photoCount} fotos... (Libertad total)`);
 
-        const squareUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1080&seed=${seed}&nologo=true&model=flux`
-        const verticalUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1920&seed=${seed}&nologo=true&model=flux`
-        const horizontalUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=628&seed=${seed}&nologo=true&model=flux`
+        const images: Record<string, string> = {};
+        const imagePendingIds: Record<string, string> = {};
+
+        // Base sizes: square (img_0), vertical (img_1), horizontal (img_2)
+        const baseSizes = [
+            { key: 'square', w: 1080, h: 1080, id: 'img_0' },
+            { key: 'vertical', w: 1080, h: 1920, id: 'img_1' },
+            { key: 'horizontal', w: 1200, h: 628, id: 'img_2' }
+        ];
+
+        // Generate base sizes up to photoCount
+        for (let i = 0; i < Math.min(photoCount, 3); i++) {
+            const size = baseSizes[i];
+            const url = buildPollinationsUrl(assets.imagePrompt, size.w, size.h);
+            console.log(`[AI-ASSETS] Generando y subiendo base: ${size.key}...`);
+            const uploadRes = await robustUploadToCloudinary(url);
+
+            if (uploadRes.success) {
+                images[size.key] = uploadRes.secure_url!;
+                images[size.id] = uploadRes.secure_url!;
+                imagePendingIds[size.key] = 'DONE|' + uploadRes.secure_url;
+                imagePendingIds[size.id] = 'DONE|' + uploadRes.secure_url;
+            }
+        }
+
+        // Gallery variations (img_3 to img_N)
+        if (photoCount > 3) {
+            for (let i = 3; i < photoCount; i++) {
+                const id = `img_${i}`;
+                console.log(`[AI-ASSETS] Generando y subiendo variación galería: ${id}...`);
+                const variationPrompt = `${assets.imagePrompt}, different angle, cinematic perspective, highly detailed, variation ${i}`;
+                const url = buildPollinationsUrl(variationPrompt, 1080, 1080);
+
+                const uploadRes = await robustUploadToCloudinary(url);
+                if (uploadRes.success) {
+                    images[id] = uploadRes.secure_url!;
+                    imagePendingIds[id] = 'DONE|' + uploadRes.secure_url;
+                }
+            }
+        }
 
         const finalAssets = {
             ...assets,
-            imageUrl: squareUrl,
-            images: {
-                square: squareUrl,
-                vertical: verticalUrl,
-                horizontal: horizontalUrl
-            },
-            imagePendingIds: {
-                square: 'DONE|' + squareUrl,
-                vertical: 'DONE|' + verticalUrl,
-                horizontal: 'DONE|' + horizontalUrl
-            }
+            imageUrl: images.square || images.vertical || images.horizontal || '',
+            images,
+            imagePendingIds,
+            processedByCloudinary: true
         }
 
         const res = await createCampaignFromAssets(finalAssets) as any
 
         return {
             success: true,
-            message: 'Assets generated and campaign created in draft mode.',
+            message: `Assets generated (${photoCount} photos) and campaign created with robust uploads.`,
             campaign: res.campaign,
             assets: res.campaign?.metadata?.assets || finalAssets
         }
@@ -614,9 +648,12 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
 
         if (lowerInstruction.includes('video') || lowerInstruction.includes('script')) {
             elementType = 'video'
+        } else if (lowerInstruction.includes('añadir') || lowerInstruction.includes('agregar') || lowerInstruction.includes('más fotos') || lowerInstruction.includes('más imágenes')) {
+            // New specific mode for adding images without destroying existing ones
+            return await addImagesToCampaign(campaignId, instruction, currentAssets)
         } else if (lowerInstruction.includes('imagen') || lowerInstruction.includes('image') || lowerInstruction.includes('foto')) {
             elementType = 'image'
-        } else if (lowerInstruction.includes('texto') || lowerInstruction.includes('copy') || lowerInstruction.includes('caption') || lowerInstruction.includes('descripciÃ³n')) {
+        } else if (lowerInstruction.includes('texto') || lowerInstruction.includes('copy') || lowerInstruction.includes('caption') || lowerInstruction.includes('descripción')) {
             elementType = 'copy'
         }
 
@@ -671,18 +708,16 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                     horizontal: buildPollinationsUrl(newImagePrompt, 1200, 628)
                 }
 
-                // Upload to Cloudinary to make them permanent and bypass blocks
-                const uploadResults = await Promise.all([
-                    uploadUrlToCloudinary(newImages.square),
-                    uploadUrlToCloudinary(newImages.vertical),
-                    uploadUrlToCloudinary(newImages.horizontal)
-                ])
+                // Upload to Cloudinary sequentially and robustly
+                const resSquare = await robustUploadToCloudinary(newImages.square);
+                const resVertical = await robustUploadToCloudinary(newImages.vertical);
+                const resHorizontal = await robustUploadToCloudinary(newImages.horizontal);
 
-                if (uploadResults[0].success) updatedAssets.imageUrl = uploadResults[0].secure_url;
+                if (resSquare.success) updatedAssets.imageUrl = resSquare.secure_url;
                 updatedAssets.images = {
-                    square: uploadResults[0].secure_url || newImages.square,
-                    vertical: uploadResults[1].secure_url || newImages.vertical,
-                    horizontal: uploadResults[2].secure_url || newImages.horizontal
+                    square: resSquare.secure_url || newImages.square,
+                    vertical: resVertical.secure_url || newImages.vertical,
+                    horizontal: resHorizontal.secure_url || newImages.horizontal
                 }
                 break
 
@@ -737,7 +772,7 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                 updatedAssets.imagePrompt = allData.imagePrompt
                 updatedAssets.videoScript = allData.videoScript
 
-                // 🔥 GENERATE AND UPLOAD ALL IMAGES
+                // 🔥 GENERATE AND UPLOAD ALL IMAGES ROBUSTLY & SEQUENTIALLY
                 console.log('[AI] Generating all new images for "all" regeneration...')
 
                 const newImagesFull = {
@@ -746,17 +781,15 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
                     horizontal: buildPollinationsUrl(allData.imagePrompt, 1200, 628)
                 }
 
-                const uploadResultsFull = await Promise.all([
-                    uploadUrlToCloudinary(newImagesFull.square),
-                    uploadUrlToCloudinary(newImagesFull.vertical),
-                    uploadUrlToCloudinary(newImagesFull.horizontal)
-                ])
+                const rfSquare = await robustUploadToCloudinary(newImagesFull.square);
+                const rfVertical = await robustUploadToCloudinary(newImagesFull.vertical);
+                const rfHorizontal = await robustUploadToCloudinary(newImagesFull.horizontal);
 
-                if (uploadResultsFull[0].success) updatedAssets.imageUrl = uploadResultsFull[0].secure_url;
+                if (rfSquare.success) updatedAssets.imageUrl = rfSquare.secure_url;
                 updatedAssets.images = {
-                    square: uploadResultsFull[0].secure_url || newImagesFull.square,
-                    vertical: uploadResultsFull[1].secure_url || newImagesFull.vertical,
-                    horizontal: uploadResultsFull[2].secure_url || newImagesFull.horizontal
+                    square: rfSquare.secure_url || newImagesFull.square,
+                    vertical: rfVertical.secure_url || newImagesFull.vertical,
+                    horizontal: rfHorizontal.secure_url || newImagesFull.horizontal
                 }
                 break
         }
@@ -798,16 +831,80 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
 }
 
 // --- POLLING ACTION ---
-// --- POLLING ACTION ---
 export async function checkAIAssetStatus(predictionId: string) {
     try {
         if (predictionId.startsWith('DONE|')) {
             return { status: 'succeeded', url: predictionId.split('DONE|')[1] };
         }
-
         return { status: 'processing' };
     } catch (error) {
         console.error('Error polling asset:', error);
         return { status: 'error' };
+    }
+}
+
+/**
+ * Special handler to ADD images to an existing campaign without overwriting everything.
+ * This fulfills the user's request for "freedom" to grow the gallery.
+ */
+async function addImagesToCampaign(campaignId: string, instruction: string, currentAssets: any) {
+    try {
+        console.log(`[AI-ADD-IMAGES] Agregando más fotos a la campaña ${campaignId}...`)
+
+        // 1. Determine how many to add
+        const countMatch = instruction.match(/(\d+)/)
+        const countToAdd = countMatch ? Math.max(1, Math.min(20, parseInt(countMatch[1]))) : 5
+
+        // 2. Generate a prompt for the new variations
+        const prompt = `Based on the existing campaign: "${currentAssets.internal_title}" and image prompt: "${currentAssets.imagePrompt}".
+        User instruction: "${instruction}"
+        Generate a VARIATION prompt in English that fits the aesthetic but provides a new perspective.`
+
+        const genResult = await geminiFlash.generateContent(prompt)
+        const variationPrompt = genResult.response.text().trim()
+
+        // 3. Find current gallery size to start indexing
+        const existingImages = currentAssets.images || {}
+        let startIndex = 0
+        while (existingImages[`img_${startIndex}`]) {
+            startIndex++
+        }
+
+        console.log(`[AI-ADD-IMAGES] Empezando desde img_${startIndex}, agregando ${countToAdd}...`)
+
+        const newImages: Record<string, string> = { ...existingImages }
+
+        for (let i = 0; i < countToAdd; i++) {
+            const index = startIndex + i
+            const id = `img_${index}`
+            const url = buildPollinationsUrl(`${variationPrompt}, angle ${index}`, 1080, 1080)
+
+            const res = await robustUploadToCloudinary(url)
+            if (res.success) {
+                newImages[id] = res.secure_url!
+            }
+        }
+
+        // 4. Update database
+        await prisma.publicityCampaign.update({
+            where: { id: campaignId },
+            data: {
+                metadata: {
+                    ...currentAssets,
+                    images: newImages,
+                    lastEdited: new Date().toISOString()
+                }
+            }
+        })
+
+        return {
+            success: true,
+            assets: { ...currentAssets, images: newImages },
+            message: `✅ Se han añadido ${countToAdd} fotos nuevas a la galería.`
+        }
+
+    } catch (error: any) {
+        console.error('[AI-ADD-IMAGES] Error:', error)
+        return { success: false, error: 'Error agregando imágenes' }
     }
 }

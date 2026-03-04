@@ -56,3 +56,29 @@ export async function uploadBufferToCloudinary(buffer: Buffer, folder: string = 
         uploadStream.end(buffer)
     })
 }
+/**
+ * Robustly uploads an image from a URL to Cloudinary.
+ * First tries direct URL upload, then falls back to fetching the image buffer on the server
+ * and uploading via stream to bypass hotlinking blocks (like Cloudflare 530).
+ */
+export async function robustUploadToCloudinary(url: string, folder: string = 'carmatch/publicity') {
+    // 1. Try direct upload first (efficient)
+    console.log(`[CLOUDINARY] Intentando subida directa para: ${url.substring(0, 100)}...`);
+    const directRes = await uploadUrlToCloudinary(url, folder);
+    if (directRes.success) return directRes;
+
+    // 2. Fallback: Fetch buffer on server and upload (robust)
+    console.log(`[CLOUDINARY] Subida directa falló. Intentando proxy via fetch buffer...`);
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        const bufferRes = await uploadBufferToCloudinary(buffer, folder);
+        return bufferRes;
+    } catch (error) {
+        console.error('[CLOUDINARY] Fallo total en subida robusta:', error);
+        return { success: false, error: 'Failed robust upload' };
+    }
+}

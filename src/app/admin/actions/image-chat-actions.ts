@@ -10,7 +10,7 @@ import { geminiFlashConversational } from '@/lib/ai/geminiModels'
  * Generates a Pollinations.ai image URL from a prompt
  */
 import { buildPollinationsUrl } from '@/lib/admin/utils'
-import { uploadUrlToCloudinary } from '@/lib/cloudinary-server'
+import { uploadUrlToCloudinary, robustUploadToCloudinary } from '@/lib/cloudinary-server'
 
 /**
  * Platform configurations with their optimal image sizes
@@ -71,15 +71,10 @@ Si vas a proponer el diseño final, responde:
     "type": "PROMPT_READY",
     "message": "Mensaje entusiasta en ESPAÑOL sobre la campaña que diseñaste.",
     "imagePrompt": "ULTRA DETAILED prompt in ENGLISH (Camera, lens, lighting, composition, 8k, photorealistic). This prompt will be used to generate the image later.",
+    "photoCount": 11,
     "platforms": {
         "instagram_feed": { "caption": "Caption viral...", "hashtags": "#CarMatchMX ..." },
-        "instagram_stories": { "caption": "Hook vertical..." },
-        "tiktok": { "caption": "Draft TikTok...", "audio_suggestion": "Tipo de música trendy" },
-        "facebook": { "caption": "Post Facebook persuasivo..." },
-        "x_twitter": { "caption": "Tweet creativo..." },
-        "google_ads": { "headline": "Título Ads", "description": "Descrip Ads" },
-        "snapchat": { "caption": "Snap vibe" },
-        "kwai": { "caption": "Kwai post", "audio_suggestion": "Audio popular" }
+        ...
     }
 }
 
@@ -116,22 +111,35 @@ REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
             // 🔥 NEW: Upload to Cloudinary to bypass Pollinations block
             console.log('[IMAGE-CHAT] Uploading generated images to Cloudinary...')
             const imagePrompt = data.imagePrompt
-            const rawImages = {
-                square: buildPollinationsUrl(imagePrompt, 1080, 1080),
-                vertical: buildPollinationsUrl(imagePrompt, 1080, 1920),
-                horizontal: buildPollinationsUrl(imagePrompt, 1200, 628)
+            const count = Math.max(1, Math.min(25, data.photoCount || 11))
+            console.log(`[IMAGE-CHAT] Generando ${count} fotos para el pack creativo...`)
+
+            const finalImages: Record<string, string> = {}
+
+            // Generate base sizes
+            const baseSizes = [
+                { key: 'square', w: 1080, h: 1080, id: 'img_0' },
+                { key: 'vertical', w: 1080, h: 1920, id: 'img_1' },
+                { key: 'horizontal', w: 1200, h: 628, id: 'img_2' }
+            ]
+
+            for (let i = 0; i < Math.min(count, 3); i++) {
+                const size = baseSizes[i]
+                const res = await robustUploadToCloudinary(buildPollinationsUrl(imagePrompt, size.w, size.h))
+                if (res.success) {
+                    finalImages[size.key] = res.secure_url!
+                    finalImages[size.id] = res.secure_url!
+                }
             }
 
-            const uploadResults = await Promise.all([
-                uploadUrlToCloudinary(rawImages.square),
-                uploadUrlToCloudinary(rawImages.vertical),
-                uploadUrlToCloudinary(rawImages.horizontal)
-            ])
-
-            const finalImages = {
-                square: uploadResults[0].success ? uploadResults[0].secure_url! : rawImages.square,
-                vertical: uploadResults[1].success ? uploadResults[1].secure_url! : rawImages.vertical,
-                horizontal: uploadResults[2].success ? uploadResults[2].secure_url! : rawImages.horizontal
+            // Gallery variations
+            if (count > 3) {
+                for (let i = 3; i < count; i++) {
+                    const id = `img_${i}`
+                    const varPrompt = `${imagePrompt}, variation ${i}, distinct cinematic angle`
+                    const res = await robustUploadToCloudinary(buildPollinationsUrl(varPrompt, 1080, 1080))
+                    if (res.success) finalImages[id] = res.secure_url!
+                }
             }
 
             return {
@@ -199,20 +207,18 @@ Respond with JSON:
             horizontal: buildPollinationsUrl(imagePrompt, 1200, 628),
         }
 
-        const uploadResults = await Promise.all([
-            uploadUrlToCloudinary(rawImages.square),
-            uploadUrlToCloudinary(rawImages.vertical),
-            uploadUrlToCloudinary(rawImages.horizontal)
-        ])
+        const resSquare = await robustUploadToCloudinary(rawImages.square)
+        const resVertical = await robustUploadToCloudinary(rawImages.vertical)
+        const resHorizontal = await robustUploadToCloudinary(rawImages.horizontal)
 
         return {
             success: true,
             message: data.message || 'Variación lista',
             imagePrompt,
             images: {
-                square: uploadResults[0].success ? uploadResults[0].secure_url! : rawImages.square,
-                vertical: uploadResults[1].success ? uploadResults[1].secure_url! : rawImages.vertical,
-                horizontal: uploadResults[2].success ? uploadResults[2].secure_url! : rawImages.horizontal,
+                square: resSquare.success ? resSquare.secure_url! : rawImages.square,
+                vertical: resVertical.success ? resVertical.secure_url! : rawImages.vertical,
+                horizontal: resHorizontal.success ? resHorizontal.secure_url! : rawImages.horizontal,
             }
         }
     } catch (error: any) {

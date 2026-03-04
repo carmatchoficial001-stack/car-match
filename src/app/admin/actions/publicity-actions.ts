@@ -6,7 +6,7 @@
 
 import { prisma } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
-import { uploadUrlToCloudinary } from '@/lib/cloudinary-server'
+import { uploadUrlToCloudinary, robustUploadToCloudinary } from '@/lib/cloudinary-server'
 
 export async function getPublicityCampaigns() {
     try {
@@ -31,25 +31,25 @@ export async function createPublicityCampaign(prevState: any, formData: FormData
         const socialMediaEnabled = formData.get('socialMediaEnabled') === 'on'
 
         // Upload image to Cloudinary if it's from Pollinations
-let finalImageUrl = imageUrl;
-if (imageUrl && imageUrl.includes('pollinations.ai')) {
-  const uploadRes = await uploadUrlToCloudinary(imageUrl);
-  if (uploadRes.success) {
-    finalImageUrl = uploadRes.secure_url!;
-  }
-}
-await prisma.publicityCampaign.create({
-  data: {
-    title,
-    clientName,
-    imageUrl: finalImageUrl,
-    targetUrl,
-    startDate,
-    endDate,
-    socialMediaEnabled,
-    isActive: true,
-  },
-});
+        let finalImageUrl = imageUrl;
+        if (imageUrl && imageUrl.includes('pollinations.ai')) {
+            const uploadRes = await uploadUrlToCloudinary(imageUrl);
+            if (uploadRes.success) {
+                finalImageUrl = uploadRes.secure_url!;
+            }
+        }
+        await prisma.publicityCampaign.create({
+            data: {
+                title,
+                clientName,
+                imageUrl: finalImageUrl,
+                targetUrl,
+                startDate,
+                endDate,
+                socialMediaEnabled,
+                isActive: true,
+            },
+        });
 
         revalidatePath('/admin')
         return { success: true, message: 'Campaña creada exitosamente' }
@@ -110,7 +110,7 @@ export async function createCampaignFromAssets(assets: any) {
             let mainImagePublicId = (campaign.metadata as any)?.assets?.cloudinary_id;
 
             if (campaignImage.includes(pollinationsDomain)) {
-                const uploadRes = await uploadUrlToCloudinary(campaignImage)
+                const uploadRes = await robustUploadToCloudinary(campaignImage)
                 if (uploadRes.success) {
                     updatedMainImageUrl = uploadRes.secure_url!;
                     mainImagePublicId = uploadRes.public_id;
@@ -122,7 +122,7 @@ export async function createCampaignFromAssets(assets: any) {
             if (assets.images) {
                 for (const [key, url] of Object.entries(assets.images)) {
                     if (typeof url === 'string' && url.includes(pollinationsDomain)) {
-                        const uploadRes = await uploadUrlToCloudinary(url);
+                        const uploadRes = await robustUploadToCloudinary(url);
                         if (uploadRes.success) {
                             updatedImages[key] = uploadRes.secure_url!;
                         }
