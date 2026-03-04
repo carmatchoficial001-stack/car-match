@@ -5,25 +5,34 @@ import { analyzeMultipleImages } from '@/lib/ai/imageAnalyzer'
  * Convierte una URL de imagen a base64
  */
 async function urlToBase64(url: string): Promise<string> {
-    try {
-        // 🚀 OPTIMIZACIÓN CARMATCH: Si es URL de Cloudinary, pedir versión optimizada
-        // Esto reduce drásticamente el peso (ej: 5MB -> 200KB) y evita Timeouts de Gemini
-        let fetchUrl = url
-        if (url.includes('cloudinary.com') && url.includes('/upload/') && !url.includes('q_auto')) {
-            // Inyectar transformación: calidad auto, formato auto, ancho max 1200px
-            fetchUrl = url.replace('/upload/', '/upload/q_auto,f_auto,w_1200/')
+    let lastError;
+    const maxRetries = 3;
+
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            // 🚀 OPTIMIZACIÓN CARMATCH: Si es URL de Cloudinary, pedir versión optimizada
+            let fetchUrl = url
+            if (url.includes('cloudinary.com') && url.includes('/upload/') && !url.includes('q_auto')) {
+                fetchUrl = url.replace('/upload/', '/upload/q_auto,f_auto,w_1200/')
+            }
+
+            console.log(`📡 Fetching image [Intento ${i + 1}]: ${fetchUrl === url ? 'Original' : 'Optimized'}...`)
+
+            const response = await fetch(fetchUrl, { signal: AbortSignal.timeout(10000) }) // 10s timeout
+            if (!response.ok) throw new Error(`HTTP ${response.status} fetching image`)
+
+            const arrayBuffer = await response.arrayBuffer()
+            const buffer = Buffer.from(arrayBuffer)
+            return buffer.toString('base64')
+        } catch (error) {
+            lastError = error;
+            console.warn(`⚠️ Error fetching image (${url}), reintentando...`, error);
+            if (i < maxRetries - 1) await new Promise(r => setTimeout(r, 1000));
         }
-
-        console.log(`📡 Fetching image: ${fetchUrl === url ? 'Original' : 'Optimized (Gemini Friendly)'}...`)
-
-        const response = await fetch(fetchUrl)
-        const arrayBuffer = await response.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-        return buffer.toString('base64')
-    } catch (error) {
-        console.error('Error converting URL to base64:', url, error)
-        throw new Error(`Failed to fetch image from URL: ${url}`)
     }
+
+    console.error('❌ Fallo definitivo al obtener imagen:', url, lastError)
+    throw lastError || new Error(`Failed to fetch image from URL: ${url}`)
 }
 
 /**

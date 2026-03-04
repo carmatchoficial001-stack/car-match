@@ -486,9 +486,10 @@ export async function analyzeMultipleImages(
         return coverResult;
       }
 
-      // 2. ANALIZAR GALERÍA (Contexto de Portada)
-      // La portada es la ÚNICA fuente de verdad para la identidad (Marca/Modelo/Año).
-      // La galería solo sirve para confirmar que es el mismo coche y extraer datos técnicos.
+      // 2. ANALIZAR GALERÍA (Con Referencia Visual de Portada)
+      // Enviamos la portada OTRA VEZ como primera imagen para que Gemini tenga referencia visual exacta, no solo texto.
+      const galleryImages = images.slice(1, 10);
+
       const IDENTIDAD_SOBERANA_DE_PORTADA = {
         brand: coverResult.details?.brand,
         model: coverResult.details?.model,
@@ -498,90 +499,53 @@ export async function analyzeMultipleImages(
       };
 
 
-      const galleryImages = images.slice(1, 10); // Analizar las 9 fotos de la galería (Total 10 con portada)
-
       const galleryPrompt = `
-        ERES UN ASISTENTE EXPERTO Y ESTRICTO EN VALIDACIÓN DE VEHÍCULOS.
+        ERES UN ASISTENTE EXPERTO Y ESTRICTO EN CONSISTENCIA VEHICULAR.
         
+        SITUACIÓN:
+        - Estás recibiendo una serie de imágenes.
+        - La PRIMERA IMAGEN (Índice 0) es la PORTADA SOBERANA. Ella define la identidad.
+        - Las imágenes siguientes (Índice 1, 2, ...) son la GALERÍA.
+
         TU MISIÓN: 
-        1. Validar que las fotos de la galería sean DEL MISMO VEHÍCULO que la portada.
-        2. ACEPTAR CAPTURAS DE PANTALLA SI SON DEL MISMO VEHÍCULO.
-        3. EXTRAER CADA DETALLE TÉCNICO VISIBLE.
+        1. Comparar CADA imagen de la galería contra la FOTO DE PORTADA (Índice 0).
+        2. Validar que sean del MISMO VEHÍCULO EXACTO (Mismo color, rines, golpes, interiores coherentes).
+        3. Aceptar capturas de pantalla si muestran el mismo vehículo.
+        4. Extraer datos técnicos consolidados de todas las fotos.
 
         🚗 VEHÍCULO SOBERANO (IDENTIDAD DE PORTADA):
-        - Marca: "${IDENTIDAD_SOBERANA_DE_PORTADA.brand || '?'}"
-        - Modelo: "${IDENTIDAD_SOBERANA_DE_PORTADA.model || '?'}"
+        - Marca/Modelo: "${IDENTIDAD_SOBERANA_DE_PORTADA.brand || '?'} ${IDENTIDAD_SOBERANA_DE_PORTADA.model || '?'}"
         - Versión: "${IDENTIDAD_SOBERANA_DE_PORTADA.version || '?'}"
-        - Estilo: "${IDENTIDAD_SOBERANA_DE_PORTADA.type || '?'}"
         
-        ESTÁS RECIBIENDO ${galleryImages.length} IMÁGENES SECUNDARIAS.
+        ═══ CRITERIOS DE RECHAZO (isValid: false) ═══
+        - Si la portada es un Sedan y la galería muestra un SUV -> FALSE.
+        - Si el color de carrocería cambia significativamente -> FALSE.
+        - Si el interior es de una época/nivel de lujo diferente -> FALSE.
+        - Si la placa/matrícula es diferente -> FALSE.
+        - Si se ve que es otro modelo o marca -> FALSE.
 
-        ═══ REGLAS DE ORO DE VALIDACIÓN (A CUMPLIR O RECHAZAR) ═══
-
-        ✅ APRUEBA (isValid: true):
-        - Fotos REALES del MISMO vehículo (mismo color, misma forma).
-        - 📱 CAPTURAS DE PANTALLA (Screenshots) -> ¡SON VÁLIDAS SI MUESTRAN EL MISMO VEHÍCULO!
-        - Interiores (tablero, asientos), Motor, Cajuela, Llantas (aunque no se vea el color del auto).
-        - Fotos en diferentes lugares o ángulos, SIEMPRE QUE SEA EL MISMO AUTO.
-        - Fotos oscuras o movidas SI se distingue que es el vehiculo.
-
-        ❌ RECHAZA ABSOLUTAMENTE (isValid: false):
-        - 🚗 OTRO VEHÍCULO: Si la portada es ROJA y la foto 2 es AZUL -> RECHAZA. (Excepción: luz muy rara, pero ante duda fuerte, rechaza).
-        - 🚗 OTRO MODELO: Si portada es Sedan y foto 2 es Camioneta -> RECHAZA.
-        - 🛋️ INTERIOR FALSO: Si la portada es un auto del 2020 y el interior se ve viejo/ochentero -> RECHAZA.
-        - 🚪 DETALLES INCOHERENTES: Si en la portada se ve que los asientos son negros y en la foto del interior son beige -> RECHAZA.
-        - 🗑️ NO VEHÍCULO: Personas solas, mascotas, memes, paisajes sin carro.
-
-        🕵️‍♂️ MODO DETECTIVE (CONSISTENCIA):
-        - Si la portada muestra un golpe en la puerta derecha, la foto lateral debería mostrarlo (o no mostrar ese lado).
-        - Si la portada tiene quemacocos, la foto del techo debe tenerlo.
-
-        🧞‍♂️ MODO ENCICLOPEDIA (DATOS TÉCNICOS - EQUILIBRIO):
-        - PRIORIDAD 1: Si identificas la VERSIÓN EXACTA (ej: "Raptor", "GTI", "AMG"), USA SUS DATOS ESPECÍFICOS.
-        - PRIORIDAD 2: Si NO estás seguro de la versión, USA LOS DATOS DEL "MODELO BASE" O "MÁS COMÚN" PARA ESE AÑO.
-          (Ej: Si ves un Jetta 2018 pero no sabes si es Trendline o Comfortline, pon el motor 2.5L estándar, NO LO DEJES VACÍO).
-        - 🚫 PROHIBIDO INVENTAR CARACTERÍSTICAS "PREMIUM" SIN EVIDENCIA:
-          - NO pongas "Turbo" ni "4x4" ni "Piel" a menos que lo veas o sea estándar en TODAS las versiones.
-          - Si el dato varía mucho entre versiones (ej: motor), usa el del modelo de entrada.
-          - SÉ ÚTIL: Es mejor tener la ficha técnica del modelo base que tener todo en blanco.
+        ⚠️ IMPORTANTE: El análisis debe retornar un array donde el index 0 es siempre la portada (siempre válido).
 
         Responde con este JSON:
         {
           "analysis": [
-            { "index": number, "isValid": boolean, "reason": "OK" | "Vehículo diferente a portada" | "No es un vehículo" }
+            { "index": number, "isValid": boolean, "reason": "OK" | "Vehículo diferente" | "No es vehículo" }
           ],
-          "category": "automovil|motocicleta|comercial|industrial|transporte|especial",
           "details": {
-            "brand": "Marca (Confirmada)",
-            "model": "Modelo (Confirmado)",
-            "year": number,
-            "version": "Versión exacta detectada en conjunto",
-            "color": "Color",
-            "type": "SUV|Sedan|Pickup|Coupe|Hatchback|Van|Moto|Camion",
-            "transmission": "Manual|Automática",
-            "fuel": "Gasolina|Diésel|Eléctrico|Híbrido",
-            "engine": "Especificación motor",
-            "displacement": "Cilindrada",
-            "traction": "FWD|RWD|4x4|AWD",
-            "doors": 2 | 3 | 4 | 5,
-            "passengers": number,
-            "hp": number,
-            "torque": "Torque",
-            "aspiration": "Natural|Turbo|Supercharged",
-            "cylinders": number,
-            "condition": "Nuevo|Usado",
-            "features": ["Lista de equipamiento"]
+            "version": "Versión detectada (combinando vista de todas las fotos)",
+            "features": ["Lista de equipamiento extraído de galería y portada"]
           }
         }
       `;
 
-      const imageParts = galleryImages.map(img => ({
+      // Incluimos la portada como referencia visual para Gemini
+      const imageParts = [images[0], ...galleryImages].map((img, idx) => ({
         inlineData: { data: img, mimeType: "image/jpeg" }
       }));
 
       let galleryResultRaw;
       try {
-        // 🏎️ Usar Flash primero para eficiencia (cascada del orquestador)
+        console.log(`🤖 Analizando galería (${galleryImages.length} fotos) con referencia visual de portada...`);
         galleryResultRaw = await geminiFlash.generateContent([galleryPrompt, ...imageParts]);
       } catch (galleryError) {
         console.warn("⚠️ Falló análisis de galería, intentando con respaldo...");
@@ -594,15 +558,12 @@ export async function analyzeMultipleImages(
       const galleryMatch = galleryText.match(/\{[\s\S]*\}/);
       if (galleryMatch) {
         const galleryParsed = JSON.parse(galleryMatch[0]);
-        const galleryAnalysis = (galleryParsed.analysis || []).map((a: any) => ({
-          ...a,
-          index: Number(a.index) + 1 // 🚀 MAPEO CRÍTICO: El index 0 de galería es el index 1 global
-        }));
+        const galleryAnalysis = galleryParsed.analysis || [];
 
+        // Mapear invalidIndices excluyendo el índice 0 (referencia)
         const invalidIndices = galleryAnalysis
-          .filter((a: any) => a.isValid === false)
-          .map((a: any) => a.index)
-          .filter((idx: number) => idx !== 0); // PROTECCIÓN: El índice 0 NUNCA es inválido por culpa de la galería
+          .filter((a: any) => a.isValid === false && a.index > 0)
+          .map((a: any) => a.index);
 
         // 🧠 MEZCLA MAESTRA (MERGE): 
         // Combinar equipamiento de portada y galería sin duplicados
@@ -612,8 +573,8 @@ export async function analyzeMultipleImages(
         ]));
 
         return {
-          valid: coverResult.valid,
-          reason: coverResult.reason || "OK",
+          valid: true,
+          reason: "OK",
           invalidIndices: invalidIndices,
           details: {
             ...coverResult.details,

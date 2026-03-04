@@ -323,38 +323,36 @@ export default function PublishClient() {
                 applyAiDetails(validation.details, validation.category)
             }
 
-            // 2. 🚨 VALIDAR PORTADA (Index 0)
-            // Bloqueamos SI Y SOLO SI la PORTADA es inválida.
-            const isCoverInvalid = !validation.valid || validation.invalidIndices?.includes(0)
+            // 3. 🛡️ VALIDACIÓN Y FILTRADO (Portada vs Galería)
+            const invalidIndices = validation.invalidIndices || []
+            const isCoverInvalid = invalidIndices.includes(0)
+
             if (isCoverInvalid) {
-                // Mensaje de error específico y claro
-                let reason = validation.reason || 'La imagen no pasó la verificación.'
-
-                // Si el backend no dio razón específica, dar una genérica útil
-                if (!validation.reason) {
-                    reason = '⚠️ Esta imagen no es un vehículo motorizado terrestre. Por favor, sube una foto clara de un auto, camioneta, motocicleta, o vehículo similar.'
-                }
-
-                setAiError(reason)
-                setIsAnalyzing(false)
+                // 🛑 BLOQUEO: Solo si la portada es mala
+                const reason = validation.reason || 'La foto de portada no es válida.'
+                setAiError(`⚠️ ${reason}`)
                 setInvalidImageUrls(new Set([images[0]]))
                 setInvalidReasons({ [images[0]]: reason })
+                setIsAnalyzing(false)
                 return
             }
 
-            // 3. 🧹 MARCAR GALERÍA (Index > 0)
-            // Si hay fotos malas en la galería, las guardamos para filtrarlas al final.
-            if (validation.invalidIndices && validation.invalidIndices.length > 0) {
-                const galleryRejected = validation.invalidIndices.filter((idx: number) => idx > 0)
-                setRejectedIndices(new Set(galleryRejected))
-                console.log(`⚠️ Galería marcada para limpieza: ${galleryRejected.length} fotos no pasaron pero seguimos adelante.`);
-            } else {
-                setRejectedIndices(new Set())
+            // 🧼 FILTRADO SILENCIOSO: Si hay fotos malas en la galería, las quitamos sin avisar
+            if (invalidIndices.length > 0) {
+                const galleryRejected = invalidIndices.filter((idx: number) => idx > 0)
+                if (galleryRejected.length > 0) {
+                    console.log(`🧹 CarMatch: Filtrando silenciosamente ${galleryRejected.length} fotos que no coinciden.`);
+                    const filteredImages = images.filter((_, idx) => !invalidIndices.includes(idx))
+                    setImages(filteredImages)
+                }
             }
 
+            // Limpiar estados de error y seguir
             setInvalidImageUrls(new Set())
+            setInvalidReasons({})
+            setRejectedIndices(new Set())
             setIsAnalyzing(false)
-            handleNextStep() // Proceder al siguiente paso (el usuario manda)
+            handleNextStep()
 
         } catch (error: any) {
             console.error('Error en validación de imágenes:', error)
