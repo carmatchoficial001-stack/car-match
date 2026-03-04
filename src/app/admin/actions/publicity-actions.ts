@@ -30,18 +30,26 @@ export async function createPublicityCampaign(prevState: any, formData: FormData
         const endDate = new Date(formData.get('endDate') as string)
         const socialMediaEnabled = formData.get('socialMediaEnabled') === 'on'
 
-        await prisma.publicityCampaign.create({
-            data: {
-                title,
-                clientName,
-                imageUrl,
-                targetUrl,
-                startDate,
-                endDate,
-                socialMediaEnabled,
-                isActive: true
-            }
-        })
+        // Upload image to Cloudinary if it's from Pollinations
+let finalImageUrl = imageUrl;
+if (imageUrl && imageUrl.includes('pollinations.ai')) {
+  const uploadRes = await uploadUrlToCloudinary(imageUrl);
+  if (uploadRes.success) {
+    finalImageUrl = uploadRes.secure_url!;
+  }
+}
+await prisma.publicityCampaign.create({
+  data: {
+    title,
+    clientName,
+    imageUrl: finalImageUrl,
+    targetUrl,
+    startDate,
+    endDate,
+    socialMediaEnabled,
+    isActive: true,
+  },
+});
 
         revalidatePath('/admin')
         return { success: true, message: 'Campaña creada exitosamente' }
