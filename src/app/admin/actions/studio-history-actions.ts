@@ -5,17 +5,47 @@ import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 
 /**
- * Fetches the AI Studio chat history for the current admin user
+ * Fetches all studio conversations for the sidebar
  */
-export async function getStudioHistory() {
+export async function getStudioConversations() {
+    try {
+        const session = await auth()
+        if (!session?.user?.id) throw new Error("Unauthorized")
+
+        const conversations = await prisma.studioConversation.findMany({
+            where: { userId: session.user.id },
+            orderBy: { updatedAt: 'desc' },
+            select: {
+                id: true,
+                title: true,
+                updatedAt: true
+            }
+        })
+
+        return { success: true, conversations }
+    } catch (error: any) {
+        console.error("[STUDIO-CONV] Get Error:", error)
+        return { success: false, error: error.message }
+    }
+}
+
+/**
+ * Fetches the AI Studio chat history for a specific conversation
+ */
+export async function getStudioHistory(conversationId?: string) {
+    if (!conversationId) return { success: true, messages: [] }
+    
     try {
         const session = await auth()
         if (!session?.user?.id) throw new Error("Unauthorized")
 
         const messages = await prisma.studioMessage.findMany({
-            where: { userId: session.user.id },
+            where: { 
+                userId: session.user.id,
+                conversationId: conversationId 
+            },
             orderBy: { createdAt: 'asc' },
-            take: 100 // Limit history for performance
+            take: 100 
         })
 
         return {
@@ -38,9 +68,10 @@ export async function getStudioHistory() {
 }
 
 /**
- * Persists a new message to the chat history
+ * Persists a new message to the chat history, optionally creating a conversation
  */
 export async function saveStudioMessage(data: {
+    conversationId?: string
     role: 'user' | 'assistant'
     content: string
     type?: string
@@ -52,9 +83,23 @@ export async function saveStudioMessage(data: {
         const session = await auth()
         if (!session?.user?.id) throw new Error("Unauthorized")
 
+        let targetId = data.conversationId
+
+        // If no conversation ID, create a new one first (fallback)
+        if (!targetId) {
+            const newConv = await prisma.studioConversation.create({
+                data: {
+                    userId: session.user.id,
+                    title: data.content.substring(0, 30) + (data.content.length > 30 ? "..." : "")
+                }
+            })
+            targetId = newConv.id
+        }
+
         const newMessage = await prisma.studioMessage.create({
             data: {
                 userId: session.user.id,
+                conversationId: targetId,
                 role: data.role,
                 content: data.content,
                 type: data.type,
@@ -64,7 +109,13 @@ export async function saveStudioMessage(data: {
             }
         })
 
-        return { success: true, messageId: newMessage.id }
+        // Update conversation timestamp
+        await prisma.studioConversation.update({
+            where: { id: targetId },
+            data: { updatedAt: new Date() }
+        })
+
+        return { success: true, messageId: newMessage.id, conversationId: targetId }
     } catch (error: any) {
         console.error("[STUDIO-HISTORY] Save Error:", error)
         return { success: false, error: error.message }
@@ -72,21 +123,62 @@ export async function saveStudioMessage(data: {
 }
 
 /**
- * Clears the history for the current user
+ * Creates a fresh new conversation
+ */
+export async function createStudioConversation(title: string = "Nueva Idea") {
+    try {
+        const session = await auth()
+        if (!session?.user?.id) throw new Error("Unauthorized")
+
+        const newConv = await prisma.studioConversation.create({
+            data: {
+                userId: session.user.id,
+                title
+            }
+        })
+
+        return { success: true, conversation: newConv }
+    } catch (error: any) {
+        console.error("[STUDIO-CONV] Create Error:", error)
+        return { success: false, error: error.message }
+    }
+}
+
+/**
+ * Deletes a specific conversation
+ */
+export async function deleteStudioConversation(id: string) {
+    try {
+        const session = await auth()
+        if (!session?.user?.id) throw new Error("Unauthorized")
+
+        await prisma.studioConversation.delete({
+            where: { id, userId: session.user.id }
+        })
+
+        return { success: true }
+    } catch (error: any) {
+        console.error("[STUDIO-CONV] Delete Error:", error)
+        return { success: false, error: error.message }
+    }
+}
+
+/**
+ * Clears ALL histories for debugging/reset
  */
 export async function clearStudioHistory() {
     try {
         const session = await auth()
         if (!session?.user?.id) throw new Error("Unauthorized")
 
-        await prisma.studioMessage.deleteMany({
+        await prisma.studioConversation.deleteMany({
             where: { userId: session.user.id }
         })
 
         revalidatePath('/admin')
         return { success: true }
     } catch (error: any) {
-        console.error("[STUDIO-HISTORY] Clear Error:", error)
+        console.error("[STUDIO-HISTORY] Global Clear Error:", error)
         return { success: false, error: error.message }
     }
 }

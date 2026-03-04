@@ -5,10 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
     Send, Sparkles, Download, Copy, Check, ImagePlus,
     Loader2, X, ChevronDown, ExternalLink, Zap, Palette,
-    Camera, Layers, RefreshCw, Trash2
+    Camera, Layers, RefreshCw, Trash2, Plus, MessageSquare, History
 } from 'lucide-react'
 import { chatWithImageDirector } from '@/app/admin/actions/image-chat-actions'
-import { getStudioHistory, saveStudioMessage, clearStudioHistory } from '@/app/admin/actions/studio-history-actions'
+import { getStudioConversations, getStudioHistory, saveStudioMessage, createStudioConversation, deleteStudioConversation, clearStudioHistory } from '@/app/admin/actions/studio-history-actions'
+
+import { AD_PLATFORMS } from '@/lib/admin/constants'
 
 // ─────────────────────────────────────────────────────────────
 // TYPES
@@ -24,8 +26,6 @@ interface ChatMessage {
     platforms?: Record<string, any>
     timestamp: Date
 }
-
-import { AD_PLATFORMS } from '@/lib/admin/constants'
 
 const PLATFORM_CONFIG: Record<string, { name: string; icon: string; color: string }> = AD_PLATFORMS.reduce((acc, p) => ({
     ...acc,
@@ -47,9 +47,11 @@ const QUICK_PRESETS = [
 
 export default function ImageChat() {
     const [messages, setMessages] = useState<ChatMessage[]>([])
+    const [conversations, setConversations] = useState<any[]>([])
+    const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
     const [input, setInput] = useState('')
     const [isLoading, setIsLoading] = useState(false)
-    const [isSaving, setIsSaving] = useState(false)
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true)
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
 
@@ -63,15 +65,19 @@ export default function ImageChat() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }
 
-    // 🔄 LOAD HISTORY ON MOUNT
+    // 🔄 LOAD CONVERSATIONS ON MOUNT
     useEffect(() => {
-        const loadHistory = async () => {
-            const res = await getStudioHistory()
-            if (res.success && res.messages) {
-                setMessages(res.messages)
+        const loadInitialData = async () => {
+            const res = await getStudioConversations()
+            if (res.success && res.conversations) {
+                setConversations(res.conversations)
+                // If there's at least one conversation, load the first one
+                if (res.conversations.length > 0) {
+                    handleSelectConversation(res.conversations[0].id)
+                }
             }
         }
-        loadHistory()
+        loadInitialData()
     }, [])
 
     useEffect(() => {
@@ -80,11 +86,58 @@ export default function ImageChat() {
 
     useEffect(() => {
         inputRef.current?.focus()
-    }, [])
+    }, [activeConversationId])
+
+    const handleSelectConversation = async (id: string) => {
+        setActiveConversationId(id)
+        setIsLoading(true)
+        const res = await getStudioHistory(id)
+        if (res.success && res.messages) {
+            setMessages(res.messages)
+        }
+        setIsLoading(false)
+    }
+
+    const handleNewChat = async () => {
+        setIsLoading(true)
+        const res = await createStudioConversation("Nueva Idea")
+        if (res.success && res.conversation) {
+            setConversations(prev => [res.conversation, ...prev])
+            setActiveConversationId(res.conversation.id)
+            setMessages([])
+        }
+        setIsLoading(false)
+    }
+
+    const handleDeleteConversation = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation()
+        if (!confirm('¿Eliminar esta conversación?')) return
+
+        const res = await deleteStudioConversation(id)
+        if (res.success) {
+            setConversations(prev => prev.filter(c => c.id !== id))
+            if (activeConversationId === id) {
+                setMessages([])
+                setActiveConversationId(null)
+            }
+        }
+    }
 
     const handleSend = async (text?: string) => {
         const messageText = text || input.trim()
         if (!messageText || isLoading) return
+
+        let currentConvId = activeConversationId
+
+        // If no active conversation, create one first
+        if (!currentConvId) {
+            const res = await createStudioConversation(messageText.substring(0, 30))
+            if (res.success && res.conversation) {
+                currentConvId = res.conversation.id
+                setActiveConversationId(currentConvId)
+                setConversations(prev => [res.conversation, ...prev])
+            } else return
+        }
 
         const userMsg: ChatMessage = {
             id: `user-${Date.now()}`,
@@ -99,6 +152,7 @@ export default function ImageChat() {
 
         // 🛡️ PERSIST USER MESSAGE
         saveStudioMessage({
+            conversationId: currentConvId,
             role: 'user',
             content: messageText
         })
@@ -128,6 +182,7 @@ export default function ImageChat() {
 
             // 🛡️ PERSIST ASSISTANT MESSAGE
             saveStudioMessage({
+                conversationId: currentConvId,
                 role: 'assistant',
                 content: assistantMsg.content,
                 type: assistantMsg.type,
@@ -151,11 +206,13 @@ export default function ImageChat() {
     }
 
     const handleClearHistory = async () => {
-        if (!confirm('¿Seguro que quieres borrar todo el historial?')) return
+        if (!confirm('¿Seguro que quieres borrar TODO el historial?')) return
         setIsLoading(true)
         const res = await clearStudioHistory()
         if (res.success) {
             setMessages([])
+            setConversations([])
+            setActiveConversationId(null)
         }
         setIsLoading(false)
     }
@@ -165,14 +222,12 @@ export default function ImageChat() {
     }
 
     const handleOpenWorkspace = (msg: ChatMessage) => {
-        // En lugar de guardar en DB, ahora el chat expande las opciones de descarga
         const workspaceId = `workspace-${msg.id}`
         if (messages.some(m => m.id === workspaceId)) return
-
         const workspaceMsg: ChatMessage = {
             id: workspaceId,
             role: 'assistant',
-            type: 'IMAGE_READY', // Usamos este tipo para el nuevo componente
+            type: 'IMAGE_READY',
             content: 'Aquí tienes tu Mesa de Trabajo Creativa con los diseños para todas tus redes:',
             images: msg.images,
             platforms: msg.platforms,
@@ -182,115 +237,173 @@ export default function ImageChat() {
     }
 
     return (
-        <div className="flex flex-col h-full bg-[#0A0A0B]">
-            {/* Header */}
-            <div className="p-6 border-b border-white/5 bg-gradient-to-br from-violet-500/10 via-transparent to-fuchsia-500/5 relative overflow-hidden shrink-0">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 blur-[100px] -mr-32 -mt-32 rounded-full" />
-                <div className="relative z-10 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-1 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
-                                <Palette className="w-5 h-5 text-white" />
-                            </div>
-                            Estudio de Imágenes
-                        </h2>
-                        <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">
-                            Director Creativo IA • 9 Plataformas • Vista Previa Real
-                        </p>
-                    </div>
+        <div className="flex h-full bg-[#0A0A0B] overflow-hidden">
+            {/* Sidebar */}
+            <motion.div
+                initial={false}
+                animate={{ width: isSidebarOpen ? 280 : 0, opacity: isSidebarOpen ? 1 : 0 }}
+                className="border-r border-white/5 bg-[#0D0D0E] flex flex-col shrink-0 overflow-hidden"
+            >
+                <div className="p-4 border-b border-white/5">
+                    <button
+                        onClick={handleNewChat}
+                        disabled={isLoading}
+                        className="w-full py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2 mb-2"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Nueva Conversación
+                    </button>
+                </div>
 
-                    {messages.length > 0 && (
+                <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
+                    <div className="px-2 mb-4">
+                        <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <History className="w-3 h-3" /> Recientes
+                        </span>
+                    </div>
+                    {conversations.map(conv => (
+                        <button
+                            key={conv.id}
+                            onClick={() => handleSelectConversation(conv.id)}
+                            className={`w-full group px-3 py-3 rounded-xl flex items-center justify-between text-left transition-all ${activeConversationId === conv.id
+                                ? 'bg-violet-500/10 border border-violet-500/20 text-white'
+                                : 'text-zinc-500 hover:bg-white/5 border border-transparent'
+                                }`}
+                        >
+                            <div className="flex items-center gap-3 min-w-0">
+                                <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${activeConversationId === conv.id ? 'text-violet-400' : 'text-zinc-600'}`} />
+                                <span className="text-[11px] font-bold truncate tracking-tight">{conv.title}</span>
+                            </div>
+                            <Trash2
+                                onClick={(e) => handleDeleteConversation(e, conv.id)}
+                                className="w-3.5 h-3.5 text-zinc-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0 ml-2"
+                            />
+                        </button>
+                    ))}
+                </div>
+
+                {conversations.length > 0 && (
+                    <div className="p-4 border-t border-white/5">
                         <button
                             onClick={handleClearHistory}
                             disabled={isLoading}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-[10px] font-black text-red-400 uppercase tracking-widest hover:bg-red-500/20 transition-all disabled:opacity-30"
+                            className="w-full flex items-center gap-2 px-4 py-2 text-zinc-600 hover:text-red-400 text-[9px] font-black uppercase tracking-widest transition-all"
                         >
                             <Trash2 className="w-3.5 h-3.5" />
-                            Limpiar Historial
+                            Borrar Todo
                         </button>
-                    )}
+                    </div>
+                )}
+            </motion.div>
+
+            {/* Main Chat Area */}
+            <div className="flex-1 flex flex-col relative h-full">
+                {/* Header */}
+                <div className="p-6 border-b border-white/5 bg-gradient-to-br from-violet-500/10 via-transparent to-fuchsia-500/5 relative overflow-hidden shrink-0">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 blur-[100px] -mr-32 -mt-32 rounded-full" />
+                    <div className="relative z-10 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                className="p-2 bg-white/5 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition"
+                            >
+                                <ChevronDown className={`w-4 h-4 transition-transform ${isSidebarOpen ? 'rotate-90' : '-rotate-90'}`} />
+                            </button>
+                            <div>
+                                <h2 className="text-xl font-black text-white uppercase tracking-tighter mb-0.5 flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                                        <Palette className="w-4 h-4 text-white" />
+                                    </div>
+                                    Estudio de Imágenes
+                                </h2>
+                                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.2em]">
+                                    {activeConversationId ? conversations.find(c => c.id === activeConversationId)?.title || "Sesión Activa" : "Nuevo Concepto Visual"}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-                {messages.length === 0 && (
-                    <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto">
-                        <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/20 flex items-center justify-center mb-6 shadow-2xl shadow-violet-500/10">
-                            <Sparkles className="w-10 h-10 text-violet-400" />
+                {/* Chat Messages */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+                    {messages.length === 0 && (
+                        <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto">
+                            <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/20 flex items-center justify-center mb-6 shadow-2xl shadow-violet-500/10">
+                                <Sparkles className="w-10 h-10 text-violet-400" />
+                            </div>
+                            <h3 className="text-xl font-black text-white mb-2 tracking-tight">¿Qué vamos a crear hoy?</h3>
+                            <p className="text-sm text-zinc-500 mb-8 leading-relaxed">
+                                Describe tu idea y el Director Creativo diseñará la estética perfecta para tus redes sociales.
+                            </p>
+                            <div className="grid grid-cols-2 gap-2 w-full">
+                                {QUICK_PRESETS.slice(0, 4).map((preset, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => handleSend(preset.prompt)}
+                                        className="p-3 bg-white/[0.03] border border-white/5 rounded-xl text-left hover:bg-violet-500/10 hover:border-violet-500/20 transition-all text-[10px] font-bold text-zinc-400 hover:text-white"
+                                    >
+                                        {preset.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                        <h3 className="text-xl font-black text-white mb-2 tracking-tight">¿Qué vamos a crear hoy?</h3>
-                        <p className="text-sm text-zinc-500 mb-8 leading-relaxed">
-                            Describe tu idea y el Director Creativo diseñará la estética perfecta para tus redes sociales.
-                        </p>
-                        <div className="grid grid-cols-2 gap-2 w-full">
-                            {QUICK_PRESETS.slice(0, 4).map((preset, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => handleSend(preset.prompt)}
-                                    className="p-3 bg-white/[0.03] border border-white/5 rounded-xl text-left hover:bg-violet-500/10 hover:border-violet-500/20 transition-all text-[10px] font-bold text-zinc-400 hover:text-white"
-                                >
-                                    {preset.label}
-                                </button>
-                            ))}
+                    )}
+                    <AnimatePresence>
+                        {messages.map(msg => (
+                            <motion.div
+                                key={msg.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                {msg.role === 'user' ? (
+                                    <UserBubble content={msg.content} />
+                                ) : msg.type === 'PROMPT_READY' ? (
+                                    <PromptProposalCard
+                                        msg={msg}
+                                        onOpenWorkspace={handleOpenWorkspace}
+                                        onVariation={handleVariation}
+                                        isLoading={isLoading}
+                                    />
+                                ) : msg.type === 'IMAGE_READY' ? (
+                                    <CreativeWorkspace msg={msg} />
+                                ) : (
+                                    <AssistantBubble content={msg.content} />
+                                )}
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                    {isLoading && (
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                                <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />
+                            </div>
+                            <span className="text-xs text-zinc-500 font-medium animate-pulse">Pensando como un experto...</span>
                         </div>
-                    </div>
-                )}
-                <AnimatePresence>
-                    {messages.map(msg => (
-                        <motion.div
-                            key={msg.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input Area */}
+                <div className="p-6 border-t border-white/5 bg-black/40 backdrop-blur-xl">
+                    <div className="max-w-4xl mx-auto flex gap-3">
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={input}
+                            onChange={e => setInput(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleSend()}
+                            placeholder="Nueva idea creativa... ej: Shooting de noche"
+                            className="flex-1 bg-white/[0.05] border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all"
+                            disabled={isLoading}
+                        />
+                        <button
+                            onClick={() => handleSend()}
+                            disabled={!input.trim() || isLoading}
+                            className="w-14 h-14 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-2xl flex items-center justify-center text-white disabled:opacity-30 transition-all active:scale-95 shadow-lg shadow-violet-500/20"
                         >
-                            {msg.role === 'user' ? (
-                                <UserBubble content={msg.content} />
-                            ) : msg.type === 'PROMPT_READY' ? (
-                                <PromptProposalCard
-                                    msg={msg}
-                                    onOpenWorkspace={handleOpenWorkspace}
-                                    onVariation={handleVariation}
-                                    isLoading={isLoading}
-                                />
-                            ) : msg.type === 'IMAGE_READY' ? (
-                                <CreativeWorkspace msg={msg} />
-                            ) : (
-                                <AssistantBubble content={msg.content} />
-                            )}
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-                {isLoading && (
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-violet-500/10 flex items-center justify-center">
-                            <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />
-                        </div>
-                        <span className="text-xs text-zinc-500 font-medium animate-pulse">Pensando como un experto...</span>
+                            <Send className="w-5 h-5" />
+                        </button>
                     </div>
-                )}
-                <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Area */}
-            <div className="p-6 border-t border-white/5 bg-black/40 backdrop-blur-xl">
-                <div className="max-w-4xl mx-auto flex gap-3">
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        value={input}
-                        onChange={e => setInput(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleSend()}
-                        placeholder="Nueva idea creativa... ej: Shooting de noche"
-                        className="flex-1 bg-white/[0.05] border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all"
-                        disabled={isLoading}
-                    />
-                    <button
-                        onClick={() => handleSend()}
-                        disabled={!input.trim() || isLoading}
-                        className="w-14 h-14 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-2xl flex items-center justify-center text-white disabled:opacity-30 transition-all active:scale-95 shadow-lg shadow-violet-500/20"
-                    >
-                        <Send className="w-5 h-5" />
-                    </button>
                 </div>
             </div>
         </div>
