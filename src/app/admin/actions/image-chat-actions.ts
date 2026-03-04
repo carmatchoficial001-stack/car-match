@@ -69,12 +69,18 @@ INSTRUCCIONES DE RESPUESTA JSON:
 Si vas a proponer el diseño final, responde:
 {
     "type": "PROMPT_READY",
-    "message": "Mensaje entusiasta en ESPAÑOL sobre la campaña que diseñaste.",
-    "imagePrompt": "ULTRA DETAILED prompt in ENGLISH (Camera, lens, lighting, composition, 8k, photorealistic). This prompt will be used to generate the image later.",
+    "message": "Mensaje entusiasta en ESPAÑOL sobre el pack creativo que diseñaste.",
+    "imagePrompt": "ULTRA DETAILED prompt in ENGLISH (Camera, lens, lighting, composition, 8k, photorealistic).",
     "photoCount": 11,
     "platforms": {
-        "instagram_feed": { "caption": "Caption viral...", "hashtags": "#CarMatchMX ..." },
-        ...
+        "instagram_feed": { "caption": "Caption visual y estético...", "hashtags": "#CarMatchMX #LuxuryCars" },
+        "instagram_stories": { "caption": "Texto corto y directo para story...", "hashtags": "" },
+        "facebook": { "caption": "Texto informativo y confiable para grupos/muro...", "hashtags": "#VentaAutos" },
+        "tiktok": { "caption": "Hook viral y divertido...", "hashtags": "#CarTok #CarMatch" },
+        "x_twitter": { "caption": "Texto conciso y actual (280 caracteres)...", "hashtags": "#AutoNoticias" },
+        "google_ads": { "caption": "Copia de venta directa y profesional...", "hashtags": "" },
+        "snapchat": { "caption": "Texto efímero y juvenil...", "hashtags": "" },
+        "kwai": { "caption": "Estilo dinámico para videos cortos...", "hashtags": "#AutosKwai" }
     }
 }
 

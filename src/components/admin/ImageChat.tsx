@@ -8,7 +8,6 @@ import {
     Camera, Layers, RefreshCw
 } from 'lucide-react'
 import { chatWithImageDirector } from '@/app/admin/actions/image-chat-actions'
-import { createCampaignFromAssets } from '@/app/admin/actions/publicity-actions'
 
 // ─────────────────────────────────────────────────────────────
 // TYPES
@@ -127,30 +126,21 @@ export default function ImageChat() {
         handleSend(`Basado en este prompt: "${prompt}", haz esta variación: ${instruction}`)
     }
 
-    const handleSaveToCampaign = async (msg: ChatMessage) => {
-        if (!msg.imagePrompt || isSaving) return
-        setIsSaving(true)
+    const handleOpenWorkspace = (msg: ChatMessage) => {
+        // En lugar de guardar en DB, ahora el chat expande las opciones de descarga
+        const workspaceId = `workspace-${msg.id}`
+        if (messages.some(m => m.id === workspaceId)) return
 
-        try {
-            const campaignData = {
-                internal_title: `Campaña IA — ${new Date().toLocaleDateString('es-MX')}`,
-                imagePrompt: msg.imagePrompt,
-                platforms: msg.platforms || {},
-                images: msg.images,
-                imageUrl: msg.images?.square
-            }
-
-            const res = await createCampaignFromAssets(campaignData)
-
-            if (res.success) {
-                window.dispatchEvent(new CustomEvent('campaign-created'))
-                alert('✅ ¡Campaña creada con éxito! Ve a la lista de "Campañas" para verla.')
-            }
-        } catch (error) {
-            console.error('Error saving campaign:', error)
-        } finally {
-            setIsSaving(false)
+        const workspaceMsg: ChatMessage = {
+            id: workspaceId,
+            role: 'assistant',
+            type: 'IMAGE_READY', // Usamos este tipo para el nuevo componente
+            content: 'Aquí tienes tu Mesa de Trabajo Creativa con los diseños para todas tus redes:',
+            images: msg.images,
+            platforms: msg.platforms,
+            timestamp: new Date()
         }
+        setMessages(prev => [...prev, workspaceMsg])
     }
 
     return (
@@ -209,11 +199,12 @@ export default function ImageChat() {
                             ) : msg.type === 'PROMPT_READY' ? (
                                 <PromptProposalCard
                                     msg={msg}
-                                    onSaveCampaign={handleSaveToCampaign}
+                                    onOpenWorkspace={handleOpenWorkspace}
                                     onVariation={handleVariation}
-                                    isSaving={isSaving}
                                     isLoading={isLoading}
                                 />
+                            ) : msg.type === 'IMAGE_READY' ? (
+                                <CreativeWorkspace msg={msg} />
                             ) : (
                                 <AssistantBubble content={msg.content} />
                             )}
@@ -282,15 +273,13 @@ function AssistantBubble({ content }: { content: string }) {
 
 function PromptProposalCard({
     msg,
-    onSaveCampaign,
+    onOpenWorkspace,
     onVariation,
-    isSaving,
     isLoading
 }: {
     msg: ChatMessage
-    onSaveCampaign: (msg: ChatMessage) => void
+    onOpenWorkspace: (msg: ChatMessage) => void
     onVariation: (prompt: string, instruction: string) => void
-    isSaving: boolean
     isLoading: boolean
 }) {
     const [copied, setCopied] = useState(false)
@@ -352,17 +341,17 @@ function PromptProposalCard({
 
                     <div className="flex items-center gap-3">
                         <button
-                            onClick={() => onSaveCampaign(msg)}
-                            disabled={isSaving || isLoading}
-                            className="flex-1 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-[11px] font-black uppercase tracking-wider rounded-xl hover:shadow-lg hover:shadow-violet-500/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                            onClick={() => onOpenWorkspace(msg)}
+                            disabled={isLoading}
+                            className="flex-1 py-4 bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-[11px] font-black uppercase tracking-wider rounded-xl hover:shadow-lg hover:shadow-violet-500/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 group"
                         >
-                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-                            Crear Campaña
+                            <Zap className="w-4 h-4 group-hover:animate-pulse" />
+                            Generar Mesa de Trabajo (8 Redes)
                         </button>
                         <button
                             onClick={() => onVariation(msg.imagePrompt!, "Haz una variación creativa manteniendo la esencia")}
-                            disabled={isSaving || isLoading}
-                            className="w-12 h-12 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all border-dashed"
+                            disabled={isLoading}
+                            className="w-14 h-14 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all border-dashed"
                             title="Regenerar Variación"
                         >
                             <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -383,5 +372,118 @@ function PromptProposalCard({
                 </div>
             </div>
         </div>
+    )
+}
+
+function CreativeWorkspace({ msg }: { msg: ChatMessage }) {
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center gap-3 text-violet-400">
+                <Layers className="w-5 h-5" />
+                <h4 className="text-sm font-black uppercase tracking-widest">Mesa de Trabajo — {Object.keys(msg.platforms || {}).length} Redes</h4>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(msg.platforms || {}).map(([id, data]) => (
+                    <PlatformAssetCard
+                        key={id}
+                        platformId={id}
+                        data={data}
+                        images={msg.images || {}}
+                    />
+                ))}
+            </div>
+        </div>
+    )
+}
+
+function PlatformAssetCard({ platformId, data, images }: { platformId: string, data: any, images: any }) {
+    const config = PLATFORM_CONFIG[platformId] || { name: platformId, icon: '✨', color: 'from-zinc-500 to-zinc-700' }
+    const [copied, setCopied] = useState(false)
+
+    const handleCopy = () => {
+        const text = `${data.caption}\n\n${data.hashtags || ''}`
+        navigator.clipboard.writeText(text)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+    }
+
+    const handleDownload = async () => {
+        const url = platformId.includes('stories') || platformId === 'tiktok' || platformId === 'snapchat' || platformId === 'kwai'
+            ? images.vertical || images.square
+            : platformId === 'facebook' || platformId === 'google_ads' || platformId === 'x_twitter'
+                ? images.horizontal || images.square
+                : images.square
+
+        try {
+            const response = await fetch(url)
+            const blob = await response.blob()
+            const link = document.createElement('a')
+            link.href = URL.createObjectURL(blob)
+            link.download = `carmatch-${platformId}-${Date.now()}.jpg`
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+        } catch (error) {
+            window.open(url, '_blank')
+        }
+    }
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-md group"
+        >
+            <div className={`h-1 bg-gradient-to-r ${config.color}`} />
+            <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xl">{config.icon}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white">{config.name}</span>
+                    </div>
+                </div>
+
+                <div className="aspect-video relative rounded-lg overflow-hidden bg-black mb-4 border border-white/5">
+                    <img
+                        src={platformId.includes('stories') || platformId === 'tiktok' || platformId === 'snapchat' || platformId === 'kwai'
+                            ? images.vertical || images.square
+                            : platformId === 'facebook' || platformId === 'google_ads' || platformId === 'x_twitter'
+                                ? images.horizontal || images.square
+                                : images.square
+                        }
+                        alt={config.name}
+                        className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button
+                            onClick={handleDownload}
+                            className="p-3 bg-white text-black rounded-full hover:scale-110 transition active:scale-95"
+                            title="Descargar HD"
+                        >
+                            <Download className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+
+                <div className="space-y-3">
+                    <div className="bg-black/40 p-3 rounded-xl border border-white/5">
+                        <p className="text-[11px] text-zinc-400 line-clamp-3 leading-relaxed">
+                            {data.caption} <span className="text-violet-400 font-bold">{data.hashtags}</span>
+                        </p>
+                    </div>
+
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleCopy}
+                            className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-zinc-300 hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
+                        >
+                            {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                            {copied ? 'Copiado' : 'Copiar Texto'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </motion.div>
     )
 }
