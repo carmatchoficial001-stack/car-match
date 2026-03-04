@@ -6,7 +6,6 @@
 
 import { geminiFlashConversational, geminiFlash, geminiPro } from '@/lib/ai/geminiModels'
 import { prisma } from '@/lib/db'
-import { createCampaignFromAssets } from './publicity-actions'
 import { uploadUrlToCloudinary, robustUploadToCloudinary } from '@/lib/cloudinary-server'
 import { buildPollinationsUrl } from '@/lib/admin/utils'
 
@@ -615,13 +614,10 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             processedByCloudinary: true
         }
 
-        const res = await createCampaignFromAssets(finalAssets) as any
-
         return {
             success: true,
-            message: `Assets generated (${photoCount} photos) and campaign created with robust uploads.`,
-            campaign: res.campaign,
-            assets: res.campaign?.metadata?.assets || finalAssets
+            message: `Assets generated (${photoCount} photos) for the workspace.`,
+            assets: finalAssets
         }
 
     } catch (error: any) {
@@ -632,279 +628,13 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
 
 
 
-/**
- * Regenerate a specific element of a campaign based on user instruction
- * @param campaignId - ID of the campaign to update
- * @param instruction - Natural language instruction like "mejora el video", "cambia la imagen a un auto rojo"
- * @param currentAssets - Current campaign assets from metadata
- */
-export async function regenerateCampaignElement(campaignId: string, instruction: string, currentAssets: any) {
-    try {
-        console.log(`[AI] Regenerando elemento de campaña ${campaignId}: "${instruction}"`)
 
-        // Detect which element to regenerate based on instruction
-        const lowerInstruction = instruction.toLowerCase()
-        let elementType: 'copy' | 'image' | 'video' | 'all' = 'all'
+// --- AI Studio Legacy Support (Disabled) ---
+// Note: All campaign database logic has been removed in favor of the manual In-Chat Creative Workspace.
 
-        if (lowerInstruction.includes('video') || lowerInstruction.includes('script')) {
-            elementType = 'video'
-        } else if (lowerInstruction.includes('añadir') || lowerInstruction.includes('agregar') || lowerInstruction.includes('más fotos') || lowerInstruction.includes('más imágenes')) {
-            // New specific mode for adding images without destroying existing ones
-            return await addImagesToCampaign(campaignId, instruction, currentAssets)
-        } else if (lowerInstruction.includes('imagen') || lowerInstruction.includes('image') || lowerInstruction.includes('foto')) {
-            elementType = 'image'
-        } else if (lowerInstruction.includes('texto') || lowerInstruction.includes('copy') || lowerInstruction.includes('caption') || lowerInstruction.includes('descripción')) {
-            elementType = 'copy'
-        }
-
-        const updatedAssets = { ...currentAssets }
-
-        // Regenerate based on detected element type
-        switch (elementType) {
-            case 'copy':
-                console.log('[AI] Regenerando copy...')
-                const copyPrompt = `
-                    Eres un experto en copywriting para redes sociales automotrices.
-                    
-                    Copy actual: "${currentAssets.copy}"
-
-        InstrucciÃ³n del usuario: "${instruction}"
-                    
-                    Genera un nuevo copy siguiendo la instrucciÃ³n. 
-                    - MÃ¡ximo 200 caracteres
-            - Usa emojis naturalmente ðŸš—ðŸ’¨
-        - Lenguaje mexicano casual
-                    
-                    Responde SOLO con el nuevo copy, sin explicaciones.
-                `
-                const copyResult = await geminiFlash.generateContent(copyPrompt)
-                updatedAssets.copy = copyResult.response.text().trim()
-                break
-
-            case 'image':
-                console.log('[AI] Regenerando imagen...')
-                const imagePromptText = `
-                    Prompt actual de imagen: "${currentAssets.imagePrompt}"
-
-        InstrucciÃ³n del usuario: "${instruction}"
-                    
-                    Genera un nuevo prompt para Flux AI que genere una imagen siguiendo la instrucciÃ³n.
-                    - Debe ser en inglÃ©s
-            - Estilo fotorrealista profesional
-                - Alta calidad, 8K
-                    
-                    Responde SOLO con el prompt, sin explicaciones.
-                `
-                const imagePromptResult = await geminiFlash.generateContent(imagePromptText)
-                const newImagePrompt = imagePromptResult.response.text().trim()
-                updatedAssets.imagePrompt = newImagePrompt
-
-                // 🔥 GENERATE AND UPLOAD NEW IMAGES
-                console.log('[AI] Generating new images for regeneration...')
-
-                const newImages = {
-                    square: buildPollinationsUrl(newImagePrompt, 1080, 1080),
-                    vertical: buildPollinationsUrl(newImagePrompt, 1080, 1920),
-                    horizontal: buildPollinationsUrl(newImagePrompt, 1200, 628)
-                }
-
-                // Upload to Cloudinary sequentially and robustly
-                const resSquare = await robustUploadToCloudinary(newImages.square);
-                const resVertical = await robustUploadToCloudinary(newImages.vertical);
-                const resHorizontal = await robustUploadToCloudinary(newImages.horizontal);
-
-                if (resSquare.success) updatedAssets.imageUrl = resSquare.secure_url;
-                updatedAssets.images = {
-                    square: resSquare.secure_url || newImages.square,
-                    vertical: resVertical.secure_url || newImages.vertical,
-                    horizontal: resHorizontal.secure_url || newImages.horizontal
-                }
-                break
-
-            case 'video':
-                console.log('[AI] Regenerando script de video...')
-                const videoPrompt = `
-                    Script actual: "${currentAssets.videoScript}"
-
-        InstrucciÃ³n del usuario: "${instruction}"
-                    
-                    Genera un nuevo script de video siguiendo la instrucciÃ³n.
-                    - Debe ser para un video de 15 - 30 segundos
-            - DescripciÃ³n visual detallada
-                - Emocional y atractivo
-                    
-                    Responde SOLO con el script, sin explicaciones.
-                `
-                const videoResult = await geminiFlash.generateContent(videoPrompt)
-                updatedAssets.videoScript = videoResult.response.text().trim()
-                break
-
-            case 'all':
-                console.log('[AI] Regenerando todos los elementos...')
-                const allPrompt = `
-        InstrucciÃ³n: "${instruction}"
-
-        BasÃ¡ndote en esta instrucciÃ³n, genera assets completos para una campaÃ±a automotriz:
-        BasÃ¡ndote en esta instrucciÃ³n, genera assets completos para una campaÃ±a automotriz:
-
-    Responde SOLO con un JSON vÃ¡lido, sin bloques de cÃ³digo:
-        {
-            "copy": "caption para redes (mÃ¡x 200 chars, con emojis)",
-                "imagePrompt": "prompt en inglÃ©s para Flux AI",
-                    "videoScript": "script de video 15-30s"
-        }
-        `
-                const allResult = await geminiFlashConversational.generateContent({
-                    contents: [{ role: 'user', parts: [{ text: allPrompt }] }],
-                    generationConfig: {
-                        responseMimeType: 'application/json',
-                        temperature: 0.8
-                    }
-                })
-
-                let rawAllText = allResult.response.text().trim();
-                // Limpiar posibles bloques markdown de la IA
-                if (rawAllText.startsWith('```json')) rawAllText = rawAllText.replace(/```json/g, '').replace(/```/g, '').trim();
-                else if (rawAllText.startsWith('```')) rawAllText = rawAllText.replace(/```/g, '').trim();
-
-                const allData = JSON.parse(rawAllText)
-                updatedAssets.copy = allData.copy
-                updatedAssets.imagePrompt = allData.imagePrompt
-                updatedAssets.videoScript = allData.videoScript
-
-                // 🔥 GENERATE AND UPLOAD ALL IMAGES ROBUSTLY & SEQUENTIALLY
-                console.log('[AI] Generating all new images for "all" regeneration...')
-
-                const newImagesFull = {
-                    square: buildPollinationsUrl(allData.imagePrompt, 1080, 1080),
-                    vertical: buildPollinationsUrl(allData.imagePrompt, 1080, 1920),
-                    horizontal: buildPollinationsUrl(allData.imagePrompt, 1200, 628)
-                }
-
-                const rfSquare = await robustUploadToCloudinary(newImagesFull.square);
-                const rfVertical = await robustUploadToCloudinary(newImagesFull.vertical);
-                const rfHorizontal = await robustUploadToCloudinary(newImagesFull.horizontal);
-
-                if (rfSquare.success) updatedAssets.imageUrl = rfSquare.secure_url;
-                updatedAssets.images = {
-                    square: rfSquare.secure_url || newImagesFull.square,
-                    vertical: rfVertical.secure_url || newImagesFull.vertical,
-                    horizontal: rfHorizontal.secure_url || newImagesFull.horizontal
-                }
-                break
-        }
-
-        // Update campaign in database
-        const currentMetadata = (currentAssets.editHistory ? currentAssets : { ...currentAssets, editHistory: [] }) as any;
-        await prisma.publicityCampaign.update({
-            where: { id: campaignId },
-            data: {
-                metadata: {
-                    generatedByAI: true,
-                    assets: updatedAssets,
-                    lastEdited: new Date().toISOString(),
-                    editHistory: [
-                        ...currentMetadata.editHistory,
-                        { instruction, timestamp: new Date().toISOString() }
-                    ]
-                },
-                imageUrl: updatedAssets.imageUrl || currentAssets.imageUrl
-            }
-        })
-
-        console.log('[AI] Elemento regenerado exitosamente ✓')
-        return {
-            success: true,
-            assets: updatedAssets,
-            elementType,
-            message: `✅ ${elementType === 'all' ? 'Campaña' : elementType === 'copy' ? 'Copy' : elementType === 'image' ? 'Imagen' : 'Video'} regenerado exitosamente`
-        }
-
-    } catch (error: any) {
-        console.error('[AI] Error regenerando elemento:', error)
-        return {
-            success: false,
-            error: error.message || 'Error regenerando el elemento',
-            details: error.toString()
-        }
-    }
-}
-
-// --- POLLING ACTION ---
 export async function checkAIAssetStatus(predictionId: string) {
-    try {
-        if (predictionId.startsWith('DONE|')) {
-            return { status: 'succeeded', url: predictionId.split('DONE|')[1] };
-        }
-        return { status: 'processing' };
-    } catch (error) {
-        console.error('Error polling asset:', error);
-        return { status: 'error' };
+    if (predictionId.startsWith('DONE|')) {
+        return { status: 'succeeded', url: predictionId.split('DONE|')[1] };
     }
-}
-
-/**
- * Special handler to ADD images to an existing campaign without overwriting everything.
- * This fulfills the user's request for "freedom" to grow the gallery.
- */
-async function addImagesToCampaign(campaignId: string, instruction: string, currentAssets: any) {
-    try {
-        console.log(`[AI-ADD-IMAGES] Agregando más fotos a la campaña ${campaignId}...`)
-
-        // 1. Determine how many to add
-        const countMatch = instruction.match(/(\d+)/)
-        const countToAdd = countMatch ? Math.max(1, Math.min(20, parseInt(countMatch[1]))) : 5
-
-        // 2. Generate a prompt for the new variations
-        const prompt = `Based on the existing campaign: "${currentAssets.internal_title}" and image prompt: "${currentAssets.imagePrompt}".
-        User instruction: "${instruction}"
-        Generate a VARIATION prompt in English that fits the aesthetic but provides a new perspective.`
-
-        const genResult = await geminiFlash.generateContent(prompt)
-        const variationPrompt = genResult.response.text().trim()
-
-        // 3. Find current gallery size to start indexing
-        const existingImages = currentAssets.images || {}
-        let startIndex = 0
-        while (existingImages[`img_${startIndex}`]) {
-            startIndex++
-        }
-
-        console.log(`[AI-ADD-IMAGES] Empezando desde img_${startIndex}, agregando ${countToAdd}...`)
-
-        const newImages: Record<string, string> = { ...existingImages }
-
-        for (let i = 0; i < countToAdd; i++) {
-            const index = startIndex + i
-            const id = `img_${index}`
-            const url = buildPollinationsUrl(`${variationPrompt}, angle ${index}`, 1080, 1080)
-
-            const res = await robustUploadToCloudinary(url)
-            if (res.success) {
-                newImages[id] = res.secure_url!
-            }
-        }
-
-        // 4. Update database
-        await prisma.publicityCampaign.update({
-            where: { id: campaignId },
-            data: {
-                metadata: {
-                    ...currentAssets,
-                    images: newImages,
-                    lastEdited: new Date().toISOString()
-                }
-            }
-        })
-
-        return {
-            success: true,
-            assets: { ...currentAssets, images: newImages },
-            message: `✅ Se han añadido ${countToAdd} fotos nuevas a la galería.`
-        }
-
-    } catch (error: any) {
-        console.error('[AI-ADD-IMAGES] Error:', error)
-        return { success: false, error: 'Error agregando imágenes' }
-    }
+    return { status: 'processing' };
 }

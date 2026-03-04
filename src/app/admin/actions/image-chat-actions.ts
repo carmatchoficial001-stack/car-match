@@ -80,7 +80,8 @@ Si vas a proponer el diseño final, responde:
         "x_twitter": { "caption": "Texto conciso y actual (280 caracteres)...", "hashtags": "#AutoNoticias" },
         "google_ads": { "caption": "Copia de venta directa y profesional...", "hashtags": "" },
         "snapchat": { "caption": "Texto efímero y juvenil...", "hashtags": "" },
-        "kwai": { "caption": "Estilo dinámico para videos cortos...", "hashtags": "#AutosKwai" }
+        "kwai": { "caption": "Estilo dinámico para videos cortos...", "hashtags": "#AutosKwai" },
+        "threads": { "caption": "Hilo o post de opinión/debate corto...", "hashtags": "#CarMatch #Trending" }
     }
 }
 

@@ -157,7 +157,7 @@ export default function ImageChat() {
                             Estudio de Imágenes
                         </h2>
                         <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">
-                            Director Creativo IA • 8 Plataformas • Vista Previa Real
+                            Director Creativo IA • 9 Plataformas • Vista Previa Real
                         </p>
                     </div>
                 </div>
@@ -346,7 +346,7 @@ function PromptProposalCard({
                             className="flex-1 py-4 bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-[11px] font-black uppercase tracking-wider rounded-xl hover:shadow-lg hover:shadow-violet-500/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 group"
                         >
                             <Zap className="w-4 h-4 group-hover:animate-pulse" />
-                            Generar Mesa de Trabajo (8 Redes)
+                            Generar Mesa de Trabajo (9 Redes)
                         </button>
                         <button
                             onClick={() => onVariation(msg.imagePrompt!, "Haz una variación creativa manteniendo la esencia")}
