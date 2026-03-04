@@ -6,6 +6,9 @@
 
 import { geminiFlashConversational, geminiFlash, geminiPro } from '@/lib/ai/geminiModels'
 import { prisma } from '@/lib/db'
+import { createCampaignFromAssets } from './publicity-actions'
+import { uploadUrlToCloudinary } from '@/lib/cloudinary-server'
+import { buildPollinationsUrl } from '@/lib/admin/utils'
 
 
 
@@ -563,8 +566,6 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         const verticalUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1920&seed=${seed}&nologo=true&model=flux`
         const horizontalUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=628&seed=${seed}&nologo=true&model=flux`
 
-        // 3. Create the campaign immediately with DRAFT status
-        const { createCampaignFromAssets } = await import('./publicity-actions')
         const finalAssets = {
             ...assets,
             imageUrl: squareUrl,
@@ -596,7 +597,6 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
 }
 
 
-import { buildPollinationsUrl } from '@/lib/admin/utils'
 
 /**
  * Regenerate a specific element of a campaign based on user instruction
@@ -664,7 +664,6 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
 
                 // 🔥 GENERATE AND UPLOAD NEW IMAGES
                 console.log('[AI] Generating new images for regeneration...')
-                const { uploadUrlToCloudinary } = await import('@/lib/cloudinary-server')
 
                 const newImages = {
                     square: buildPollinationsUrl(newImagePrompt, 1080, 1080),
@@ -740,7 +739,6 @@ export async function regenerateCampaignElement(campaignId: string, instruction:
 
                 // 🔥 GENERATE AND UPLOAD ALL IMAGES
                 console.log('[AI] Generating all new images for "all" regeneration...')
-                const { uploadUrlToCloudinary } = await import('@/lib/cloudinary-server')
 
                 const newImagesFull = {
                     square: buildPollinationsUrl(allData.imagePrompt, 1080, 1080),

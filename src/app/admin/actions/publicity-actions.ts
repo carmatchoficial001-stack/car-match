@@ -6,6 +6,7 @@
 
 import { prisma } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
+import { uploadUrlToCloudinary } from '@/lib/cloudinary-server'
 
 export async function getPublicityCampaigns() {
     try {
@@ -95,7 +96,6 @@ export async function createCampaignFromAssets(assets: any) {
             (assets.images && Object.values(assets.images).some((url: any) => typeof url === 'string' && url.includes(pollinationsDomain)));
 
         if (hasPollinationsImages) {
-            const { uploadUrlToCloudinary } = await import('@/lib/cloudinary-server')
 
             // 1. Upload main image
             let updatedMainImageUrl = campaignImage;
