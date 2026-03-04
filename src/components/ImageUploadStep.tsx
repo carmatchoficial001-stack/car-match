@@ -36,6 +36,7 @@ export default function ImageUploadStep({ images, onImagesChange, invalidImageUr
         setUploading(true)
 
         try {
+            console.log('📤 Subiendo portada a través de proxy...');
             const urls = await uploadMultipleToCloudinary(Array.from(files).slice(0, 1))
 
             // Si ya hay portada, reemplazarla
@@ -44,9 +45,14 @@ export default function ImageUploadStep({ images, onImagesChange, invalidImageUr
             } else {
                 onImagesChange([urls[0], ...images])
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error subiendo portada:', err)
-            setError(err instanceof Error ? err.message : 'Error al subir imagen')
+            const msg = err.message || 'Error desconocido'
+            if (msg.includes('fetch')) {
+                setError('⚠️ Error de conexión. Revisa tu internet e intenta de nuevo.')
+            } else {
+                setError(`❌ Error al subir: ${msg}`)
+            }
         } finally {
             setUploading(false)
         }
@@ -73,6 +79,7 @@ export default function ImageUploadStep({ images, onImagesChange, invalidImageUr
         setUploadingGallery(true)
 
         try {
+            console.log(`📤 Subiendo ${filesArray.length} fotos a galería...`);
             const urls = await uploadMultipleToCloudinary(filesArray)
 
             // Agregar a galería (después de la portada)
@@ -81,9 +88,14 @@ export default function ImageUploadStep({ images, onImagesChange, invalidImageUr
             } else {
                 onImagesChange([...images, ...urls])
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error subiendo galería:', err)
-            setError(err instanceof Error ? err.message : 'Error al subir imágenes')
+            const msg = err.message || 'Error desconocido'
+            if (msg.includes('fetch')) {
+                setError('⚠️ Error de conexión en galería. Intenta de nuevo.')
+            } else {
+                setError(`❌ Error en galería: ${msg}`)
+            }
         } finally {
             setUploadingGallery(false)
         }

@@ -55,24 +55,50 @@ export async function uploadToCloudinary(file: File): Promise<string> {
     // 🛡️ SECURITY: Especificar tipo para moderación en el backend
     formData.append('imageType', 'vehicle')
 
-    try {
-        // 🔥 MODIFICADO: Ahora usa el proxy interno para evitar bloqueos y CORS
-        const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData
-        })
+    // 🚀 REINTENTOS AUTOMÁTICOS (Resiliencia para usuarios reales)
+    const MAX_RETRIES = 3
+    let lastError: any = null
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}))
-            throw new Error(errorData.error || 'Error al subir imagen')
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            console.log(`🚀 Subida a Proxy (Intento ${attempt}/${MAX_RETRIES})...`)
+
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+                // Tiempo de espera para evitar colgar la conexión
+                signal: AbortSignal.timeout(30000) // 30s timeout
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}))
+                // Si es un error de moderación (400), NO reintentar
+                if (response.status === 400) {
+                    throw new Error(errorData.reason || errorData.error || 'Imagen rechazada')
+                }
+                throw new Error(errorData.error || `Error ${response.status} en servidor`)
+            }
+
+            const data: CloudinaryUploadResponse = await response.json()
+            console.log('✅ Subida exitosa a Cloudinary')
+            return data.secure_url
+
+        } catch (error: any) {
+            lastError = error
+            console.error(`❌ Fallo en intento ${attempt}:`, error.message)
+
+            // Si es error de moderación, no reintentamos
+            if (error.message.includes('rechazada')) throw error
+
+            // Esperar antes de reintentar (backoff exponencial)
+            if (attempt < MAX_RETRIES) {
+                const delay = attempt * 1000
+                await new Promise(resolve => setTimeout(resolve, delay))
+            }
         }
-
-        const data: CloudinaryUploadResponse = await response.json()
-        return data.secure_url
-    } catch (error) {
-        console.error('Error en Proxy upload:', error)
-        throw error
     }
+
+    throw new Error(`No se pudo subir la imagen tras ${MAX_RETRIES} intentos. Detalle: ${lastError.message}`)
 }
 
 /**

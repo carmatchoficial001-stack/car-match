@@ -14,6 +14,10 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 })
 
+// 🚀 CRITICAL: Aumentar tiempo de ejecución para subidas pesadas/lentas
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
     const session = await auth()
 

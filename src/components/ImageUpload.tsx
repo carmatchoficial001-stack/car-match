@@ -7,6 +7,7 @@
 import { useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { uploadToCloudinary } from '@/lib/cloudinary'
 
 // 🚀 Función de compresión de imágenes (nativa, sin dependencias)
 async function compressImage(file: File): Promise<File> {
@@ -76,28 +77,7 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5, lab
     const fileInputRef = useRef<HTMLInputElement>(null)
     const cameraInputRef = useRef<HTMLInputElement>(null)
 
-    const uploadToCloudinary = async (file: File): Promise<string> => {
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('imageType', imageType) // 🛡️ Enviar tipo para moderación
-
-        const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData,
-        })
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            // Si es error de moderación, lanzar el mensaje específico
-            if (errorData.reason) {
-                throw new Error(errorData.reason);
-            }
-            throw new Error(errorData.error || 'Error al subir imagen')
-        }
-
-        const data = await response.json()
-        return data.secure_url
-    }
+    // 🛡️ REMOVIDO: Usando utilidad centralizada lib/cloudinary.ts para mayor resiliencia
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || [])
