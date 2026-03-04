@@ -118,7 +118,7 @@ function AdminPanelContent() {
 
     const menuItems = [
         { id: 'overview', icon: LayoutDashboard, label: 'Panel de Control' },
-        { id: 'publicity', icon: Megaphone, label: 'Publicidad' },
+        { id: 'publicity', icon: Sparkles, label: 'Centro de Publicidad' },
         { id: 'intelligence', icon: Activity, label: 'Inteligencia' },
         { id: 'users', icon: Users, label: 'Usuarios' },
         { id: 'inventory', icon: Car, label: 'Inventario' },

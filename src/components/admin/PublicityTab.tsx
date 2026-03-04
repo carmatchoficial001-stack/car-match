@@ -1,671 +1,199 @@
-// 🚀 FORCE BUILD: 2026-02-18 11:41 (Fix platforms and unique context)
-// 🛡️ PROHIBIDO MODIFICAR SIN ORDEN EXPLÍCITA DEL USUARIO (Ver PROJECT_RULES.md)
-// ⚠️ CRITICAL WARNING: FILE PROTECTED BY PROJECT RULES.
-// DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER INSTRUCTION.
-
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-    Bot, User, Download, ImagePlus, Send, Save, X, Copy, Check, Video, ArrowRight, Info, Type as TypeIcon, Loader2,
-    Camera, ChevronDown, Globe, Sparkles, Megaphone, Search, Filter, Trash2, Edit, ExternalLink, RefreshCw
+    Sparkles, Camera, Video, ChevronRight, LayoutGrid,
+    Zap, Palette, PlayCircle, Star
 } from 'lucide-react'
-import {
-    getPublicityCampaigns,
-    createPublicityCampaign,
-    updatePublicityCampaign,
-    deletePublicityCampaign,
-    togglePublicityStatus,
-    manualTriggerSocialPost,
-    createCampaignFromAssets,
-    saveAIAssetUrl
-} from '@/app/admin/actions/publicity-actions'
-import {
-    chatWithPublicityAgent,
-    generateCampaignAssets,
-    checkAIAssetStatus,
-    regenerateCampaignElement
-} from '@/app/admin/actions/ai-content-actions'
-
-import MultiSceneVideoPlayer from '@/components/admin/MultiSceneVideoPlayer'
 import ImageChat from '@/components/admin/ImageChat'
 
-// Helper for MX Date
-const formatDateMX = (date: Date | string) => {
-    if (!date) return ''
-    return new Date(date).toLocaleDateString('es-MX', {
-        timeZone: 'America/Mexico_City',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    })
-}
-
-interface PublicityCampaign {
-    id: string
-    title: string
-    clientName: string | null
-    imageUrl: string
-    targetUrl: string | null
-    startDate: Date
-    endDate: Date
-    isActive: boolean
-    impressionCount: number
-    clickCount: number
-    socialMediaEnabled: boolean
-    lastSocialPost: Date | null
-    postingFrequencyHours: number
-    copywriting?: string
-    priority?: number
-    budget?: number
-    displayPriority?: number
-    socialPlatforms?: string[]
-    interests?: string[]
-    locations?: string[]
-    targetAudience?: string
-    redirectUrl?: string
-    metadata?: any
-}
+type PublicityView = 'HUB' | 'PHOTO_CHAT' | 'VIDEO_CHAT'
 
 export default function PublicityTab() {
-    const [campaigns, setCampaigns] = useState<PublicityCampaign[]>([])
-    const [loading, setLoading] = useState(true)
-    const [showModal, setShowModal] = useState(false)
-    const [viewMode, setViewMode] = useState<'CAMPAIGNS' | 'IMAGE_CHAT'>('CAMPAIGNS')
-    const [selectedCampaign, setSelectedCampaign] = useState<PublicityCampaign | null>(null)
+    const [viewMode, setViewMode] = useState<PublicityView>('HUB')
 
-    // Assets Generation State
-    const [generatedAssets, setGeneratedAssets] = useState<any>(null)
-    const [showAssetsModal, setShowAssetsModal] = useState(false)
-
-
-    // Campaign Edit Chat State
-    const [showEditChat, setShowEditChat] = useState(false)
-    const [editingCampaign, setEditingCampaign] = useState<PublicityCampaign | null>(null)
-    const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([])
-    const [isRegenerating, setIsRegenerating] = useState(false)
-    const [chatInput, setChatInput] = useState('')
-
-    useEffect(() => {
-        const handleOpenAssets = (e: any) => {
-            setGeneratedAssets(e.detail)
-            setShowAssetsModal(true)
-            setViewMode('CAMPAIGNS')
-        }
-        window.addEventListener('open-campaign-assets', handleOpenAssets)
-        return () => window.removeEventListener('open-campaign-assets', handleOpenAssets)
-    }, [])
-
-    // Listen for campaign created event from AI Studio
-    useEffect(() => {
-        const handleCampaignCreated = (e: any) => {
-            // Automatically switch to CAMPAIGNS view
-            setViewMode('CAMPAIGNS')
-            // Refresh campaigns list
-            fetchCampaigns()
-
-            // ✨ AUTO-OPEN AD PACK for instant gratification
-            if (e.detail) {
-                try {
-                    // e.detail is the campaign object
-                    // We need to parse metadata to get assets
-                    const campaign = e.detail
-                    if (campaign.metadata) {
-                        let meta = typeof campaign.metadata === 'string'
-                            ? JSON.parse(campaign.metadata)
-                            : campaign.metadata
-
-                        if (!meta) meta = {};
-                        // Handle double-stringified metadata sometimes stored by createCampaignFromAssets
-                        if (typeof meta === 'string') {
-                            try {
-                                meta = JSON.parse(meta);
-                            } catch (e) {
-                                meta = {};
-                            }
-                        }
-
-                        let assets = meta.assets
-                        if (typeof assets === 'string') {
-                            try {
-                                assets = JSON.parse(assets)
-                            } catch (e) {
-                                console.error('Error parsing nested assets string in auto-open', e)
-                            }
-                        }
-
-                        if (assets) {
-                            setGeneratedAssets(assets)
-                            setShowAssetsModal(true)
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error auto-opening campaign assets:', error)
-                }
-            }
-        }
-        window.addEventListener('campaign-created', handleCampaignCreated)
-
-        // Evento para actualizar IDs en tiempo real (Polling Front-end) sin cerrar/parpadear el modal
-        const handleUpdateAssets = (e: any) => {
-            const updatedData = e.detail;
-            setGeneratedAssets((prev: any) => {
-                if (!prev) return updatedData;
-                return {
-                    ...prev,
-                    imagePendingIds: {
-                        ...(prev.imagePendingIds || {}),
-                        ...(updatedData.imagePendingIds || {})
-                    }
-                };
-            });
-        };
-        window.addEventListener('update-campaign-assets', handleUpdateAssets);
-
-        return () => {
-            window.removeEventListener('campaign-created', handleCampaignCreated)
-            window.removeEventListener('update-campaign-assets', handleUpdateAssets)
-        }
-    }, [])
-
-    useEffect(() => {
-        if (viewMode === 'CAMPAIGNS') {
-            fetchCampaigns()
-        }
-    }, [viewMode])
-
-
-    const fetchCampaigns = async () => {
-        setLoading(true)
-        const res = await getPublicityCampaigns()
-        if (res.success) {
-            setCampaigns(res.data as PublicityCampaign[])
-        }
-        setLoading(false)
+    if (viewMode === 'PHOTO_CHAT') {
+        return (
+            <div className="h-full flex flex-col animate-in fade-in duration-500">
+                <div className="px-6 py-3 border-b border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-xl">
+                    <button
+                        onClick={() => setViewMode('HUB')}
+                        className="flex items-center gap-2 text-xs font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-widest"
+                    >
+                        <ChevronRight className="w-4 h-4 rotate-180" />
+                        Volver al Hub
+                    </button>
+                    <div className="flex items-center gap-2 text-[10px] font-black text-violet-400 uppercase tracking-[0.2em]">
+                        <Camera className="w-3 h-3" /> Estudio de Fotos Activo
+                    </div>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                    <ImageChat />
+                </div>
+            </div>
+        )
     }
 
-    // Proactive polling for pending assets
-    useEffect(() => {
-        if (!showAssetsModal || !generatedAssets) return;
-
-        const pIds: any[] = [];
-        if (generatedAssets.videoPendingId) pIds.push({ id: generatedAssets.videoPendingId, type: 'video' });
-        if (generatedAssets.imagePendingIds?.square) pIds.push({ id: generatedAssets.imagePendingIds.square, type: 'image_square' });
-        if (generatedAssets.imagePendingIds?.vertical) pIds.push({ id: generatedAssets.imagePendingIds.vertical, type: 'image_vertical' });
-        if (generatedAssets.imagePendingIds?.horizontal) pIds.push({ id: generatedAssets.imagePendingIds.horizontal, type: 'image_horizontal' });
-
-        if (pIds.length === 0) return;
-
-        console.log('[POLL-ADPACK] Monitoreando assets pendientes...', pIds);
-
-        const interval = setInterval(async () => {
-            const results = await Promise.all(pIds.map(async (p) => {
-                const res = await checkAIAssetStatus(p.id);
-                return { ...p, ...res };
-            }));
-
-            results.forEach(async (res) => {
-                if (res.status === 'succeeded' && res.url) {
-                    console.log(`[POLL-ADPACK] Asset ${res.type} listo!`, res.url);
-
-                    // Find campaign ID to persist
-                    const campaignId = campaigns.find(c => {
-                        try {
-                            const meta = typeof c.metadata === 'string' ? JSON.parse(c.metadata) : c.metadata;
-                            return meta?.assets?.videoPendingId === generatedAssets.videoPendingId ||
-                                meta?.assets?.imagePendingIds?.square === generatedAssets.imagePendingIds?.square;
-                        } catch { return false; }
-                    })?.id;
-
-                    if (campaignId) {
-                        await saveAIAssetUrl(campaignId, res.type, res.url);
-                    }
-
-                    // Refresh UI
-                    setGeneratedAssets((prev: any) => {
-                        if (!prev) return prev;
-                        const next = { ...prev };
-                        if (res.type === 'video') { next.videoUrl = res.url; next.videoPendingId = null; }
-                        else if (res.type.startsWith('image_')) {
-                            const imgType = res.type.split('_')[1];
-                            if (!next.images) next.images = {};
-                            next.images[imgType] = res.url;
-                            if (next.imagePendingIds) next.imagePendingIds[imgType] = null;
-                            if (imgType === 'square') next.imageUrl = res.url;
-                        }
-                        return next;
-                    });
-                }
-            });
-        }, 5000);
-
-        return () => clearInterval(interval);
-    }, [showAssetsModal, generatedAssets, campaigns]);
-
-    useEffect(() => {
-        fetchCampaigns()
-    }, [])
-
-    const handleCreate = () => {
-        setSelectedCampaign(null)
-        setShowModal(true)
-    }
-
-    const handleEdit = (campaign: PublicityCampaign) => {
-        setSelectedCampaign(campaign)
-        setShowModal(true)
-    }
-
-    const handleDelete = async (id: string) => {
-        if (confirm('¿Estás seguro de eliminar esta campaña?')) {
-            await deletePublicityCampaign(id)
-            fetchCampaigns()
-        }
-    }
-
-    const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-        await togglePublicityStatus(id, currentStatus)
-        fetchCampaigns()
-    }
-
-    const handleManualPost = async (id: string) => {
-        const res = await manualTriggerSocialPost(id)
-        if (res.success) {
-            alert('✅ Publicado en redes sociales (simulado)')
-            fetchCampaigns()
-        } else {
-            alert('Error al publicar')
-        }
-    }
-
-    const handleOpenAdPack = (campaign: PublicityCampaign) => {
-        // Safe metadata handling
-        const rawMetadata = (campaign as any).metadata
-        if (!rawMetadata) {
-            alert('Esta campaña no tiene assets de IA generados.')
-            return
-        }
-
-        try {
-            let meta = typeof rawMetadata === 'string' ? JSON.parse(rawMetadata) : rawMetadata
-
-            // Handle double-stringified assets if they exist
-            let assets = meta.assets
-            if (typeof assets === 'string') {
-                try {
-                    assets = JSON.parse(assets)
-                } catch (e) {
-                    console.error('Error parsing nested assets string', e)
-                }
-            }
-
-            if (assets) {
-                const campaignId = campaign.id
-                setGeneratedAssets({ ...assets, id: campaignId, campaignId })
-
-                setShowAssetsModal(true)
-            } else {
-                alert('Esta campaña no tiene assets de IA generados.')
-            }
-        } catch (e) {
-            console.error('Error parsing campaign metadata', e)
-            alert('Error al leer los assets de la campaña.')
-        }
-    }
-
-    const handleRetryScene = (sceneId: number) => {
-        // Retry scene not available without production context
-        console.log('Retry scene:', sceneId)
-    }
-    const handleOpenEditChat = (campaign: PublicityCampaign) => {
-        setEditingCampaign(campaign)
-        setChatMessages([{
-            role: 'assistant',
-            content: `¡Hola! Soy tu asistente de edición para la campaña **${campaign.title}**.\n\n✨ Puedo ayudarte a:\n• "Mejora el video"\n• "Cambia la imagen a un auto rojo"\n• "Haz el copy más corto"\n\n¿Qué quieres editar?`
-        }])
-        setShowEditChat(true)
-    }
-
-    const handleSendChatMessage = async () => {
-        if (!chatInput.trim() || !editingCampaign || isRegenerating) return
-
-        const userMessage = chatInput.trim()
-        setChatInput('')
-
-        // Add user message to chat
-        setChatMessages(prev => [...prev, { role: 'user', content: userMessage }])
-        setIsRegenerating(true)
-
-        try {
-            // Get current campaign metadata
-            const rawMeta = (editingCampaign as any).metadata;
-            let metadata: any = {};
-            if (rawMeta) {
-                metadata = typeof rawMeta === 'string' ? JSON.parse(rawMeta) : rawMeta;
-            }
-            const currentAssets = metadata.assets || {}
-
-            // Call regenerate API
-            const result = await regenerateCampaignElement(editingCampaign.id, userMessage, currentAssets)
-
-            if (result.success) {
-                // Update local editingCampaign state to prevent stale data on next edit
-                const newMetadata = { ...metadata, assets: result.assets }
-                setEditingCampaign({
-                    ...editingCampaign,
-                    metadata: JSON.stringify(newMetadata),
-                    imageUrl: result.assets.imageUrl || editingCampaign.imageUrl
-                } as any)
-
-                setChatMessages(prev => [...prev, {
-                    role: 'assistant',
-                    content: result.message + '\n\n✅ La campaña ha sido actualizada. Los cambios ya están guardados.'
-                }])
-                // Refresh campaigns to show updated data in the list
-                fetchCampaigns()
-            } else {
-                setChatMessages(prev => [...prev, {
-                    role: 'assistant',
-                    content: `❌ Error: ${result.error}\n\nIntenta ser más específico o usa instrucciones más simples.`
-                }])
-            }
-        } catch (error: any) {
-            setChatMessages(prev => [...prev, {
-                role: 'assistant',
-                content: `❌ Error: ${error.message || 'Error desconocido'}`
-            }])
-        } finally {
-            setIsRegenerating(false)
-        }
-    }
-
-    const handleCloseEditChat = () => {
-        setShowEditChat(false)
-        setEditingCampaign(null)
-        setChatMessages([])
-        setChatInput('')
+    if (viewMode === 'VIDEO_CHAT') {
+        return (
+            <div className="h-full flex flex-col animate-in fade-in duration-500">
+                <div className="px-6 py-3 border-b border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-xl">
+                    <button
+                        onClick={() => setViewMode('HUB')}
+                        className="flex items-center gap-2 text-xs font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-widest"
+                    >
+                        <ChevronRight className="w-4 h-4 rotate-180" />
+                        Volver al Hub
+                    </button>
+                    <div className="flex items-center gap-2 text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">
+                        <Video className="w-3 h-3" /> Estudio de Video Activo
+                    </div>
+                </div>
+                <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                    <div className="w-24 h-24 rounded-[2.5rem] bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-8 shadow-2xl shadow-indigo-500/10">
+                        <PlayCircle className="w-12 h-12 text-indigo-400" />
+                    </div>
+                    <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase mb-4">Próximamente: Video Studio AI</h2>
+                    <p className="max-w-md text-zinc-500 font-bold text-sm leading-relaxed uppercase tracking-wider">
+                        Estamos perfeccionando el motor de video para crear piezas virales automáticas.
+                    </p>
+                    <div className="mt-12 grid grid-cols-2 gap-4 w-full max-w-lg">
+                        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl text-left">
+                            <Zap className="w-6 h-6 text-indigo-400 mb-4" />
+                            <h4 className="text-xs font-black text-white uppercase mb-2">Reels Automáticos</h4>
+                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-normal">Generación de escenas dinámicas con música.</p>
+                        </div>
+                        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl text-left">
+                            <Palette className="w-6 h-6 text-indigo-400 mb-4" />
+                            <h4 className="text-xs font-black text-white uppercase mb-2">Edición Pro</h4>
+                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-normal">Control total sobre el color y ritmo via chat.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
     }
 
     return (
-        <div className="h-full flex flex-col">
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
-                    <div className="flex items-center gap-1 bg-zinc-900/50 p-1 rounded-xl border border-white/5 shrink-0">
-                        <button
-                            onClick={() => setViewMode('CAMPAIGNS')}
-                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-2 ${viewMode === 'CAMPAIGNS' ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/20' : 'text-white/40 hover:text-white'}`}
-                        >
-                            <Megaphone className="w-4 h-4" />
-                            Campañas
-                        </button>
-                        <button
-                            onClick={() => setViewMode('IMAGE_CHAT')}
-                            className={`px-3 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-2 ${viewMode === 'IMAGE_CHAT' ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/20' : 'text-white/40 hover:text-white'}`}
-                        >
-                            <ImagePlus className="w-4 h-4" />
-                            Estudio Imagen
-                        </button>
-                    </div>
-                </div>
+        <div className="h-full flex flex-col p-8 space-y-8 overflow-y-auto custom-scrollbar">
+            {/* Header */}
+            <div className="relative overflow-hidden p-8 rounded-[3rem] bg-gradient-to-br from-indigo-500/10 via-zinc-900/50 to-fuchsia-500/10 border border-white/5">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 blur-[120px] -mr-48 -mt-48 rounded-full" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-fuchsia-500/10 blur-[100px] -ml-32 -mb-32 rounded-full" />
 
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-3">
-                        {/* Manual creation button removed */}
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="px-3 py-1 bg-primary-500/20 border border-primary-500/30 rounded-full text-[9px] font-black text-primary-400 uppercase tracking-widest shadow-lg shadow-primary-500/10">
+                                <Sparkles className="w-3 h-3 inline-block mr-1 mb-0.5" /> IA Creative Suite
+                            </div>
+                        </div>
+                        <h1 className="text-5xl font-black text-white uppercase italic tracking-tighter leading-none mb-3">
+                            Centro de <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-white to-fuchsia-400">Publicidad</span>
+                        </h1>
+                        <p className="text-sm text-zinc-500 font-bold uppercase tracking-widest max-w-md">
+                            Selecciona una herramienta especializada para potenciar tu marca con Inteligencia Artificial.
+                        </p>
+                    </div>
+                    <div className="hidden lg:flex items-center gap-3">
+                        <div className="p-4 bg-white/5 border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-1 min-w-[100px]">
+                            <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                            <span className="text-[10px] font-black text-white">PRO</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="flex-1 bg-zinc-950/50 border border-white/5 rounded-3xl overflow-hidden relative backdrop-blur-sm flex flex-col">
-                {viewMode === 'IMAGE_CHAT' ? (
-                    <ImageChat />
-                ) : (
-                    <>
-                        {/* Header Simplificado */}
-                        <div className="p-8 border-b border-white/5 bg-gradient-to-br from-indigo-500/10 via-transparent to-transparent relative overflow-hidden shrink-0">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] -mr-32 -mt-32 rounded-full" />
-                            <div className="relative z-10">
-                                <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-1">Mis Campañas</h2>
-                                <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Contenido Exclusivo CarMatch</p>
+            {/* Hub Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Image Studio Card */}
+                <motion.button
+                    whileHover={{ y: -10, scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setViewMode('PHOTO_CHAT')}
+                    className="relative group h-[400px] rounded-[3.5rem] overflow-hidden border border-white/10 shadow-2xl transition-all"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-br from-violet-600/40 via-black to-black z-10" />
+                    <img
+                        src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200"
+                        className="absolute inset-0 w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:scale-110 group-hover:opacity-80 transition-all duration-700"
+                        alt="Photos"
+                    />
+
+                    <div className="absolute inset-0 z-20 p-10 flex flex-col justify-between">
+                        <div className="w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center group-hover:bg-violet-500 group-hover:rotate-12 transition-all duration-500">
+                            <Camera className="w-8 h-8 text-white" />
+                        </div>
+                        <div className="text-left">
+                            <h3 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4 group-hover:translate-x-3 transition-transform">Estudio de Fotos <span className="block text-xl text-violet-400 not-italic">Creative Director</span></h3>
+                            <p className="text-xs text-zinc-400 font-bold uppercase tracking-[0.2em] leading-relaxed max-w-xs group-hover:text-white transition-colors">
+                                Genera packs de 8 redes sociales con captions virales y descarga HD instantánea.
+                            </p>
+                            <div className="mt-8 flex items-center gap-2 text-violet-400 font-black uppercase text-[10px] tracking-widest opacity-0 group-hover:opacity-100 transition-all">
+                                Entrar ahora <ChevronRight className="w-4 h-4" />
                             </div>
                         </div>
+                    </div>
+                </motion.button>
 
-                        {/* Search Bar & Filters */}
-                        <div className="p-4 border-b border-white/5 flex items-center gap-4 shrink-0">
-                            <div className="relative flex-1 max-w-md">
-                                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar campaña..."
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary-500 text-white"
-                                />
+                {/* Video Studio Card */}
+                <motion.button
+                    whileHover={{ y: -10, scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setViewMode('VIDEO_CHAT')}
+                    className="relative group h-[400px] rounded-[3.5rem] overflow-hidden border border-white/10 shadow-2xl transition-all"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/40 via-black to-black z-10" />
+                    <img
+                        src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&q=80&w=1200"
+                        className="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:scale-110 group-hover:opacity-70 transition-all duration-700"
+                        alt="Video"
+                    />
+
+                    <div className="absolute inset-0 z-20 p-10 flex flex-col justify-between">
+                        <div className="w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center group-hover:bg-indigo-500 group-hover:-rotate-12 transition-all duration-500">
+                            <Video className="w-8 h-8 text-white" />
+                        </div>
+                        <div className="text-left">
+                            <h3 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4 group-hover:translate-x-3 transition-transform">Video Studio <span className="block text-xl text-indigo-400 not-italic">Motion Artist AI</span></h3>
+                            <p className="text-xs text-zinc-400 font-bold uppercase tracking-[0.2em] leading-relaxed max-w-xs group-hover:text-white transition-colors">
+                                Crea reels y videos dinámicos para tus campañas automotrices.
+                            </p>
+                            <div className="mt-8 flex items-center gap-2 text-indigo-400 font-black uppercase text-[10px] tracking-widest opacity-40 group-hover:opacity-100 transition-all">
+                                Próximamente <ChevronRight className="w-4 h-4" />
                             </div>
-                            <button className="p-2 bg-white/5 border border-white/10 rounded-lg hover:text-primary-500 transition text-text-secondary">
-                                <Filter className="w-4 h-4" />
-                            </button>
                         </div>
-
-                        {/* Campaign List - PREMIUM GRID */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
-                            {loading ? (
-                                <div className="p-12 text-center text-text-secondary animate-pulse flex flex-col items-center gap-4">
-                                    <RefreshCw className="w-8 h-8 animate-spin text-primary-500" />
-                                    <p className="font-bold tracking-widest text-[10px] uppercase">Sincronizando Campañas...</p>
-                                </div>
-                            ) : campaigns.length === 0 ? (
-                                <div className="p-12 text-center text-text-secondary flex flex-col items-center">
-                                    <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
-                                        <Megaphone className="w-10 h-10 opacity-20" />
-                                    </div>
-                                    <p className="text-zinc-500 font-medium">No hay campañas iniciadas</p>
-                                    <button onClick={handleCreate} className="mt-4 px-6 py-2 bg-primary-600/20 border border-primary-500/30 text-primary-400 rounded-xl font-bold text-xs hover:bg-primary-600/30 transition shadow-lg shadow-primary-900/10">
-                                        LANZAR MI PRIMERA CAMPAÑA
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 pb-20">
-                                    {campaigns.map(campaign => {
-                                        const metadata = parseMetadata(campaign);
-                                        const isVideo = metadata.type === 'video'
-
-                                        return (
-                                            <div key={campaign.id} className="group relative bg-[#121214] border border-white/5 rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:border-indigo-500/30 hover:shadow-[0_20px_40px_-15px_rgba(99,102,241,0.15)] flex flex-col h-full">
-                                                {/* ASSET PREVIEW */}
-                                                <div className="aspect-[4/5] w-full bg-black relative overflow-hidden group/thumb">
-                                                    <img
-                                                        src={campaign.imageUrl}
-                                                        alt={campaign.title}
-                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover/thumb:scale-110 opacity-80 group-hover/thumb:opacity-100"
-                                                        onError={(e) => {
-                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1000'
-                                                        }}
-                                                    />
-
-                                                    {/* STATUS BADGE */}
-                                                    <div className="absolute top-4 left-4 flex items-center gap-2">
-                                                        <div className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider backdrop-blur-md border ${campaign.isActive
-                                                            ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                                                            : 'bg-red-500/20 text-red-400 border-red-500/30'}`}>
-                                                            {campaign.isActive ? '• En Vivo' : 'Pausada'}
-                                                        </div>
-                                                        {isVideo && (
-                                                            <div className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 backdrop-blur-md">
-                                                                Video
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    {/* QUICK ACTIONS OVERLAY */}
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center p-6 gap-3">
-                                                        <button
-                                                            onClick={() => handleOpenAdPack(campaign)}
-                                                            className="flex-1 bg-white text-black py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-indigo-500 hover:text-white transition-colors duration-300"
-                                                        >
-                                                            <Globe className="w-3.5 h-3.5" /> Ad Pack
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleOpenEditChat(campaign)}
-                                                            className="w-12 h-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300"
-                                                            title="Editar con IA"
-                                                        >
-                                                            <Sparkles className="w-5 h-5" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* CONTENT */}
-                                                <div className="p-6 flex flex-col flex-1">
-                                                    <div className="flex items-start justify-between mb-2">
-                                                        <h4 className="font-black text-sm text-white line-clamp-1 flex-1">{campaign.title}</h4>
-                                                        <div className="flex items-center gap-1.5 ml-2">
-                                                            <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-mono">
-                                                                <Globe className="w-3 h-3" /> {campaign.impressionCount}
-                                                            </div>
-                                                            <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-mono border-l border-white/5 pl-2">
-                                                                <ExternalLink className="w-3 h-3" /> {campaign.clickCount}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-4">
-                                                        {campaign.clientName || 'PRODUCCIÓN INTERNA'}
-                                                    </p>
-
-                                                    <div className="mt-auto flex items-center justify-between gap-4">
-                                                        <button
-                                                            onClick={() => handleToggleStatus(campaign.id, campaign.isActive)}
-                                                            className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
-                                                        >
-                                                            {campaign.isActive ? 'Pausar' : 'Activar'}
-                                                        </button>
-
-                                                        <div className="flex items-center gap-2">
-                                                            <button onClick={() => handleEdit(campaign)} className="p-2 text-zinc-500 hover:text-white transition-colors">
-                                                                <Edit className="w-4 h-4" />
-                                                            </button>
-                                                            <button onClick={() => handleDelete(campaign.id)} className="p-2 text-zinc-500 hover:text-red-400 transition-colors">
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    </>
-                )}
+                    </div>
+                </motion.button>
             </div>
 
-            <CampaignModal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                campaign={selectedCampaign}
-                onSuccess={() => {
-                    fetchCampaigns()
-                    setShowModal(false)
-                }}
-            />
-
-            <CampaignAssetsModal
-                isOpen={showAssetsModal}
-                onClose={() => setShowAssetsModal(false)}
-                assets={generatedAssets}
-                campaignId={generatedAssets?.campaignId || generatedAssets?.id}
-                onOpenEditChat={() => {
-                    const c = campaigns.find(cam => cam.id === (generatedAssets?.campaignId || generatedAssets?.id))
-                    if (c) handleOpenEditChat(c)
-                }}
-            />
-
-            {/* Campaign Edit Chat Modal */}
-            <AnimatePresence>
-                {showEditChat && editingCampaign && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-end bg-black/80 backdrop-blur-sm"
-                        onClick={handleCloseEditChat}
-                    >
-                        <motion.div
-                            initial={{ y: '100%' }}
-                            animate={{ y: 0 }}
-                            exit={{ y: '100%' }}
-                            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-full h-[90vh] bg-gradient-to-b from-[#1a1a2e] to-black rounded-t-3xl shadow-2xl flex flex-col overflow-hidden"
-                        >
-                            {/* Header */}
-                            <div className="p-4 border-b border-white/10 bg-gradient-to-r from-purple-900/20 to-indigo-900/20 flex items-center justify-between backdrop-blur-xl sticky top-0 z-10">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-900/40">
-                                        <Sparkles className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <h2 className="font-black text-lg text-white">Editar con IA</h2>
-                                        <p className="text-xs text-purple-300 font-medium">{editingCampaign.title}</p>
-                                    </div>
-                                </div>
-                                <button onClick={handleCloseEditChat} className="p-3 hover:bg-white/10 rounded-xl transition">
-                                    <X className="w-6 h-6 text-white/70" />
-                                </button>
-                            </div>
-
-                            {/* Messages Area */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
-                                {chatMessages.map((msg, idx) => (
-                                    <div key={idx} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                                        <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-lg ${msg.role === 'user' ? 'bg-zinc-700' : 'bg-gradient-to-br from-purple-600 to-indigo-600'}`}>
-                                            {msg.role === 'user' ? <User className='w-5 h-5 text-white' /> : <Sparkles className="w-5 h-5 text-white" />}
-                                        </div>
-                                        <div className={`max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${msg.role === 'user' ? 'bg-zinc-800 text-white rounded-tr-none' : 'bg-[#1A1D21] text-gray-200 border border-white/5 rounded-tl-none'}`}>
-                                            {msg.content}
-                                        </div>
-                                    </div>
-                                ))}
-                                {isRegenerating && (
-                                    <div className="flex gap-3">
-                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shrink-0 animate-pulse">
-                                            <Sparkles className="w-5 h-5 text-white" />
-                                        </div>
-                                        <div className="bg-[#1A1D21] px-4 py-3 rounded-2xl rounded-tl-none border border-white/5 flex items-center gap-2 text-sm text-purple-300">
-                                            <RefreshCw className="w-4 h-4 animate-spin" />
-                                            <span>Regenerando...</span>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Input Area - Táctil */}
-                            <div className="p-4 border-t border-white/10 bg-black/50 backdrop-blur-xl">
-                                <div className="flex gap-3">
-                                    <input
-                                        type="text"
-                                        value={chatInput}
-                                        onChange={(e) => setChatInput(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && !isRegenerating && handleSendChatMessage()}
-                                        placeholder="Ej: Mejora el video, Cambia la imagen..."
-                                        disabled={isRegenerating}
-                                        className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 disabled:opacity-50 text-base min-h-[52px]"
-                                    />
-                                    <button
-                                        onClick={handleSendChatMessage}
-                                        disabled={!chatInput.trim() || isRegenerating}
-                                        className="min-w-[52px] min-h-[52px] bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl flex items-center justify-center shadow-lg shadow-purple-900/40 transition"
-                                    >
-                                        <Send className="w-6 h-6 text-white" />
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div >
+            {/* Bottom Info */}
+            <div className="flex flex-col md:flex-row gap-6 mt-4">
+                <div className="flex-1 p-6 rounded-3xl bg-white/[0.02] border border-white/5 flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-primary-500/10 flex items-center justify-center shrink-0">
+                        <Zap className="w-5 h-5 text-primary-500" />
+                    </div>
+                    <div>
+                        <h4 className="text-xs font-black text-white uppercase tracking-widest mb-1">Workflow Instantáneo</h4>
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-normal">
+                            Sin esperas de aprobación. Crea, descarga y publica manualmente en segundos.
+                        </p>
+                    </div>
+                </div>
+                <div className="flex-1 p-6 rounded-3xl bg-white/[0.02] border border-white/5 flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center shrink-0">
+                        <LayoutGrid className="w-5 h-5 text-indigo-500" />
+                    </div>
+                    <div>
+                        <h4 className="text-xs font-black text-white uppercase tracking-widest mb-1">Ecosistema CarMatch</h4>
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-normal">
+                            Todas tus herramientas creativas centralizadas en un solo hub de alto rendimiento.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
     )
 }
 
