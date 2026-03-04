@@ -10,6 +10,7 @@ import { geminiFlashConversational } from '@/lib/ai/geminiModels'
  * Generates a Pollinations.ai image URL from a prompt
  */
 import { buildPollinationsUrl } from '@/lib/admin/utils'
+import { uploadUrlToCloudinary } from '@/lib/cloudinary-server'
 
 /**
  * Platform configurations with their optimal image sizes
@@ -102,7 +103,7 @@ REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
             new Promise<never>((_, reject) =>
                 setTimeout(() => reject(new Error('TIMEOUT')), 15000)
             )
-        ])
+        ]) as any
 
         let responseText = result.response.text().trim()
         // Clean markdown wrappers
@@ -112,11 +113,33 @@ REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
         const data = JSON.parse(responseText)
 
         if (data.type === 'PROMPT_READY' && data.imagePrompt) {
+            // 🔥 NEW: Upload to Cloudinary to bypass Pollinations block
+            console.log('[IMAGE-CHAT] Uploading generated images to Cloudinary...')
+            const imagePrompt = data.imagePrompt
+            const rawImages = {
+                square: buildPollinationsUrl(imagePrompt, 1080, 1080),
+                vertical: buildPollinationsUrl(imagePrompt, 1080, 1920),
+                horizontal: buildPollinationsUrl(imagePrompt, 1200, 628)
+            }
+
+            const uploadResults = await Promise.all([
+                uploadUrlToCloudinary(rawImages.square),
+                uploadUrlToCloudinary(rawImages.vertical),
+                uploadUrlToCloudinary(rawImages.horizontal)
+            ])
+
+            const finalImages = {
+                square: uploadResults[0].success ? uploadResults[0].secure_url! : rawImages.square,
+                vertical: uploadResults[1].success ? uploadResults[1].secure_url! : rawImages.vertical,
+                horizontal: uploadResults[2].success ? uploadResults[2].secure_url! : rawImages.horizontal
+            }
+
             return {
                 success: true,
                 type: 'PROMPT_READY' as const,
                 message: data.message || 'Propuesta creativa lista 🔥',
                 imagePrompt: data.imagePrompt,
+                images: finalImages,
                 platforms: data.platforms || {},
             }
         }
@@ -168,14 +191,28 @@ Respond with JSON:
         const data = JSON.parse(text)
         const imagePrompt = data.imagePrompt
 
+        // 🔥 NEW: Upload to Cloudinary
+        console.log('[IMAGE-VARIATION] Uploading variation to Cloudinary...')
+        const rawImages = {
+            square: buildPollinationsUrl(imagePrompt, 1080, 1080),
+            vertical: buildPollinationsUrl(imagePrompt, 1080, 1920),
+            horizontal: buildPollinationsUrl(imagePrompt, 1200, 628),
+        }
+
+        const uploadResults = await Promise.all([
+            uploadUrlToCloudinary(rawImages.square),
+            uploadUrlToCloudinary(rawImages.vertical),
+            uploadUrlToCloudinary(rawImages.horizontal)
+        ])
+
         return {
             success: true,
             message: data.message || 'Variación lista',
             imagePrompt,
             images: {
-                square: buildPollinationsUrl(imagePrompt, 1080, 1080),
-                vertical: buildPollinationsUrl(imagePrompt, 1080, 1920),
-                horizontal: buildPollinationsUrl(imagePrompt, 1200, 628),
+                square: uploadResults[0].success ? uploadResults[0].secure_url! : rawImages.square,
+                vertical: uploadResults[1].success ? uploadResults[1].secure_url! : rawImages.vertical,
+                horizontal: uploadResults[2].success ? uploadResults[2].secure_url! : rawImages.horizontal,
             }
         }
     } catch (error: any) {

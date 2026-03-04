@@ -100,11 +100,11 @@ export default function ImageChat() {
                 content: result.message || '',
                 type: result.type,
                 imagePrompt: result.type === 'PROMPT_READY' ? result.imagePrompt : undefined,
-                images: result.type === 'PROMPT_READY' ? {
+                images: result.type === 'PROMPT_READY' ? (result.images || {
                     square: buildPollinationsUrl(result.imagePrompt!, 1080, 1080),
                     vertical: buildPollinationsUrl(result.imagePrompt!, 1080, 1920),
                     horizontal: buildPollinationsUrl(result.imagePrompt!, 1200, 628)
-                } : undefined,
+                }) : undefined,
                 platforms: result.type === 'PROMPT_READY' ? result.platforms : undefined,
                 timestamp: new Date()
             }

@@ -123,7 +123,7 @@ export async function createCampaignFromAssets(assets: any) {
             }
 
             // 3. Update database with Cloudinary URLs
-            await prisma.publicityCampaign.update({
+            const updatedCampaign = await prisma.publicityCampaign.update({
                 where: { id: campaign.id },
                 data: {
                     imageUrl: updatedMainImageUrl,
@@ -139,6 +139,10 @@ export async function createCampaignFromAssets(assets: any) {
                     }
                 }
             })
+
+            console.log('[CAMPAIGN-AUTO-SAVE] Success! Campaign ID:', campaign.id);
+            revalidatePath('/admin')
+            return { success: true, campaign: updatedCampaign, message: `Campaña "${title}" creada exitosamente` }
         }
 
         console.log('[CAMPAIGN-AUTO-SAVE] Success! Campaign ID:', campaign.id);

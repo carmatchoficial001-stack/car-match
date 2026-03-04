@@ -580,13 +580,13 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
             }
         }
 
-        const res = await createCampaignFromAssets(finalAssets)
+        const res = await createCampaignFromAssets(finalAssets) as any
 
         return {
             success: true,
             message: 'Assets generated and campaign created in draft mode.',
             campaign: res.campaign,
-            assets: finalAssets
+            assets: res.campaign?.metadata?.assets || finalAssets
         }
 
     } catch (error: any) {
