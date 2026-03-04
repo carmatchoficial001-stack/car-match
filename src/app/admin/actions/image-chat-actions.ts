@@ -9,11 +9,7 @@ import { geminiFlashConversational } from '@/lib/ai/geminiModels'
 /**
  * Generates a Pollinations.ai image URL from a prompt
  */
-function buildPollinationsUrl(prompt: string, width: number, height: number): string {
-    const seed = Math.floor(Math.random() * 999999)
-    const encoded = encodeURIComponent(prompt)
-    return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&seed=${seed}&nologo=true&model=flux`
-}
+import { buildPollinationsUrl } from '@/lib/admin/utils'
 
 /**
  * Platform configurations with their optimal image sizes

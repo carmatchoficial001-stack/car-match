@@ -669,17 +669,7 @@ export default function PublicityTab() {
     )
 }
 
-const PLATFORMS = [
-    { id: 'instagram_feed', label: 'Instagram Feed', icon: '📸', color: 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500' },
-    { id: 'instagram_stories', label: 'Instagram Stories', icon: '📱', color: 'bg-gradient-to-tr from-orange-400 to-pink-600' },
-    { id: 'tiktok', label: 'TikTok', icon: '🎵', color: 'bg-black border border-white/20' },
-    { id: 'facebook', label: 'Facebook', icon: '👤', color: 'bg-[#1877F2]' },
-    { id: 'x_twitter', label: 'X (Twitter)', icon: '𝕏', color: 'bg-black' },
-    { id: 'google_ads', label: 'Google Ads', icon: '🔍', color: 'bg-white text-blue-600' },
-    { id: 'snapchat', label: 'Snapchat', icon: '👻', color: 'bg-[#FFFC00] text-black' },
-    { id: 'kwai', label: 'Kwai', icon: '🎬', color: 'bg-orange-500' },
-    { id: 'threads', label: 'Threads', icon: '@', color: 'bg-black' },
-]
+import { AD_PLATFORMS as PLATFORMS } from '@/lib/admin/constants'
 
 // Helper for downloading assets (Standalone)
 const downloadAsset = async (url: string, filename: string) => {

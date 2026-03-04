@@ -596,14 +596,7 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
 }
 
 
-/**
- * Helper to build Pollinations URL
- */
-function buildPollinationsUrl(prompt: string, width: number, height: number): string {
-    const seed = Math.floor(Math.random() * 999999)
-    const encoded = encodeURIComponent(prompt)
-    return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&seed=${seed}&nologo=true&model=flux`
-}
+import { buildPollinationsUrl } from '@/lib/admin/utils'
 
 /**
  * Regenerate a specific element of a campaign based on user instruction

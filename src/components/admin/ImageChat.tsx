@@ -25,16 +25,12 @@ interface ChatMessage {
     timestamp: Date
 }
 
-const PLATFORM_CONFIG: Record<string, { name: string; icon: string; color: string }> = {
-    instagram_feed: { name: 'Instagram', icon: '📸', color: 'from-pink-500 to-purple-600' },
-    instagram_stories: { name: 'IG Stories', icon: '📱', color: 'from-orange-500 to-pink-500' },
-    tiktok: { name: 'TikTok', icon: '🎵', color: 'from-cyan-400 to-teal-500' },
-    facebook: { name: 'Facebook', icon: '👤', color: 'from-blue-500 to-blue-700' },
-    x_twitter: { name: 'X', icon: '𝕏', color: 'from-zinc-600 to-zinc-800' },
-    google_ads: { name: 'Google Ads', icon: '🔍', color: 'from-green-500 to-blue-500' },
-    snapchat: { name: 'Snapchat', icon: '👻', color: 'from-yellow-400 to-yellow-500' },
-    kwai: { name: 'Kwai', icon: '🎬', color: 'from-orange-400 to-red-500' },
-}
+import { AD_PLATFORMS } from '@/lib/admin/constants'
+
+const PLATFORM_CONFIG: Record<string, { name: string; icon: string; color: string }> = AD_PLATFORMS.reduce((acc, p) => ({
+    ...acc,
+    [p.id]: { name: p.label, icon: p.icon, color: p.color.replace('bg-', 'from-').replace(' ', ' to-') }
+}), {})
 
 const QUICK_PRESETS = [
     { label: '🏎️ Auto de Lujo', prompt: 'Un auto de lujo deportivo estilo Lamborghini en una ciudad nocturna con luces de neón' },
