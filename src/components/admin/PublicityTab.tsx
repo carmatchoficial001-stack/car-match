@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     Bot, User, Download, ImagePlus, Send, Save, X, Copy, Check, Video, ArrowRight, Info, Type as TypeIcon, Loader2,
-    Camera, ChevronDown
+    Camera, ChevronDown, Globe, Sparkles, Megaphone, Search, Filter, Trash2, Edit, ExternalLink, RefreshCw
 } from 'lucide-react'
 import {
     getPublicityCampaigns,
@@ -466,7 +466,7 @@ export default function PublicityTab() {
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 pb-20">
                                     {campaigns.map(campaign => {
-                                        const metadata = campaign.metadata as any || {}
+                                        const metadata = parseMetadata(campaign);
                                         const isVideo = metadata.type === 'video'
 
                                         return (
@@ -687,7 +687,27 @@ const downloadAsset = async (url: string, filename: string) => {
     }
 }
 
-// Build fallback platform data from general assets
+// Helper to safely parse campaign metadata (handles JSON strings and nested strings)
+function parseMetadata(campaign: any): any {
+    const raw = campaign.metadata as any;
+    if (!raw) return {};
+    let meta = typeof raw === 'string' ? raw : JSON.stringify(raw);
+    try {
+        meta = JSON.parse(meta);
+    } catch {
+        return {};
+    }
+    // Handle double‑stringified metadata
+    if (typeof meta === 'string') {
+        try {
+            meta = JSON.parse(meta);
+        } catch {
+            return {};
+        }
+    }
+    return meta || {};
+}
+
 function buildFallbackPlatformData(platformId: string, assets: any): any {
     const caption = assets.caption || assets.videoScript || '¡Descarga CarMatch, la app #1 de compra-venta de autos! 🚗🔥'
     const title = assets.internal_title || 'CarMatch - Tu Auto Ideal'
