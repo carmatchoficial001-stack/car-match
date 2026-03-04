@@ -58,27 +58,79 @@ export async function uploadBufferToCloudinary(buffer: Buffer, folder: string = 
 }
 /**
  * Robustly uploads an image from a URL to Cloudinary.
- * First tries direct URL upload, then falls back to fetching the image buffer on the server
- * and uploading via stream to bypass hotlinking blocks (like Cloudflare 530).
+ * Bypasses hotlinking blocks by using server-side fetch with browser-like headers,
+ * validating buffer size to avoid 'black' or error images, and retrying on failure.
  */
-export async function robustUploadToCloudinary(url: string, folder: string = 'carmatch/publicity') {
-    // 1. Try direct upload first (efficient)
-    console.log(`[CLOUDINARY] Intentando subida directa para: ${url.substring(0, 100)}...`);
-    const directRes = await uploadUrlToCloudinary(url, folder);
-    if (directRes.success) return directRes;
+export async function robustUploadToCloudinary(url: string, folder: string = 'carmatch/publicity', retries: number = 5) {
+    const BROWSER_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
 
-    // 2. Fallback: Fetch buffer on server and upload (robust)
-    console.log(`[CLOUDINARY] Subida directa falló. Intentando proxy via fetch buffer...`);
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const arrayBuffer = await response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+    let currentUrl = url;
 
-        const bufferRes = await uploadBufferToCloudinary(buffer, folder);
-        return bufferRes;
-    } catch (error) {
-        console.error('[CLOUDINARY] Fallo total en subida robusta:', error);
-        return { success: false, error: 'Failed robust upload' };
+    for (let i = 0; i < retries; i++) {
+        try {
+            console.log(`[CLOUDINARY] Intento ${i + 1}/${retries} para: ${currentUrl.substring(0, 100)}...`);
+
+            const response = await fetch(currentUrl, {
+                headers: {
+                    'User-Agent': BROWSER_USER_AGENT,
+                    'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.9,es;q=0.8',
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache',
+                }
+            });
+
+            if (!response.ok) {
+                console.warn(`[CLOUDINARY] HTTP Error ${response.status}. Reintentando...`);
+                if (i < retries - 1) {
+                    await new Promise(r => setTimeout(r, 3000));
+                    continue;
+                }
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            // 🛡️ VALIDACIÓN DE BUFFER (Modo Terco)
+            // Si el buffer es < 10KB, es un error de Cloudflare o imagen negra.
+            if (buffer.length < 10000) {
+                console.warn(`[CLOUDINARY] Buffer demasiado pequeño (${buffer.length} bytes). Reintentando...`);
+                if (i < retries - 1) {
+                    // 🔥 SEED BUSTER: Si la imagen salió negra/chica, forzamos un cambio de seed para Pollinations
+                    const newSeed = Math.floor(Math.random() * 999999);
+                    if (currentUrl.includes('seed=')) {
+                        currentUrl = currentUrl.replace(/seed=\d+/, `seed=${newSeed}`);
+                    } else {
+                        currentUrl += `&seed=${newSeed}`;
+                    }
+                    console.log(`[CLOUDINARY] Cambiando seed para forzar regeneración: ${newSeed}`);
+
+                    await new Promise(r => setTimeout(r, (i + 1) * 3000)); // Esperar cada vez más
+                    continue;
+                }
+                throw new Error('Image too small (likely blocked or empty)');
+            }
+
+            console.log(`[CLOUDINARY] Buffer válido detectado (${buffer.length} bytes). Subiendo...`);
+            const bufferRes = await uploadBufferToCloudinary(buffer, folder);
+
+            if (bufferRes.success) {
+                console.log(`[CLOUDINARY] ✅ Subida exitosa: ${bufferRes.secure_url}`);
+                return bufferRes;
+            }
+
+            throw new Error(bufferRes.error || 'Upload failed');
+
+        } catch (error: any) {
+            console.error(`[CLOUDINARY] Error en intento ${i + 1}:`, error.message);
+            if (i < retries - 1) {
+                await new Promise(r => setTimeout(r, 2000));
+            } else {
+                return { success: false, error: `Fallo tras ${retries} intentos: ${error.message}` };
+            }
+        }
     }
+
+    return { success: false, error: 'Max retries reached' };
 }

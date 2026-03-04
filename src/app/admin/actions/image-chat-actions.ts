@@ -103,7 +103,7 @@ REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
                 }
             }),
             new Promise<never>((_, reject) =>
-                setTimeout(() => reject(new Error('TIMEOUT')), 15000)
+                setTimeout(() => reject(new Error('TIMEOUT')), 90000) // 90 segundos de paciencia (Modo Terco)
             )
         ]) as any
 
