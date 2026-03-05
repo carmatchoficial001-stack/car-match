@@ -32,15 +32,12 @@ const sanitizeAIValue = (val: any) => {
  */
 export async function moderateVehicleListing(vehicleId: string, imageUrls: string[]) {
     // ⚠️ CRITICAL: DO NOT MODIFY. AI MODERATION RULES ARE PRODUCTION CRITICAL.
-    // ⚠️ INCLUDES "RUBEN'S RULES" FOR DUPLICATES AND CLEANUP.
     console.log(`🛡️ Seguridad CarMatch: Iniciando revisión REAL con Gemini para vehículo ${vehicleId}`)
 
     let status: 'APPROVED' | 'REJECTED' = 'APPROVED'
     let reason = ''
     let finalImages = [...imageUrls]
     let isDuplicate = false
-    let autoCorrected = false
-    let correctedFields: string[] = []
 
     const vehicle = await prisma.vehicle.findUnique({
         where: { id: vehicleId }
@@ -48,20 +45,12 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
 
     if (!vehicle) return { status: 'ERROR', reason: 'Vehículo no encontrado' }
 
-    // 🧹 Limpieza de datos IA (Evitar "N/A")
-    const sanitizeAIValue = (val: any) => {
-        if (!val || typeof val !== 'string') return val;
-        const clean = val.trim().toUpperCase();
-        if (clean === 'N/A' || clean === 'UNKNOWN' || clean === 'DESCONOCIDO' || clean === 'NULL') return null;
-        return val;
-    }
-
     if (!imageUrls || imageUrls.length === 0) {
         status = 'REJECTED'
         reason = 'No se detectaron imágenes del vehículo.'
     } else {
         try {
-            // 1. Convertir imágenes a base64 (Límite de 10 para análisis completo CarMatch)
+            // 1. Convertir imágenes a base64
             const base64Images = (await Promise.all(
                 imageUrls.slice(0, 10).map(url => fetchImageAsBase64(url))
             )).filter((img): img is string => img !== null)
@@ -87,24 +76,17 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
             )
             const invalidIndices = analysis.invalidIndices || []
 
-            // ═══ REGLAS DE NEGOCIO RUBEN ═══
-
             // A) LA PORTADA ES LA SOBERANA
             if (!analysis.valid || invalidIndices.includes(0)) {
                 status = 'REJECTED'
                 reason = analysis.reason || 'La foto de portada no es válida. Debe ser un vehículo real.'
-                console.log(`🚨 RECHAZO: Portada inválida en ${vehicleId}`)
             } else {
-                // B) DETECCIÓN DE DUPLICADOS (Usando lo que vio la IA)
+                // B) DETECCIÓN DE DUPLICADOS
                 const aiDetails = analysis.details || {}
-                const aiBrand = aiDetails.brand || vehicle.brand
-                const aiModel = aiDetails.model || vehicle.model
-                const aiYear = aiDetails.year ? parseInt(aiDetails.year) : vehicle.year
-
                 const canonicalHash = generateVehicleHash({
-                    brand: aiBrand,
-                    model: aiModel,
-                    year: aiYear,
+                    brand: aiDetails.brand || vehicle.brand,
+                    model: aiDetails.model || vehicle.model,
+                    year: aiDetails.year ? parseInt(aiDetails.year) : vehicle.year,
                     color: aiDetails.color || vehicle.color,
                     vehicleType: aiDetails.type || (vehicle as any).vehicleType,
                     transmission: aiDetails.transmission || (vehicle as any).transmission,
@@ -134,88 +116,11 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
                     status = 'APPROVED'
                     finalImages = imageUrls.filter((_, idx) => !invalidIndices.includes(idx))
 
-                    // Si hubo fotos filtradas (memes, otros carros), actualizamos DB
                     if (finalImages.length < imageUrls.length) {
-                        console.log(`✨ AI Cleanup: ${imageUrls.length - finalImages.length} fotos eliminadas en ${vehicleId}`);
                         await prisma.vehicle.update({
                             where: { id: vehicleId },
                             data: { images: finalImages }
                         });
-                    }
-
-                    // D) AUTO-CORRECCIÓN Y ENRIQUECIMIENTO (LA IA MANDA)
-                    if (analysis.details) {
-                        const details = analysis.details;
-                        const updateData: any = {};
-                        const v = vehicle as any;
-
-                        // Corrección de Identidad
-                        const aiBrandSan = sanitizeAIValue(details.brand);
-                        if (aiBrandSan && aiBrandSan !== vehicle.brand) {
-                            updateData.brand = aiBrandSan;
-                            correctedFields.push('marca');
-                        }
-                        const aiModelSan = sanitizeAIValue(details.model);
-                        if (aiModelSan && aiModelSan !== vehicle.model) {
-                            updateData.model = aiModelSan;
-                            correctedFields.push('modelo');
-                        }
-                        const aiYearStr = sanitizeAIValue(details.year);
-                        if (aiYearStr) {
-                            const aiYearInt = parseInt(aiYearStr as string);
-                            if (Math.abs(aiYearInt - vehicle.year) > 1) {
-                                updateData.year = aiYearInt;
-                                correctedFields.push('año');
-                            }
-                        }
-
-                        // Enriquecimiento Técnico
-                        const technicalFields = ['transmission', 'fuel', 'engine', 'traction', 'color', 'condition', 'doors', 'passengers'];
-                        technicalFields.forEach(f => {
-                            const aiVal = sanitizeAIValue((details as any)[f]);
-                            if (aiVal && (!v[f] || v[f] === 'N/A' || v[f] === '')) {
-                                updateData[f] = (f === 'doors' || f === 'passengers') ? parseInt(aiVal as string) : aiVal;
-                                correctedFields.push(f);
-                            }
-                        });
-
-                        // Nuevos campos técnicos CarMatch
-                        const parseAIInt = (val: any) => {
-                            const san = sanitizeAIValue(val);
-                            if (!san) return null;
-                            const num = parseInt(san.toString().replace(/[^0-9]/g, ''));
-                            return isNaN(num) ? null : num;
-                        };
-                        const parseAIFloat = (val: any) => {
-                            const san = sanitizeAIValue(val);
-                            if (!san) return null;
-                            const num = parseFloat(san.toString().replace(/[^0-9.]/g, ''));
-                            return isNaN(num) ? null : num;
-                        };
-
-                        if (!v.hp && details.hp) updateData.hp = parseAIInt(details.hp);
-                        if (!v.torque && details.torque) updateData.torque = sanitizeAIValue(details.torque);
-                        if (!v.aspiration && details.aspiration) updateData.aspiration = sanitizeAIValue(details.aspiration);
-                        if (!v.cylinders && details.cylinders) updateData.cylinders = parseAIInt(details.cylinders);
-                        if (!v.batteryCapacity && details.batteryCapacity) updateData.batteryCapacity = parseAIFloat(details.batteryCapacity);
-                        if (!v.range && details.range) updateData.range = parseAIInt(details.range);
-                        if (!v.weight && details.weight) updateData.weight = parseAIInt(details.weight);
-                        if (!v.axles && details.axles) updateData.axles = parseAIInt(details.axles);
-                        if (!v.displacement && details.displacement) updateData.displacement = parseAIInt(details.displacement);
-                        if (!v.cargoCapacity && details.cargoCapacity) updateData.cargoCapacity = parseAIFloat(details.cargoCapacity);
-                        if (!v.operatingHours && details.operatingHours) updateData.operatingHours = parseAIInt(details.operatingHours);
-
-                        if (Object.keys(updateData).length > 0) {
-                            autoCorrected = true;
-                            // Sincronizar título si cambió identidad
-                            if (updateData.brand || updateData.model || updateData.year) {
-                                updateData.title = `${updateData.brand || vehicle.brand} ${updateData.model || vehicle.model} ${updateData.year || vehicle.year}`;
-                            }
-                            await prisma.vehicle.update({
-                                where: { id: vehicleId },
-                                data: updateData
-                            });
-                        }
                     }
                 }
             }
@@ -223,68 +128,45 @@ export async function moderateVehicleListing(vehicleId: string, imageUrls: strin
             console.error(`❌ Error en moderación Gemini (${vehicleId}):`, error)
         }
     }
-    // Actualizar estado en DB (con las fotos filtradas si aplica)
+
+    // Actualizar estado en DB
     await prisma.vehicle.update({
         where: { id: vehicleId },
         data: {
             moderationStatus: status,
-            moderationFeedback: reason || (autoCorrected ? `Auto-corregido: ${correctedFields.join(', ')}` : null),
+            moderationFeedback: reason,
             images: finalImages,
-            // BLINDAJE: Solo activar si fue aprobado y NO es marcado como vendido
             status: status === 'REJECTED' ? 'INACTIVE' : 'ACTIVE'
         }
     })
 
-    // Notificar al usuario solo si hubo cambios importantes o rechazo
+    // Notificar al usuario solo si hubo rechazo
     try {
         const fullVehicle = await prisma.vehicle.findUnique({
             where: { id: vehicleId },
-            select: { userId: true, brand: true, model: true }
+            select: { userId: true }
         })
 
-        if (fullVehicle) {
-            // Notificar al usuario con un mensaje educativo y la opción de pago
-            if (status === 'REJECTED') {
-                const eduMessage = isDuplicate
-                    ? 'Se detectó que este vehículo ya está en la red. Mantener datos únicos ayuda a los compradores a encontrarte más rápido. Puedes activarlo con 1 crédito.'
-                    : `${reason} Recuerda que entre más reales sean tus datos, más confianza generarás en tus compradores. Puedes corregirlo o activarlo con 1 crédito.`;
+        if (fullVehicle && status === 'REJECTED') {
+            const eduMessage = isDuplicate
+                ? 'Se detectó que este vehículo ya está en la red. Mantener datos únicos ayuda a los compradores a encontrarte más rápido. Puedes activarlo con 1 crédito.'
+                : `${reason} Recuerda que entre más reales sean tus datos, más confianza generarás en tus compradores. Puedes corregirlo o activarlo con 1 crédito.`;
 
-                await prisma.notification.create({
-                    data: {
-                        userId: fullVehicle.userId,
-                        type: 'SYSTEM',
-                        title: isDuplicate ? '🛡️ CarMatch: Aviso de Duplicado' : '⚠️ CarMatch: Revisión de Calidad',
-                        message: eduMessage,
-                        link: `/profile?tab=vehicles`,
-                        metadata: JSON.stringify({ vehicleId, reason, status, isDuplicate })
-                    }
-                })
-            } else if (autoCorrected) {
-                // Notificación de éxito con auto-corrección
-                await prisma.notification.create({
-                    data: {
-                        userId: fullVehicle.userId,
-                        type: 'SYSTEM',
-                        title: '✨ CarMatch: Publicación Optimizada',
-                        message: `¡Buenas noticias! Hemos ajustado automáticamente la ${correctedFields.join(', ')} de tu anuncio para que coincida con tus fotos. Esto ayudará a que más compradores reales te encuentren fácilmente.`,
-                        link: `/profile?tab=vehicles`,
-                        metadata: JSON.stringify({ vehicleId, status, autoCorrected, correctedFields })
-                    }
-                })
-            }
-
-            // 🚗 LIMPIEZA SILENCIOSA: Si se eliminaron fotos por ser de un vehículo DIFERENTE, no avisamos al usuario.
-            // Se darán cuenta solos de que la plataforma es seria y solo acepta anuncios individuales.
-            if (status === 'APPROVED' && finalImages.length < imageUrls.length) {
-                const removedCount = imageUrls.length - finalImages.length;
-                console.log(`ℹ️ Filtrado SILENCIOSO de vehículos mezclados: Se eliminaron ${removedCount} fotos de ${vehicleId}`);
-            }
+            await prisma.notification.create({
+                data: {
+                    userId: fullVehicle.userId,
+                    type: 'SYSTEM',
+                    title: isDuplicate ? '🛡️ CarMatch: Aviso de Duplicado' : '⚠️ CarMatch: Revisión de Calidad',
+                    message: eduMessage,
+                    link: `/profile?tab=vehicles`,
+                    metadata: JSON.stringify({ vehicleId, reason, status, isDuplicate })
+                }
+            })
         }
     } catch (notifError) {
         console.error('Error enviando notificación:', notifError)
     }
 
-    console.log(`🛡️ Seguridad CarMatch: Revisión finalizada para ${vehicleId} -> ${status} (${finalImages.length} fotos finales)`)
     return { status, reason }
 }
 
