@@ -70,7 +70,11 @@ export async function robustUploadToCloudinary(url: string, folder: string = 'ca
         try {
             console.log(`[CLOUDINARY] Intento ${i + 1}/${retries} para: ${currentUrl.substring(0, 100)}...`);
 
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 40000); // 40 seconds timeout
+
             const response = await fetch(currentUrl, {
+                signal: controller.signal,
                 headers: {
                     'User-Agent': BROWSER_USER_AGENT,
                     'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
@@ -79,6 +83,8 @@ export async function robustUploadToCloudinary(url: string, folder: string = 'ca
                     'Pragma': 'no-cache',
                 }
             });
+
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 console.warn(`[CLOUDINARY] HTTP Error ${response.status}. Reintentando...`);

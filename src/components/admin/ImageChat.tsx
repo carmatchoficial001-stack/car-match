@@ -111,11 +111,18 @@ export default function ImageChat() {
         const hasGenerating = messages.some(m => m.images && (m.images as any)._status === 'generating')
         if (!hasGenerating) return
 
+        console.log('[IMAGE-CHAT] Detectada generación activa, iniciando sondeo...')
         const timer = setInterval(async () => {
             const res = await getStudioHistory(activeConversationId)
             if (res.success && res.messages) {
-                // Update messages to reflect progress
+                // Check if still generating
+                const stillGenerating = res.messages.some(m => m.images && (m.images as any)._status === 'generating')
                 setMessages(res.messages)
+
+                if (!stillGenerating) {
+                    console.log('[IMAGE-CHAT] Generación completada, deteniendo sondeo.')
+                    clearInterval(timer)
+                }
             }
         }, 3000)
 
@@ -581,7 +588,7 @@ function PromptProposalCard({
                                 <div className="flex items-center justify-between mb-2 px-1">
                                     <span className="text-[9px] font-black text-white uppercase tracking-widest flex items-center gap-2">
                                         <Loader2 className="w-3 h-3 text-violet-400 animate-spin" />
-                                        Componiendo Pack...
+                                        {progress < 100 ? 'Componiendo Pack...' : 'Finalizando...'}
                                     </span>
                                     <span className="text-[9px] font-black text-violet-400">{progress}%</span>
                                 </div>

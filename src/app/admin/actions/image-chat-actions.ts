@@ -118,17 +118,9 @@ REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
         const data = JSON.parse(responseText)
 
         if (data.type === 'PROMPT_READY' && data.imagePrompt) {
-            // 🔥 NEW: Upload to Cloudinary to bypass Pollinations block
-            console.log('[IMAGE-CHAT] Uploading generated images to Cloudinary...')
             const imagePrompt = data.imagePrompt
             const count = Math.max(1, Math.min(25, data.photoCount || 11))
-            console.log(`[IMAGE-CHAT] Generando ${count} fotos para el pack creativo...`)
-
-            const baseSizes = [
-                { key: 'square', w: 1080, h: 1080, id: 'img_0' },
-                { key: 'vertical', w: 1080, h: 1920, id: 'img_1' },
-                { key: 'horizontal', w: 1200, h: 628, id: 'img_2' }
-            ]
+            console.log(`[IMAGE-CHAT] Iniciando generación de ${count} fotos en SEGUNDO PLANO...`)
 
             const finalImages: Record<string, any> = {
                 '_status': 'generating',
@@ -136,7 +128,7 @@ REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
                 '_photoCount': count
             }
 
-            // 🔥 PERSIST IMMEDIATELY IF CONVERSATION ID EXISTS
+            // 🔥 PERSIST IMMEDIATELY
             let messageId: string | undefined = undefined
             if (conversationId) {
                 const saveRes = await saveStudioMessage({
@@ -151,79 +143,87 @@ REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
                 if (saveRes.success) messageId = saveRes.messageId
             }
 
-            for (let i = 0; i < Math.min(count, 3); i++) {
-                const size = baseSizes[i]
-                let attempts = 0
-                let uploaded = false
+            // 🚀 TRIGGER BACKGROUND WORKER (Non-blocking)
+            // We don't await this so we can return to the client immediately
+            (async () => {
+                try {
+                    console.log(`[IMAGE-CHAT-WORKER] Trabajando en el mensaje: ${messageId}`)
+                    const baseSizes = [
+                        { key: 'square', w: 1080, h: 1080, id: 'img_0' },
+                        { key: 'vertical', w: 1080, h: 1920, id: 'img_1' },
+                        { key: 'horizontal', w: 1200, h: 628, id: 'img_2' }
+                    ]
 
-                while (attempts < 3 && !uploaded) {
-                    attempts++
-                    console.log(`[IMAGE-CHAT] Attempt ${attempts} for ${size.key}...`)
-                    const res = await robustUploadToCloudinary(buildPollinationsUrl(imagePrompt, size.w, size.h))
-                    if (res.success) {
-                        finalImages[size.key] = res.secure_url!
-                        finalImages[size.id] = res.secure_url!
-                        uploaded = true
-
-                        if (messageId) {
-                            await prisma.studioMessage.update({
-                                where: { id: messageId },
-                                data: { images: finalImages }
-                            })
-                        }
-                    } else if (attempts < 3) {
-                        await new Promise(r => setTimeout(r, 2000))
-                    }
-                }
-            }
-
-            if (count > 3) {
-                for (let i = 3; i < count; i++) {
-                    const id = `img_${i}`
-                    const varPrompt = `${imagePrompt}, variation ${i}, distinct cinematic angle`
-
-                    let attempts = 0
-                    let uploaded = false
-                    while (attempts < 3 && !uploaded) {
-                        attempts++
-                        const res = await robustUploadToCloudinary(buildPollinationsUrl(varPrompt, 1080, 1080))
+                    // 1. Generate Base Images (First 3)
+                    for (let i = 0; i < Math.min(count, 3); i++) {
+                        const size = baseSizes[i]
+                        const res = await robustUploadToCloudinary(buildPollinationsUrl(imagePrompt, size.w, size.h))
                         if (res.success) {
-                            finalImages[id] = res.secure_url!
-                            uploaded = true
+                            finalImages[size.key] = res.secure_url!
+                            finalImages[size.id] = res.secure_url!
                             if (messageId) {
                                 await prisma.studioMessage.update({
                                     where: { id: messageId },
-                                    data: { images: finalImages }
+                                    data: { images: { ...finalImages } } // Spread to avoid reference issues
                                 })
                             }
-                        } else if (attempts < 3) {
-                            await new Promise(r => setTimeout(r, 2000))
                         }
                     }
+
+                    // 2. Generate Variations (Rest of the count)
+                    if (count > 3) {
+                        // Process in batches of 4 to be faster but safe
+                        for (let i = 3; i < count; i += 4) {
+                            const batch = []
+                            for (let j = i; j < Math.min(i + 4, count); j++) {
+                                const id = `img_${j}`
+                                const varPrompt = `${imagePrompt}, variation ${j}, distinct cinematic angle`
+                                batch.push((async () => {
+                                    const res = await robustUploadToCloudinary(buildPollinationsUrl(varPrompt, 1080, 1080))
+                                    if (res.success) {
+                                        finalImages[id] = res.secure_url!
+                                        if (messageId) {
+                                            await prisma.studioMessage.update({
+                                                where: { id: messageId },
+                                                data: { images: { ...finalImages } }
+                                            })
+                                        }
+                                    }
+                                })())
+                            }
+                            await Promise.all(batch)
+                        }
+                    }
+
+                    // Finalize: Remove status
+                    delete finalImages['_status']
+                    delete finalImages['_imagePrompt']
+                    delete finalImages['_photoCount']
+
+                    if (messageId) {
+                        await prisma.studioMessage.update({
+                            where: { id: messageId },
+                            data: { images: finalImages }
+                        })
+                        console.log(`[IMAGE-CHAT-WORKER] ✅ Pack finalizado para: ${messageId}`)
+                    }
+                } catch (workerErr) {
+                    console.error("[IMAGE-CHAT-WORKER] Error Crítico:", workerErr)
+                    if (messageId) {
+                        // Remove status so UI stops loading
+                        delete finalImages['_status']
+                        await prisma.studioMessage.update({
+                            where: { id: messageId },
+                            data: { images: finalImages }
+                        })
+                    }
                 }
-            }
+            })().catch(e => console.error("Worker unhandled error:", e))
 
-            delete finalImages['_status']
-            delete finalImages['_imagePrompt']
-            delete finalImages['_photoCount']
-
-            if (messageId) {
-                await prisma.studioMessage.update({
-                    where: { id: messageId },
-                    data: { images: finalImages }
-                })
-            }
-
-            if (Object.keys(finalImages).length === 0) {
-                return {
-                    success: false,
-                    type: 'CHAT' as const,
-                    message: '❌ El servicio de generación gratuita está saturado ahora mismo. Intenta con un prompt más sencillo o espera un momento.'
-                }
-            }
-
+            // Return immediately with the placeholder/status message
             return {
                 success: true,
+                messageId,
                 type: 'PROMPT_READY' as const,
                 message: data.message || 'Propuesta creativa lista 🔥',
                 imagePrompt: data.imagePrompt,
