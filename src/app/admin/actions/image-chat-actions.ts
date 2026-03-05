@@ -75,10 +75,10 @@ Si vas a proponer el diseño final, responde con un JSON válido como este ejemp
     "type": "PROMPT_READY",
     "message": "Mensaje entusiasta en ESPAÑOL.",
     "imagePrompt": "ULTRA DETAILED prompt in ENGLISH.",
-    "photoCount": 11,
+    "photoCount": 1,
     "platforms": { "instagram": true }
 }
-(NOTA: En photoCount asigna el número exacto de fotos que el usuario solicitó; si no especificó, usa 11).
+(¡ATENCIÓN CRÍTICA!: En \`photoCount\`, debes leer EXACTAMENTE cuántas imágenes pidió el usuario. Si el usuario pide 1, devuelve 1. Si pide 5, devuelve 5. ¡Nunca devuelvas 11 o más al menos que el usuario explícitamente pida muchas imágenes! Si el usuario no menciona cantidad, por defecto ofrece 1 o 2 máximo para empezar).
 
 Si estás platicando, responde:
 {
@@ -104,7 +104,7 @@ Responde ÚNICAMENTE con JSON válido y respeta la cantidad de imágenes pedida.
 
         if (data.type === 'PROMPT_READY' && data.imagePrompt) {
             const imagePrompt = data.imagePrompt
-            const count = Math.max(1, Math.min(25, data.photoCount || 11))
+            const count = Math.max(1, Math.min(100, data.photoCount || 1))
 
             await recordLog(`Iniciando flujo para ${count} fotos...`, 'INFO', { imagePrompt })
 
@@ -274,7 +274,7 @@ export async function restartStudioWorker(messageId: string) {
         if (!msg || !msg.imagePrompt) return { success: false, message: "No se encontró el prompt base" }
 
         const images = (msg.images as any) || {}
-        const count = images._photoCount || 11;
+        const count = images._photoCount || 1;
 
         // Recalculate how many are done
         let currentCompleted = 0;
