@@ -37,7 +37,7 @@ export function LocationProvider({
         }
     }
 
-    const fetchLocation = async () => {
+    const fetchLocation = async (isManualRefresh = false) => {
         setLoading(true)
         setError(null)
 
@@ -49,6 +49,13 @@ export function LocationProvider({
             const locationData = await reverseGeocode(coords.latitude, coords.longitude)
 
             setLocation(locationData)
+
+            // Si el usuario pidió detectar manualmente, limpiamos la selección manual previa
+            // para que la ubicación real tome precedencia
+            if (isManualRefresh && locationData) {
+                setManualLocation(null)
+            }
+
             // Cache para rapidez en siguiente sesión
             if (typeof window !== 'undefined') {
                 localStorage.setItem('carmatch_last_detected_location', JSON.stringify(locationData))
@@ -87,7 +94,7 @@ export function LocationProvider({
                 }
             }
         }
-        fetchLocation()
+        fetchLocation(false)
     }, [])
 
     // Si el usuario selecciona manualmente una ciudad, usar esa
@@ -101,7 +108,7 @@ export function LocationProvider({
                 error,
                 manualLocation,
                 setManualLocation,
-                refreshLocation: fetchLocation,
+                refreshLocation: () => fetchLocation(true),
             }}
         >
             {children}
