@@ -129,35 +129,7 @@ Responde ÚNICAMENTE con JSON válido y respeta la cantidad de imágenes pedida.
                 if (saveRes.success) messageId = saveRes.messageId
             }
 
-            await recordLog(`Mensaje persistido con ID: ${messageId}. Iniciando worker...`, messageId ? 'INFO' : 'ERROR')
-
-            // 🚀 BACKGROUND WORKER / DETERMINATE QUEUE
-            if (messageId) {
-                // 🔥 SYNC FIRST IMAGE: We await the first image (idx 0) to ensure the function stays alive 
-                // and the user gets immediate feedback.
-                try {
-                    await recordLog(`Generando primera imagen (SQUARE) de forma síncrona...`, 'INFO');
-                    const p = imagePrompt;
-                    const res = await robustUploadToCloudinary(buildPollinationsUrl(p, 1080, 1080));
-                    if (res.success && res.secure_url) {
-                        finalImages['img_0'] = res.secure_url;
-                        finalImages.square = res.secure_url;
-                        finalImages['_status'] = `generating: 1/${count}`;
-                        await prisma.studioMessage.update({
-                            where: { id: messageId },
-                            data: { images: { ...finalImages } }
-                        });
-                        console.log("✅ Primera imagen generada síncronamente.");
-                    }
-                } catch (e) {
-                    console.error("Error en primera imagen síncrona:", e);
-                }
-
-                // Fire the rest in background
-                executeImageGenerationWorker(messageId, imagePrompt, count, finalImages).catch(e =>
-                    console.error("Worker background error:", e)
-                );
-            }
+            await recordLog(`Mensaje persistido con ID: ${messageId}. Esperando orchestración del cliente...`, messageId ? 'INFO' : 'ERROR')
 
             return {
                 success: true,
@@ -183,95 +155,88 @@ Responde ÚNICAMENTE con JSON válido y respeta la cantidad de imágenes pedida.
 }
 
 /**
- * Shared worker logic for both initial generation and restarts
+ * Generates the next available image for a given studio message.
+ * Designed to be called repeatedly by the client until all images are generated,
+ * avoiding Vercel's 10-15s serverless execution timeout.
  */
-async function executeImageGenerationWorker(messageId: string, imagePrompt: string, count: number, initialImages: any) {
-    const workerStartTime = Date.now();
-    const WORKER_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
-    const finalImages = { ...initialImages };
-
+export async function processNextImageBatch(messageId: string) {
     try {
-        await recordLog(`Worker iniciado para ${messageId}`, 'INFO', { messageId, count })
-        let pendingTasks = new Set<number>(
-            Array.from({ length: count }, (_, i) => i)
-                .filter(i => !finalImages[`img_${i}`]) // Only those not yet generated
-        );
+        const session = await auth();
+        if (!session?.user?.id) throw new Error("Unauthorized");
 
-        let passes = 0;
-        const maxPasses = 3;
+        const msg = await prisma.studioMessage.findUnique({
+            where: { id: messageId, userId: session.user.id }
+        });
 
-        while (pendingTasks.size > 0 && passes < maxPasses) {
-            if (Date.now() - workerStartTime > WORKER_TIMEOUT_MS) {
-                await recordLog(`Worker timeout global en ${messageId}`, 'WARN')
+        if (!msg || !msg.imagePrompt) return { success: false, error: "Prompt not found" };
+
+        const images = (msg.images as any) || {};
+        const count = images._photoCount || 11;
+        const prompt = msg.imagePrompt;
+
+        // Find the first ungenerated image index
+        let targetIdx = -1;
+        for (let i = 0; i < count; i++) {
+            if (!images[`img_${i}`]) {
+                targetIdx = i;
                 break;
             }
-
-            passes++;
-            const taskArray = Array.from(pendingTasks);
-
-            for (const idx of taskArray) {
-                try {
-                    const id = `img_${idx}`;
-                    let p = imagePrompt;
-                    let w = 1080, h = 1080;
-
-                    if (idx === 1) { w = 1080; h = 1920; }
-                    else if (idx === 2) { w = 1200; h = 628; }
-                    if (idx > 0) { p += `, variation ${idx}, professional lighting, cinematic detail`; }
-
-                    const res = await robustUploadToCloudinary(buildPollinationsUrl(p, w, h));
-
-                    if (res.success && res.secure_url) {
-                        finalImages[id] = res.secure_url;
-                        if (idx === 0) finalImages.square = res.secure_url;
-                        if (idx === 1) finalImages.vertical = res.secure_url;
-                        if (idx === 2) finalImages.horizontal = res.secure_url;
-
-                        pendingTasks.delete(idx);
-                        const completedCount = count - pendingTasks.size;
-                        finalImages['_status'] = `generating: ${completedCount}/${count}`;
-                        finalImages['_lastUpdate'] = Date.now();
-
-                        await prisma.studioMessage.update({
-                            where: { id: messageId },
-                            data: { images: { ...finalImages } }
-                        })
-
-                        // Small delay to prevent rate limits or race conditions
-                        await new Promise(r => setTimeout(r, 500));
-                    } else {
-                        await recordLog(`Fallo en imagen ${idx} del mensaje ${messageId}: ${res.error}`, 'WARN')
-                    }
-                } catch (taskErr: any) {
-                    await recordLog(`Error crítico en tarea ${idx}: ${taskErr.message}`, 'ERROR')
-                }
-            }
-
-            if (pendingTasks.size > 0 && passes < maxPasses) {
-                await new Promise(r => setTimeout(r, 2000 * passes));
-            }
         }
-    } catch (err: any) {
-        await recordLog(`Error fatal en worker ${messageId}: ${err.message}`, 'ERROR')
-    } finally {
-        try {
-            const current = await prisma.studioMessage.findUnique({ where: { id: messageId! } });
-            const imagesToCleanup = (current?.images as any) || finalImages;
 
-            const finalToSave = { ...imagesToCleanup };
-            delete finalToSave._status;
-            delete finalToSave._imagePrompt;
-            delete finalToSave._photoCount;
-            delete finalToSave._lastUpdate;
+        if (targetIdx === -1) {
+            // All images generated, clean up metadata
+            delete images._status;
+            delete images._imagePrompt;
+            delete images._photoCount;
+            delete images._lastUpdate;
+            await prisma.studioMessage.update({
+                where: { id: messageId },
+                data: { images }
+            });
+            return { success: true, completed: true, images };
+        }
+
+        // Generate the specific image
+        let p = prompt;
+        let w = 1080, h = 1080;
+
+        if (targetIdx === 1) { w = 1080; h = 1920; }
+        else if (targetIdx === 2) { w = 1200; h = 628; }
+        if (targetIdx > 0) { p += `, variation ${targetIdx}, professional lighting, cinematic detail`; }
+
+        const res = await robustUploadToCloudinary(buildPollinationsUrl(p, w, h));
+
+        if (res.success && res.secure_url) {
+            const id = `img_${targetIdx}`;
+            images[id] = res.secure_url;
+            if (targetIdx === 0) images.square = res.secure_url;
+            if (targetIdx === 1) images.vertical = res.secure_url;
+            if (targetIdx === 2) images.horizontal = res.secure_url;
+
+            // Calculate pending
+            let currentCompleted = 0;
+            for (let i = 0; i < count; i++) {
+                if (images[`img_${i}`]) currentCompleted++;
+            }
+
+            images['_status'] = `generating: ${currentCompleted}/${count}`;
+            images['_lastUpdate'] = Date.now();
 
             await prisma.studioMessage.update({
                 where: { id: messageId },
-                data: { images: finalToSave }
+                data: { images }
             });
-            await recordLog(`Worker finalizado para ${messageId}. Limpieza exitosa.`, 'INFO')
-        } catch (finalErr: any) {
-            await recordLog(`Error en limpieza final de ${messageId}: ${finalErr.message}`, 'ERROR')
+
+            return { success: true, completed: false, images };
+        } else {
+            // Failed generation, don't update DB to allow retry next time
+            await recordLog(`Fallback in processing image ${targetIdx} for ${messageId}`, 'WARN');
+            return { success: false, error: res.error || "Generation Failed", images };
         }
+
+    } catch (e: any) {
+        await recordLog(`batch generation error: ${e.message}`, 'ERROR')
+        return { success: false, error: e.message };
     }
 }
 
@@ -295,7 +260,7 @@ export async function generateImageVariation(originalPrompt: string, instruction
 }
 
 /**
- * RESTARTS the worker for a specific message
+ * RESTARTS the worker for a specific message by simply updating its status so the client resumes polling
  */
 export async function restartStudioWorker(messageId: string) {
     try {
@@ -309,7 +274,15 @@ export async function restartStudioWorker(messageId: string) {
         if (!msg || !msg.imagePrompt) return { success: false, message: "No se encontró el prompt base" }
 
         const images = (msg.images as any) || {}
-        images._status = 'generating: restarting...'
+        const count = images._photoCount || 11;
+
+        // Recalculate how many are done
+        let currentCompleted = 0;
+        for (let i = 0; i < count; i++) {
+            if (images[`img_${i}`]) currentCompleted++;
+        }
+
+        images._status = `generating: starting restart (${currentCompleted}/${count})...`
         images._lastUpdate = Date.now()
 
         await prisma.studioMessage.update({
@@ -317,25 +290,9 @@ export async function restartStudioWorker(messageId: string) {
             data: { images }
         })
 
-        // Re-declare internal logic or similar
-        // For simplicity, we just trigger a dummy chat or we expose the worker internal.
-        // Better: trigger a background call to a private route if needed, or just run it here
-        // as it's a server action.
-        // Since we already have the logic in chatWithImageDirector, we can just run it
-        // but it's encapsulated. Let's make it a bit more reusable or just call it.
-
-        console.log(`[STUDIO] Reiniciando worker para ${messageId}...`);
-
-        // Re-trigger worker
-        const imagePrompt = msg.imagePrompt;
-        const count = images._photoCount || 11;
-
-        executeImageGenerationWorker(messageId, imagePrompt, count, images).catch(e =>
-            console.error("Restart worker error:", e)
-        );
-
         return { success: true }
     } catch (e: any) {
         return { success: false, error: e.message }
     }
 }
+

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { chatWithImageDirector } from '@/app/admin/actions/image-chat-actions'
 import { getStudioConversations, getStudioHistory, saveStudioMessage, createStudioConversation, deleteStudioConversation, clearStudioHistory } from '@/app/admin/actions/studio-history-actions'
-import { restartStudioWorker } from '@/app/admin/actions/image-chat-actions'
+import { restartStudioWorker, processNextImageBatch } from '@/app/admin/actions/image-chat-actions'
 
 import { AD_PLATFORMS } from '@/lib/admin/constants'
 
@@ -105,29 +105,53 @@ export default function ImageChat() {
         setIsLoading(false)
     }
 
-    // 🔄 POLL FOR GENERATING MESSAGES
+    // 🔄 ORCHESTRATE GENERATION (CLIENT-SIDE BACKGROUND WORKER)
     useEffect(() => {
         if (!activeConversationId) return
 
-        const hasGenerating = messages.some(m => m.images && (m.images as any)._status?.startsWith('generating'))
-        if (!hasGenerating) return
+        const generatingMessage = messages.find(m => m.images && (m.images as any)._status?.startsWith('generating'))
+        if (!generatingMessage) return
 
-        console.log('[IMAGE-CHAT] Detectada generación activa, iniciando sondeo...')
-        const timer = setInterval(async () => {
-            const res = await getStudioHistory(activeConversationId)
-            if (res.success && res.messages) {
-                // Check if still generating
-                const stillGenerating = res.messages.some(m => m.images && (m.images as any)._status?.startsWith('generating'))
-                setMessages(res.messages)
+        console.log('[IMAGE-CHAT] Generación activa detectada. Solicitando siguiente imagen en lote...')
+        let isMounted = true;
 
-                if (!stillGenerating) {
-                    console.log('[IMAGE-CHAT] Generación completada, deteniendo sondeo.')
-                    clearInterval(timer)
-                }
+        const processBatch = async () => {
+            if (!isMounted) return;
+
+            // Check if it's stuck (more than 2 mins without update)
+            const lastUpdate = (generatingMessage.images as any)?._lastUpdate || 0;
+            const isStuck = lastUpdate > 0 && (Date.now() - lastUpdate) > 2 * 60 * 1000;
+
+            if (isStuck) {
+                console.warn('[IMAGE-CHAT] Generación atascada detectada. Esperando intervención manual (Destrabar).');
+                return;
             }
-        }, 3000)
 
-        return () => clearInterval(timer)
+            // Auto process next image
+            const res = await processNextImageBatch(generatingMessage.id);
+
+            if (!isMounted) return;
+
+            if (res.success) {
+                // Refresh chat history to see updates
+                const histRes = await getStudioHistory(activeConversationId);
+                if (histRes.success && histRes.messages) {
+                    setMessages(histRes.messages);
+                }
+            } else {
+                console.error('[IMAGE-CHAT] Error en batch:', res.error);
+                // We rely on the stuck interval to eventually allow a reset if it fails consistently
+            }
+        };
+
+        // We use a small delay between batches to avoid spamming the server instantly,
+        // and allow the UI to update.
+        const timer = setTimeout(processBatch, 2000);
+
+        return () => {
+            isMounted = false;
+            clearTimeout(timer);
+        };
     }, [messages, activeConversationId])
 
     const handleNewChat = async () => {
