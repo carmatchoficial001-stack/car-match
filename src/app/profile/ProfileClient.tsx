@@ -156,17 +156,6 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            {/* Pagination Top */}
-                            <PaginationControls
-                                totalItems={vehiclesToShow.length}
-                                itemsPerPage={ITEMS_PER_PAGE}
-                                currentPage={currentPage}
-                                onPageChange={(p) => {
-                                    setCurrentPage(p)
-                                    window.scrollTo({ top: 0, behavior: 'smooth' })
-                                }}
-                            />
-
                             <div className="grid gap-4">
                                 {paginatedVehicles.map((vehicle) => {
                                     const isInactive = vehicle.status !== "ACTIVE"
