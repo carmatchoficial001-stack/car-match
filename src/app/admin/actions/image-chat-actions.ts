@@ -70,21 +70,22 @@ HISTORIAL:
 ${contextStr}
 
 INSTRUCCIONES DE RESPUESTA JSON:
-Si vas a proponer el diseño final, responde:
+Si vas a proponer el diseño final, responde con un JSON válido como este ejemplo:
 {
     "type": "PROMPT_READY",
     "message": "Mensaje entusiasta en ESPAÑOL.",
     "imagePrompt": "ULTRA DETAILED prompt in ENGLISH.",
-    "photoCount": [Número exacto de fotos que el usuario solicitó, o 11 por defecto],
-    "platforms": { ... }
+    "photoCount": 11,
+    "platforms": { "instagram": true }
 }
+(NOTA: En photoCount asigna el número exacto de fotos que el usuario solicitó; si no especificó, usa 11).
 
 Si estás platicando, responde:
 {
     "type": "CHAT",
     "message": "Tu respuesta en ESPAÑOL"
 }
-Responde ÚNICAMENTE con JSON y respeta la cantidad de imágenes pedida.`
+Responde ÚNICAMENTE con JSON válido y respeta la cantidad de imágenes pedida.`
 
         const result = await geminiFlashConversational.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
