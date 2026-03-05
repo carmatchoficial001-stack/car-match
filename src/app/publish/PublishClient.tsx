@@ -12,6 +12,7 @@ import ImageUploadStep from '@/components/ImageUploadStep'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { generateDeviceFingerprint } from '@/lib/fingerprint'
 import PortalAnimation from '@/components/PortalAnimation'
+import ConfirmationModal from '@/components/ConfirmationModal'
 import VehicleTypeSelector from '@/components/VehicleTypeSelector'
 import SearchableSelect from '@/components/SearchableSelect'
 import { Settings2, BatteryCharging, Truck, X } from 'lucide-react'
@@ -113,6 +114,9 @@ export default function PublishClient() {
     const [weight, setWeight] = useState('')
     const [axles, setAxles] = useState('')
     const [status, setStatus] = useState<VehicleStatus>('ACTIVE')
+    const [useCredit, setUseCredit] = useState(false)
+    const [userCredits, setUserCredits] = useState(0)
+    const [showLimitModal, setShowLimitModal] = useState(false)
 
     // Step 5: Location
     const [latitude, setLatitude] = useState<number | null>(null)
@@ -733,7 +737,8 @@ export default function PublishClient() {
                         images: finalImages,
                         vehicleData,
                         gpsLocation: { latitude, longitude },
-                        currentVehicleId: editId
+                        currentVehicleId: editId,
+                        useCredit
                     })
                 })
                 const fraudResult = await fraudCheck.json()
@@ -741,14 +746,8 @@ export default function PublishClient() {
                 // 🔥 NUEVO: Manejar caso de crédito requerido
                 if (fraudResult.action === 'REQUIRE_CREDIT') {
                     setLoading(false)
-                    const confirmCredit = confirm(
-                        `${fraudResult.message}\n\n¿Deseas comprar créditos ahora para continuar?`
-                    )
-                    if (confirmCredit) {
-                        router.push('/credits?reason=republication')
-                    } else {
-                        router.push('/profile')
-                    }
+                    setUserCredits(fraudResult.userCredits || 0)
+                    setShowLimitModal(true)
                     return
                 }
 
@@ -765,7 +764,7 @@ export default function PublishClient() {
             const response = await fetch(editId ? `/api/vehicles/${editId}` : '/api/vehicles', {
                 method: editId ? 'PATCH' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...vehicleData, deviceFingerprint: deviceFP }),
+                body: JSON.stringify({ ...vehicleData, deviceFingerprint: deviceFP, useCredit }),
             })
 
             if (!response.ok) {
@@ -788,6 +787,13 @@ export default function PublishClient() {
             setLoading(false)
         }
     }
+
+    // 🎯 Efecto para re-intentar publicación cuando se activa el crédito
+    useEffect(() => {
+        if (useCredit === true) {
+            handlePublish();
+        }
+    }, [useCredit])
 
     // Validaciones de cada paso calculadas con useMemo
     const canProceed = useMemo(() => {
@@ -1522,6 +1528,35 @@ export default function PublishClient() {
                     </div>
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={showLimitModal}
+                onClose={() => {
+                    setShowLimitModal(false);
+                    router.push('/profile');
+                }}
+                onConfirm={async () => {
+                    if (userCredits > 0) {
+                        setUseCredit(true);
+                        setShowLimitModal(false);
+                        // No podemos llamar a handlePublish directamente aquí porque los estados
+                        // de React son asíncronos y handlePublish usaría el valor viejo de useCredit.
+                        // Usaremos un truco: pasarle el valor directamente si cambiamos handlePublish
+                        // o usar un flag temporal.
+                    } else {
+                        router.push('/credits?reason=limit_reached');
+                    }
+                }}
+                title={userCredits > 0 ? "¡Límite alcanzado!" : "Créditos insuficientes"}
+                message={userCredits > 0
+                    ? `Has alcanzado el límite de 25 vehículos gratuitos. Tienes ${userCredits} créditos disponibles. ¿Deseas usar 1 para publicar ahora?`
+                    : "Has alcanzado el límite de 25 vehículos gratuitos. Necesitas 1 crédito para continuar publicando."
+                }
+                confirmLabel={userCredits > 0 ? "Usar 1 Crédito" : "Comprar Créditos"}
+                variant={userCredits > 0 ? "credit" : "danger"}
+                showCancel={true}
+                cancelLabel="Salir"
+            />
         </div>
     )
 }

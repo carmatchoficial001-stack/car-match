@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
         const user = await prisma.user.findUnique({
             where: { email: session.user.email! },
-            select: { id: true, fraudStrikes: true, isAdmin: true, lifetimeVehicleCount: true, country: true }
+            select: { id: true, fraudStrikes: true, isAdmin: true, lifetimeVehicleCount: true, country: true, credits: true }
         })
 
         if (!user) {
@@ -195,9 +195,34 @@ export async function POST(request: NextRequest) {
         }
         else {
             // Vehículo 26 en adelante HISTÓRICO: COBRO OBLIGATORIO
-            expiresAt = new Date()
-            isFreePublication = false
-            initialStatus = 'INACTIVE' // Requiere pago para activarse
+            // Revisar si el usuario eligió usar un crédito
+            if (body.useCredit === true && user.credits > 0) {
+                console.log(`💳 Usando crédito para activar publicación 26+ de usuario ${user.id}`);
+
+                // Deducción de crédito
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: { credits: { decrement: 1 } }
+                });
+
+                // Registro de transacción
+                await prisma.creditTransaction.create({
+                    data: {
+                        userId: user.id,
+                        amount: -1,
+                        description: `Publicación de vehículo (Límite 25 excedido): ${finalTitle}`,
+                        details: { action: 'USE_CREDIT_PUBLISH', lifetimeCount }
+                    }
+                });
+
+                expiresAt.setDate(now.getDate() + 30);
+                isFreePublication = false;
+                initialStatus = 'ACTIVE';
+            } else {
+                expiresAt = new Date()
+                isFreePublication = false
+                initialStatus = 'INACTIVE' // Requiere pago para activarse
+            }
         }
 
         // Regenerar título respetando datos del usuario

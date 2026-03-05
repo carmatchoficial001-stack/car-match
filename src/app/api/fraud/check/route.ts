@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
             images,
             vehicleData,
             gpsLocation,
+            useCredit
         } = body
 
         console.log(`🔍 [FRAUD CHECK] Usuario: ${session.user.id} | Vehículo: ${vehicleData.brand} ${vehicleData.model} ${vehicleData.year}`);
@@ -49,7 +50,12 @@ export async function POST(request: NextRequest) {
 
         console.log(`🔑 Vehicle Hash: ${vehicleHash.substring(0, 12)}... | GPS Hash: ${gpsHash?.substring(0, 8) || 'N/A'}`);
 
-        // 2. Contar cuántos vehículos activos tiene el usuario
+        // 2. Obtener datos del usuario (créditos y contador histórico)
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { credits: true, lifetimeVehicleCount: true }
+        });
+
         const activeVehiclesCount = await prisma.vehicle.count({
             where: {
                 userId: session.user.id,
@@ -57,7 +63,10 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        console.log(`📊 Usuario tiene ${activeVehiclesCount} vehículos activos`);
+        const lifetimeCount = user?.lifetimeVehicleCount || 0;
+        const userCredits = user?.credits || 0;
+
+        console.log(`📊 Usuario tiene ${activeVehiclesCount} activos | ${lifetimeCount} históricos | ${userCredits} créditos`);
 
         // 3. Buscar si este VEHÍCULO EXACTO ya fue publicado por ESTE USUARIO
         const userVehicles = await prisma.vehicle.findMany({
@@ -136,16 +145,20 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // 5. Verificar límite de vehículos gratis (Primeros 25 GRATIS)
-        // Ejemplo: alguien tiene 26 vehículos activos
-        if (activeVehiclesCount >= 25) {
-            console.log(`💰 LÍMITE GRATUITO EXCEDIDO (${activeVehiclesCount} activos) - Requiere crédito`);
+        // 5. Verificar límite de vehículos gratis (Primeros 25 HISTÓRICOS)
+        // Usamos lifetimeCount para que borrar y resubir no resetee el beneficio
+        if (lifetimeCount >= 25 && !useCredit) {
+            console.log(`💰 LÍMITE GRATUITO EXCEDIDO (${lifetimeCount} históricos) - Requiere crédito`);
             return NextResponse.json({
                 action: 'REQUIRE_CREDIT',
                 isFraud: false,
                 score: 0,
-                message: `Has alcanzado el límite de 25 vehículos gratuitos activos. Para publicar más necesitas 1 crédito.`,
-                requiresCredit: true
+                message: userCredits > 0
+                    ? `Has alcanzado el límite de 25 vehículos gratuitos. Tienes ${userCredits} créditos disponibles. ¿Deseas usar 1 para publicar?`
+                    : `Has alcanzado el límite de 25 vehículos gratuitos. Para publicar más necesitas 1 crédito.`,
+                requiresCredit: true,
+                userCredits,
+                lifetimeCount
             });
         }
 
@@ -157,7 +170,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             isFraud: false,
             score: 0,
-            action: 'ALLOW'
+            action: 'ALLOW',
+            userCredits,
+            lifetimeCount
         });
 
     } catch (error) {
