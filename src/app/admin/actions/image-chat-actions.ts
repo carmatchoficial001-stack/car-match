@@ -11,6 +11,8 @@ import { geminiFlashConversational } from '@/lib/ai/geminiModels'
  */
 import { buildPollinationsUrl } from '@/lib/admin/utils'
 import { uploadUrlToCloudinary, robustUploadToCloudinary } from '@/lib/cloudinary-server'
+import { prisma } from "@/lib/db"
+import { saveStudioMessage } from "./studio-history-actions"
 
 /**
  * Platform configurations with their optimal image sizes
@@ -34,6 +36,7 @@ type PlatformKey = keyof typeof PLATFORMS
  */
 export async function chatWithImageDirector(
     messages: { role: 'user' | 'assistant'; content: string }[],
+    conversationId?: string,
     targetCountry: string = 'MX'
 ) {
     try {
@@ -121,32 +124,94 @@ REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
             const count = Math.max(1, Math.min(25, data.photoCount || 11))
             console.log(`[IMAGE-CHAT] Generando ${count} fotos para el pack creativo...`)
 
-            const finalImages: Record<string, string> = {}
-
-            // Generate base sizes
             const baseSizes = [
                 { key: 'square', w: 1080, h: 1080, id: 'img_0' },
                 { key: 'vertical', w: 1080, h: 1920, id: 'img_1' },
                 { key: 'horizontal', w: 1200, h: 628, id: 'img_2' }
             ]
 
+            const finalImages: Record<string, any> = {
+                '_status': 'generating',
+                '_imagePrompt': imagePrompt,
+                '_photoCount': count
+            }
+
+            // 🔥 PERSIST IMMEDIATELY IF CONVERSATION ID EXISTS
+            let messageId: string | undefined = undefined
+            if (conversationId) {
+                const saveRes = await saveStudioMessage({
+                    conversationId,
+                    role: 'assistant',
+                    content: data.message || 'Propuesta creativa lista 🔥',
+                    type: 'PROMPT_READY',
+                    imagePrompt,
+                    images: finalImages,
+                    platforms: data.platforms || {}
+                })
+                if (saveRes.success) messageId = saveRes.messageId
+            }
+
             for (let i = 0; i < Math.min(count, 3); i++) {
                 const size = baseSizes[i]
-                const res = await robustUploadToCloudinary(buildPollinationsUrl(imagePrompt, size.w, size.h))
-                if (res.success) {
-                    finalImages[size.key] = res.secure_url!
-                    finalImages[size.id] = res.secure_url!
+                let attempts = 0
+                let uploaded = false
+
+                while (attempts < 3 && !uploaded) {
+                    attempts++
+                    console.log(`[IMAGE-CHAT] Attempt ${attempts} for ${size.key}...`)
+                    const res = await robustUploadToCloudinary(buildPollinationsUrl(imagePrompt, size.w, size.h))
+                    if (res.success) {
+                        finalImages[size.key] = res.secure_url!
+                        finalImages[size.id] = res.secure_url!
+                        uploaded = true
+
+                        if (messageId) {
+                            await prisma.studioMessage.update({
+                                where: { id: messageId },
+                                data: { images: finalImages }
+                            })
+                        }
+                    } else if (attempts < 3) {
+                        await new Promise(r => setTimeout(r, 2000))
+                    }
                 }
             }
 
-            // Gallery variations
             if (count > 3) {
                 for (let i = 3; i < count; i++) {
                     const id = `img_${i}`
                     const varPrompt = `${imagePrompt}, variation ${i}, distinct cinematic angle`
-                    const res = await robustUploadToCloudinary(buildPollinationsUrl(varPrompt, 1080, 1080))
-                    if (res.success) finalImages[id] = res.secure_url!
+
+                    let attempts = 0
+                    let uploaded = false
+                    while (attempts < 3 && !uploaded) {
+                        attempts++
+                        const res = await robustUploadToCloudinary(buildPollinationsUrl(varPrompt, 1080, 1080))
+                        if (res.success) {
+                            finalImages[id] = res.secure_url!
+                            uploaded = true
+                            if (messageId) {
+                                await prisma.studioMessage.update({
+                                    where: { id: messageId },
+                                    data: { images: finalImages }
+                                })
+                            }
+                        } else if (attempts < 3) {
+                            await new Promise(r => setTimeout(r, 2000))
+                        }
+                    }
                 }
+            }
+
+            delete finalImages['_status']
+            delete finalImages['_imagePrompt']
+            delete finalImages['_photoCount']
+
+            if (messageId) {
+                await prisma.studioMessage.update({
+                    where: { id: messageId },
+                    data: { images: finalImages }
+                })
             }
 
             if (Object.keys(finalImages).length === 0) {

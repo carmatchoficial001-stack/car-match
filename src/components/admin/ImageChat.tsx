@@ -104,6 +104,24 @@ export default function ImageChat() {
         setIsLoading(false)
     }
 
+    // 🔄 POLL FOR GENERATING MESSAGES
+    useEffect(() => {
+        if (!activeConversationId) return
+
+        const hasGenerating = messages.some(m => m.images && (m.images as any)._status === 'generating')
+        if (!hasGenerating) return
+
+        const timer = setInterval(async () => {
+            const res = await getStudioHistory(activeConversationId)
+            if (res.success && res.messages) {
+                // Update messages to reflect progress
+                setMessages(res.messages)
+            }
+        }, 3000)
+
+        return () => clearInterval(timer)
+    }, [messages, activeConversationId])
+
     const handleNewChat = async () => {
         setIsLoading(true)
         const res = await createStudioConversation("Nueva Idea")
@@ -169,18 +187,7 @@ export default function ImageChat() {
                 content: m.content
             }))
 
-            const result = await chatWithImageDirector(history)
-
-            const assistantMsg: ChatMessage = {
-                id: `assistant-${Date.now()}`,
-                role: 'assistant',
-                content: result.message || '',
-                type: result.type,
-                imagePrompt: result.type === 'PROMPT_READY' ? result.imagePrompt : undefined,
-                images: result.images || {},
-                platforms: result.type === 'PROMPT_READY' ? result.platforms : undefined,
-                timestamp: new Date()
-            }
+            const result = await chatWithImageDirector(history, currentConvId as string)
 
             if (result.success === false) {
                 setMessages(prev => [...prev, {
@@ -193,16 +200,29 @@ export default function ImageChat() {
                 return
             }
 
-            // 🛡️ PERSIST ASSISTANT MESSAGE
-            saveStudioMessage({
-                conversationId: currentConvId,
+            const assistantMsg: ChatMessage = {
+                id: result.messageId || `assistant-${Date.now()}`,
                 role: 'assistant',
-                content: assistantMsg.content,
-                type: assistantMsg.type,
-                imagePrompt: assistantMsg.imagePrompt,
-                images: assistantMsg.images,
-                platforms: assistantMsg.platforms
-            })
+                content: result.message || '',
+                type: result.type,
+                imagePrompt: result.type === 'PROMPT_READY' ? result.imagePrompt : undefined,
+                images: result.images || {},
+                platforms: result.type === 'PROMPT_READY' ? result.platforms : undefined,
+                timestamp: new Date()
+            }
+
+            // 🛡️ PERSIST ASSISTANT MESSAGE (Only if not already handled by the action)
+            if (!result.messageId) {
+                saveStudioMessage({
+                    conversationId: currentConvId as string,
+                    role: 'assistant',
+                    content: assistantMsg.content,
+                    type: assistantMsg.type,
+                    imagePrompt: assistantMsg.imagePrompt,
+                    images: assistantMsg.images,
+                    platforms: assistantMsg.platforms
+                })
+            }
 
             setMessages(prev => [...prev, assistantMsg])
         } catch (error: any) {
@@ -491,6 +511,10 @@ function PromptProposalCard({
     isLoading: boolean
 }) {
     const [copied, setCopied] = useState(false)
+    const isGenerating = (msg.images as any)?._status === 'generating'
+    const photoCount = (msg.images as any)?._photoCount || 11
+    const currentPhotos = Object.keys(msg.images || {}).filter(k => k.startsWith('img_')).length
+    const progress = Math.min(100, Math.round((currentPhotos / photoCount) * 100))
 
     const handleCopyPrompt = () => {
         if (!msg.imagePrompt) return
@@ -507,16 +531,81 @@ function PromptProposalCard({
 
             <div className="flex-1 max-w-2xl bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden shadow-2xl">
                 <div className="p-5">
-                    <div className="mb-4">
+                    <div className="flex items-center justify-between mb-4">
                         <span className="px-2 py-0.5 rounded-md bg-violet-500/20 text-[9px] font-black text-violet-400 uppercase tracking-widest border border-violet-500/30">
                             Concepto Visual Final
                         </span>
+                        {isGenerating && (
+                            <div className="flex items-center gap-2">
+                                <Loader2 className="w-3 h-3 text-violet-400 animate-spin" />
+                                <span className="text-[9px] font-bold text-zinc-500 uppercase">Trabajando en 2do plano...</span>
+                            </div>
+                        )}
                     </div>
 
                     <p className="text-sm text-white leading-relaxed mb-4">{msg.content}</p>
 
-                    {/* Image Preview */}
-                    {msg.images?.square && (
+                    {/* Sequential Visual Feedback: Show images as they arrive */}
+                    {(Object.keys(msg.images || {}).some(k => !k.startsWith('_'))) && (
+                        <div className="grid grid-cols-3 gap-2 mb-4">
+                            {msg.images?.square && (
+                                <div className="aspect-square rounded-xl overflow-hidden border border-white/10 group/mini relative">
+                                    <img src={msg.images.square} className="w-full h-full object-cover" alt="Square" />
+                                    <div className="absolute inset-x-0 bottom-0 bg-black/60 py-1 text-[7px] text-center font-bold text-white uppercase">1:1 Feed</div>
+                                </div>
+                            )}
+                            {msg.images?.vertical && (
+                                <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 group/mini relative">
+                                    <img src={msg.images.vertical} className="w-full h-full object-cover" alt="Vertical" />
+                                    <div className="absolute inset-x-0 bottom-0 bg-black/60 py-1 text-[7px] text-center font-bold text-white uppercase">9:16 Story</div>
+                                </div>
+                            )}
+                            {msg.images?.horizontal && (
+                                <div className="aspect-[16/9] rounded-xl overflow-hidden border border-white/10 group/mini relative">
+                                    <img src={msg.images.horizontal} className="w-full h-full object-cover" alt="Horizontal" />
+                                    <div className="absolute inset-x-0 bottom-0 bg-black/60 py-1 text-[7px] text-center font-bold text-white uppercase">16:9 Ads</div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Background Progress State */}
+                    {isGenerating && (
+                        <div className="relative w-full rounded-2xl overflow-hidden mb-5 border border-white/5 bg-black/40 flex flex-col items-center justify-center p-6 text-center group">
+                            <motion.div
+                                className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5"
+                                animate={{ opacity: [0.3, 0.6, 0.3] }}
+                                transition={{ duration: 4, repeat: Infinity }}
+                            />
+                            <div className="relative z-10 w-full">
+                                <div className="flex items-center justify-between mb-2 px-1">
+                                    <span className="text-[9px] font-black text-white uppercase tracking-widest flex items-center gap-2">
+                                        <Loader2 className="w-3 h-3 text-violet-400 animate-spin" />
+                                        Componiendo Pack...
+                                    </span>
+                                    <span className="text-[9px] font-black text-violet-400">{progress}%</span>
+                                </div>
+                                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                    <motion.div
+                                        className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${progress}%` }}
+                                        transition={{ type: 'spring', damping: 20 }}
+                                    />
+                                </div>
+                                <div className="mt-3 flex items-center justify-between px-1">
+                                    <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">
+                                        {currentPhotos} de {photoCount} fotos listas
+                                    </p>
+                                    <span className="text-[7px] text-zinc-600 font-bold uppercase italic animate-pulse">
+                                        Trabajando en 2do plano
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {!isGenerating && msg.images?.square && !msg.images?.vertical && (
                         <div className="relative aspect-square w-full rounded-2xl overflow-hidden mb-5 border border-white/10 bg-black group/preview">
                             <img
                                 src={msg.images.square}
@@ -550,16 +639,16 @@ function PromptProposalCard({
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => onOpenWorkspace(msg)}
-                            disabled={isLoading}
+                            disabled={isLoading || isGenerating}
                             className="flex-1 py-4 bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-[11px] font-black uppercase tracking-wider rounded-xl hover:shadow-lg hover:shadow-violet-500/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 group"
                         >
-                            <Zap className="w-4 h-4 group-hover:animate-pulse" />
-                            Generar Mesa de Trabajo (9 Redes)
+                            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 group-hover:animate-pulse" />}
+                            {isGenerating ? 'Preparando Mesa...' : 'Ver Mesa de Trabajo (9 Redes)'}
                         </button>
                         <button
                             onClick={() => onVariation(msg.imagePrompt!, "Haz una variación creativa manteniendo la esencia")}
-                            disabled={isLoading}
-                            className="w-14 h-14 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all border-dashed"
+                            disabled={isLoading || isGenerating}
+                            className="w-14 h-14 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all border-dashed disabled:opacity-30"
                             title="Regenerar Variación"
                         >
                             <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
