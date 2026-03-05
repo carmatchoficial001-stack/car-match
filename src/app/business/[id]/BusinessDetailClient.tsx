@@ -59,7 +59,6 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
 
     // Verificar si el usuario actual es el dueño del negocio
     const isOwner = currentUserId === business.userId
-
     // Lógica para acciones de gestión
     const executeToggleStatus = async (useCredit: boolean) => {
         setLoading(true)
@@ -69,7 +68,7 @@ export default function BusinessDetailClient({ business, currentUserId }: Busine
             const res = await fetch('/api/businesses/toggle-status', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ businessId: business.id, useCredit })
+                body: JSON.stringify({ id: business.id, useCredit })
             })
             const data = await res.json()
             if (res.ok) {
