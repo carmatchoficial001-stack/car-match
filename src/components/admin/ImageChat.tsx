@@ -68,11 +68,6 @@ export default function ImageChat() {
         return () => window.removeEventListener('resize', checkMobile)
     }, [])
 
-    const buildPollinationsUrl = (prompt: string, width: number, height: number) => {
-        const seed = Math.floor(Math.random() * 999999)
-        const encoded = encodeURIComponent(prompt)
-        return `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&seed=${seed}&nologo=true&model=flux`
-    }
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -184,13 +179,20 @@ export default function ImageChat() {
                 content: result.message || '',
                 type: result.type,
                 imagePrompt: result.type === 'PROMPT_READY' ? result.imagePrompt : undefined,
-                images: result.type === 'PROMPT_READY' ? (result.images && Object.keys(result.images).length > 0 ? result.images : {
-                    square: buildPollinationsUrl(result.imagePrompt!, 1080, 1080),
-                    vertical: buildPollinationsUrl(result.imagePrompt!, 1080, 1920),
-                    horizontal: buildPollinationsUrl(result.imagePrompt!, 1200, 628)
-                }) : undefined,
+                images: result.images || {},
                 platforms: result.type === 'PROMPT_READY' ? result.platforms : undefined,
                 timestamp: new Date()
+            }
+
+            if (result.success === false) {
+                setMessages(prev => [...prev, {
+                    id: `error-${Date.now()}`,
+                    role: 'assistant',
+                    content: result.message || 'Ocurrió un error al generar las imágenes.',
+                    timestamp: new Date()
+                }])
+                setIsLoading(false)
+                return
             }
 
             // 🛡️ PERSIST ASSISTANT MESSAGE

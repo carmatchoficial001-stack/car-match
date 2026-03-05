@@ -149,6 +149,14 @@ REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
                 }
             }
 
+            if (Object.keys(finalImages).length === 0) {
+                return {
+                    success: false,
+                    type: 'CHAT' as const,
+                    message: '❌ El servicio de generación gratuita está saturado ahora mismo. Intenta con un prompt más sencillo o espera un momento.'
+                }
+            }
+
             return {
                 success: true,
                 type: 'PROMPT_READY' as const,
@@ -218,14 +226,18 @@ Respond with JSON:
         const resVertical = await robustUploadToCloudinary(rawImages.vertical)
         const resHorizontal = await robustUploadToCloudinary(rawImages.horizontal)
 
+        if (!resSquare.success) {
+            return { success: false, message: `❌ No se pudo generar la variación: ${resSquare.error}` }
+        }
+
         return {
             success: true,
             message: data.message || 'Variación lista',
             imagePrompt,
             images: {
-                square: resSquare.success ? resSquare.secure_url! : rawImages.square,
-                vertical: resVertical.success ? resVertical.secure_url! : rawImages.vertical,
-                horizontal: resHorizontal.success ? resHorizontal.secure_url! : rawImages.horizontal,
+                square: resSquare.secure_url!,
+                vertical: resVertical.success ? resVertical.secure_url! : resSquare.secure_url!,
+                horizontal: resHorizontal.success ? resHorizontal.secure_url! : resSquare.secure_url!,
             }
         }
     } catch (error: any) {
