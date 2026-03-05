@@ -25,6 +25,14 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
     const [showEditModal, setShowEditModal] = useState(false)
     const [currentPage, setCurrentPage] = useState(1)
     const ITEMS_PER_PAGE = 10
+    const topRef = useRef<HTMLDivElement>(null)
+
+    // Scroll al inicio cuando cambia la página
+    useEffect(() => {
+        if (currentPage > 1 || vehiclesToShow.length > ITEMS_PER_PAGE) {
+            topRef.current?.scrollIntoView({ behavior: 'smooth' })
+        }
+    }, [currentPage])
 
     // Lógica de paginación
     const totalPages = Math.ceil(vehiclesToShow.length / ITEMS_PER_PAGE)
@@ -37,7 +45,7 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
     const formattedDate = new Date(user.createdAt).toLocaleDateString(locale === 'es' ? 'es-MX' : 'en-US', { month: 'long', year: 'numeric' })
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background" ref={topRef}>
             <div className="container mx-auto px-4 pt-8 pb-24 max-w-5xl">
                 {/* Header del Perfil */}
                 <div className="bg-surface rounded-2xl shadow-xl p-8 mb-8 border border-surface-highlight">
@@ -258,7 +266,6 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                                 currentPage={currentPage}
                                 onPageChange={(p) => {
                                     setCurrentPage(p)
-                                    window.scrollTo({ top: 0, behavior: 'smooth' })
                                 }}
                             />
                         </div>
