@@ -51,9 +51,22 @@ export default function ImageChat() {
     const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
     const [input, setInput] = useState('')
     const [isLoading, setIsLoading] = useState(false)
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false) // Default closed on mobile
+    const [isMobile, setIsMobile] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
+
+    // Detect screen size
+    useEffect(() => {
+        const checkMobile = () => {
+            const mobile = window.innerWidth < 768
+            setIsMobile(mobile)
+            setIsSidebarOpen(!mobile) // Open by default on desktop, closed on mobile
+        }
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
 
     const buildPollinationsUrl = (prompt: string, width: number, height: number) => {
         const seed = Math.floor(Math.random() * 999999)
@@ -238,11 +251,28 @@ export default function ImageChat() {
 
     return (
         <div className="flex h-full bg-[#0A0A0B] overflow-hidden">
+            {/* Sidebar Overlay for Mobile */}
+            <AnimatePresence>
+                {isMobile && isSidebarOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsSidebarOpen(false)}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+                    />
+                )}
+            </AnimatePresence>
+
             {/* Sidebar */}
             <motion.div
                 initial={false}
-                animate={{ width: isSidebarOpen ? 280 : 0, opacity: isSidebarOpen ? 1 : 0 }}
-                className="border-r border-white/5 bg-[#0D0D0E] flex flex-col shrink-0 overflow-hidden"
+                animate={{
+                    width: isSidebarOpen ? (isMobile ? '85%' : 280) : 0,
+                    opacity: isSidebarOpen ? 1 : 0,
+                    x: isSidebarOpen ? 0 : -20
+                }}
+                className={`${isMobile ? 'fixed inset-y-0 left-0 z-50 shadow-2xl' : 'relative'} border-r border-white/5 bg-[#0D0D0E] flex flex-col shrink-0 overflow-hidden transition-all duration-300`}
             >
                 <div className="p-4 border-b border-white/5">
                     <button
@@ -299,24 +329,24 @@ export default function ImageChat() {
             {/* Main Chat Area */}
             <div className="flex-1 flex flex-col relative h-full">
                 {/* Header */}
-                <div className="p-6 border-b border-white/5 bg-gradient-to-br from-violet-500/10 via-transparent to-fuchsia-500/5 relative overflow-hidden shrink-0">
+                <div className="p-4 md:p-6 border-b border-white/5 bg-gradient-to-br from-violet-500/10 via-transparent to-fuchsia-500/5 relative overflow-hidden shrink-0">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 blur-[100px] -mr-32 -mt-32 rounded-full" />
                     <div className="relative z-10 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3 md:gap-4">
                             <button
                                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                                className="p-2 bg-white/5 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition"
+                                className="p-2 md:p-2.5 bg-white/5 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition active:scale-95"
                             >
-                                <ChevronDown className={`w-4 h-4 transition-transform ${isSidebarOpen ? 'rotate-90' : '-rotate-90'}`} />
+                                <History className={`w-4 h-4 transition-transform ${isSidebarOpen && !isMobile ? 'rotate-0' : ''}`} />
                             </button>
                             <div>
-                                <h2 className="text-xl font-black text-white uppercase tracking-tighter mb-0.5 flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
-                                        <Palette className="w-4 h-4 text-white" />
+                                <h1 className="text-sm md:text-xl font-black text-white uppercase tracking-tight md:tracking-tighter mb-0.5 flex items-center gap-2 md:gap-3">
+                                    <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg md:rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                                        <Palette className="w-3 h-3 md:w-4 md:h-4 text-white" />
                                     </div>
                                     Estudio de Imágenes
-                                </h2>
-                                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.2em]">
+                                </h1>
+                                <p className="text-[8px] md:text-[9px] text-zinc-500 font-bold uppercase tracking-[0.2em]">
                                     {activeConversationId ? conversations.find(c => c.id === activeConversationId)?.title || "Sesión Activa" : "Nuevo Concepto Visual"}
                                 </p>
                             </div>
@@ -325,14 +355,14 @@ export default function ImageChat() {
                 </div>
 
                 {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 space-y-4 md:space-y-6">
                     {messages.length === 0 && (
-                        <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto">
-                            <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/20 flex items-center justify-center mb-6 shadow-2xl shadow-violet-500/10">
-                                <Sparkles className="w-10 h-10 text-violet-400" />
+                        <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto p-4">
+                            <div className="w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] md:rounded-[2rem] bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/20 flex items-center justify-center mb-6 shadow-2xl shadow-violet-500/10">
+                                <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-violet-400" />
                             </div>
-                            <h3 className="text-xl font-black text-white mb-2 tracking-tight">¿Qué vamos a crear hoy?</h3>
-                            <p className="text-sm text-zinc-500 mb-8 leading-relaxed">
+                            <h3 className="text-lg md:text-xl font-black text-white mb-2 tracking-tight">¿Qué vamos a crear hoy?</h3>
+                            <p className="text-xs md:text-sm text-zinc-500 mb-8 leading-relaxed">
                                 Describe tu idea y el Director Creativo diseñará la estética perfecta para tus redes sociales.
                             </p>
                             <div className="grid grid-cols-2 gap-2 w-full">
@@ -340,7 +370,7 @@ export default function ImageChat() {
                                     <button
                                         key={i}
                                         onClick={() => handleSend(preset.prompt)}
-                                        className="p-3 bg-white/[0.03] border border-white/5 rounded-xl text-left hover:bg-violet-500/10 hover:border-violet-500/20 transition-all text-[10px] font-bold text-zinc-400 hover:text-white"
+                                        className="p-3 bg-white/[0.03] border border-white/5 rounded-xl text-left hover:bg-violet-500/10 hover:border-violet-500/20 transition-all text-[9px] md:text-[10px] font-bold text-zinc-400 hover:text-white active:scale-95"
                                     >
                                         {preset.label}
                                     </button>
@@ -384,24 +414,24 @@ export default function ImageChat() {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-6 border-t border-white/5 bg-black/40 backdrop-blur-xl">
-                    <div className="max-w-4xl mx-auto flex gap-3">
+                <div className="p-4 md:p-6 border-t border-white/5 bg-black/40 backdrop-blur-xl">
+                    <div className="max-w-4xl mx-auto flex gap-2 md:gap-3">
                         <input
                             ref={inputRef}
                             type="text"
                             value={input}
                             onChange={e => setInput(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleSend()}
-                            placeholder="Nueva idea creativa... ej: Shooting de noche"
-                            className="flex-1 bg-white/[0.05] border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all"
+                            placeholder={isMobile ? "Idea creativa..." : "Nueva idea creativa... ej: Shooting de noche"}
+                            className="flex-1 bg-white/[0.05] border border-white/10 rounded-xl md:rounded-2xl px-4 md:px-5 py-3 md:py-4 text-xs md:text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all"
                             disabled={isLoading}
                         />
                         <button
                             onClick={() => handleSend()}
                             disabled={!input.trim() || isLoading}
-                            className="w-14 h-14 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-2xl flex items-center justify-center text-white disabled:opacity-30 transition-all active:scale-95 shadow-lg shadow-violet-500/20"
+                            className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl md:rounded-2xl flex items-center justify-center text-white disabled:opacity-30 transition-all active:scale-95 shadow-lg shadow-violet-500/20 shrink-0"
                         >
-                            <Send className="w-5 h-5" />
+                            <Send className="w-4 h-4 md:w-5 md:h-5" />
                         </button>
                     </div>
                 </div>
@@ -477,8 +507,8 @@ function PromptProposalCard({
                                 alt="Preview"
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover/preview:scale-110"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-end p-4">
-                                <p className="text-[10px] font-bold text-white uppercase tracking-widest bg-violet-600/80 backdrop-blur-md px-3 py-1.5 rounded-lg">Vista Previa 1:1</p>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3 md:p-4">
+                                <p className="text-[8px] md:text-[10px] font-bold text-white uppercase tracking-widest bg-violet-600/80 backdrop-blur-md px-2 md:px-3 py-1 md:py-1.5 rounded-lg">Vista Previa 1:1</p>
                             </div>
                         </div>
                     )}
@@ -606,7 +636,7 @@ function PlatformAssetCard({ platformId, data, images }: { platformId: string, d
                     </div>
                 </div>
 
-                <div className="aspect-video relative rounded-lg overflow-hidden bg-black mb-4 border border-white/5">
+                <div className={`${platformId.includes('stories') || platformId === 'tiktok' || platformId === 'snapchat' || platformId === 'kwai' ? 'aspect-[9/16]' : 'aspect-video'} relative rounded-lg overflow-hidden bg-black mb-4 border border-white/5`}>
                     <img
                         src={platformId.includes('stories') || platformId === 'tiktok' || platformId === 'snapchat' || platformId === 'kwai'
                             ? images.vertical || images.square
@@ -626,6 +656,10 @@ function PlatformAssetCard({ platformId, data, images }: { platformId: string, d
                             <Download className="w-5 h-5" />
                         </button>
                     </div>
+                    {/* Size badge for mobile */}
+                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-[8px] font-bold text-white uppercase">
+                        {platformId.includes('stories') || platformId === 'tiktok' ? '9:16 Vertical' : '16:9 HD'}
+                    </div>
                 </div>
 
                 <div className="space-y-3">
@@ -638,9 +672,9 @@ function PlatformAssetCard({ platformId, data, images }: { platformId: string, d
                     <div className="flex gap-2">
                         <button
                             onClick={handleCopy}
-                            className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-zinc-300 hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
+                            className="flex-1 py-3 md:py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] md:text-[9px] font-black uppercase tracking-widest text-zinc-300 hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2 active:scale-95"
                         >
-                            {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                            {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-4 h-4 md:w-3 md:h-3" />}
                             {copied ? 'Copiado' : 'Copiar Texto'}
                         </button>
                     </div>

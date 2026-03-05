@@ -310,56 +310,82 @@ export default function MarketClient({
     const observer = useRef<IntersectionObserver | null>(null)
     const lastItemRef = useCallback((node: HTMLDivElement | null) => {
         if (isFiltering) return
-        if (observer.current) observer.current.disconnect()
+        // Detect scroller reliably
+        const scroller = containerRef.current || document.querySelector('main')
 
         observer.current = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting && visibleCount < filteredItems.length) {
                 setVisibleCount(prev => prev + CARS_PER_PAGE)
             }
-        }, { threshold: 0.5 })
+        }, {
+            threshold: 0.1,
+            root: scroller,
+            rootMargin: '100px'
+        })
 
         if (node) observer.current.observe(node)
-    }, [isFiltering, visibleCount, filteredItems.length])
+    }, [isFiltering, visibleCount, filteredItems.length, tierIndex, RADIUS_TIERS.length, handleExpandSearch])
 
     // Find the main container on mount
     useEffect(() => {
         containerRef.current = document.querySelector('main')
     }, [])
 
-    // --- PULL TO REFRESH HANDLERS ---
-    const handleTouchStart = (e: React.TouchEvent) => {
-        const scrollTop = containerRef.current?.scrollTop ?? window.scrollY
-        if (scrollTop === 0 && !isRefreshing) {
-            setStartY(e.touches[0].pageY)
-        }
-    }
+    // 🔥 MOBILE PULL-TO-REFRESH OPTIMIZATION
+    const [isTouchingTop, setIsTouchingTop] = useState(false)
 
-    const handleTouchMove = (e: React.TouchEvent) => {
-        const scrollTop = containerRef.current?.scrollTop ?? window.scrollY
-        if (startY === 0 || isRefreshing || scrollTop > 0) return
+    useEffect(() => {
+        const main = document.querySelector('main')
+        if (!main) return
 
-        const currentY = e.touches[0].pageY
-        const diff = currentY - startY
-
-        if (diff > 0) {
-            // Apply resistance
-            const progress = Math.min(diff / 2.5, pullThreshold + 20)
-            setPullProgress(progress)
-
-            // Prevent scroll when pulling
-            if (diff > 10 && e.cancelable) {
-                // e.preventDefault() // Can't easily prevent default on passive listeners in React, but we check scrollY
+        const onTouchStart = (e: TouchEvent) => {
+            const scrollTop = main.scrollTop
+            if (scrollTop <= 5 && !isRefreshing) {
+                setStartY(e.touches[0].pageY)
+                setIsTouchingTop(true)
             }
         }
-    }
 
-    const handleTouchEnd = async () => {
-        if (pullProgress > pullThreshold) {
-            await triggerRefresh()
+        const onTouchMove = (e: TouchEvent) => {
+            if (startY === 0 || isRefreshing) return
+            const currentY = e.touches[0].pageY
+            const diff = currentY - startY
+
+            if (diff > 0 && main.scrollTop <= 5) {
+                // Apply resistance
+                const progress = Math.min(diff / 2.5, pullThreshold + 20)
+                setPullProgress(progress)
+
+                // Prevent native scroll/overscroll when pulling
+                if (progress > 10 && e.cancelable) {
+                    e.preventDefault()
+                }
+            } else if (diff < 0) {
+                setPullProgress(0)
+                setStartY(0)
+                setIsTouchingTop(false)
+            }
         }
-        setPullProgress(0)
-        setStartY(0)
-    }
+
+        const onTouchEnd = async () => {
+            if (pullProgress > pullThreshold && isTouchingTop) {
+                await triggerRefresh()
+            }
+            setPullProgress(0)
+            setStartY(0)
+            setIsTouchingTop(false)
+        }
+
+        main.addEventListener('touchstart', onTouchStart, { passive: true })
+        main.addEventListener('touchmove', onTouchMove, { passive: false })
+        main.addEventListener('touchend', onTouchEnd)
+
+        return () => {
+            main.removeEventListener('touchstart', onTouchStart)
+            main.removeEventListener('touchmove', onTouchMove)
+            main.removeEventListener('touchend', onTouchEnd)
+        }
+    }, [startY, isRefreshing, pullProgress, pullThreshold, isTouchingTop])
 
     const triggerRefresh = async () => {
         setIsRefreshing(true)
@@ -497,9 +523,6 @@ export default function MarketClient({
     return (
         <div
             className="min-h-screen bg-background"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
         >
             {/* Pull to Refresh Indicator */}
             <div
