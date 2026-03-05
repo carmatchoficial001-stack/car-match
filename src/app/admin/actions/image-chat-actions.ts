@@ -1,18 +1,25 @@
 'use server'
 
 import { geminiFlashConversational } from '@/lib/ai/geminiModels'
-
-// ─────────────────────────────────────────────────────────────
-// 🎨 IMAGE CHAT — CREATIVE DIRECTOR AI
-// ─────────────────────────────────────────────────────────────
-
-/**
- * Generates a Pollinations.ai image URL from a prompt
- */
 import { buildPollinationsUrl } from '@/lib/admin/utils'
 import { uploadUrlToCloudinary, robustUploadToCloudinary } from '@/lib/cloudinary-server'
 import { prisma } from "@/lib/db"
-import { saveStudioMessage } from "./studio-history-actions"
+import { saveStudioMessage, getStudioHistory } from "./studio-history-actions"
+import fs from 'fs'
+import path from 'path'
+
+// 📝 FILE LOGGING FOR DEBUGGING
+const LOG_FILE = 'e:\\carmatchapp\\image_worker_debug.log'
+function logToFile(msg: string) {
+    const timestamp = new Date().toISOString()
+    try {
+        fs.appendFileSync(LOG_FILE, `[${timestamp}] ${msg}\n`)
+        console.log(`[DEBUG-LOG] ${msg}`)
+    } catch (e) {
+        console.error('Failed to log to file:', e)
+    }
+}
+logToFile('--- SERVER ACTION LOADED / MODULE INIT ---')
 
 /**
  * Platform configurations with their optimal image sizes
@@ -28,11 +35,8 @@ const PLATFORMS = {
     kwai: { name: 'Kwai', w: 1080, h: 1920, icon: '🎬' },
 } as const
 
-type PlatformKey = keyof typeof PLATFORMS
-
 /**
  * Main chat function — Creative Director AI
- * Returns either a conversational message or a complete creative pack
  */
 export async function chatWithImageDirector(
     messages: { role: 'user' | 'assistant'; content: string }[],
@@ -45,25 +49,14 @@ export async function chatWithImageDirector(
             `${m.role === 'user' ? 'USUARIO' : 'DIRECTOR CREATIVO'}: ${m.content}`
         ).join('\n')
 
-        // Check if this is the user confirming they want the idea to become a campaign
-        const isConfirming = /^(s[ií]|dale|hazlo|genera|listo|ok|va|arre|lánzalo|perfecto|créala|genérala|ya|claro|adelante|procede)/i.test(lastMessage.trim())
-
         const prompt = `Eres el DIRECTOR CREATIVO SUPREMO de CarMatch México.
 Tu personalidad: Eres apasionado, visionario, dominas la jerga creativa y el marketing digital mexicano. 
-Eres un genio capaz de crear publicidad de TODO tipo para CarMatch:
-- Branding y estilo de vida (lifestyle)
-- Eventos y lanzamientos
-- Ofertas y promociones relámpago
-- Memes y contenido viral
-- Fotografía profesional editorial de cualquier vehículo o situación.
-
 Tu objetivo es platicar con el usuario en ESPAÑOL para entender su visión.
 Una vez que la idea esté clara, propón un "PROMPT FINAL" detallado.
 
 REGLAS DE INTERACCIÓN:
 1. Siempre habla en ESPAÑOL.
-2. Si la idea es vaga, pregunta de forma creativa.
-3. Cuando el usuario diga que la idea le gusta o pida generar/hacer la imagen, responde con "PROMPT_READY".
+2. Cuando el usuario pida generar la imagen, responde con "PROMPT_READY".
 
 HISTORIAL:
 ${contextStr}
@@ -72,46 +65,29 @@ INSTRUCCIONES DE RESPUESTA JSON:
 Si vas a proponer el diseño final, responde:
 {
     "type": "PROMPT_READY",
-    "message": "Mensaje entusiasta en ESPAÑOL sobre el pack creativo que diseñaste.",
-    "imagePrompt": "ULTRA DETAILED prompt in ENGLISH (Camera, lens, lighting, composition, 8k, photorealistic).",
+    "message": "Mensaje entusiasta en ESPAÑOL.",
+    "imagePrompt": "ULTRA DETAILED prompt in ENGLISH.",
     "photoCount": 11,
-    "platforms": {
-        "instagram_feed": { "caption": "Caption visual y estético...", "hashtags": "#CarMatchMX #LuxuryCars" },
-        "instagram_stories": { "caption": "Texto corto y directo para story...", "hashtags": "" },
-        "facebook": { "caption": "Texto informativo y confiable para grupos/muro...", "hashtags": "#VentaAutos" },
-        "tiktok": { "caption": "Hook viral y divertido...", "hashtags": "#CarTok #CarMatch" },
-        "x_twitter": { "caption": "Texto conciso y actual (280 caracteres)...", "hashtags": "#AutoNoticias" },
-        "google_ads": { "caption": "Copia de venta directa y profesional...", "hashtags": "" },
-        "snapchat": { "caption": "Texto efímero y juvenil...", "hashtags": "" },
-        "kwai": { "caption": "Estilo dinámico para videos cortos...", "hashtags": "#AutosKwai" },
-        "threads": { "caption": "Hilo o post de opinión/debate corto...", "hashtags": "#CarMatch #Trending" }
-    }
+    "platforms": { ... }
 }
 
-Si estás platicando o necesitas más info, responde:
+Si estás platicando, responde:
 {
     "type": "CHAT",
-    "message": "Tu respuesta o pregunta creativa en ESPAÑOL (máx 3 líneas)"
+    "message": "Tu respuesta en ESPAÑOL"
 }
+Responde ÚNICAMENTE con JSON.`
 
-REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
-
-        const result = await Promise.race([
-            geminiFlashConversational.generateContent({
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                generationConfig: {
-                    responseMimeType: 'application/json',
-                    temperature: 0.9,
-                    maxOutputTokens: 4096
-                }
-            }),
-            new Promise<never>((_, reject) =>
-                setTimeout(() => reject(new Error('TIMEOUT')), 90000) // 90 segundos de paciencia (Modo Terco)
-            )
-        ]) as any
+        const result = await geminiFlashConversational.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: {
+                responseMimeType: 'application/json',
+                temperature: 0.9,
+                maxOutputTokens: 4096
+            }
+        }) as any
 
         let responseText = result.response.text().trim()
-        // Clean markdown wrappers
         if (responseText.startsWith('```json')) responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim()
         else if (responseText.startsWith('```')) responseText = responseText.replace(/```/g, '').trim()
 
@@ -120,7 +96,8 @@ REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
         if (data.type === 'PROMPT_READY' && data.imagePrompt) {
             const imagePrompt = data.imagePrompt
             const count = Math.max(1, Math.min(25, data.photoCount || 11))
-            console.log(`[IMAGE-CHAT] Iniciando generación de ${count} fotos en SEGUNDO PLANO...`)
+
+            logToFile(`[MAIN] Iniciando flujo para ${count} fotos...`)
 
             const finalImages: Record<string, any> = {
                 '_status': 'generating',
@@ -128,7 +105,6 @@ REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
                 '_photoCount': count
             }
 
-            // 🔥 PERSIST IMMEDIATELY
             let messageId: string | undefined = undefined
             if (conversationId) {
                 const saveRes = await saveStudioMessage({
@@ -143,84 +119,98 @@ REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
                 if (saveRes.success) messageId = saveRes.messageId
             }
 
-            // 🚀 TRIGGER BACKGROUND WORKER (Non-blocking)
-            // We don't await this so we can return to the client immediately
-            (async () => {
-                try {
-                    console.log(`[IMAGE-CHAT-WORKER] Trabajando en el mensaje: ${messageId}`)
-                    const baseSizes = [
-                        { key: 'square', w: 1080, h: 1080, id: 'img_0' },
-                        { key: 'vertical', w: 1080, h: 1920, id: 'img_1' },
-                        { key: 'horizontal', w: 1200, h: 628, id: 'img_2' }
-                    ]
+            logToFile(`[MAIN] Mensaje persistido con ID: ${messageId}. Disparando worker...`)
 
-                    // 1. Generate Base Images (First 3)
-                    for (let i = 0; i < Math.min(count, 3); i++) {
-                        const size = baseSizes[i]
-                        const res = await robustUploadToCloudinary(buildPollinationsUrl(imagePrompt, size.w, size.h))
-                        if (res.success) {
-                            finalImages[size.key] = res.secure_url!
-                            finalImages[size.id] = res.secure_url!
+            // 🚀 BACKGROUND WORKER / DETERMINATE QUEUE
+            if (messageId) {
+                (async () => {
+                    try {
+                        logToFile(`[WORKER] 🚀 Determinate Queue iniciado para ${messageId}`);
+                        let pendingTasks = new Set<number>(Array.from({ length: count }, (_, i) => i));
+                        let passes = 0;
+                        const maxPasses = 4;
+
+                        while (pendingTasks.size > 0 && passes < maxPasses) {
+                            passes++;
+                            logToFile(`[PASS ${passes}] Procesando ${pendingTasks.size} tareas pendientes...`);
+
+                            const taskArray = Array.from(pendingTasks);
+                            // Batches of 4
+                            for (let i = 0; i < taskArray.length; i += 4) {
+                                const batchIndices = taskArray.slice(i, i + 4);
+                                logToFile(`[PASS ${passes}] Batch: ${batchIndices.join(', ')}`);
+
+                                const batchPromises = batchIndices.map(async (idx) => {
+                                    try {
+                                        const id = `img_${idx}`;
+                                        let p = imagePrompt;
+                                        let w = 1080, h = 1080;
+                                        if (idx === 1) { w = 1080; h = 1920; }
+                                        else if (idx === 2) { w = 1200; h = 628; }
+                                        else if (idx > 2) { p += `, variation ${idx}, professional lighting`; }
+
+                                        const res = await robustUploadToCloudinary(buildPollinationsUrl(p, w, h));
+                                        if (res.success) {
+                                            finalImages[id] = res.secure_url!;
+                                            if (idx === 0) finalImages.square = res.secure_url!;
+                                            if (idx === 1) finalImages.vertical = res.secure_url!;
+                                            if (idx === 2) finalImages.horizontal = res.secure_url!;
+                                            pendingTasks.delete(idx);
+                                            logToFile(`[PASS ${passes}] ✅ ${id} OK`);
+                                            return true;
+                                        } else {
+                                            logToFile(`[PASS ${passes}] ❌ ${id} FAIL: ${res.error}`);
+                                            return false;
+                                        }
+                                    } catch (e: any) {
+                                        logToFile(`[PASS ${passes}] 🔥 ERROR Tarea ${idx}: ${e.message}`);
+                                        return false;
+                                    }
+                                });
+
+                                await Promise.all(batchPromises);
+
+                                // Save progress after each batch
+                                if (messageId) {
+                                    await prisma.studioMessage.update({
+                                        where: { id: messageId },
+                                        data: { images: { ...finalImages } }
+                                    });
+                                }
+                            }
+
+                            if (pendingTasks.size > 0 && passes < maxPasses) {
+                                logToFile(`[PASS ${passes}] Reintentos pendientes: ${pendingTasks.size}. Esperando 5s...`);
+                                await new Promise(r => setTimeout(r, 5000));
+                            }
+                        }
+                        logToFile(`[WORKER] Ciclo completado. Pendientes finales: ${pendingTasks.size}`);
+                    } catch (err: any) {
+                        logToFile(`[FATAL] Error en loop de worker: ${err.message}`);
+                    } finally {
+                        logToFile(`[WORKER] 🏁 Finalizando y limpiando status...`);
+                        try {
+                            // Usamos el objeto local finalImages que tiene todo lo acumulado
+                            const finalToSave = { ...finalImages };
+                            delete finalToSave._status;
+                            delete finalToSave._imagePrompt;
+                            delete finalToSave._photoCount;
+
                             if (messageId) {
                                 await prisma.studioMessage.update({
                                     where: { id: messageId },
-                                    data: { images: { ...finalImages } } // Spread to avoid reference issues
-                                })
+                                    data: { images: finalToSave }
+                                });
                             }
+                            logToFile(`[WORKER] Status removido exitosamente.`);
+                        } catch (finalErr: any) {
+                            logToFile(`[WORKER] Error en cleanup final: ${finalErr.message}`);
                         }
+                        logToFile(`[WORKER] DONE.`);
                     }
+                })().catch(e => logToFile(`[ERR] Worker Crash: ${e.message}`));
+            }
 
-                    // 2. Generate Variations (Rest of the count)
-                    if (count > 3) {
-                        // Process in batches of 4 to be faster but safe
-                        for (let i = 3; i < count; i += 4) {
-                            const batch = []
-                            for (let j = i; j < Math.min(i + 4, count); j++) {
-                                const id = `img_${j}`
-                                const varPrompt = `${imagePrompt}, variation ${j}, distinct cinematic angle`
-                                batch.push((async () => {
-                                    const res = await robustUploadToCloudinary(buildPollinationsUrl(varPrompt, 1080, 1080))
-                                    if (res.success) {
-                                        finalImages[id] = res.secure_url!
-                                        if (messageId) {
-                                            await prisma.studioMessage.update({
-                                                where: { id: messageId },
-                                                data: { images: { ...finalImages } }
-                                            })
-                                        }
-                                    }
-                                })())
-                            }
-                            await Promise.all(batch)
-                        }
-                    }
-
-                    // Finalize: Remove status
-                    delete finalImages['_status']
-                    delete finalImages['_imagePrompt']
-                    delete finalImages['_photoCount']
-
-                    if (messageId) {
-                        await prisma.studioMessage.update({
-                            where: { id: messageId },
-                            data: { images: finalImages }
-                        })
-                        console.log(`[IMAGE-CHAT-WORKER] ✅ Pack finalizado para: ${messageId}`)
-                    }
-                } catch (workerErr) {
-                    console.error("[IMAGE-CHAT-WORKER] Error Crítico:", workerErr)
-                    if (messageId) {
-                        // Remove status so UI stops loading
-                        delete finalImages['_status']
-                        await prisma.studioMessage.update({
-                            where: { id: messageId },
-                            data: { images: finalImages }
-                        })
-                    }
-                }
-            })().catch(e => console.error("Worker unhandled error:", e))
-
-            // Return immediately with the placeholder/status message
             return {
                 success: true,
                 messageId,
@@ -239,74 +229,26 @@ REGLA CRÍTICA: Responde ÚNICAMENTE con JSON válido.`
         }
 
     } catch (error: any) {
-        console.error('[IMAGE-CHAT] Error:', error)
-        if (error.message === 'TIMEOUT') {
-            return { success: false, type: 'CHAT' as const, message: '⏱️ La IA tardó demasiado. Intenta de nuevo con una idea más corta.' }
-        }
-        return { success: false, type: 'CHAT' as const, message: `❌ Error: ${error.message || 'Algo salió mal'}` }
+        logToFile(`[API] Error: ${error.message}`)
+        return { success: false, type: 'CHAT' as const, message: `❌ Error: ${error.message}` }
     }
 }
 
-/**
- * Generate a variation of an existing image
- */
-export async function generateImageVariation(
-    originalPrompt: string,
-    instruction: string
-) {
+export async function generateImageVariation(originalPrompt: string, instruction: string) {
+    // Legacy support for manual variations if needed
     try {
-        const prompt = `Original image prompt: "${originalPrompt}"
-        
-User wants this modification: "${instruction}"
+        const prompt = `Modifica este prompt: "${originalPrompt}" según: "${instruction}". Responde JSON { imagePrompt, message }.`
+        const result = await geminiFlashConversational.generateContent(prompt)
+        const text = result.response.text()
+        const data = JSON.parse(text.replace(/```json|```/g, '').trim())
 
-Generate a NEW image prompt in ENGLISH that applies the modification while keeping the core concept.
-The prompt must be ultra-detailed (camera, lighting, composition, style).
-
-Respond with JSON:
-{
-    "imagePrompt": "new detailed prompt in ENGLISH",
-    "message": "Brief description of what changed (in SPANISH)"
-}`
-
-        const result = await geminiFlashConversational.generateContent({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json', temperature: 0.8, maxOutputTokens: 2048 }
-        })
-
-        let text = result.response.text().trim()
-        if (text.startsWith('```json')) text = text.replace(/```json/g, '').replace(/```/g, '').trim()
-
-        const data = JSON.parse(text)
-        const imagePrompt = data.imagePrompt
-
-        // 🔥 NEW: Upload to Cloudinary
-        console.log('[IMAGE-VARIATION] Uploading variation to Cloudinary...')
-        const rawImages = {
-            square: buildPollinationsUrl(imagePrompt, 1080, 1080),
-            vertical: buildPollinationsUrl(imagePrompt, 1080, 1920),
-            horizontal: buildPollinationsUrl(imagePrompt, 1200, 628),
-        }
-
-        const resSquare = await robustUploadToCloudinary(rawImages.square)
-        const resVertical = await robustUploadToCloudinary(rawImages.vertical)
-        const resHorizontal = await robustUploadToCloudinary(rawImages.horizontal)
-
-        if (!resSquare.success) {
-            return { success: false, message: `❌ No se pudo generar la variación: ${resSquare.error}` }
-        }
-
+        const res = await robustUploadToCloudinary(buildPollinationsUrl(data.imagePrompt, 1080, 1080))
         return {
-            success: true,
-            message: data.message || 'Variación lista',
-            imagePrompt,
-            images: {
-                square: resSquare.secure_url!,
-                vertical: resVertical.success ? resVertical.secure_url! : resSquare.secure_url!,
-                horizontal: resHorizontal.success ? resHorizontal.secure_url! : resSquare.secure_url!,
-            }
+            success: res.success,
+            message: data.message,
+            images: { square: res.secure_url }
         }
-    } catch (error: any) {
-        console.error('[IMAGE-VARIATION] Error:', error)
-        return { success: false, message: `❌ Error: ${error.message}` }
+    } catch (e: any) {
+        return { success: false, message: e.message }
     }
 }
