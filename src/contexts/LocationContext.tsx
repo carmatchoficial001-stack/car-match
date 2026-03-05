@@ -6,11 +6,13 @@ import { getUserLocation, reverseGeocode, LocationData } from '@/lib/geolocation
 interface LocationContextType {
     location: LocationData | null
     loading: boolean
+    initializing: boolean // 🔥 Evita el parpadeo inicial
     error: string | null
     manualLocation: LocationData | null
     setManualLocation: (data: LocationData | null) => void
     refreshLocation: () => Promise<void>
 }
+
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined)
 
@@ -25,6 +27,7 @@ export function LocationProvider({
 }) {
     const [location, setLocation] = useState<LocationData | null>(null)
     const [loading, setLoading] = useState(true)
+    const [initializing, setInitializing] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [manualLocation, setManualLocationState] = useState<LocationData | null>(null)
 
@@ -95,6 +98,7 @@ export function LocationProvider({
                 }
             }
         }
+        setInitializing(false) // 🚀 Marca que ya revisó la caché inicial
         fetchLocation(false)
     }, [])
 
@@ -106,6 +110,7 @@ export function LocationProvider({
             value={{
                 location: effectiveLocation,
                 loading,
+                initializing,
                 error,
                 manualLocation,
                 setManualLocation,

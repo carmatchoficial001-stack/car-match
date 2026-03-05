@@ -6,12 +6,15 @@ import { MapPin, Navigation, Search, Globe, Loader2 } from "lucide-react"
 import { searchCities, LocationData } from "@/lib/geolocation"
 
 export default function GlobalLocationGate() {
-    const { location, loading, error, setManualLocation, refreshLocation } = useLocation()
+    const { location, loading, initializing, error, setManualLocation, refreshLocation } = useLocation()
     const [isSearching, setIsSearching] = useState(false)
     const [input, setInput] = useState("")
     const [candidates, setCandidates] = useState<LocationData[]>([])
     const [searchError, setSearchError] = useState<string | null>(null)
     const [mode, setMode] = useState<'INITIAL' | 'SEARCH'>('INITIAL')
+
+    // 🚀 Evita el parpadeo inicial mientras lee el localStorage
+    if (initializing) return null
 
     // Si ya tenemos ubicación, no mostramos el portal
     if (location) return null
