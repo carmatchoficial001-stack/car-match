@@ -21,7 +21,7 @@ interface ChatMessage {
     role: 'user' | 'assistant'
     content: string
     type?: 'CHAT' | 'PROMPT_READY' | 'IMAGE_READY'
-    images?: { square: string; vertical: string; horizontal: string }
+    images?: Record<string, string>
     imagePrompt?: string
     platforms?: Record<string, any>
     timestamp: Date
@@ -79,10 +79,8 @@ export default function ImageChat() {
             const res = await getStudioConversations()
             if (res.success && res.conversations) {
                 setConversations(res.conversations)
-                // If there's at least one conversation, load the first one
-                if (res.conversations.length > 0) {
-                    handleSelectConversation(res.conversations[0].id)
-                }
+                // We no longer auto-load the first conversation to ensure a "New Chat" feel
+                // If the user wants history, they can use the sidebar
             }
         }
         loadInitialData()
@@ -349,9 +347,25 @@ export default function ImageChat() {
                                     Estudio de Imágenes
                                 </h1>
                                 <p className="text-[8px] md:text-[9px] text-zinc-500 font-bold uppercase tracking-[0.2em]">
-                                    {activeConversationId ? conversations.find(c => c.id === activeConversationId)?.title || "Sesión Activa" : "Nuevo Concepto Visual"}
+                                    {activeConversationId ?
+                                        conversations.find(c => c.id === activeConversationId)?.title || "Sesión Activa"
+                                        : "Nuevo Concepto Visual"}
                                 </p>
                             </div>
+                        </div>
+
+                        {/* New Chat Button for Header (Visible on Mobile) */}
+                        <div className="flex items-center gap-2">
+                            {activeConversationId && (
+                                <button
+                                    onClick={handleNewChat}
+                                    disabled={isLoading}
+                                    className="px-3 py-2 md:px-4 md:py-2.5 bg-violet-500 text-white rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest hover:bg-violet-600 transition-all flex items-center gap-2 shadow-lg shadow-violet-500/20 active:scale-95"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span className="hidden xs:inline">Nuevo</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
