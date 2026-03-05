@@ -77,7 +77,7 @@ export async function robustUploadToCloudinary(url: string, folder: string = 'ca
             console.log(`[CLOUDINARY] Intento ${i + 1}/${retries} para: ${currentUrl.substring(0, 100)}...`);
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 seconds timeout
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout (Increased for Flux)
 
             const response = await fetch(currentUrl, {
                 signal: controller.signal,

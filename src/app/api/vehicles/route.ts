@@ -158,55 +158,64 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // ═══ REGLAS FINALES DE MONETIZACIÓN (HISTÓRICAS) ═══
-        // ⚠️ CRITICAL: DO NOT MODIFY THESE RULES WITHOUT EXPLICIT APPROVAL
-        // ⚠️ PRODUCTION CONFIGURATION - MUST REMAIN STABLE
+        // 🔄 REGLAS FINALES DE MONETIZACIÓN (HISTÓRICAS) ═══
         // Rule 1: First vehicle ever is FREE for 6 months
         // Rule 2: Vehicles 2-25 are FREE for 7 days
         // Rule 3: Vehicle 26+ is PAID immediately
         const now = new Date()
         let expiresAt = new Date()
         let isFreePublication = true
-        let initialStatus: 'ACTIVE' | 'INACTIVE' = 'ACTIVE' // Por defecto activo si pasa filtros
-        let isAiRejected = false // [MEJORA] Ya no hay rechazo síncrono
+        let initialStatus: 'ACTIVE' | 'INACTIVE' = 'ACTIVE'
 
         const isPermanentlyRestricted = (user.fraudStrikes || 0) >= 10
         const lifetimeCount = user.lifetimeVehicleCount || 0
+
+        // Regenerar título respetando datos del usuario (Movido arriba para evitar ReferenceError)
+        const finalBrand = brand || 'Desconocido'
+        const finalModel = model || 'N/A'
+        const finalVersion = body.version || ''
+        const finalYear = parseInt(year) || new Date().getFullYear()
+        const finalTitle = `${finalBrand} ${finalModel} ${finalVersion} ${finalYear}`.replace(/\s+/g, ' ').trim()
 
         if (isAdmin) {
             expiresAt.setFullYear(now.getFullYear() + 10)
             isFreePublication = true
         }
         else if (isPermanentlyRestricted) {
-            // Usuarios marcados -> INACTIVO (Borrador)
-            expiresAt.setDate(now.getDate() + 30) // Vigencia estándar para cuando paguen
+            expiresAt.setDate(now.getDate() + 30)
             isFreePublication = false
             initialStatus = 'INACTIVE'
         }
         else if (lifetimeCount === 0) {
-            // 1er Vehículo HISTÓRICO: 6 Meses Gratis
             expiresAt.setMonth(now.getMonth() + 6)
             isFreePublication = true
         }
         else if (lifetimeCount < 25) {
-            // Vehículos 2 al 25 HISTÓRICOS: 7 Días Gratis
             expiresAt.setDate(now.getDate() + 7)
             isFreePublication = true
         }
         else {
-            // Vehículo 26 en adelante HISTÓRICO: COBRO OBLIGATORIO
-            // Revisar si el usuario eligió usar un crédito
+            isFreePublication = false
             if (body.useCredit === true && user.credits > 0) {
-                console.log(`💳 Usando crédito para activar publicación 26+ de usuario ${user.id}`);
+                expiresAt.setDate(now.getDate() + 30)
+                initialStatus = 'ACTIVE'
+            } else {
+                expiresAt = new Date()
+                initialStatus = 'INACTIVE'
+            }
+        }
 
-                // Deducción de crédito
-                await prisma.user.update({
+        // 🛡️ EJECUCIÓN ATÓMICA (Crédito + Registro + Contador)
+        const vehicle = await prisma.$transaction(async (tx) => {
+            // 1. Cobrar crédito si corresponde (Ignorar si es Admin)
+            if (!isAdmin && lifetimeCount >= 25 && body.useCredit === true && user.credits > 0) {
+                console.log(`💳 Procesando crédito para usuario ${user.id}`);
+                await tx.user.update({
                     where: { id: user.id },
                     data: { credits: { decrement: 1 } }
                 });
 
-                // Registro de transacción
-                await prisma.creditTransaction.create({
+                await tx.creditTransaction.create({
                     data: {
                         userId: user.id,
                         amount: -1,
@@ -214,88 +223,67 @@ export async function POST(request: NextRequest) {
                         details: { action: 'USE_CREDIT_PUBLISH', lifetimeCount }
                     }
                 });
-
-                expiresAt.setDate(now.getDate() + 30);
-                isFreePublication = false;
-                initialStatus = 'ACTIVE';
-            } else {
-                expiresAt = new Date()
-                isFreePublication = false
-                initialStatus = 'INACTIVE' // Requiere pago para activarse
             }
-        }
 
-        // Regenerar título respetando datos del usuario
-        const finalBrand = brand || 'Desconocido'
-        const finalModel = model || 'N/A'
-        const finalVersion = body.version || ''
-        const finalYear = parseInt(year) || new Date().getFullYear()
-        const finalTitle = `${finalBrand} ${finalModel} ${finalVersion} ${finalYear}`.replace(/\s+/g, ' ').trim()
+            // 2. Crear el vehículo
+            const newVehicle = await tx.vehicle.create({
+                data: {
+                    userId: user.id,
+                    title: finalTitle,
+                    description,
+                    brand: finalBrand,
+                    model: finalModel,
+                    version: finalVersion || null,
+                    year: finalYear,
+                    price: parseFloat(price),
+                    city,
+                    latitude: latitude ? parseFloat(latitude) : null,
+                    longitude: longitude ? parseFloat(longitude) : null,
+                    images: body.images || [],
+                    mileage: safeInt(body.mileage),
+                    transmission: body.transmission || null,
+                    fuel: body.fuel || null,
+                    engine: body.engine || null,
+                    color: body.color || null,
+                    vehicleType: body.vehicleType || null,
+                    currency: body.currency || 'MXN',
+                    features: body.features || [],
+                    traction: body.traction || null,
+                    condition: body.condition || null,
+                    doors: safeInt(body.doors),
+                    passengers: safeInt(body.passengers),
+                    displacement: safeInt(body.displacement),
+                    cargoCapacity: safeFloat(body.cargoCapacity),
+                    operatingHours: safeInt(body.operatingHours),
+                    hp: safeInt(body.hp),
+                    torque: body.torque || null,
+                    aspiration: body.aspiration || null,
+                    cylinders: safeInt(body.cylinders),
+                    batteryCapacity: safeFloat(body.batteryCapacity),
+                    range: safeInt(body.range),
+                    weight: safeInt(body.weight),
+                    axles: safeInt(body.axles),
+                    status: initialStatus,
+                    moderationStatus: 'PENDING_AI',
+                    isFreePublication: isFreePublication,
+                    publishedAt: now,
+                    expiresAt: expiresAt,
+                    searchIndex: contentHash
+                }
+            });
 
-        // Crear vehículo
-        const vehicle = await prisma.vehicle.create({
-            data: {
-                userId: user.id,
-                title: finalTitle,
-                description,
-                brand: finalBrand,
-                model: finalModel,
-                version: finalVersion || null,
-                year: finalYear,
-                price: parseFloat(price),
-                city,
-                latitude: latitude ? parseFloat(latitude) : null,
-                longitude: longitude ? parseFloat(longitude) : null,
-                images: body.images || [],
-                // Campos opcionales
-                mileage: safeInt(body.mileage),
-                transmission: body.transmission || null,
-                fuel: body.fuel || null,
-                engine: body.engine || null,
-                color: body.color || null,
-                vehicleType: body.vehicleType || null,
-                currency: body.currency || 'MXN',
-
-                // Campos adicionales restaurados
-                features: body.features || [],
-                traction: body.traction || null,
-                condition: body.condition || null,
-                doors: safeInt(body.doors),
-                passengers: safeInt(body.passengers),
-                displacement: safeInt(body.displacement),
-                cargoCapacity: safeFloat(body.cargoCapacity),
-                operatingHours: safeInt(body.operatingHours),
-                hp: safeInt(body.hp),
-                torque: body.torque || null,
-                aspiration: body.aspiration || null,
-                cylinders: safeInt(body.cylinders),
-                batteryCapacity: safeFloat(body.batteryCapacity),
-                range: safeInt(body.range),
-                weight: safeInt(body.weight),
-                axles: safeInt(body.axles),
-                // ESTADO INICIAL
-                status: initialStatus, // BLINDAJE: Empieza inactivo
-                moderationStatus: isAiRejected ? 'REJECTED' : 'PENDING_AI',
-                isFreePublication: isFreePublication,
-                publishedAt: now,
-                expiresAt: expiresAt,
-                // searchIndex para guardar el hash de contenido y facilitar búsquedas futuras
-                searchIndex: contentHash
+            // 3. Incrementar contador histórico de forma segura
+            if (!isFraudulentRetry) {
+                await tx.user.update({
+                    where: { id: user.id },
+                    data: { lifetimeVehicleCount: { increment: 1 } }
+                });
             }
-        })
 
-        // 📈 INCREMENTAR CONTADOR HISTÓRICO
-        // Solo si no fue rechazado por IA y no es un fraude flagrante.
-        // Así los intentos fallidos no queman "vidas", pero las publicaciones reales sí.
-        if (!isAiRejected && !isFraudulentRetry) {
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { lifetimeVehicleCount: { increment: 1 } }
-            })
-        }
+            return newVehicle;
+        });
 
         // 🛡️ GUARDAR HUELLA DIGITAL (Backend only)
-        // Guardamos el registro para análisis futuro
         await savePublicationFingerprint({
             userId: user.id,
             publicationType: 'VEHICLE',

@@ -145,8 +145,29 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // 5. Verificar límite de vehículos gratis (Primeros 25 HISTÓRICOS)
-        // Usamos lifetimeCount para que borrar y resubir no resetee el beneficio
+        // 5. Verificar si es una EDICIÓN de un vehículo ya ACTIVO y NO VENCIDO
+        if (body.currentVehicleId) {
+            const currentVehicle = await prisma.vehicle.findUnique({
+                where: { id: body.currentVehicleId },
+                select: { status: true, expiresAt: true }
+            });
+
+            if (currentVehicle?.status === 'ACTIVE' && currentVehicle.expiresAt && currentVehicle.expiresAt > new Date()) {
+                console.log(`✨ EDICIÓN PERMITIDA: Vehículo ${body.currentVehicleId} ya está activo y vigente.`);
+                return NextResponse.json({
+                    isFraud: false,
+                    score: 0,
+                    action: 'ALLOW',
+                    userCredits,
+                    lifetimeCount
+                });
+            }
+        }
+
+        // 6. Verificar límite de vehículos gratis (Primeros 25 HISTÓRICOS)
+        // El auto #25 es el último gratis (asumiendo que empezamos en 0).
+        // Si lifetimeCount >= 25, significa que ya publicó 25 autos (0 al 24).
+        // El auto #26 (count 25) es el primero que cobra.
         if (lifetimeCount >= 25 && !useCredit) {
             console.log(`💰 LÍMITE GRATUITO EXCEDIDO (${lifetimeCount} históricos) - Requiere crédito`);
             return NextResponse.json({

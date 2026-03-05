@@ -8,7 +8,8 @@ import {
     Camera, Layers, RefreshCw, Trash2, Plus, MessageSquare, History
 } from 'lucide-react'
 import { chatWithImageDirector } from '@/app/admin/actions/image-chat-actions'
-import { getStudioConversations, getStudioHistory, saveStudioMessage, createStudioConversation, deleteStudioConversation, clearStudioHistory, resetStudioMessageStatus } from '@/app/admin/actions/studio-history-actions'
+import { getStudioConversations, getStudioHistory, saveStudioMessage, createStudioConversation, deleteStudioConversation, clearStudioHistory } from '@/app/admin/actions/studio-history-actions'
+import { restartStudioWorker } from '@/app/admin/actions/image-chat-actions'
 
 import { AD_PLATFORMS } from '@/lib/admin/constants'
 
@@ -436,7 +437,7 @@ export default function ImageChat() {
                                         onOpenWorkspace={handleOpenWorkspace}
                                         onVariation={handleVariation}
                                         onReset={async (id) => {
-                                            const res = await resetStudioMessageStatus(id)
+                                            const res = await restartStudioWorker(id)
                                             if (res.success) {
                                                 const hist = await getStudioHistory(activeConversationId!)
                                                 if (hist.success) setMessages(hist.messages)
