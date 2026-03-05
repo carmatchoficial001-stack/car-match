@@ -9,14 +9,15 @@ import fs from 'fs'
 import path from 'path'
 
 // 📝 FILE LOGGING FOR DEBUGGING
-const LOG_FILE = 'e:\\carmatchapp\\image_worker_debug.log'
+const LOG_FILE = path.join(process.cwd(), 'studio_worker.log')
+
 function logToFile(msg: string) {
     const timestamp = new Date().toISOString()
     try {
         fs.appendFileSync(LOG_FILE, `[${timestamp}] ${msg}\n`)
         console.log(`[DEBUG-LOG] ${msg}`)
     } catch (e) {
-        console.error('Failed to log to file:', e)
+        // Silent fail for logs
     }
 }
 logToFile('--- SERVER ACTION LOADED / MODULE INIT ---')
@@ -124,64 +125,78 @@ Responde ÚNICAMENTE con JSON.`
             // 🚀 BACKGROUND WORKER / DETERMINATE QUEUE
             if (messageId) {
                 (async () => {
+                    const workerStartTime = Date.now();
+                    const WORKER_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes global timeout
+
                     try {
                         logToFile(`[WORKER] 🚀 Determinate Queue iniciado para ${messageId}`);
                         let pendingTasks = new Set<number>(Array.from({ length: count }, (_, i) => i));
                         let passes = 0;
-                        const maxPasses = 4;
+                        const maxPasses = 3;
 
                         while (pendingTasks.size > 0 && passes < maxPasses) {
+                            // Check for global timeout
+                            if (Date.now() - workerStartTime > WORKER_TIMEOUT_MS) {
+                                logToFile(`[WORKER] ⚠️ Global timeout reached (${WORKER_TIMEOUT_MS}ms). Stopping worker.`);
+                                break;
+                            }
+
                             passes++;
                             logToFile(`[PASS ${passes}] Procesando ${pendingTasks.size} tareas pendientes...`);
 
                             const taskArray = Array.from(pendingTasks);
-                            // Batches of 4
-                            for (let i = 0; i < taskArray.length; i += 4) {
-                                const batchIndices = taskArray.slice(i, i + 4);
+                            // Process in smaller batches of 3 to be more "live" and avoid overwhelming Cloudinary/Pollinations
+                            for (let i = 0; i < taskArray.length; i += 3) {
+                                const batchIndices = taskArray.slice(i, i + 3);
                                 logToFile(`[PASS ${passes}] Batch: ${batchIndices.join(', ')}`);
 
-                                const batchPromises = batchIndices.map(async (idx) => {
-                                    try {
-                                        const id = `img_${idx}`;
-                                        let p = imagePrompt;
-                                        let w = 1080, h = 1080;
-                                        if (idx === 1) { w = 1080; h = 1920; }
-                                        else if (idx === 2) { w = 1200; h = 628; }
-                                        else if (idx > 2) { p += `, variation ${idx}, professional lighting`; }
+                                const batchResults = await Promise.allSettled(batchIndices.map(async (idx) => {
+                                    const id = `img_${idx}`;
+                                    let p = imagePrompt;
+                                    let w = 1080, h = 1080;
 
-                                        const res = await robustUploadToCloudinary(buildPollinationsUrl(p, w, h));
-                                        if (res.success) {
-                                            finalImages[id] = res.secure_url!;
-                                            if (idx === 0) finalImages.square = res.secure_url!;
-                                            if (idx === 1) finalImages.vertical = res.secure_url!;
-                                            if (idx === 2) finalImages.horizontal = res.secure_url!;
-                                            pendingTasks.delete(idx);
-                                            logToFile(`[PASS ${passes}] ✅ ${id} OK`);
-                                            return true;
-                                        } else {
-                                            logToFile(`[PASS ${passes}] ❌ ${id} FAIL: ${res.error}`);
-                                            return false;
-                                        }
-                                    } catch (e: any) {
-                                        logToFile(`[PASS ${passes}] 🔥 ERROR Tarea ${idx}: ${e.message}`);
+                                    // Dimension variants
+                                    if (idx === 1) { w = 1080; h = 1920; }
+                                    else if (idx === 2) { w = 1200; h = 628; }
+
+                                    // Evolution injection
+                                    if (idx > 1) { p += `, variation ${idx}, professional lighting, cinematic detail`; }
+
+                                    const res = await robustUploadToCloudinary(buildPollinationsUrl(p, w, h));
+
+                                    if (res.success && res.secure_url) {
+                                        // Update local state
+                                        finalImages[id] = res.secure_url;
+                                        if (idx === 0) finalImages.square = res.secure_url;
+                                        if (idx === 1) finalImages.vertical = res.secure_url;
+                                        if (idx === 2) finalImages.horizontal = res.secure_url;
+
+                                        pendingTasks.delete(idx);
+
+                                        // 🔥 LIVE UPDATE: Update DB immediately for this image
+                                        const completedCount = count - pendingTasks.size;
+                                        finalImages['_status'] = `generating: ${completedCount}/${count}`;
+
+                                        await prisma.studioMessage.update({
+                                            where: { id: messageId },
+                                            data: { images: { ...finalImages } }
+                                        }).catch(e => logToFile(`[DB-ERR] Update progress error: ${e.message}`));
+
+                                        logToFile(`[PASS ${passes}] ✅ ${id} OK (${completedCount}/${count})`);
+                                        return true;
+                                    } else {
+                                        logToFile(`[PASS ${passes}] ❌ ${id} FAIL: ${res.error || 'Unknown error'}`);
                                         return false;
                                     }
-                                });
+                                }));
 
-                                await Promise.all(batchPromises);
-
-                                // Save progress after each batch
-                                if (messageId) {
-                                    await prisma.studioMessage.update({
-                                        where: { id: messageId },
-                                        data: { images: { ...finalImages } }
-                                    });
-                                }
+                                logToFile(`[WORKER] Batch results: ${JSON.stringify(batchResults.map(r => r.status))}`);
                             }
 
                             if (pendingTasks.size > 0 && passes < maxPasses) {
-                                logToFile(`[PASS ${passes}] Reintentos pendientes: ${pendingTasks.size}. Esperando 5s...`);
-                                await new Promise(r => setTimeout(r, 5000));
+                                const waitTime = 3000 * passes;
+                                logToFile(`[PASS ${passes}] Reintentos pendientes: ${pendingTasks.size}. Esperando ${waitTime}ms...`);
+                                await new Promise(r => setTimeout(r, waitTime));
                             }
                         }
                         logToFile(`[WORKER] Ciclo completado. Pendientes finales: ${pendingTasks.size}`);
@@ -190,7 +205,6 @@ Responde ÚNICAMENTE con JSON.`
                     } finally {
                         logToFile(`[WORKER] 🏁 Finalizando y limpiando status...`);
                         try {
-                            // Usamos el objeto local finalImages que tiene todo lo acumulado
                             const finalToSave = { ...finalImages };
                             delete finalToSave._status;
                             delete finalToSave._imagePrompt;
@@ -202,11 +216,10 @@ Responde ÚNICAMENTE con JSON.`
                                     data: { images: finalToSave }
                                 });
                             }
-                            logToFile(`[WORKER] Status removido exitosamente.`);
+                            logToFile(`[WORKER] Status removido exitosamente. Finalizado con éxito.`);
                         } catch (finalErr: any) {
                             logToFile(`[WORKER] Error en cleanup final: ${finalErr.message}`);
                         }
-                        logToFile(`[WORKER] DONE.`);
                     }
                 })().catch(e => logToFile(`[ERR] Worker Crash: ${e.message}`));
             }

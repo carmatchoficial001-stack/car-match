@@ -108,7 +108,7 @@ export default function ImageChat() {
     useEffect(() => {
         if (!activeConversationId) return
 
-        const hasGenerating = messages.some(m => m.images && (m.images as any)._status === 'generating')
+        const hasGenerating = messages.some(m => m.images && (m.images as any)._status?.startsWith('generating'))
         if (!hasGenerating) return
 
         console.log('[IMAGE-CHAT] Detectada generación activa, iniciando sondeo...')
@@ -116,7 +116,7 @@ export default function ImageChat() {
             const res = await getStudioHistory(activeConversationId)
             if (res.success && res.messages) {
                 // Check if still generating
-                const stillGenerating = res.messages.some(m => m.images && (m.images as any)._status === 'generating')
+                const stillGenerating = res.messages.some(m => m.images && (m.images as any)._status?.startsWith('generating'))
                 setMessages(res.messages)
 
                 if (!stillGenerating) {
@@ -518,7 +518,8 @@ function PromptProposalCard({
     isLoading: boolean
 }) {
     const [copied, setCopied] = useState(false)
-    const isGenerating = (msg.images as any)?._status === 'generating'
+    const statusStr = (msg.images as any)?._status || ''
+    const isGenerating = statusStr.startsWith('generating')
     const photoCount = (msg.images as any)?._photoCount || 11
     const currentPhotos = Object.keys(msg.images || {}).filter(k => k.startsWith('img_')).length
     const progress = Math.min(100, Math.round((currentPhotos / photoCount) * 100))
@@ -543,9 +544,15 @@ function PromptProposalCard({
                             Concepto Visual Final
                         </span>
                         {isGenerating && (
+                            <div className="flex items-center gap-1.5 bg-black/40 px-2 py-0.5 rounded-lg border border-violet-500/30">
+                                <div className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
+                                <span className="text-[10px] font-black uppercase text-violet-400 tracking-widest">Live</span>
+                            </div>
+                        )}
+                        {!isGenerating && statusStr === '' && (
                             <div className="flex items-center gap-2">
-                                <Loader2 className="w-3 h-3 text-violet-400 animate-spin" />
-                                <span className="text-[9px] font-bold text-zinc-500 uppercase">Trabajando en 2do plano...</span>
+                                <Check className="w-3 h-3 text-green-400" />
+                                <span className="text-[9px] font-bold text-zinc-500 uppercase">Completado</span>
                             </div>
                         )}
                     </div>
@@ -605,7 +612,7 @@ function PromptProposalCard({
                                         {currentPhotos} de {photoCount} fotos listas
                                     </p>
                                     <span className="text-[7px] text-zinc-600 font-bold uppercase italic animate-pulse">
-                                        Trabajando en 2do plano
+                                        {statusStr.includes(':') ? statusStr.split(':')[1].trim() : 'Procesando...'}
                                     </span>
                                 </div>
                             </div>

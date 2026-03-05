@@ -35,12 +35,18 @@ export async function uploadUrlToCloudinary(url: string, folder: string = 'carma
  */
 export async function uploadBufferToCloudinary(buffer: Buffer, folder: string = 'carmatch/publicity') {
     return new Promise<{ success: boolean; secure_url?: string; public_id?: string; error?: string }>((resolve, reject) => {
+        // 🛡️ TIMEOUT PROTECTOR (60s)
+        const timeoutId = setTimeout(() => {
+            resolve({ success: false, error: 'Cloudinary upload timeout (60s)' });
+        }, 60000);
+
         const uploadStream = cloudinary.uploader.upload_stream(
             {
                 folder,
                 resource_type: 'image',
             },
             (error, result) => {
+                clearTimeout(timeoutId);
                 if (error) {
                     console.error('Error in upload_stream to Cloudinary:', error)
                     resolve({ success: false, error: error.message })
