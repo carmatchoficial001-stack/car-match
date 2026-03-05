@@ -5,22 +5,28 @@ import { buildPollinationsUrl } from '@/lib/admin/utils'
 import { uploadUrlToCloudinary, robustUploadToCloudinary } from '@/lib/cloudinary-server'
 import { prisma } from "@/lib/db"
 import { saveStudioMessage, getStudioHistory } from "./studio-history-actions"
-import fs from 'fs'
-import path from 'path'
 
-// 📝 FILE LOGGING FOR DEBUGGING
-const LOG_FILE = path.join(process.cwd(), 'studio_worker.log')
 
-function logToFile(msg: string) {
-    const timestamp = new Date().toISOString()
+/**
+ * DB Logging helper
+ */
+async function recordLog(message: string, level: 'INFO' | 'WARN' | 'ERROR' = 'INFO', metadata?: any) {
     try {
-        fs.appendFileSync(LOG_FILE, `[${timestamp}] ${msg}\n`)
-        console.log(`[DEBUG-LOG] ${msg}`)
+        await prisma.systemLog.create({
+            data: {
+                level,
+                message,
+                source: 'StudioWorker',
+                metadata: metadata || {}
+            }
+        })
+        console.log(`[STUDIO] ${level}: ${message}`)
     } catch (e) {
-        // Silent fail for logs
+        console.error("Critical: Failed to save systemic log", e)
     }
 }
-logToFile('--- SERVER ACTION LOADED / MODULE INIT ---')
+
+await recordLog('--- SERVER ACTION LOADED / MODULE INIT ---')
 
 /**
  * Platform configurations with their optimal image sizes
@@ -98,12 +104,13 @@ Responde ÚNICAMENTE con JSON.`
             const imagePrompt = data.imagePrompt
             const count = Math.max(1, Math.min(25, data.photoCount || 11))
 
-            logToFile(`[MAIN] Iniciando flujo para ${count} fotos...`)
+            await recordLog(`Iniciando flujo para ${count} fotos...`, 'INFO', { imagePrompt })
 
             const finalImages: Record<string, any> = {
                 '_status': 'generating',
                 '_imagePrompt': imagePrompt,
-                '_photoCount': count
+                '_photoCount': count,
+                '_lastUpdate': Date.now()
             }
 
             let messageId: string | undefined = undefined
@@ -120,108 +127,95 @@ Responde ÚNICAMENTE con JSON.`
                 if (saveRes.success) messageId = saveRes.messageId
             }
 
-            logToFile(`[MAIN] Mensaje persistido con ID: ${messageId}. Disparando worker...`)
+            await recordLog(`Mensaje persistido con ID: ${messageId}. Iniciando worker...`, messageId ? 'INFO' : 'ERROR')
 
             // 🚀 BACKGROUND WORKER / DETERMINATE QUEUE
             if (messageId) {
+                // We use a self-invoking async function but we don't await it to avoid blocking the action
                 (async () => {
                     const workerStartTime = Date.now();
-                    const WORKER_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes global timeout
+                    const WORKER_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes expanded timeout
 
                     try {
-                        logToFile(`[WORKER] 🚀 Determinate Queue iniciado para ${messageId}`);
+                        await recordLog(`Worker iniciado para ${messageId}`, 'INFO', { messageId, count })
                         let pendingTasks = new Set<number>(Array.from({ length: count }, (_, i) => i));
                         let passes = 0;
                         const maxPasses = 3;
 
                         while (pendingTasks.size > 0 && passes < maxPasses) {
-                            // Check for global timeout
                             if (Date.now() - workerStartTime > WORKER_TIMEOUT_MS) {
-                                logToFile(`[WORKER] ⚠️ Global timeout reached (${WORKER_TIMEOUT_MS}ms). Stopping worker.`);
+                                await recordLog(`Worker timeout global en ${messageId}`, 'WARN')
                                 break;
                             }
 
                             passes++;
-                            logToFile(`[PASS ${passes}] Procesando ${pendingTasks.size} tareas pendientes...`);
-
                             const taskArray = Array.from(pendingTasks);
-                            // Process in smaller batches of 3 to be more "live" and avoid overwhelming Cloudinary/Pollinations
-                            for (let i = 0; i < taskArray.length; i += 3) {
-                                const batchIndices = taskArray.slice(i, i + 3);
-                                logToFile(`[PASS ${passes}] Batch: ${batchIndices.join(', ')}`);
 
-                                const batchResults = await Promise.allSettled(batchIndices.map(async (idx) => {
+                            // Sequential processing is safer in unstable environments to ensure progress can be saved
+                            for (const idx of taskArray) {
+                                try {
                                     const id = `img_${idx}`;
                                     let p = imagePrompt;
                                     let w = 1080, h = 1080;
 
-                                    // Dimension variants
                                     if (idx === 1) { w = 1080; h = 1920; }
                                     else if (idx === 2) { w = 1200; h = 628; }
-
-                                    // Evolution injection
                                     if (idx > 1) { p += `, variation ${idx}, professional lighting, cinematic detail`; }
 
                                     const res = await robustUploadToCloudinary(buildPollinationsUrl(p, w, h));
 
                                     if (res.success && res.secure_url) {
-                                        // Update local state
                                         finalImages[id] = res.secure_url;
                                         if (idx === 0) finalImages.square = res.secure_url;
                                         if (idx === 1) finalImages.vertical = res.secure_url;
                                         if (idx === 2) finalImages.horizontal = res.secure_url;
 
                                         pendingTasks.delete(idx);
-
-                                        // 🔥 LIVE UPDATE: Update DB immediately for this image
                                         const completedCount = count - pendingTasks.size;
                                         finalImages['_status'] = `generating: ${completedCount}/${count}`;
+                                        finalImages['_lastUpdate'] = Date.now();
 
                                         await prisma.studioMessage.update({
                                             where: { id: messageId },
                                             data: { images: { ...finalImages } }
-                                        }).catch(e => logToFile(`[DB-ERR] Update progress error: ${e.message}`));
-
-                                        logToFile(`[PASS ${passes}] ✅ ${id} OK (${completedCount}/${count})`);
-                                        return true;
+                                        })
                                     } else {
-                                        logToFile(`[PASS ${passes}] ❌ ${id} FAIL: ${res.error || 'Unknown error'}`);
-                                        return false;
+                                        await recordLog(`Fallo en imagen ${idx} del mensaje ${messageId}: ${res.error}`, 'WARN')
                                     }
-                                }));
-
-                                logToFile(`[WORKER] Batch results: ${JSON.stringify(batchResults.map(r => r.status))}`);
+                                } catch (taskErr: any) {
+                                    await recordLog(`Error crítico en tarea ${idx}: ${taskErr.message}`, 'ERROR')
+                                }
                             }
 
                             if (pendingTasks.size > 0 && passes < maxPasses) {
-                                const waitTime = 3000 * passes;
-                                logToFile(`[PASS ${passes}] Reintentos pendientes: ${pendingTasks.size}. Esperando ${waitTime}ms...`);
-                                await new Promise(r => setTimeout(r, waitTime));
+                                await new Promise(r => setTimeout(r, 2000 * passes));
                             }
                         }
-                        logToFile(`[WORKER] Ciclo completado. Pendientes finales: ${pendingTasks.size}`);
                     } catch (err: any) {
-                        logToFile(`[FATAL] Error en loop de worker: ${err.message}`);
+                        await recordLog(`Error fatal en worker ${messageId}: ${err.message}`, 'ERROR')
                     } finally {
-                        logToFile(`[WORKER] 🏁 Finalizando y limpiando status...`);
                         try {
-                            const finalToSave = { ...finalImages };
+                            const current = await prisma.studioMessage.findUnique({ where: { id: messageId! } });
+                            const imagesToCleanup = (current?.images as any) || finalImages;
+
+                            const finalToSave = { ...imagesToCleanup };
                             delete finalToSave._status;
                             delete finalToSave._imagePrompt;
                             delete finalToSave._photoCount;
+                            delete finalToSave._lastUpdate;
 
-                            if (messageId) {
-                                await prisma.studioMessage.update({
-                                    where: { id: messageId },
-                                    data: { images: finalToSave }
-                                });
-                            }
-                            logToFile(`[WORKER] Status removido exitosamente. Finalizado con éxito.`);
+                            await prisma.studioMessage.update({
+                                where: { id: messageId },
+                                data: { images: finalToSave }
+                            });
+                            await recordLog(`Worker finalizado para ${messageId}. Limpieza exitosa.`, 'INFO')
                         } catch (finalErr: any) {
-                            logToFile(`[WORKER] Error en cleanup final: ${finalErr.message}`);
+                            await recordLog(`Error en limpieza final de ${messageId}: ${finalErr.message}`, 'ERROR')
                         }
                     }
-                })().catch(e => logToFile(`[ERR] Worker Crash: ${e.message}`));
+                })().catch(async e => {
+                    await recordLog(`Worker crashed irrecoverably: ${e.message}`, 'ERROR')
+                });
             }
 
             return {
@@ -242,7 +236,7 @@ Responde ÚNICAMENTE con JSON.`
         }
 
     } catch (error: any) {
-        logToFile(`[API] Error: ${error.message}`)
+        await recordLog(`Error en chatDirector: ${error.message}`, 'ERROR')
         return { success: false, type: 'CHAT' as const, message: `❌ Error: ${error.message}` }
     }
 }

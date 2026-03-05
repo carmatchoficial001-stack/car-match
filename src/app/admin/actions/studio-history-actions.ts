@@ -5,6 +5,36 @@ import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 
 /**
+ * Resets a stuck message status to allow regeneration or cleanup
+ */
+export async function resetStudioMessageStatus(messageId: string) {
+    try {
+        const session = await auth()
+        if (!session?.user?.id) throw new Error("Unauthorized")
+
+        const msg = await prisma.studioMessage.findUnique({
+            where: { id: messageId, userId: session.user.id }
+        })
+
+        if (!msg || !msg.images) return { success: false, message: "Mensaje no encontrado" }
+
+        const images = msg.images as any
+        delete images._status
+        delete images._lastUpdate
+
+        await prisma.studioMessage.update({
+            where: { id: messageId },
+            data: { images }
+        })
+
+        return { success: true }
+    } catch (error: any) {
+        console.error("[STUDIO-RESET] Error:", error)
+        return { success: false, error: error.message }
+    }
+}
+
+/**
  * Fetches all studio conversations for the sidebar
  */
 export async function getStudioConversations() {
@@ -34,18 +64,18 @@ export async function getStudioConversations() {
  */
 export async function getStudioHistory(conversationId?: string) {
     if (!conversationId) return { success: true, messages: [] }
-    
+
     try {
         const session = await auth()
         if (!session?.user?.id) throw new Error("Unauthorized")
 
         const messages = await prisma.studioMessage.findMany({
-            where: { 
+            where: {
                 userId: session.user.id,
-                conversationId: conversationId 
+                conversationId: conversationId
             },
             orderBy: { createdAt: 'asc' },
-            take: 100 
+            take: 100
         })
 
         return {

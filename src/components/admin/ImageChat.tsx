@@ -8,7 +8,7 @@ import {
     Camera, Layers, RefreshCw, Trash2, Plus, MessageSquare, History
 } from 'lucide-react'
 import { chatWithImageDirector } from '@/app/admin/actions/image-chat-actions'
-import { getStudioConversations, getStudioHistory, saveStudioMessage, createStudioConversation, deleteStudioConversation, clearStudioHistory } from '@/app/admin/actions/studio-history-actions'
+import { getStudioConversations, getStudioHistory, saveStudioMessage, createStudioConversation, deleteStudioConversation, clearStudioHistory, resetStudioMessageStatus } from '@/app/admin/actions/studio-history-actions'
 
 import { AD_PLATFORMS } from '@/lib/admin/constants'
 
@@ -435,6 +435,13 @@ export default function ImageChat() {
                                         msg={msg}
                                         onOpenWorkspace={handleOpenWorkspace}
                                         onVariation={handleVariation}
+                                        onReset={async (id) => {
+                                            const res = await resetStudioMessageStatus(id)
+                                            if (res.success) {
+                                                const hist = await getStudioHistory(activeConversationId!)
+                                                if (hist.success) setMessages(hist.messages)
+                                            }
+                                        }}
                                         isLoading={isLoading}
                                     />
                                 ) : msg.type === 'IMAGE_READY' ? (
@@ -515,12 +522,15 @@ function PromptProposalCard({
     msg: ChatMessage
     onOpenWorkspace: (msg: ChatMessage) => void
     onVariation: (prompt: string, instruction: string) => void
+    onReset: (messageId: string) => void
     isLoading: boolean
 }) {
     const [copied, setCopied] = useState(false)
     const statusStr = (msg.images as any)?._status || ''
     const isGenerating = statusStr.startsWith('generating')
     const photoCount = (msg.images as any)?._photoCount || 11
+    const lastUpdate = (msg.images as any)?._lastUpdate || 0
+    const isStuck = isGenerating && lastUpdate > 0 && (Date.now() - lastUpdate) > 2 * 60 * 1000 // 2 minutes without update
     const currentPhotos = Object.keys(msg.images || {}).filter(k => k.startsWith('img_')).length
     const progress = Math.min(100, Math.round((currentPhotos / photoCount) * 100))
 
@@ -611,9 +621,19 @@ function PromptProposalCard({
                                     <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">
                                         {currentPhotos} de {photoCount} fotos listas
                                     </p>
-                                    <span className="text-[7px] text-zinc-600 font-bold uppercase italic animate-pulse">
-                                        {statusStr.includes(':') ? statusStr.split(':')[1].trim() : 'Procesando...'}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        {isStuck && (
+                                            <button
+                                                onClick={() => onReset(msg.id)}
+                                                className="text-[7px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded uppercase font-black hover:bg-red-500/40 transition-all"
+                                            >
+                                                Destrabar
+                                            </button>
+                                        )}
+                                        <span className="text-[7px] text-zinc-600 font-bold uppercase italic animate-pulse">
+                                            {statusStr.includes(':') ? statusStr.split(':')[1].trim() : 'Procesando...'}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
