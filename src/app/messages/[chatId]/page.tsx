@@ -346,7 +346,10 @@ export default function ChatPage({
                                         <Link href={`/profile/${chat.vehicle.user.id}`} className="hover:underline">
                                             <h2 className="font-bold text-text-primary truncate">{chat.vehicle.user.name}</h2>
                                         </Link>
-                                        <p className="text-xs text-text-secondary">{chat.vehicle.title}</p>
+                                        <Link href={`/vehicle/${chat.vehicle.id}`} className="hover:underline cursor-pointer block">
+                                            <p className="text-xs text-text-secondary">{chat.vehicle.title}</p>
+                                        </Link>
+
                                     </div>
                                 </div>
                             )}
