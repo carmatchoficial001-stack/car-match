@@ -535,7 +535,7 @@ export default async function MarketPage({
     const items = vehiclesWithFavoriteStatus.map(v => ({
         ...v,
         feedType: 'VEHICLE' as const,
-        isBoosted: v.user.isAdmin
+        isBoosted: v.user?.isAdmin || false
     }))
 
     // 🤖 FAQ SCHEMA for Market Authority & Expert Systems

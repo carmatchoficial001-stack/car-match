@@ -324,7 +324,7 @@ export default function MarketClient({
         })
 
         if (node) observer.current.observe(node)
-    }, [isFiltering, visibleCount, filteredItems.length, tierIndex, RADIUS_TIERS.length, handleExpandSearch])
+    }, [isFiltering, visibleCount, filteredItems.length, tierIndex, RADIUS_TIERS.length])
 
     // Find the main container on mount
     useEffect(() => {
@@ -466,14 +466,14 @@ export default function MarketClient({
 
 
 
-    const handleExpandSearch = () => {
+    const handleExpandSearch = useCallback(() => {
         setIsFiltering(true)
         setTimeout(() => {
             setTierIndex(prev => (prev + 1) % RADIUS_TIERS.length)
             setVisibleCount(CARS_PER_PAGE)
             setIsFiltering(false)
         }, 300)
-    }
+    }, [RADIUS_TIERS.length])
 
     const [isSearchingLocation, setIsSearchingLocation] = useState(false)
     const [locationError, setLocationError] = useState<string | null>(null)
