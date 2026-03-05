@@ -149,6 +149,17 @@ export default function MapBoxStoreLocator({
         }
     }, [])
 
+    // 📍 Re-centrar mapa cuando cambia la ubicación (Manual o GPS)
+    useEffect(() => {
+        if (!map.current || !initialLocation) return
+
+        map.current.flyTo({
+            center: [initialLocation.longitude, initialLocation.latitude],
+            zoom: 13,
+            essential: true
+        })
+    }, [initialLocation])
+
     useEffect(() => {
         if (!map.current || !mapLoaded) return
 

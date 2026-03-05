@@ -292,7 +292,7 @@ export default function MapClient({ businesses, user }: MapClientProps) {
     }
 
     // 🚫 Si hay error de ubicación, mostrar pantalla de solicitud
-    if (error || !location) {
+    if (!location) {
         return (
             <div className="flex flex-col min-h-screen bg-background">
                 <div className="flex-1 flex flex-col items-center justify-center p-8">

@@ -31,6 +31,7 @@ export function LocationProvider({
     // Persistencia: Guardar ubicación manual
     const setManualLocation = (data: LocationData | null) => {
         setManualLocationState(data)
+        if (data) setError(null) // 🔥 Limpiar error si el usuario selecciona una ubicación válida
         if (typeof window !== 'undefined') {
             if (data) localStorage.setItem('carmatch_manual_location', JSON.stringify(data))
             else localStorage.removeItem('carmatch_manual_location')
