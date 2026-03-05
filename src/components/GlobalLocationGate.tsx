@@ -2,7 +2,7 @@
 
 import { useLocation } from "@/contexts/LocationContext"
 import { useState, useEffect } from "react"
-import { MapPin, Navigation, Search, Globe } from "lucide-react"
+import { MapPin, Navigation, Search, Globe, Loader2 } from "lucide-react"
 import { searchCities, LocationData } from "@/lib/geolocation"
 
 export default function GlobalLocationGate() {
@@ -13,8 +13,8 @@ export default function GlobalLocationGate() {
     const [searchError, setSearchError] = useState<string | null>(null)
     const [mode, setMode] = useState<'INITIAL' | 'SEARCH'>('INITIAL')
 
-    // Si está cargando o ya tenemos ubicación, no mostramos nada
-    if (loading || location) return null
+    // Si ya tenemos ubicación, no mostramos el portal
+    if (location) return null
 
     // Si no hay loading y no hay location, es porque falló la detección automática
     // Mostramos el modal OBLIGATORIO (Global Gate)
@@ -69,11 +69,23 @@ export default function GlobalLocationGate() {
                     <div className="space-y-4 relative z-10">
                         <button
                             onClick={() => refreshLocation()}
-                            className="w-full py-4 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-bold flex items-center justify-center gap-3 transition-all active:scale-95 group"
+                            disabled={loading}
+                            className="w-full py-4 bg-primary-600 hover:bg-primary-500 disabled:opacity-70 text-white rounded-2xl font-bold flex items-center justify-center gap-3 transition-all active:scale-95 group"
                         >
-                            <Navigation className="w-5 h-5 group-hover:animate-pulse" />
-                            Detectar mi Ubicación
+                            {loading ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <Navigation className="w-5 h-5 group-hover:animate-pulse" />
+                            )}
+                            {loading ? 'Buscando satélites...' : 'Detectar mi Ubicación'}
                         </button>
+
+                        {error && !loading && (
+                            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
+                                <p className="text-red-400 text-[10px] font-bold uppercase tracking-wider mb-1">Error de Detección</p>
+                                <p className="text-white text-xs">{error}</p>
+                            </div>
+                        )}
 
                         <div className="relative flex py-2 items-center">
                             <div className="flex-grow border-t border-white/10"></div>

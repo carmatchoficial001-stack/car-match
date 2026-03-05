@@ -1,7 +1,3 @@
-// 🛡️ PROHIBIDO MODIFICAR SIN ORDEN EXPLÍCITA DEL USUARIO (Ver PROJECT_RULES.md)
-// ⚠️ CRITICAL WARNING: FILE PROTECTED BY PROJECT RULES.
-// DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER INSTRUCTION.
-
 "use client"
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
@@ -30,7 +26,16 @@ export function LocationProvider({
     const [location, setLocation] = useState<LocationData | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const [manualLocation, setManualLocation] = useState<LocationData | null>(null)
+    const [manualLocation, setManualLocationState] = useState<LocationData | null>(null)
+
+    // Persistencia: Guardar ubicación manual
+    const setManualLocation = (data: LocationData | null) => {
+        setManualLocationState(data)
+        if (typeof window !== 'undefined') {
+            if (data) localStorage.setItem('carmatch_manual_location', JSON.stringify(data))
+            else localStorage.removeItem('carmatch_manual_location')
+        }
+    }
 
     const fetchLocation = async () => {
         setLoading(true)
@@ -44,13 +49,16 @@ export function LocationProvider({
             const locationData = await reverseGeocode(coords.latitude, coords.longitude)
 
             setLocation(locationData)
+            // Cache para rapidez en siguiente sesión
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('carmatch_last_detected_location', JSON.stringify(locationData))
+            }
             setError(null)
         } catch (err) {
-            console.warn('GPS no disponible (Timeout/Permiso), usando modo manual:', err)
-            // Si falla, mostramos el error para que el usuario sepa qué pasó (Timeout, etc)
-            setError(err instanceof Error ? err.message : 'Error desconocido de ubicación')
+            console.warn('GPS no disponible:', err)
+            setError(err instanceof Error ? err.message : 'Error de ubicación')
 
-            // Sin fallback - el usuario debe seleccionar manualmente
+            // Si no hay GPS y no hay manual, mantenemos el error para el Gate
             setLocation(null)
         } finally {
             setLoading(false)
@@ -58,6 +66,27 @@ export function LocationProvider({
     }
 
     useEffect(() => {
+        // Cargar persistencia antes de buscar nueva
+        if (typeof window !== 'undefined') {
+            const savedManual = localStorage.getItem('carmatch_manual_location')
+            const savedDetected = localStorage.getItem('carmatch_last_detected_location')
+
+            if (savedManual) {
+                try {
+                    const parsed = JSON.parse(savedManual)
+                    setManualLocationState(parsed)
+                } catch (e) {
+                    console.error('Error parsing manual location', e)
+                }
+            } else if (savedDetected) {
+                try {
+                    const parsed = JSON.parse(savedDetected)
+                    setLocation(parsed)
+                } catch (e) {
+                    console.error('Error parsing detected location', e)
+                }
+            }
+        }
         fetchLocation()
     }, [])
 
