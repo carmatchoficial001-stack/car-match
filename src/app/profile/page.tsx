@@ -2,10 +2,12 @@
 // ⚠️ CRITICAL WARNING: FILE PROTECTED BY PROJECT RULES.
 // DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER INSTRUCTION.
 
-﻿import { auth } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/db"
 import ProfileClient from "./ProfileClient"
+
+export const dynamic = "force-dynamic"
 
 export default async function ProfilePage() {
     const session = await auth()
@@ -103,4 +105,3 @@ export default async function ProfilePage() {
         throw error
     }
 }
-

@@ -23,6 +23,15 @@ interface ProfileClientProps {
 export default function ProfileClient({ user, isOwner, vehiclesToShow }: ProfileClientProps) {
     const { t, locale } = useLanguage()
     const [showEditModal, setShowEditModal] = useState(false)
+    const [currentPage, setCurrentPage] = useState(1)
+    const ITEMS_PER_PAGE = 10
+
+    // Lógica de paginación
+    const totalPages = Math.ceil(vehiclesToShow.length / ITEMS_PER_PAGE)
+    const paginatedVehicles = vehiclesToShow.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    )
 
     // Formatear fecha según idioma
     const formattedDate = new Date(user.createdAt).toLocaleDateString(locale === 'es' ? 'es-MX' : 'en-US', { month: 'long', year: 'numeric' })
@@ -146,99 +155,123 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                             )}
                         </div>
                     ) : (
-                        <div className="grid gap-4">
-                            {vehiclesToShow.map((vehicle) => {
-                                const isInactive = vehicle.status !== "ACTIVE"
-                                const statusKey = vehicle.status.toLowerCase() as 'active' | 'sold' | 'inactive'
+                        <div className="space-y-6">
+                            {/* Pagination Top */}
+                            <PaginationControls
+                                totalItems={vehiclesToShow.length}
+                                itemsPerPage={ITEMS_PER_PAGE}
+                                currentPage={currentPage}
+                                onPageChange={(p) => {
+                                    setCurrentPage(p)
+                                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                                }}
+                            />
 
-                                // 💡 Lógica de Condición para botones
-                                const isExpired = vehicle.expiresAt && new Date(vehicle.expiresAt) < new Date()
-                                const needsCreditToActivate = !vehicle.isFreePublication || isExpired || vehicle.moderationStatus === 'REJECTED'
-                                const canActivateFree = vehicle.isFreePublication && !isExpired && (vehicle.moderationStatus === 'APPROVED' || vehicle.moderationStatus === 'PENDING_AI')
+                            <div className="grid gap-4">
+                                {paginatedVehicles.map((vehicle) => {
+                                    const isInactive = vehicle.status !== "ACTIVE"
+                                    const statusKey = vehicle.status.toLowerCase() as 'active' | 'sold' | 'inactive'
 
-                                return (
-                                    <div
-                                        key={vehicle.id}
-                                        className={`border rounded-xl p-5 transition group relative ${isInactive
-                                            ? "border-surface bg-background/30 opacity-60"
-                                            : "border-surface-highlight bg-background/50 hover:border-primary-700/50"
-                                            }`}
-                                    >
-                                        <div className="flex flex-col sm:flex-row gap-5">
-                                            {/* Foto de Portada */}
-                                            <Link
-                                                href={`/vehicle/${vehicle.id}`}
-                                                className="w-full sm:w-40 aspect-video rounded-lg overflow-hidden bg-surface-highlight flex-shrink-0"
-                                            >
-                                                {vehicle.images && vehicle.images[0] ? (
-                                                    <img
-                                                        src={vehicle.images[0]}
-                                                        alt={vehicle.title}
-                                                        className="w-full h-full object-contain bg-black/50 transition duration-300 group-hover:scale-105"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-text-secondary/20">
-                                                        <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
-                                                            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" />
-                                                        </svg>
-                                                    </div>
-                                                )}
-                                            </Link>
+                                    // 💡 Lógica de Condición para botones
+                                    const isExpired = vehicle.expiresAt && new Date(vehicle.expiresAt) < new Date()
+                                    const needsCreditToActivate = !vehicle.isFreePublication || isExpired || vehicle.moderationStatus === 'REJECTED'
+                                    const canActivateFree = vehicle.isFreePublication && !isExpired && (vehicle.moderationStatus === 'APPROVED' || vehicle.moderationStatus === 'PENDING_AI')
 
-                                            <div className="flex-1 flex justify-between items-start">
-                                                <div>
-                                                    <Link href={`/vehicle/${vehicle.id}`}>
-                                                        <h3 className={`font-bold text-lg transition ${isInactive
-                                                            ? "text-text-secondary"
-                                                            : "text-text-primary group-hover:text-primary-400"
-                                                            }`}>
-                                                            {vehicle.brand} {vehicle.model} {vehicle.year}
-                                                        </h3>
-                                                    </Link>
-                                                    <p className={`font-bold mt-1 text-xl ${isInactive ? "text-text-secondary" : "text-primary-400"
-                                                        }`} suppressHydrationWarning>
-                                                        {formatPrice(vehicle.price, vehicle.currency || 'MXN', locale)}
-                                                    </p>
-                                                    {isOwner && (
-                                                        <div className="flex flex-col gap-1 mt-2">
-
-                                                            {vehicle.moderationStatus === 'REJECTED' && (
-                                                                <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider">⚠️ Rechazado por un Asesor - Entra para corregir datos automáticamente</p>
-                                                            )}
+                                    return (
+                                        <div
+                                            key={vehicle.id}
+                                            className={`border rounded-xl p-5 transition group relative ${isInactive
+                                                ? "border-surface bg-background/30 opacity-60"
+                                                : "border-surface-highlight bg-background/50 hover:border-primary-700/50"
+                                                }`}
+                                        >
+                                            <div className="flex flex-col sm:flex-row gap-5">
+                                                {/* Foto de Portada */}
+                                                <Link
+                                                    href={`/vehicle/${vehicle.id}`}
+                                                    className="w-full sm:w-40 aspect-video rounded-lg overflow-hidden bg-surface-highlight flex-shrink-0"
+                                                >
+                                                    {vehicle.images && vehicle.images[0] ? (
+                                                        <img
+                                                            src={vehicle.images[0]}
+                                                            alt={vehicle.title}
+                                                            className="w-full h-full object-contain bg-black/50 transition duration-300 group-hover:scale-105"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-text-secondary/20">
+                                                            <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
+                                                                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" />
+                                                            </svg>
                                                         </div>
                                                     )}
-                                                </div>
+                                                </Link>
 
-                                                {isOwner ? (
-                                                    <div className="flex flex-col gap-2">
-                                                        <span
-                                                            className={`px-3 py-1 rounded-full text-sm font-bold text-center ${vehicle.status === "ACTIVE"
-                                                                ? "bg-green-900/30 text-green-400 border border-green-900/50"
-                                                                : vehicle.status === "SOLD"
-                                                                    ? "bg-blue-900/30 text-blue-400 border border-blue-900/50"
-                                                                    : "bg-surface-highlight text-text-secondary border border-surface-highlight"
-                                                                }`}
-                                                        >
-                                                            {t(`profile.status.${statusKey}`) || vehicle.status}
-                                                        </span>
-
-                                                        <Link
-                                                            href={`/vehicle/${vehicle.id}`}
-                                                            className="flex items-center justify-center gap-2 px-4 py-2 bg-surface border border-surface-highlight rounded-xl text-primary-400 font-bold text-sm hover:bg-surface-highlight transition shadow-sm"
-                                                        >
-                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                            </svg>
-                                                            Gestionar
+                                                <div className="flex-1 flex justify-between items-start">
+                                                    <div>
+                                                        <Link href={`/vehicle/${vehicle.id}`}>
+                                                            <h3 className={`font-bold text-lg transition ${isInactive
+                                                                ? "text-text-secondary"
+                                                                : "text-text-primary group-hover:text-primary-400"
+                                                                }`}>
+                                                                {vehicle.brand} {vehicle.model} {vehicle.year}
+                                                            </h3>
                                                         </Link>
+                                                        <p className={`font-bold mt-1 text-xl ${isInactive ? "text-text-secondary" : "text-primary-400"
+                                                            }`} suppressHydrationWarning>
+                                                            {formatPrice(vehicle.price, vehicle.currency || 'MXN', locale)}
+                                                        </p>
+                                                        {isOwner && (
+                                                            <div className="flex flex-col gap-1 mt-2">
+
+                                                                {vehicle.moderationStatus === 'REJECTED' && (
+                                                                    <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider">⚠️ Rechazado por un Asesor - Entra para corregir datos automáticamente</p>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                ) : null}
+
+                                                    {isOwner ? (
+                                                        <div className="flex flex-col gap-2">
+                                                            <span
+                                                                className={`px-3 py-1 rounded-full text-sm font-bold text-center ${vehicle.status === "ACTIVE"
+                                                                    ? "bg-green-900/30 text-green-400 border border-green-900/50"
+                                                                    : vehicle.status === "SOLD"
+                                                                        ? "bg-blue-900/30 text-blue-400 border border-blue-900/50"
+                                                                        : "bg-surface-highlight text-text-secondary border border-surface-highlight"
+                                                                    }`}
+                                                            >
+                                                                {t(`profile.status.${statusKey}`) || vehicle.status}
+                                                            </span>
+
+                                                            <Link
+                                                                href={`/vehicle/${vehicle.id}`}
+                                                                className="flex items-center justify-center gap-2 px-4 py-2 bg-surface border border-surface-highlight rounded-xl text-primary-400 font-bold text-sm hover:bg-surface-highlight transition shadow-sm"
+                                                            >
+                                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                </svg>
+                                                                Gestionar
+                                                            </Link>
+                                                        </div>
+                                                    ) : null}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )
-                            })}
+                                    )
+                                })}
+                            </div>
+
+                            {/* Pagination Bottom */}
+                            <PaginationControls
+                                totalItems={vehiclesToShow.length}
+                                itemsPerPage={ITEMS_PER_PAGE}
+                                currentPage={currentPage}
+                                onPageChange={(p) => {
+                                    setCurrentPage(p)
+                                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                                }}
+                            />
                         </div>
                     )}
                 </div>
@@ -259,6 +292,38 @@ export default function ProfileClient({ user, isOwner, vehiclesToShow }: Profile
                 userVehicles={vehiclesToShow}
             />
         </div >
+    )
+}
+
+function PaginationControls({
+    totalItems,
+    itemsPerPage,
+    currentPage,
+    onPageChange
+}: {
+    totalItems: number
+    itemsPerPage: number
+    currentPage: number
+    onPageChange: (page: number) => void
+}) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage)
+    if (totalPages <= 1) return null
+
+    return (
+        <div className="flex items-center justify-center gap-2 py-4">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                    key={page}
+                    onClick={() => onPageChange(page)}
+                    className={`w-10 h-10 rounded-xl font-bold transition-all shadow-sm ${currentPage === page
+                        ? "bg-primary-700 text-white"
+                        : "bg-surface border border-surface-highlight text-text-secondary hover:border-primary-700/50 hover:text-primary-400"
+                        }`}
+                >
+                    {page}
+                </button>
+            ))}
+        </div>
     )
 }
 
