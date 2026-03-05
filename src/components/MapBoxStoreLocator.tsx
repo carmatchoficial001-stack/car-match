@@ -149,9 +149,20 @@ export default function MapBoxStoreLocator({
         }
     }, [])
 
+    const lastFlyToRef = useRef<{ lat: number; lng: number } | null>(null)
+
     // 📍 Re-centrar mapa cuando cambia la ubicación (Manual o GPS)
     useEffect(() => {
         if (!map.current || !initialLocation) return
+
+        // 🔥 OPTIMIZACIÓN CRÍTICA: Evitar que el mapa "regrese" si las coordenadas son las mismas
+        // (Previene snapping involuntario cuando el componente padre re-renderiza)
+        if (lastFlyToRef.current?.lat === initialLocation.latitude &&
+            lastFlyToRef.current?.lng === initialLocation.longitude) {
+            return
+        }
+
+        lastFlyToRef.current = { lat: initialLocation.latitude, lng: initialLocation.longitude }
 
         map.current.flyTo({
             center: [initialLocation.longitude, initialLocation.latitude],
