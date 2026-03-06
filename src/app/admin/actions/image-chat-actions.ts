@@ -244,13 +244,20 @@ export async function processNextImageBatch(messageId: string) {
 
                 // After processing one, mark status for next polling
                 const remaining = pendingTasks.length - 1;
+
+                // Fetch latest images to return to frontend (it was updated inside processSingleHFImage)
+                const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
+                const upImages = (fresh?.images as any) || {};
+
                 if (remaining > 0) {
-                    images['_status'] = `generating: Procesando ${remaining} restantes...`;
+                    upImages['_status'] = `generating: Procesando ${remaining} restantes...`;
                 } else {
-                    delete images._status;
+                    delete upImages._status;
                 }
-                images['_lastUpdate'] = Date.now();
-                await prisma.studioMessage.update({ where: { id: messageId }, data: { images } });
+                upImages['_lastUpdate'] = Date.now();
+                await prisma.studioMessage.update({ where: { id: messageId }, data: { images: upImages } });
+
+                return { success: true, completed: remaining === 0, images: upImages, instructions: [] };
 
             } catch (err: any) {
                 await recordLog(`HF Batch Step Error [${messageId}]: ${err.message}`, 'ERROR');
@@ -258,7 +265,7 @@ export async function processNextImageBatch(messageId: string) {
             }
         }
 
-        return { success: true, completed: pendingTasks.length <= 1, instructions: [] };
+        return { success: true, completed: true, images };
     } catch (e: any) {
         return { success: false, error: e.message };
     }
