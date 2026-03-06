@@ -81,10 +81,10 @@ INSTRUCCIONES DE RESPUESTA JSON:
 }
 
 REGLAS DE CAMPAÑA:
-- TRIVIA: 6 fotos (3 preguntas y 3 respuestas).
-- CARRETE / PACK: 5 a 10 fotos.
-- Si es para un "Negocio", enfócate en profesionalismo y servicio.
-- Si es para "Comunidad", enfócate en pasión y debate.
+- TRIVIA: 6 fotos (3 preguntas y 3 respuestas) + 1 foto final de CONSEJO/CTA. Total = 7.
+- CARRETE / PACK: 5 a 10 fotos + 1 foto final de CONSEJO/CTA.
+- ¡OBLIGATORIO!: La ÚLTIMA IMAGEN de cada pack debe ser un "CONSEJO AUTOMOTRIZ" útil que termine con una invitación a unirse a la comunidad CarMatch.
+- En el JSON, asegúrate de que "photoCount" incluya esta imagen final.
 `
 
         const result = await geminiFlashConversational.generateContent({
@@ -120,14 +120,12 @@ REGLAS DE CAMPAÑA:
                 Analiza este contexto: "${lastMessage}"
                 Genera un Prompt de imagen en INGLÉS cinematic, 8k, hyper-realistic.
                 
+                🚨 REGLA ESTRATÉGICA: Si esta es la ÚLTIMA IMAGEN del pack (basado en el contexto de "múltiples fotos"), diséñala como una "CALL TO ACTION". Debe mostrar un ambiente automotriz premium con un mensaje visual de "Consejo" o "Tip" e invitar a unirse a CarMatch.
+                
                 🚨 REGLA DE ORO DEL LOGO (BRANDING INTEGRADO):
                 1. NO ESCRIBAS TEXTO "CARMATCH" de forma genérica.
                 2. DEBES DIBUJAR EL ICONO: Un icono automotriz moderno que es una 'C' estilizada con diseño aerodinámico y vanguardista.
-                3. INTEGRACIÓN SUTIL: El logo debe ser parte del entorno. Ejemplos de éxito:
-                   - Grabado con láser en el cristal de una ventana de concesionario.
-                   - Bordado sutilmente en el cuero de un asiento deportivo.
-                   - Un emblema metálico en relieve en una pared de mármol de fondo.
-                   - Como una marca de agua digital sutil en la pantalla de un tablero de auto.
+                3. INTEGRACIÓN SUTIL: El logo debe ser parte del entorno (cristales, bordados, emblemas metálicos, pantallas).
                 4. REALISMO: El logo debe seguir la iluminación, sombras y perspectiva de la escena. NO es una estampa en la esquina.`;
 
                 const saveRes = await saveStudioMessage({
@@ -317,15 +315,26 @@ export async function generateRandomCampaign(conversationId?: string) {
         "Estética Automotriz (Detailing, pulido de pintura, espuma activa, interiores de lujo)",
         "Road Trip Familiar (Paisajes naturales, SUVs cargadas, atardeceres en carretera)",
         "Espionaje Automotriz (Prototipo camuflado probándose en el desierto o nieve)",
-        "Cultura Racing (Pit stops de F1, drifting nocturno en ciudades iluminadas)"
+        "Cultura Racing (Pit stops de F1, drifting nocturno en ciudades iluminadas)",
+        "Motos y Libertad (Café racers, cruisers en rutas costeras, cascos personalizados)",
+        "Maquinaria Pesada y Fuerza (Grúas gigantes, tractores modernos, ingeniería civil)",
+        "Clásicos Eternos (Museos de autos, garajes de coleccionistas, elegancia vintage)",
+        "Off-Road Extremo (Jeeps escalando rocas, barro volando, expediciones en la selva)",
+        "Tuning y Modding (Showrooms de personalización, rines sobredimensionados, pintura camaleón)",
+        "Seguridad y Blindaje (Vehículos tácticos, cristales reforzados, escoltas ejecutivas)"
     ];
     const FORMATS = [
         "BREAKING NEWS: ¡Se filtran imágenes del nuevo modelo que cambiará la industria!",
         "TECH INSIGHT: ¿Cómo funciona la nueva batería de estado sólido? Explicación visual.",
         "DUELO DE TITANES: Comparamos el diseño del clásico vs el nuevo lanzamiento.",
-        "TRIVIA DE EXPERTOS: Pon a prueba los conocimientos mecánicos de tu audiencia.",
-        "DENTRO DEL LABORATORIO: El proceso secreto de cómo se diseña un Lamborghini.",
-        "EL ANTES Y DESPUÉS: Restauración extrema de un clásico abandonado por 30 años."
+        "TRIVIA DE EXPERTOS: Pon a prueba los conocimientos de tu audiencia.",
+        "DENTRO DEL LABORATORIO: El proceso secreto de cómo se diseña un coche de lujo.",
+        "EL ANTES Y DESPUÉS: Restauración extrema de un clásico abandonado.",
+        "¿QUÉ PREFIERES?: Elección entre dos estilos de vida automotriz muy diferentes.",
+        "DATO CURIOSO: La historia oculta detrás de una marca legendaria.",
+        "GUÍA RÁPIDA: 3 cosas que debes revisar antes de comprar este tipo de vehículo.",
+        "VISIÓN 2050: Cómo imaginamos que será este segmento en el futuro lejano.",
+        "RETO DE DISEÑO: ¿Cómo se vería este auto si fuera diseñado por una marca de lujo?"
     ];
     const n = NICHES[Math.floor(Math.random() * NICHES.length)];
     const f = FORMATS[Math.floor(Math.random() * FORMATS.length)];
