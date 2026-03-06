@@ -124,9 +124,10 @@ REGLAS DE CAMPAÑA:
                 
                 🚨 REGLA DE ORO DEL LOGO (BRANDING INTEGRADO):
                 1. NO ESCRIBAS TEXTO "CARMATCH" de forma genérica.
-                2. DEBES DIBUJAR EL ICONO: Un icono automotriz moderno que es una 'C' estilizada con diseño aerodinámico y vanguardista.
-                3. INTEGRACIÓN SUTIL: El logo debe ser parte del entorno (cristales, bordados, emblemas metálicos, pantallas).
-                4. REALISMO: El logo debe seguir la iluminación, sombras y perspectiva de la escena. NO es una estampa en la esquina.`;
+                2. DEBES DIBUJAR EL LOGO OFICIAL: Un SUPERDEPORTIVO NARANJA estilizado visto de frente (estilo agresivo moderno como un Lamborghini/Aventador) con acentos en azul profundo.
+                3. TEXTO DE MARCA: Debajo del icono del auto, el texto "CarMatch" en una tipografía Sans-Serif moderna y color naranja brillante.
+                4. INTEGRACIÓN SUTIL: El logo completo (auto + texto) debe ser parte del entorno (cristales, bordados, emblemas metálicos, pantallas digitales).
+                5. REALISMO: El logo debe seguir la iluminación, sombras y perspectiva de la escena. NO es una estampa en la esquina.`;
 
                 const saveRes = await saveStudioMessage({
                     conversationId,
