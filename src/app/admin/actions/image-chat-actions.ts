@@ -199,6 +199,7 @@ REGLAS DE CAMPAÑA:
  */
 export async function processNextImageBatch(messageId: string) {
     try {
+        await recordLog(`ENTRY: Batch Poll [${messageId}]`, 'INFO');
         const session = await auth();
         if (!session?.user?.id) throw new Error("Unauthorized");
 
