@@ -118,23 +118,30 @@ REGLAS DE CAMPAÑA:
                 // System Instruction for the visual prompt (Natural branding)
                 const directorPrompt = `Eres el DIRECTOR DE ARTE de CarMatch. Tu objetivo es crear imágenes de alta gama donde la marca esté presente de forma sofisticada.
                 Analiza este contexto: "${lastMessage}"
-                Genera un Prompt de imagen en INGLÉS cinematic, 8k, hyper-realistic.
-                
-                🚨 REGLA ESTRATÉGICA: Si esta es la ÚLTIMA IMAGEN del pack (basado en el contexto de "múltiples fotos"), diséñala como una "CALL TO ACTION". Debe mostrar un ambiente automotriz premium con un mensaje visual de "Consejo" o "Tip" e invitar a unirse a CarMatch.
                 
                 🚨 IDENTIDAD CORPORATIVA ESTRICTA (LOGO OFICIAL V20):
                 1. EL LOGO ES INVARIABLE: No se permiten variaciones de color ni de modelo de auto.
-                2. ICONO: Debe ser EXACTAMENTE un SUPERDEPORTIVO NARANJA estilizado visto de frente (estilo agresivo y moderno) con acentos laterales en AZUL PROFUNDO. Esta combinación de Naranja y Azul es sagrada.
+                2. ICONO: Debe ser EXACTAMENTE un SUPERDEPORTIVO NARANJA estilizado visto de frente (estilo agresivo y moderno) con acentos laterales en AZUL PROFUNDO.
                 3. TEXTO: La palabra "CarMatch" debe aparecer debajo del auto en una tipografía Sans-Serif moderna y color naranja brillante.
                 4. INTEGRACIÓN SUTIL: El logo completo debe integrarse NATURALMENTE en la escena (grabado en vidrio, emblema en pared, pantalla digital, bordado en piel).
-                5. PERSPECTIVA: El logo debe respetar la iluminación y el ángulo de la imagen para parecer un objeto real del entorno.`;
+                
+                INSTRUCCIÓN: Toma el prompt del usuario y transfórmalo en un ULTRA-DETAILED IMAGE PROMPT en INGLÉS que incluya estas reglas de branding.`;
+
+                // Refine the prompt using Gemini before saving
+                const refinement = await geminiFlashConversational.generateContent({
+                    contents: [
+                        { role: 'system', parts: [{ text: directorPrompt }] },
+                        { role: 'user', parts: [{ text: `Refina este prompt: ${imagePrompt}` }] }
+                    ]
+                }) as any;
+                const refinedPrompt = refinement.response.text().trim() || imagePrompt;
 
                 const saveRes = await saveStudioMessage({
                     conversationId,
                     role: 'assistant',
                     content: data.message || 'Propuesta creativa lista 🔥',
                     type: 'PROMPT_READY',
-                    imagePrompt,
+                    imagePrompt: refinedPrompt,
                     images: finalImages,
                     platforms: data.platforms || {}
                 })
@@ -205,27 +212,28 @@ export async function processNextImageBatch(messageId: string) {
 
         const hfKey = process.env.HUGGINGFACE_API_KEY || "";
         if (hfKey) {
-            // Process first one synchronously
-            const task = pendingTasks[0];
-            await processSingleHFImage(messageId, task.idx, task.format, prompt, hfKey, images);
-
-            // Background the rest
-            const remaining = pendingTasks.slice(1);
-            if (remaining.length > 0) {
-                (async () => {
-                    for (const t of remaining) {
+            // FIRE AND FORGET: Process all in background to avoid Server Action timeout
+            (async () => {
+                for (const t of pendingTasks) {
+                    try {
                         const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
                         const currentImg = (fresh?.images as any) || {};
                         if (!currentImg[`img_${t.idx}_${t.format}`]) {
                             await processSingleHFImage(messageId, t.idx, t.format, prompt, hfKey, currentImg);
                         }
+                    } catch (err: any) {
+                        await recordLog(`HF Background Error [${messageId}]: ${err.message}`, 'ERROR');
                     }
-                })();
-            }
-            return { success: true, completed: false };
+                }
+            })();
+
+            // Mark as processing in DB so UI knows we are working
+            images['_status'] = `generating: HF Mode (${pendingTasks.length} pending)`;
+            images['_lastUpdate'] = Date.now();
+            await prisma.studioMessage.update({ where: { id: messageId }, data: { images } });
         }
 
-        // Fallback for Pollinations (Instructions for client)
+        // ALWAYS return instructions for Pollinations as a client-side fallback/immediate result
         const targets = pendingTasks.map(t => {
             let w = 1080, h = 1080;
             if (t.format === 'vertical') { w = 1080; h = 1920; }
@@ -249,30 +257,46 @@ export async function processNextImageBatch(messageId: string) {
  * HF Worker
  */
 async function processSingleHFImage(messageId: string, idx: number, format: 'square' | 'vertical' | 'horizontal', prompt: string, hfKey: string, images: any) {
-    let w = 1024, h = 1024;
-    if (format === 'vertical') { w = 832; h = 1216; }
-    else if (format === 'horizontal') { w = 1216; h = 832; }
+    try {
+        await recordLog(`Iniciando generación HF: ${idx} / ${format}`, 'INFO');
+        let w = 1024, h = 1024;
+        if (format === 'vertical') { w = 832; h = 1216; }
+        else if (format === 'horizontal') { w = 1216; h = 832; }
 
-    const seed = Math.floor(Math.random() * 1000000);
-    const p = prompt + `, variation ${idx}, high quality, seed ${seed}`;
+        const seed = Math.floor(Math.random() * 1000000);
+        const p = prompt + `, high quality, masterpiece, professional car photography, variations, seed ${seed}`;
 
-    const hfRes = await fetch('https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputs: p, parameters: { width: w, height: h } })
-    });
+        const hfRes = await fetch('https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ inputs: p, parameters: { width: w, height: h } })
+        });
 
-    if (!hfRes.ok) throw new Error(`HF error: ${hfRes.status}`);
+        if (!hfRes.ok) {
+            const errBody = await hfRes.text();
+            throw new Error(`HF error: ${hfRes.status} - ${errBody.substring(0, 100)}`);
+        }
 
-    const buffer = Buffer.from(await hfRes.arrayBuffer());
-    const upload = await robustUploadBufferToCloudinary(buffer);
-    if (!upload.success) throw new Error("Upload failed");
+        const buffer = Buffer.from(await hfRes.arrayBuffer());
+        if (buffer.length < 5000) throw new Error("Imagen recibida demasiado pequeña (error de modelo)");
 
-    images[`img_${idx}_${format}`] = upload.secure_url;
-    if (idx === 0) images[format] = upload.secure_url; // Backwards compat
-    images['_lastUpdate'] = Date.now();
+        const upload = await robustUploadBufferToCloudinary(buffer);
+        if (!upload.success) throw new Error("Upload to Cloudinary failed");
 
-    await prisma.studioMessage.update({ where: { id: messageId }, data: { images } });
+        // Fresh fetch before update to avoid overwriting other parallel updates
+        const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
+        const upImages = (fresh?.images as any) || {};
+
+        upImages[`img_${idx}_${format}`] = upload.secure_url;
+        if (idx === 0) upImages[format] = upload.secure_url; // Backwards compat
+        upImages['_lastUpdate'] = Date.now();
+
+        await prisma.studioMessage.update({ where: { id: messageId }, data: { images: upImages } });
+        await recordLog(`Éxito HF [${idx}/${format}]: ${upload.secure_url}`, 'INFO');
+    } catch (e: any) {
+        await recordLog(`Fallo HF [${idx}/${format}]: ${e.message}`, 'ERROR');
+        throw e;
+    }
 }
 
 /**
