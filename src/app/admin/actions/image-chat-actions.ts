@@ -161,9 +161,7 @@ Responde ÚNICAMENTE con JSON válido y respeta la cantidad de imágenes pedida.
  * avoiding Vercel's 10-15s serverless execution timeout.
  */
 export async function processNextImageBatch(messageId: string) {
-    const fs = await import('fs');
     try {
-        fs.appendFileSync('studio_debug.log', `[${new Date().toISOString()}] processNextImageBatch called for ${messageId}\n`);
         const session = await auth();
         if (!session?.user?.id) throw new Error("Unauthorized");
 
@@ -293,9 +291,7 @@ export async function processNextImageBatch(messageId: string) {
  * and uploads it to Cloudinary for permanent storage and branding.
  */
 export async function uploadClientGeneratedImage(messageId: string, idx: number, base64: string) {
-    const fs = await import('fs');
     try {
-        fs.appendFileSync('studio_debug.log', `[${new Date().toISOString()}] uploadClientGeneratedImage received for ${messageId} idx ${idx} (size: ${base64.length})\n`);
         const session = await auth();
         if (!session?.user?.id) throw new Error("Unauthorized");
 
