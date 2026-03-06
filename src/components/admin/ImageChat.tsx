@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { chatWithImageDirector } from '@/app/admin/actions/image-chat-actions'
 import { getStudioConversations, getStudioHistory, saveStudioMessage, createStudioConversation, deleteStudioConversation, clearStudioHistory } from '@/app/admin/actions/studio-history-actions'
-import { restartStudioWorker, processNextImageBatch, generateRandomCampaign, uploadClientGeneratedImage } from '@/app/admin/actions/image-chat-actions'
+import { restartStudioWorker, processNextImageBatch, generateRandomCampaign, uploadClientGeneratedImage, reportClientError } from '@/app/admin/actions/image-chat-actions'
 
 import { AD_PLATFORMS } from '@/lib/admin/constants'
 
@@ -136,31 +136,43 @@ export default function ImageChat() {
             if (res.success) {
                 if (res.instructions && res.instructions.length > 0) {
                     console.log(`[IMAGE-CHAT] Ejecutando puente cliente-servidor para ${res.instructions.length} imágenes...`);
+                    // Update UI with a temporary note
+                    setMessages(prev => prev.map(m => m.id === generatingMessage.id ? {
+                        ...m,
+                        content: m.content + `\n\n*(Puente: Procesando ${res.instructions.length} variantes...)*`
+                    } : m));
 
                     // Parallel fetch from browser
                     const uploadPromises = res.instructions.map(async (inst: any) => {
                         try {
-                            const imgRes = await fetch(inst.url);
-                            if (!imgRes.ok) throw new Error(`HTTP ${imgRes.status}`);
+                            const imgRes = await fetch(inst.url, {
+                                mode: 'cors',
+                                credentials: 'omit',
+                                headers: { 'Accept': 'image/*' }
+                            });
+
+                            if (!imgRes.ok) throw new Error(`HTTP ${imgRes.status} on Pollinations`);
 
                             const blob = await imgRes.blob();
+                            if (blob.size < 1000) throw new Error(`Imagen corrupta o pequeña (${blob.size} bytes)`);
+
                             return new Promise<void>((resolve, reject) => {
                                 const reader = new FileReader();
                                 reader.onloadend = async () => {
                                     const base64 = reader.result as string;
                                     const upRes = await uploadClientGeneratedImage(generatingMessage.id, inst.idx, base64);
                                     if (upRes.success) {
-                                        console.log(`[IMAGE-CHAT] ✅ Imagen ${inst.idx} subida exitosamente.`);
                                         resolve();
                                     } else {
-                                        reject(new Error(upRes.error || 'Upload failed'));
+                                        reject(new Error(upRes.error || 'Upload to Cloudinary failed'));
                                     }
                                 };
                                 reader.onerror = () => reject(new Error('FileReader failed'));
                                 reader.readAsDataURL(blob);
                             });
                         } catch (err: any) {
-                            console.error(`[IMAGE-CHAT] Error procesando imagen ${inst.idx}:`, err.message);
+                            console.error(`[IMAGE-CHAT] Error:`, err.message);
+                            await reportClientError(generatingMessage.id, `Browser Error (idx ${inst.idx}): ${err.message}`);
                         }
                     });
 

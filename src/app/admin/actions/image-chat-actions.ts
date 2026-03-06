@@ -161,7 +161,9 @@ Responde ÚNICAMENTE con JSON válido y respeta la cantidad de imágenes pedida.
  * avoiding Vercel's 10-15s serverless execution timeout.
  */
 export async function processNextImageBatch(messageId: string) {
+    const fs = await import('fs');
     try {
+        fs.appendFileSync('studio_debug.log', `[${new Date().toISOString()}] processNextImageBatch called for ${messageId}\n`);
         const session = await auth();
         if (!session?.user?.id) throw new Error("Unauthorized");
 
@@ -208,7 +210,7 @@ export async function processNextImageBatch(messageId: string) {
 
             return {
                 idx,
-                url: buildPollinationsUrl(p, w, h)
+                url: `https://image.pollinations.ai/prompt/${encodeURIComponent(p)}?width=${w}&height=${h}&seed=${Math.floor(Math.random() * 100000)}&nologo=true`
             };
         });
 
@@ -228,7 +230,9 @@ export async function processNextImageBatch(messageId: string) {
  * and uploads it to Cloudinary for permanent storage and branding.
  */
 export async function uploadClientGeneratedImage(messageId: string, idx: number, base64: string) {
+    const fs = await import('fs');
     try {
+        fs.appendFileSync('studio_debug.log', `[${new Date().toISOString()}] uploadClientGeneratedImage received for ${messageId} idx ${idx} (size: ${base64.length})\n`);
         const session = await auth();
         if (!session?.user?.id) throw new Error("Unauthorized");
 
@@ -278,6 +282,14 @@ export async function uploadClientGeneratedImage(messageId: string, idx: number,
         await recordLog(`Client upload error: ${e.message}`, 'ERROR');
         return { success: false, error: e.message };
     }
+}
+
+/**
+ * Report client-side errors back to the server logs
+ */
+export async function reportClientError(messageId: string, error: string) {
+    await recordLog(`Client Error [${messageId}]: ${error}`, 'ERROR');
+    return { success: true };
 }
 
 /**
