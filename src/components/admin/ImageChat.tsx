@@ -901,16 +901,33 @@ function PlatformAssetCard({ platformId, data, images }: { platformId: string, d
                 </div>
 
                 <div className={`${platformId.includes('stories') || platformId === 'tiktok' || platformId === 'snapchat' || platformId === 'kwai' ? 'aspect-[9/16]' : 'aspect-video'} relative rounded-lg overflow-hidden bg-black mb-4 border border-white/5`}>
-                    <img
-                        src={platformId.includes('stories') || platformId === 'tiktok' || platformId === 'snapchat' || platformId === 'kwai'
-                            ? images.vertical || images.square
-                            : platformId === 'facebook' || platformId === 'google_ads' || platformId === 'x_twitter'
-                                ? images.horizontal || images.square
-                                : images.square
+                    {(() => {
+                        const count = images._photoCount || 1
+                        const format = platformId.includes('stories') || platformId === 'tiktok' || platformId === 'snapchat' || platformId === 'kwai' || platformId === 'x_twitter'
+                            ? 'vertical'
+                            : platformId === 'facebook' || platformId === 'google_ads'
+                                ? 'horizontal'
+                                : 'square'
+
+                        const carouselImages = []
+                        for (let i = 0; i < count; i++) {
+                            const url = images[`img_${i}_${format}`] || (i === 0 ? images[format] : null)
+                            if (url) carouselImages.push(url)
                         }
-                        alt={config.name}
-                        className="w-full h-full object-cover"
-                    />
+
+                        if (carouselImages.length === 0) return <div className="w-full h-full flex items-center justify-center text-zinc-700 text-[10px] font-bold">Generando...</div>
+
+                        return (
+                            <div className="flex gap-2 overflow-x-auto custom-scrollbar h-full p-2 snap-x">
+                                {carouselImages.map((url, i) => (
+                                    <div key={i} className="h-full aspect-[9/16] shrink-0 relative rounded overflow-hidden snap-start">
+                                        <img src={url} className="w-full h-full object-cover" alt={`Slide ${i}`} />
+                                        <div className="absolute top-1 left-1 bg-black/60 px-1 rounded text-[6px] text-white">#{i + 1}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        )
+                    })()}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button
                             onClick={handleDownload}
