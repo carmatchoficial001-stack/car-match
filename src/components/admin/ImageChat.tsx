@@ -140,7 +140,15 @@ export default function ImageChat() {
                 }
             } else {
                 console.error('[IMAGE-CHAT] Error en batch:', res.error);
-                // We rely on the stuck interval to eventually allow a reset if it fails consistently
+                // 🛡️ RETRY LOGIC: If it fails, refresh anyway after a delay to keep the loop alive 
+                // (or at least check if status changed)
+                setTimeout(async () => {
+                    if (!isMounted) return;
+                    const histRes = await getStudioHistory(activeConversationId);
+                    if (histRes.success && histRes.messages) {
+                        setMessages([...histRes.messages]); // Force state update
+                    }
+                }, 5000);
             }
         };
 

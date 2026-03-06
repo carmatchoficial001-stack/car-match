@@ -214,7 +214,7 @@ export async function processNextImageBatch(messageId: string) {
             if (targetIdx === 1) images.vertical = res.secure_url;
             if (targetIdx === 2) images.horizontal = res.secure_url;
 
-            // Calculate pending
+            // Calculate progress status
             let currentCompleted = 0;
             for (let i = 0; i < count; i++) {
                 if (images[`img_${i}`]) currentCompleted++;
@@ -231,10 +231,9 @@ export async function processNextImageBatch(messageId: string) {
             return { success: true, completed: false, images };
         } else {
             // Failed generation, don't update DB to allow retry next time
-            await recordLog(`Fallback in processing image ${targetIdx} for ${messageId}`, 'WARN');
+            await recordLog(`Fallback in processing image ${targetIdx} for ${messageId}: ${res.error}`, 'WARN');
             return { success: false, error: res.error || "Generation Failed", images };
         }
-
     } catch (e: any) {
         await recordLog(`batch generation error: ${e.message}`, 'ERROR')
         return { success: false, error: e.message };
@@ -364,7 +363,7 @@ export async function restartStudioWorker(messageId: string) {
         if (!msg || !msg.imagePrompt) return { success: false, message: "No se encontró el prompt base" }
 
         const images = (msg.images as any) || {}
-        const count = images._photoCount || 1;
+        const count = images._photoCount || 5;
 
         // Recalculate how many are done
         let currentCompleted = 0;
