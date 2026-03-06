@@ -59,11 +59,13 @@ Una vez que la idea esté clara, propón un "PROMPT_READY" detallado.
 
 REGLAS DE INTERACCIÓN:
 1. Siempre habla en ESPAÑOL DE MÉXICO (adaptado culturalmente, profesional y creativo).
-2. ¡CRÍTICO!: No te limites solo a vender autos. Somos una red social y ecosistema automotriz. Genera contenido para:
-   - NEGOCIOS: Talleres mecánicos, autolavados, detallado (detailing), venta de refacciones.
-   - COMUNIDAD: Trivias, historias de aficionados, debates sobre marcas, curiosidades.
-   - ESTILO DE VIDA: Road trips, paisajes épicos, gadgets para el auto, cultura automotriz.
-3. El objetivo es ATRAER al público hacia la marca CarMatch de forma sutil y entretenida.
+2. ¡MÁXIMA VERSATILIDAD!: Somos un HUB de información y comunidad. Genera contenido para:
+   - NOTICIAS Y LANZAMIENTOS: El último deportivo, filtraciones, noticias de la industria, "spyshots".
+   - TECNOLOGÍA Y FUTURO: Inteligencia artificial en autos, conducción autónoma, motores de hidrógeno, gadgets.
+   - DISEÑO Y CONCEPTOS: Sketches futuristas, prototipos de salones internacionales, evolución del diseño.
+   - NEGOCIOS LOCALES: Talleres, detailing, refaccionarias, autolavados.
+   - COMUNIDAD Y DEBATE: Trivias, retos, comparativas "Duelo de Titanes", historias de aficionados.
+3. El objetivo es que CarMatch sea la referencia número 1 donde el usuario encuentra TODO sobre el mundo motor.
 4. Cuando el usuario pida generar la imagen, responde con "PROMPT_READY".
 
 HISTORIAL:
@@ -308,22 +310,22 @@ async function robustUploadBufferToCloudinary(buffer: Buffer) {
 export async function generateRandomCampaign(conversationId?: string) {
     // Reuses logic from chatWithImageDirector with a random preset
     const NICHES = [
+        "Noticias de último minuto (Lanzamiento mundial de un Hypercar en un escenario futurista)",
+        "Laboratorio de Diseño (Auto concepto bajo luces de neón con bocetos holográficos)",
+        "Tecnología del Futuro (Auto eléctrico cargándose sin cables, dashboards holográficos)",
         "Taller Mecánico de alta gama (Herramientas modernas, motores abiertos, organización impecable)",
         "Estética Automotriz (Detailing, pulido de pintura, espuma activa, interiores de lujo)",
-        "Eventos Car Show (Gente apasionada, comunidades, ambiente festivo)",
         "Road Trip Familiar (Paisajes naturales, SUVs cargadas, atardeceres en carretera)",
-        "Autolavado Premium (Agua a presión, luces neón, autos brillantes)",
-        "Gadgets y Tecnología (Dashboard digital, modding, accesorios futuristas)",
-        "Seguridad y Protección (Blindaje, cámaras, tecnología de punta)",
-        "Clásicos en Restauración (Garages vintage, piezas oxidadas vs nuevas, pasión por lo viejo)"
+        "Espionaje Automotriz (Prototipo camuflado probándose en el desierto o nieve)",
+        "Cultura Racing (Pit stops de F1, drifting nocturno en ciudades iluminadas)"
     ];
     const FORMATS = [
+        "BREAKING NEWS: ¡Se filtran imágenes del nuevo modelo que cambiará la industria!",
+        "TECH INSIGHT: ¿Cómo funciona la nueva batería de estado sólido? Explicación visual.",
+        "DUELO DE TITANES: Comparamos el diseño del clásico vs el nuevo lanzamiento.",
         "TRIVIA DE EXPERTOS: Pon a prueba los conocimientos mecánicos de tu audiencia.",
-        "HISTORIA DE PASIÓN: La narrativa de alguien que cumplió el sueño de abrir su taller.",
-        "CONSEJO DEL DÍA: Un hack rápido de mantenimiento para cuidar el vehículo.",
-        "DEBATE SEMANAL: ¿Cuál es el mejor aditivo? ¿O la mejor marca de llantas?",
-        "DENTRO DEL TALLER: Una mirada íntima al trabajo duro de un especialista.",
-        "EL ANTES Y DESPUÉS: El impacto visual de un servicio de detallado profesional."
+        "DENTRO DEL LABORATORIO: El proceso secreto de cómo se diseña un Lamborghini.",
+        "EL ANTES Y DESPUÉS: Restauración extrema de un clásico abandonado por 30 años."
     ];
     const n = NICHES[Math.floor(Math.random() * NICHES.length)];
     const f = FORMATS[Math.floor(Math.random() * FORMATS.length)];
