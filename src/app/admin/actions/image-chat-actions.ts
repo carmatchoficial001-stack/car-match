@@ -175,7 +175,7 @@ REGLAS DE CAMPAÑA:
             message: data.message || 'Cuéntame más sobre tu idea...',
         }
     } catch (error: any) {
-        return { success: false, type: 'CHAT' as const, message: `❌ Error: ${error.message} ` }
+        return { success: false, type: 'CHAT' as const, message: `❌ Error: ${error.message}` }
     }
 }
 
@@ -266,11 +266,11 @@ async function processSingleHFImage(messageId: string, idx: number, format: 'squ
             else if (format === 'horizontal') { w = 1216; h = 832; }
 
             const seed = Math.floor(Math.random() * 1000000);
-            const p = prompt + `, high quality, masterpiece, variation ${idx}, professional photography, seed ${seed} `;
+            const p = prompt + `, high quality, masterpiece, variation ${idx}, professional photography, seed ${seed}`;
 
             const hfRes = await fetch('https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell', {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${hfKey} `, 'Content-Type': 'application/json' },
+                headers: { 'Authorization': `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ inputs: p, parameters: { width: w, height: h } })
             });
 
@@ -289,15 +289,15 @@ async function processSingleHFImage(messageId: string, idx: number, format: 'squ
             const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
             const upImages = (fresh?.images as any) || {};
 
-            upImages[`img_${idx}_${format} `] = upload.secure_url;
+            upImages[`img_${idx}_${format}`] = upload.secure_url;
             if (idx === 0) upImages[format] = upload.secure_url;
             upImages['_lastUpdate'] = Date.now();
 
             await prisma.studioMessage.update({ where: { id: messageId }, data: { images: upImages } });
-            await recordLog(`Éxito HF[${idx}/${format}]: ${upload.secure_url} `, 'INFO');
+            await recordLog(`Éxito HF [${idx}/${format}]: ${upload.secure_url}`, 'INFO');
             success = true;
         } catch (e: any) {
-            await recordLog(`Fallo HF[${idx}/${format}](Intento ${attempt}): ${e.message} `, 'WARN');
+            await recordLog(`Fallo HF [${idx}/${format}] (Intento ${attempt}): ${e.message}`, 'WARN');
             if (attempt < MAX_RETRIES) {
                 // Wait before retrying (exponential backoff or simple delay)
                 await new Promise(r => setTimeout(r, 2000 * attempt));
