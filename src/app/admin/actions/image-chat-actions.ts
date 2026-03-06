@@ -2,7 +2,7 @@
 
 import { geminiFlashConversational } from '@/lib/ai/geminiModels'
 import { buildImageUrl } from '@/lib/admin/utils'
-import { uploadUrlToCloudinary, robustUploadToCloudinary } from '@/lib/cloudinary-server'
+import { uploadUrlToCloudinary, robustUploadToCloudinary, uploadBufferToCloudinary } from '@/lib/cloudinary-server'
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { saveStudioMessage, getStudioHistory } from "./studio-history-actions"
@@ -305,7 +305,7 @@ async function processSingleHFImage(messageId: string, idx: number, format: 'squ
             const buffer = Buffer.from(await hfRes.arrayBuffer());
             if (buffer.length < 5000) throw new Error("Imagen recibida demasiado pequeña");
 
-            const upload = await robustUploadBufferToCloudinary(buffer);
+            const upload = await uploadBufferToCloudinary(buffer);
             if (!upload.success) throw new Error("Upload to Cloudinary failed");
 
             // Fresh update
@@ -352,7 +352,7 @@ async function processSingleHFImage(messageId: string, idx: number, format: 'squ
 export async function uploadClientGeneratedImage(messageId: string, idx: number, base64: string, format: string = 'square') {
     try {
         const buffer = Buffer.from(base64.replace(/^data:image\/\w+;base64,/, ""), 'base64');
-        const res = await robustUploadBufferToCloudinary(buffer);
+        const res = await uploadBufferToCloudinary(buffer);
         if (res.success && res.secure_url) {
             const msg = await prisma.studioMessage.findUnique({ where: { id: messageId } });
             const images = (msg?.images as any) || {};
