@@ -60,7 +60,7 @@ export async function chatWithImageDirector(
         const prompt = `Eres el DIRECTOR CREATIVO SUPREMO de CarMatch México.
 Tu personalidad: Eres apasionado, visionario, dominas la jerga creativa y el marketing digital mexicano. 
 Tu objetivo es platicar con el usuario en ESPAÑOL para entender su visión.
-Una vez que la idea esté clara, propón un "PROMPT FINAL" detallado.
+Una vez que la idea esté clara, propón un "PROMPT_READY" detallado. (¡MARKETING PSICOLÓGICO!: El imagePrompt debe describir cómo integrar el logotipo o marca 'CarMatch' de forma orgánica en la escena: ya sea en la pantalla de un celular, en el reflejo de una ventana, en un anuncio espectacular al fondo, o incluso en un carrito de comida callejera si encaja. Debe sentirse parte del mundo real, no como una calcomanía encima).
 
 REGLAS DE INTERACCIÓN:
 1. Siempre habla en ESPAÑOL.
@@ -240,22 +240,111 @@ export async function processNextImageBatch(messageId: string) {
     }
 }
 
-export async function generateImageVariation(originalPrompt: string, instruction: string) {
-    // Legacy support for manual variations if needed
+export async function generateRandomCampaign(conversationId?: string) {
     try {
-        const prompt = `Modifica este prompt: "${originalPrompt}" según: "${instruction}". Responde JSON { imagePrompt, message }.`
-        const result = await geminiFlashConversational.generateContent(prompt)
-        const text = result.response.text()
-        const data = JSON.parse(text.replace(/```json|```/g, '').trim())
+        const session = await auth();
+        if (!session?.user?.id) throw new Error("Unauthorized");
 
-        const res = await robustUploadToCloudinary(buildPollinationsUrl(data.imagePrompt, 1080, 1080))
-        return {
-            success: res.success,
-            message: data.message,
-            images: { square: res.secure_url }
+        const NICHES = [
+            "Superautos deportivos (Ferrari, Lamborghini) en pistas de carreras futuristas",
+            "Muscle cars clásicos americanos (Mustang, Charger) en desiertos al atardecer",
+            "Camionetas 4x4 Off-road extremas cruzando ríos o montañas rocosas",
+            "SUVs de súper lujo en mansiones minimalistas o ciudades cosmopolitas",
+            "Motos custom tipo Bobber o Cafe Racer en calles industriales vintage",
+            "Vehículos eléctricos futuristas (Concept cars) en estaciones de carga ultra-tech",
+            "Drift cars japoneses (Supra, Skyline) en puertos nocturnos con neón",
+            "Rally cars volando sobre dunas de arena o nieve",
+            "Vehículos blindados de lujo para transporte VIP",
+            "Clásicos europeos (Porsche, Alfa Romeo) en carreteras costeras de Italia"
+        ];
+
+        const FORMATS = [
+            "HISTORIA INSPIRADORA: Crea una narrativa épica sobre el poder y la libertad que evoca el vehículo.",
+            "TRIVIA DESAFIANTE: Formula preguntas intrigantes sobre la ingeniería o historia de este tipo de autos.",
+            "ACERTIJO CREATIVO: Describe el auto mediante metáforas para que el usuario adivine de qué se trata.",
+            "DATOS CURIOSOS (FUN FACTS): Presenta 3 datos que nadie sabía sobre este nicho automotriz.",
+            "DUELO DE TITANES: Compara este vehículo con su mayor rival de forma legendaria.",
+            "VIAJE AL FUTURO: Describe cómo evolucionará este vehículo en los próximos 50 años."
+        ];
+
+        const randomNiche = NICHES[Math.floor(Math.random() * NICHES.length)];
+        const randomFormat = FORMATS[Math.floor(Math.random() * FORMATS.length)];
+
+        const prompt = `Eres el DIRECTOR CREATIVO de CarMatch. 
+Genera una campaña IMPACTANTE e INGENIOSA de forma automática.
+NICHO: ${randomNiche}
+FORMATO: ${randomFormat}
+
+REGLAS:
+1. Responde SIEMPRE con un JSON tipo "PROMPT_READY".
+2. El "message" debe estar en ESPAÑOL, ser muy creativo e ingenioso, usar el formato pedido (${randomFormat}).
+3. Al final del "message", añade una sección: "--- 💡 CONSEJO CREATIVO: [Tu consejo para invitar a la gente a unirse a CarMatch Social de forma irresistible] ---".
+4. El "imagePrompt" debe ser en INGLÉS, ultra detallado, estilo cinematográfico, 8k, para el nicho (${randomNiche}). 
+   (ESTRATEGIA DE MARCA: Integra el logo de 'CarMatch' de forma ingeniosa y "psicológica" en el entorno: pantallas, cristales, carteles, uniformes o detalles del escenario. Haz que parezca una fotografía real donde el logo ya estaba ahí).
+5. La ÚLTIMA IMAGEN del pack debe ser específicamente una invitación visual/CTA a "CarMatch Social" fusionada con la estética del nicho.
+6. Establece "photoCount" entre 4 y 7 imágenes para que sea una campaña completa (incluyendo el CTA).
+7. Selecciona plataformas relevantes en el objeto "platforms".
+
+FORMATO JSON:
+{
+    "type": "PROMPT_READY",
+    "message": "...",
+    "imagePrompt": "...",
+    "photoCount": 5,
+    "platforms": { "instagram_stories": true, "tiktok": true, "facebook": true }
+}`;
+
+        const result = await geminiFlashConversational.generateContent(prompt);
+        let responseText = result.response.text().trim();
+        if (responseText.startsWith('```json')) responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        else if (responseText.startsWith('```')) responseText = responseText.replace(/```/g, '').trim();
+
+        const data = JSON.parse(responseText);
+
+        const imagePrompt = data.imagePrompt;
+        const count = Math.max(3, Math.min(10, data.photoCount || 5));
+
+        const finalImages: Record<string, any> = {
+            '_status': 'generating',
+            '_imagePrompt': imagePrompt,
+            '_photoCount': count,
+            '_lastUpdate': Date.now()
+        };
+
+        let targetConvId = conversationId;
+        if (!targetConvId) {
+            const newConv = await prisma.studioConversation.create({
+                data: {
+                    userId: session.user.id,
+                    title: `Campaña: ${randomNiche.split('(')[0].trim()}`
+                }
+            });
+            targetConvId = newConv.id;
         }
+
+        const saveRes = await saveStudioMessage({
+            conversationId: targetConvId,
+            role: 'assistant',
+            content: data.message || '¡Tu campaña automática está lista! 🔥',
+            type: 'PROMPT_READY',
+            imagePrompt,
+            images: finalImages,
+            platforms: data.platforms || { instagram_feed: true, instagram_stories: true }
+        });
+
+        return {
+            success: true,
+            conversationId: targetConvId,
+            messageId: saveRes.messageId,
+            type: 'PROMPT_READY' as const,
+            message: data.message || 'Campaña automática generada.',
+            imagePrompt: data.imagePrompt,
+            images: finalImages,
+            platforms: data.platforms || {},
+        };
+
     } catch (e: any) {
-        return { success: false, message: e.message }
+        return { success: false, message: e.message };
     }
 }
 

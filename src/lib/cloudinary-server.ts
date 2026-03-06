@@ -44,6 +44,16 @@ export async function uploadBufferToCloudinary(buffer: Buffer, folder: string = 
             {
                 folder,
                 resource_type: 'image',
+                transformation: [
+                    {
+                        overlay: 'carmatch:branding:carmatch_logo_v20',
+                        gravity: 'south_east',
+                        width: 150,
+                        opacity: 85,
+                        x: 30,
+                        y: 30
+                    }
+                ]
             },
             (error, result) => {
                 clearTimeout(timeoutId);

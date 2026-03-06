@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { chatWithImageDirector } from '@/app/admin/actions/image-chat-actions'
 import { getStudioConversations, getStudioHistory, saveStudioMessage, createStudioConversation, deleteStudioConversation, clearStudioHistory } from '@/app/admin/actions/studio-history-actions'
-import { restartStudioWorker, processNextImageBatch } from '@/app/admin/actions/image-chat-actions'
+import { restartStudioWorker, processNextImageBatch, generateRandomCampaign } from '@/app/admin/actions/image-chat-actions'
 
 import { AD_PLATFORMS } from '@/lib/admin/constants'
 
@@ -270,6 +270,41 @@ export default function ImageChat() {
         }
     }
 
+    const handleAutoCampaign = async () => {
+        setIsLoading(true)
+        try {
+            const result = await generateRandomCampaign(activeConversationId || undefined)
+
+            if (result.success) {
+                if (!activeConversationId) {
+                    setActiveConversationId(result.conversationId!)
+                    // Refresh conversations to see the new one
+                    const res = await getStudioConversations()
+                    if (res.success) setConversations(res.conversations)
+                }
+
+                const assistantMsg: ChatMessage = {
+                    id: result.messageId || `assistant-${Date.now()}`,
+                    role: 'assistant',
+                    content: result.message || '',
+                    type: result.type,
+                    imagePrompt: result.imagePrompt,
+                    images: result.images || {},
+                    platforms: result.platforms,
+                    timestamp: new Date()
+                }
+
+                setMessages(prev => [...prev, assistantMsg])
+            } else {
+                alert(`Error: ${result.message}`)
+            }
+        } catch (error: any) {
+            console.error('Auto campaign error:', error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
     const handleClearHistory = async () => {
         if (!confirm('¿Seguro que quieres borrar TODO el historial?')) return
         setIsLoading(true)
@@ -408,6 +443,15 @@ export default function ImageChat() {
 
                         {/* New Chat Button for Header (Visible on Mobile) */}
                         <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleAutoCampaign}
+                                disabled={isLoading}
+                                className="px-3 py-2 md:px-4 md:py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest hover:shadow-lg hover:shadow-orange-500/20 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
+                            >
+                                <Zap className="w-3.5 h-3.5 fill-current" />
+                                <span className="hidden sm:inline">Campaña Automática</span>
+                                <span className="sm:hidden">Auto</span>
+                            </button>
                             {activeConversationId && (
                                 <button
                                     onClick={handleNewChat}
