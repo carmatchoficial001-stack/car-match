@@ -1,7 +1,7 @@
 'use server'
 
 import { geminiFlashConversational } from '@/lib/ai/geminiModels'
-import { buildPollinationsUrl } from '@/lib/admin/utils'
+import { buildImageUrl } from '@/lib/admin/utils'
 import { uploadUrlToCloudinary, robustUploadToCloudinary } from '@/lib/cloudinary-server'
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
@@ -201,6 +201,66 @@ export async function processNextImageBatch(messageId: string) {
 
         // 🚀 CLIENT-BRIDGE: Return the URLs so the client (Browser) can fetch them
         // and then upload them back via uploadClientGeneratedImage.
+        const hfKey = process.env.HUGGINGFACE_API_KEY;
+        const provider = hfKey ? 'huggingface' : 'pollinations';
+
+        // If using Hugging Face, we can actually generate on server side for a few images
+        // because it's usually not blocked by Cloudflare like Pollinations is.
+        if (provider === 'huggingface' && targetIndices.length > 0) {
+            const idx = targetIndices[0]; // Process one at a time for safety
+            let p = prompt;
+            if (idx > 0) { p += `, variation ${idx}, professional lighting, cinematic detail`; }
+
+            try {
+                await recordLog(`Generando imagen ${idx} con Hugging Face (FLUX)...`);
+                const hfRes = await fetch('https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${hfKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ inputs: p })
+                });
+
+                if (hfRes.ok) {
+                    const arrayBuffer = await hfRes.arrayBuffer();
+                    const buffer = Buffer.from(arrayBuffer);
+
+                    const uploadRes = await robustUploadBufferToCloudinary(buffer);
+                    if (uploadRes.success && uploadRes.secure_url) {
+                        const id = `img_${idx}`;
+                        images[id] = uploadRes.secure_url;
+                        if (idx === 0) images.square = uploadRes.secure_url;
+                        if (idx === 1) images.vertical = uploadRes.secure_url;
+                        if (idx === 2) images.horizontal = uploadRes.secure_url;
+
+                        // Update status
+                        const total = images._photoCount || 1;
+                        let done = 0;
+                        for (let i = 0; i < total; i++) { if (images[`img_${i}`]) done++; }
+                        images['_status'] = done >= total ? '' : `generating: ${done}/${total}`;
+                        images['_lastUpdate'] = Date.now();
+
+                        await prisma.studioMessage.update({
+                            where: { id: messageId },
+                            data: { images }
+                        });
+
+                        return { success: true, completed: done >= total };
+                    }
+                } else {
+                    const errText = await hfRes.text();
+                    await recordLog(`Hugging Face Error: ${errText.substring(0, 100)}`, 'ERROR');
+                    // Fallback to pollination instruction if HF fails? 
+                    // No, let's just return error so it can retry or we can see it.
+                    throw new Error(`HF HTTP ${hfRes.status}: ${errText}`);
+                }
+            } catch (err: any) {
+                await recordLog(`HF Generation failed, falling back to Pollinations for this batch: ${err.message}`, 'WARN');
+                // Fallthrough to pollinations logic
+            }
+        }
+
         const targets = targetIndices.map(idx => {
             let p = prompt;
             let w = 1080, h = 1080;
@@ -208,9 +268,12 @@ export async function processNextImageBatch(messageId: string) {
             else if (idx === 2) { w = 1200; h = 628; }
             if (idx > 0) { p += `, variation ${idx}, professional lighting, cinematic detail`; }
 
+            const url = buildImageUrl(p, w, h, 'pollinations');
+
             return {
                 idx,
-                url: `https://image.pollinations.ai/prompt/${encodeURIComponent(p)}?width=${w}&height=${h}&seed=${Math.floor(Math.random() * 100000)}&nologo=true`
+                url,
+                provider: 'pollinations'
             };
         });
 

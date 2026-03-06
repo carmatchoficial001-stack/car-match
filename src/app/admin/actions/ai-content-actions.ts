@@ -7,7 +7,7 @@
 import { geminiFlashConversational, geminiFlash, geminiPro } from '@/lib/ai/geminiModels'
 import { prisma } from '@/lib/db'
 import { uploadUrlToCloudinary, robustUploadToCloudinary } from '@/lib/cloudinary-server'
-import { buildPollinationsUrl } from '@/lib/admin/utils'
+import { buildImageUrl } from '@/lib/admin/utils'
 
 
 
@@ -578,7 +578,8 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         // Generate base sizes up to photoCount
         for (let i = 0; i < Math.min(photoCount, 3); i++) {
             const size = baseSizes[i];
-            const url = buildPollinationsUrl(assets.imagePrompt, size.w, size.h);
+            const provider = process.env.HUGGINGFACE_API_KEY ? 'huggingface' : 'pollinations';
+            const url = buildImageUrl(assets.imagePrompt, size.w, size.h, provider);
             console.log(`[AI-ASSETS] Generando y subiendo base: ${size.key}...`);
             const uploadRes = await robustUploadToCloudinary(url);
 
@@ -596,7 +597,8 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
                 const id = `img_${i}`;
                 console.log(`[AI-ASSETS] Generando y subiendo variación galería: ${id}...`);
                 const variationPrompt = `${assets.imagePrompt}, different angle, cinematic perspective, highly detailed, variation ${i}`;
-                const url = buildPollinationsUrl(variationPrompt, 1080, 1080);
+                const provider = process.env.HUGGINGFACE_API_KEY ? 'huggingface' : 'pollinations';
+                const url = buildImageUrl(variationPrompt, 1080, 1080, provider);
 
                 const uploadRes = await robustUploadToCloudinary(url);
                 if (uploadRes.success) {

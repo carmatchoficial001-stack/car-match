@@ -89,16 +89,40 @@ export async function robustUploadToCloudinary(url: string, folder: string = 'ca
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout (Increased for Flux)
 
-            const response = await fetch(currentUrl, {
-                signal: controller.signal,
-                headers: {
-                    'User-Agent': BROWSER_USER_AGENT,
-                    'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.9,es;q=0.8',
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache',
+            let response;
+            const hfKey = process.env.HUGGINGFACE_API_KEY;
+
+            if (currentUrl.startsWith('HF_MODEL:')) {
+                // Special handling for Hugging Face strings from buildImageUrl
+                const [_, model, encodedPrompt] = currentUrl.split(':');
+                const prompt = decodeURIComponent(encodedPrompt);
+
+                if (!hfKey) {
+                    throw new Error("HUGGINGFACE_API_KEY is missing for HF_MODEL generation");
                 }
-            });
+
+                console.log(`[CLOUDINARY] Generando con Hugging Face: ${model}`);
+                response = await fetch(`https://router.huggingface.co/hf-inference/models/${model}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${hfKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ inputs: prompt }),
+                    signal: controller.signal
+                });
+            } else {
+                response = await fetch(currentUrl, {
+                    signal: controller.signal,
+                    headers: {
+                        'User-Agent': BROWSER_USER_AGENT,
+                        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.9,es;q=0.8',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
+                    }
+                });
+            }
 
             clearTimeout(timeoutId);
 
