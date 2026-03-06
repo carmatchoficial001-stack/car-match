@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { chatWithImageDirector } from '@/app/admin/actions/image-chat-actions'
 import { getStudioConversations, getStudioHistory, saveStudioMessage, createStudioConversation, deleteStudioConversation, clearStudioHistory } from '@/app/admin/actions/studio-history-actions'
-import { restartStudioWorker, processNextImageBatch, generateRandomCampaign } from '@/app/admin/actions/image-chat-actions'
+import { restartStudioWorker, processNextImageBatch, generateRandomCampaign, uploadClientGeneratedImage } from '@/app/admin/actions/image-chat-actions'
 
 import { AD_PLATFORMS } from '@/lib/admin/constants'
 
@@ -127,12 +127,46 @@ export default function ImageChat() {
                 return;
             }
 
-            // Auto process next image
+            // 🚀 CLIENT-BRIDGE: The server returns URLs if it's a Pollinations task
+            // so we (the browser) can fetch them bypassing Cloudflare 530.
             const res = await processNextImageBatch(generatingMessage.id);
 
             if (!isMounted) return;
 
             if (res.success) {
+                if (res.instructions && res.instructions.length > 0) {
+                    console.log(`[IMAGE-CHAT] Ejecutando puente cliente-servidor para ${res.instructions.length} imágenes...`);
+
+                    // Parallel fetch from browser
+                    const uploadPromises = res.instructions.map(async (inst: any) => {
+                        try {
+                            const imgRes = await fetch(inst.url);
+                            if (!imgRes.ok) throw new Error(`HTTP ${imgRes.status}`);
+
+                            const blob = await imgRes.blob();
+                            return new Promise<void>((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onloadend = async () => {
+                                    const base64 = reader.result as string;
+                                    const upRes = await uploadClientGeneratedImage(generatingMessage.id, inst.idx, base64);
+                                    if (upRes.success) {
+                                        console.log(`[IMAGE-CHAT] ✅ Imagen ${inst.idx} subida exitosamente.`);
+                                        resolve();
+                                    } else {
+                                        reject(new Error(upRes.error || 'Upload failed'));
+                                    }
+                                };
+                                reader.onerror = () => reject(new Error('FileReader failed'));
+                                reader.readAsDataURL(blob);
+                            });
+                        } catch (err: any) {
+                            console.error(`[IMAGE-CHAT] Error procesando imagen ${inst.idx}:`, err.message);
+                        }
+                    });
+
+                    await Promise.all(uploadPromises);
+                }
+
                 // Refresh chat history to see updates
                 const histRes = await getStudioHistory(activeConversationId);
                 if (histRes.success && histRes.messages) {
@@ -140,13 +174,12 @@ export default function ImageChat() {
                 }
             } else {
                 console.error('[IMAGE-CHAT] Error en batch:', res.error);
-                // 🛡️ RETRY LOGIC: If it fails, refresh anyway after a delay to keep the loop alive 
-                // (or at least check if status changed)
+                // 🛡️ RETRY LOGIC: If it fails, refresh anyway after a delay
                 setTimeout(async () => {
                     if (!isMounted) return;
                     const histRes = await getStudioHistory(activeConversationId);
                     if (histRes.success && histRes.messages) {
-                        setMessages([...histRes.messages]); // Force state update
+                        setMessages([...histRes.messages]);
                     }
                 }, 5000);
             }

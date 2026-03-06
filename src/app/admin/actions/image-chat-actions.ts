@@ -197,46 +197,72 @@ export async function processNextImageBatch(messageId: string) {
             return { success: true, completed: true, images };
         }
 
-        // Generate the specific images in parallel
-        const generationPromises = targetIndices.map(async (idx) => {
+        // 🚀 CLIENT-BRIDGE: Return the URLs so the client (Browser) can fetch them
+        // and then upload them back via uploadClientGeneratedImage.
+        const targets = targetIndices.map(idx => {
             let p = prompt;
             let w = 1080, h = 1080;
-
             if (idx === 1) { w = 1080; h = 1920; }
             else if (idx === 2) { w = 1200; h = 628; }
             if (idx > 0) { p += `, variation ${idx}, professional lighting, cinematic detail`; }
 
-            const res = await robustUploadToCloudinary(buildPollinationsUrl(p, w, h));
-            if (res.success && res.secure_url) {
-                return { idx, url: res.secure_url };
-            }
-            return { idx, error: res.error || "Failed" };
+            return {
+                idx,
+                url: buildPollinationsUrl(p, w, h)
+            };
         });
 
-        const results = await Promise.all(generationPromises);
-        let anySuccess = false;
+        return {
+            success: true,
+            completed: false,
+            instructions: targets // The client will pick these up
+        };
+    } catch (e: any) {
+        await recordLog(`batch generation error: ${e.message}`, 'ERROR')
+        return { success: false, error: e.message };
+    }
+}
 
-        results.forEach(res => {
-            if (res.url) {
-                anySuccess = true;
-                const id = `img_${res.idx}`;
-                images[id] = res.url;
-                if (res.idx === 0) images.square = res.url;
-                if (res.idx === 1) images.vertical = res.url;
-                if (res.idx === 2) images.horizontal = res.url;
-            } else {
-                console.warn(`[STUDIO] Parallel generation failed for index ${res.idx}:`, res.error);
-            }
+/**
+ * RECEIVES a Base64 image from the client (since the server is blocked by Pollinations)
+ * and uploads it to Cloudinary for permanent storage and branding.
+ */
+export async function uploadClientGeneratedImage(messageId: string, idx: number, base64: string) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) throw new Error("Unauthorized");
+
+        const msg = await prisma.studioMessage.findUnique({
+            where: { id: messageId, userId: session.user.id }
         });
 
-        if (anySuccess) {
-            // Calculate progress status
+        if (!msg) throw new Error("Message not found");
+
+        const images = (msg.images as any) || {};
+
+        // 🛡️ Convert base64 to buffer
+        const base64Data = base64.replace(/^data:image\/\w+;base64,/, "");
+        const buffer = Buffer.from(base64Data, 'base64');
+
+        await recordLog(`Recibida imagen del cliente para ${messageId} (idx ${idx}). Subiendo a Cloudinary...`);
+
+        const res = await robustUploadBufferToCloudinary(buffer);
+
+        if (res.success && res.secure_url) {
+            const id = `img_${idx}`;
+            images[id] = res.secure_url;
+            if (idx === 0) images.square = res.secure_url;
+            if (idx === 1) images.vertical = res.secure_url;
+            if (idx === 2) images.horizontal = res.secure_url;
+
+            // Update status
+            const count = images._photoCount || 1;
             let currentCompleted = 0;
             for (let i = 0; i < count; i++) {
                 if (images[`img_${i}`]) currentCompleted++;
             }
 
-            images['_status'] = `generating: ${currentCompleted}/${count}`;
+            images['_status'] = currentCompleted >= count ? '' : `generating: ${currentCompleted}/${count}`;
             images['_lastUpdate'] = Date.now();
 
             await prisma.studioMessage.update({
@@ -244,16 +270,24 @@ export async function processNextImageBatch(messageId: string) {
                 data: { images }
             });
 
-            return { success: true, completed: false, images };
-        } else {
-            // All failed in this batch
-            await recordLog(`Parallel fallback: All images failed in current batch for ${messageId}`, 'WARN');
-            return { success: false, error: "Batch generation failed", images };
+            return { success: true, secure_url: res.secure_url };
         }
+
+        return { success: false, error: res.error || "Upload failed" };
     } catch (e: any) {
-        await recordLog(`batch generation error: ${e.message}`, 'ERROR')
+        await recordLog(`Client upload error: ${e.message}`, 'ERROR');
         return { success: false, error: e.message };
     }
+}
+
+/**
+ * Internal helper to upload buffer directly
+ */
+async function robustUploadBufferToCloudinary(buffer: Buffer) {
+    // We already have a function for this in cloudinary-server.ts: uploadBufferToCloudinary
+    // but we can import it or use a local wrapper if we want robust logic.
+    const { uploadBufferToCloudinary } = await import('@/lib/cloudinary-server');
+    return await uploadBufferToCloudinary(buffer);
 }
 
 export async function generateRandomCampaign(conversationId?: string) {
@@ -320,28 +354,14 @@ FORMATO JSON:
         const imagePrompt = data.imagePrompt;
         const count = Math.max(3, Math.min(10, data.photoCount || 5));
 
-        // 🚀 HERO-FIRST: Generate the first image (Square 1:1) immediately
-        // so the user sees something in < 10 seconds.
-        const heroUrl = buildPollinationsUrl(imagePrompt, 1080, 1080);
-        const heroRes = await robustUploadToCloudinary(heroUrl);
-
+        // 🚀 CLIENT-BRIDGE takeoff: Don't try to generate on server because it's blocked.
+        // Just create the state and let the client's useEffect handle the fetch.
         const finalImages: Record<string, any> = {
-            '_status': 'generating: 1/' + count,
+            '_status': 'generating: 0/' + count,
             '_imagePrompt': imagePrompt,
             '_photoCount': count,
             '_lastUpdate': Date.now()
         };
-
-        if (heroRes.success && heroRes.secure_url) {
-            finalImages['img_0'] = heroRes.secure_url;
-            finalImages['square'] = heroRes.secure_url;
-        } else {
-            // 🛡️ ULTRA-FALLBACK: Use direct Pollinations URL if Cloudinary fails for the Hero
-            // This ensures the user SEES something immediately even if the upload fails
-            finalImages['img_0'] = heroUrl;
-            finalImages['square'] = heroUrl;
-            await recordLog(`Hero Cloudinary upload failed, using direct fallback for ${imagePrompt}`, 'WARN');
-        }
 
         let targetConvId = conversationId;
         if (!targetConvId) {
@@ -374,7 +394,6 @@ FORMATO JSON:
             images: finalImages,
             platforms: data.platforms || {},
         };
-
     } catch (e: any) {
         return { success: false, message: e.message };
     }
