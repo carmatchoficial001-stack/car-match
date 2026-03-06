@@ -118,13 +118,16 @@ REGLAS DE CAMPAÑA:
                 const directorPrompt = `Eres el DIRECTOR DE ARTE de CarMatch. Tu objetivo es crear imágenes de alta gama donde la marca esté presente de forma sofisticada.
                 Analiza este contexto: "${lastMessage}"
                 
-                🚨 IDENTIDAD CORPORATIVA ESTRICTA (LOGO OFICIAL V20):
-                1. EL LOGO ES INVARIABLE: No se permiten variaciones de color ni de modelo de auto.
-                2. ICONO: Debe ser EXACTAMENTE un SUPERDEPORTIVO NARANJA estilizado visto de frente (estilo agresivo y moderno) con acentos laterales en AZUL PROFUNDO.
-                3. TEXTO: La palabra "CarMatch" debe aparecer debajo del auto en una tipografía Sans-Serif moderna y color naranja brillante.
-                4. INTEGRACIÓN SUTIL: El logo completo debe integrarse NATURALMENTE en la escena (grabado en vidrio, emblema en pared, pantalla digital, bordado en piel).
+                🚨 IDENTIDAD VISUAL PREMIUM:
+                1. EL LOGO ES UN EMBLEMA DE PODER: Representa un superdeportivo naranja (estilo Flux) con detalles azul profundo.
+                2. INTEGRACIÓN ORGÁNICA: El logo "CarMatch" no debe parecer una estampa. Debe integrarse como:
+                   - Un grabado láser en una pieza de motor cromada.
+                   - Un bordado elegante en el reposacabezas de piel de un interior de lujo.
+                   - Un holograma digital en el tablero de un concept car.
+                   - Un sutil tatuaje de marca en un muro de concreto pulido de una agencia moderna.
+                3. ATMÓSFERA: Usa iluminación volumétrica, texturas 8K, desenfoque de fondo profesional (bokeh) y una estética que grite "Élite".
                 
-                INSTRUCCIÓN: Toma el prompt del usuario y transfórmalo en un ULTRA-DETAILED IMAGE PROMPT en INGLÉS que incluya estas reglas de branding.`;
+                INSTRUCCIÓN: Toma el prompt del usuario y transfórmalo en un ULTRA-DETAILED IMAGE PROMPT en INGLÉS que aplique estas reglas de branding orgánico.`;
 
                 let refinedPrompt = imagePrompt;
                 try {
@@ -221,29 +224,29 @@ export async function processNextImageBatch(messageId: string) {
         }
 
         const hfKey = process.env.HUGGINGFACE_API_KEY || "";
-        if (hfKey) {
-            // FIRE AND FORGET: Process all in background
-            (async () => {
-                for (const t of pendingTasks) {
-                    try {
-                        const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
-                        const currentImg = (fresh?.images as any) || {};
-                        if (!currentImg[`img_${t.idx}_${t.format}`]) {
-                            await processSingleHFImage(messageId, t.idx, t.format, prompt, hfKey, currentImg);
-                        }
-                    } catch (err: any) {
-                        await recordLog(`HF Background Final Error [${messageId}]: ${err.message}`, 'ERROR');
-                    }
-                }
-            })();
+        if (hfKey && pendingTasks.length > 0) {
+            // SYNC MODE: Process exactly one at a time per call to ensure stability
+            const t = pendingTasks[0];
+            try {
+                await processSingleHFImage(messageId, t.idx, t.format, prompt, hfKey, images);
 
-            // Mark as processing in DB
-            images['_status'] = `generating: HF Mode (${pendingTasks.length} pending)`;
-            images['_lastUpdate'] = Date.now();
-            await prisma.studioMessage.update({ where: { id: messageId }, data: { images } });
+                // After processing one, mark status for next polling
+                const remaining = pendingTasks.length - 1;
+                if (remaining > 0) {
+                    images['_status'] = `generating: Procesando ${remaining} restantes...`;
+                } else {
+                    delete images._status;
+                }
+                images['_lastUpdate'] = Date.now();
+                await prisma.studioMessage.update({ where: { id: messageId }, data: { images } });
+
+            } catch (err: any) {
+                await recordLog(`HF Batch Step Error [${messageId}]: ${err.message}`, 'ERROR');
+                return { success: false, error: err.message };
+            }
         }
 
-        return { success: true, completed: false, instructions: [] };
+        return { success: true, completed: pendingTasks.length <= 1, instructions: [] };
     } catch (e: any) {
         return { success: false, error: e.message };
     }
