@@ -579,7 +579,10 @@ export default function ImageChat() {
                             <div className="w-8 h-8 rounded-xl bg-violet-500/10 flex items-center justify-center">
                                 <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />
                             </div>
-                            <span className="text-xs text-zinc-500 font-medium animate-pulse">Pensando como un experto...</span>
+                            <span className="text-xs text-zinc-500 font-medium animate-pulse">
+                                Pensando como un experto...
+                                <span className="text-[10px] opacity-70 ml-2">(La generación seguirá trabajando aunque salgas del chat)</span>
+                            </span>
                         </div>
                     )}
                     <div ref={messagesEndRef} />
