@@ -118,6 +118,16 @@ Responde ÚNICAMENTE con JSON válido y respeta la cantidad de imágenes pedida.
 
             let messageId: string | undefined = undefined
             if (conversationId) {
+                const directorPrompt = `Eres el DIRECTOR DE ARTE de CarMatch. Tu objetivo es crear imágenes de altísima calidad que representen la marca.
+            Analiza este contexto de mensaje: "${content}"
+            Genera un Prompt de imagen en INGLÉS que sea cinemático (8k, hyper-realistic photorealism).
+            
+            🚨 REGLA MAESTRA DE LOGO:
+            Integra el LOGO OFICIAL de "CarMatch" (un icono automotriz moderno y elegante) de forma NATURAL y FÍSICA en la escena. 
+            Ejemplos de colocación: en un letrero luminoso de una tienda, grabado en una pared de mármol, como una calcomanía sutil en el cristal de un auto, o en la pantalla de un dispositivo que aparezca en la foto. 
+            El logo debe verse como si fuera parte del diseño original del lugar, NO como una estampa encima.
+
+            Responde ÚNICAMENTE con el prompt en inglés.`;
                 const saveRes = await saveStudioMessage({
                     conversationId,
                     role: 'assistant',
@@ -427,7 +437,7 @@ REGLAS:
 2. El "message" debe estar en ESPAÑOL DE MÉXICO, ser muy creativo e ingenioso, usando lenguaje adaptado al mercado mexicano pero SIEMPRE RESPETUOSO Y PROFESIONAL. Queda estrictamente prohibido el uso de lenguaje grosero o vulgar.
 3. Al final del "message", añade una sección: "--- 💡 CONSEJO CREATIVO: [Tu consejo para invitar a la gente a unirse a CarMatch Social de forma irresistible] ---".
 4. El "imagePrompt" debe ser en INGLÉS, ultra detallado, estilo cinematográfico, 8k, para el nicho (${randomNiche}). 
-   (ESTRATEGIA DE MARCA: Integra el logo de 'CarMatch' de forma ingeniosa y "psicológica" en el entorno: pantallas, cristales, carteles, uniformes o detalles del escenario. Haz que parezca una fotografía real donde el logo ya estaba ahí).
+   (ESTRATEGIA DE LOGO INTEGRADO: Integra el LOGO de 'CarMatch' de forma física y realista en el entorno. Puede aparecer en un anuncio de neón, en un banner publicitario de fondo, o como un detalle de marca en el escenario. El logo debe integrarse con la iluminación y perspectiva de la escena para que parezca real).
 5. La ÚLTIMA IMAGEN del pack debe ser específicamente una invitación visual/CTA a "CarMatch Social" fusionada con la estética del nicho.
 6. Establece "photoCount" entre 4 y 7 imágenes para que sea una campaña completa (incluyendo el CTA).
 7. Selecciona plataformas relevantes en el objeto "platforms".
