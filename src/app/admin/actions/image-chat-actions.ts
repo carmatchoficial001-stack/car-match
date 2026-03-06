@@ -31,11 +31,23 @@ async function recordLog(message: string, level: 'INFO' | 'WARN' | 'ERROR' = 'IN
  * Internal helper to determine which formats (Square, Vertical, Horizontal) are needed.
  * Now defaults to ALL THREE for general distribution as requested.
  */
-function getRequiredFormats(platforms: Record<string, any> = {}) {
-    // The user wants specialized results for EACH platform mentioned.
-    // To ensure full coverage (TikTok/X=Vertical, IG Feed=Square, FB/Ads=Horizontal),
-    // we generate all three main formats for the pack.
-    return ['square', 'vertical', 'horizontal'] as const;
+function getRequiredFormats() {
+    // Optimization: Generate ONLY square. Others are derived via Cloudinary.
+    return ['square'] as const;
+}
+
+/**
+ * Helper to inject Cloudinary transformations for different social formats
+ */
+function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal') {
+    if (!url || !url.includes('cloudinary.com')) return url;
+
+    // Injects transformation segment after /upload/
+    const segment = format === 'vertical'
+        ? 'c_pad,g_auto,h_1920,w_1080,b_auto'
+        : 'c_pad,g_auto,h_628,w_1200,b_auto';
+
+    return url.replace('/upload/', `/upload/${segment}/`);
 }
 
 /**
@@ -292,12 +304,27 @@ async function processSingleHFImage(messageId: string, idx: number, format: 'squ
             const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
             const upImages = (fresh?.images as any) || {};
 
-            upImages[`img_${idx}_${format}`] = upload.secure_url;
-            if (idx === 0) upImages[format] = upload.secure_url;
+            // 1. Store Master Square
+            upImages[`img_${idx}_square`] = upload.secure_url;
+            upImages['square'] = upload.secure_url; // Legacy support
+
+            // 2. Derive others via Cloudinary (AUTOMATIC EDITOR)
+            const verticalUrl = deriveFormatUrl(upload.secure_url!, 'vertical');
+            const horizontalUrl = deriveFormatUrl(upload.secure_url!, 'horizontal');
+
+            upImages[`img_${idx}_vertical`] = verticalUrl;
+            upImages[`img_${idx}_horizontal`] = horizontalUrl;
+
+            // Set defaults if it's the first image
+            if (idx === 0) {
+                upImages['vertical'] = verticalUrl;
+                upImages['horizontal'] = horizontalUrl;
+            }
+
             upImages['_lastUpdate'] = Date.now();
 
             await prisma.studioMessage.update({ where: { id: messageId }, data: { images: upImages } });
-            await recordLog(`Éxito HF [${idx}/${format}]: ${upload.secure_url}`, 'INFO');
+            await recordLog(`Éxito HF Master [${idx}]: ${upload.secure_url}`, 'INFO');
             success = true;
         } catch (e: any) {
             await recordLog(`Fallo HF [${idx}/${format}] (Intento ${attempt}): ${e.message}`, 'WARN');
