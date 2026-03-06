@@ -105,17 +105,16 @@ export default function ImageChat() {
         setIsLoading(false)
     }
 
-    // 🔄 ORCHESTRATE GENERATION (CLIENT-SIDE BACKGROUND WORKER)
+    // 🔄 ORCHESTRATE GENERATION (CLIENT-SIDE POLLING)
     useEffect(() => {
         if (!activeConversationId) return
 
         const generatingMessage = messages.find(m => m.images && (m.images as any)._status?.startsWith('generating'))
         if (!generatingMessage) return
 
-        console.log('[IMAGE-CHAT] Generación activa detectada. Solicitando siguiente imagen en lote...')
         let isMounted = true;
 
-        const processBatch = async () => {
+        const pollProgress = async () => {
             if (!isMounted) return;
 
             // Check if it's stuck (more than 2 mins without update)
@@ -123,83 +122,36 @@ export default function ImageChat() {
             const isStuck = lastUpdate > 0 && (Date.now() - lastUpdate) > 2 * 60 * 1000;
 
             if (isStuck) {
-                console.warn('[IMAGE-CHAT] Generación atascada detectada. Esperando intervención manual (Destrabar).');
+                console.warn('[IMAGE-CHAT] Generación atascada detectada.');
                 return;
             }
 
-            // 🚀 CLIENT-BRIDGE: The server returns URLs if it's a Pollinations task
-            // so we (the browser) can fetch them bypassing Cloudflare 530.
+            // Request next batch status from server
             const res = await processNextImageBatch(generatingMessage.id);
 
             if (!isMounted) return;
 
             if (res.success) {
-                if (res.instructions && res.instructions.length > 0) {
-                    console.log(`[IMAGE-CHAT] Ejecutando puente cliente-servidor para ${res.instructions.length} imágenes...`);
-                    // Update UI with a temporary note
-                    setMessages(prev => prev.map(m => m.id === generatingMessage.id ? {
-                        ...m,
-                        content: m.content + `\n\n*(Puente: Procesando ${res.instructions.length} variantes...)*`
-                    } : m));
-
-                    // Parallel fetch from browser
-                    const uploadPromises = res.instructions.map(async (inst: any) => {
-                        try {
-                            const imgRes = await fetch(inst.url, {
-                                mode: 'cors',
-                                credentials: 'omit',
-                                headers: { 'Accept': 'image/*' }
-                            });
-
-                            if (!imgRes.ok) throw new Error(`HTTP ${imgRes.status} on Pollinations`);
-
-                            const blob = await imgRes.blob();
-                            if (blob.size < 1000) throw new Error(`Imagen corrupta o pequeña (${blob.size} bytes)`);
-
-                            return new Promise<void>((resolve, reject) => {
-                                const reader = new FileReader();
-                                reader.onloadend = async () => {
-                                    const base64 = reader.result as string;
-                                    const upRes = await uploadClientGeneratedImage(generatingMessage.id, inst.idx, base64);
-                                    if (upRes.success) {
-                                        resolve();
-                                    } else {
-                                        reject(new Error(upRes.error || 'Upload to Cloudinary failed'));
-                                    }
-                                };
-                                reader.onerror = () => reject(new Error('FileReader failed'));
-                                reader.readAsDataURL(blob);
-                            });
-                        } catch (err: any) {
-                            console.error(`[IMAGE-CHAT] Error:`, err.message);
-                            await reportClientError(generatingMessage.id, `Browser Error (idx ${inst.idx}): ${err.message}`);
-                        }
-                    });
-
-                    await Promise.all(uploadPromises);
-                }
-
-                // Refresh chat history to see updates
+                // Refresh chat history to see updates from the async HF workers
                 const histRes = await getStudioHistory(activeConversationId);
                 if (histRes.success && histRes.messages) {
                     setMessages(histRes.messages);
                 }
             } else {
-                console.error('[IMAGE-CHAT] Error en batch:', res.error);
-                // 🛡️ RETRY LOGIC: If it fails, refresh anyway after a delay
+                console.error('[IMAGE-CHAT] Error en polling:', res.error);
+                // Retry refresh after a delay if server error
                 setTimeout(async () => {
                     if (!isMounted) return;
                     const histRes = await getStudioHistory(activeConversationId);
                     if (histRes.success && histRes.messages) {
-                        setMessages([...histRes.messages]);
+                        setMessages(histRes.messages);
                     }
                 }, 5000);
             }
         };
 
-        // We use a small delay between batches to avoid spamming the server instantly,
-        // and allow the UI to update.
-        const timer = setTimeout(processBatch, 2000);
+        // Poll every 3 seconds while generating
+        const timer = setTimeout(pollProgress, 3000);
 
         return () => {
             isMounted = false;

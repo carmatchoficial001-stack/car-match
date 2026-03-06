@@ -142,7 +142,7 @@ REGLAS DE CAMPAÑA:
                     content: data.message || 'Propuesta creativa lista 🔥',
                     type: 'PROMPT_READY',
                     imagePrompt: refinedPrompt,
-                    images: finalImages,
+                    images: {}, // No longer pre-filling with Pollinations URLs
                     platforms: data.platforms || {}
                 })
                 if (saveRes.success) messageId = saveRes.messageId
@@ -212,7 +212,7 @@ export async function processNextImageBatch(messageId: string) {
 
         const hfKey = process.env.HUGGINGFACE_API_KEY || "";
         if (hfKey) {
-            // FIRE AND FORGET: Process all in background to avoid Server Action timeout
+            // FIRE AND FORGET: Process all in background
             (async () => {
                 for (const t of pendingTasks) {
                     try {
@@ -222,32 +222,18 @@ export async function processNextImageBatch(messageId: string) {
                             await processSingleHFImage(messageId, t.idx, t.format, prompt, hfKey, currentImg);
                         }
                     } catch (err: any) {
-                        await recordLog(`HF Background Error [${messageId}]: ${err.message}`, 'ERROR');
+                        await recordLog(`HF Background Final Error [${messageId}]: ${err.message}`, 'ERROR');
                     }
                 }
             })();
 
-            // Mark as processing in DB so UI knows we are working
+            // Mark as processing in DB
             images['_status'] = `generating: HF Mode (${pendingTasks.length} pending)`;
             images['_lastUpdate'] = Date.now();
             await prisma.studioMessage.update({ where: { id: messageId }, data: { images } });
         }
 
-        // ALWAYS return instructions for Pollinations as a client-side fallback/immediate result
-        const targets = pendingTasks.map(t => {
-            let w = 1080, h = 1080;
-            if (t.format === 'vertical') { w = 1080; h = 1920; }
-            else if (t.format === 'horizontal') { w = 1200; h = 628; }
-            const seed = Math.floor(Math.random() * 1000000);
-            return {
-                idx: t.idx,
-                format: t.format,
-                url: buildImageUrl(`${prompt}, variation ${t.idx}, seed ${seed}`, w, h, 'pollinations'),
-                provider: 'pollinations'
-            };
-        });
-
-        return { success: true, completed: false, instructions: targets };
+        return { success: true, completed: false, instructions: [] };
     } catch (e: any) {
         return { success: false, error: e.message };
     }
@@ -257,45 +243,58 @@ export async function processNextImageBatch(messageId: string) {
  * HF Worker
  */
 async function processSingleHFImage(messageId: string, idx: number, format: 'square' | 'vertical' | 'horizontal', prompt: string, hfKey: string, images: any) {
-    try {
-        await recordLog(`Iniciando generación HF: ${idx} / ${format}`, 'INFO');
-        let w = 1024, h = 1024;
-        if (format === 'vertical') { w = 832; h = 1216; }
-        else if (format === 'horizontal') { w = 1216; h = 832; }
+    const MAX_RETRIES = 3;
+    let attempt = 0;
+    let success = false;
 
-        const seed = Math.floor(Math.random() * 1000000);
-        const p = prompt + `, high quality, masterpiece, professional car photography, variations, seed ${seed}`;
+    while (attempt < MAX_RETRIES && !success) {
+        attempt++;
+        try {
+            await recordLog(`Iniciando generación HF: ${idx} / ${format} (Intento ${attempt}/${MAX_RETRIES})`, 'INFO');
+            let w = 1024, h = 1024;
+            if (format === 'vertical') { w = 832; h = 1216; }
+            else if (format === 'horizontal') { w = 1216; h = 832; }
 
-        const hfRes = await fetch('https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ inputs: p, parameters: { width: w, height: h } })
-        });
+            const seed = Math.floor(Math.random() * 1000000);
+            const p = prompt + `, high quality, masterpiece, variation ${idx}, professional photography, seed ${seed}`;
 
-        if (!hfRes.ok) {
-            const errBody = await hfRes.text();
-            throw new Error(`HF error: ${hfRes.status} - ${errBody.substring(0, 100)}`);
+            const hfRes = await fetch('https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ inputs: p, parameters: { width: w, height: h } })
+            });
+
+            if (!hfRes.ok) {
+                const errBody = await hfRes.text();
+                throw new Error(`HF error: ${hfRes.status} - ${errBody.substring(0, 100)}`);
+            }
+
+            const buffer = Buffer.from(await hfRes.arrayBuffer());
+            if (buffer.length < 5000) throw new Error("Imagen recibida demasiado pequeña");
+
+            const upload = await robustUploadBufferToCloudinary(buffer);
+            if (!upload.success) throw new Error("Upload to Cloudinary failed");
+
+            // Fresh update
+            const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
+            const upImages = (fresh?.images as any) || {};
+
+            upImages[`img_${idx}_${format}`] = upload.secure_url;
+            if (idx === 0) upImages[format] = upload.secure_url;
+            upImages['_lastUpdate'] = Date.now();
+
+            await prisma.studioMessage.update({ where: { id: messageId }, data: { images: upImages } });
+            await recordLog(`Éxito HF [${idx}/${format}]: ${upload.secure_url}`, 'INFO');
+            success = true;
+        } catch (e: any) {
+            await recordLog(`Fallo HF [${idx}/${format}] (Intento ${attempt}): ${e.message}`, 'WARNING');
+            if (attempt < MAX_RETRIES) {
+                // Wait before retrying (exponential backoff or simple delay)
+                await new Promise(r => setTimeout(r, 2000 * attempt));
+            } else {
+                await recordLog(`HF definitivamente falló para ${idx}/${format} tras ${MAX_RETRIES} intentos.`, 'ERROR');
+            }
         }
-
-        const buffer = Buffer.from(await hfRes.arrayBuffer());
-        if (buffer.length < 5000) throw new Error("Imagen recibida demasiado pequeña (error de modelo)");
-
-        const upload = await robustUploadBufferToCloudinary(buffer);
-        if (!upload.success) throw new Error("Upload to Cloudinary failed");
-
-        // Fresh fetch before update to avoid overwriting other parallel updates
-        const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
-        const upImages = (fresh?.images as any) || {};
-
-        upImages[`img_${idx}_${format}`] = upload.secure_url;
-        if (idx === 0) upImages[format] = upload.secure_url; // Backwards compat
-        upImages['_lastUpdate'] = Date.now();
-
-        await prisma.studioMessage.update({ where: { id: messageId }, data: { images: upImages } });
-        await recordLog(`Éxito HF [${idx}/${format}]: ${upload.secure_url}`, 'INFO');
-    } catch (e: any) {
-        await recordLog(`Fallo HF [${idx}/${format}]: ${e.message}`, 'ERROR');
-        throw e;
     }
 }
 
