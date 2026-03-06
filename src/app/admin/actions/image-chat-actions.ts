@@ -27,7 +27,7 @@ async function recordLog(message: string, level: 'INFO' | 'WARN' | 'ERROR' = 'IN
     }
 }
 
-await recordLog('--- SERVER ACTION LOADED / MODULE INIT ---')
+// await recordLog('--- SERVER ACTION LOADED / MODULE INIT ---')
 
 /**
  * Platform configurations with their optimal image sizes
@@ -175,16 +175,16 @@ export async function processNextImageBatch(messageId: string) {
         const count = images._photoCount || 11;
         const prompt = msg.imagePrompt;
 
-        // Find the first ungenerated image index
-        let targetIdx = -1;
+        // Find up to 3 ungenerated image indices
+        const targetIndices: number[] = [];
         for (let i = 0; i < count; i++) {
             if (!images[`img_${i}`]) {
-                targetIdx = i;
-                break;
+                targetIndices.push(i);
+                if (targetIndices.length >= 3) break;
             }
         }
 
-        if (targetIdx === -1) {
+        if (targetIndices.length === 0) {
             // All images generated, clean up metadata
             delete images._status;
             delete images._imagePrompt;
@@ -197,23 +197,39 @@ export async function processNextImageBatch(messageId: string) {
             return { success: true, completed: true, images };
         }
 
-        // Generate the specific image
-        let p = prompt;
-        let w = 1080, h = 1080;
+        // Generate the specific images in parallel
+        const generationPromises = targetIndices.map(async (idx) => {
+            let p = prompt;
+            let w = 1080, h = 1080;
 
-        if (targetIdx === 1) { w = 1080; h = 1920; }
-        else if (targetIdx === 2) { w = 1200; h = 628; }
-        if (targetIdx > 0) { p += `, variation ${targetIdx}, professional lighting, cinematic detail`; }
+            if (idx === 1) { w = 1080; h = 1920; }
+            else if (idx === 2) { w = 1200; h = 628; }
+            if (idx > 0) { p += `, variation ${idx}, professional lighting, cinematic detail`; }
 
-        const res = await robustUploadToCloudinary(buildPollinationsUrl(p, w, h));
+            const res = await robustUploadToCloudinary(buildPollinationsUrl(p, w, h));
+            if (res.success && res.secure_url) {
+                return { idx, url: res.secure_url };
+            }
+            return { idx, error: res.error || "Failed" };
+        });
 
-        if (res.success && res.secure_url) {
-            const id = `img_${targetIdx}`;
-            images[id] = res.secure_url;
-            if (targetIdx === 0) images.square = res.secure_url;
-            if (targetIdx === 1) images.vertical = res.secure_url;
-            if (targetIdx === 2) images.horizontal = res.secure_url;
+        const results = await Promise.all(generationPromises);
+        let anySuccess = false;
 
+        results.forEach(res => {
+            if (res.url) {
+                anySuccess = true;
+                const id = `img_${res.idx}`;
+                images[id] = res.url;
+                if (res.idx === 0) images.square = res.url;
+                if (res.idx === 1) images.vertical = res.url;
+                if (res.idx === 2) images.horizontal = res.url;
+            } else {
+                console.warn(`[STUDIO] Parallel generation failed for index ${res.idx}:`, res.error);
+            }
+        });
+
+        if (anySuccess) {
             // Calculate progress status
             let currentCompleted = 0;
             for (let i = 0; i < count; i++) {
@@ -230,9 +246,9 @@ export async function processNextImageBatch(messageId: string) {
 
             return { success: true, completed: false, images };
         } else {
-            // Failed generation, don't update DB to allow retry next time
-            await recordLog(`Fallback in processing image ${targetIdx} for ${messageId}: ${res.error}`, 'WARN');
-            return { success: false, error: res.error || "Generation Failed", images };
+            // All failed in this batch
+            await recordLog(`Parallel fallback: All images failed in current batch for ${messageId}`, 'WARN');
+            return { success: false, error: "Batch generation failed", images };
         }
     } catch (e: any) {
         await recordLog(`batch generation error: ${e.message}`, 'ERROR')
@@ -304,12 +320,28 @@ FORMATO JSON:
         const imagePrompt = data.imagePrompt;
         const count = Math.max(3, Math.min(10, data.photoCount || 5));
 
+        // 🚀 HERO-FIRST: Generate the first image (Square 1:1) immediately
+        // so the user sees something in < 10 seconds.
+        const heroUrl = buildPollinationsUrl(imagePrompt, 1080, 1080);
+        const heroRes = await robustUploadToCloudinary(heroUrl);
+
         const finalImages: Record<string, any> = {
-            '_status': 'generating',
+            '_status': 'generating: 1/' + count,
             '_imagePrompt': imagePrompt,
             '_photoCount': count,
             '_lastUpdate': Date.now()
         };
+
+        if (heroRes.success && heroRes.secure_url) {
+            finalImages['img_0'] = heroRes.secure_url;
+            finalImages['square'] = heroRes.secure_url;
+        } else {
+            // 🛡️ ULTRA-FALLBACK: Use direct Pollinations URL if Cloudinary fails for the Hero
+            // This ensures the user SEES something immediately even if the upload fails
+            finalImages['img_0'] = heroUrl;
+            finalImages['square'] = heroUrl;
+            await recordLog(`Hero Cloudinary upload failed, using direct fallback for ${imagePrompt}`, 'WARN');
+        }
 
         let targetConvId = conversationId;
         if (!targetConvId) {
