@@ -59,8 +59,12 @@ Una vez que la idea esté clara, propón un "PROMPT_READY" detallado.
 
 REGLAS DE INTERACCIÓN:
 1. Siempre habla en ESPAÑOL DE MÉXICO (adaptado culturalmente, profesional y creativo).
-2. ¡CRÍTICO!: No uses lenguaje grosero, vulgar o irrespetuoso bajo ninguna circunstancia.
-3. Cuando el usuario pida generar la imagen, responde con "PROMPT_READY".
+2. ¡CRÍTICO!: No te limites solo a vender autos. Somos una red social y ecosistema automotriz. Genera contenido para:
+   - NEGOCIOS: Talleres mecánicos, autolavados, detallado (detailing), venta de refacciones.
+   - COMUNIDAD: Trivias, historias de aficionados, debates sobre marcas, curiosidades.
+   - ESTILO DE VIDA: Road trips, paisajes épicos, gadgets para el auto, cultura automotriz.
+3. El objetivo es ATRAER al público hacia la marca CarMatch de forma sutil y entretenida.
+4. Cuando el usuario pida generar la imagen, responde con "PROMPT_READY".
 
 HISTORIAL:
 ${contextStr}
@@ -68,16 +72,18 @@ ${contextStr}
 INSTRUCCIONES DE RESPUESTA JSON:
 {
     "type": "PROMPT_READY",
-    "message": "Mensaje entusiasta en ESPAÑOL.",
-    "imagePrompt": "ULTRA DETAILED prompt in ENGLISH.",
+    "message": "Mensaje entusiasta en ESPAÑOL resaltando el valor de COMUNIDAD o NEGOCIO.",
+    "imagePrompt": "ULTRA DETAILED prompt in ENGLISH (Include atmospheric details of workshops, gadgets or lifestyle scenes if applicable).",
     "photoCount": 5,
     "platforms": { "instagram": true, "tiktok": true, "facebook": true, "x": true }
 }
 
 REGLAS DE CAMPAÑA:
-- Si el usuario pide una TRIVIA, photoCount debe ser 6 (3 preguntas y 3 respuestas).
-- Si pide un CARRETE o pack, photoCount entre 5 y 10, o lo que el usuario pida.
-- Selecciona TODAS las plataformas de difusión mencionadas por defecto.`
+- TRIVIA: 6 fotos (3 preguntas y 3 respuestas).
+- CARRETE / PACK: 5 a 10 fotos.
+- Si es para un "Negocio", enfócate en profesionalismo y servicio.
+- Si es para "Comunidad", enfócate en pasión y debate.
+`
 
         const result = await geminiFlashConversational.generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -301,8 +307,24 @@ async function robustUploadBufferToCloudinary(buffer: Buffer) {
 
 export async function generateRandomCampaign(conversationId?: string) {
     // Reuses logic from chatWithImageDirector with a random preset
-    const NICHES = ["Deportivos", "Muscle", "4x4", "SUVs", "Motos", "EVs", "Drift", "Rally"];
-    const FORMATS = ["HISTORIA", "TRIVIA", "ACERTIJO", "FUN FACTS", "DUELO", "FUTURO"];
+    const NICHES = [
+        "Taller Mecánico de alta gama (Herramientas modernas, motores abiertos, organización impecable)",
+        "Estética Automotriz (Detailing, pulido de pintura, espuma activa, interiores de lujo)",
+        "Eventos Car Show (Gente apasionada, comunidades, ambiente festivo)",
+        "Road Trip Familiar (Paisajes naturales, SUVs cargadas, atardeceres en carretera)",
+        "Autolavado Premium (Agua a presión, luces neón, autos brillantes)",
+        "Gadgets y Tecnología (Dashboard digital, modding, accesorios futuristas)",
+        "Seguridad y Protección (Blindaje, cámaras, tecnología de punta)",
+        "Clásicos en Restauración (Garages vintage, piezas oxidadas vs nuevas, pasión por lo viejo)"
+    ];
+    const FORMATS = [
+        "TRIVIA DE EXPERTOS: Pon a prueba los conocimientos mecánicos de tu audiencia.",
+        "HISTORIA DE PASIÓN: La narrativa de alguien que cumplió el sueño de abrir su taller.",
+        "CONSEJO DEL DÍA: Un hack rápido de mantenimiento para cuidar el vehículo.",
+        "DEBATE SEMANAL: ¿Cuál es el mejor aditivo? ¿O la mejor marca de llantas?",
+        "DENTRO DEL TALLER: Una mirada íntima al trabajo duro de un especialista.",
+        "EL ANTES Y DESPUÉS: El impacto visual de un servicio de detallado profesional."
+    ];
     const n = NICHES[Math.floor(Math.random() * NICHES.length)];
     const f = FORMATS[Math.floor(Math.random() * FORMATS.length)];
     return await chatWithImageDirector([{ role: 'user', content: `Genera una campaña de ${n} estilo ${f}` }], conversationId);
