@@ -122,12 +122,12 @@ REGLAS DE CAMPAÑA:
                 
                 🚨 REGLA ESTRATÉGICA: Si esta es la ÚLTIMA IMAGEN del pack (basado en el contexto de "múltiples fotos"), diséñala como una "CALL TO ACTION". Debe mostrar un ambiente automotriz premium con un mensaje visual de "Consejo" o "Tip" e invitar a unirse a CarMatch.
                 
-                🚨 REGLA DE ORO DEL LOGO (BRANDING INTEGRADO):
-                1. NO ESCRIBAS TEXTO "CARMATCH" de forma genérica.
-                2. DEBES DIBUJAR EL LOGO OFICIAL: Un SUPERDEPORTIVO NARANJA estilizado visto de frente (estilo agresivo moderno como un Lamborghini/Aventador) con acentos en azul profundo.
-                3. TEXTO DE MARCA: Debajo del icono del auto, el texto "CarMatch" en una tipografía Sans-Serif moderna y color naranja brillante.
-                4. INTEGRACIÓN SUTIL: El logo completo (auto + texto) debe ser parte del entorno (cristales, bordados, emblemas metálicos, pantallas digitales).
-                5. REALISMO: El logo debe seguir la iluminación, sombras y perspectiva de la escena. NO es una estampa en la esquina.`;
+                🚨 IDENTIDAD CORPORATIVA ESTRICTA (LOGO OFICIAL V20):
+                1. EL LOGO ES INVARIABLE: No se permiten variaciones de color ni de modelo de auto.
+                2. ICONO: Debe ser EXACTAMENTE un SUPERDEPORTIVO NARANJA estilizado visto de frente (estilo agresivo y moderno) con acentos laterales en AZUL PROFUNDO. Esta combinación de Naranja y Azul es sagrada.
+                3. TEXTO: La palabra "CarMatch" debe aparecer debajo del auto en una tipografía Sans-Serif moderna y color naranja brillante.
+                4. INTEGRACIÓN SUTIL: El logo completo debe integrarse NATURALMENTE en la escena (grabado en vidrio, emblema en pared, pantalla digital, bordado en piel).
+                5. PERSPECTIVA: El logo debe respetar la iluminación y el ángulo de la imagen para parecer un objeto real del entorno.`;
 
                 const saveRes = await saveStudioMessage({
                     conversationId,
