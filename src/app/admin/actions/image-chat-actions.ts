@@ -167,7 +167,7 @@ REGLAS DE CAMPAÑA:
                     content: data.message || 'Propuesta creativa lista 🔥',
                     type: 'PROMPT_READY',
                     imagePrompt: refinedPrompt,
-                    images: {}, // No pre-filling
+                    images: finalImages,
                     platforms: data.platforms || {}
                 })
                 if (saveRes.success) messageId = saveRes.messageId
