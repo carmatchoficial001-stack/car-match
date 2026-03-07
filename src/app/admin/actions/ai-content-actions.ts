@@ -578,9 +578,8 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         // Generate base sizes up to photoCount
         for (let i = 0; i < Math.min(photoCount, 3); i++) {
             const size = baseSizes[i];
-            const provider = process.env.HUGGINGFACE_API_KEY ? 'huggingface' : 'pollinations';
-            const url = buildImageUrl(assets.imagePrompt, size.w, size.h, provider);
-            console.log(`[AI-ASSETS] Generando y subiendo base: ${size.key}...`);
+            const url = buildImageUrl(assets.imagePrompt, size.w, size.h);
+            console.log(`[AI-ASSETS] Generando y subiendo base (HF): ${size.key}...`);
             const uploadRes = await robustUploadToCloudinary(url);
 
             if (uploadRes.success) {
@@ -595,10 +594,9 @@ export async function generateCampaignAssets(chatHistory: any[], targetCountry: 
         if (photoCount > 3) {
             for (let i = 3; i < photoCount; i++) {
                 const id = `img_${i}`;
-                console.log(`[AI-ASSETS] Generando y subiendo variación galería: ${id}...`);
+                console.log(`[AI-ASSETS] Generando y subiendo variación galería (HF): ${id}...`);
                 const variationPrompt = `${assets.imagePrompt}, different angle, cinematic perspective, highly detailed, variation ${i}`;
-                const provider = process.env.HUGGINGFACE_API_KEY ? 'huggingface' : 'pollinations';
-                const url = buildImageUrl(variationPrompt, 1080, 1080, provider);
+                const url = buildImageUrl(variationPrompt, 1080, 1080);
 
                 const uploadRes = await robustUploadToCloudinary(url);
                 if (uploadRes.success) {
