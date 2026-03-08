@@ -12,15 +12,39 @@ import MapClient from '../map/MapClient'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-    title: "CarMatch",
-    description: "Servicios automotrices 24/7 con servicio a domicilio. Localiza mecánicos, desponchadoras, refaccionarias con entrega y auxilio vial inmediato en Juárez y todo México. CarMatch te salva en el camino.",
+    title: "Talleres Mecánicos y Servicios Automotrices 24/7 | CarMatch Map Store",
+    description: "Encuentra mecánicos, desponchadoras, refaccionarias y grúas cerca de ti con servicio 24/7. Auxilio vial inmediato en todo México. CarMatch te salva en el camino.",
     keywords: [
         "mapa de negocios", "mapa automotriz", "buscador de talleres", "directorio mecanico",
-        "servicio a domicilio", "mecánico a domicilio Juárez", "refcciones a domicilio",
+        "servicio a domicilio", "mecánico a domicilio Juárez", "refacciones a domicilio",
         "desponchadora a domicilio", "lavado de autos a domicilio", "servicio 24/7",
         "emergencia mecánica", "auxilio vial", "grúas 24 horas", "entrega de batería",
         "mecánico express", "reparación en sitio", "mantenimiento en casa", "CarMatch"
-    ]
+    ],
+    alternates: {
+        canonical: "https://carmatchapp.net/map-store",
+    },
+    openGraph: {
+        title: "Talleres Mecánicos 24/7 cerca de ti | CarMatch Map Store",
+        description: "Encuentra mecánicos, desponchadoras, refaccionarias y grúas cerca de ti. Servicio 24/7 en todo México.",
+        url: "https://carmatchapp.net/map-store",
+        siteName: "CarMatch",
+        type: "website",
+        images: [
+            {
+                url: "https://carmatchapp.net/og-mapstore.png",
+                width: 1200,
+                height: 630,
+                alt: "CarMatch Map Store - Talleres y Servicios Automotrices 24/7",
+            }
+        ],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Talleres Mecánicos 24/7 | CarMatch Map Store",
+        description: "Encuentra mecánicos, desponchadoras y grúas cerca de ti. Servicio 24/7.",
+        images: ["https://carmatchapp.net/og-mapstore.png"],
+    }
 }
 
 export default async function MapStorePage({ searchParams }: { searchParams: any }) {

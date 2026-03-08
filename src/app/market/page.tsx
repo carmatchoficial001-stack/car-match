@@ -15,7 +15,7 @@ import { VEHICLE_CATEGORIES, COLORS, GLOBAL_SYNONYMS, BRANDS } from "@/lib/vehic
 import { interpretSearchQuery } from "@/lib/ai/searchInterpreter"
 
 export const metadata = {
-    title: "CarMatch",
+    title: "Comprar Autos Usados en México | Marketplace CarMatch - Miles de Vehículos",
     description: "La mayor variedad de vehículos en un solo lugar. Compra y vende autos (Toyota, Nissan, Ford), motocicletas (Italika, Yamaha), tractores (John Deere), camiones y maquinaria pesada con filtros profesionales y trato directo sin comisión en CarMatch.",
     keywords: [
         // Marcas Populares Autos
@@ -42,7 +42,31 @@ export const metadata = {
         // Categorías Generales
         "carros en venta", "autos de lujo", "autos modificados", "carros clasicos",
         "vehiculos electricos usados", "autos hibridos mexico"
-    ]
+    ],
+    alternates: {
+        canonical: "https://carmatchapp.net/market",
+    },
+    openGraph: {
+        title: "Comprar Autos Usados en México | Marketplace CarMatch",
+        description: "Explora miles de autos, motos y maquinaria. Trato directo, sin comisiones. El marketplace automotriz #1 de México.",
+        url: "https://carmatchapp.net/market",
+        siteName: "CarMatch",
+        type: "website",
+        images: [
+            {
+                url: "https://carmatchapp.net/og-market.png",
+                width: 1200,
+                height: 630,
+                alt: "CarMatch Market - Compra y Vende Autos en México",
+            }
+        ],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Comprar Autos Usados en México | CarMatch Market",
+        description: "Miles de autos, motos y maquinaria. Trato directo, sin comisiones.",
+        images: ["https://carmatchapp.net/og-market.png"],
+    }
 }
 
 interface SearchParams {

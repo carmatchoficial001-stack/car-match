@@ -18,14 +18,42 @@ export async function generateMetadata({
 }): Promise<Metadata> {
     const { cityName } = await params
     const city = decodeURIComponent(cityName)
-    // 🚀 High-Intent SEO Title
-    const title = `✓ Venta de Autos, Motos y Maquinaria en ${city} | CarMatch®`
-    const description = `Explora el marketplace más grande de ${city}. Autos usados, motocicletas y maquinaria pesada con trato directo. ¡Compra o vende hoy mismo en CarMatch!`
+    const cityCapitalized = city.charAt(0).toUpperCase() + city.slice(1)
+    const title = `Autos Usados en ${cityCapitalized} | Compra y Venta de Vehículos | CarMatch®`
+    const description = `Explora el marketplace más grande de ${cityCapitalized}. Autos usados, motocicletas y maquinaria pesada con trato directo. ¡Compra o vende hoy mismo en CarMatch!`
 
     return {
         title,
         description,
-        keywords: [`autos en ${city}`, `venta de autos ${city}`, `carros usados ${city}`, `motos en ${city}`, `John Deere ${city}`]
+        keywords: [
+            `autos en ${city}`, `venta de autos ${city}`, `carros usados ${city}`,
+            `motos en ${city}`, `John Deere ${city}`, `comprar auto ${city}`,
+            `marketplace autos ${city}`, `autos baratos ${city}`, `seminuevos ${city}`
+        ],
+        alternates: {
+            canonical: `https://carmatchapp.net/autos-en/${encodeURIComponent(city.toLowerCase())}`,
+        },
+        openGraph: {
+            title,
+            description,
+            url: `https://carmatchapp.net/autos-en/${encodeURIComponent(city.toLowerCase())}`,
+            siteName: 'CarMatch',
+            type: 'website',
+            images: [
+                {
+                    url: 'https://carmatchapp.net/og-market.png',
+                    width: 1200,
+                    height: 630,
+                    alt: `Autos en venta en ${cityCapitalized} - CarMatch`,
+                }
+            ],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: ['https://carmatchapp.net/og-market.png'],
+        },
     }
 }
 
@@ -101,9 +129,21 @@ export default async function CityPage({
         }))
     }
 
+    // 🔗 BREADCRUMB SCHEMA
+    const breadcrumbLd = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "CarMatch", "item": "https://carmatchapp.net" },
+            { "@type": "ListItem", "position": 2, "name": "Autos por Ciudad", "item": "https://carmatchapp.net/market" },
+            { "@type": "ListItem", "position": 3, "name": `Autos en ${city}`, "item": `https://carmatchapp.net/autos-en/${encodeURIComponent(city.toLowerCase())}` }
+        ]
+    }
+
     return (
         <div className="min-h-screen bg-background">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd) }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
             <div className="pt-24 px-6 max-w-7xl mx-auto text-center md:text-left">
                 <h1 className="text-4xl md:text-6xl font-black mb-2 text-text-primary uppercase tracking-tighter">
                     COMPRA Y VENTA EN <span className="text-primary-500">{city}</span>

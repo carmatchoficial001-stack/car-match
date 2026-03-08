@@ -15,7 +15,7 @@ import { serializeDecimal } from "@/lib/serialize"
 
 // 🎯 SEO METADATA (Safe to edit - No afecta lógica locked)
 export const metadata = {
-    title: "CarMatch",
+    title: "CarMatch Swipe | Descubre tu Auto Ideal Deslizando - Tinder de Carros",
     description: "Desliza para descubrir tu próximo auto. Like para guardar en favoritos, Dislike para ocultar. La forma más rápida y divertida de explorar autos usados, camionetas, motos y más en México.",
     keywords: [
         "swipe autos", "tinder de carros", "descubrir autos", "feed de vehiculos",
@@ -23,11 +23,29 @@ export const metadata = {
         "app deslizar carros", "encontrar auto rapido", "swipe vehiculos mexico",
         "carros en venta swipe", "marketplace dinámico autos", "feed interactivo vehiculos"
     ],
+    alternates: {
+        canonical: "https://carmatchapp.net/swipe",
+    },
     openGraph: {
         title: "CarMatch Swipe | Descubre Tu Auto Ideal Deslizando",
         description: "La experiencia tipo Tinder para encontrar autos. Desliza, da Like y guarda tus favoritos al instante. Miles de vehículos esperándote.",
         url: "https://carmatchapp.net/swipe",
-        images: ["/icon-512-v19.png"]
+        siteName: "CarMatch",
+        type: "website",
+        images: [
+            {
+                url: "https://carmatchapp.net/og-swipe.png",
+                width: 1200,
+                height: 630,
+                alt: "CarMatch Swipe - Descubre tu Auto Ideal",
+            }
+        ],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "CarMatch Swipe | Tinder de Carros - Descubre tu Auto Ideal",
+        description: "Desliza, da Like y guarda tus favoritos. La forma más rápida de encontrar tu auto.",
+        images: ["https://carmatchapp.net/og-swipe.png"],
     }
 }
 

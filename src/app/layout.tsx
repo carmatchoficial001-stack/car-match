@@ -306,6 +306,57 @@ export default function RootLayout({
                         ])
                     }}
                 />
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            "@context": "https://schema.org",
+                            "@type": "FAQPage",
+                            "mainEntity": [
+                                {
+                                    "@type": "Question",
+                                    "name": "¿Cómo vendo mi carro gratis en CarMatch?",
+                                    "acceptedAnswer": {
+                                        "@type": "Answer",
+                                        "text": "Publica tu carro gratis en CarMatch en menos de 5 minutos: crea tu cuenta, sube fotos, describe tu vehículo y listo. Sin comisiones, sin intermediarios. Miles de compradores te contactarán directamente."
+                                    }
+                                },
+                                {
+                                    "@type": "Question",
+                                    "name": "¿Es seguro comprar un carro en CarMatch?",
+                                    "acceptedAnswer": {
+                                        "@type": "Answer",
+                                        "text": "Sí. CarMatch verifica cada publicación manualmente y ofrece puntos de encuentro seguros para transacciones. Además cuenta con un sistema de calificación de vendedores para mayor confianza."
+                                    }
+                                },
+                                {
+                                    "@type": "Question",
+                                    "name": "¿Cómo encuentro talleres mecánicos cerca de mí en CarMatch?",
+                                    "acceptedAnswer": {
+                                        "@type": "Answer",
+                                        "text": "Usa el Map Store de CarMatch: activa tu ubicación y verás talleres, desponchadoras, refaccionarias y servicios de grúa cercanos en tiempo real. Filtra por servicio 24/7 o a domicilio según tu necesidad."
+                                    }
+                                },
+                                {
+                                    "@type": "Question",
+                                    "name": "¿Qué es CarMatch Swipe?",
+                                    "acceptedAnswer": {
+                                        "@type": "Answer",
+                                        "text": "CarMatch Swipe es una función tipo Tinder para autos: desliza a la derecha para guardar en favoritos o a la izquierda para descartar. Es la forma más rápida y divertida de descubrir tu próximo vehículo."
+                                    }
+                                },
+                                {
+                                    "@type": "Question",
+                                    "name": "¿CarMatch cobra comisión por vender?",
+                                    "acceptedAnswer": {
+                                        "@type": "Answer",
+                                        "text": "No. Publicar tu vehículo en CarMatch es completamente gratis y sin comisiones. El trato es directo entre comprador y vendedor."
+                                    }
+                                }
+                            ]
+                        })
+                    }}
+                />
                 <GoogleAnalytics />
                 <Providers>
                     <InstallInvasiveBanner />
