@@ -21,7 +21,7 @@ async function recordLog(message: string, level: 'INFO' | 'WARN' | 'ERROR' = 'IN
                 metadata: metadata || {}
             }
         })
-        console.log(`[STUDIO] ${level}: ${message}`)
+        console.log(`[STUDIO-LOG] ${level}: ${message}`)
     } catch (e) {
         console.error("Critical: Failed to save systemic log", e)
     }
@@ -36,9 +36,6 @@ function getRequiredFormats() {
     return ['square'] as const;
 }
 
-/**
- * Helper to inject Cloudinary transformations for different social formats
- */
 function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal') {
     if (!url || !url.includes('cloudinary.com')) return url;
 
@@ -127,19 +124,22 @@ REGLAS DE CAMPAÑA:
 
             let messageId: string | undefined = undefined
             if (conversationId) {
-                const directorPrompt = `Eres el DIRECTOR DE ARTE de CarMatch. Tu objetivo es crear imágenes de alta gama donde la marca esté presente de forma sofisticada.
-                Analiza este contexto: "${lastMessage}"
+                const directorPrompt = `Eres el DIRECTOR DE ARTE SÉNIOR de CarMatch. Tu objetivo es transformar ideas en imágenes de ÉLITE, fotorrealistas y cinematográficas.
                 
-                🚨 IDENTIDAD VISUAL PREMIUM:
-                1. EL LOGO ES UN EMBLEMA DE PODER: Representa un superdeportivo naranja (estilo Flux) con detalles azul profundo.
-                2. INTEGRACIÓN ORGÁNICA: El logo "CarMatch" no debe parecer una estampa. Debe integrarse como:
-                   - Un grabado láser en una pieza de motor cromada.
-                   - Un bordado elegante en el reposacabezas de piel de un interior de lujo.
-                   - Un holograma digital en el tablero de un concept car.
-                   - Un sutil tatuaje de marca en un muro de concreto pulido de una agencia moderna.
-                3. ATMÓSFERA: Usa iluminación volumétrica, texturas 8K, desenfoque de fondo profesional (bokeh) y una estética que grite "Élite".
+                🚨 IDENTIDAD VISUAL Y SIEMBRA PSICOLÓGICA (OBLIGATORIO):
+                1. CALIDAD MAESTRA: Usa terminología técnica de fotografía (85mm lens, f/1.8, ISO 100, Shutter speed 1/250, bokeh profundo, iluminación volumétrica, ray tracing, texturas 8k).
+                2. SIEMBRA EL LOGO "CarMatch" ORGÁNICAMENTE: No queremos parches. El nombre "CarMatch" debe estar integrado físicamente en la escena para generar reconocimiento subconsciente:
+                   - Como un GRAFFITI artístico o mural en una pared de ladrillo al fondo.
+                   - En un LETRERO DE NEÓN brillante de un taller o tienda moderna.
+                   - GRABADO con láser en el rín de una llanta ultra-premium.
+                   - En el PORTAPLACAS o como un emblema sutil en la parrilla del coche.
+                   - Como un ANUNCIO ESPECTACULAR (Billboard) desenfocado en el horizonte.
+                   - Bordado en los cabezales de los ASIENTOS de piel.
+                3. NARRATIVA VISUAL: Capta el "mood" de la escena. Si es lujo, que se sienta el olor a piel; si es velocidad, que se sienta el desenfoque de movimiento térmico.
                 
-                INSTRUCCIÓN: Toma el prompt del usuario y transfórmalo en un ULTRA-DETAILED IMAGE PROMPT en INGLÉS que aplique estas reglas de branding orgánico.`;
+                CONTEXTO DEL USUARIO: "${lastMessage}"
+                
+                INSTRUCCIÓN: Toma el prompt original y conviértelo en un SUPER-DETAILED IMAGE PROMPT en INGLÉS. Asegúrate de incluir SIEMPRE una de las formas de siembra de marca mencionadas arriba de manera que parezca real y parte del entorno.`;
 
                 let refinedPrompt = imagePrompt;
                 try {
@@ -199,7 +199,7 @@ REGLAS DE CAMPAÑA:
  */
 export async function processNextImageBatch(messageId: string) {
     try {
-        await recordLog(`ENTRY: Batch Poll [${messageId}]`, 'INFO');
+        await recordLog(`[START] Batch Poll for message: ${messageId}`, 'INFO');
         const session = await auth();
         if (!session?.user?.id) throw new Error("Unauthorized");
 
