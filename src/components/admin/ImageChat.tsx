@@ -105,50 +105,59 @@ export default function ImageChat() {
         setIsLoading(false)
     }
 
-    // 🔄 ORCHESTRATE GENERATION (CLIENT-SIDE POLLING)
+    // 🔄 ORCHESTRATE GENERATION (ROBUST RECURSIVE POLLING)
     useEffect(() => {
-        if (!activeConversationId) return
+        if (!activeConversationId) return;
 
-        // Find the LATEST message that is still generating
+        // Find the latest assistant message that is still in "generating" state
         const generatingMessage = [...messages].reverse().find(m =>
             m.role === 'assistant' &&
             m.images &&
             (m.images as any)._status?.startsWith('generating')
-        )
+        );
 
-        if (!generatingMessage) return
+        if (!generatingMessage) return;
 
         let isMounted = true;
+        let pollTimer: NodeJS.Timeout | null = null;
         const messageId = generatingMessage.id;
 
         const pollProgress = async () => {
             if (!isMounted) return;
 
-            // Request next batch status from server
-            const res = await processNextImageBatch(messageId);
+            try {
+                // 1. Process next batch if needed
+                const res = await processNextImageBatch(messageId);
 
-            if (!isMounted) return;
+                if (!isMounted) return;
 
-            if (res.success) {
-                // Refresh chat history to see updates from the async HF workers
+                // 2. Always refresh history to get the latest partial updates or completion status
                 const histRes = await getStudioHistory(activeConversationId);
                 if (histRes.success && histRes.messages && isMounted) {
                     setMessages(histRes.messages);
                 }
-            } else {
-                console.error('[IMAGE-CHAT] Error en polling:', res.error);
-                // Simple wait before next attempt is handled by the useEffect re-triggering via messages state if status persisted
+
+                // 3. Schedule next poll regardless of success (within reason)
+                // If it's completed, the next useEffect run will find no generatingMessage and stop.
+                if (isMounted) {
+                    pollTimer = setTimeout(pollProgress, 3500);
+                }
+            } catch (err) {
+                console.error('[IMAGE-CHAT] Polling cycle error:', err);
+                if (isMounted) {
+                    pollTimer = setTimeout(pollProgress, 5000); // Retry later on crash
+                }
             }
         };
 
-        // Poll every 3 seconds while generating
-        const timer = setTimeout(pollProgress, 3000);
+        // Initial kickoff
+        pollTimer = setTimeout(pollProgress, 1000);
 
         return () => {
             isMounted = false;
-            clearTimeout(timer);
+            if (pollTimer) clearTimeout(pollTimer);
         };
-    }, [messages, activeConversationId])
+    }, [activeConversationId, messages.length])
 
     const handleNewChat = async () => {
         setIsLoading(true)
@@ -864,7 +873,7 @@ function PlatformAssetCard({ platformId, data, images }: { platformId: string, d
                             <div className="flex gap-2 overflow-x-auto custom-scrollbar h-full p-2 snap-x">
                                 {carouselImages.map((url, i) => (
                                     <div key={i} className={`h-full shrink-0 relative rounded overflow-hidden snap-start ${format === 'vertical' ? 'aspect-[9/16]' :
-                                            format === 'horizontal' ? 'aspect-video' : 'aspect-square'
+                                        format === 'horizontal' ? 'aspect-video' : 'aspect-square'
                                         }`}>
                                         <img src={url} className="w-full h-full object-cover" alt={`Slide ${i}`} />
                                         <div className="absolute top-1 left-1 bg-black/60 px-1 rounded text-[6px] text-white font-bold tracking-tighter">#{i + 1}</div>
