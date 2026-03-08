@@ -237,7 +237,21 @@ export async function processNextImageBatch(messageId: string) {
         }
 
         const hfKey = process.env.HUGGINGFACE_API_KEY || "";
-        if (hfKey && pendingTasks.length > 0) {
+        if (!hfKey) {
+            const errorMsg = "Falta HUGGINGFACE_API_KEY en las variables de entorno.";
+            await recordLog(errorMsg, 'ERROR', { messageId });
+
+            // Actualizar el estado del mensaje para informar al usuario
+            const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
+            const upImages = (fresh?.images as any) || {};
+            upImages['_status'] = `error: ${errorMsg}`;
+            upImages['_lastUpdate'] = Date.now();
+            await prisma.studioMessage.update({ where: { id: messageId }, data: { images: upImages } });
+
+            return { success: false, error: errorMsg };
+        }
+
+        if (pendingTasks.length > 0) {
             // SYNC MODE: Process exactly one at a time per call to ensure stability
             const t = pendingTasks[0];
             try {
@@ -261,7 +275,16 @@ export async function processNextImageBatch(messageId: string) {
                 return { success: true, completed: remaining === 0, images: upImages, instructions: [] };
 
             } catch (err: any) {
-                await recordLog(`HF Batch Step Error [${messageId}]: ${err.message}`, 'ERROR');
+                const errorMsg = `Error en lote HF [${messageId}]: ${err.message}`;
+                await recordLog(errorMsg, 'ERROR');
+
+                // Update status with error
+                const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
+                const upImages = (fresh?.images as any) || {};
+                upImages['_status'] = `error: ${err.message}`;
+                upImages['_lastUpdate'] = Date.now();
+                await prisma.studioMessage.update({ where: { id: messageId }, data: { images: upImages } });
+
                 return { success: false, error: err.message };
             }
         }
