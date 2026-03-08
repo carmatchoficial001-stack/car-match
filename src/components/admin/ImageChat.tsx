@@ -872,9 +872,12 @@ function PlatformAssetCard({ platformId, data, images }: { platformId: string, d
                         return (
                             <div className="flex gap-2 overflow-x-auto custom-scrollbar h-full p-2 snap-x">
                                 {carouselImages.map((url, i) => (
-                                    <div key={i} className="h-full aspect-[9/16] shrink-0 relative rounded overflow-hidden snap-start">
+                                    <div key={i} className={`h-full shrink-0 relative rounded overflow-hidden snap-start ${
+                                        format === 'vertical' ? 'aspect-[9/16]' : 
+                                        format === 'horizontal' ? 'aspect-video' : 'aspect-square'
+                                    }`}>
                                         <img src={url} className="w-full h-full object-cover" alt={`Slide ${i}`} />
-                                        <div className="absolute top-1 left-1 bg-black/60 px-1 rounded text-[6px] text-white">#{i + 1}</div>
+                                        <div className="absolute top-1 left-1 bg-black/60 px-1 rounded text-[6px] text-white font-bold tracking-tighter">#{i + 1}</div>
                                     </div>
                                 ))}
                             </div>

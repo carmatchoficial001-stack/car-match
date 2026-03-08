@@ -36,13 +36,22 @@ function getRequiredFormats() {
     return ['square'] as const;
 }
 
-function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal') {
+function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal' | 'square') {
     if (!url || !url.includes('cloudinary.com')) return url;
 
+    // ✨ Official Branding Logo (v20) - Must exist in Cloudinary
+    const logoLayer = 'l_carmatch:branding:carmatch_logo_v20,w_220,g_south_east,x_30,y_30,o_90';
+
     // Injects transformation segment after /upload/
-    const segment = format === 'vertical'
-        ? 'c_pad,g_auto,h_1920,w_1080,b_auto'
-        : 'c_pad,g_auto,h_628,w_1200,b_auto';
+    let segment = '';
+    if (format === 'vertical') {
+        segment = `c_pad,g_auto,h_1920,w_1080,b_auto/${logoLayer}/fl_layer_apply`;
+    } else if (format === 'horizontal') {
+        segment = `c_pad,g_auto,h_628,w_1200,b_auto/${logoLayer}/fl_layer_apply`;
+    } else {
+        // Square optimization with branding
+        segment = `c_fill,h_1080,w_1080/q_auto,f_auto/${logoLayer}/fl_layer_apply`;
+    }
 
     return url.replace('/upload/', `/upload/${segment}/`);
 }
@@ -126,20 +135,14 @@ REGLAS DE CAMPAÑA:
             if (conversationId) {
                 const directorPrompt = `Eres el DIRECTOR DE ARTE SÉNIOR de CarMatch. Tu objetivo es transformar ideas en imágenes de ÉLITE, fotorrealistas y cinematográficas.
                 
-                🚨 IDENTIDAD VISUAL Y SIEMBRA PSICOLÓGICA (OBLIGATORIO):
-                1. CALIDAD MAESTRA: Usa terminología técnica de fotografía (85mm lens, f/1.8, ISO 100, Shutter speed 1/250, bokeh profundo, iluminación volumétrica, ray tracing, texturas 8k).
-                2. SIEMBRA EL LOGO "CarMatch" ORGÁNICAMENTE: No queremos parches. El nombre "CarMatch" debe estar integrado físicamente en la escena para generar reconocimiento subconsciente:
-                   - Como un GRAFFITI artístico o mural en una pared de ladrillo al fondo.
-                   - En un LETRERO DE NEÓN brillante de un taller o tienda moderna.
-                   - GRABADO con láser en el rín de una llanta ultra-premium.
-                   - En el PORTAPLACAS o como un emblema sutil en la parrilla del coche.
-                   - Como un ANUNCIO ESPECTACULAR (Billboard) desenfocado en el horizonte.
-                   - Bordado en los cabezales de los ASIENTOS de piel.
-                3. NARRATIVA VISUAL: Capta el "mood" de la escena. Si es lujo, que se sienta el olor a piel; si es velocidad, que se sienta el desenfoque de movimiento térmico.
+                🚨 OBJETIVOS TÉCNICOS:
+                1. CALIDAD MAESTRA: Usa terminología técnica de fotografía (85mm lens, f/1.8, ISO 100, bokeh profundo, iluminación volumétrica, texturas 8k).
+                2. BRANDING: El logo de la marca ya se aplica mediante una capa superior (watermark) por lo que NO intentes dibujar el texto "CarMatch" dentro de la imagen. Esto evita errores visuales y permite que te enfoques 100% en el pedido del usuario.
+                3. ENFOQUE TOTAL: Respeta fielmente la descripción del usuario. Si pide un coche específico, una ciudad o una atmósfera, ese debe ser el protagonista absoluto con el máximo detalle posible.
                 
                 CONTEXTO DEL USUARIO: "${lastMessage}"
                 
-                INSTRUCCIÓN: Toma el prompt original y conviértelo en un SUPER-DETAILED IMAGE PROMPT en INGLÉS. Asegúrate de incluir SIEMPRE una de las formas de siembra de marca mencionadas arriba de manera que parezca real y parte del entorno.`;
+                INSTRUCCIÓN: Crea un SUPER-DETAILED IMAGE PROMPT en INGLÉS basado únicamente en el contexto del usuario para maximizar el fotorrealismo y el impacto visual.`;
 
                 let refinedPrompt = imagePrompt;
                 try {
@@ -335,11 +338,12 @@ async function processSingleHFImage(messageId: string, idx: number, format: 'squ
             const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
             const upImages = (fresh?.images as any) || {};
 
-            // 1. Store Master Square
-            upImages[`img_${idx}_square`] = upload.secure_url;
-            upImages['square'] = upload.secure_url; // Legacy support
+            // 1. Store Master (Original + Square branded)
+            const squareBrandedUrl = deriveFormatUrl(upload.secure_url!, 'square');
+            upImages[`img_${idx}_square`] = squareBrandedUrl;
+            upImages['square'] = squareBrandedUrl; // Legacy support
 
-            // 2. Derive others via Cloudinary (AUTOMATIC EDITOR)
+            // 2. Derive others via Cloudinary (AUTOMATIC EDITOR + WATERMARK)
             const verticalUrl = deriveFormatUrl(upload.secure_url!, 'vertical');
             const horizontalUrl = deriveFormatUrl(upload.secure_url!, 'horizontal');
 
