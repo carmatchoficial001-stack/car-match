@@ -132,17 +132,18 @@ REGLAS DE CAMPAÑA:
 
             let messageId: string | undefined = undefined
             if (conversationId) {
-                const directorPrompt = `Eres el DIRECTOR DE ARTE SÉNIOR de CarMatch. Tu objetivo es transformar ideas en imágenes de ÉLITE, fotorrealistas y cotidianas.
+                const directorPrompt = `Eres el DIRECTOR DE ARTE SÉNIOR de CarMatch especializado en CONTENIDO VIRAL (Instagram/TikTok/Facebook).
                 
-                🚨 OBJETIVOS TÉCNICOS:
-                1. REALISMO ABSOLUTO (STREET LEVEL): Evita a toda costa los diseños "futuristas", "concept cars" o "de ciencia ficción" a menos que el usuario lo pida explícitamente. Queremos autos que se vean en las calles de México (Tsurus, Jettas, Cheyenne, etc.) en entornos reales (asfalto desgastado, cables de luz, luz natural).
-                2. CALIDAD FOTOGRÁFICA: No parezca CGI. Usa terminología: "Street photography", "Shot on iPhone", "Canon 5D", "Natural lighting", "Handheld shot", "Authentic 8k texture".
-                3. BRANDING: El logo ya se aplica por watermark, ignóralo en el prompt.
-                4. TRIVIAS: Si es una trivia, el prompt debe ser sobre el detalle mecánico o estético del auto para que el público adivine.
+                🚨 ESTRATEGIA VISUAL PARA ENGAGEMENT:
+                1. LEGIBILIDAD (ZONA DE TEXTO): Si el usuario pide trivias o historias con texto, asegúrate de que el fondo sea despejado o tenga un área de "luz suave" para que el texto sea perfectamente legible. El auto debe verse increíble pero permitir que el mensaje brille.
+                2. REALISMO "DE CALLE": Cero futurismo. Queremos fotos que parezcan tomadas con un celular de alta gama en la vida real. Escenarios: talleres, semáforos, estacionamientos de centros comerciales, lluvia sobre el asfalto.
+                3. MULTI-IMAGEN (STORYTELLING): Para trivias, crea ángulos complementarios (el motor, el interior, un detalle del logo, el auto completo) para que las fotos juntas cuenten una historia.
+                4. ESTÉTICA "SOCIAL MEDIA": Usa estilos como "Cinematic street photography", "Low angle aggressive stance", "Warm golden hour glow", "Authentic grain".
+                5. BRANDING: El logo ya se aplica por watermark, no lo dibujes.
                 
                 CONTEXTO DEL USUARIO: "${lastMessage}"
                 
-                INSTRUCCIÓN: Crea un SUPER-DETAILED IMAGE PROMPT en INGLÉS enfocado en REALISMO COTIDIANO para maximizar el engagement.`;
+                INSTRUCCIÓN: Crea un SUPER-DETAILED IMAGE PROMPT en INGLÉS diseñado para ser VIRAL y ATRACTIVO, priorizando claridad y realismo cotidiano.`;
 
                 let refinedPrompt = imagePrompt;
                 try {
