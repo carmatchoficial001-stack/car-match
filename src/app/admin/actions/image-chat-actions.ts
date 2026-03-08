@@ -79,11 +79,10 @@ REGLAS DE INTERACCIÓN:
 1. Siempre habla en ESPAÑOL DE MÉXICO (adaptado culturalmente, profesional y creativo).
 2. ¡MÁXIMA VERSATILIDAD!: Somos un HUB de información y comunidad. Genera contenido para:
    - NOTICIAS Y LANZAMIENTOS: El último deportivo, filtraciones, noticias de la industria, "spyshots".
-   - TECNOLOGÍA Y FUTURO: Inteligencia artificial en autos, conducción autónoma, motores de hidrógeno, gadgets.
-   - DISEÑO Y CONCEPTOS: Sketches futuristas, prototipos de salones internacionales, evolución del diseño.
-   - NEGOCIOS LOCALES: Talleres, detailing, refaccionarias, autolavados.
-   - COMUNIDAD Y DEBATE: Trivias, retos, comparativas "Duelo de Titanes", historias de aficionados.
-3. El objetivo es que CarMatch sea la referencia número 1 donde el usuario encuentra TODO sobre el mundo motor.
+   - TECNOLOGÍA Y FUTURO: Solo si el usuario lo pide. Si no, prefiere lo REAL y cotidiano.
+   - TRIVIAS Y RETOS: "¿Qué motor trae este Tsuru?", "Adivina el año de este Jetta".
+   - ENTORNOS COMUNES: Talleres de barrio, gasolineras, calles de CDMX, Monterrey, etc.
+3. ESTILO VISUAL: Evita lo futurista/concept car por defecto. Queremos que el usuario se identifique. Fotos que parezcan tomadas por un aficionado experto o en la calle.
 4. Cuando el usuario pida generar la imagen, responde con "PROMPT_READY".
 
 HISTORIAL:
@@ -133,16 +132,17 @@ REGLAS DE CAMPAÑA:
 
             let messageId: string | undefined = undefined
             if (conversationId) {
-                const directorPrompt = `Eres el DIRECTOR DE ARTE SÉNIOR de CarMatch. Tu objetivo es transformar ideas en imágenes de ÉLITE, fotorrealistas y cinematográficas.
+                const directorPrompt = `Eres el DIRECTOR DE ARTE SÉNIOR de CarMatch. Tu objetivo es transformar ideas en imágenes de ÉLITE, fotorrealistas y cotidianas.
                 
                 🚨 OBJETIVOS TÉCNICOS:
-                1. CALIDAD MAESTRA: Usa terminología técnica de fotografía (85mm lens, f/1.8, ISO 100, bokeh profundo, iluminación volumétrica, texturas 8k).
-                2. BRANDING: El logo de la marca ya se aplica mediante una capa superior (watermark) por lo que NO intentes dibujar el texto "CarMatch" dentro de la imagen. Esto evita errores visuales y permite que te enfoques 100% en el pedido del usuario.
-                3. ENFOQUE TOTAL: Respeta fielmente la descripción del usuario. Si pide un coche específico, una ciudad o una atmósfera, ese debe ser el protagonista absoluto con el máximo detalle posible.
+                1. REALISMO ABSOLUTO (STREET LEVEL): Evita a toda costa los diseños "futuristas", "concept cars" o "de ciencia ficción" a menos que el usuario lo pida explícitamente. Queremos autos que se vean en las calles de México (Tsurus, Jettas, Cheyenne, etc.) en entornos reales (asfalto desgastado, cables de luz, luz natural).
+                2. CALIDAD FOTOGRÁFICA: No parezca CGI. Usa terminología: "Street photography", "Shot on iPhone", "Canon 5D", "Natural lighting", "Handheld shot", "Authentic 8k texture".
+                3. BRANDING: El logo ya se aplica por watermark, ignóralo en el prompt.
+                4. TRIVIAS: Si es una trivia, el prompt debe ser sobre el detalle mecánico o estético del auto para que el público adivine.
                 
                 CONTEXTO DEL USUARIO: "${lastMessage}"
                 
-                INSTRUCCIÓN: Crea un SUPER-DETAILED IMAGE PROMPT en INGLÉS basado únicamente en el contexto del usuario para maximizar el fotorrealismo y el impacto visual.`;
+                INSTRUCCIÓN: Crea un SUPER-DETAILED IMAGE PROMPT en INGLÉS enfocado en REALISMO COTIDIANO para maximizar el engagement.`;
 
                 let refinedPrompt = imagePrompt;
                 try {
