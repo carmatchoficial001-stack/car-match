@@ -109,44 +109,35 @@ export default function ImageChat() {
     useEffect(() => {
         if (!activeConversationId) return
 
-        const generatingMessage = messages.find(m => m.images && (m.images as any)._status?.startsWith('generating'))
+        // Find the LATEST message that is still generating
+        const generatingMessage = [...messages].reverse().find(m =>
+            m.role === 'assistant' &&
+            m.images &&
+            (m.images as any)._status?.startsWith('generating')
+        )
+
         if (!generatingMessage) return
 
         let isMounted = true;
+        const messageId = generatingMessage.id;
 
         const pollProgress = async () => {
             if (!isMounted) return;
 
-            // Check if it's stuck (more than 2 mins without update)
-            const lastUpdate = (generatingMessage.images as any)?._lastUpdate || 0;
-            const isStuck = lastUpdate > 0 && (Date.now() - lastUpdate) > 2 * 60 * 1000;
-
-            if (isStuck) {
-                console.warn('[IMAGE-CHAT] Generación atascada detectada.');
-                return;
-            }
-
             // Request next batch status from server
-            const res = await processNextImageBatch(generatingMessage.id);
+            const res = await processNextImageBatch(messageId);
 
             if (!isMounted) return;
 
             if (res.success) {
                 // Refresh chat history to see updates from the async HF workers
                 const histRes = await getStudioHistory(activeConversationId);
-                if (histRes.success && histRes.messages) {
+                if (histRes.success && histRes.messages && isMounted) {
                     setMessages(histRes.messages);
                 }
             } else {
                 console.error('[IMAGE-CHAT] Error en polling:', res.error);
-                // Retry refresh after a delay if server error
-                setTimeout(async () => {
-                    if (!isMounted) return;
-                    const histRes = await getStudioHistory(activeConversationId);
-                    if (histRes.success && histRes.messages) {
-                        setMessages(histRes.messages);
-                    }
-                }, 5000);
+                // Simple wait before next attempt is handled by the useEffect re-triggering via messages state if status persisted
             }
         };
 
@@ -872,10 +863,9 @@ function PlatformAssetCard({ platformId, data, images }: { platformId: string, d
                         return (
                             <div className="flex gap-2 overflow-x-auto custom-scrollbar h-full p-2 snap-x">
                                 {carouselImages.map((url, i) => (
-                                    <div key={i} className={`h-full shrink-0 relative rounded overflow-hidden snap-start ${
-                                        format === 'vertical' ? 'aspect-[9/16]' : 
-                                        format === 'horizontal' ? 'aspect-video' : 'aspect-square'
-                                    }`}>
+                                    <div key={i} className={`h-full shrink-0 relative rounded overflow-hidden snap-start ${format === 'vertical' ? 'aspect-[9/16]' :
+                                            format === 'horizontal' ? 'aspect-video' : 'aspect-square'
+                                        }`}>
                                         <img src={url} className="w-full h-full object-cover" alt={`Slide ${i}`} />
                                         <div className="absolute top-1 left-1 bg-black/60 px-1 rounded text-[6px] text-white font-bold tracking-tighter">#{i + 1}</div>
                                     </div>
