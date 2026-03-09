@@ -1,6 +1,4 @@
 'use server'
-
-export const maxDuration = 60; // Allow 60 seconds on Vercel for HuggingFace/Cloudinary
 import { geminiFlashConversational } from '@/lib/ai/geminiModels'
 import { buildImageUrl } from '@/lib/admin/utils'
 import { uploadUrlToCloudinary, robustUploadToCloudinary, uploadBufferToCloudinary } from '@/lib/cloudinary-server'
@@ -337,77 +335,37 @@ async function processSingleHFImage(messageId: string, idx: number, format: 'squ
     let attempt = 0;
     let success = false;
 
+    // Obtener la URL base para el fetch (localhost en dev, dominio real en prod)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://carmatchapp.net';
+
     while (attempt < MAX_RETRIES && !success) {
         attempt++;
         try {
-            rawLog(`Attempting HF generation: ${idx} / ${format} (Attempt ${attempt})`);
-            let w = 1024, h = 1024;
-            if (format === 'vertical') { w = 832; h = 1216; }
-            else if (format === 'horizontal') { w = 1216; h = 832; }
+            rawLog(`Attempting HF generation (via Proxy API): ${idx} / ${format} (Attempt ${attempt})`);
 
-            const seed = Math.floor(Math.random() * 1000000);
-            const p = prompt + `, high quality, masterpiece, variation ${idx}, professional photography, seed ${seed}`;
+            // Llamamos a nuestra nueva ruta API que sí tiene permiso de maxDuration=60
+            const res = await fetch(`${baseUrl}/api/admin/studio/generate-image`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messageId, idx, format, prompt })
+            });
 
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
-
-            let hfRes;
-            try {
-                hfRes = await fetch('https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ inputs: p, parameters: { width: w, height: h } }),
-                    signal: controller.signal
-                });
-            } catch (fetchError: any) {
-                clearTimeout(timeoutId);
-                throw new Error(`HF fetch failed: ${fetchError.message}`);
-            }
-            clearTimeout(timeoutId);
-
-            if (!hfRes.ok) {
-                const errBody = await hfRes.text();
-                throw new Error(`HF error: ${hfRes.status} - ${errBody.substring(0, 100)} `);
+            if (!res.ok) {
+                const errBody = await res.text();
+                throw new Error(`API Route failed: ${res.status} - ${errBody}`);
             }
 
-            const arrayBuffer = await hfRes.arrayBuffer();
-            if (arrayBuffer.byteLength < 5000) throw new Error("Imagen recibida demasiado pequeña");
-            const buffer = Buffer.from(arrayBuffer);
-
-            const upload = await uploadBufferToCloudinary(buffer);
-            if (!upload.success) throw new Error(`Upload to Cloudinary failed: ${upload.error || 'Unknown Cloudinary Error'}`);
-
-            // Fresh update
-            const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
-            const upImages = (fresh?.images as any) || {};
-
-            // 1. Store Master (Original + Square branded)
-            const squareBrandedUrl = deriveFormatUrl(upload.secure_url!, 'square');
-            upImages[`img_${idx}_square`] = squareBrandedUrl;
-            upImages['square'] = squareBrandedUrl; // Legacy support
-
-            // 2. Derive others via Cloudinary (AUTOMATIC EDITOR + WATERMARK)
-            const verticalUrl = deriveFormatUrl(upload.secure_url!, 'vertical');
-            const horizontalUrl = deriveFormatUrl(upload.secure_url!, 'horizontal');
-
-            upImages[`img_${idx}_vertical`] = verticalUrl;
-            upImages[`img_${idx}_horizontal`] = horizontalUrl;
-
-            // Set defaults if it's the first image
-            if (idx === 0) {
-                upImages['vertical'] = verticalUrl;
-                upImages['horizontal'] = horizontalUrl;
+            const data = await res.json();
+            if (!data.success) {
+                throw new Error(`Generation failed: ${data.error}`);
             }
 
-            upImages['_lastUpdate'] = Date.now();
-
-            await prisma.studioMessage.update({ where: { id: messageId }, data: { images: upImages } });
-            await recordLog(`Éxito HF Master [${idx}]: ${upload.secure_url}`, 'INFO');
+            await recordLog(`Éxito HF Master (via API) [${idx}]: ${data.url}`, 'INFO');
             success = true;
+
         } catch (e: any) {
             await recordLog(`Fallo HF [${idx}/${format}] (Intento ${attempt}): ${e.message}`, 'WARN');
             if (attempt < MAX_RETRIES) {
-                // Wait before retrying (exponential backoff or simple delay)
                 await new Promise(r => setTimeout(r, 2000 * attempt));
             } else {
                 await recordLog(`HF definitivamente falló para ${idx}/${format} tras ${MAX_RETRIES} intentos.`, 'ERROR');
