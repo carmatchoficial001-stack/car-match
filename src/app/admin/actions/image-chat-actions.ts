@@ -211,8 +211,21 @@ REGLAS DE CAMPAÑA:
             }
         }
 
+        // Save standard CHAT message to history if conversation exists
+        let messageId: string | undefined = undefined;
+        if (conversationId) {
+            const saveRes = await saveStudioMessage({
+                conversationId,
+                role: 'assistant',
+                content: data.message || 'Cuéntame más sobre tu idea...',
+                type: 'CHAT'
+            });
+            if (saveRes.success) messageId = saveRes.messageId;
+        }
+
         return {
             success: true,
+            messageId,
             type: 'CHAT' as const,
             message: data.message || 'Cuéntame más sobre tu idea...',
         }
