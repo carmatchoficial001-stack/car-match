@@ -53,8 +53,10 @@ function getRequiredFormats() {
 function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal' | 'square') {
     if (!url || !url.includes('cloudinary.com')) return url;
 
-    // ✨ Official Branding Logo (v20) - Must exist in Cloudinary
-    const logoLayer = 'l_carmatch:branding:carmatch_logo_v20,w_220,g_south_east,x_30,y_30,o_90';
+    if (process.env.DISABLE_STUDIO_BRANDING === 'true') return url;
+
+    // ✨ Official Branding Logo - Súbelo a Cloudinary como 'carmatch_logo'
+    const logoLayer = 'l_carmatch_logo,w_220,g_south_east,x_30,y_30,o_90';
 
     // Injects transformation segment after /upload/
     let segment = '';
@@ -63,7 +65,6 @@ function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal' | 'squar
     } else if (format === 'horizontal') {
         segment = `c_pad,g_auto,h_628,w_1200,b_auto/${logoLayer}/fl_layer_apply`;
     } else {
-        // Square optimization with branding
         segment = `c_fill,h_1080,w_1080/q_auto,f_auto/${logoLayer}/fl_layer_apply`;
     }
 

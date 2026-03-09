@@ -8,7 +8,14 @@ export const maxDuration = 60; // Allow 60 seconds on Vercel for HuggingFace/Clo
 
 function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal' | 'square') {
     if (!url || !url.includes('cloudinary.com')) return url;
-    const logoLayer = 'l_carmatch:branding:carmatch_logo_v20,w_220,g_south_east,x_30,y_30,o_90';
+
+    // Si quieres apagar el logo para pruebas, puedes poner esta variable en true en Vercel
+    if (process.env.DISABLE_STUDIO_BRANDING === 'true') return url;
+
+    // Nombre simplificado: Súbelo a Cloudinary con el Public ID: carmatch_logo
+    // El logo debe ser un PNG transparente para que se vea bien.
+    const logoLayer = 'l_carmatch_logo,w_220,g_south_east,x_30,y_30,o_90';
+
     let segment = '';
     if (format === 'vertical') {
         segment = `c_pad,g_auto,h_1920,w_1080,b_auto/${logoLayer}/fl_layer_apply`;

@@ -6,9 +6,16 @@ const prisma = new PrismaClient()
 
 async function checkStudioLogs() {
     const logs = await prisma.systemLog.findMany({
-        where: { source: 'StudioWorker' },
+        where: {
+            OR: [
+                { source: 'StudioWorker' },
+                { message: { contains: 'HF' } },
+                { message: { contains: 'Cloudinary' } },
+                { source: { contains: 'API-ROUTE' } }
+            ]
+        },
         orderBy: { createdAt: 'desc' },
-        take: 30
+        take: 50
     })
 
     console.log("=== ÚLTIMOS ERRORES DE STUDIO WORKER ===")
