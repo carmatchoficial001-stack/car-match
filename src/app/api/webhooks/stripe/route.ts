@@ -43,10 +43,41 @@ export async function POST(request: NextRequest) {
 
     // --- MANEJAR EVENTOS ---
     try {
-        // Caso 1: Checkout Session (Créditos o Suscripciones)
+        // Caso 1: Checkout Session con pago inmediato (Tarjeta)
+        // Para SPEI/OXXO este evento llega con payment_status='unpaid'.
+        // En ese caso NO sumamos créditos; esperamos checkout.session.async_payment_succeeded.
         if (event.type === 'checkout.session.completed') {
             const session = event.data.object as Stripe.Checkout.Session
             const metadata = session.metadata
+
+            if (session.payment_status === 'paid' && metadata?.type === 'CREDIT_PURCHASE') {
+                const userId = metadata.userId
+                const creditsToAdd = parseInt(metadata.credits || '0')
+                const paymentIntentId = session.payment_intent as string
+
+                if (userId && creditsToAdd > 0 && paymentIntentId) {
+                    await processCreditPurchase(userId, creditsToAdd, paymentIntentId, session.amount_total! / 100, session.currency!, 'Compra de créditos (Tarjeta)')
+                }
+            } else if (metadata?.type === 'BUSINESS_SUBSCRIPTION_MONTHLY') {
+                console.log(`🏢 Suscripción completada para negocio: ${metadata.businessId}`)
+            }
+        }
+
+        // Caso 2: 🔥 CRÍTICO — Pago asíncrono confirmado (SPEI / OXXO / Transferencia bancaria)
+        // Stripe dispara este evento DÍAS DESPUÉS cuando el banco confirma la transferencia.
+        // Sin este handler, los usuarios de SPEI/OXXO NUNCA reciben sus créditos.
+        if (event.type === 'checkout.session.async_payment_succeeded') {
+            const session = event.data.object as Stripe.Checkout.Session
+            const metadata = session.metadata
+
+            await prisma.systemLog.create({
+                data: {
+                    level: 'INFO',
+                    source: 'StripeWebhook',
+                    message: `💸 Pago async confirmado (SPEI/OXXO): session ${session.id}`,
+                    metadata: { sessionId: session.id, userId: metadata?.userId }
+                }
+            })
 
             if (metadata?.type === 'CREDIT_PURCHASE') {
                 const userId = metadata.userId
@@ -54,26 +85,21 @@ export async function POST(request: NextRequest) {
                 const paymentIntentId = session.payment_intent as string
 
                 if (userId && creditsToAdd > 0 && paymentIntentId) {
-                    await processCreditPurchase(userId, creditsToAdd, paymentIntentId, session.amount_total! / 100, session.currency!, 'Compra de créditos (Checkout)')
+                    await processCreditPurchase(userId, creditsToAdd, paymentIntentId, session.amount_total! / 100, session.currency!, 'Compra de créditos (SPEI/OXXO)')
                 }
-            } else if (metadata?.type === 'BUSINESS_SUBSCRIPTION_MONTHLY') {
-                // Aquí podrías manejar la activación de negocio si fuera necesario
-                console.log(`🏢 Suscripción completada para negocio: ${metadata.businessId}`)
             }
         }
 
-        // Caso 2: Payment Intent Directo (Fallback o SPEI directo)
+        // Caso 3: Payment Intent Directo (Fallback)
         if (event.type === 'payment_intent.succeeded') {
             const paymentIntent = event.data.object as Stripe.PaymentIntent
-
-            // Procesamos basándonos en metadata (ya sea que venga de Checkout o directo)
             const metadata = paymentIntent.metadata
             const userId = metadata?.userId
             const creditsToAdd = parseInt(metadata?.credits || '0')
             const isCreditPurchase = metadata?.type === 'CREDIT_PURCHASE'
 
             if (userId && creditsToAdd > 0 && isCreditPurchase) {
-                await processCreditPurchase(userId, creditsToAdd, paymentIntent.id, paymentIntent.amount / 100, paymentIntent.currency, 'Compra de créditos (Succeeded)')
+                await processCreditPurchase(userId, creditsToAdd, paymentIntent.id, paymentIntent.amount / 100, paymentIntent.currency, 'Compra de créditos (PaymentIntent directo)')
             }
         }
 
