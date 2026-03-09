@@ -197,14 +197,7 @@ export default function CreditsClient({ user, transactions }: CreditsClientProps
                             )}
                         </div>
 
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setActiveTab('history')}
-                                className="px-6 py-3 bg-white text-primary-800 font-bold rounded-xl hover:bg-gray-100 transition shadow-lg"
-                            >
-                                + Recargar
-                            </button>
-                        </div>
+                        {/* Se retiró el botón de Recargar */}
                     </div>
 
                     {/* Decoración de fondo */}
