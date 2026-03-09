@@ -1,5 +1,6 @@
 'use server'
 
+export const maxDuration = 60; // Allow 60 seconds on Vercel for HuggingFace/Cloudinary
 import { geminiFlashConversational } from '@/lib/ai/geminiModels'
 import { buildImageUrl } from '@/lib/admin/utils'
 import { uploadUrlToCloudinary, robustUploadToCloudinary, uploadBufferToCloudinary } from '@/lib/cloudinary-server'
@@ -374,7 +375,7 @@ async function processSingleHFImage(messageId: string, idx: number, format: 'squ
             const buffer = Buffer.from(arrayBuffer);
 
             const upload = await uploadBufferToCloudinary(buffer);
-            if (!upload.success) throw new Error("Upload to Cloudinary failed");
+            if (!upload.success) throw new Error(`Upload to Cloudinary failed: ${upload.error || 'Unknown Cloudinary Error'}`);
 
             // Fresh update
             const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
