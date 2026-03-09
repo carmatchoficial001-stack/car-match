@@ -492,9 +492,13 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
                 lastMessage.toLowerCase().includes('listo la produccion')
 
             if (isAskingForFinal) {
+                const promptResponse = await geminiFlashConversational.generateContent(`Sintetiza todo lo platicado y dame el PROMPT TÉCNICO FINAL en INGLÉS para generar la imagen perfecta. Responde ÚNICAMENTE con el prompt en texto plano.`);
+                const finalPrompt = promptResponse.response.text().trim();
                 return {
                     success: true,
-                    message: "La producción de contenido está siendo rediseñada. Pronto tendrás un nuevo estudio de imágenes disponible. 🚀"
+                    message: "¡Listo! Aquí tienes el comando técnico para nuestro estudio de imágenes. Cópialo y úsalo en el Estudio de Fotos para obtener los mejores resultados: \n\n" + finalPrompt,
+                    type: 'PROMPT_READY',
+                    imagePrompt: finalPrompt
                 }
             }
 

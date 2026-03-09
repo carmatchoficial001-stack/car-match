@@ -98,7 +98,10 @@ export async function robustUploadToCloudinary(url: string, folder: string = 'ca
                         'Authorization': `Bearer ${hfKey}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ inputs: prompt }),
+                    body: JSON.stringify({
+                        inputs: prompt,
+                        parameters: { width: 1024, height: 1024 }
+                    }),
                     signal: controller.signal
                 });
             } else {

@@ -126,7 +126,8 @@ REGLAS DE CAMPAÑA:
 
         if (data.type === 'PROMPT_READY' && data.imagePrompt) {
             const imagePrompt = data.imagePrompt
-            const count = Math.max(1, Math.min(100, data.photoCount || 1))
+            const DEFAULT_PHOTO_COUNT = 11;
+            const count = Math.max(1, Math.min(100, data.photoCount || DEFAULT_PHOTO_COUNT));
 
             const finalImages: Record<string, any> = {
                 '_status': 'generating',
@@ -325,19 +326,31 @@ async function processSingleHFImage(messageId: string, idx: number, format: 'squ
             const seed = Math.floor(Math.random() * 1000000);
             const p = prompt + `, high quality, masterpiece, variation ${idx}, professional photography, seed ${seed}`;
 
-            const hfRes = await fetch('https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ inputs: p, parameters: { width: w, height: h } })
-            });
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
+            let hfRes;
+            try {
+                hfRes = await fetch('https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ inputs: p, parameters: { width: w, height: h } }),
+                    signal: controller.signal
+                });
+            } catch (fetchError: any) {
+                clearTimeout(timeoutId);
+                throw new Error(`HF fetch failed: ${fetchError.message}`);
+            }
+            clearTimeout(timeoutId);
 
             if (!hfRes.ok) {
                 const errBody = await hfRes.text();
                 throw new Error(`HF error: ${hfRes.status} - ${errBody.substring(0, 100)} `);
             }
 
-            const buffer = Buffer.from(await hfRes.arrayBuffer());
-            if (buffer.length < 5000) throw new Error("Imagen recibida demasiado pequeña");
+            const arrayBuffer = await hfRes.arrayBuffer();
+            if (arrayBuffer.byteLength < 5000) throw new Error("Imagen recibida demasiado pequeña");
+            const buffer = Buffer.from(arrayBuffer);
 
             const upload = await uploadBufferToCloudinary(buffer);
             if (!upload.success) throw new Error("Upload to Cloudinary failed");
