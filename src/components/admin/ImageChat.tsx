@@ -651,19 +651,19 @@ function PromptProposalCard({
                         <div className="grid grid-cols-3 gap-2 mb-4">
                             {msg.images?.square && (
                                 <div className="aspect-square rounded-xl overflow-hidden border border-white/10 group/mini relative">
-                                    <img src={msg.images.square} className="w-full h-full object-cover" alt="Square" />
+                                    <img src={`${msg.images.square}?t=${msg.timestamp.getTime()}`} className="w-full h-full object-cover" alt="Square" />
                                     <div className="absolute inset-x-0 bottom-0 bg-black/60 py-1 text-[7px] text-center font-bold text-white uppercase">1:1 Feed</div>
                                 </div>
                             )}
                             {msg.images?.vertical && (
                                 <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 group/mini relative">
-                                    <img src={msg.images.vertical} className="w-full h-full object-cover" alt="Vertical" />
+                                    <img src={`${msg.images.vertical}?t=${msg.timestamp.getTime()}`} className="w-full h-full object-cover" alt="Vertical" />
                                     <div className="absolute inset-x-0 bottom-0 bg-black/60 py-1 text-[7px] text-center font-bold text-white uppercase">9:16 Story</div>
                                 </div>
                             )}
                             {msg.images?.horizontal && (
                                 <div className="aspect-[16/9] rounded-xl overflow-hidden border border-white/10 group/mini relative">
-                                    <img src={msg.images.horizontal} className="w-full h-full object-cover" alt="Horizontal" />
+                                    <img src={`${msg.images.horizontal}?t=${msg.timestamp.getTime()}`} className="w-full h-full object-cover" alt="Horizontal" />
                                     <div className="absolute inset-x-0 bottom-0 bg-black/60 py-1 text-[7px] text-center font-bold text-white uppercase">16:9 Ads</div>
                                 </div>
                             )}
@@ -719,7 +719,7 @@ function PromptProposalCard({
                     {!isGenerating && msg.images?.square && !msg.images?.vertical && (
                         <div className="relative aspect-square w-full rounded-2xl overflow-hidden mb-5 border border-white/10 bg-black group/preview">
                             <img
-                                src={msg.images.square}
+                                src={`${msg.images.square}?t=${msg.timestamp.getTime()}`}
                                 alt="Preview"
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover/preview:scale-110"
                             />
@@ -875,7 +875,7 @@ function PlatformAssetCard({ platformId, data, images }: { platformId: string, d
                                     <div key={i} className={`h-full shrink-0 relative rounded overflow-hidden snap-start ${format === 'vertical' ? 'aspect-[9/16]' :
                                         format === 'horizontal' ? 'aspect-video' : 'aspect-square'
                                         }`}>
-                                        <img src={url} className="w-full h-full object-cover" alt={`Slide ${i}`} />
+                                        <img src={`${url}?t=${Date.now()}`} className="w-full h-full object-cover" alt={`Slide ${i}`} />
                                         <div className="absolute top-1 left-1 bg-black/60 px-1 rounded text-[6px] text-white font-bold tracking-tighter">#{i + 1}</div>
                                     </div>
                                 ))}

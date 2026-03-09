@@ -6,6 +6,21 @@ import { uploadUrlToCloudinary, robustUploadToCloudinary, uploadBufferToCloudina
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { saveStudioMessage, getStudioHistory } from "./studio-history-actions"
+import fs from 'fs'
+import path from 'path'
+
+const RAW_LOG_FILE = 'e:/carmatchapp/studio-raw.log';
+
+function rawLog(msg: string) {
+    try {
+        const timestamp = new Date().toISOString();
+        const entry = `[${timestamp}] ${msg}\n`;
+        fs.appendFileSync(RAW_LOG_FILE, entry);
+        console.log(`[RAW-LOG] ${msg}`);
+    } catch (e) {
+        console.error("Failed to write raw log", e);
+    }
+}
 
 
 /**
@@ -64,6 +79,7 @@ export async function chatWithImageDirector(
     conversationId?: string,
     targetCountry: string = 'MX'
 ) {
+    rawLog(`chatWithImageDirector called. Conv: ${conversationId}`);
     try {
         const lastMessage = messages[messages.length - 1]?.content || ''
         const contextStr = messages.map(m =>
@@ -210,6 +226,7 @@ REGLAS DE CAMPAÑA:
  * Generates the next available image in a multi-format batch.
  */
 export async function processNextImageBatch(messageId: string) {
+    rawLog(`processNextImageBatch called for ${messageId}`);
     try {
         await recordLog(`[START] Batch Poll for message: ${messageId}`, 'INFO');
         const session = await auth();
@@ -284,6 +301,10 @@ export async function processNextImageBatch(messageId: string) {
                 upImages['_lastUpdate'] = Date.now();
                 await prisma.studioMessage.update({ where: { id: messageId }, data: { images: upImages } });
 
+                // 🔥 IMPORTANT: Revalidate path to break Next.js App Router cache so frontend gets the new _status!
+                const { revalidatePath } = await import('next/cache');
+                revalidatePath('/admin');
+
                 return { success: true, completed: remaining === 0, images: upImages, instructions: [] };
 
             } catch (err: any) {
@@ -318,7 +339,7 @@ async function processSingleHFImage(messageId: string, idx: number, format: 'squ
     while (attempt < MAX_RETRIES && !success) {
         attempt++;
         try {
-            await recordLog(`Iniciando generación HF: ${idx} / ${format} (Intento ${attempt}/${MAX_RETRIES})`, 'INFO');
+            rawLog(`Attempting HF generation: ${idx} / ${format} (Attempt ${attempt})`);
             let w = 1024, h = 1024;
             if (format === 'vertical') { w = 832; h = 1216; }
             else if (format === 'horizontal') { w = 1216; h = 832; }

@@ -66,6 +66,9 @@ export async function getStudioHistory(conversationId?: string) {
     if (!conversationId) return { success: true, messages: [] }
 
     try {
+        const { unstable_noStore } = await import('next/cache');
+        unstable_noStore();
+
         const session = await auth()
         if (!session?.user?.id) throw new Error("Unauthorized")
 
