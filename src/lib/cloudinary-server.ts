@@ -83,27 +83,7 @@ export async function robustUploadToCloudinary(url: string, folder: string = 'ca
             const hfKey = process.env.HUGGINGFACE_API_KEY;
 
             if (currentUrl.startsWith('HF_MODEL:')) {
-                // Special handling for Hugging Face strings from buildImageUrl
-                const [_, model, encodedPrompt] = currentUrl.split(':');
-                const prompt = decodeURIComponent(encodedPrompt);
-
-                if (!hfKey) {
-                    throw new Error("HUGGINGFACE_API_KEY is missing for HF_MODEL generation");
-                }
-
-                console.log(`[CLOUDINARY] Generando con Hugging Face: ${model}`);
-                response = await fetch(`https://router.huggingface.co/hf-inference/models/${model}`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${hfKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        inputs: prompt,
-                        parameters: { width: 1024, height: 1024 }
-                    }),
-                    signal: controller.signal
-                });
+                throw new Error("Hugging Face model generation is deprecated. Please use the Fal.ai integrated flow.");
             } else {
                 response = await fetch(currentUrl, {
                     signal: controller.signal,

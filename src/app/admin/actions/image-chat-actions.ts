@@ -300,9 +300,9 @@ export async function processNextImageBatch(messageId: string) {
             return { success: true, completed: true, images };
         }
 
-        const hfKey = process.env.HUGGINGFACE_API_KEY || "";
-        if (!hfKey) {
-            const errorMsg = "Falta HUGGINGFACE_API_KEY en las variables de entorno.";
+        const falKey = process.env.FAL_KEY || "";
+        if (!falKey) {
+            const errorMsg = "Falta FAL_KEY en las variables de entorno para la generación.";
             await recordLog(errorMsg, 'ERROR', { messageId });
 
             // Actualizar el estado del mensaje para informar al usuario
@@ -319,7 +319,7 @@ export async function processNextImageBatch(messageId: string) {
             // SYNC MODE: Process exactly one at a time per call to ensure stability
             const t = pendingTasks[0];
             try {
-                await processSingleHFImage(messageId, t.idx, t.format, prompt, hfKey, images);
+                await processSingleHFImage(messageId, t.idx, t.format, prompt, falKey, images);
 
                 // After processing one, mark status for next polling
                 const remaining = pendingTasks.length - 1;
@@ -366,7 +366,7 @@ export async function processNextImageBatch(messageId: string) {
 /**
  * HF Worker
  */
-async function processSingleHFImage(messageId: string, idx: number, format: 'square' | 'vertical' | 'horizontal', prompt: string, hfKey: string, images: any) {
+async function processSingleHFImage(messageId: string, idx: number, format: 'square' | 'vertical' | 'horizontal', prompt: string, falKey: string, images: any) {
     const MAX_RETRIES = 3;
     let attempt = 0;
     let success = false;
@@ -381,7 +381,7 @@ async function processSingleHFImage(messageId: string, idx: number, format: 'squ
     while (attempt < MAX_RETRIES && !success) {
         attempt++;
         try {
-            rawLog(`Attempting HF generation (via Proxy API): ${idx} / ${format} (Attempt ${attempt}) a ${baseUrl}`);
+            rawLog(`Attempting Fal.ai generation (via Proxy API): ${idx} / ${format} (Attempt ${attempt}) a ${baseUrl}`);
 
             // Llamamos a nuestra nueva ruta API que sí tiene permiso de maxDuration=60
             const res = await fetch(`${baseUrl}/api/admin/studio/generate-image`, {
