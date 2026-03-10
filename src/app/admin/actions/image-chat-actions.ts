@@ -5,6 +5,7 @@ import { uploadUrlToCloudinary, robustUploadToCloudinary, uploadBufferToCloudina
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { saveStudioMessage, getStudioHistory } from "./studio-history-actions"
+import { performFalGeneration } from "./studio-generate-logic"
 import fs from 'fs'
 import path from 'path'
 
@@ -321,10 +322,12 @@ export async function processNextImageBatch(messageId: string) {
             try {
                 await processSingleFalImage(messageId, t.idx, t.format, prompt, falKey, images);
 
-                // After processing one, mark status for next polling
+                // No necesitamos actualizar el status aquí con 'images' viejo, 
+                // performFalGeneration ya actualizó la DB con la nueva URL y el status básico.
+                
                 const remaining = pendingTasks.length - 1;
 
-                // Fetch latest images to return to frontend (it was updated inside processSingleHFImage)
+                // Fetch latest images to return to frontend (it was updated inside processSingleFalImage)
                 const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
                 const upImages = (fresh?.images as any) || {};
 
@@ -381,26 +384,11 @@ async function processSingleFalImage(messageId: string, idx: number, format: 'sq
     while (attempt < MAX_RETRIES && !success) {
         attempt++;
         try {
-            rawLog(`Attempting Fal.ai generation (via Proxy API): ${idx} / ${format} (Attempt ${attempt}) a ${baseUrl}`);
-
-            // Llamamos a nuestra nueva ruta API que sí tiene permiso de maxDuration=60
-            const res = await fetch(`${baseUrl}/api/admin/studio/generate-image`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messageId, idx, format, prompt })
-            });
-
-            if (!res.ok) {
-                const errBody = await res.text();
-                throw new Error(`API Route failed: ${res.status} - ${errBody}`);
-            }
-
-            const data = await res.json();
-            if (!data.success) {
-                throw new Error(`Generation failed: ${data.error}`);
-            }
-
-            await recordLog(`Éxito Fal.ai Master (via API) [${idx}]: ${data.url}`, 'INFO');
+            rawLog(`Attempting Fal.ai generation (DIRECT): ${idx} / ${format} (Attempt ${attempt})`);
+            
+            const data = await performFalGeneration({ messageId, idx, format, prompt });
+            
+            await recordLog(`Éxito Fal.ai Master (DIRECT) [${idx}]: ${data.url}`, 'INFO');
             success = true;
 
         } catch (e: any) {
