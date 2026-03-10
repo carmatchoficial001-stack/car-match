@@ -1,24 +1,10 @@
 import { prisma } from '@/lib/db'
 import { uploadBufferToCloudinary } from '@/lib/cloudinary-server'
 
-export function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal' | 'square') {
-    if (!url || !url.includes('cloudinary.com')) return url;
+/**
+ * Core image generation logic shared between API Route and Worker
+ */
 
-    // ✨ Official Branding Logo
-    const logoLayer = 'l_carmatch_logo,w_220,g_south_east,x_30,y_30,o_90';
-
-    // Injects transformation segment
-    let segment = '';
-    if (format === 'vertical') {
-        segment = `c_pad,g_auto,h_1920,w_1080,b_auto/${logoLayer}/fl_layer_apply`;
-    } else if (format === 'horizontal') {
-        segment = `c_pad,g_auto,h_628,w_1200,b_auto/${logoLayer}/fl_layer_apply`;
-    } else {
-        segment = `c_fill,h_1080,w_1080/q_auto,f_auto/${logoLayer}/fl_layer_apply`;
-    }
-
-    return url.replace('/upload/', `/upload/${segment}/`);
-}
 export async function performFalGeneration(params: {
     messageId: string;
     idx: number;
@@ -73,21 +59,18 @@ export async function performFalGeneration(params: {
     const upload = await uploadBufferToCloudinary(buffer);
     if (!upload.success) throw new Error(`Upload to Cloudinary failed: ${upload.error}`);
 
-    // Update Database
-    // Atomic Update using jsonb_set or merging to avoid race conditions
-    const squareBrandedUrl = deriveFormatUrl(upload.secure_url!, 'square');
-    const verticalUrl = deriveFormatUrl(upload.secure_url!, 'vertical');
-    const horizontalUrl = deriveFormatUrl(upload.secure_url!, 'horizontal');
+    // Update Database: AI-Native Branding (no Cloudinary overlays)
+    const rawUrl = upload.secure_url!;
 
     const imagesToMerge: Record<string, any> = {
-        [`img_${idx}_${format}`]: deriveFormatUrl(upload.secure_url!, format),
+        [`img_${idx}_${format}`]: rawUrl,
         '_lastUpdate': Date.now()
     };
 
-    if (format === 'square') imagesToMerge['square'] = squareBrandedUrl;
+    if (format === 'square') imagesToMerge['square'] = rawUrl;
     if (idx === 0) {
-        imagesToMerge['vertical'] = verticalUrl;
-        imagesToMerge['horizontal'] = horizontalUrl;
+        imagesToMerge['vertical'] = rawUrl;
+        imagesToMerge['horizontal'] = rawUrl;
     }
 
     const jsonToMerge = JSON.stringify(imagesToMerge);
