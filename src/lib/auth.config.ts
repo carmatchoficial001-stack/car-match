@@ -72,6 +72,76 @@ export const authConfig: NextAuthConfig = {
             return true
         },
         async session({ session, token }) {
+import Google from "next-auth/providers/google"
+import Facebook from "next-auth/providers/facebook"
+import Twitter from "next-auth/providers/twitter"
+import type { NextAuthConfig } from "next-auth"
+
+// ⚙️ Configuración base compatible con Edge (Middleware)
+export const authConfig: NextAuthConfig = {
+    providers: [
+        Google({
+            clientId: process.env.GOOGLE_CLIENT_ID || process.env.AUTH_GOOGLE_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.AUTH_GOOGLE_SECRET,
+        }),
+        Facebook({
+            clientId: process.env.FACEBOOK_CLIENT_ID || process.env.AUTH_FACEBOOK_ID,
+            clientSecret: process.env.FACEBOOK_CLIENT_SECRET || process.env.AUTH_FACEBOOK_SECRET,
+        }),
+        Twitter({
+            clientId: process.env.TWITTER_CLIENT_ID || process.env.AUTH_TWITTER_ID,
+            clientSecret: process.env.TWITTER_CLIENT_SECRET || process.env.AUTH_TWITTER_SECRET,
+        }),
+    ],
+    pages: {
+        signIn: "/auth",
+        error: "/auth",
+    },
+    session: {
+        strategy: "jwt",
+        maxAge: 10 * 365 * 24 * 60 * 60, // 10 years (Session locking)
+    },
+
+    callbacks: {
+        async authorized({ auth, request: { nextUrl } }) {
+            const isLoggedIn = !!auth
+            const pathname = nextUrl.pathname
+
+            // 🔓 RUTAS PÚBLICAS (Wikipedia Mode): Accesibles para Google y Guests
+            const publicPaths = [
+                '/',
+                '/market',
+                '/swipe',
+                '/map',
+                '/map-store',
+                '/autos/',
+                '/autos-en/',
+                '/autos/cluster/',
+                '/comprar/',
+                '/comparar/',
+                '/negocio/',
+                '/vehicle/',
+                '/negocios/',
+                '/business/',
+                '/auth',
+                '/privacy',
+                '/terms'
+            ]
+
+            const isPublicPath = publicPaths.some(path =>
+                pathname === path || pathname.startsWith(path)
+            )
+
+            // Si es ruta pública, permitimos siempre (para SEO)
+            if (isPublicPath) return true
+
+            // Si no es pública, requerimos login
+            return isLoggedIn
+        },
+        async signIn() {
+            return true
+        },
+        async session({ session, token }) {
             if (session.user && token) {
                 // @ts-ignore
                 session.user.id = (token.id as string) || (token.sub as string)
@@ -79,7 +149,11 @@ export const authConfig: NextAuthConfig = {
                 session.user.name = (token.name as string) || session.user.name
 
                 if (session.user.email === process.env.ADMIN_EMAIL) {
+                    // @ts-ignore
                     session.user.isAdmin = true
+                } else {
+                    // @ts-ignore
+                    session.user.isAdmin = !!token.isAdmin
                 }
             }
             return session
