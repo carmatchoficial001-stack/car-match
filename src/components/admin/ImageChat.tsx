@@ -283,6 +283,14 @@ export default function ImageChat() {
             const result = await generateRandomCampaign(activeConversationId || undefined)
 
             if (result.success) {
+                // 🎨 Simulated User Message for UI Clarity
+                const userMsg: ChatMessage = {
+                    id: `user-auto-${Date.now()}`,
+                    role: 'user',
+                    content: result.usedPrompt || '🚀 Iniciando Campaña Automática...',
+                    timestamp: new Date()
+                }
+
                 if (!activeConversationId) {
                     setActiveConversationId(result.conversationId!)
                     // Refresh conversations to see the new one
@@ -301,7 +309,7 @@ export default function ImageChat() {
                     timestamp: new Date()
                 }
 
-                setMessages(prev => [...prev, assistantMsg])
+                setMessages(prev => [...prev, userMsg, assistantMsg])
             } else {
                 alert(`Error: ${result.message}`)
             }
