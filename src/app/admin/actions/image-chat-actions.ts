@@ -319,7 +319,7 @@ export async function processNextImageBatch(messageId: string) {
             // SYNC MODE: Process exactly one at a time per call to ensure stability
             const t = pendingTasks[0];
             try {
-                await processSingleHFImage(messageId, t.idx, t.format, prompt, falKey, images);
+                await processSingleFalImage(messageId, t.idx, t.format, prompt, falKey, images);
 
                 // After processing one, mark status for next polling
                 const remaining = pendingTasks.length - 1;
@@ -343,7 +343,7 @@ export async function processNextImageBatch(messageId: string) {
                 return { success: true, completed: remaining === 0, images: upImages, instructions: [] };
 
             } catch (err: any) {
-                const errorMsg = `Error en lote HF [${messageId}]: ${err.message}`;
+                const errorMsg = `Error en lote Fal.ai [${messageId}]: ${err.message}`;
                 await recordLog(errorMsg, 'ERROR');
 
                 // Update status with error
@@ -364,9 +364,9 @@ export async function processNextImageBatch(messageId: string) {
 }
 
 /**
- * HF Worker
+ * Fal.ai Worker
  */
-async function processSingleHFImage(messageId: string, idx: number, format: 'square' | 'vertical' | 'horizontal', prompt: string, falKey: string, images: any) {
+async function processSingleFalImage(messageId: string, idx: number, format: 'square' | 'vertical' | 'horizontal', prompt: string, falKey: string, images: any) {
     const MAX_RETRIES = 3;
     let attempt = 0;
     let success = false;
@@ -400,15 +400,15 @@ async function processSingleHFImage(messageId: string, idx: number, format: 'squ
                 throw new Error(`Generation failed: ${data.error}`);
             }
 
-            await recordLog(`Éxito HF Master (via API) [${idx}]: ${data.url}`, 'INFO');
+            await recordLog(`Éxito Fal.ai Master (via API) [${idx}]: ${data.url}`, 'INFO');
             success = true;
 
         } catch (e: any) {
-            await recordLog(`Fallo HF [${idx}/${format}] (Intento ${attempt}): ${e.message}`, 'WARN');
+            await recordLog(`Fallo Fal.ai [${idx}/${format}] (Intento ${attempt}): ${e.message}`, 'WARN');
             if (attempt < MAX_RETRIES) {
                 await new Promise(r => setTimeout(r, 2000 * attempt));
             } else {
-                await recordLog(`HF definitivamente falló para ${idx}/${format} tras ${MAX_RETRIES} intentos.`, 'ERROR');
+                await recordLog(`Fal.ai definitivamente falló para ${idx}/${format} tras ${MAX_RETRIES} intentos.`, 'ERROR');
             }
         }
     }

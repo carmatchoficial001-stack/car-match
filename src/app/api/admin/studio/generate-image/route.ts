@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db'
 import { uploadBufferToCloudinary } from '@/lib/cloudinary-server'
 
 // 🛡️ VERCEL TIMEOUT FIX
-export const maxDuration = 60; // Allow 60 seconds on Vercel for HuggingFace/Cloudinary
+export const maxDuration = 60; // Allow 60 seconds on Vercel for Fal.ai/Cloudinary
 
 function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal' | 'square') {
     if (!url || !url.includes('cloudinary.com')) return url;
