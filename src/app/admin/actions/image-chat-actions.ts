@@ -5,7 +5,7 @@ import { uploadUrlToCloudinary, robustUploadToCloudinary, uploadBufferToCloudina
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { saveStudioMessage, getStudioHistory } from "./studio-history-actions"
-import { performFalGeneration } from "./studio-generate-logic"
+import { performFalGeneration, triggerFalAsyncGeneration } from "./studio-generate-logic"
 import fs from 'fs'
 import path from 'path'
 
@@ -244,11 +244,11 @@ REGLAS DE CAMPAÑA:
 
 /**
  * Generates the next available image in a multi-format batch.
+ * Refactored to use ASYNCHRONOUS WEBHOOKS to bypass Vercel 10s timeout.
  */
 export async function processNextImageBatch(messageId: string) {
-    rawLog(`processNextImageBatch called for ${messageId}`);
+    rawLog(`processNextImageBatch (ASYNC) called for ${messageId}`);
     try {
-        await recordLog(`[START] Batch Poll for message: ${messageId}`, 'INFO');
         const session = await auth();
         // @ts-ignore
         if (!session?.user?.id || !session.user.isAdmin) throw new Error("Unauthorized: Admin only");
@@ -271,14 +271,12 @@ export async function processNextImageBatch(messageId: string) {
                 const key = `img_${i}_${format}`;
                 if (!images[key]) {
                     pendingTasks.push({ idx: i, format });
-                    if (pendingTasks.length >= 2) break;
                 }
             }
-            if (pendingTasks.length >= 2) break;
         }
 
         if (pendingTasks.length === 0) {
-            // Atomic removal of temp flags
+            // Atomic removal of temp flags if fully done
             await prisma.$executeRawUnsafe(
                 `UPDATE "StudioMessage" SET images = images - '_status' - '_imagePrompt' - '_photoCount' - '_lastUpdate' WHERE id = $1`,
                 messageId
@@ -286,116 +284,69 @@ export async function processNextImageBatch(messageId: string) {
             return { success: true, completed: true };
         }
 
-        const falKey = process.env.FAL_KEY || "";
-        if (!falKey) throw new Error("FAL_KEY not configured");
+        // 🛡️ CONCURRENCY LOCK with 45s EXPIRATION
+        // We only allow one worker if '_isBatchWorking' is null/false OR if the '_lastUpdate' is older than 45s
+        const now = Date.now();
+        const expirationMs = 45 * 1000;
+        const lockResult = await prisma.$executeRawUnsafe(
+            `UPDATE "StudioMessage" 
+             SET images = COALESCE(images, '{}'::jsonb) || '{"_isBatchWorking": true}'::jsonb 
+             WHERE id = $1 AND (
+                images->>'_isBatchWorking' IS NULL OR 
+                images->>'_isBatchWorking' = 'false' OR
+                (images->>'_lastUpdate')::bigint < $2
+             )`,
+            messageId,
+            now - expirationMs
+        );
 
-        if (pendingTasks.length > 0) {
-            // 🛡️ CONCURRENCY LOCK: Atomic check and set '_isBatchWorking'
-            // This prevents multiple overlapping polling calls from spawning duplicate workers
-            const lockResult = await prisma.$executeRawUnsafe(
-                `UPDATE "StudioMessage" 
-                 SET images = COALESCE(images, '{}'::jsonb) || '{"_isBatchWorking": true}'::jsonb 
-                 WHERE id = $1 AND (images->>'_isBatchWorking' IS NULL OR images->>'_isBatchWorking' = 'false')`,
+        if (lockResult === 0) {
+            rawLog(`[LOCK] Message ${messageId} is busy or recently pulsed. Skipping.`);
+            return { success: true, processing: true };
+        }
+
+        // 🚀 TRIGGER ASYNC GENERATION (Starts and ends in < 1 second)
+        const { headers: nextHeaders } = require('next/headers');
+        const headersList = await nextHeaders();
+        const host = headersList.get('host') || 'localhost:3000';
+        const protocol = host.includes('localhost') ? 'http' : 'https';
+        const webhookUrl = `${protocol}://${host}/api/studio/webhook`;
+
+        const t = pendingTasks[0];
+        try {
+            console.log(`[STUDIO-ASYNC] Queuing [${t.idx}/${t.format}] for ${messageId}`);
+            await triggerFalAsyncGeneration({
+                messageId,
+                idx: t.idx,
+                format: t.format,
+                prompt,
+                webhookUrl
+            });
+
+            // Update status (Lock will be released by webhook, but we update lastUpdate to keep it "alive")
+            const statusObj = JSON.stringify({
+                '_status': `generating: Queued ${t.idx}/${t.format}...`,
+                '_lastUpdate': Date.now()
+            });
+
+            await prisma.$executeRawUnsafe(
+                `UPDATE "StudioMessage" SET images = images || $1::jsonb WHERE id = $2`,
+                statusObj,
                 messageId
             );
 
-            // If rows affected is 0, someone else is already working on this message
-            if (lockResult === 0) {
-                rawLog(`[LOCK] Batch already in progress for ${messageId}. Skipping.`);
-                return { success: true, processing: true };
-            }
-
-            const t = pendingTasks[0];
-            try {
-                await processSingleFalImage(messageId, t.idx, t.format, prompt, falKey, images);
-                
-                const remaining = pendingTasks.length - 1;
-                const statusMsg = remaining > 0 ? `generating: Procesando ${remaining} restantes...` : '';
-                
-                // Atomic Update Status AND Release Lock
-                const statusObj = JSON.stringify({
-                    '_status': statusMsg,
-                    '_lastUpdate': Date.now(),
-                    '_isBatchWorking': false
-                });
-
-                await prisma.$executeRawUnsafe(
-                    `UPDATE "StudioMessage" SET images = images || $1::jsonb WHERE id = $2`,
-                    statusObj,
-                    messageId
-                );
-
-                // 🔥 IMPORTANT: Revalidate path to break Next.js App Router cache
-                const { revalidatePath } = await import('next/cache');
-                revalidatePath('/admin');
-
-                return { success: true, completed: remaining === 0 };
-
-            } catch (err: any) {
-                // Ensure lock is released on error
-                await prisma.$executeRawUnsafe(
-                    `UPDATE "StudioMessage" SET images = jsonb_set(images, '{_isBatchWorking}', 'false') WHERE id = $1`,
-                    messageId
-                );
-                const errorMsg = `Error en lote Fal.ai [${messageId}]: ${err.message}`;
-                await recordLog(errorMsg, 'ERROR');
-
-                // Update status with error
-                const errorObj = JSON.stringify({
-                    '_status': `error: ${err.message}`,
-                    '_lastUpdate': Date.now(),
-                    '_isBatchWorking': false
-                });
-
-                await prisma.$executeRawUnsafe(
-                    `UPDATE "StudioMessage" SET images = COALESCE(images, '{}'::jsonb) || $1::jsonb WHERE id = $2`,
-                    errorObj,
-                    messageId
-                );
-
-                return { success: false, error: err.message };
-            }
+            return { success: true, processing: true };
+        } catch (err: any) {
+            // Release lock on trigger failure
+            await prisma.$executeRawUnsafe(
+                `UPDATE "StudioMessage" SET images = images || '{"_isBatchWorking": false}'::jsonb WHERE id = $1`,
+                messageId
+            );
+            throw err;
         }
-
-        return { success: true, completed: true, images };
     } catch (e: any) {
+        console.error("[STUDIO-BATCH-ERROR]", e.message);
         return { success: false, error: e.message };
-    }
-}
-
-/**
- * Fal.ai Worker
- */
-async function processSingleFalImage(messageId: string, idx: number, format: 'square' | 'vertical' | 'horizontal', prompt: string, falKey: string, images: any) {
-    const MAX_RETRIES = 3;
-    let attempt = 0;
-    let success = false;
-
-    // Detectar el host dinámicamente desde las headers de la petición
-    const { headers: nextHeaders } = require('next/headers');
-    const headersList = await nextHeaders();
-    const host = headersList.get('host') || 'localhost:3000';
-    const protocol = host.includes('localhost') ? 'http' : 'https';
-    const baseUrl = `${protocol}://${host}`;
-
-    while (attempt < MAX_RETRIES && !success) {
-        attempt++;
-        try {
-            rawLog(`Attempting Fal.ai generation (DIRECT): ${idx} / ${format} (Attempt ${attempt})`);
-            
-            const data = await performFalGeneration({ messageId, idx, format, prompt });
-            
-            await recordLog(`Éxito Fal.ai Master (DIRECT) [${idx}]: ${data.url}`, 'INFO');
-            success = true;
-
-        } catch (e: any) {
-            await recordLog(`Fallo Fal.ai [${idx}/${format}] (Intento ${attempt}): ${e.message}`, 'WARN');
-            if (attempt < MAX_RETRIES) {
-                await new Promise(r => setTimeout(r, 2000 * attempt));
-            } else {
-                await recordLog(`Fal.ai definitivamente falló para ${idx}/${format} tras ${MAX_RETRIES} intentos.`, 'ERROR');
-            }
-        }
     }
 }
 
