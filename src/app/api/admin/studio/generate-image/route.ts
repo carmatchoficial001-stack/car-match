@@ -29,6 +29,10 @@ function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal' | 'squar
 
 export async function POST(req: NextRequest) {
     try {
+        await prisma.systemLog.create({
+            data: { level: 'INFO', message: 'API-ROUTE: Inicio de generación solicitada', source: 'API-ROUTE' }
+        });
+
         const session = await auth();
         if (!session?.user?.id) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 

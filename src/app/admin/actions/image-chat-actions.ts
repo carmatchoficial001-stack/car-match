@@ -349,13 +349,17 @@ async function processSingleHFImage(messageId: string, idx: number, format: 'squ
     let attempt = 0;
     let success = false;
 
-    // Obtener la URL base para el fetch (localhost en dev, dominio real en prod)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://carmatchapp.net';
+    // Detectar el host dinámicamente desde las headers de la petición
+    const { headers: nextHeaders } = require('next/headers');
+    const headersList = await nextHeaders();
+    const host = headersList.get('host') || 'localhost:3000';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
 
     while (attempt < MAX_RETRIES && !success) {
         attempt++;
         try {
-            rawLog(`Attempting HF generation (via Proxy API): ${idx} / ${format} (Attempt ${attempt})`);
+            rawLog(`Attempting HF generation (via Proxy API): ${idx} / ${format} (Attempt ${attempt}) a ${baseUrl}`);
 
             // Llamamos a nuestra nueva ruta API que sí tiene permiso de maxDuration=60
             const res = await fetch(`${baseUrl}/api/admin/studio/generate-image`, {
