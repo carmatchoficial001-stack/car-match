@@ -5,7 +5,7 @@ import { uploadUrlToCloudinary, robustUploadToCloudinary, uploadBufferToCloudina
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { saveStudioMessage, getStudioHistory } from "./studio-history-actions"
-import { performFalGeneration } from "./studio-generate-logic"
+import { deriveFormatUrl, performFalGeneration } from "./studio-generate-logic"
 import fs from 'fs'
 import path from 'path'
 
@@ -51,26 +51,7 @@ function getRequiredFormats() {
     return ['square'] as const;
 }
 
-function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal' | 'square') {
-    if (!url || !url.includes('cloudinary.com')) return url;
-
-    if (process.env.DISABLE_STUDIO_BRANDING === 'true') return url;
-
-    // ✨ Official Branding Logo - Súbelo a Cloudinary como 'carmatch_logo'
-    const logoLayer = 'l_carmatch_logo,w_220,g_south_east,x_30,y_30,o_90';
-
-    // Injects transformation segment after /upload/
-    let segment = '';
-    if (format === 'vertical') {
-        segment = `c_pad,g_auto,h_1920,w_1080,b_auto/${logoLayer}/fl_layer_apply`;
-    } else if (format === 'horizontal') {
-        segment = `c_pad,g_auto,h_628,w_1200,b_auto/${logoLayer}/fl_layer_apply`;
-    } else {
-        segment = `c_fill,h_1080,w_1080/q_auto,f_auto/${logoLayer}/fl_layer_apply`;
-    }
-
-    return url.replace('/upload/', `/upload/${segment}/`);
-}
+import { deriveFormatUrl, performFalGeneration } from "./studio-generate-logic"
 
 /**
  * Main chat function — Creative Director AI
@@ -94,22 +75,29 @@ export async function chatWithImageDirector(
         const prompt = `Eres el DIRECTOR CREATIVO SUPREMO de CarMatch México.
 Tu personalidad: Eres apasionado, visionario, dominas la jerga creativa y el marketing digital mexicano. 
 Tu objetivo es platicar con el usuario en ESPAÑOL DE MÉXICO para entender su visión.
-Una vez que la idea esté clara, propón un "PROMPT_READY" detallado.
+Una vez que la idea esté clara, propón un "PROMPT_READY" detallado que garantice VIRALIDAD y PRESTIGIO.
 
-PERSONA: Eres el ESTUDIO CREATIVO MULTIMODAL de CarMatch. Tu visión es la DOMINACIÓN GLOBAL a través de la versatilidad absoluta. No tienes un solo estilo; eres un camaleón visual capaz de crear desde una pieza de cine de $100M hasta un post sencillo tipo PowerPoint que sea súper legible y viral.
+PERSONA: Eres el ESTUDIO CREATIVO MULTIMODAL de CarMatch. Tu visión es la DOMINACIÓN GLOBAL a través de la versatilidad absoluta. Eres un camaleón visual capaz de crear piezas de ASPECTO CARÍSIMO y PROFESIONAL.
 
-MATRIZ DE ESTILOS (DOMÍNALOS TODOS):
+ESTÉTICA Y CALIDAD (CRÍTICO):
+- Todo debe verse como una producción de alto presupuesto.
+- Iluminación "God Rays", contrastes cinemáticos, texturas ultra realistas.
+- Los autos deben lucir impecables, imponentes y deseables.
+
+BRANDING ORGÁNICO (LA LLAVE DEL ÉXITO):
+- ¡NO pongas marcas de agua! Integra la palabra "CarMatch" de forma ORGÁNICA en la escena.
+- Ejemplos: El nombre en un letrero neón de fondo, bordado en el uniforme del mecánico, en la placa de un coche, en la pantalla de un taller, o en una gorra de alguien en la escena.
+- El texto "CarMatch" debe ser legible, elegante y coherente con el estilo de la imagen.
+
+MATRIZ DE ESTILOS:
 1. MODO ELITE (CINEMATIC): Lujo, Arri Alexa, iluminación dramática. Para impactar.
-2. MODO CALLE (STREET PRESTIGE): Realismo crudo, "shot on iPhone", auténtico, taller, barrio. Para generar confianza.
-3. MODO SIMPLE (POWERPOINT/MINIMALIST): Fondos limpios, colores sólidos/pasteles, composición minimalista. ¡Súper legible! Ideal para trivias rápidas y mensajes directos.
-4. MODO VIRAL (MEME/ENGAGEMENT): Ángulos raros, contrastes altos, estética de internet. Para romper el scroll.
-5. MODO TÉCNICO (DIAGRAM): Planos, despieces, estética de ingeniería.
+2. MODO CALLE: Realismo crudo, auténtico, taller, barrio. Para generar confianza.
+3. MODO SIMPLE (LEGIBLE): Fondos limpios, minimalismo. ¡Para mensajes que se leen en 1 segundo!
+4. MODO VIRAL: Estética de redes sociales, ángulos dinámicos.
 
 REGLAS DE ORO:
-- Detecta qué modo necesita el usuario (o mézclalos).
-- Si el usuario dice "hazlo sencillo", cambia a MODO SIMPLE. 
-- Mantén siempre el branding en mente (el logo se pone solo, tú solo cuida el espacio).
-- Cuando la idea esté lista, responde ÚNICAMENTE: "PROMPT_READY".
+- Responde ÚNICAMENTE con el JSON cuando envíes el "PROMPT_READY".
+- Incluye siempre "masterpiece, 8k, highly detailed, professional car photography" en el prompt.
 
 HISTORIAL:
 ${contextStr}
@@ -293,68 +281,80 @@ export async function processNextImageBatch(messageId: string) {
         }
 
         if (pendingTasks.length === 0) {
-            delete images._status;
-            delete images._imagePrompt;
-            delete images._photoCount;
-            delete images._lastUpdate;
-            await prisma.studioMessage.update({ where: { id: messageId }, data: { images } });
-            return { success: true, completed: true, images };
+            // Atomic removal of temp flags
+            await prisma.$executeRawUnsafe(
+                `UPDATE "StudioMessage" SET images = images - '_status' - '_imagePrompt' - '_photoCount' - '_lastUpdate' WHERE id = $1`,
+                messageId
+            );
+            return { success: true, completed: true };
         }
 
         const falKey = process.env.FAL_KEY || "";
-        if (!falKey) {
-            const errorMsg = "Falta FAL_KEY en las variables de entorno para la generación.";
-            await recordLog(errorMsg, 'ERROR', { messageId });
-
-            // Actualizar el estado del mensaje para informar al usuario
-            const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
-            const upImages = (fresh?.images as any) || {};
-            upImages['_status'] = `error: ${errorMsg}`;
-            upImages['_lastUpdate'] = Date.now();
-            await prisma.studioMessage.update({ where: { id: messageId }, data: { images: upImages } });
-
-            return { success: false, error: errorMsg };
-        }
+        if (!falKey) throw new Error("FAL_KEY not configured");
 
         if (pendingTasks.length > 0) {
-            // SYNC MODE: Process exactly one at a time per call to ensure stability
+            // 🛡️ CONCURRENCY LOCK: Atomic check and set '_isBatchWorking'
+            // This prevents multiple overlapping polling calls from spawning duplicate workers
+            const lockResult = await prisma.$executeRawUnsafe(
+                `UPDATE "StudioMessage" 
+                 SET images = COALESCE(images, '{}'::jsonb) || '{"_isBatchWorking": true}'::jsonb 
+                 WHERE id = $1 AND (images->>'_isBatchWorking' IS NULL OR images->>'_isBatchWorking' = 'false')`,
+                messageId
+            );
+
+            // If rows affected is 0, someone else is already working on this message
+            if (lockResult === 0) {
+                rawLog(`[LOCK] Batch already in progress for ${messageId}. Skipping.`);
+                return { success: true, processing: true };
+            }
+
             const t = pendingTasks[0];
             try {
                 await processSingleFalImage(messageId, t.idx, t.format, prompt, falKey, images);
-
-                // No necesitamos actualizar el status aquí con 'images' viejo, 
-                // performFalGeneration ya actualizó la DB con la nueva URL y el status básico.
                 
                 const remaining = pendingTasks.length - 1;
+                const statusMsg = remaining > 0 ? `generating: Procesando ${remaining} restantes...` : '';
+                
+                // Atomic Update Status AND Release Lock
+                const statusObj = JSON.stringify({
+                    '_status': statusMsg,
+                    '_lastUpdate': Date.now(),
+                    '_isBatchWorking': false
+                });
 
-                // Fetch latest images to return to frontend (it was updated inside processSingleFalImage)
-                const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
-                const upImages = (fresh?.images as any) || {};
+                await prisma.$executeRawUnsafe(
+                    `UPDATE "StudioMessage" SET images = images || $1::jsonb WHERE id = $2`,
+                    statusObj,
+                    messageId
+                );
 
-                if (remaining > 0) {
-                    upImages['_status'] = `generating: Procesando ${remaining} restantes...`;
-                } else {
-                    delete upImages._status;
-                }
-                upImages['_lastUpdate'] = Date.now();
-                await prisma.studioMessage.update({ where: { id: messageId }, data: { images: upImages } });
-
-                // 🔥 IMPORTANT: Revalidate path to break Next.js App Router cache so frontend gets the new _status!
+                // 🔥 IMPORTANT: Revalidate path to break Next.js App Router cache
                 const { revalidatePath } = await import('next/cache');
                 revalidatePath('/admin');
 
-                return { success: true, completed: remaining === 0, images: upImages, instructions: [] };
+                return { success: true, completed: remaining === 0 };
 
             } catch (err: any) {
+                // Ensure lock is released on error
+                await prisma.$executeRawUnsafe(
+                    `UPDATE "StudioMessage" SET images = jsonb_set(images, '{_isBatchWorking}', 'false') WHERE id = $1`,
+                    messageId
+                );
                 const errorMsg = `Error en lote Fal.ai [${messageId}]: ${err.message}`;
                 await recordLog(errorMsg, 'ERROR');
 
                 // Update status with error
-                const fresh = await prisma.studioMessage.findUnique({ where: { id: messageId } });
-                const upImages = (fresh?.images as any) || {};
-                upImages['_status'] = `error: ${err.message}`;
-                upImages['_lastUpdate'] = Date.now();
-                await prisma.studioMessage.update({ where: { id: messageId }, data: { images: upImages } });
+                const errorObj = JSON.stringify({
+                    '_status': `error: ${err.message}`,
+                    '_lastUpdate': Date.now(),
+                    '_isBatchWorking': false
+                });
+
+                await prisma.$executeRawUnsafe(
+                    `UPDATE "StudioMessage" SET images = COALESCE(images, '{}'::jsonb) || $1::jsonb WHERE id = $2`,
+                    errorObj,
+                    messageId
+                );
 
                 return { success: false, error: err.message };
             }
@@ -411,10 +411,15 @@ export async function uploadClientGeneratedImage(messageId: string, idx: number,
         const res = await uploadBufferToCloudinary(buffer);
         if (res.success && res.secure_url) {
             const msg = await prisma.studioMessage.findUnique({ where: { id: messageId } });
-            const images = (msg?.images as any) || {};
-            images[`img_${idx}_${format}`] = res.secure_url;
-            images['_lastUpdate'] = Date.now();
-            await prisma.studioMessage.update({ where: { id: messageId }, data: { images } });
+            const imagesToMerge = JSON.stringify({
+                [`img_${idx}_${format}`]: res.secure_url,
+                '_lastUpdate': Date.now()
+            });
+            await prisma.$executeRawUnsafe(
+                `UPDATE "StudioMessage" SET images = COALESCE(images, '{}'::jsonb) || $1::jsonb WHERE id = $2`,
+                imagesToMerge,
+                messageId
+            );
             return { success: true, secure_url: res.secure_url };
         }
         return { success: false, error: "Upload failed" };
@@ -476,9 +481,14 @@ export async function restartStudioWorker(messageId: string) {
 
     const msg = await prisma.studioMessage.findUnique({ where: { id: messageId } });
     if (!msg) return { success: false };
-    const images = (msg.images as any) || {};
-    images._status = 'generating: restarted';
-    images._lastUpdate = Date.now();
-    await prisma.studioMessage.update({ where: { id: messageId }, data: { images } });
+    const imagesToMerge = JSON.stringify({
+        '_status': 'generating: restarted',
+        '_lastUpdate': Date.now()
+    });
+    await prisma.$executeRawUnsafe(
+        `UPDATE "StudioMessage" SET images = COALESCE(images, '{}'::jsonb) || $1::jsonb WHERE id = $2`,
+        imagesToMerge,
+        messageId
+    );
     return { success: true };
 }

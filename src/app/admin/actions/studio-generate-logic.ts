@@ -1,9 +1,24 @@
 import { prisma } from '@/lib/db'
 import { uploadBufferToCloudinary } from '@/lib/cloudinary-server'
 
-/**
- * Core image generation logic shared between API Route and Worker
- */
+export function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal' | 'square') {
+    if (!url || !url.includes('cloudinary.com')) return url;
+
+    // ✨ Official Branding Logo
+    const logoLayer = 'l_carmatch_logo,w_220,g_south_east,x_30,y_30,o_90';
+
+    // Injects transformation segment
+    let segment = '';
+    if (format === 'vertical') {
+        segment = `c_pad,g_auto,h_1920,w_1080,b_auto/${logoLayer}/fl_layer_apply`;
+    } else if (format === 'horizontal') {
+        segment = `c_pad,g_auto,h_628,w_1200,b_auto/${logoLayer}/fl_layer_apply`;
+    } else {
+        segment = `c_fill,h_1080,w_1080/q_auto,f_auto/${logoLayer}/fl_layer_apply`;
+    }
+
+    return url.replace('/upload/', `/upload/${segment}/`);
+}
 export async function performFalGeneration(params: {
     messageId: string;
     idx: number;
@@ -59,28 +74,29 @@ export async function performFalGeneration(params: {
     if (!upload.success) throw new Error(`Upload to Cloudinary failed: ${upload.error}`);
 
     // Update Database
-    const msg = await prisma.studioMessage.findUnique({ where: { id: messageId } });
-    if (!msg) throw new Error("Message not found in DB");
-    
-    const upImages = (msg.images as any) || {};
+    // Atomic Update using jsonb_set or merging to avoid race conditions
+    const squareBrandedUrl = deriveFormatUrl(upload.secure_url!, 'square');
+    const verticalUrl = deriveFormatUrl(upload.secure_url!, 'vertical');
+    const horizontalUrl = deriveFormatUrl(upload.secure_url!, 'horizontal');
 
-    // Internal branding logic (Organic)
-    const brandedUrl = upload.secure_url!; 
+    const imagesToMerge: Record<string, any> = {
+        [`img_${idx}_${format}`]: deriveFormatUrl(upload.secure_url!, format),
+        '_lastUpdate': Date.now()
+    };
 
-    upImages[`img_${idx}_${format}`] = brandedUrl;
-    if (format === 'square') upImages['square'] = brandedUrl;
-    
+    if (format === 'square') imagesToMerge['square'] = squareBrandedUrl;
     if (idx === 0) {
-        if (format === 'vertical') upImages['vertical'] = brandedUrl;
-        if (format === 'horizontal') upImages['horizontal'] = brandedUrl;
+        imagesToMerge['vertical'] = verticalUrl;
+        imagesToMerge['horizontal'] = horizontalUrl;
     }
 
-    upImages['_lastUpdate'] = Date.now();
-    
-    await prisma.studioMessage.update({ 
-        where: { id: messageId }, 
-        data: { images: upImages } 
-    });
+    const jsonToMerge = JSON.stringify(imagesToMerge);
 
-    return { success: true, url: brandedUrl };
+    await prisma.$executeRawUnsafe(
+        `UPDATE "StudioMessage" SET images = COALESCE(images, '{}'::jsonb) || $1::jsonb WHERE id = $2`,
+        jsonToMerge,
+        messageId
+    );
+
+    return { success: true, url: upload.secure_url };
 }

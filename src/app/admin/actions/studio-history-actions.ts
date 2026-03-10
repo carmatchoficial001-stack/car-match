@@ -19,14 +19,10 @@ export async function resetStudioMessageStatus(messageId: string) {
 
         if (!msg || !msg.images) return { success: false, message: "Mensaje no encontrado" }
 
-        const images = msg.images as any
-        delete images._status
-        delete images._lastUpdate
-
-        await prisma.studioMessage.update({
-            where: { id: messageId },
-            data: { images }
-        })
+        await prisma.$executeRawUnsafe(
+            `UPDATE "StudioMessage" SET images = images - '_status' - '_lastUpdate' WHERE id = $1`,
+            messageId
+        );
 
         return { success: true }
     } catch (error: any) {
