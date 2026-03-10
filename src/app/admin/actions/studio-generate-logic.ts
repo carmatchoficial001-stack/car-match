@@ -18,7 +18,6 @@ export async function performFalGeneration(params: {
     }
 
     let w = 1024, h = 1024;
-    // Optimized for FLUX.schnell
     if (format === 'vertical') { w = 768; h = 1344; } 
     else if (format === 'horizontal') { w = 1344; h = 768; }
 
@@ -59,19 +58,18 @@ export async function performFalGeneration(params: {
     const upload = await uploadBufferToCloudinary(buffer);
     if (!upload.success) throw new Error(`Upload to Cloudinary failed: ${upload.error}`);
 
-    // Update Database - ALWAYS FETCH LATEST TO AVOID OVERWRITE RACE CONDITIONS
+    // Update Database
     const msg = await prisma.studioMessage.findUnique({ where: { id: messageId } });
-    if (!msg) throw new Error("Message not found in DB during update");
+    if (!msg) throw new Error("Message not found in DB");
     
     const upImages = (msg.images as any) || {};
 
+    // Internal branding logic (Organic)
     const brandedUrl = upload.secure_url!; 
 
-    // Guardar en la posición específica del lote
     upImages[`img_${idx}_${format}`] = brandedUrl;
-    
-    // Backwards compatibility / Legacy keys
     if (format === 'square') upImages['square'] = brandedUrl;
+    
     if (idx === 0) {
         if (format === 'vertical') upImages['vertical'] = brandedUrl;
         if (format === 'horizontal') upImages['horizontal'] = brandedUrl;
