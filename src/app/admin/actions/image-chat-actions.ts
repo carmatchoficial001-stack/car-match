@@ -51,7 +51,7 @@ function getRequiredFormats() {
     return ['square'] as const;
 }
 
-import { deriveFormatUrl, performFalGeneration } from "./studio-generate-logic"
+
 
 /**
  * Main chat function — Creative Director AI
