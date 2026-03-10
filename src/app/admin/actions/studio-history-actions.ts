@@ -40,7 +40,12 @@ export async function resetStudioMessageStatus(messageId: string) {
 export async function getStudioConversations() {
     try {
         const session = await auth()
-        if (!session?.user?.id) throw new Error("Unauthorized")
+        if (!session?.user?.id) {
+            console.log("[STUDIO-CONV] Unauthorized - Session:", JSON.stringify(session?.user || "No User"))
+            throw new Error("Unauthorized")
+        }
+
+        console.log(`[STUDIO-CONV] Fetching for user: ${session.user.id} (${session.user.email})`)
 
         const conversations = await prisma.studioConversation.findMany({
             where: { userId: session.user.id },
