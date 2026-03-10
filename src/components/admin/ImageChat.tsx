@@ -140,7 +140,7 @@ export default function ImageChat() {
                 // 3. Schedule next poll regardless of success (within reason)
                 // If it's completed, the next useEffect run will find no generatingMessage and stop.
                 if (isMounted) {
-                    pollTimer = setTimeout(pollProgress, 3500);
+                    pollTimer = setTimeout(pollProgress, 2500);
                 }
             } catch (err) {
                 console.error('[IMAGE-CHAT] Polling cycle error:', err);
@@ -617,7 +617,7 @@ function PromptProposalCard({
     const isGenerating = statusStr.startsWith('generating')
     const photoCount = (msg.images as any)?._photoCount || 11
     const lastUpdate = (msg.images as any)?._lastUpdate || 0
-    const isStuck = isGenerating && lastUpdate > 0 && (Date.now() - lastUpdate) > 2 * 60 * 1000 // 2 minutes without update
+    const isStuck = isGenerating && lastUpdate > 0 && (Date.now() - lastUpdate) > 45 * 1000 // 45 seconds without update
     const currentPhotos = Object.keys(msg.images || {}).filter(k => k.startsWith('img_')).length
     const progress = Math.min(100, Math.round((currentPhotos / photoCount) * 100))
 

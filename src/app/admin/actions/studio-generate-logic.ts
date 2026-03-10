@@ -1,9 +1,57 @@
 import { prisma } from '@/lib/db'
-import { uploadBufferToCloudinary } from '@/lib/cloudinary-server'
+import { uploadUrlToCloudinary } from '@/lib/cloudinary-server'
 
 /**
  * Core image generation logic shared between API Route and Worker
  */
+
+
+/**
+ * Triggers asynchronous generation on Fal.ai using webhooks to bypass Vercel timeouts.
+ */
+export async function triggerFalAsyncGeneration(params: {
+    messageId: string;
+    idx: number;
+    format: 'vertical' | 'horizontal' | 'square';
+    prompt: string;
+    webhookUrl: string;
+}) {
+    const { messageId, idx, format, prompt, webhookUrl } = params;
+    const falKey = process.env.FAL_KEY || "";
+    
+    let w = 1024, h = 1024;
+    if (format === 'vertical') { w = 768; h = 1344; } 
+    else if (format === 'horizontal') { w = 1344; h = 768; }
+
+    const seed = Math.floor(Math.random() * 1000000);
+    const p = prompt + `, high quality, masterpiece, variation ${idx}, professional photography`;
+
+    // 🧪 Use Fal.ai Queue API (Asynchronous)
+    const response = await fetch('https://fal.run/fal-ai/flux/schnell', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Key ${falKey}`,
+            'Content-Type': 'application/json',
+            'X-Fal-Webhook-Url': webhookUrl
+        },
+        body: JSON.stringify({
+            prompt: p,
+            image_size: { width: w, height: h },
+            seed: seed,
+            num_inference_steps: 4,
+            enable_safety_checker: true,
+            // Custom metadata to handle the result in the webhook
+            _metadata: { messageId, idx, format }
+        })
+    });
+
+    if (!response.ok) {
+        const err = await response.text();
+        throw new Error(`Fal Queue Error: ${response.status} - ${err}`);
+    }
+
+    return await response.json();
+}
 
 export async function performFalGeneration(params: {
     messageId: string;
@@ -51,12 +99,8 @@ export async function performFalGeneration(params: {
     const imageUrl = data.images?.[0]?.url;
     if (!imageUrl) throw new Error("No image URL received from Fal.ai");
 
-    // Fetch and Upload to Cloudinary
-    const imageRes = await fetch(imageUrl);
-    const arrayBuffer = await imageRes.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    const upload = await uploadBufferToCloudinary(buffer);
+    // 🚀 Speed Optimization: Direct URL-to-Cloudinary upload (Skip fetch to buffer)
+    const upload = await uploadUrlToCloudinary(imageUrl);
     if (!upload.success) throw new Error(`Upload to Cloudinary failed: ${upload.error}`);
 
     // Update Database: AI-Native Branding (no Cloudinary overlays)
@@ -69,8 +113,8 @@ export async function performFalGeneration(params: {
 
     if (format === 'square') imagesToMerge['square'] = rawUrl;
     if (idx === 0) {
-        imagesToMerge['vertical'] = rawUrl;
-        imagesToMerge['horizontal'] = rawUrl;
+        if (format === 'vertical') imagesToMerge['vertical'] = rawUrl;
+        if (format === 'horizontal') imagesToMerge['horizontal'] = rawUrl;
     }
 
     const jsonToMerge = JSON.stringify(imagesToMerge);
