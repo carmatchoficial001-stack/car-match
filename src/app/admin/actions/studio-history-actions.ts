@@ -221,7 +221,13 @@ export async function saveStudioMessage(data: {
 export async function createStudioConversation(title: string = "Nueva Idea") {
     try {
         const session = await auth()
-        if (!session?.user?.id) throw new Error("Unauthorized")
+        // @ts-ignore
+        if (!session?.user?.id || !session.user.isAdmin) {
+             console.log("[STUDIO-CONV] Create Unauthorized - Session:", JSON.stringify(session?.user || "No User"))
+             throw new Error("Unauthorized: Admin only")
+        }
+
+        console.log(`[STUDIO-CONV] Creating for user: ${session.user.id} (${session.user.email})`)
 
         const newConv = await prisma.studioConversation.create({
             data: {
@@ -230,8 +236,23 @@ export async function createStudioConversation(title: string = "Nueva Idea") {
             }
         })
 
+        await prisma.systemLog.create({
+            data: {
+                level: 'INFO',
+                source: 'STUDIO-CONV',
+                message: `Conversación creada manualmente por ${session.user.email}: ${newConv.id}`
+            }
+        })
+
         return { success: true, conversation: newConv }
     } catch (error: any) {
+        await prisma.systemLog.create({
+            data: {
+                level: 'ERROR',
+                source: 'STUDIO-CONV',
+                message: `Error al crear conversación: ${error.message}`
+            }
+        })
         console.error("[STUDIO-CONV] Create Error:", error)
         return { success: false, error: error.message }
     }
