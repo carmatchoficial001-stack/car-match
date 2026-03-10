@@ -212,11 +212,13 @@ export default function ImageChat() {
         setIsLoading(true)
 
         // 🛡️ PERSIST USER MESSAGE
-        saveStudioMessage({
+        console.log("[STUDIO] Persisting user message...")
+        const saveUserRes = await saveStudioMessage({
             conversationId: currentConvId,
             role: 'user',
             content: messageText
         })
+        console.log("[STUDIO] User message saved:", saveUserRes.success)
 
         try {
             const history = [...messages, userMsg].map(m => ({
