@@ -75,16 +75,15 @@ export default function ImageChat() {
     }
 
     // 🔄 LOAD CONVERSATIONS ON MOUNT
-    useEffect(() => {
-        const loadInitialData = async () => {
-            const res = await getStudioConversations()
-            if (res.success && res.conversations) {
-                setConversations(res.conversations)
-                // We no longer auto-load the first conversation to ensure a "New Chat" feel
-                // If the user wants history, they can use the sidebar
-            }
+    const fetchConversations = async () => {
+        const res = await getStudioConversations()
+        if (res.success && res.conversations) {
+            setConversations(res.conversations)
         }
-        loadInitialData()
+    }
+
+    useEffect(() => {
+        fetchConversations()
     }, [])
 
     useEffect(() => {
@@ -127,30 +126,27 @@ export default function ImageChat() {
 
             try {
                 // 1. Process next batch if needed
-                const res = await processNextImageBatch(messageId);
+                await processNextImageBatch(messageId);
 
                 if (!isMounted) return;
 
-                // 2. Always refresh history to get the latest partial updates or completion status
+                // 2. Refresh history
                 const histRes = await getStudioHistory(activeConversationId);
                 if (histRes.success && histRes.messages && isMounted) {
                     setMessages(histRes.messages);
                 }
 
-                // 3. Schedule next poll regardless of success (within reason)
-                // If it's completed, the next useEffect run will find no generatingMessage and stop.
                 if (isMounted) {
                     pollTimer = setTimeout(pollProgress, 2500);
                 }
             } catch (err) {
                 console.error('[IMAGE-CHAT] Polling cycle error:', err);
                 if (isMounted) {
-                    pollTimer = setTimeout(pollProgress, 5000); // Retry later on crash
+                    pollTimer = setTimeout(pollProgress, 5000);
                 }
             }
         };
 
-        // Initial kickoff
         pollTimer = setTimeout(pollProgress, 1000);
 
         return () => {
@@ -189,16 +185,7 @@ export default function ImageChat() {
         if (!messageText || isLoading) return
 
         let currentConvId = activeConversationId
-
-        // If no active conversation, create one first
-        if (!currentConvId) {
-            const res = await createStudioConversation(messageText.substring(0, 30))
-            if (res.success && res.conversation) {
-                currentConvId = res.conversation.id
-                setActiveConversationId(currentConvId)
-                setConversations(prev => [res.conversation, ...prev])
-            } else return
-        }
+        const isInitialMessage = !currentConvId
 
         const userMsg: ChatMessage = {
             id: `user-${Date.now()}`,
@@ -211,14 +198,25 @@ export default function ImageChat() {
         setInput('')
         setIsLoading(true)
 
-        // 🛡️ PERSIST USER MESSAGE
-        console.log("[STUDIO] Persisting user message...")
-        const saveUserRes = await saveStudioMessage({
-            conversationId: currentConvId,
-            role: 'user',
-            content: messageText
-        })
-        console.log("[STUDIO] User message saved:", saveUserRes.success)
+        // 🛡️ PERSIST USER MESSAGE (Wait for it if it's the first one to get a stable ConvId)
+        if (isInitialMessage) {
+            const saveUserRes = await saveStudioMessage({
+                role: 'user',
+                content: messageText
+            })
+            if (saveUserRes.success) {
+                currentConvId = saveUserRes.conversationId
+                setActiveConversationId(currentConvId!)
+                fetchConversations() // Update sidebar
+            }
+        } else {
+            // Background save for existing conversations
+            saveStudioMessage({
+                conversationId: currentConvId!,
+                role: 'user',
+                content: messageText
+            })
+        }
 
         try {
             const history = [...messages, userMsg].map(m => ({
@@ -232,11 +230,16 @@ export default function ImageChat() {
                 setMessages(prev => [...prev, {
                     id: `error-${Date.now()}`,
                     role: 'assistant',
-                    content: result.message || 'Ocurrió un error al generar las imágenes.',
+                    content: result.message || 'Ocurrió un error.',
                     timestamp: new Date()
                 }])
-                setIsLoading(false)
                 return
+            }
+
+            // Sync with actual conversationId (in case of auto-creation)
+            if (result.conversationId && !activeConversationId) {
+                setActiveConversationId(result.conversationId)
+                fetchConversations()
             }
 
             const assistantMsg: ChatMessage = {
@@ -250,22 +253,8 @@ export default function ImageChat() {
                 timestamp: new Date()
             }
 
-            // 🛡️ PERSIST ASSISTANT MESSAGE (Only if not already handled by the action)
-            if (!result.messageId) {
-                saveStudioMessage({
-                    conversationId: currentConvId as string,
-                    role: 'assistant',
-                    content: assistantMsg.content,
-                    type: assistantMsg.type,
-                    imagePrompt: assistantMsg.imagePrompt,
-                    images: assistantMsg.images,
-                    platforms: assistantMsg.platforms
-                })
-            }
-
             setMessages(prev => [...prev, assistantMsg])
         } catch (error: any) {
-            console.error('Chat error:', error)
             setMessages(prev => [...prev, {
                 id: `error-${Date.now()}`,
                 role: 'assistant',
@@ -283,33 +272,36 @@ export default function ImageChat() {
             const result = await generateRandomCampaign(activeConversationId || undefined)
 
             if (result.success) {
-                // 🎨 Simulated User Message for UI Clarity
-                const userMsg: ChatMessage = {
-                    id: `user-auto-${Date.now()}`,
-                    role: 'user',
-                    content: result.usedPrompt || '🚀 Iniciando Campaña Automática...',
-                    timestamp: new Date()
+                // If it was a new conversation, update the state
+                if (result.conversationId && (!activeConversationId || activeConversationId !== result.conversationId)) {
+                    setActiveConversationId(result.conversationId)
+                    fetchConversations()
+                    
+                    // Crucial: Load the full history to make sure the user and assistant messages are there
+                    const hist = await getStudioHistory(result.conversationId)
+                    if (hist.success) {
+                        setMessages(hist.messages)
+                    }
+                } else {
+                    // Just append to current messages
+                    const userMsg: ChatMessage = {
+                        id: `user-auto-${Date.now()}`,
+                        role: 'user',
+                        content: result.usedPrompt || '🚀 Iniciando Campaña Automática...',
+                        timestamp: new Date()
+                    }
+                    const assistantMsg: ChatMessage = {
+                        id: result.messageId || `assistant-${Date.now()}`,
+                        role: 'assistant',
+                        content: result.message || '',
+                        type: result.type,
+                        imagePrompt: result.imagePrompt,
+                        images: result.images || {},
+                        platforms: result.platforms,
+                        timestamp: new Date()
+                    }
+                    setMessages(prev => [...prev, userMsg, assistantMsg])
                 }
-
-                if (!activeConversationId) {
-                    setActiveConversationId(result.conversationId!)
-                    // Refresh conversations to see the new one
-                    const res = await getStudioConversations()
-                    if (res.success) setConversations(res.conversations)
-                }
-
-                const assistantMsg: ChatMessage = {
-                    id: result.messageId || `assistant-${Date.now()}`,
-                    role: 'assistant',
-                    content: result.message || '',
-                    type: result.type,
-                    imagePrompt: result.imagePrompt,
-                    images: result.images || {},
-                    platforms: result.platforms,
-                    timestamp: new Date()
-                }
-
-                setMessages(prev => [...prev, userMsg, assistantMsg])
             } else {
                 alert(`Error: ${result.message}`)
             }
@@ -456,7 +448,6 @@ export default function ImageChat() {
                             </div>
                         </div>
 
-                        {/* New Chat Button for Header (Visible on Mobile) */}
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={handleAutoCampaign}
@@ -604,6 +595,7 @@ function PromptProposalCard({
     msg,
     onOpenWorkspace,
     onVariation,
+    onReset,
     isLoading
 }: {
     msg: ChatMessage
@@ -617,7 +609,7 @@ function PromptProposalCard({
     const isGenerating = statusStr.startsWith('generating')
     const photoCount = (msg.images as any)?._photoCount || 11
     const lastUpdate = (msg.images as any)?._lastUpdate || 0
-    const isStuck = isGenerating && lastUpdate > 0 && (Date.now() - lastUpdate) > 45 * 1000 // 45 seconds without update
+    const isStuck = isGenerating && lastUpdate > 0 && (Date.now() - lastUpdate) > 45 * 1000 
     const currentPhotos = Object.keys(msg.images || {}).filter(k => k.startsWith('img_')).length
     const progress = Math.min(100, Math.round((currentPhotos / photoCount) * 100))
 
@@ -656,7 +648,7 @@ function PromptProposalCard({
 
                     <p className="text-sm text-white leading-relaxed mb-4">{msg.content}</p>
 
-                    {/* Sequential Visual Feedback: Show images as they arrive */}
+                    {/* Sequential Visual Feedback */}
                     {(Object.keys(msg.images || {}).some(k => !k.startsWith('_'))) && (
                         <div className="grid grid-cols-3 gap-2 mb-4">
                             {msg.images?.square && (
@@ -665,22 +657,9 @@ function PromptProposalCard({
                                     <div className="absolute inset-x-0 bottom-0 bg-black/60 py-1 text-[7px] text-center font-bold text-white uppercase">1:1 Feed</div>
                                 </div>
                             )}
-                            {msg.images?.vertical && (
-                                <div className="aspect-[9/16] rounded-xl overflow-hidden border border-white/10 group/mini relative">
-                                    <img src={`${msg.images.vertical}?t=${msg.timestamp.getTime()}`} className="w-full h-full object-cover" alt="Vertical" />
-                                    <div className="absolute inset-x-0 bottom-0 bg-black/60 py-1 text-[7px] text-center font-bold text-white uppercase">9:16 Story</div>
-                                </div>
-                            )}
-                            {msg.images?.horizontal && (
-                                <div className="aspect-[16/9] rounded-xl overflow-hidden border border-white/10 group/mini relative">
-                                    <img src={`${msg.images.horizontal}?t=${msg.timestamp.getTime()}`} className="w-full h-full object-cover" alt="Horizontal" />
-                                    <div className="absolute inset-x-0 bottom-0 bg-black/60 py-1 text-[7px] text-center font-bold text-white uppercase">16:9 Ads</div>
-                                </div>
-                            )}
                         </div>
                     )}
 
-                    {/* Background Progress State */}
                     {isGenerating && (
                         <div className="relative w-full rounded-2xl overflow-hidden mb-5 border border-white/5 bg-black/40 flex flex-col items-center justify-center p-6 text-center group">
                             <motion.div
@@ -701,83 +680,44 @@ function PromptProposalCard({
                                         className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
                                         initial={{ width: 0 }}
                                         animate={{ width: `${progress}%` }}
-                                        transition={{ type: 'spring', damping: 20 }}
                                     />
                                 </div>
-                                <div className="mt-3 flex items-center justify-between px-1">
-                                    <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">
-                                        {currentPhotos} de {photoCount} fotos listas
-                                    </p>
-                                    <div className="flex items-center gap-2">
-                                        {isStuck && (
-                                            <button
-                                                onClick={() => onReset(msg.id)}
-                                                className="text-[7px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded uppercase font-black hover:bg-red-500/40 transition-all"
-                                            >
-                                                Destrabar
-                                            </button>
-                                        )}
-                                        <span className="text-[7px] text-zinc-600 font-bold uppercase italic animate-pulse">
-                                            {statusStr.includes(':') ? statusStr.split(':')[1].trim() : 'Procesando...'}
-                                        </span>
-                                    </div>
-                                </div>
+                                <p className="text-[8px] text-zinc-600 mt-2 uppercase font-black tracking-tighter">Estudio CarMatch Live</p>
                             </div>
                         </div>
                     )}
 
-                    {!isGenerating && msg.images?.square && !msg.images?.vertical && (
-                        <div className="relative aspect-square w-full rounded-2xl overflow-hidden mb-5 border border-white/10 bg-black group/preview">
-                            <img
-                                src={`${msg.images.square}?t=${msg.timestamp.getTime()}`}
-                                alt="Preview"
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover/preview:scale-110"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3 md:p-4">
-                                <p className="text-[8px] md:text-[10px] font-bold text-white uppercase tracking-widest bg-violet-600/80 backdrop-blur-md px-2 md:px-3 py-1 md:py-1.5 rounded-lg">Vista Previa 1:1</p>
-                            </div>
-                        </div>
+                    {isStuck && (
+                        <button
+                            onClick={() => onReset(msg.id)}
+                            className="w-full mb-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-[10px] font-black text-red-400 uppercase tracking-widest hover:bg-red-500/20 transition-all flex items-center justify-center gap-2"
+                        >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            Destrabar Generación
+                        </button>
                     )}
 
-                    <div className="bg-black/40 rounded-2xl p-4 border border-white/5 mb-5 relative group">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                                <Camera className="w-3 h-3" /> Prompt Técnico (Flux)
-                            </span>
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2">
                             <button
                                 onClick={handleCopyPrompt}
-                                className="flex items-center gap-1.5 text-[9px] font-bold text-violet-400 hover:text-white transition"
+                                className="flex-1 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 py-3 rounded-2xl text-[10px] font-black text-zinc-400 hover:text-white uppercase tracking-wider transition-all"
                             >
-                                {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                                {copied ? 'Copiado' : 'Copiar'}
+                                {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                {copied ? 'Copiado' : 'Copiar Prompt'}
                             </button>
+                            {!isGenerating && statusStr === '' && (
+                                <button
+                                    onClick={() => onOpenWorkspace(msg)}
+                                    className="flex-1 flex items-center justify-center gap-2 bg-violet-500 hover:bg-violet-600 py-3 rounded-2xl text-[10px] font-black text-white uppercase tracking-wider transition-all shadow-lg shadow-violet-500/20"
+                                >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                    Abrir Mesa de Trabajo
+                                </button>
+                            )}
                         </div>
-                        <p className="text-xs text-zinc-400 font-mono italic leading-relaxed line-clamp-3 group-hover:line-clamp-none transition-all">
-                            {msg.imagePrompt}
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => onOpenWorkspace(msg)}
-                            disabled={isLoading || isGenerating}
-                            className="flex-1 py-4 bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white text-[11px] font-black uppercase tracking-wider rounded-xl hover:shadow-lg hover:shadow-violet-500/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 group"
-                        >
-                            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 group-hover:animate-pulse" />}
-                            {isGenerating ? 'Preparando Mesa...' : 'Ver Mesa de Trabajo (9 Redes)'}
-                        </button>
-                        <button
-                            onClick={() => onVariation(msg.imagePrompt!, "Haz una variación creativa manteniendo la esencia")}
-                            disabled={isLoading || isGenerating}
-                            className="w-14 h-14 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all border-dashed disabled:opacity-30"
-                            title="Regenerar Variación"
-                        >
-                            <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-                        </button>
                     </div>
                 </div>
-
-
             </div>
         </div>
     )
@@ -785,136 +725,65 @@ function PromptProposalCard({
 
 function CreativeWorkspace({ msg }: { msg: ChatMessage }) {
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-3 text-violet-400">
-                <Layers className="w-5 h-5" />
-                <h4 className="text-sm font-black uppercase tracking-widest">Mesa de Trabajo — {Object.keys(msg.platforms || {}).length} Redes</h4>
+        <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shrink-0 mt-1 shadow-lg shadow-violet-500/20">
+                <Layers className="w-5 h-5 text-white" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(msg.platforms || {}).map(([id, data]) => (
-                    <PlatformAssetCard
-                        key={id}
-                        platformId={id}
-                        data={data}
-                        images={msg.images || {}}
-                    />
-                ))}
+            <div className="flex-1 space-y-4">
+                <div className="bg-[#121214] border border-white/5 rounded-3xl p-6 shadow-2xl">
+                    <h3 className="text-sm font-black text-white uppercase tracking-widest mb-1 flex items-center gap-2">
+                        <Palette className="w-4 h-4 text-violet-400" />
+                        Pack Publicitario Listado
+                    </h3>
+                    <p className="text-xs text-zinc-500 mb-6 font-medium">Diseños optimizados para máxima conversión</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {msg.images && Object.entries(msg.images).filter(([k]) => !k.startsWith('_')).map(([key, url]) => (
+                            <DesignCard key={key} type={key.split('_')[2]} url={url} platforms={msg.platforms} />
+                        ))}
+                    </div>
+                </div>
             </div>
         </div>
     )
 }
 
-function PlatformAssetCard({ platformId, data, images }: { platformId: string, data: any, images: any }) {
-    const config = PLATFORM_CONFIG[platformId] || { name: platformId, icon: '✨', color: 'from-zinc-500 to-zinc-700' }
-    const [copied, setCopied] = useState(false)
-
-    const handleCopy = () => {
-        const text = `${data.caption}\n\n${data.hashtags || ''}`
-        navigator.clipboard.writeText(text)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-    }
-
-    const handleDownload = async () => {
-        const url = platformId.includes('stories') || platformId === 'tiktok' || platformId === 'snapchat' || platformId === 'kwai'
-            ? images.vertical || images.square
-            : platformId === 'facebook' || platformId === 'google_ads' || platformId === 'x_twitter'
-                ? images.horizontal || images.square
-                : images.square
-
-        try {
-            const response = await fetch(url)
-            const blob = await response.blob()
-            const link = document.createElement('a')
-            link.href = URL.createObjectURL(blob)
-            link.download = `carmatch-${platformId}-${Date.now()}.jpg`
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-        } catch (error) {
-            window.open(url, '_blank')
-        }
-    }
+function DesignCard({ type, url, platforms }: { type: string; url: string; platforms?: any }) {
+    const pKey = type === 'square' ? 'instagram' : type === 'vertical' ? 'tiktok' : 'facebook'
+    const isRecommended = platforms?.[pKey]
 
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-md group"
-        >
-            <div className={`h-1 bg-gradient-to-r ${config.color}`} />
-            <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                        <span className="text-xl">{config.icon}</span>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white">{config.name}</span>
-                    </div>
-                </div>
+        <div className="group bg-white/[0.02] border border-white/5 rounded-[2rem] overflow-hidden hover:border-violet-500/30 transition-all duration-500">
+            <div className="relative aspect-video md:aspect-square overflow-hidden">
+                <img src={url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={type} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                <div className={`${platformId.includes('stories') || platformId === 'tiktok' || platformId === 'snapchat' || platformId === 'kwai' ? 'aspect-[9/16]' : 'aspect-video'} relative rounded-lg overflow-hidden bg-black mb-4 border border-white/5`}>
-                    {(() => {
-                        const count = images._photoCount || 1
-                        const format = platformId.includes('stories') || platformId === 'tiktok' || platformId === 'snapchat' || platformId === 'kwai' || platformId === 'x_twitter'
-                            ? 'vertical'
-                            : platformId === 'facebook' || platformId === 'google_ads'
-                                ? 'horizontal'
-                                : 'square'
-
-                        const carouselImages = []
-                        for (let i = 0; i < count; i++) {
-                            const url = images[`img_${i}_${format}`] || (i === 0 ? images[format] : null)
-                            if (url) carouselImages.push(url)
-                        }
-
-                        if (carouselImages.length === 0) return <div className="w-full h-full flex items-center justify-center text-zinc-700 text-[10px] font-bold">Generando...</div>
-
-                        return (
-                            <div className="flex gap-2 overflow-x-auto custom-scrollbar h-full p-2 snap-x">
-                                {carouselImages.map((url, i) => (
-                                    <div key={i} className={`h-full shrink-0 relative rounded overflow-hidden snap-start ${format === 'vertical' ? 'aspect-[9/16]' :
-                                        format === 'horizontal' ? 'aspect-video' : 'aspect-square'
-                                        }`}>
-                                        <img src={`${url}?t=${Date.now()}`} className="w-full h-full object-cover" alt={`Slide ${i}`} />
-                                        <div className="absolute top-1 left-1 bg-black/60 px-1 rounded text-[6px] text-white font-bold tracking-tighter">#{i + 1}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        )
-                    })()}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <button
-                            onClick={handleDownload}
-                            className="p-3 bg-white text-black rounded-full hover:scale-110 transition active:scale-95"
-                            title="Descargar HD"
-                        >
-                            <Download className="w-5 h-5" />
-                        </button>
-                    </div>
-                    {/* Size badge for mobile */}
-                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-[8px] font-bold text-white uppercase">
-                        {platformId.includes('stories') || platformId === 'tiktok' ? '9:16 Vertical' : '16:9 HD'}
-                    </div>
-                </div>
-
-                <div className="space-y-3">
-                    <div className="bg-black/40 p-3 rounded-xl border border-white/5">
-                        <p className="text-[11px] text-zinc-400 line-clamp-3 leading-relaxed">
-                            {data.caption} <span className="text-violet-400 font-bold">{data.hashtags}</span>
-                        </p>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <button
-                            onClick={handleCopy}
-                            className="flex-1 py-3 md:py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] md:text-[9px] font-black uppercase tracking-widest text-zinc-300 hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2 active:scale-95"
-                        >
-                            {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-4 h-4 md:w-3 md:h-3" />}
-                            {copied ? 'Copiado' : 'Copiar Texto'}
-                        </button>
+                <div className="absolute top-4 left-4">
+                    <div className="bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-2">
+                        {isRecommended && <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />}
+                        <span className="text-[9px] font-black text-white uppercase tracking-widest">{type}</span>
                     </div>
                 </div>
             </div>
-        </motion.div>
+
+            <div className="p-4 flex items-center justify-between">
+                <div className="flex gap-1.5">
+                    {AD_PLATFORMS.slice(0, 3).map(p => (
+                        <div key={p.id} className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-zinc-500">
+                            <i className={`${p.icon} text-[10px]`} />
+                        </div>
+                    ))}
+                </div>
+                <a
+                    href={url}
+                    download
+                    target="_blank"
+                    className="w-9 h-9 rounded-xl bg-violet-500 flex items-center justify-center text-white hover:bg-violet-600 transition-all shadow-lg shadow-violet-500/20 active:scale-95"
+                >
+                    <Download className="w-4 h-4" />
+                </a>
+            </div>
+        </div>
     )
 }
