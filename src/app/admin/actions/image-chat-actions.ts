@@ -465,6 +465,10 @@ export async function generateRandomCampaign(conversationId?: string) {
 }
 
 export async function restartStudioWorker(messageId: string) {
+    const session = await auth();
+    // @ts-ignore
+    if (!session?.user?.id || !session.user.isAdmin) return { success: false };
+
     const msg = await prisma.studioMessage.findUnique({ where: { id: messageId } });
     if (!msg) return { success: false };
     const images = (msg.images as any) || {};
