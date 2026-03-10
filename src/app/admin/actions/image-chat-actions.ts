@@ -468,7 +468,10 @@ export async function generateRandomCampaign(conversationId?: string) {
     ];
     const n = NICHES[Math.floor(Math.random() * NICHES.length)];
     const f = FORMATS[Math.floor(Math.random() * FORMATS.length)];
-    return await chatWithImageDirector([{ role: 'user', content: `Genera una campaña de ${n} estilo ${f}` }], conversationId);
+    const finalUserPrompt = `Genera una campaña de ${n} estilo ${f}. IMPORTANTE: Responde ÚNICAMENTE con el JSON de tipo PROMPT_READY para iniciar la generación de imágenes de inmediato.`;
+    const result = await chatWithImageDirector([{ role: 'user', content: finalUserPrompt }], conversationId);
+    return { ...result, usedPrompt: `${n} (${f})` };
+
 }
 
 export async function restartStudioWorker(messageId: string) {
