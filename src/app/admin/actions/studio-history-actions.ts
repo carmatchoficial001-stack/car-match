@@ -52,8 +52,25 @@ export async function getStudioConversations() {
             }
         })
 
+        if (conversations.length === 0) {
+            await prisma.systemLog.create({
+                data: {
+                    level: 'INFO',
+                    source: 'STUDIO-CONV',
+                    message: `No se encontraron chats para el usuario ${session.user.id.substring(0, 8)}...`
+                }
+            })
+        }
+
         return { success: true, conversations }
     } catch (error: any) {
+        await prisma.systemLog.create({
+            data: {
+                level: 'ERROR',
+                source: 'STUDIO-CONV',
+                message: `Error al obtener chats: ${error.message}`
+            }
+        })
         console.error("[STUDIO-CONV] Get Error:", error)
         return { success: false, error: error.message }
     }
@@ -114,19 +131,46 @@ export async function saveStudioMessage(data: {
 }) {
     try {
         const session = await auth()
-        if (!session?.user?.id) throw new Error("Unauthorized")
+        if (!session?.user?.id) {
+            await prisma.systemLog.create({
+                data: {
+                    level: 'ERROR',
+                    source: 'STUDIO-HISTORY',
+                    message: `Intento de guardar mensaje sin sesión válida: ${session?.user?.email || 'Guest'}`
+                }
+            })
+            throw new Error("Unauthorized")
+        }
 
         let targetId = data.conversationId
 
         // If no conversation ID, create a new one first (fallback)
         if (!targetId) {
-            const newConv = await prisma.studioConversation.create({
-                data: {
-                    userId: session.user.id,
-                    title: data.content.substring(0, 30) + (data.content.length > 30 ? "..." : "")
-                }
-            })
-            targetId = newConv.id
+            try {
+                const newConv = await prisma.studioConversation.create({
+                    data: {
+                        userId: session.user.id,
+                        title: data.content.substring(0, 30) + (data.content.length > 30 ? "..." : "")
+                    }
+                })
+                targetId = newConv.id
+                await prisma.systemLog.create({
+                    data: {
+                        level: 'INFO',
+                        source: 'STUDIO-HISTORY',
+                        message: `Nueva conversación auto-creada: ${targetId}`
+                    }
+                })
+            } catch (err: any) {
+                await prisma.systemLog.create({
+                    data: {
+                        level: 'ERROR',
+                        source: 'STUDIO-HISTORY',
+                        message: `Error creando conversación auto: ${err.message}`
+                    }
+                })
+                throw err
+            }
         }
 
         const newMessage = await prisma.studioMessage.create({
@@ -150,6 +194,13 @@ export async function saveStudioMessage(data: {
 
         return { success: true, messageId: newMessage.id, conversationId: targetId }
     } catch (error: any) {
+        await prisma.systemLog.create({
+            data: {
+                level: 'ERROR',
+                source: 'STUDIO-HISTORY',
+                message: `Error crítico al guardar mensaje: ${error.message}`
+            }
+        })
         console.error("[STUDIO-HISTORY] Save Error:", error)
         return { success: false, error: error.message }
     }
