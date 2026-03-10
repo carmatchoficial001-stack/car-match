@@ -44,46 +44,51 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: "Missing parameters" }, { status: 400 })
         }
 
-        const hfKey = process.env.HUGGINGFACE_API_KEY || "";
-        if (!hfKey) {
-            return NextResponse.json({ success: false, error: "Missing HUGGINGFACE_API_KEY" }, { status: 500 })
+        const falKey = process.env.FAL_KEY || "";
+        if (!falKey) {
+            return NextResponse.json({ success: false, error: "FAL_KEY is not configured. Please add it to your .env file." }, { status: 500 })
         }
 
         let w = 1024, h = 1024;
-        if (format === 'vertical') { w = 832; h = 1216; }
-        else if (format === 'horizontal') { w = 1216; h = 832; }
+        if (format === 'vertical') { w = 768; h = 1344; } // Optimized for FLUX.schnell
+        else if (format === 'horizontal') { w = 1344; h = 768; }
 
         const seed = Math.floor(Math.random() * 1000000);
-        const p = prompt + `, high quality, masterpiece, variation ${idx}, professional photography, seed ${seed}`;
+        const p = prompt + `, high quality, masterpiece, variation ${idx}, professional photography`;
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000);
+        const startTime = Date.now();
+        console.log(`[FAL-AI] Requesting Generation: p=${p.substring(0, 60)}...`);
 
-        let hfRes;
-        try {
-            console.log(`[HF-API] Requesting HF: p=${p.substring(0, 50)}...`);
-            const startTime = Date.now();
-            hfRes = await fetch('https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ inputs: p, parameters: { width: w, height: h } }),
-                signal: controller.signal
-            });
-            console.log(`[HF-API] HF Response: ${hfRes.status} in ${Date.now() - startTime}ms`);
-        } catch (fetchError: any) {
-            clearTimeout(timeoutId);
-            console.error(`[HF-API] HF Error: ${fetchError.message}`);
-            throw new Error(`HF fetch failed: ${fetchError.message}`);
+        const falRes = await fetch('https://fal.run/fal-ai/flux/schnell', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Key ${falKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                prompt: p,
+                image_size: { width: w, height: h },
+                seed: seed,
+                num_inference_steps: 4,
+                enable_safety_checker: true
+            })
+        });
+
+        console.log(`[FAL-AI] Status: ${falRes.status} in ${Date.now() - startTime}ms`);
+
+        if (!falRes.ok) {
+            const errBody = await falRes.text();
+            throw new Error(`Fal.ai error: ${falRes.status} - ${errBody}`);
         }
-        clearTimeout(timeoutId);
 
-        if (!hfRes.ok) {
-            const errBody = await hfRes.text();
-            throw new Error(`HF error: ${hfRes.status} - ${errBody.substring(0, 100)}`);
-        }
+        const data = await falRes.json();
+        const imageUrl = data.images?.[0]?.url;
 
-        const arrayBuffer = await hfRes.arrayBuffer();
-        if (arrayBuffer.byteLength < 5000) throw new Error("Image received is too small");
+        if (!imageUrl) throw new Error("No image URL received from Fal.ai");
+
+        // Fetch the image from Fal.ai to upload it to Cloudinary (to keep everything in your storage)
+        const imageRes = await fetch(imageUrl);
+        const arrayBuffer = await imageRes.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
         const upload = await uploadBufferToCloudinary(buffer);

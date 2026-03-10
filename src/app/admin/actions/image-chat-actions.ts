@@ -172,20 +172,23 @@ REGLAS DE CAMPAÑA:
 
             let messageId: string | undefined = undefined
             if (conversationId) {
-                const directorPrompt = `Eres el DIRECTOR DE ARTE MULTIMODAL. Tu cliente es CarMatch y tu objetivo es la versatilidad extrema para el éxito mundial.
-
-                🚨 SELECCIÓN DE PROTOCOLO SEGÚN EL MODO:
+                const directorPrompt = `Eres el DIRECTOR DE ARTE MULTIMODAL de CarMatch. Tu objetivo es crear imágenes de clase mundial con BRANDING ORGÁNICO.
                 
-                - SI EL USUARIO PIDE "CINE/PRO/ELITE": Usa "Arri Alexa 65, Anamorphic lenses, cinematic lighting, 8k professional grading".
-                - SI EL USUARIO PIDE "REAL/CALLE/TALLER": Usa "Street photography, shot on iPhone 15 Pro, handheld, natural lighting, gritty textures, authentic street environment".
-                - SI EL USUARIO PIDE "SENCILLO/SIMPLE/POWERPOINT": Usa "Minimalist studio background, flat colors, high key lighting, object center frame, isolated subject, clean aesthetics, maximum white space for text, simple and clear".
-                - SI EL USUARIO PIDE "VIRAL/STORIES": Usa "Dynamic Dutch angle, high contrast, vibrant colors, close-up details, social media aesthetic".
+                🚨 REGLA DE ORO DE BRANDING:
+                NO uses marcas de agua generadas por software. En su lugar, integra la palabra "CarMatch" NATURALMENTE en la escena (ejemplo: en el letrero de un taller, bordado en la camisola de un mecánico, en la pantalla de una laptop, o en un anuncio espectacular al fondo). El texto debe ser nítido y legible.
 
-                CONSIGNA GENERAL: Cero futurismo. Solo autos reales. Máxima calidad en el modo elegido. El logo va por watermark, deja espacio libre.
+                🚨 SELECCIÓN DE PROTOCOLO TÉCNICO:
+                
+                - SI EL USUARIO PIDE "CINE/PRO/ELITE": "Cinematic wide shot, Arri Alexa 65, Anamorphic 35mm lens, f/2.8, dramatic chiaroscuro lighting, professional color grading, volumentric fog, realistic textures, 8k resolution".
+                - SI EL USUARIO PIDE "REAL/STREET/CALLE": "Street photography style, shot on iPhone 15 Pro, handheld look, natural daylight, candid moment, gritty asphalt textures, motion blur, authentic Mexican city background".
+                - SI EL USUARIO PIDE "SIMPLE/MINIMALIST": "Studio minimalist setup, solid pastel background, high-key soft lighting, center-weighted composition, sharp focus, clean lines, plenty of negative space for text overlays".
+                - SI EL USUARIO PIDE "VIRAL/STORIES": "Dynamic low angle, vibrant saturated colors, close-up macro details, high contrast, social media trending aesthetic, bokeh background".
 
+                CONSIGNA: Cero futurismo barato o IA deforme. Solo autos y personas reales. Máxima calidad fotográfica.
+                
                 CONTEXTO DEL USUARIO: "${lastMessage}"
                 
-                INSTRUCCIÓN: Escribe un PROMPT EN INGLÉS que sea una ORDEN técnica perfecta para el estilo solicitado.`;
+                INSTRUCCIÓN: Escribe un PROMPT EN INGLÉS que sea una ORDEN técnica perfecta incluyendo la integración de la marca "CarMatch" de forma natural.`;
 
                 let refinedPrompt = imagePrompt;
                 try {
