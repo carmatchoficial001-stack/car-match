@@ -769,17 +769,7 @@ function PromptProposalCard({
                     </div>
                 </div>
 
-                {/* Platforms Mini-Feed */}
-                <div className="bg-black/20 p-3 flex items-center justify-center gap-4 border-t border-white/5">
-                    {Object.keys(msg.platforms || {}).slice(0, 5).map(p => (
-                        <span key={p} className="text-lg grayscale hover:grayscale-0 transition-all opacity-40 hover:opacity-100" title={p}>
-                            {PLATFORM_CONFIG[p]?.icon || '✨'}
-                        </span>
-                    ))}
-                    <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">
-                        + {Math.max(0, Object.keys(msg.platforms || {}).length - 5)} plataformas
-                    </span>
-                </div>
+
             </div>
         </div>
     )

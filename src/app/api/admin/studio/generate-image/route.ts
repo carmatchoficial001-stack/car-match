@@ -12,10 +12,9 @@ function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal' | 'squar
     // Si quieres apagar el logo para pruebas, puedes poner esta variable en true en Vercel
     if (process.env.DISABLE_STUDIO_BRANDING === 'true') return url;
 
-    // Nombre simplificado: Súbelo a Cloudinary con el Public ID: carmatch_logo
-    // El logo debe ser un PNG transparente para que se vea bien.
+    /* 
+    // ⚠️ DISABLED: Watermarking corner removed in favor of organic prompt-based branding
     const logoLayer = 'l_carmatch_logo,w_220,g_south_east,x_30,y_30,o_90';
-
     let segment = '';
     if (format === 'vertical') {
         segment = `c_pad,g_auto,h_1920,w_1080,b_auto/${logoLayer}/fl_layer_apply`;
@@ -25,6 +24,8 @@ function deriveFormatUrl(url: string, format: 'vertical' | 'horizontal' | 'squar
         segment = `c_fill,h_1080,w_1080/q_auto,f_auto/${logoLayer}/fl_layer_apply`;
     }
     return url.replace('/upload/', `/upload/${segment}/`);
+    */
+    return url;
 }
 
 export async function POST(req: NextRequest) {
@@ -60,14 +61,18 @@ export async function POST(req: NextRequest) {
 
         let hfRes;
         try {
+            console.log(`[HF-API] Requesting HF: p=${p.substring(0, 50)}...`);
+            const startTime = Date.now();
             hfRes = await fetch('https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ inputs: p, parameters: { width: w, height: h } }),
                 signal: controller.signal
             });
+            console.log(`[HF-API] HF Response: ${hfRes.status} in ${Date.now() - startTime}ms`);
         } catch (fetchError: any) {
             clearTimeout(timeoutId);
+            console.error(`[HF-API] HF Error: ${fetchError.message}`);
             throw new Error(`HF fetch failed: ${fetchError.message}`);
         }
         clearTimeout(timeoutId);
