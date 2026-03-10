@@ -85,7 +85,11 @@ export const authConfig: NextAuthConfig = {
             return session
         },
         async jwt({ token, user, trigger, session }) {
-            if (user && user.id) token.id = user.id
+            if (user && user.id) {
+                token.id = user.id
+                // @ts-ignore
+                token.isAdmin = !!user.isAdmin
+            }
             if (trigger === "update") {
                 if (session?.image) token.picture = session.image
                 if (session?.name) token.name = session.name

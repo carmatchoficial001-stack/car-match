@@ -59,7 +59,16 @@ export default function AdminPanel() {
 }
 
 function AdminPanelContent() {
-    const { data: session } = useSession()
+    const { data: session, status } = useSession()
+    const router = useRouter()
+
+    useEffect(() => {
+        if (status === 'unauthenticated') {
+            router.push('/auth')
+        } else if (status === 'authenticated' && !session?.user?.isAdmin) {
+            router.push('/market')
+        }
+    }, [session, status, router])
     const [activeView, setActiveView] = useState<AdminView>('overview')
     const [stats, setStats] = useState<any>({
         users: { total: 0, growth: [], recent: [] },

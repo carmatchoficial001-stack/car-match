@@ -16,6 +16,8 @@ export default auth((req) => {
     }
 
     const isLoggedIn = !!req.auth
+    // @ts-ignore
+    const isAdmin = !!req.auth?.user?.isAdmin
     const { pathname } = req.nextUrl
     const isSoftLogout = req.cookies.get('soft_logout')?.value === 'true'
 
@@ -34,14 +36,15 @@ export default auth((req) => {
     const authRoutes = ["/auth", "/auth/login", "/auth/register"]
 
     // 🚀 REDIRECCIÓN PARA RUTAS PROTEGIDAS (Solo si no está logueado)
-    // Skip for bots to allow them to crawl protected content if they somehow reach it
     if (protectedRoutes.some(route => pathname.startsWith(route)) && !isLoggedIn && !isBot) {
         const callbackUrl = encodeURIComponent(req.nextUrl.pathname + req.nextUrl.search)
-
-        // Si es soft logout, lo mandamos a la landing (/) para que vea el "fake logout"
-        // Si es guest puro, a /auth
         const dest = isSoftLogout ? '/' : `/auth?callbackUrl=${callbackUrl}`
         return Response.redirect(new URL(dest, req.url))
+    }
+
+    // 🛡️ PROTECCIÓN DE ADMIN: Si trata de entrar a /admin y no es admin
+    if (pathname.startsWith('/admin') && isLoggedIn && !isAdmin && !isBot) {
+        return Response.redirect(new URL('/market', req.url))
     }
 
     // 2. Si está logueado y trata de acceder a login/register O LA RAÍZ (/)

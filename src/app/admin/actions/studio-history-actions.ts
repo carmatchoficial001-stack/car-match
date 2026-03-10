@@ -10,7 +10,8 @@ import { revalidatePath } from "next/cache"
 export async function resetStudioMessageStatus(messageId: string) {
     try {
         const session = await auth()
-        if (!session?.user?.id) throw new Error("Unauthorized")
+        // @ts-ignore
+        if (!session?.user?.id || !session.user.isAdmin) throw new Error("Unauthorized: Admin only")
 
         const msg = await prisma.studioMessage.findUnique({
             where: { id: messageId, userId: session.user.id }
@@ -40,9 +41,10 @@ export async function resetStudioMessageStatus(messageId: string) {
 export async function getStudioConversations() {
     try {
         const session = await auth()
-        if (!session?.user?.id) {
+        // @ts-ignore
+        if (!session?.user?.id || !session.user.isAdmin) {
             console.log("[STUDIO-CONV] Unauthorized - Session:", JSON.stringify(session?.user || "No User"))
-            throw new Error("Unauthorized")
+            throw new Error("Unauthorized: Admin only")
         }
 
         console.log(`[STUDIO-CONV] Fetching for user: ${session.user.id} (${session.user.email})`)
@@ -92,7 +94,8 @@ export async function getStudioHistory(conversationId?: string) {
         unstable_noStore();
 
         const session = await auth()
-        if (!session?.user?.id) throw new Error("Unauthorized")
+        // @ts-ignore
+        if (!session?.user?.id || !session.user.isAdmin) throw new Error("Unauthorized: Admin only")
 
         const messages = await prisma.studioMessage.findMany({
             where: {
@@ -136,15 +139,16 @@ export async function saveStudioMessage(data: {
 }) {
     try {
         const session = await auth()
-        if (!session?.user?.id) {
+        // @ts-ignore
+        if (!session?.user?.id || !session.user.isAdmin) {
             await prisma.systemLog.create({
                 data: {
                     level: 'ERROR',
                     source: 'STUDIO-HISTORY',
-                    message: `Intento de guardar mensaje sin sesión válida: ${session?.user?.email || 'Guest'}`
+                    message: `Intento de guardar mensaje sin sesión administrativa: ${session?.user?.email || 'Guest'}`
                 }
             })
-            throw new Error("Unauthorized")
+            throw new Error("Unauthorized: Admin only")
         }
 
         let targetId = data.conversationId

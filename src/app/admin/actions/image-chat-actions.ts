@@ -79,6 +79,10 @@ export async function chatWithImageDirector(
     conversationId?: string,
     targetCountry: string = 'MX'
 ) {
+    const session = await auth()
+    // @ts-ignore
+    if (!session?.user?.id || !session.user.isAdmin) return { success: false, error: "Unauthorized: Admin only" }
+
     rawLog(`chatWithImageDirector called. Conv: ${conversationId}`);
     try {
         const lastMessage = messages[messages.length - 1]?.content || ''
@@ -243,7 +247,8 @@ export async function processNextImageBatch(messageId: string) {
     try {
         await recordLog(`[START] Batch Poll for message: ${messageId}`, 'INFO');
         const session = await auth();
-        if (!session?.user?.id) throw new Error("Unauthorized");
+        // @ts-ignore
+        if (!session?.user?.id || !session.user.isAdmin) throw new Error("Unauthorized: Admin only");
 
         const msg = await prisma.studioMessage.findUnique({
             where: { id: messageId, userId: session.user.id }
