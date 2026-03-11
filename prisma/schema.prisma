@@ -865,7 +865,10 @@ enum SocialPlatform {
   INSTAGRAM
   TIKTOK
   TWITTER
-  LINKEDIN
+  KWAI
+  THREADS
+  SNAPCHAT
+  GOOGLE_ADS
 }
 
 enum PostStatus {

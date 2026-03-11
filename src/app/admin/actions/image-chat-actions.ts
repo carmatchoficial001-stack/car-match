@@ -398,11 +398,14 @@ export async function saveStudioToCampaign(data: {
             }
         });
 
-        // 3. Platforms and formats
-        const platforms: SocialPlatform[] = ['TIKTOK', 'INSTAGRAM', 'FACEBOOK', 'TWITTER', 'LINKEDIN'];
-        const formats: Array<'square' | 'vertical' | 'horizontal'> = ['square', 'vertical', 'horizontal'];
+        // 3. Platforms — exactly what the user requested
+        const platforms: SocialPlatform[] = [
+            'TIKTOK', 'INSTAGRAM', 'FACEBOOK', 
+            'TWITTER', 'KWAI', 'THREADS', 'SNAPCHAT', 'GOOGLE_ADS'
+        ];
 
-        // 4. Create SocialPosts and trigger Fal.ai for all 3 sizes
+        // 4. Create ONE SocialPost per platform and trigger ONE vertical image
+        // Vertical 9:16 is the best single format: native for TikTok, Reels, Stories, Kwai, Snapchat
         for (const platform of platforms) {
             const post = await prisma.socialPost.create({
                 data: {
@@ -416,24 +419,18 @@ export async function saveStudioToCampaign(data: {
                 }
             });
 
-            for (let idx = 0; idx < formats.length; idx++) {
-                const format = formats[idx];
-                console.log(`[CAMPAIGN] Triggering Fal.ai ${format} for ${platform}, post ${post.id}`);
-                try {
-                    // Encode postId, idx, format in the URL — Fal.ai always calls back
-                    // to the exact URL provided, so this is the reliable way to pass
-                    // context (Fal doesn't guarantee forwarding of custom body fields).
-                    const callbackUrl = `${webhookUrl}?postId=${encodeURIComponent(post.id)}&idx=${idx}&format=${format}`;
-                    await triggerFalAsyncGeneration({
-                        messageId: post.id,
-                        idx,
-                        format,
-                        prompt: data.imagePrompt,
-                        webhookUrl: callbackUrl
-                    });
-                } catch (genErr) {
-                    console.error(`[CAMPAIGN] Fal.ai trigger failed for ${platform}/${format}:`, genErr);
-                }
+            const callbackUrl = `${webhookUrl}?postId=${encodeURIComponent(post.id)}&idx=0&format=vertical`;
+            try {
+                await triggerFalAsyncGeneration({
+                    messageId: post.id,
+                    idx: 0,
+                    format: 'vertical',
+                    prompt: data.imagePrompt,
+                    webhookUrl: callbackUrl
+                });
+                console.log(`[CAMPAIGN] ✅ Triggered vertical for ${platform}, post ${post.id}`);
+            } catch (genErr) {
+                console.error(`[CAMPAIGN] Fal.ai trigger failed for ${platform}:`, genErr);
             }
         }
 
@@ -443,6 +440,7 @@ export async function saveStudioToCampaign(data: {
         return { success: false, error: error.message };
     }
 }
+
 
 
 /**
