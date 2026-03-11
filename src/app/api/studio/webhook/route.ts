@@ -53,28 +53,7 @@ export async function POST(req: NextRequest) {
         const secureUrl = uploadRes.secure_url!;
 
         // 2. Atomic Database Update
-        if (messageId) {
-            const imagesToMerge: Record<string, any> = {
-                [`img_${idx}_${format}`]: secureUrl,
-                '_lastUpdate': Date.now(),
-                '_isBatchWorking': false // Release lock
-            };
-
-            // Fallback for legacy UI expectations
-            if (format === 'square') imagesToMerge['square'] = secureUrl;
-            if (idx === 0) {
-                if (format === 'vertical') imagesToMerge['vertical'] = secureUrl;
-                if (format === 'horizontal') imagesToMerge['horizontal'] = secureUrl;
-            }
-
-            const jsonToMerge = JSON.stringify(imagesToMerge);
-
-            await prisma.$executeRawUnsafe(
-                `UPDATE "StudioMessage" SET images = COALESCE(images, '{}'::jsonb) || $1::jsonb WHERE id = $2`,
-                jsonToMerge,
-                messageId
-            );
-        } else if (postId) {
+        if (postId) {
             // Apply CarMatch logo overlay naturally via Cloudinary URL transformation
             const uploadRes2 = await uploadUrlToCloudinary(secureUrl, 'carmatch/publicity');
             const publicId = uploadRes2.success ? uploadRes2.public_id! : '';
@@ -97,6 +76,27 @@ export async function POST(req: NextRequest) {
                 `UPDATE "PublicityCampaign" SET "imageUrl" = (CASE WHEN "imageUrl" IS NULL OR "imageUrl" = '' THEN $1 ELSE "imageUrl" END) WHERE id = (SELECT "campaignId" FROM "SocialPost" WHERE id = $2)`,
                 finalUrl,
                 postId
+            );
+        } else if (messageId) {
+            const imagesToMerge: Record<string, any> = {
+                [`img_${idx}_${format}`]: secureUrl,
+                '_lastUpdate': Date.now(),
+                '_isBatchWorking': false // Release lock
+            };
+
+            // Fallback for legacy UI expectations
+            if (format === 'square') imagesToMerge['square'] = secureUrl;
+            if (idx === 0) {
+                if (format === 'vertical') imagesToMerge['vertical'] = secureUrl;
+                if (format === 'horizontal') imagesToMerge['horizontal'] = secureUrl;
+            }
+
+            const jsonToMerge = JSON.stringify(imagesToMerge);
+
+            await prisma.$executeRawUnsafe(
+                `UPDATE "StudioMessage" SET images = COALESCE(images, '{}'::jsonb) || $1::jsonb WHERE id = $2`,
+                jsonToMerge,
+                messageId
             );
         }
 
