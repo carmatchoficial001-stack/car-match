@@ -82,6 +82,8 @@ export default function PublicityTab() {
     }
 
     if (viewMode === 'CAMPAIGNS') {
+        const campaignView = subView as unknown as 'IMAGES' | 'VIDEOS' // Reusing subView for simplicity
+        
         return (
             <div className="h-full flex flex-col animate-in fade-in duration-500 bg-black/20">
                 {/* Header Section */}
@@ -96,31 +98,31 @@ export default function PublicityTab() {
                         </button>
                         <div className="h-4 w-px bg-white/10 hidden md:block" />
                         <div className="flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em]">
-                            <LayoutGrid className="w-3 h-3" /> Historial de Campañas
+                            <LayoutGrid className="w-3 h-3" /> Historias de Campañas
                         </div>
                     </div>
 
-                    {/* Sub-view Toggle */}
+                    {/* Simple Tab Toggle: Imágenes | Videos */}
                     <div className="flex bg-black/50 p-1 rounded-2xl border border-white/10 self-center">
                         <button
-                            onClick={() => setSubView('PUBLISHED')}
-                            className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                            onClick={() => setSubView('PUBLISHED')} // Represents "Imágenes"
+                            className={`px-8 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                                 subView === 'PUBLISHED' 
                                 ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
                                 : 'text-zinc-500 hover:text-zinc-300'
                             }`}
                         >
-                            Publicadas
+                            Imágenes
                         </button>
                         <button
-                            onClick={() => setSubView('DRAFTS')}
-                            className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                            onClick={() => setSubView('DRAFTS')} // Represents "Videos" (placeholder for now)
+                            className={`px-8 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                                 subView === 'DRAFTS' 
-                                ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/20' 
+                                ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' 
                                 : 'text-zinc-500 hover:text-zinc-300'
                             }`}
                         >
-                            Borradores
+                            Videos
                         </button>
                     </div>
 
@@ -135,119 +137,120 @@ export default function PublicityTab() {
                 {/* Content Area */}
                 <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
                     {subView === 'PUBLISHED' ? (
+                        /* IMAGES TAB */
                         campaigns.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-center py-20 grayscale opacity-40">
                                 <Megaphone className="w-16 h-16 text-zinc-600 mb-6" />
-                                <h3 className="text-xl font-black text-zinc-400 uppercase italic">No hay campañas activas</h3>
+                                <h3 className="text-xl font-black text-zinc-400 uppercase italic">No hay campañas de imagen</h3>
                                 <p className="text-xs text-zinc-500 font-bold uppercase mt-2 tracking-widest">Inicia una "Campaña Automática" en el Estudio.</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-12">
-                                {campaigns.map((camp) => (
-                                    <div key={camp.id} className="bg-[#111114] border border-white/10 rounded-[2.5rem] overflow-hidden flex flex-col group hover:border-emerald-500/30 transition-all shadow-2xl relative">
-                                        <div className="aspect-[16/9] bg-black relative overflow-hidden">
-                                            {camp.posts?.[0]?.imageUrl ? (
-                                                <img src={camp.posts[0].imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" alt={camp.title} />
-                                            ) : (
-                                                <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-                                                    <RefreshCw className="w-6 h-6 text-emerald-500 animate-spin" />
-                                                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Generando Visuales...</span>
-                                                </div>
-                                            )}
-                                            <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[9px] font-black text-white uppercase tracking-widest">
-                                                {new Date(camp.createdAt).toLocaleDateString()}
+                                <div className="space-y-12 pb-12">
+                                {/* Final Campaigns Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {campaigns.map((camp) => (
+                                        <div key={camp.id} className="bg-[#111114] border border-white/10 rounded-[2.5rem] overflow-hidden flex flex-col group hover:border-emerald-500/30 transition-all shadow-2xl relative">
+                                            <div className="aspect-[16/9] bg-black relative overflow-hidden">
+                                                {camp.posts?.[0]?.imageUrl ? (
+                                                    <img src={camp.posts[0].imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" alt={camp.title} />
+                                                ) : (
+                                                    <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+                                                        <RefreshCw className="w-6 h-6 text-emerald-500 animate-spin" />
+                                                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Generando...</span>
+                                                    </div>
+                                                )}
                                             </div>
-                                        </div>
-                                        <div className="p-6 space-y-4">
-                                            <div className="flex justify-between items-start">
-                                                <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-tight">{camp.title}</h3>
-                                                <button 
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(camp.posts?.[0]?.content || '');
-                                                        alert('¡Texto Viral Copiado!');
-                                                    }}
-                                                    className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-colors shrink-0"
-                                                >
-                                                    <Copy className="w-4 h-4" />
+                                            <div className="p-6 space-y-4">
+                                                <div className="flex justify-between items-start">
+                                                    <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-tight">{camp.title}</h3>
+                                                    <button 
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(camp.posts?.[0]?.content || '');
+                                                            alert('¡Texto Viral Copiado!');
+                                                        }}
+                                                        className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-colors shrink-0"
+                                                    >
+                                                        <Copy className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                                
+                                                <div className="space-y-2">
+                                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-1.5 grayscale group-hover:grayscale-0 transition-all">
+                                                        <Sparkles className="w-3 h-3 text-emerald-500" /> Descripción Viral
+                                                    </p>
+                                                    <p className="text-[11px] text-zinc-300 font-medium leading-relaxed line-clamp-4 bg-white/[0.03] p-3 rounded-xl border border-white/5">
+                                                        {camp.posts?.[0]?.content}
+                                                    </p>
+                                                </div>
+                                                
+                                                <div className="pt-4 border-t border-white/5 flex flex-wrap gap-2">
+                                                    {camp.posts?.map((p: any) => (
+                                                        <div key={p.id} className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+                                                            <span className="text-[8px] font-black text-emerald-400">{p.platform}</span>
+                                                            {p.imageUrl && <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" />}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                
+                                                <button className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all active:scale-95">
+                                                    Ver Detalles del Pack
                                                 </button>
                                             </div>
-                                            
-                                            <div className="space-y-2">
-                                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-1.5 grayscale group-hover:grayscale-0 transition-all">
-                                                    <Sparkles className="w-3 h-3 text-emerald-500" /> Descripción Viral
-                                                </p>
-                                                <p className="text-[11px] text-zinc-300 font-medium leading-relaxed line-clamp-4 bg-white/[0.03] p-3 rounded-xl border border-white/5">
-                                                    {camp.posts?.[0]?.content}
-                                                </p>
-                                            </div>
-                                            
-                                            <div className="pt-4 border-t border-white/5 flex flex-wrap gap-2">
-                                                {camp.posts?.map((p: any) => (
-                                                    <div key={p.id} className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
-                                                        <span className="text-[8px] font-black text-emerald-400">{p.platform}</span>
-                                                        {p.imageUrl && <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" />}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Ongoing Drafts Section (consolidated history) */}
+                                {drafts.length > 0 && (
+                                    <div className="pt-8 border-t border-white/5">
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <History className="w-4 h-4 text-violet-400" />
+                                            <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Borradores y Chats en curso</h3>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                            {drafts.map((draft) => (
+                                                <button 
+                                                    key={draft.id}
+                                                    onClick={() => {
+                                                        setActiveDraftId(draft.id)
+                                                        setViewMode('PHOTO_CHAT')
+                                                    }}
+                                                    className="group bg-[#111114] border border-white/5 rounded-2xl p-4 flex flex-col hover:border-violet-500/30 transition-all text-left relative overflow-hidden"
+                                                >
+                                                    <div className="flex items-center gap-3 mb-3">
+                                                        <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
+                                                            <MessageSquare className="w-4 h-4 text-violet-400" />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <h4 className="text-[10px] font-black text-white uppercase truncate">{draft.title || "Nueva Idea"}</h4>
+                                                            <p className="text-[8px] text-zinc-600 font-bold uppercase mt-0.5">
+                                                                {new Date(draft.updatedAt || draft.createdAt).toLocaleDateString()}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                ))}
-                                            </div>
-                                            
-                                            <button className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all active:scale-95">
-                                                Ver Detalles del Pack
-                                            </button>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[8px] font-black text-violet-400 uppercase tracking-widest group-hover:translate-x-1 transition-transform">Continuar Chat →</span>
+                                                        <button 
+                                                            onClick={(e) => handleDeleteDraft(e, draft.id)}
+                                                            className="p-1.5 text-zinc-700 hover:text-red-400 transition-colors"
+                                                        >
+                                                            <Trash2 className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         )
                     ) : (
-                        /* DRAFTS VIEW */
-                        drafts.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-center py-20 grayscale opacity-40">
-                                <History className="w-16 h-16 text-zinc-600 mb-6" />
-                                <h3 className="text-xl font-black text-zinc-400 uppercase italic">Historial Vacío</h3>
-                                <p className="text-xs text-zinc-500 font-bold uppercase mt-2 tracking-widest">Tus conversaciones aparecerán aquí.</p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
-                                {drafts.map((draft) => (
-                                    <div 
-                                        key={draft.id}
-                                        className="group bg-[#111114] border border-white/10 rounded-[2rem] p-6 flex flex-col justify-between hover:border-violet-500/30 transition-all shadow-xl hover:-translate-y-1 relative overflow-hidden"
-                                    >
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/5 blur-3xl -mr-16 -mt-16" />
-                                        
-                                        <div className="flex justify-between items-start mb-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-violet-500/10 flex items-center justify-center shrink-0 border border-violet-500/10">
-                                                    <MessageSquare className="w-5 h-5 text-violet-400" />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <h4 className="text-sm font-black text-white uppercase truncate">{draft.title || "Nueva Idea"}</h4>
-                                                    <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">
-                                                        {new Date(draft.updatedAt || draft.createdAt).toLocaleDateString()}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <button 
-                                                onClick={(e) => handleDeleteDraft(e, draft.id)}
-                                                className="p-2 text-zinc-600 hover:text-red-400 transition-colors"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-
-                                        <button 
-                                            onClick={() => {
-                                                setActiveDraftId(draft.id)
-                                                setViewMode('PHOTO_CHAT')
-                                            }}
-                                            className="w-full py-3 bg-violet-500/10 border border-violet-500/20 rounded-xl text-[10px] font-black text-violet-400 uppercase tracking-widest group-hover:bg-violet-500 group-hover:text-white transition-all active:scale-95"
-                                        >
-                                            Continuar Edición
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )
+                        /* VIDEOS TAB */
+                        <div className="h-full flex flex-col items-center justify-center text-center py-20 grayscale opacity-40">
+                            <Video className="w-16 h-16 text-indigo-400 mb-6" />
+                            <h3 className="text-xl font-black text-zinc-400 uppercase italic">Carpeta de Videos Vacía</h3>
+                            <p className="text-xs text-zinc-500 font-bold uppercase mt-2 tracking-widest">Próximamente podrás gestionar tus campañas de video aquí.</p>
+                        </div>
                     )}
                 </div>
             </div>
