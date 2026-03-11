@@ -462,11 +462,20 @@ export async function saveStudioToCampaign(data: {
         }
 
         // 1. Build webhook URL so Fal.ai can call back after generating
-        const { headers: nextHeaders } = require('next/headers');
-        const headersList = await nextHeaders();
-        const host = headersList.get('host') || 'carmatchapp.net';
-        const protocol = host.includes('localhost') ? 'http' : 'https';
-        const webhookUrl = `${protocol}://${host}/api/studio/webhook`;
+        // Prioritize NEXTAUTH_URL or VERCEL_URL for production stability
+        const baseUrl = process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
+        
+        let finalHost = 'carmatchapp.net';
+        if (!baseUrl) {
+            const { headers: nextHeaders } = require('next/headers');
+            const headersList = await nextHeaders();
+            finalHost = headersList.get('host') || 'carmatchapp.net';
+        } else {
+            finalHost = baseUrl.replace(/^https?:\/\//, '');
+        }
+
+        const protocol = finalHost.includes('localhost') ? 'http' : 'https';
+        const webhookUrl = `${protocol}://${finalHost}/api/studio/webhook`;
 
         // 2. Create the Campaign record
         const campaign = await prisma.publicityCampaign.create({
@@ -660,4 +669,27 @@ export async function restartStudioWorker(messageId: string) {
         messageId
     );
     return { success: true };
+}
+
+/**
+ * Fetches the latest system logs for debugging purposes (Admin Only)
+ */
+export async function getSystemLogs() {
+    try {
+        const session = await auth();
+        // @ts-ignore
+        if (!session?.user?.id || !session.user.isAdmin) {
+            return { success: false, error: 'Unauthorized' };
+        }
+
+        const logs = await prisma.systemLog.findMany({
+            orderBy: { createdAt: 'desc' },
+            take: 30
+        });
+
+        return { success: true, logs };
+    } catch (error) {
+        console.error('[LOGS] Error:', error);
+        return { success: false, error: 'Error fetching logs' };
+    }
 }

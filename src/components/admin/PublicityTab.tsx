@@ -8,10 +8,10 @@ import {
     Trash2, Megaphone, Check, Copy, RefreshCw, X 
 } from 'lucide-react'
 import ImageChat from '@/components/admin/ImageChat'
-import { getCampaigns, deleteCampaign } from '@/app/admin/actions/image-chat-actions'
+import { getCampaigns, deleteCampaign, getSystemLogs } from '@/app/admin/actions/image-chat-actions'
 import { getStudioConversations, deleteStudioConversation } from '@/app/admin/actions/studio-history-actions'
 
-type PublicityView = 'HUB' | 'PHOTO_CHAT' | 'VIDEO_CHAT' | 'CAMPAIGNS'
+type PublicityView = 'HUB' | 'PHOTO_CHAT' | 'VIDEO_CHAT' | 'CAMPAIGNS' | 'LOGS'
 type CampaignSubType = 'PUBLISHED' | 'DRAFTS'
 
 export default function PublicityTab() {
@@ -21,6 +21,7 @@ export default function PublicityTab() {
     const [drafts, setDrafts] = useState<any[]>([])
     const [loading, setLoading] = useState(false)
     const [activeDraftId, setActiveDraftId] = useState<string | undefined>(undefined)
+    const [systemLogs, setSystemLogs] = useState<any[]>([])
 
     // Load data when entering CAMPAIGNS or HUB
     useEffect(() => {
@@ -52,12 +53,14 @@ export default function PublicityTab() {
     async function loadAllData() {
         setLoading(true)
         try {
-            const [campsRes, draftsRes] = await Promise.all([
+            const [campsRes, draftsRes, logsRes] = await Promise.all([
                 getCampaigns(),
-                getStudioConversations()
+                getStudioConversations(),
+                getSystemLogs()
             ])
             if (campsRes.success) setCampaigns(campsRes.campaigns)
             if (draftsRes.success) setDrafts(draftsRes.conversations)
+            if (logsRes?.success) setSystemLogs(logsRes.logs)
         } catch (error) {
             console.error("Error loading publicity data:", error)
         }
@@ -337,6 +340,60 @@ export default function PublicityTab() {
         )
     }
 
+    if (viewMode === 'LOGS') {
+        return (
+            <div className="h-full flex flex-col animate-in fade-in duration-500 bg-[#0c0c0e]">
+                <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-xl shrink-0">
+                    <button
+                        onClick={() => setViewMode('HUB')}
+                        className="flex items-center gap-2 text-xs font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-widest"
+                    >
+                        <ChevronRight className="w-4 h-4 rotate-180" />
+                        Volver al Hub
+                    </button>
+                    <div className="flex items-center gap-2 text-[10px] font-black text-amber-400 uppercase tracking-[0.2em]">
+                        <History className="w-3 h-3" /> Logs de Sistema AI
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+                    {systemLogs.length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center text-zinc-600">
+                            <History className="w-12 h-12 opacity-20 mb-4" />
+                            <p className="text-[10px] font-black uppercase tracking-widest">No hay logs recientes</p>
+                        </div>
+                    ) : (
+                        systemLogs.map((log) => (
+                            <div key={log.id} className="bg-black/40 border border-white/5 p-4 rounded-2xl space-y-2 hover:border-white/10 transition-all font-mono">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${
+                                            log.level === 'ERROR' ? 'bg-red-500/20 text-red-500' : 
+                                            log.level === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-500' : 
+                                            'bg-blue-500/20 text-blue-500'
+                                        }`}>
+                                            {log.level}
+                                        </span>
+                                        <span className="text-[9px] text-zinc-400 font-bold uppercase">{log.source}</span>
+                                    </div>
+                                    <span className="text-[8px] text-zinc-600">{new Date(log.createdAt).toLocaleString()}</span>
+                                </div>
+                                <p className="text-[10px] text-zinc-200 leading-relaxed font-bold">{log.message}</p>
+                                {log.metadata && (
+                                    <div className="bg-black/60 p-3 rounded-xl border border-white/5 overflow-x-auto">
+                                        <pre className="text-[9px] text-zinc-500 whitespace-pre-wrap">
+                                            {JSON.stringify(log.metadata, null, 2)}
+                                        </pre>
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+        )
+    }
+
     if (viewMode === 'VIDEO_CHAT') {
         return (
             <div className="h-full flex flex-col animate-in fade-in duration-500">
@@ -459,6 +516,16 @@ export default function PublicityTab() {
                         <div className="bg-indigo-500/20 px-3 py-1 rounded-full text-[8px] font-black text-indigo-400 uppercase tracking-widest absolute top-8 right-8">Beta</div>
                     </motion.button>
                 </div>
+
+                {/* Debug Logs Access (Discreto pero útil) */}
+                <button 
+                    onClick={() => setViewMode('LOGS')}
+                    className="flex items-center gap-3 px-6 py-4 bg-white/[0.02] border border-white/5 rounded-3xl hover:bg-white/[0.04] transition-all group mt-4"
+                >
+                    <History className="w-4 h-4 text-zinc-600 group-hover:text-amber-400 transition-colors" />
+                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest group-hover:text-white transition-colors">Ver Logs de Depuración AI</span>
+                    <ChevronRight className="w-3 h-3 text-zinc-800 group-hover:text-white ml-auto" />
+                </button>
             </div>
         </div>
     )

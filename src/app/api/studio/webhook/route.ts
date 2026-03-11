@@ -41,16 +41,24 @@ export async function POST(req: NextRequest) {
         const idxFromUrl = searchParams.get('idx');
         const formatFromUrl = searchParams.get('format');
 
-        const { messageId, postId: postIdFromBody, idx: idxFromBody, format: formatFromBody } = metadata || {};
+        const { messageId: messageIdFromBody, postId: postIdFromBody, idx: idxFromBody, format: formatFromBody } = metadata || {};
         
         const postId = postIdFromUrl || postIdFromBody;
+        const messageId = messageIdFromBody; // messageId is specifically for StudioMessage
         const idx = idxFromUrl ? parseInt(idxFromUrl) : (idxFromBody ?? 0);
-        const format = formatFromUrl || formatFromBody;
+        const format = formatFromUrl || formatFromBody || 'vertical';
 
-        // messageId is only present for legacy StudioMessage flow (non-campaign)
-        if (!messageId && !postId) {
-            console.error(`[STUDIO-WEBHOOK] Missing identification (messageId/postId) in metadata`);
-            return NextResponse.json({ ok: false });
+        // 🛡️ Guard: We MUST have either a postId or a messageId to work
+        if (!postId && !messageId) {
+            await prisma.systemLog.create({
+                data: {
+                    level: 'ERROR',
+                    source: 'STUDIO-WEBHOOK',
+                    message: `Identification missing (No postId or messageId).`,
+                    metadata: { url: req.url, bodyMetadata: metadata }
+                }
+            });
+            return NextResponse.json({ ok: false, error: 'Missing identification' });
         }
 
         console.log(`[STUDIO-WEBHOOK] Received image for ${messageId || postId} [${idx}/${format}]`);
