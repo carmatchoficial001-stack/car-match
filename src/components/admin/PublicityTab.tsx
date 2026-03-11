@@ -4,18 +4,21 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
     Sparkles, Camera, Video, ChevronRight, LayoutGrid,
-    Zap, Palette, PlayCircle, Star
+    Zap, Palette, PlayCircle, Star, History, MessageSquare, Trash2, Megaphone, Check, Copy, RefreshCw
 } from 'lucide-react'
 import ImageChat from '@/components/admin/ImageChat'
 
 type PublicityView = 'HUB' | 'PHOTO_CHAT' | 'VIDEO_CHAT' | 'CAMPAIGNS'
 
-import { getCampaigns } from '@/app/admin/actions/image-chat-actions'
+import { getCampaigns, getStudioConversations, deleteStudioConversation } from '@/app/admin/actions/image-chat-actions'
 import { useEffect } from 'react'
 
 export default function PublicityTab() {
     const [viewMode, setViewMode] = useState<PublicityView>('HUB')
+    const [campaignView, setCampaignView] = useState<'PUBLISHED' | 'DRAFTS'>('PUBLISHED')
+    const [activeChatId, setActiveChatId] = useState<string | undefined>(undefined)
     const [campaigns, setCampaigns] = useState<any[]>([])
+    const [conversations, setConversations] = useState<any[]>([])
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -26,9 +29,23 @@ export default function PublicityTab() {
 
     async function loadCampaigns() {
         setLoading(true)
-        const res = await getCampaigns()
-        if (res.success) setCampaigns(res.campaigns)
+        const [campsRes, convsRes] = await Promise.all([
+            getCampaigns(),
+            getStudioConversations()
+        ])
+        if (campsRes.success) setCampaigns(campsRes.campaigns)
+        if (convsRes.success) setConversations(convsRes.conversations)
         setLoading(false)
+    }
+
+    const handleDeleteConversation = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation()
+        if (!confirm('¿Eliminar este borrador?')) return
+
+        const res = await deleteStudioConversation(id)
+        if (res.success) {
+            setConversations(prev => prev.filter(c => c.id !== id))
+        }
     }
 
     if (viewMode === 'PHOTO_CHAT') {
@@ -47,7 +64,7 @@ export default function PublicityTab() {
                     </div>
                 </div>
                 <div className="flex-1 overflow-hidden">
-                    <ImageChat />
+                    <ImageChat initialConversationId={activeChatId} />
                 </div>
             </div>
         )
@@ -65,23 +82,42 @@ export default function PublicityTab() {
                         Volver al Hub
                     </button>
                     <div className="flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em]">
-                        <LayoutGrid className="w-3 h-3" /> Galería de Campañas IA
+                        <LayoutGrid className="w-3 h-3" /> Historias de Campañas
+                    </div>
+                    <div className="flex bg-black/50 p-1 rounded-xl border border-white/5">
+                        <button
+                            onClick={() => setCampaignView('PUBLISHED')}
+                            className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
+                                campaignView === 'PUBLISHED' ? 'bg-emerald-500/20 text-emerald-400' : 'text-zinc-500 hover:text-zinc-300'
+                            }`}
+                        >
+                            Publicadas
+                        </button>
+                        <button
+                            onClick={() => setCampaignView('DRAFTS')}
+                            className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
+                                campaignView === 'DRAFTS' ? 'bg-violet-500/20 text-violet-400' : 'text-zinc-500 hover:text-zinc-300'
+                            }`}
+                        >
+                            Borradores
+                        </button>
                     </div>
                     <button onClick={loadCampaigns} className="p-2 text-zinc-500 hover:text-white active:rotate-180 transition-all">
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     </button>
                 </div>
                 
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                    {campaigns.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center">
-                            <Megaphone className="w-12 h-12 text-zinc-800 mb-4" />
-                            <h3 className="text-xl font-black text-zinc-600 uppercase italic">No hay campañas activas</h3>
-                            <p className="text-xs text-zinc-700 font-bold uppercase mt-2">Inicia una "Campaña Automática" en el Estudio de Fotos.</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {campaigns.map((camp: any) => (
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                    {campaignView === 'PUBLISHED' ? (
+                        campaigns.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-center py-20">
+                                <Megaphone className="w-12 h-12 text-zinc-800 mb-4" />
+                                <h3 className="text-xl font-black text-zinc-600 uppercase italic">No hay campañas activas</h3>
+                                <p className="text-xs text-zinc-700 font-bold uppercase mt-2">Inicia una "Campaña Automática" en el Estudio de Fotos.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {campaigns.map((camp: any) => (
                                 <div key={camp.id} className="bg-[#111114] border border-white/10 rounded-[2.5rem] overflow-hidden flex flex-col group hover:border-emerald-500/30 transition-all shadow-2xl">
                                     <div className="aspect-[16/9] bg-black relative overflow-hidden">
                                         {camp.posts?.[0]?.imageUrl ? (
@@ -136,6 +172,44 @@ export default function PublicityTab() {
                                 </div>
                             ))}
                         </div>
+                    ) : (
+                        conversations.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-center py-20">
+                                <History className="w-12 h-12 text-zinc-800 mb-4" />
+                                <h3 className="text-xl font-black text-zinc-600 uppercase italic">No hay historial</h3>
+                                <p className="text-xs text-zinc-700 font-bold uppercase mt-2">Comienza a chatear con el Director Creativo.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {conversations.map(conv => (
+                                    <button
+                                        key={conv.id}
+                                        onClick={() => {
+                                            setActiveChatId(conv.id)
+                                            setViewMode('PHOTO_CHAT')
+                                        }}
+                                        className="group p-5 bg-[#111114] border border-white/10 rounded-2xl flex flex-col items-start justify-between text-left hover:border-violet-500/40 transition-all shadow-xl hover:-translate-y-1"
+                                    >
+                                        <div className="w-full flex items-start justify-between mb-4">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
+                                                    <MessageSquare className="w-4 h-4 text-violet-400" />
+                                                </div>
+                                                <span className="text-sm font-bold text-zinc-200 truncate">{conv.title}</span>
+                                            </div>
+                                            <Trash2
+                                                onClick={(e) => handleDeleteConversation(e, conv.id)}
+                                                className="w-4 h-4 text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0 ml-4 hover:scale-110"
+                                            />
+                                        </div>
+                                        <div className="w-full flex justify-between items-center text-[10px] uppercase tracking-widest font-black text-zinc-600">
+                                            <span>Borrador Activo</span>
+                                            <span className="text-violet-500">Continuar →</span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )
                     )}
                 </div>
             </div>
