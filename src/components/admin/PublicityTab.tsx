@@ -97,8 +97,28 @@ export default function PublicityTab() {
                                         </div>
                                     </div>
                                     <div className="p-6 space-y-4">
-                                        <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-tight">{camp.title}</h3>
-                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider line-clamp-3">{camp.posts?.[0]?.content}</p>
+                                        <div className="flex justify-between items-start">
+                                            <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-tight">{camp.title}</h3>
+                                            <button 
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(camp.posts?.[0]?.content || '');
+                                                    alert('¡Texto Viral Copiado!');
+                                                }}
+                                                className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-colors shrink-0"
+                                                title="Copiar Texto Viral"
+                                            >
+                                                <Copy className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                        
+                                        <div className="space-y-2">
+                                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-1.5">
+                                                <Sparkles className="w-3 h-3 text-emerald-500" /> Descripción Viral
+                                            </p>
+                                            <p className="text-[11px] text-zinc-300 font-medium leading-relaxed line-clamp-4 bg-white/[0.03] p-3 rounded-xl border border-white/5">
+                                                {camp.posts?.[0]?.content}
+                                            </p>
+                                        </div>
                                         
                                         <div className="pt-4 border-t border-white/5 flex flex-wrap gap-2">
                                             {camp.posts?.map((p: any) => (
