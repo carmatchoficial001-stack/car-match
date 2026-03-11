@@ -7,9 +7,10 @@ import {
     Loader2, X, ChevronDown, ExternalLink, Zap, Palette,
     Camera, Layers, RefreshCw, Trash2, Plus, MessageSquare, History
 } from 'lucide-react'
-import { chatWithImageDirector } from '@/app/admin/actions/image-chat-actions'
+import { chatWithImageDirector, saveStudioToCampaign } from '@/app/admin/actions/image-chat-actions'
 import { getStudioConversations, getStudioHistory, saveStudioMessage, createStudioConversation, deleteStudioConversation, clearStudioHistory } from '@/app/admin/actions/studio-history-actions'
-import { restartStudioWorker, processNextImageBatch, generateRandomCampaign, uploadClientGeneratedImage, reportClientError } from '@/app/admin/actions/image-chat-actions'
+import { restartStudioWorker, processNextImageBatch, uploadClientGeneratedImage, reportClientError } from '@/app/admin/actions/image-chat-actions'
+import { suggestCampaignFromInventory } from '@/app/admin/actions/ai-content-actions'
 
 import { AD_PLATFORMS } from '@/lib/admin/constants'
 
@@ -26,6 +27,14 @@ interface ChatMessage {
     imagePrompt?: string
     platforms?: Record<string, any>
     timestamp: Date
+    // Campaign proposal metadata
+    campaignProposal?: {
+        title: string
+        caption: string
+        imagePrompt: string
+        videoScript: string
+        strategy: string
+    }
 }
 
 const PLATFORM_CONFIG: Record<string, { name: string; icon: string; color: string }> = AD_PLATFORMS.reduce((acc, p) => ({
@@ -266,44 +275,69 @@ export default function ImageChat() {
         }
     }
 
-    // --- AUTOMATIC CAMPAIGN HANDLER ---
-    // --- AUTOMATIC CAMPAIGN HANDLER ---
+    // --- AUTOMATIC CAMPAIGN HANDLER (STEP 1: Show Proposal in Chat) ---
     const handleAutoCampaign = async () => {
-        setIsLoading(true);
-        setStatus('Calculando estrategia viral...');
-
+        setIsLoading(true)
         try {
-            // 1. Get Strategy from IA
-            const res = await suggestCampaignFromInventory();
-            if (!res.success) throw new Error(res.error);
+            // 1. Get strategy from AI
+            const res = await suggestCampaignFromInventory()
+            if (!res.success) throw new Error(res.error)
 
-            setStatus('Creando campaña persistente...');
-            
-            // 2. Save it to the real Campaigns database
-            const campaignRes = await saveStudioToCampaign({
-                title: res.campaignData.internal_title,
-                strategy: res.campaignData.strategy,
-                caption: res.campaignData.caption,
-                imagePrompt: res.campaignData.imagePrompt,
-                videoScript: res.campaignData.videoScript,
-                userId: session?.user?.id || 'admin'
-            });
+            const { campaignData } = res
 
-            if (!campaignRes.success) throw new Error(campaignRes.error);
-
-            // 3. Inform user and refresh
-            setStatus('¡Campaña Lanzada! Redirigiendo...');
-            
-            alert('¡ÉXITO! Tu campaña se está generando en segundo plano. Búscala en la pestaña de "Campañas".');
-            
-            window.location.reload(); 
-
+            // 2. Show the proposal AS A CHAT MESSAGE with a "CREAR CAMPAÑA" button
+            const proposalMsg: ChatMessage = {
+                id: `proposal-${Date.now()}`,
+                role: 'assistant',
+                type: 'PROMPT_READY',
+                content: `✅ Estrategia lista. Prompt final:\n\n"${campaignData.imagePrompt}"\n\n📢 *Caption viral:* ${campaignData.caption}`,
+                imagePrompt: campaignData.imagePrompt,
+                timestamp: new Date(),
+                campaignProposal: {
+                    title: campaignData.internal_title,
+                    caption: campaignData.caption,
+                    imagePrompt: campaignData.imagePrompt,
+                    videoScript: campaignData.videoScript,
+                    strategy: campaignData.strategy
+                }
+            }
+            setMessages(prev => [
+                ...prev,
+                {
+                    id: `user-auto-${Date.now()}`,
+                    role: 'user' as const,
+                    content: '🚀 Dame el prompt final para mi campaña.',
+                    timestamp: new Date()
+                },
+                proposalMsg
+            ])
         } catch (error: any) {
-            console.error('Error in Auto Campaign:', error);
-            alert('Error: ' + error.message);
+            console.error('Auto campaign error:', error)
+            alert('Error: ' + error.message)
         } finally {
-            setIsLoading(false);
-            setStatus('');
+            setIsLoading(false)
+        }
+    }
+
+    // --- AUTOMATIC CAMPAIGN HANDLER (STEP 2: Execute on Button Click) ---
+    const handleExecuteCampaign = async (proposal: ChatMessage['campaignProposal']) => {
+        if (!proposal) return
+        setIsLoading(true)
+        try {
+            const res = await saveStudioToCampaign({
+                title: proposal.title,
+                strategy: proposal.strategy,
+                caption: proposal.caption,
+                imagePrompt: proposal.imagePrompt,
+                videoScript: proposal.videoScript,
+                userId: 'admin'
+            })
+            if (!res.success) throw new Error(res.error)
+            alert('🚀 ¡Campaña lanzada! Las imágenes se generan en segundo plano. Ve a la pestaña "Campañas" para verla.')
+        } catch (error: any) {
+            alert('Error: ' + error.message)
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -505,6 +539,7 @@ export default function ImageChat() {
                                         msg={msg}
                                         onOpenWorkspace={handleOpenWorkspace}
                                         onVariation={handleVariation}
+                                        onCreateCampaign={msg.campaignProposal ? () => handleExecuteCampaign(msg.campaignProposal) : undefined}
                                         onReset={async (id) => {
                                             const res = await restartStudioWorker(id)
                                             if (res.success) {
@@ -591,12 +626,14 @@ function PromptProposalCard({
     onOpenWorkspace,
     onVariation,
     onReset,
+    onCreateCampaign,
     isLoading
 }: {
     msg: ChatMessage
     onOpenWorkspace: (msg: ChatMessage) => void
     onVariation: (prompt: string, instruction: string) => void
     onReset: (messageId: string) => void
+    onCreateCampaign?: () => void
     isLoading: boolean
 }) {
     const [copied, setCopied] = useState(false)
@@ -693,6 +730,17 @@ function PromptProposalCard({
                     )}
 
                     <div className="space-y-3">
+                        {/* CREAR CAMPAÑA button – shown only for auto-generated proposals */}
+                        {onCreateCampaign && (
+                            <button
+                                onClick={onCreateCampaign}
+                                disabled={isLoading}
+                                className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 py-4 rounded-2xl text-sm font-black text-white uppercase tracking-widest transition-all shadow-2xl shadow-emerald-500/30 active:scale-95"
+                            >
+                                <Zap className="w-5 h-5 fill-current" />
+                                Crear Campaña → Generar Imágenes en las 3 Redes
+                            </button>
+                        )}
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={handleCopyPrompt}
@@ -701,7 +749,7 @@ function PromptProposalCard({
                                 {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
                                 {copied ? 'Copiado' : 'Copiar Prompt'}
                             </button>
-                            {!isGenerating && statusStr === '' && (
+                            {!isGenerating && statusStr === '' && !onCreateCampaign && (
                                 <button
                                     onClick={() => onOpenWorkspace(msg)}
                                     className="flex-1 flex items-center justify-center gap-2 bg-violet-500 hover:bg-violet-600 py-3 rounded-2xl text-[10px] font-black text-white uppercase tracking-wider transition-all shadow-lg shadow-violet-500/20"
