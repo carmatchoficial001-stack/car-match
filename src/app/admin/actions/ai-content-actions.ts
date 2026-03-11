@@ -307,20 +307,20 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
         // 2. Ask Gemini to create a full BRAND campaign
         const prompt = `
             Act as a WORLD-CLASS VIRAL ADVERTISING AGENT and COMMUNITY BUILDER for CarMatch.
-            Your goal is to launch a VIRAL MOVEMENT that build car communities.
+            Your goal is to launch a UNIQUE VIRAL MOVEMENT that build car communities.
             
             ELITE ADVERTISING STRATEGIES:
-            1. **THUMB-STOPPER HOOKS**: Design content with "extreme" visual hooks. Force high-impact lighting (Golden Hour, Neon, Rembrandt) and cinematic camera angles (Drone shots, ultra-low angle).
-            2. **NARRATIVE STORYTELLING**: Don't just show a car; show a STORY. Use contrast (e.g., Abandoned -> Restored, or Boring life -> CarMatch Life).
+            1. **THUMB-STOPPER HOOKS**: Design content with "extreme" visual hooks based on the theme: ${randomStyle}.
+            2. **INTEGRATED NARRATIVE**: The "caption" (viral description) MUST be 100% specific to the "imagePrompt". Mixed them perfectly.
             3. **VIRAL MOODS**: Dynamically apply high-impact styles: *High-Octane Action (Transformers/Michael Bay)*, *Cyberpunk Future*, or *Vintage 35mm Nostalgia*.
-            4. **DATA VALIDATION & SUBLIMINAL BRANDING**: Correct typos (mustag -> Ford Mustang). Integrate the CarMatch logo SELECTIVELY/SUBLIMINALLY (only in ~50% of assets) where it feels 100% natural.
+            4. **LOCAL RELEVANCE**: Use slang and themes that resonate with ${randomPersona} in ${country.name}.
             
             Target Audience: ${randomPersona} in ${country.name}. Use local slang: ${country.slang}.
             
-            JSON Return Schema:
+            JSON Return Schema (DO NOT REPEAT PREVIOUS CAPTIONS):
             {
-                "internal_title": "Nombre VIRAL de la campaña",
-                "caption": "Caption de alto impacto que genere debate inmediato.",
+                "internal_title": "Nombre ÚNICO de la campaña",
+                "caption": "Escribe un caption que sea una extensión directa de la imagen propuesta. No uses plantillas genéricas.",
                 "imagePrompt": "HYPER-DETAILED AI prompt (ENGLISH). Focus on extreme angles and cinematic lighting.",
                 "videoScript": "Guión de video narrativo en ESPAÑOL.",
                 "strategy": "Plan de viralismo: por qué la gente comentará y compartirá."
@@ -332,22 +332,15 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
         const FALLBACK_STRATEGY_JSON = JSON.stringify({
             "internal_title": "Campaña de Rescate CarMatch",
             "caption": "🔥 ¿Aun no tienes el auto de tus sueños? 🚗💨 Encuéntralo en CarMatch. La App #1 de compra-venta segura. 👇 ¡Descarga YA!",
-            "imagePrompt": "Futuristic smartphone showing CarMatch app with a luxury car coming out of the screen, neon lights, cyber city background, 8k",
-            "videoScript": "Escena 1: Primer plano de un celular con CarMatch. Escena 2: Dedo hace Swipe Right. Escena 3: El auto aparece mágicamente en la calle. Escena 4: Conductor feliz sube al auto. Texto: Tu Auto Ideal te Espera.",
-            "videoPrompt": "Cinematic transition from smartphone screen to real life luxury car, magical effects, high energy, 8k",
-            "strategy": "Estrategia de Alta Velocidad: Enfocada en la gratificación instantánea y la facilidad de uso de la app (Efecto Tinder).",
-            "platforms": {
-                "meta_ads": { "primary_text": "Encuentra tu nave en segundos.", "headline": "Swipe to Drive", "description": "Seguro y veloz" },
-                "facebook_marketplace": { "title": "Auto Ideal CarMatch", "description": "Compra venta segura" },
-                "google_ads": { "headlines": ["Auto Ideal", "CarMatch México", "Compra Segura"], "descriptions": ["La app #1 de autos", "Encuentra tu nave hoy"] },
-                "tiktok_ads": { "caption": "Tu próxima nave está a un swipe #CarMatch", "script_notes": "Cinemática de swipe" }
-            }
+            "imagePrompt": "Futuristic mobile app car match interface, high quality automotive branding, 8k cinematic",
+            "videoScript": "Tu auto ideal a un solo click.",
+            "strategy": "Estrategia de rescate para usuarios que necesitan una nave ya."
         });
 
         try {
             const result = await Promise.race([
                 geminiFlashConversational.generateContent(prompt),
-                new Promise<any>((_, reject) => setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 4000))
+                new Promise<any>((_, reject) => setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 15000))
             ]);
             text = result.response.text();
             console.log('[AUTO-PILOT] Gemini generated strategy successfully.');

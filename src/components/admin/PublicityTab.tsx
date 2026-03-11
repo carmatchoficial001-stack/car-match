@@ -29,6 +29,26 @@ export default function PublicityTab() {
         }
     }, [viewMode])
 
+    // 🔄 Auto-refresh while images are generating
+    useEffect(() => {
+        let interval: NodeJS.Timeout | null = null;
+        
+        const hasPendingImages = campaigns.some(c => !c.posts?.[0]?.imageUrl);
+        
+        if ((viewMode === 'CAMPAIGNS' || viewMode === 'HUB') && hasPendingImages) {
+            interval = setInterval(async () => {
+                const campsRes = await getCampaigns();
+                if (campsRes.success) {
+                    setCampaigns(campsRes.campaigns);
+                }
+            }, 6000); // Refresh every 6 seconds
+        }
+        
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [viewMode, campaigns]);
+
     async function loadAllData() {
         setLoading(true)
         try {
