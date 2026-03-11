@@ -9,8 +9,7 @@ export async function POST(req: NextRequest) {
     try {
         const data = await req.json();
         
-        // Fal.ai usually sends data in this format for webhooks
-        // We'll pass custom metadata (messageId, idx, format) in the request
+        // Fal.ai webhook payload structure
         const { request_id, status, payload, metadata } = data;
 
         if (status !== 'OK') {
@@ -24,8 +23,19 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ ok: false });
         }
 
-        const { messageId, postId, idx, format } = metadata || {};
+        // Read context from URL query params (reliable) — falls back to body metadata
+        const { searchParams } = new URL(req.url);
+        const postIdFromUrl = searchParams.get('postId');
+        const idxFromUrl = searchParams.get('idx');
+        const formatFromUrl = searchParams.get('format');
+
+        const { messageId, postId: postIdFromBody, idx: idxFromBody, format: formatFromBody } = metadata || {};
         
+        const postId = postIdFromUrl || postIdFromBody;
+        const idx = idxFromUrl ? parseInt(idxFromUrl) : (idxFromBody ?? 0);
+        const format = formatFromUrl || formatFromBody;
+
+        // messageId is only present for legacy StudioMessage flow (non-campaign)
         if (!messageId && !postId) {
             console.error(`[STUDIO-WEBHOOK] Missing identification (messageId/postId) in metadata`);
             return NextResponse.json({ ok: false });

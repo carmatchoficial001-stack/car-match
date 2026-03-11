@@ -382,40 +382,32 @@ export async function saveStudioToCampaign(data: {
     try {
         console.log('[CAMPAIGN] Saving studio result to persistent campaign...');
 
-        // 1. Create the Campaign
+        // 1. Build webhook URL so Fal.ai can call back after generating
+        const vercelUrl = process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+        const webhookUrl = `${vercelUrl}/api/studio/webhook`;
+
+        // 2. Create the Campaign record
         const campaign = await prisma.publicityCampaign.create({
             data: {
                 title: data.title,
                 startDate: new Date(),
-                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days default
+                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
                 isActive: true,
-                imageUrl: '', // Will be updated when first image is ready
-                metadata: {
-                    strategy: data.strategy,
-                    originalPrompt: data.imagePrompt
-                }
+                imageUrl: '',
+                metadata: { strategy: data.strategy, originalPrompt: data.imagePrompt }
             }
         });
 
-        // 2. Define Platforms and Formats
-        const platforms: SocialPlatform[] = [
-            'TIKTOK', 'INSTAGRAM', 'FACEBOOK', 
-            // Mapping for those not in enum yet (if needed, but sticking to existing enum for safety)
-            // Existing ENUM: FACEBOOK, INSTAGRAM, TIKTOK, TWITTER, LINKEDIN
-            'TWITTER', 'LINKEDIN'
-        ];
+        // 3. Platforms and formats
+        const platforms: SocialPlatform[] = ['TIKTOK', 'INSTAGRAM', 'FACEBOOK', 'TWITTER', 'LINKEDIN'];
+        const formats: Array<'square' | 'vertical' | 'horizontal'> = ['square', 'vertical', 'horizontal'];
 
-        // For platforms not in Prisma enum: we'll use metadata or extend in next step if possible.
-        // But for now, let's create entries for the primary ones.
-        
-        const formats = ['square', 'vertical', 'horizontal'];
-
-        // 3. Create SocialPosts and Trigger Generations
+        // 4. Create SocialPosts and trigger Fal.ai for all 3 sizes
         for (const platform of platforms) {
             const post = await prisma.socialPost.create({
                 data: {
                     campaignId: campaign.id,
-                    platform: platform,
+                    platform,
                     content: data.caption,
                     videoScript: data.videoScript,
                     aiPrompt: data.imagePrompt,
@@ -424,20 +416,23 @@ export async function saveStudioToCampaign(data: {
                 }
             });
 
-            // Trigger generation for all 3 formats for this post
             for (let idx = 0; idx < formats.length; idx++) {
-                const format = formats[idx] as 'square' | 'vertical' | 'horizontal';
-                console.log(`[CAMPAIGN] Triggering ${format} generation for post ${post.id}`);
-                
-                // Use a trick: pass "postId" in metadata for the webhook to find it
-                const result = await triggerFalAsyncGeneration(
-                    data.imagePrompt,
-                    format,
-                    { postId: post.id, idx, format }
-                );
-
-                if (!result.success) {
-                    console.error(`[CAMPAIGN] Failed to trigger ${format} for post ${post.id}`);
+                const format = formats[idx];
+                console.log(`[CAMPAIGN] Triggering Fal.ai ${format} for ${platform}, post ${post.id}`);
+                try {
+                    // Encode postId, idx, format in the URL — Fal.ai always calls back
+                    // to the exact URL provided, so this is the reliable way to pass
+                    // context (Fal doesn't guarantee forwarding of custom body fields).
+                    const callbackUrl = `${webhookUrl}?postId=${encodeURIComponent(post.id)}&idx=${idx}&format=${format}`;
+                    await triggerFalAsyncGeneration({
+                        messageId: post.id,
+                        idx,
+                        format,
+                        prompt: data.imagePrompt,
+                        webhookUrl: callbackUrl
+                    });
+                } catch (genErr) {
+                    console.error(`[CAMPAIGN] Fal.ai trigger failed for ${platform}/${format}:`, genErr);
                 }
             }
         }
@@ -448,6 +443,7 @@ export async function saveStudioToCampaign(data: {
         return { success: false, error: error.message };
     }
 }
+
 
 /**
  * Fetches all campaigns with their posts for the UI.
