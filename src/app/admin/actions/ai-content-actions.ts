@@ -338,6 +338,8 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
             
             JSON Return Schema (DO NOT REPEAT PREVIOUS CAPTIONS):
             {
+                "title": "Nombre ÚNICO y creativo de la campaña",
+                "caption": "Escribe un caption/descripción viral que sea una extensión directa de la imagen propuesta.",
                 "imagePrompt": "HYPER-DETAILED AI prompt (ENGLISH). Focus on extreme angles and cinematic lighting.",
                 "photoCount": "Número de imágenes/slides para esta campaña (ej: 1, 5, 7, 10). Decide según la estrategia.",
                 "videoScript": "Guión de video narrativo en ESPAÑOL.",

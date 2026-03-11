@@ -471,24 +471,26 @@ export async function saveStudioToCampaign(data: {
         // 2. Create the Campaign record
         const campaign = await prisma.publicityCampaign.create({
             data: {
-                title: data.title,
+                title: data.title || 'Nueva Campaña CarMatch',
                 startDate: new Date(),
                 endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
                 isActive: true,
                 imageUrl: '',
-                metadata: { strategy: data.strategy, originalPrompt: data.imagePrompt }
+                metadata: { 
+                    strategy: data.strategy || 'Estrategia de Difusión', 
+                    originalPrompt: data.imagePrompt || '' 
+                }
             }
         });
 
         // 3. Create ONE Universal Post for all social media platforms
-        // This unifies the campaign into a single "Diffusion Social Media" post as requested.
         const post = await prisma.socialPost.create({
             data: {
                 campaignId: campaign.id,
-                platform: 'INSTAGRAM', // We use INSTAGRAM as a base but label it as diffusion in UI/Metadata
-                content: data.caption,
-                videoScript: data.videoScript,
-                aiPrompt: data.imagePrompt,
+                platform: 'INSTAGRAM',
+                content: data.caption || '¡Mira lo nuevo en CarMatch!',
+                videoScript: data.videoScript || '',
+                aiPrompt: data.imagePrompt || '',
                 status: 'DRAFT',
                 targetPersona: 'Universal Diffusion'
             }

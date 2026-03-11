@@ -269,7 +269,7 @@ export default function ImageChat({ initialConversationId }: { initialConversati
                 imagePrompt: campaignData.imagePrompt,
                 timestamp: new Date(),
                 campaignProposal: {
-                    title: campaignData.internal_title,
+                    title: campaignData.title,
                     caption: campaignData.caption,
                     imagePrompt: campaignData.imagePrompt,
                     videoScript: campaignData.videoScript,
