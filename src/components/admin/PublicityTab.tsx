@@ -172,8 +172,9 @@ export default function PublicityTab() {
                                 </div>
                             ))}
                         </div>
-                    ) : (
-                        conversations.length === 0 ? (
+                    )
+                ) : (
+                    conversations.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-center py-20">
                                 <History className="w-12 h-12 text-zinc-800 mb-4" />
                                 <h3 className="text-xl font-black text-zinc-600 uppercase italic">No hay historial</h3>
