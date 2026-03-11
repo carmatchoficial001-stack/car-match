@@ -8,10 +8,28 @@ import {
 } from 'lucide-react'
 import ImageChat from '@/components/admin/ImageChat'
 
-type PublicityView = 'HUB' | 'PHOTO_CHAT' | 'VIDEO_CHAT'
+type PublicityView = 'HUB' | 'PHOTO_CHAT' | 'VIDEO_CHAT' | 'CAMPAIGNS'
+
+import { getCampaigns } from '@/app/admin/actions/image-chat-actions'
+import { useEffect } from 'react'
 
 export default function PublicityTab() {
     const [viewMode, setViewMode] = useState<PublicityView>('HUB')
+    const [campaigns, setCampaigns] = useState<any[]>([])
+    const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        if (viewMode === 'CAMPAIGNS') {
+            loadCampaigns()
+        }
+    }, [viewMode])
+
+    async function loadCampaigns() {
+        setLoading(true)
+        const res = await getCampaigns()
+        if (res.success) setCampaigns(res.campaigns)
+        setLoading(false)
+    }
 
     if (viewMode === 'PHOTO_CHAT') {
         return (
@@ -30,6 +48,75 @@ export default function PublicityTab() {
                 </div>
                 <div className="flex-1 overflow-hidden">
                     <ImageChat />
+                </div>
+            </div>
+        )
+    }
+
+    if (viewMode === 'CAMPAIGNS') {
+        return (
+            <div className="h-full flex flex-col animate-in fade-in duration-500 bg-black/20">
+                <div className="px-6 py-3 border-b border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-xl shrink-0">
+                    <button
+                        onClick={() => setViewMode('HUB')}
+                        className="flex items-center gap-2 text-xs font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-widest"
+                    >
+                        <ChevronRight className="w-4 h-4 rotate-180" />
+                        Volver al Hub
+                    </button>
+                    <div className="flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em]">
+                        <LayoutGrid className="w-3 h-3" /> Galería de Campañas IA
+                    </div>
+                    <button onClick={loadCampaigns} className="p-2 text-zinc-500 hover:text-white active:rotate-180 transition-all">
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                    {campaigns.length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center text-center">
+                            <Megaphone className="w-12 h-12 text-zinc-800 mb-4" />
+                            <h3 className="text-xl font-black text-zinc-600 uppercase italic">No hay campañas activas</h3>
+                            <p className="text-xs text-zinc-700 font-bold uppercase mt-2">Inicia una "Campaña Automática" en el Estudio de Fotos.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {campaigns.map((camp: any) => (
+                                <div key={camp.id} className="bg-[#111114] border border-white/10 rounded-[2.5rem] overflow-hidden flex flex-col group hover:border-emerald-500/30 transition-all shadow-2xl">
+                                    <div className="aspect-[16/9] bg-black relative overflow-hidden">
+                                        {camp.posts?.[0]?.imageUrl ? (
+                                            <img src={camp.posts[0].imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={camp.title} />
+                                        ) : (
+                                            <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+                                                <RefreshCw className="w-6 h-6 text-emerald-500 animate-spin" />
+                                                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Generando Visuales...</span>
+                                            </div>
+                                        )}
+                                        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[9px] font-black text-white uppercase tracking-widest">
+                                            {new Date(camp.createdAt).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                    <div className="p-6 space-y-4">
+                                        <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-tight">{camp.title}</h3>
+                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider line-clamp-3">{camp.posts?.[0]?.content}</p>
+                                        
+                                        <div className="pt-4 border-t border-white/5 flex flex-wrap gap-2">
+                                            {camp.posts?.map((p: any) => (
+                                                <div key={p.id} className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+                                                    <span className="text-[8px] font-black text-emerald-400">{p.platform}</span>
+                                                    {p.imageUrl && <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" />}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        
+                                        <button className="w-full py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all active:scale-95">
+                                            Ver Detalles del Pack
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         )
@@ -77,6 +164,26 @@ export default function PublicityTab() {
 
     return (
         <div className="h-full flex flex-col p-8 space-y-8 overflow-y-auto custom-scrollbar">
+            {/* Hub Header */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <motion.button
+                    whileHover={{ scale: 1.02, y: -5 }}
+                    onClick={() => setViewMode('CAMPAIGNS')}
+                    className="md:col-span-3 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 p-6 rounded-[2.5rem] flex items-center justify-between group shadow-2xl shadow-emerald-500/10"
+                >
+                    <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                            <LayoutGrid className="w-8 h-8 text-emerald-400" />
+                        </div>
+                        <div className="text-left">
+                            <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Historial de Campañas</h3>
+                            <p className="text-[10px] text-emerald-400/70 font-black uppercase tracking-[0.2em]">Gestiona tus activos virales generados</p>
+                        </div>
+                    </div>
+                    <ChevronRight className="w-8 h-8 text-emerald-500 group-hover:translate-x-2 transition-transform" />
+                </motion.button>
+            </div>
+
             {/* Hub Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
                 {/* Image Studio Card */}

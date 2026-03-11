@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { saveStudioMessage, getStudioHistory } from "./studio-history-actions"
 import { performFalGeneration, triggerFalAsyncGeneration } from "./studio-generate-logic"
+import { SocialPlatform } from "@prisma/client"
 import fs from 'fs'
 import path from 'path'
 
@@ -362,6 +363,119 @@ export async function reportClientError(messageId: string, error: string) {
 async function robustUploadBufferToCloudinary(buffer: Buffer) {
     const { uploadBufferToCloudinary } = await import('@/lib/cloudinary-server');
     return await uploadBufferToCloudinary(buffer);
+}
+
+// --- CAMPAIGNS INTEGRATION ---
+
+/**
+ * Converts an AI Studio strategy into a persistent PublicityCampaign with SocialPosts.
+ * Triggers background generation for all platform/format triplets.
+ */
+export async function saveStudioToCampaign(data: {
+    title: string;
+    strategy: string;
+    caption: string;
+    imagePrompt: string;
+    videoScript: string;
+    userId: string;
+}) {
+    try {
+        console.log('[CAMPAIGN] Saving studio result to persistent campaign...');
+
+        // 1. Create the Campaign
+        const campaign = await prisma.publicityCampaign.create({
+            data: {
+                title: data.title,
+                startDate: new Date(),
+                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days default
+                isActive: true,
+                imageUrl: '', // Will be updated when first image is ready
+                metadata: {
+                    strategy: data.strategy,
+                    originalPrompt: data.imagePrompt
+                }
+            }
+        });
+
+        // 2. Define Platforms and Formats
+        const platforms: SocialPlatform[] = [
+            'TIKTOK', 'INSTAGRAM', 'FACEBOOK', 
+            // Mapping for those not in enum yet (if needed, but sticking to existing enum for safety)
+            // Existing ENUM: FACEBOOK, INSTAGRAM, TIKTOK, TWITTER, LINKEDIN
+            'TWITTER', 'LINKEDIN'
+        ];
+
+        // For platforms not in Prisma enum: we'll use metadata or extend in next step if possible.
+        // But for now, let's create entries for the primary ones.
+        
+        const formats = ['square', 'vertical', 'horizontal'];
+
+        // 3. Create SocialPosts and Trigger Generations
+        for (const platform of platforms) {
+            const post = await prisma.socialPost.create({
+                data: {
+                    campaignId: campaign.id,
+                    platform: platform,
+                    content: data.caption,
+                    videoScript: data.videoScript,
+                    aiPrompt: data.imagePrompt,
+                    status: 'DRAFT',
+                    targetPersona: 'Auto-generated'
+                }
+            });
+
+            // Trigger generation for all 3 formats for this post
+            for (let idx = 0; idx < formats.length; idx++) {
+                const format = formats[idx] as 'square' | 'vertical' | 'horizontal';
+                console.log(`[CAMPAIGN] Triggering ${format} generation for post ${post.id}`);
+                
+                // Use a trick: pass "postId" in metadata for the webhook to find it
+                const result = await triggerFalAsyncGeneration(
+                    data.imagePrompt,
+                    format,
+                    { postId: post.id, idx, format }
+                );
+
+                if (!result.success) {
+                    console.error(`[CAMPAIGN] Failed to trigger ${format} for post ${post.id}`);
+                }
+            }
+        }
+
+        return { success: true, campaignId: campaign.id };
+    } catch (error: any) {
+        console.error('[CAMPAIGN] Error saving campaign:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Fetches all campaigns with their posts for the UI.
+ */
+export async function getCampaigns() {
+    try {
+        const campaigns = await prisma.publicityCampaign.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: {
+                // Since there is no formal relation in schema.prisma for SocialPost -> PublicityCampaign
+                // (it's optional String? campaignId), we'll have to fetch manually if needed or check relations.
+                // Wait, schema.prisma line 844: campaignId String? (no relation defined)
+            }
+        });
+
+        // Manual relation mapping since Prisma schema doesn't have it defined
+        const allPosts = await prisma.socialPost.findMany();
+
+        const result = campaigns.map(c => ({
+            ...c,
+            posts: allPosts.filter(p => p.campaignId === c.id)
+        }));
+
+        return { success: true, campaigns: result };
+    } catch (error: any) {
+        console.error('[CAMPAIGN] Error fetching campaigns:', error);
+        return { success: false, error: error.message };
+    }
 }
 
 export async function generateRandomCampaign(conversationId?: string) {

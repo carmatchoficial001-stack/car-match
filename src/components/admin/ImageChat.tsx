@@ -266,49 +266,44 @@ export default function ImageChat() {
         }
     }
 
+    // --- AUTOMATIC CAMPAIGN HANDLER ---
+    // --- AUTOMATIC CAMPAIGN HANDLER ---
     const handleAutoCampaign = async () => {
-        setIsLoading(true)
-        try {
-            const result = await generateRandomCampaign(activeConversationId || undefined)
+        setIsLoading(true);
+        setStatus('Calculando estrategia viral...');
 
-            if (result.success) {
-                // If it was a new conversation, update the state
-                if (result.conversationId && (!activeConversationId || activeConversationId !== result.conversationId)) {
-                    setActiveConversationId(result.conversationId)
-                    fetchConversations()
-                    
-                    // Crucial: Load the full history to make sure the user and assistant messages are there
-                    const hist = await getStudioHistory(result.conversationId)
-                    if (hist.success) {
-                        setMessages(hist.messages)
-                    }
-                } else {
-                    // Just append to current messages
-                    const userMsg: ChatMessage = {
-                        id: `user-auto-${Date.now()}`,
-                        role: 'user',
-                        content: result.usedPrompt || '🚀 Iniciando Campaña Automática...',
-                        timestamp: new Date()
-                    }
-                    const assistantMsg: ChatMessage = {
-                        id: result.messageId || `assistant-${Date.now()}`,
-                        role: 'assistant',
-                        content: result.message || '',
-                        type: result.type,
-                        imagePrompt: result.imagePrompt,
-                        images: result.images || {},
-                        platforms: result.platforms,
-                        timestamp: new Date()
-                    }
-                    setMessages(prev => [...prev, userMsg, assistantMsg])
-                }
-            } else {
-                alert(`Error: ${result.message}`)
-            }
+        try {
+            // 1. Get Strategy from IA
+            const res = await suggestCampaignFromInventory();
+            if (!res.success) throw new Error(res.error);
+
+            setStatus('Creando campaña persistente...');
+            
+            // 2. Save it to the real Campaigns database
+            const campaignRes = await saveStudioToCampaign({
+                title: res.campaignData.internal_title,
+                strategy: res.campaignData.strategy,
+                caption: res.campaignData.caption,
+                imagePrompt: res.campaignData.imagePrompt,
+                videoScript: res.campaignData.videoScript,
+                userId: session?.user?.id || 'admin'
+            });
+
+            if (!campaignRes.success) throw new Error(campaignRes.error);
+
+            // 3. Inform user and refresh
+            setStatus('¡Campaña Lanzada! Redirigiendo...');
+            
+            alert('¡ÉXITO! Tu campaña se está generando en segundo plano. Búscala en la pestaña de "Campañas".');
+            
+            window.location.reload(); 
+
         } catch (error: any) {
-            console.error('Auto campaign error:', error)
+            console.error('Error in Auto Campaign:', error);
+            alert('Error: ' + error.message);
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
+            setStatus('');
         }
     }
 
