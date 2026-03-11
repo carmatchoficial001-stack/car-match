@@ -738,7 +738,7 @@ function PromptProposalCard({
                                 className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 py-4 rounded-2xl text-sm font-black text-white uppercase tracking-widest transition-all shadow-2xl shadow-emerald-500/30 active:scale-95"
                             >
                                 <Zap className="w-5 h-5 fill-current" />
-                                Crear Campaña → Generar Imágenes en las 3 Redes
+                                Crear Campaña → Publicar en todas las redes
                             </button>
                         )}
                         <div className="flex items-center gap-2">
