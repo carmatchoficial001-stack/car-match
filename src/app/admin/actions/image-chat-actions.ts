@@ -67,14 +67,13 @@ INCLUYE OBLIGATORIAMENTE: Autos, Motos, Camiones, Camionetas, Cuatrimotos, Buggi
 🔗 REGLA DE ENLACES OBLIGATORIA:
 - TODA descripción viral para redes sociales DEBE incluir el enlace "carmatchapp.net" de forma natural y atractiva. ES OBLIGATORIO en cada post.
 
-🎨 ESTÉTICA Y BRANDING:
+🎨 ESTÉTICA Y TEMÁTICA:
 - Producción cinemática 8k, iluminación "God Rays", estilo de alto nivel.
-- SIEMPRE 9:16 Vertical.
+- SIEMPRE respeta el tema pedido por el usuario y el país/slang local.
 - Branding "CarMatch" INTEGRADO ORGÁNICAMENTE: Grafiti, letreros neón, ropa, placas, paredes, etc. NUNCA marcas de agua flotantes.
 
-🚨 REGLA DE ORO DE CIERRE (COMUNIDAD):
-- En contenido multi-imagen, la última SIEMPRE es un TIP EDUCATIVO para Compradores, Vendedores o Negocios (Talleres, Refaccionarias, etc. - EXCEPTO servicios públicos).
-- El tip debe invitar a unirse a CarMatch usando "carmatchapp.net".
+🚨 REGLA DE ORO DE CIERRE:
+- En contenido multi-imagen, la última SIEMPRE es un TIP EDUCATIVO que invita a unirse a CarMatch usando "carmatchapp.net".
 `;
 
 /**
@@ -170,9 +169,19 @@ MODO CONVERSACIÓN (cuando el usuario está explorando ideas):
 - NUNCA digas "como asistente..." — eres un experto con carácter.
 - Devuelve JSON con: {"type": "CHAT", "message": "tu respuesta aquí"}
 
-MODO PROMPT FINAL (cuando el usuario dice "dame el prompt", "listo", "genera", "hazlo" o similar):
-- Devuelve el JSON completo con todos los parámetros para generar las imágenes.
-- {"type": "PROMPT_READY", "message": "...", "imagePrompt": "...", "photoCount": N, "contentType": "CARRUSEL|TRIVIA|POLL|TIP|MEME|VERSUS|HISTORIA|SPOTLIGHT|RETO|EDUCATIVO|NOTICIA|VIRAL", "platforms": {"instagram": true, "tiktok": true, "facebook": true, "x": true, "kwai": true, "threads": true, "snapchat": true, "google_ads": true}}
+MODO PROMPT_READY (cuando el usuario dice "dame el prompt", "listo", "genera", "hazlo" o similar):
+- Devuelve el JSON completo con todos los parámetros indispensables.
+- {
+    "type": "PROMPT_READY", 
+    "message": "Mensaje de éxito para el usuario", 
+    "title": "Título épico de la campaña",
+    "strategy": "Plan de viralismo breve",
+    "caption": "Descripción viral de ALTO IMPACTO que incluya SIEMPRE el link: carmatchapp.net",
+    "imagePrompt": "Prompt técnico en INGLÉS", 
+    "photoCount": N (MÍNIMO 2: 1 de contenido + 1 slide final de CTA/Consejo), 
+    "contentType": "CARRUSEL|TRIVIA|POLL|TIP|MEME|VERSUS|HISTORIA|SPOTLIGHT|RETO|EDUCATIVO|NOTICIA|VIRAL", 
+    "platforms": {"instagram": true, "tiktok": true, "facebook": true, "x": true, "kwai": true, "threads": true, "snapchat": true, "google_ads": true}
+  }
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 HISTORIAL DE LA CONVERSACIÓN:
@@ -214,8 +223,8 @@ Responde ÚNICAMENTE con JSON válido.`
 
         if (data.type === 'PROMPT_READY' && data.imagePrompt) {
             const imagePrompt = data.imagePrompt
-            const DEFAULT_PHOTO_COUNT = 11;
-            const count = Math.max(1, Math.min(100, data.photoCount || DEFAULT_PHOTO_COUNT));
+            const DEFAULT_PHOTO_COUNT = 2; // Always at least Content + Final CTA
+            const count = Math.max(2, Math.min(100, data.photoCount || DEFAULT_PHOTO_COUNT));
 
             const finalImages: Record<string, any> = {
                 '_status': 'generating',
@@ -231,7 +240,8 @@ Responde ÚNICAMENTE con JSON válido.`
                         parts: [{ text: `Eres el DIRECTOR DE ARTE DE CARMATCH. Tu misión es refinar prompts para que sean obras de arte cinemáticas.
 ${CORE_CARMATCH_VISION}
 
-REGLA CRÍTICA: Mantén la esencia del usuario pero eleva la calidad visual al nivel de una película de Hollywood.
+REGLA CRÍTICA: Mantén la esencia y el TEMA elegido por el usuario pero eleva la calidad visual. 
+ASEGÚRATE de incluir "carmatchapp.net" si el prompt original lo mencionaba o si es para el slide final.
 Refina este prompt para Fal.ai (Flux): "${imagePrompt}"` }]
                     }]
                 }) as any;
@@ -246,7 +256,14 @@ Refina este prompt para Fal.ai (Flux): "${imagePrompt}"` }]
                 type: 'PROMPT_READY',
                 imagePrompt: refinedPrompt,
                 images: finalImages,
-                platforms: data.platforms || {}
+                platforms: data.platforms || {},
+                campaignProposal: {
+                    title: data.title || 'Nueva Campaña',
+                    strategy: data.strategy || 'Estrategia de Difusión Viral',
+                    caption: data.caption || '¡Mira lo nuevo en CarMatch!',
+                    imagePrompt: refinedPrompt,
+                    videoScript: data.videoScript || '',
+                }
             })
             
             if (saveRes.success) {
@@ -262,6 +279,13 @@ Refina este prompt para Fal.ai (Flux): "${imagePrompt}"` }]
                 imagePrompt: refinedPrompt,
                 images: finalImages,
                 platforms: data.platforms || {},
+                campaignProposal: {
+                    title: data.title || 'Nueva Campaña',
+                    strategy: data.strategy || 'Estrategia de Difusión Viral',
+                    caption: data.caption || '¡Mira lo nuevo en CarMatch! carmatchapp.net',
+                    imagePrompt: refinedPrompt,
+                    videoScript: data.videoScript || '',
+                }
             }
         }
 
@@ -492,12 +516,18 @@ export async function saveStudioToCampaign(data: {
             }
         });
 
+        // 🛡️ Safety: Ensure "carmatchapp.net" is in the caption
+        let finalCaption = data.caption || '¡Mira lo nuevo en CarMatch!';
+        if (!finalCaption.toLowerCase().includes('carmatchapp.net')) {
+            finalCaption += ' ✨ Únete a la comunidad: carmatchapp.net';
+        }
+
         // 3. Create ONE Universal Post for all social media platforms
         const post = await prisma.socialPost.create({
             data: {
                 campaignId: campaign.id,
                 platform: 'INSTAGRAM',
-                content: data.caption || '¡Mira lo nuevo en CarMatch!',
+                content: finalCaption,
                 videoScript: data.videoScript || '',
                 aiPrompt: data.imagePrompt || '',
                 status: 'DRAFT',
@@ -505,17 +535,27 @@ export async function saveStudioToCampaign(data: {
             }
         });
 
-        const photoCount = data.photoCount || 1;
+        // 🛡️ Ensure minimum photoCount for campaigns (Content + Final Slide)
+        const photoCount = Math.max(2, data.photoCount || 2);
         const callbackUrlBase = `${webhookUrl}?postId=${encodeURIComponent(post.id)}&format=vertical`;
+
+        await prisma.systemLog.create({
+            data: {
+                level: 'INFO',
+                source: 'STUDIO-TRIGGER',
+                message: `Triggering ${photoCount} images for Post ${post.id}`,
+                metadata: { callbackUrlBase, photoCount, imagePrompt: data.imagePrompt }
+            }
+        });
         
         try {
             console.log(`[CAMPAIGN] Triggering UNIVERSAL generation for post ${post.id} (Count: ${photoCount})`);
             
             for (let i = 0; i < photoCount; i++) {
-                // 🐌 Artificial Throttling: Wait 1.5s between each image in the carousel
+                // 🐌 SEGURO DE SEMÁFORO: Esperar 2.5s entre cada imagen del carrete
                 if (i > 0) {
-                    console.log(`[CAMPAIGN] Throttling for slide ${i}...`);
-                    await delay(1500);
+                    console.log(`[CAMPAIGN] Aplicando semáforo para slide ${i}...`);
+                    await delay(2500); 
                 }
 
                 const callbackUrl = `${callbackUrlBase}&idx=${i}`;

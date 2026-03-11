@@ -339,10 +339,10 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
             
             JSON Return Schema (DO NOT REPEAT PREVIOUS CAPTIONS):
             {
-                "title": "Nombre ÚNICO y creativo de la campaña",
-                "caption": "Escribe un caption/descripción viral que sea una extensión directa de la imagen propuesta. INCLUYE SIEMPRE el link: carmatchapp.net",
-                "imagePrompt": "HYPER-DETAILED AI prompt (ENGLISH). Focus on extreme angles and cinematic lighting.",
-                "photoCount": "Número de imágenes/slides para esta campaña (ej: 1, 5, 7, 10). Decide según la estrategia.",
+                "title": "Nombre ÚNICO y creativo de la campaña (Ej: El Despertar del Motor)",
+                "caption": "Escribe un caption/descripción viral de ALTO IMPACTO que sea una extensión directa de la imagen propuesta. DEBE INCLUIR EL LINK: carmatchapp.net",
+                "imagePrompt": "HYPER-DETAILED AI prompt (ENGLISH). Focus on extreme angles, cinematic lighting, and atmospheric effects.",
+                "photoCount": "Número TOTAL de imágenes (mínimo 2: Contenido + Slide Final de CTA/Consejo). Decide según la estrategia necesaria.",
                 "videoScript": "Guión de video narrativo en ESPAÑOL.",
                 "strategy": "Plan de viralismo: por qué la gente comentará y compartirá."
             }
@@ -351,10 +351,10 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
         // TIMEOUT & FALLBACK Protection
         let text = "";
         const FALLBACK_STRATEGY_JSON = JSON.stringify({
-            "internal_title": "Campaña de Rescate CarMatch",
-            "caption": "🔥 ¿Aun no tienes el auto de tus sueños? 🚗💨 Encuéntralo en CarMatch. La App #1 de compra-venta segura. 👇 ¡Descarga YA!",
-            "imagePrompt": "Futuristic mobile app car match interface, high quality automotive branding, 8k cinematic",
-            "photoCount": 3,
+            "title": "Campaña de Rescate CarMatch",
+            "caption": "🔥 ¿Aun no tienes el auto de tus sueños? 🚗💨 Encuéntralo en CarMatch. La App #1 de compra-venta segura. 👇 ¡Descarga YA en carmatchapp.net!",
+            "imagePrompt": "Futuristic mobile app car match interface, high quality automotive branding, 8k cinematic lighting, ultra detailed 4k",
+            "photoCount": 2,
             "videoScript": "Tu auto ideal a un solo click.",
             "strategy": "Estrategia de rescate para usuarios que necesitan una nave ya."
         });

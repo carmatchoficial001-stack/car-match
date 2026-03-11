@@ -234,6 +234,7 @@ export default function ImageChat({ initialConversationId }: { initialConversati
                 imagePrompt: result.type === 'PROMPT_READY' ? result.imagePrompt : undefined,
                 images: result.images || {},
                 platforms: result.type === 'PROMPT_READY' ? result.platforms : undefined,
+                campaignProposal: result.type === 'PROMPT_READY' ? result.campaignProposal : undefined,
                 timestamp: new Date()
             }
 
