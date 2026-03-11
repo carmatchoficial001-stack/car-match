@@ -510,6 +510,17 @@ export async function saveStudioToCampaign(data: {
                 }
 
                 const callbackUrl = `${callbackUrlBase}&idx=${i}`;
+
+                // --- 🕵️‍♂️ PERSISTENT DEBUG LOGGING ---
+                await prisma.systemLog.create({
+                    data: {
+                        level: 'INFO',
+                        source: 'STUDIO-TRIGGER',
+                        message: `Triggering Fal.ai for post ${post.id} (slide ${i})`,
+                        metadata: { callbackUrl, photoCount, prompt: data.imagePrompt }
+                    }
+                });
+
                 await triggerFalAsyncGeneration({
                     messageId: post.id,
                     idx: i,
@@ -519,8 +530,16 @@ export async function saveStudioToCampaign(data: {
                 });
                 console.log(`[CAMPAIGN] ✅ Triggered slide ${i} for post ${post.id}`);
             }
-        } catch (genErr) {
+        } catch (genErr: any) {
             console.error(`[CAMPAIGN] Fal.ai trigger failed:`, genErr);
+            await prisma.systemLog.create({
+                data: {
+                    level: 'ERROR',
+                    source: 'STUDIO-TRIGGER',
+                    message: `Fal.ai trigger FAILED: ${genErr.message}`,
+                    metadata: { error: genErr }
+                }
+            });
         }
 
         return { success: true, campaignId: campaign.id };

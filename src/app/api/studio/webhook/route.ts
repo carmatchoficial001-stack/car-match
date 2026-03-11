@@ -11,6 +11,16 @@ export async function POST(req: NextRequest) {
     try {
         const data = await req.json();
         
+        // --- 🕵️‍♂️ PERSISTENT DEBUG LOGGING ---
+        await prisma.systemLog.create({
+            data: {
+                level: 'INFO',
+                source: 'STUDIO-WEBHOOK',
+                message: `Webhook received for URL: ${req.url}`,
+                metadata: data
+            }
+        });
+        
         // Fal.ai webhook payload structure
         const { request_id, status, payload, metadata } = data;
 
@@ -45,48 +55,65 @@ export async function POST(req: NextRequest) {
 
         console.log(`[STUDIO-WEBHOOK] Received image for ${messageId || postId} [${idx}/${format}]`);
 
-        // 1. Upload to Cloudinary (Speed optimization: Direct URL upload)
-        const uploadRes = await uploadUrlToCloudinary(imageUrl);
+        // 1. Robust Upload to Cloudinary
+        const uploadRes = await robustUploadToCloudinary(imageUrl, 'carmatch/publicity');
+        
         if (!uploadRes.success) {
-            console.error(`[STUDIO-WEBHOOK] Cloudinary upload failed:`, uploadRes.error);
+            await prisma.systemLog.create({
+                data: {
+                    level: 'ERROR',
+                    source: 'STUDIO-WEBHOOK',
+                    message: `Cloudinary upload FAILED for ${messageId || postId}`,
+                    metadata: { error: uploadRes.error, imageUrl }
+                }
+            });
             return NextResponse.json({ ok: false });
         }
 
         const secureUrl = uploadRes.secure_url!;
+        const publicId = uploadRes.public_id!;
 
         // 2. Atomic Database Update
         if (postId) {
             // Apply CarMatch logo overlay naturally via Cloudinary URL transformation
-            const uploadRes2 = await uploadUrlToCloudinary(secureUrl, 'carmatch/publicity');
-            const publicId = uploadRes2.success ? uploadRes2.public_id! : '';
-            const logoUrl = publicId ? applyLogoOverlay(publicId) : secureUrl;
-            const finalUrl = logoUrl || secureUrl;
+            const finalUrl = applyLogoOverlay(publicId) || secureUrl;
 
             const metaUpdate = JSON.stringify({
                 [`img_${idx}_${format}`]: finalUrl,
                 '_lastUpdate': Date.now()
             });
 
+            // Update Post
             await prisma.$executeRawUnsafe(
                 `UPDATE "SocialPost" SET "imageUrl" = (CASE WHEN "imageUrl" IS NULL OR "imageUrl" = '' THEN $1 ELSE "imageUrl" END), metadata = COALESCE(metadata, '{}'::jsonb) || $2::jsonb, status = 'APPROVED' WHERE id = $3`,
                 finalUrl,
                 metaUpdate,
                 postId
             );
-            // also update campaign metadata to include the image for faster display
+            
+            // Update Campaign (for thumbnail/preview)
             await prisma.$executeRawUnsafe(
                 `UPDATE "PublicityCampaign" SET "imageUrl" = (CASE WHEN "imageUrl" IS NULL OR "imageUrl" = '' THEN $1 ELSE "imageUrl" END) WHERE id = (SELECT "campaignId" FROM "SocialPost" WHERE id = $2)`,
                 finalUrl,
                 postId
             );
+
+            await prisma.systemLog.create({
+                data: {
+                    level: 'SUCCESS',
+                    source: 'STUDIO-WEBHOOK',
+                    message: `Post ${postId} updated successfully with image ${idx}`,
+                    metadata: { finalUrl }
+                }
+            });
+
         } else if (messageId) {
             const imagesToMerge: Record<string, any> = {
                 [`img_${idx}_${format}`]: secureUrl,
                 '_lastUpdate': Date.now(),
-                '_isBatchWorking': false // Release lock
+                '_isBatchWorking': false 
             };
 
-            // Fallback for legacy UI expectations
             if (format === 'square') imagesToMerge['square'] = secureUrl;
             if (idx === 0) {
                 if (format === 'vertical') imagesToMerge['vertical'] = secureUrl;
@@ -100,14 +127,28 @@ export async function POST(req: NextRequest) {
                 jsonToMerge,
                 messageId
             );
+
+            await prisma.systemLog.create({
+                data: {
+                    level: 'SUCCESS',
+                    source: 'STUDIO-WEBHOOK',
+                    message: `StudioMessage ${messageId} updated successfully`,
+                    metadata: { secureUrl }
+                }
+            });
         }
-
-
-        console.log(`[STUDIO-WEBHOOK] ✅ Successfully updated message ${messageId}`);
 
         return NextResponse.json({ ok: true });
     } catch (error: any) {
         console.error('[STUDIO-WEBHOOK] Critical Error:', error);
+        await prisma.systemLog.create({
+            data: {
+                level: 'ERROR',
+                source: 'STUDIO-WEBHOOK',
+                message: `CRITICAL ERROR: ${error.message}`,
+                metadata: { stack: error.stack }
+            }
+        });
         return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
     }
 }
