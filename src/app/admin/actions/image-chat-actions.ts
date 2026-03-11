@@ -4,7 +4,6 @@ import { buildImageUrl } from '@/lib/admin/utils'
 import { uploadUrlToCloudinary, robustUploadToCloudinary, uploadBufferToCloudinary } from '@/lib/cloudinary-server'
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
-export const maxDuration = 60 // Allow up to 60s for Gemini high-quality generation
 import { saveStudioMessage, getStudioHistory } from "./studio-history-actions"
 import { performFalGeneration, triggerFalAsyncGeneration } from "./studio-generate-logic"
 import { SocialPlatform } from "@prisma/client"

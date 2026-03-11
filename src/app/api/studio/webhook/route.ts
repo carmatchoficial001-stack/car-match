@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { uploadUrlToCloudinary, applyLogoOverlay } from '@/lib/cloudinary-server';
 
+export const maxDuration = 60; // Webhook needs time to upload to Cloudinary and composite the logo
+
 /**
  * Webhook handler for Fal.ai asynchronous generation
  */

@@ -8,6 +8,8 @@ export const metadata: Metadata = {
     title: "Admin Panel - CarMatch",
 };
 
+export const maxDuration = 60; // Extended timeout for all admin actions (AI generation)
+
 export default function AdminLayout({
     children,
 }: {
