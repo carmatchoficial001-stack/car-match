@@ -333,13 +333,14 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
             2. **INTEGRATED NARRATIVE**: The "caption" (viral description) MUST be 100% specific to the "imagePrompt". Mixed them perfectly.
             3. **VIRAL MOODS**: Dynamically apply high-impact styles: *High-Octane Action (Transformers/Michael Bay)*, *Cyberpunk Future*, or *Vintage 35mm Nostalgia*.
             4. **LOCAL RELEVANCE**: Use slang and themes that resonate with ${randomPersona} in ${country.name}.
+            5. **OBLIGATORY LINK**: Every single caption MUST include "carmatchapp.net" naturally to invite users to the platform.
             
             Target Audience: ${randomPersona} in ${country.name}. Use local slang: ${country.slang}.
             
             JSON Return Schema (DO NOT REPEAT PREVIOUS CAPTIONS):
             {
                 "title": "Nombre ÚNICO y creativo de la campaña",
-                "caption": "Escribe un caption/descripción viral que sea una extensión directa de la imagen propuesta.",
+                "caption": "Escribe un caption/descripción viral que sea una extensión directa de la imagen propuesta. INCLUYE SIEMPRE el link: carmatchapp.net",
                 "imagePrompt": "HYPER-DETAILED AI prompt (ENGLISH). Focus on extreme angles and cinematic lighting.",
                 "photoCount": "Número de imágenes/slides para esta campaña (ej: 1, 5, 7, 10). Decide según la estrategia.",
                 "videoScript": "Guión de video narrativo en ESPAÑOL.",

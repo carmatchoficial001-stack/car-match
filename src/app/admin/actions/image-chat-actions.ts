@@ -65,7 +65,7 @@ CarMatch NO es solo una app de venta. Es la COMUNIDAD SUPREMA de todo lo motoriz
 INCLUYE OBLIGATORIAMENTE: Autos, Motos, Camiones, Camionetas, Cuatrimotos, Buggies, Motocarros, Talleres Mecánicos, Detailers, Refaccionarias, Drift Teams, Car Meets, Autolavados, Tuners, y Coleccionistas.
 
 🔗 REGLA DE ENLACES OBLIGATORIA:
-- TODA descripción viral para redes sociales DEBE incluir el enlace "carmatchapp.net" de forma natural y atractiva para invitar a la audiencia a unirse.
+- TODA descripción viral para redes sociales DEBE incluir el enlace "carmatchapp.net" de forma natural y atractiva. ES OBLIGATORIO en cada post.
 
 🎨 ESTÉTICA Y BRANDING:
 - Producción cinemática 8k, iluminación "God Rays", estilo de alto nivel.
