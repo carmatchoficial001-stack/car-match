@@ -92,6 +92,12 @@ export async function POST(req: NextRequest) {
                 metaUpdate,
                 postId
             );
+            // also update campaign metadata to include the image for faster display
+            await prisma.$executeRawUnsafe(
+                `UPDATE "PublicityCampaign" SET "imageUrl" = (CASE WHEN "imageUrl" IS NULL OR "imageUrl" = '' THEN $1 ELSE "imageUrl" END) WHERE id = (SELECT "campaignId" FROM "SocialPost" WHERE id = $2)`,
+                finalUrl,
+                postId
+            );
         }
 
 

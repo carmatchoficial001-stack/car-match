@@ -54,6 +54,23 @@ function getRequiredFormats() {
 
 
 
+const CORE_CARMATCH_VISION = `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 MISIÓN PRINCIPAL (INMUTABLE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CarMatch NO es solo una app de venta. Es la COMUNIDAD SUPREMA de todo lo motorizado terrestre.
+INCLUYE OBLIGATORIAMENTE: Autos, Motos, Camiones, Camionetas, Cuatrimotos, Buggies, Motocarros, Talleres Mecánicos, Detailers, Refaccionarias, Drift Teams, Car Meets, Autolavados, Tuners, y Coleccionistas.
+
+🎨 ESTÉTICA Y BRANDING:
+- Producción cinemática 8k, iluminación "God Rays", estilo de alto nivel.
+- SIEMPRE 9:16 Vertical.
+- Branding "CarMatch" INTEGRADO ORGÁNICAMENTE: Grafiti, letreros neón, ropa, placas, paredes, etc. NUNCA marcas de agua flotantes.
+
+🚨 REGLA DE ORO DE CIERRE (COMUNIDAD):
+- En contenido multi-imagen, la última SIEMPRE es un TIP EDUCATIVO para Compradores, Vendedores o Negocios (Talleres, Refaccionarias, etc. - EXCEPTO servicios públicos).
+- El tip debe invitar a unirse a CarMatch.
+`;
+
 /**
  * Main chat function — Creative Director AI
  */
@@ -73,15 +90,8 @@ export async function chatWithImageDirector(
             `${m.role === 'user' ? 'USUARIO' : 'DIRECTOR CREATIVO'}: ${m.content}`
         ).join('\n')
 
-        const prompt = `Eres el DIRECTOR CREATIVO y COMMUNITY MANAGER MAESTRO de CarMatch.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎯 MISIÓN PRINCIPAL
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CarMatch NO es una app de venta de autos. CarMatch es una COMUNIDAD de todo lo motorizado terrestre:
-autos, motos, camiones, camionetas, cuatrimotos, buggies, motocarros, talleres mecánicos, detailers, refaccionarias, drift teams, car meets, autolavados, tuners, coleccionistas, y cualquier negocio de esa industria.
-
-TU TRABAJO: Crear contenido que GENERE COMUNIDAD, no que venda. La gente debe querer seguir, compartir, comentar, participar.
+        const prompt = `Eres el DIRECTOR CREATIVO Y ESTRATEGA DE COMUNIDAD de CarMatch. 
+${CORE_CARMATCH_VISION}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📦 FORMATOS QUE DOMINAS
@@ -208,15 +218,15 @@ Responde ÚNICAMENTE con JSON válido.`
                 '_lastUpdate': Date.now()
             }
 
-            const directorPrompt = `Eres el DIRECTOR DE ARTE MULTIMODAL de CarMatch. Tu objetivo es crear imágenes de clase mundial con BRANDING ORGÁNICO.
-            🚨 REGLA DE ORO DE BRANDING: integra "CarMatch" NATURALMENTE en la escena.`;
-
-            let refinedPrompt = imagePrompt;
             try {
                 const refinement = await geminiFlashConversational.generateContent({
                     contents: [{
                         role: 'user',
-                        parts: [{ text: `${directorPrompt}\n\nRefina este prompt: "${imagePrompt}"` }]
+                        parts: [{ text: `Eres el DIRECTOR DE ARTE DE CARMATCH. Tu misión es refinar prompts para que sean obras de arte cinemáticas.
+${CORE_CARMATCH_VISION}
+
+REGLA CRÍTICA: Mantén la esencia del usuario pero eleva la calidad visual al nivel de una película de Hollywood.
+Refina este prompt para Fal.ai (Flux): "${imagePrompt}"` }]
                     }]
                 }) as any;
                 const aiRefined = refinement.response.text().trim();

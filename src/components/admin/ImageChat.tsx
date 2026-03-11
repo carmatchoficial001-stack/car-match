@@ -57,11 +57,9 @@ const QUICK_PRESETS = [
 
 export default function ImageChat({ initialConversationId }: { initialConversationId?: string }) {
     const [messages, setMessages] = useState<ChatMessage[]>([])
-    const [conversations, setConversations] = useState<any[]>([])
     const [activeConversationId, setActiveConversationId] = useState<string | null>(initialConversationId || null)
     const [input, setInput] = useState('')
     const [isLoading, setIsLoading] = useState(false)
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false) // Default closed on mobile
     const [isMobile, setIsMobile] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
@@ -71,37 +69,11 @@ export default function ImageChat({ initialConversationId }: { initialConversati
         const checkMobile = () => {
             const mobile = window.innerWidth < 768
             setIsMobile(mobile)
-            setIsSidebarOpen(!mobile) // Open by default on desktop, closed on mobile
         }
         checkMobile()
         window.addEventListener('resize', checkMobile)
         return () => window.removeEventListener('resize', checkMobile)
     }, [])
-
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }
-
-    // 🔄 LOAD CONVERSATIONS ON MOUNT
-    const fetchConversations = async () => {
-        const res = await getStudioConversations()
-        if (res.success && res.conversations) {
-            setConversations(res.conversations)
-        }
-    }
-
-    useEffect(() => {
-        fetchConversations()
-    }, [])
-
-    useEffect(() => {
-        scrollToBottom()
-    }, [messages])
-
-    useEffect(() => {
-        inputRef.current?.focus()
-    }, [activeConversationId])
 
     const handleSelectConversation = async (id: string) => {
         setActiveConversationId(id)
@@ -112,6 +84,25 @@ export default function ImageChat({ initialConversationId }: { initialConversati
         }
         setIsLoading(false)
     }
+
+    // 🔄 LOAD INITIAL CONVERSATION
+    useEffect(() => {
+        if (initialConversationId) {
+            handleSelectConversation(initialConversationId)
+        }
+    }, [initialConversationId])
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+
+    useEffect(() => {
+        scrollToBottom()
+    }, [messages])
+
+    useEffect(() => {
+        inputRef.current?.focus()
+    }, [activeConversationId])
 
     // 🔄 ORCHESTRATE GENERATION (ROBUST RECURSIVE POLLING)
     useEffect(() => {
@@ -201,7 +192,7 @@ export default function ImageChat({ initialConversationId }: { initialConversati
             if (saveUserRes.success) {
                 currentConvId = saveUserRes.conversationId
                 setActiveConversationId(currentConvId!)
-                fetchConversations() // Update sidebar
+                // No need to fetch conversations for sidebar anymore
             }
         } else {
             // Background save for existing conversations
@@ -234,7 +225,6 @@ export default function ImageChat({ initialConversationId }: { initialConversati
             if (result.conversationId && !activeConversationId) {
                 setActiveConversationId(result.conversationId)
             }
-
             const assistantMsg: ChatMessage = {
                 id: result.messageId || `assistant-${Date.now()}`,
                 role: 'assistant',
@@ -331,7 +321,6 @@ export default function ImageChat({ initialConversationId }: { initialConversati
         const res = await clearStudioHistory()
         if (res.success) {
             setMessages([])
-            setConversations([])
             setActiveConversationId(null)
         }
         setIsLoading(false)
@@ -358,19 +347,6 @@ export default function ImageChat({ initialConversationId }: { initialConversati
 
     return (
         <div className="flex h-full bg-[#0A0A0B] overflow-hidden">
-            {/* Sidebar Overlay for Mobile */}
-            <AnimatePresence>
-                {isMobile && isSidebarOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setIsSidebarOpen(false)}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
-                    />
-                )}
-            </AnimatePresence>
-
             {/* Main Chat Area */}
             <div className="flex-1 flex flex-col relative h-full">
                 {/* Header */}
