@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { uploadUrlToCloudinary } from '@/lib/cloudinary-server';
+import { uploadUrlToCloudinary, applyLogoOverlay } from '@/lib/cloudinary-server';
 
 /**
  * Webhook handler for Fal.ai asynchronous generation
@@ -75,23 +75,25 @@ export async function POST(req: NextRequest) {
                 messageId
             );
         } else if (postId) {
-            // Update SocialPost record
-            // We'll use metadata Json field in SocialPost to store the multiple sizes if needed, 
-            // or just update primary imageUrl for the first one.
-            
-            // Let's store all sizes in the metadata since SocialPost only has one imageUrl field
+            // Apply CarMatch logo overlay naturally via Cloudinary URL transformation
+            const uploadRes2 = await uploadUrlToCloudinary(secureUrl, 'carmatch/publicity');
+            const publicId = uploadRes2.success ? uploadRes2.public_id! : '';
+            const logoUrl = publicId ? applyLogoOverlay(publicId) : secureUrl;
+            const finalUrl = logoUrl || secureUrl;
+
             const metaUpdate = JSON.stringify({
-                [`img_${format}`]: secureUrl,
+                [`img_${format}`]: finalUrl,
                 '_lastUpdate': Date.now()
             });
 
             await prisma.$executeRawUnsafe(
                 `UPDATE "SocialPost" SET "imageUrl" = (CASE WHEN "imageUrl" IS NULL OR "imageUrl" = '' THEN $1 ELSE "imageUrl" END), metadata = COALESCE(metadata, '{}'::jsonb) || $2::jsonb, status = 'APPROVED' WHERE id = $3`,
-                secureUrl,
+                finalUrl,
                 metaUpdate,
                 postId
             );
         }
+
 
         console.log(`[STUDIO-WEBHOOK] ✅ Successfully updated message ${messageId}`);
 

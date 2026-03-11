@@ -146,3 +146,37 @@ export async function robustUploadToCloudinary(url: string, folder: string = 'ca
 
     return { success: false, error: 'Max retries reached' };
 }
+
+/**
+ * Applies the CarMatch logo naturally onto a Cloudinary image.
+ * The logo public_id must be set via CARMATCH_LOGO_PUBLIC_ID env var.
+ * 
+ * Uses multiple natural placement strategies to make it look organic:
+ * - Subtle corner placement (low opacity, blend mode)
+ * - Or full-blended artistic effect
+ * 
+ * @param imagePublicId The public_id of the base image in Cloudinary
+ * @returns The new secure URL with the logo composited naturally
+ */
+export function applyLogoOverlay(imagePublicId: string): string {
+    const logoPublicId = process.env.CARMATCH_LOGO_PUBLIC_ID;
+    if (!logoPublicId || !imagePublicId) return '';
+
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    
+    // Random placement strategy for variety
+    const strategies = [
+        // Bottom-right corner: subtle, professional
+        `l_${logoPublicId.replace(/\//g, ':')},w_0.20,o_55,g_south_east,x_40,y_40,e_brightness:-10`,
+        // Bottom-left corner: graffiti feel
+        `l_${logoPublicId.replace(/\//g, ':')},w_0.18,o_60,g_south_west,x_30,y_35,e_art:incognito`,
+        // Center-bottom: billboard/mural style (low opacity)
+        `l_${logoPublicId.replace(/\//g, ':')},w_0.25,o_40,g_south,y_60,e_screen`,
+        // Top-left: jersey/clothing style
+        `l_${logoPublicId.replace(/\//g, ':')},w_0.15,o_65,g_north_west,x_25,y_25`,
+    ];
+    
+    const chosen = strategies[Math.floor(Math.random() * strategies.length)];
+    
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${chosen}/f_auto,q_auto/${imagePublicId}`;
+}
