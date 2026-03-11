@@ -184,14 +184,48 @@ export default function PublicityTab() {
                                     {campaigns.map((camp) => (
                                         <div key={camp.id} className="bg-[#111114] border border-white/10 rounded-[2.5rem] overflow-hidden flex flex-col group hover:border-emerald-500/30 transition-all shadow-2xl relative">
                                             <div className="aspect-[16/9] bg-black relative overflow-hidden">
-                                                {camp.posts?.[0]?.imageUrl ? (
-                                                    <img src={camp.posts[0].imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" alt={camp.title} />
-                                                ) : (
-                                                    <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-                                                        <RefreshCw className="w-6 h-6 text-emerald-500 animate-spin" />
-                                                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Generando...</span>
-                                                    </div>
-                                                )}
+                                                {(() => {
+                                                    const post = camp.posts?.[0];
+                                                    if (!post?.imageUrl) {
+                                                        return (
+                                                            <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+                                                                <RefreshCw className="w-6 h-6 text-emerald-500 animate-spin" />
+                                                                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Generando...</span>
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    // Extract all images from metadata (img_N_vertical)
+                                                    const meta = (post.metadata || {}) as any;
+                                                    const extraImages = Object.keys(meta)
+                                                        .filter(k => k.startsWith('img_') && k.endsWith('_vertical'))
+                                                        .sort((a, b) => {
+                                                            const idxA = parseInt(a.split('_')[1]);
+                                                            const idxB = parseInt(b.split('_')[1]);
+                                                            return idxA - idxB;
+                                                        })
+                                                        .map(k => meta[k]);
+
+                                                    if (extraImages.length > 1) {
+                                                        return (
+                                                            <div className="w-full h-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide">
+                                                                {extraImages.map((url: string, i: number) => (
+                                                                    <img 
+                                                                        key={i} 
+                                                                        src={url} 
+                                                                        className="w-full h-full object-cover shrink-0 snap-center" 
+                                                                        alt={`${camp.title} - ${i}`} 
+                                                                    />
+                                                                ))}
+                                                                <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-black text-white uppercase border border-white/10">
+                                                                    Desliza » {extraImages.length} Fotos
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    return <img src={post.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" alt={camp.title} />;
+                                                })()}
                                             </div>
                                             <div className="p-6 space-y-4">
                                                 <div className="flex justify-between items-start">
@@ -225,16 +259,21 @@ export default function PublicityTab() {
                                                 </div>
                                                 
                                                 <div className="pt-4 border-t border-white/5 flex flex-wrap gap-2">
-                                                    {camp.posts?.map((p: any) => (
-                                                        <div key={p.id} className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
-                                                            <span className="text-[8px] font-black text-emerald-400">{p.platform}</span>
-                                                            {p.imageUrl && <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" />}
-                                                        </div>
-                                                    ))}
+                                                    <div className="flex items-center gap-1.5 bg-emerald-500/5 px-2.5 py-1 rounded-lg border border-emerald-500/10">
+                                                        <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Difusión Universal</span>
+                                                        <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
+                                                    </div>
+                                                    <span className="text-[7px] text-zinc-600 font-bold uppercase self-center ml-auto">Todas las Redes</span>
                                                 </div>
                                                 
-                                                <button className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all active:scale-95">
-                                                    Ver Detalles del Pack
+                                                <button 
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(camp.posts?.[0]?.content || '');
+                                                        alert('¡Texto Viral Copiado!');
+                                                    }}
+                                                    className="w-full py-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all active:scale-95"
+                                                >
+                                                    Copiar Contenido Maestro
                                                 </button>
                                             </div>
                                         </div>

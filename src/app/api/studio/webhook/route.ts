@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
             const finalUrl = logoUrl || secureUrl;
 
             const metaUpdate = JSON.stringify({
-                [`img_${format}`]: finalUrl,
+                [`img_${idx}_${format}`]: finalUrl,
                 '_lastUpdate': Date.now()
             });
 

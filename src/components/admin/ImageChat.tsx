@@ -34,6 +34,7 @@ interface ChatMessage {
         imagePrompt: string
         videoScript: string
         strategy: string
+        photoCount: number
     }
 }
 
@@ -272,7 +273,8 @@ export default function ImageChat({ initialConversationId }: { initialConversati
                     caption: campaignData.caption,
                     imagePrompt: campaignData.imagePrompt,
                     videoScript: campaignData.videoScript,
-                    strategy: campaignData.strategy
+                    strategy: campaignData.strategy,
+                    photoCount: campaignData.photoCount ? parseInt(campaignData.photoCount) : 3
                 }
             }
             setMessages(prev => [
@@ -298,13 +300,18 @@ export default function ImageChat({ initialConversationId }: { initialConversati
         if (!proposal) return
         setIsLoading(true)
         try {
+            // Find the photoCount from the message that contains this proposal
+            const messageWithPhotoCount = messages.find(m => m.campaignProposal?.title === proposal.title);
+            const photoCount = (messageWithPhotoCount?.images as any)?._photoCount || 1;
+
             const res = await saveStudioToCampaign({
                 title: proposal.title,
                 strategy: proposal.strategy,
                 caption: proposal.caption,
                 imagePrompt: proposal.imagePrompt,
                 videoScript: proposal.videoScript,
-                userId: 'admin'
+                userId: 'admin',
+                photoCount
             })
             if (!res.success) throw new Error(res.error)
             alert('🚀 ¡Campaña lanzada! Las imágenes se generan en segundo plano. Ve a la pestaña "Campañas" para verla.')

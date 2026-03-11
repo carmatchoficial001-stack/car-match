@@ -338,9 +338,8 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
             
             JSON Return Schema (DO NOT REPEAT PREVIOUS CAPTIONS):
             {
-                "internal_title": "Nombre ÚNICO de la campaña",
-                "caption": "Escribe un caption que sea una extensión directa de la imagen propuesta. No uses plantillas genéricas.",
                 "imagePrompt": "HYPER-DETAILED AI prompt (ENGLISH). Focus on extreme angles and cinematic lighting.",
+                "photoCount": "Número de imágenes/slides para esta campaña (ej: 1, 5, 7, 10). Decide según la estrategia.",
                 "videoScript": "Guión de video narrativo en ESPAÑOL.",
                 "strategy": "Plan de viralismo: por qué la gente comentará y compartirá."
             }
@@ -352,6 +351,7 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
             "internal_title": "Campaña de Rescate CarMatch",
             "caption": "🔥 ¿Aun no tienes el auto de tus sueños? 🚗💨 Encuéntralo en CarMatch. La App #1 de compra-venta segura. 👇 ¡Descarga YA!",
             "imagePrompt": "Futuristic mobile app car match interface, high quality automotive branding, 8k cinematic",
+            "photoCount": 3,
             "videoScript": "Tu auto ideal a un solo click.",
             "strategy": "Estrategia de rescate para usuarios que necesitan una nave ya."
         });

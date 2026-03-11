@@ -12,6 +12,9 @@ import path from 'path'
 
 const RAW_LOG_FILE = 'e:/carmatchapp/studio-raw.log';
 
+// Helper for artificial delay
+const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
 function rawLog(msg: string) {
     try {
         const timestamp = new Date().toISOString();
@@ -443,9 +446,20 @@ export async function saveStudioToCampaign(data: {
     imagePrompt: string;
     videoScript: string;
     userId: string;
+    photoCount?: number;
 }) {
     try {
         console.log('[CAMPAIGN] Saving studio result to persistent campaign...');
+
+        // 🛡️ Basic Rate Limit / Concurrency Protection (Simple Semaphore)
+        // Check if there's a campaign created in the last 15 seconds to avoid double-triggers
+        const recentCampaign = await prisma.publicityCampaign.findFirst({
+            where: { createdAt: { gte: new Date(Date.now() - 15000) } }
+        });
+        if (recentCampaign) {
+            console.warn('[CAMPAIGN] Batch already in progress. Skipping duplicate trigger.');
+            return { success: true, campaignId: recentCampaign.id };
+        }
 
         // 1. Build webhook URL so Fal.ai can call back after generating
         const { headers: nextHeaders } = require('next/headers');
@@ -466,40 +480,45 @@ export async function saveStudioToCampaign(data: {
             }
         });
 
-        // 3. Platforms — exactly what the user requested
-        const platforms: SocialPlatform[] = [
-            'TIKTOK', 'INSTAGRAM', 'FACEBOOK', 
-            'TWITTER', 'KWAI', 'THREADS', 'SNAPCHAT', 'GOOGLE_ADS'
-        ];
+        // 3. Create ONE Universal Post for all social media platforms
+        // This unifies the campaign into a single "Diffusion Social Media" post as requested.
+        const post = await prisma.socialPost.create({
+            data: {
+                campaignId: campaign.id,
+                platform: 'INSTAGRAM', // We use INSTAGRAM as a base but label it as diffusion in UI/Metadata
+                content: data.caption,
+                videoScript: data.videoScript,
+                aiPrompt: data.imagePrompt,
+                status: 'DRAFT',
+                targetPersona: 'Universal Diffusion'
+            }
+        });
 
-        // 4. Create ONE SocialPost per platform and trigger ONE vertical image
-        // Vertical 9:16 is the best single format: native for TikTok, Reels, Stories, Kwai, Snapchat
-        for (const platform of platforms) {
-            const post = await prisma.socialPost.create({
-                data: {
-                    campaignId: campaign.id,
-                    platform,
-                    content: data.caption,
-                    videoScript: data.videoScript,
-                    aiPrompt: data.imagePrompt,
-                    status: 'DRAFT',
-                    targetPersona: 'Auto-generated'
+        const photoCount = data.photoCount || 1;
+        const callbackUrlBase = `${webhookUrl}?postId=${encodeURIComponent(post.id)}&format=vertical`;
+        
+        try {
+            console.log(`[CAMPAIGN] Triggering UNIVERSAL generation for post ${post.id} (Count: ${photoCount})`);
+            
+            for (let i = 0; i < photoCount; i++) {
+                // 🐌 Artificial Throttling: Wait 1.5s between each image in the carousel
+                if (i > 0) {
+                    console.log(`[CAMPAIGN] Throttling for slide ${i}...`);
+                    await delay(1500);
                 }
-            });
 
-            const callbackUrl = `${webhookUrl}?postId=${encodeURIComponent(post.id)}&idx=0&format=vertical`;
-            try {
+                const callbackUrl = `${callbackUrlBase}&idx=${i}`;
                 await triggerFalAsyncGeneration({
                     messageId: post.id,
-                    idx: 0,
+                    idx: i,
                     format: 'vertical',
                     prompt: data.imagePrompt,
                     webhookUrl: callbackUrl
                 });
-                console.log(`[CAMPAIGN] ✅ Triggered vertical for ${platform}, post ${post.id}`);
-            } catch (genErr) {
-                console.error(`[CAMPAIGN] Fal.ai trigger failed for ${platform}:`, genErr);
+                console.log(`[CAMPAIGN] ✅ Triggered slide ${i} for post ${post.id}`);
             }
+        } catch (genErr) {
+            console.error(`[CAMPAIGN] Fal.ai trigger failed:`, genErr);
         }
 
         return { success: true, campaignId: campaign.id };
