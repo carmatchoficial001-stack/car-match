@@ -358,12 +358,13 @@ export async function processNextImageBatch(messageId: string) {
         const t = pendingTasks[0];
         try {
             console.log(`[STUDIO-ASYNC] Queuing [${t.idx}/${t.format}] for ${messageId}`);
+            const callbackUrl = `${webhookUrl}?messageId=${encodeURIComponent(messageId)}&idx=${t.idx}&format=${t.format}`;
             await triggerFalAsyncGeneration({
                 messageId,
                 idx: t.idx,
                 format: t.format,
                 prompt,
-                webhookUrl
+                webhookUrl: callbackUrl
             });
 
             // Update status
@@ -447,8 +448,11 @@ export async function saveStudioToCampaign(data: {
         console.log('[CAMPAIGN] Saving studio result to persistent campaign...');
 
         // 1. Build webhook URL so Fal.ai can call back after generating
-        const vercelUrl = process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-        const webhookUrl = `${vercelUrl}/api/studio/webhook`;
+        const { headers: nextHeaders } = require('next/headers');
+        const headersList = await nextHeaders();
+        const host = headersList.get('host') || 'carmatchapp.net';
+        const protocol = host.includes('localhost') ? 'http' : 'https';
+        const webhookUrl = `${protocol}://${host}/api/studio/webhook`;
 
         // 2. Create the Campaign record
         const campaign = await prisma.publicityCampaign.create({

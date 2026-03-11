@@ -27,7 +27,7 @@ export async function triggerFalAsyncGeneration(params: {
     const p = prompt + `, high quality, masterpiece, variation ${idx}, professional photography`;
 
     // 🧪 Use Fal.ai Queue API (Asynchronous)
-    const response = await fetch('https://fal.run/fal-ai/flux/schnell', {
+    const response = await fetch('https://queue.fal.run/fal-ai/flux/schnell', {
         method: 'POST',
         headers: {
             'Authorization': `Key ${falKey}`,
@@ -41,7 +41,7 @@ export async function triggerFalAsyncGeneration(params: {
             num_inference_steps: 4,
             enable_safety_checker: true,
             // Custom metadata to handle the result in the webhook
-            _metadata: { messageId, idx, format }
+            metadata: { messageId, idx, format }
         })
     });
 
