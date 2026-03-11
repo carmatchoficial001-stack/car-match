@@ -8,7 +8,7 @@ import {
     Trash2, Megaphone, Check, Copy, RefreshCw, X 
 } from 'lucide-react'
 import ImageChat from '@/components/admin/ImageChat'
-import { getCampaigns } from '@/app/admin/actions/image-chat-actions'
+import { getCampaigns, deleteCampaign } from '@/app/admin/actions/image-chat-actions'
 import { getStudioConversations, deleteStudioConversation } from '@/app/admin/actions/studio-history-actions'
 
 type PublicityView = 'HUB' | 'PHOTO_CHAT' | 'VIDEO_CHAT' | 'CAMPAIGNS'
@@ -51,6 +51,19 @@ export default function PublicityTab() {
         if (res.success) {
             setDrafts(prev => prev.filter(d => d.id !== id))
         }
+    }
+
+    const handleDeleteCampaign = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation()
+        if (!confirm('¿Estás seguro de eliminar esta campaña por completo?')) return
+        setLoading(true)
+        const res = await deleteCampaign(id)
+        if (res.success) {
+            setCampaigns(prev => prev.filter(c => c.id !== id))
+        } else {
+            alert('Error al eliminar la campaña')
+        }
+        setLoading(false)
     }
 
     // --- RENDERERS ---
@@ -163,15 +176,23 @@ export default function PublicityTab() {
                                             <div className="p-6 space-y-4">
                                                 <div className="flex justify-between items-start">
                                                     <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-tight">{camp.title}</h3>
+                                                    <div className="flex gap-2 shrink-0">
                                                     <button 
                                                         onClick={() => {
                                                             navigator.clipboard.writeText(camp.posts?.[0]?.content || '');
                                                             alert('¡Texto Viral Copiado!');
                                                         }}
-                                                        className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-colors shrink-0"
+                                                        className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-colors"
                                                     >
                                                         <Copy className="w-4 h-4" />
                                                     </button>
+                                                    <button 
+                                                        onClick={(e) => handleDeleteCampaign(e, camp.id)}
+                                                        className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                                 </div>
                                                 
                                                 <div className="space-y-2">

@@ -533,6 +533,29 @@ export async function getCampaigns() {
     }
 }
 
+export async function deleteCampaign(id: string) {
+    try {
+        const session = await auth()
+        // @ts-ignore
+        if (!session?.user?.id || !session.user.isAdmin) throw new Error("Unauthorized: Admin only")
+
+        // Delete associated posts first (manual since no formal cascade in schema)
+        await prisma.socialPost.deleteMany({
+            where: { campaignId: id }
+        });
+
+        // Delete the campaign
+        await prisma.publicityCampaign.delete({
+            where: { id: id }
+        });
+
+        return { success: true };
+    } catch (error: any) {
+        console.error('[CAMPAIGN] Delete Error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
 export async function generateRandomCampaign(conversationId?: string) {
     const NICHES = [
         "Noticias de último minuto (Lanzamiento mundial de un Hypercar en un escenario futurista)",
