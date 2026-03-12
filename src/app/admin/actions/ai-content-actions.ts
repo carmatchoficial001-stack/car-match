@@ -396,7 +396,9 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
 
         try {
             const result = await Promise.race([
-                geminiFlashConversational.generateContent(prompt),
+                geminiFlashConversational.generateContent({
+                    contents: [{ role: 'user', parts: [{ text: prompt }] }]
+                }),
                 new Promise<any>((_, reject) => setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 15000))
             ]);
             text = result.response.text();
@@ -410,7 +412,10 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
         const jsonString = cleanJsonResponse(text)
 
         try {
-            const campaignData = JSON.parse(jsonString)
+            let campaignData = JSON.parse(jsonString)
+
+            // 🛡️ APPLY COMPLIANCE
+            campaignData = ensureAutopilotCompliance(campaignData);
 
             // Ensure videoScript is a string
             if (Array.isArray(campaignData.videoScript)) {
@@ -423,7 +428,7 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
             console.log('[AUTO-PILOT] Iniciando tareas IA asíncronas...')
 
             // Mock vehicle object for UI compatibility
-            const vehicleMock = { title: `Campaña: ${randomBrandHook.hook}`, price: 0, currency: 'USD', description: campaignData.strategy }
+            const vehicleMock = { title: `Campaña: ${randomBrandHook.hook}`, price: 0, currency: 'USD', description: campaignData.strategy || 'Estrategia de CarMatch Social' }
 
             return { success: true, vehicle: vehicleMock, campaignData }
         } catch (e) {
