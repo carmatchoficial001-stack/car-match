@@ -62,7 +62,7 @@ const CORE_CARMATCH_VISION = `
 ⚖️ LEYES DE ORO (INVIOLABLES / ZERO TOLERANCE)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 1. IDENTIDAD: El nombre es "CarMatch Social" (NUNCA solo CarMatch).
-2. ENLACE: TODA descripción viral DEBE incluir "carmatchapp.net". Sin falta.
+2. ENLACE: TODA descripción viral DEBE incluir exactamente: "Compra, vende y descubre en carmatchapp.net".
 3. ESTRUCTURA: Los packs son de MÍNIMO 2 imágenes (Contenido + Slide Final de Consejo/CTA).
 4. BRANDING: Logo "CarMatch Social" integrado en la escena (grafiti, neón, etc.).
 5. SEMÁFORO: Las imágenes se generan una por una con 2.5s de espera (automático).
@@ -91,8 +91,9 @@ function ensureGoldenRulesCompliance(data: any) {
     const fixLink = (text: string) => {
         if (!text) return text;
         const link = "carmatchapp.net";
+        const fullPhrase = "Compra, vende y descubre en carmatchapp.net";
         if (!text.toLowerCase().includes(link)) {
-            return `${text.trim()} ✨ Únete en ${link}`;
+            return `${text.trim()} ✨ ${fullPhrase}`;
         }
         return text;
     };
@@ -329,7 +330,7 @@ Refina este prompt para Fal.ai (Flux): "${imagePrompt}"` }]
                 campaignProposal: {
                     title: data.title || 'Nueva Campaña CarMatch Social',
                     strategy: data.strategy || 'Estrategia de viralismo para la comunidad motorizada.',
-                    caption: data.caption || '¡Mira lo nuevo en CarMatch Social! carmatchapp.net',
+                    caption: data.caption || '¡Mira lo nuevo en CarMatch Social! Compra, vende y descubre en carmatchapp.net',
                     imagePrompt: refinedPrompt,
                     videoScript: data.videoScript || '',
                 }
@@ -571,7 +572,7 @@ export async function saveStudioToCampaign(data: {
         // 🛡️ Safety: Ensure "carmatchapp.net" is in the caption
         let finalCaption = data.caption || '¡Mira lo nuevo en CarMatch Social!';
         if (!finalCaption.toLowerCase().includes('carmatchapp.net')) {
-            finalCaption += ' ✨ Únete a la comunidad: carmatchapp.net';
+            finalCaption += ' ✨ Compra, vende y descubre en carmatchapp.net';
         }
 
         // 3. Create ONE Universal Post for all social media platforms

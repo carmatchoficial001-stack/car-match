@@ -362,8 +362,9 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
             const fixLink = (text: string) => {
                 if (!text) return text;
                 const link = "carmatchapp.net";
+                const fullPhrase = "Compra, vende y descubre en carmatchapp.net";
                 if (!text.toLowerCase().includes(link)) {
-                    return `${text.trim()} ✨ Únete en ${link}`;
+                    return `${text.trim()} ✨ ${fullPhrase}`;
                 }
                 return text;
             };
@@ -386,7 +387,7 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
         let text = "";
         const FALLBACK_STRATEGY_JSON = JSON.stringify({
             "title": "Campaña de Rescate CarMatch Social",
-            "caption": "🔥 ¿Aun no tienes el auto de tus sueños? 🚗💨 Encuéntralo en CarMatch Social. La App #1 de compra-venta segura. 👇 ¡Descarga YA en carmatchapp.net!",
+            "caption": "🔥 ¿Aun no tienes el auto de tus sueños? 🚗💨 Encuéntralo en CarMatch Social. La App #1 de compra-venta segura. 👇 Compra, vende y descubre en carmatchapp.net",
             "imagePrompt": "Futuristic mobile app car match interface, high quality automotive branding, 8k cinematic lighting, ultra detailed 4k",
             "photoCount": 2,
             "videoScript": "Tu auto ideal a un solo click.",
