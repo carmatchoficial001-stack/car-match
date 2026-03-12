@@ -623,7 +623,7 @@ export async function saveStudioToCampaign(data: {
                 });
 
                 await triggerFalAsyncGeneration({
-                    messageId: post.id,
+                    postId: post.id,
                     idx: i,
                     format: 'vertical',
                     prompt: data.imagePrompt,

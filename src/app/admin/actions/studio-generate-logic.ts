@@ -6,17 +6,15 @@ import { uploadUrlToCloudinary } from '@/lib/cloudinary-server'
  */
 
 
-/**
- * Triggers asynchronous generation on Fal.ai using webhooks to bypass Vercel timeouts.
- */
 export async function triggerFalAsyncGeneration(params: {
-    messageId: string;
+    messageId?: string;
+    postId?: string;
     idx: number;
     format: 'vertical' | 'horizontal' | 'square';
     prompt: string;
     webhookUrl: string;
 }) {
-    const { messageId, idx, format, prompt, webhookUrl } = params;
+    const { messageId, postId, idx, format, prompt, webhookUrl } = params;
     const falKey = process.env.FAL_KEY || "";
     
     let w = 1024, h = 1024;
@@ -42,7 +40,7 @@ export async function triggerFalAsyncGeneration(params: {
             enable_safety_checker: true,
             webhook_url: webhookUrl, // <--- REQUERIDO POR FAL QUEUE API
             // Custom metadata to handle the result in the webhook
-            metadata: { messageId, idx, format }
+            metadata: { messageId, postId, idx, format }
         })
     });
 
