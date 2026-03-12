@@ -342,11 +342,45 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
                 "title": "Nombre ÚNICO y creativo de la campaña (Ej: El Despertar del Motor)",
                 "caption": "Escribe un caption/descripción viral de ALTO IMPACTO que sea una extensión directa de la imagen propuesta. DEBE INCLUIR EL LINK: carmatchapp.net",
                 "imagePrompt": "HYPER-DETAILED AI prompt (ENGLISH). Focus on extreme angles, cinematic lighting, and atmospheric effects.",
-                "photoCount": "Número TOTAL de imágenes (mínimo 2: Contenido + Slide Final de CTA/Consejo). Decide según la estrategia necesaria.",
+                "photoCount": 2, 
                 "videoScript": "Guión de video narrativo en ESPAÑOL.",
                 "strategy": "Plan de viralismo: por qué la gente comentará y compartirá."
             }
         `
+
+        /**
+         * 🛡️ AUTOPILOT COMPLIANCE LAYER
+         */
+        const ensureAutopilotCompliance = (data: any) => {
+            if (!data) return data;
+            
+            const fixBranding = (text: string) => {
+                if (!text) return text;
+                return text.replace(/CarMatch(?!\s+Social)/gi, "CarMatch Social");
+            };
+
+            const fixLink = (text: string) => {
+                if (!text) return text;
+                const link = "carmatchapp.net";
+                if (!text.toLowerCase().includes(link)) {
+                    return `${text.trim()} ✨ Únete en ${link}`;
+                }
+                return text;
+            };
+
+            if (data.title) data.title = fixBranding(data.title);
+            if (data.strategy) data.strategy = fixBranding(data.strategy);
+            if (data.caption) {
+                data.caption = fixBranding(data.caption);
+                data.caption = fixLink(data.caption);
+            }
+            
+            // Force minimum 2 images
+            const count = parseInt(String(data.photoCount || "2"));
+            data.photoCount = Math.max(2, isNaN(count) ? 2 : count);
+
+            return data;
+        };
 
         // TIMEOUT & FALLBACK Protection
         let text = "";
@@ -418,7 +452,7 @@ export async function chatWithPublicityAgent(messages: any[], targetCountry: str
             REGLAS DEL COMITÉ (ANTI-GENÉRICO):
             - ** Psicología Aplicada **: Usa tácticas de dopamina, fomo (miedo a perderte algo), y curiosidad insaciable en tus copies.
             - ** Nicho Profundo **: Si alguien dice "un Toyota", tú hablas del 2JZ del Supra. Domina la cultura de los fierros al 200%.
-            - ** Asesoría de Diseño **: Si el usuario pide Trivias o texto pesados, aconséjale audazmente: "La Trivia la pondremos visualmente en un fondo liso u oscuro ultra-premium para que no pelee con el auto".
+            - ** Asesoría de Diseño **: Eres el DIRECTOR DE ARTE DE CARMATCH SOCIAL. Tu misión es refinar prompts para que sean obras de arte cinemáticas.
             - ** Estrategia Agresiva **: Si el usuario propone algo aburrido, dile "Tu idea es muy básica, mi equipo de estrategas sugiere inyectarle este ángulo viral...". 
             - ** Identidad **: Eres el Vocero de este Comité de 10 Agentes Legendarios.
         `;

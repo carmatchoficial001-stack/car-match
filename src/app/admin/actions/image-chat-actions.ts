@@ -59,22 +59,66 @@ function getRequiredFormats() {
 
 const CORE_CARMATCH_VISION = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎯 MISIÓN PRINCIPAL (INMUTABLE)
+⚖️ LEYES DE ORO (INVIOLABLES / ZERO TOLERANCE)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CarMatch Social NO es solo una app de venta. Es la COMUNIDAD SUPREMA de todo lo motorizado terrestre.
-INCLUYE OBLIGATORIAMENTE: Autos, Motos, Camiones, Camionetas, Cuatrimotos, Buggies, Motocarros, Talleres Mecánicos, Detailers, Refaccionarias, Drift Teams, Car Meets, Autolavados, Tuners, y Coleccionistas.
+1. IDENTIDAD: El nombre es "CarMatch Social" (NUNCA solo CarMatch).
+2. ENLACE: TODA descripción viral DEBE incluir "carmatchapp.net". Sin falta.
+3. ESTRUCTURA: Los packs son de MÍNIMO 2 imágenes (Contenido + Slide Final de Consejo/CTA).
+4. BRANDING: Logo "CarMatch Social" integrado en la escena (grafiti, neón, etc.).
+5. SEMÁFORO: Las imágenes se generan una por una con 2.5s de espera (automático).
 
-🔗 REGLA DE ENLACES OBLIGATORIA:
-- TODA descripción viral para redes sociales DEBE incluir el enlace "carmatchapp.net" de forma natural y atractiva. ES OBLIGATORIO en cada post.
-
-🎨 ESTÉTICA Y TEMÁTICA:
-- Producción cinemática 8k, iluminación "God Rays", estilo de alto nivel.
-- SIEMPRE respeta el tema pedido por el usuario y el país/slang local.
-- Branding "CarMatch Social" INTEGRADO ORGÁNICAMENTE: Grafiti, letreros neón, ropa, placas, paredes, etc. NUNCA marcas de agua flotantes.
-
-🚨 REGLA DE ORO DE CIERRE:
-- En contenido multi-imagen, la última SIEMPRE es un TIP EDUCATIVO que invita a unirse a CarMatch Social usando "carmatchapp.net".
+🎯 MISIÓN: CarMatch Social es la COMUNIDAD SUPREMA de todo lo motorizado.
+INCLUYE: Autos, Motos, Camiones, Talleres, Detailers, Car Meets, y más.
+🎨 ESTÉITCA: Cinemática 8k, "God Rays", alto nivel.
 `;
+
+/**
+ * 🛡️ COMPLIANCE LAYER: Forces the "Golden Rules" programmatically.
+ * If the AI forgets, the code fixes it before the user sees it.
+ */
+function ensureGoldenRulesCompliance(data: any) {
+    if (!data) return data;
+
+    // 1. Force rebranding to "CarMatch Social"
+    const fixBranding = (text: string) => {
+        if (!text) return text;
+        // Replace "CarMatch" with "CarMatch Social" if "Social" isn't already there
+        // Use a regex to avoid double "Social Social"
+        return text.replace(/CarMatch(?!\s+Social)/gi, "CarMatch Social");
+    };
+
+    // 2. Force mandatory link "carmatchapp.net"
+    const fixLink = (text: string) => {
+        if (!text) return text;
+        const link = "carmatchapp.net";
+        if (!text.toLowerCase().includes(link)) {
+            return `${text.trim()} ✨ Únete en ${link}`;
+        }
+        return text;
+    };
+
+    // Apply to message (for CHAT)
+    if (data.type === 'CHAT' && data.message) {
+        data.message = fixBranding(data.message);
+    }
+
+    // Apply to all fields for PROMPT_READY
+    if (data.type === 'PROMPT_READY') {
+        if (data.title) data.title = fixBranding(data.title);
+        if (data.strategy) data.strategy = fixBranding(data.strategy);
+        if (data.caption) {
+            data.caption = fixBranding(data.caption);
+            data.caption = fixLink(data.caption);
+        }
+        
+        // 3. Force minimum 2 images
+        if (!data.photoCount || data.photoCount < 2) {
+            data.photoCount = 2;
+        }
+    }
+
+    return data;
+}
 
 /**
  * Main chat function — Creative Director AI
@@ -153,8 +197,8 @@ Detecta automáticamente qué formato pide el usuario y ajusta el photoCount:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Para TODO formato que tenga más de 1 imagen (Carrusel, Trivia, Educativo, etc.), la ÚLTIMA IMAGEN SIEMPRE DEBE SER UN LLAMADO A LA ACCIÓN (CTA) QUE CONSTRUYA COMUNIDAD.
 - En el prompt de la última imagen, especifica un texto overlay con un *buen consejo* dirigido a: Compradores, Vendedores, o Negocios Automotrices (talleres, lavado, refaccionarias, detailers — NUNCA servicios públicos).
-- Ejemplo de texto: "TIP PARA COMPRADORES: Revisa el historial. Únete a la comunidad CarMatch" o "TIP PARA NEGOCIOS: Ofrece garantía. Registra tu taller en CarMatch".
-- El fondo de esta última imagen debe tener el logo/nombre de CarMatch integrado orgánicamente, dando cierre al pack.
+- Ejemplo de texto: "TIP PARA COMPRADORES: Revisa el historial. Únete a la comunidad CarMatch Social" o "TIP PARA NEGOCIOS: Ofrece garantía. Registra tu taller en CarMatch Social".
+- El fondo de esta última imagen debe tener el logo/nombre de CarMatch Social integrado orgánicamente, dando cierre al pack.
 - ASEGÚRATE de sumar esta imagen extra al "photoCount".
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -217,7 +261,10 @@ Responde ÚNICAMENTE con JSON válido.`
         }
 
         const cleanedResult = cleanJsonResponse(responseText)
-        const data = JSON.parse(cleanedResult)
+        let data = JSON.parse(cleanedResult)
+
+        // 🛡️ APPLY COMPLIANCE LAYER
+        data = ensureGoldenRulesCompliance(data);
 
         let targetConvId = conversationId;
 
@@ -237,7 +284,7 @@ Responde ÚNICAMENTE con JSON válido.`
                 const refinement = await geminiFlashConversational.generateContent({
                     contents: [{
                         role: 'user',
-                        parts: [{ text: `Eres el DIRECTOR DE ARTE DE CARMATCH. Tu misión es refinar prompts para que sean obras de arte cinemáticas.
+                        parts: [{ text: `Eres el DIRECTOR DE ARTE DE CARMATCH SOCIAL. Tu misión es refinar prompts para que sean obras de arte cinemáticas.
 ${CORE_CARMATCH_VISION}
 
 REGLA CRÍTICA: Mantén la esencia y el TEMA elegido por el usuario pero eleva la calidad visual. 
@@ -280,9 +327,9 @@ Refina este prompt para Fal.ai (Flux): "${imagePrompt}"` }]
                 images: finalImages,
                 platforms: data.platforms || {},
                 campaignProposal: {
-                    title: data.title || 'Nueva Campaña',
-                    strategy: data.strategy || 'Estrategia de Difusión Viral',
-                    caption: data.caption || '¡Mira lo nuevo en CarMatch! carmatchapp.net',
+                    title: data.title || 'Nueva Campaña CarMatch Social',
+                    strategy: data.strategy || 'Estrategia de viralismo para la comunidad motorizada.',
+                    caption: data.caption || '¡Mira lo nuevo en CarMatch Social! carmatchapp.net',
                     imagePrompt: refinedPrompt,
                     videoScript: data.videoScript || '',
                 }
@@ -502,9 +549,14 @@ export async function saveStudioToCampaign(data: {
         const webhookUrl = `${protocol}://${finalHost}/api/studio/webhook`;
 
         // 2. Create the Campaign record
+        const fixBranding = (text: string) => {
+            if (!text) return text;
+            return text.replace(/CarMatch(?!\s+Social)/gi, "CarMatch Social");
+        };
+
         const campaign = await prisma.publicityCampaign.create({
             data: {
-                title: data.title || 'Nueva Campaña CarMatch Social',
+                title: fixBranding(data.title || 'Nueva Campaña CarMatch Social'),
                 startDate: new Date(),
                 endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
                 isActive: true,
