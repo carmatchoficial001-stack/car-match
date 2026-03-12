@@ -32,7 +32,7 @@ export async function triggerFalAsyncGeneration(params: {
         headers: {
             'Authorization': `Key ${falKey}`,
             'Content-Type': 'application/json',
-            'X-Fal-Webhook-Url': webhookUrl
+            'X-Fal-Webhook-Url': webhookUrl // Redundancia
         },
         body: JSON.stringify({
             prompt: p,
@@ -40,6 +40,7 @@ export async function triggerFalAsyncGeneration(params: {
             seed: seed,
             num_inference_steps: 4,
             enable_safety_checker: true,
+            webhook_url: webhookUrl, // <--- REQUERIDO POR FAL QUEUE API
             // Custom metadata to handle the result in the webhook
             metadata: { messageId, idx, format }
         })
