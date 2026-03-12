@@ -61,7 +61,7 @@ const CORE_CARMATCH_VISION = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🎯 MISIÓN PRINCIPAL (INMUTABLE)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CarMatch NO es solo una app de venta. Es la COMUNIDAD SUPREMA de todo lo motorizado terrestre.
+CarMatch Social NO es solo una app de venta. Es la COMUNIDAD SUPREMA de todo lo motorizado terrestre.
 INCLUYE OBLIGATORIAMENTE: Autos, Motos, Camiones, Camionetas, Cuatrimotos, Buggies, Motocarros, Talleres Mecánicos, Detailers, Refaccionarias, Drift Teams, Car Meets, Autolavados, Tuners, y Coleccionistas.
 
 🔗 REGLA DE ENLACES OBLIGATORIA:
@@ -70,10 +70,10 @@ INCLUYE OBLIGATORIAMENTE: Autos, Motos, Camiones, Camionetas, Cuatrimotos, Buggi
 🎨 ESTÉTICA Y TEMÁTICA:
 - Producción cinemática 8k, iluminación "God Rays", estilo de alto nivel.
 - SIEMPRE respeta el tema pedido por el usuario y el país/slang local.
-- Branding "CarMatch" INTEGRADO ORGÁNICAMENTE: Grafiti, letreros neón, ropa, placas, paredes, etc. NUNCA marcas de agua flotantes.
+- Branding "CarMatch Social" INTEGRADO ORGÁNICAMENTE: Grafiti, letreros neón, ropa, placas, paredes, etc. NUNCA marcas de agua flotantes.
 
 🚨 REGLA DE ORO DE CIERRE:
-- En contenido multi-imagen, la última SIEMPRE es un TIP EDUCATIVO que invita a unirse a CarMatch usando "carmatchapp.net".
+- En contenido multi-imagen, la última SIEMPRE es un TIP EDUCATIVO que invita a unirse a CarMatch Social usando "carmatchapp.net".
 `;
 
 /**
@@ -95,7 +95,7 @@ export async function chatWithImageDirector(
             `${m.role === 'user' ? 'USUARIO' : 'DIRECTOR CREATIVO'}: ${m.content}`
         ).join('\n')
 
-        const prompt = `Eres el DIRECTOR CREATIVO Y ESTRATEGA DE COMUNIDAD de CarMatch. 
+        const prompt = `Eres el DIRECTOR CREATIVO Y ESTRATEGA DE COMUNIDAD de CarMatch Social. 
 ${CORE_CARMATCH_VISION}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -504,7 +504,7 @@ export async function saveStudioToCampaign(data: {
         // 2. Create the Campaign record
         const campaign = await prisma.publicityCampaign.create({
             data: {
-                title: data.title || 'Nueva Campaña CarMatch',
+                title: data.title || 'Nueva Campaña CarMatch Social',
                 startDate: new Date(),
                 endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
                 isActive: true,
@@ -517,7 +517,7 @@ export async function saveStudioToCampaign(data: {
         });
 
         // 🛡️ Safety: Ensure "carmatchapp.net" is in the caption
-        let finalCaption = data.caption || '¡Mira lo nuevo en CarMatch!';
+        let finalCaption = data.caption || '¡Mira lo nuevo en CarMatch Social!';
         if (!finalCaption.toLowerCase().includes('carmatchapp.net')) {
             finalCaption += ' ✨ Únete a la comunidad: carmatchapp.net';
         }
@@ -607,19 +607,23 @@ export async function getCampaigns() {
     try {
         const campaigns = await prisma.publicityCampaign.findMany({
             orderBy: { createdAt: 'desc' },
-            include: {
-                // Since there is no formal relation in schema.prisma for SocialPost -> PublicityCampaign
-                // (it's optional String? campaignId), we'll have to fetch manually if needed or check relations.
-                // Wait, schema.prisma line 844: campaignId String? (no relation defined)
+            take: 50 // Limit to latest 50 for performance
+        });
+
+        if (campaigns.length === 0) return { success: true, campaigns: [] };
+
+        const campaignIds = campaigns.map(c => c.id);
+
+        // Targeted fetch: only posts for these campaigns
+        const relevantPosts = await prisma.socialPost.findMany({
+            where: {
+                campaignId: { in: campaignIds }
             }
         });
 
-        // Manual relation mapping since Prisma schema doesn't have it defined
-        const allPosts = await prisma.socialPost.findMany();
-
         const result = campaigns.map(c => ({
             ...c,
-            posts: allPosts.filter(p => p.campaignId === c.id)
+            posts: relevantPosts.filter(p => p.campaignId === c.id)
         }));
 
         return { success: true, campaigns: result };

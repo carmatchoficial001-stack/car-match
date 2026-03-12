@@ -105,6 +105,8 @@ model SystemLog {
   source    String?
   metadata  Json?
   createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 model Account {

@@ -91,7 +91,7 @@ export async function generateImagePrompt(topic: string, style: string = 'realis
         const country = getCountryContext(targetCountry)
 
         const prompt = `
-            Act as a SENIOR AUTOMOTIVE ART DIRECTOR for CarMatch.
+            Act as a SENIOR AUTOMOTIVE ART DIRECTOR for CarMatch Social.
             Target: Create a HYPER-REALISTIC, CINEMATIC image prompt for: "${topic}".
             
             UNRESTRICTED CREATIVITY: If the user wants something wild, realistic, or emotional, deliver EXTREME detail.
@@ -325,7 +325,7 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
 
         // 2. Ask Gemini to create a full BRAND campaign
         const prompt = `
-            Act as a WORLD-CLASS VIRAL ADVERTISING AGENT and COMMUNITY BUILDER for CarMatch.
+            Act as a WORLD-CLASS VIRAL ADVERTISING AGENT and COMMUNITY BUILDER for CarMatch Social.
             Your goal is to launch a UNIQUE VIRAL MOVEMENT that build car communities.
             
             ELITE ADVERTISING STRATEGIES:
@@ -351,8 +351,8 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
         // TIMEOUT & FALLBACK Protection
         let text = "";
         const FALLBACK_STRATEGY_JSON = JSON.stringify({
-            "title": "Campaña de Rescate CarMatch",
-            "caption": "🔥 ¿Aun no tienes el auto de tus sueños? 🚗💨 Encuéntralo en CarMatch. La App #1 de compra-venta segura. 👇 ¡Descarga YA en carmatchapp.net!",
+            "title": "Campaña de Rescate CarMatch Social",
+            "caption": "🔥 ¿Aun no tienes el auto de tus sueños? 🚗💨 Encuéntralo en CarMatch Social. La App #1 de compra-venta segura. 👇 ¡Descarga YA en carmatchapp.net!",
             "imagePrompt": "Futuristic mobile app car match interface, high quality automotive branding, 8k cinematic lighting, ultra detailed 4k",
             "photoCount": 2,
             "videoScript": "Tu auto ideal a un solo click.",

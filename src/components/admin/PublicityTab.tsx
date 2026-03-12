@@ -52,19 +52,23 @@ export default function PublicityTab() {
 
     async function loadAllData() {
         setLoading(true)
-        try {
-            const [campsRes, draftsRes, logsRes] = await Promise.all([
-                getCampaigns(),
-                getStudioConversations(),
-                getSystemLogs()
-            ])
-            if (campsRes.success) setCampaigns(campsRes.campaigns)
-            if (draftsRes.success) setDrafts(draftsRes.conversations)
-            if (logsRes?.success) setSystemLogs(logsRes.logs)
-        } catch (error) {
-            console.error("Error loading publicity data:", error)
-        }
-        setLoading(false)
+        // Fetch campaigns immediately without blocking others
+        getCampaigns().then(res => {
+            if (res.success) setCampaigns(res.campaigns)
+        }).catch(err => console.error("Error campaigns:", err))
+
+        // Fetch drafts separately
+        getStudioConversations().then(res => {
+            if (res.success) setDrafts(res.conversations)
+        }).catch(err => console.error("Error drafts:", err))
+
+        // Fetch logs (most likely the bottleneck)
+        getSystemLogs().then(res => {
+            if (res.success) setSystemLogs(res.logs)
+        }).catch(err => console.error("Error logs:", err))
+        
+        // Finalize loading after a short safety delay or when campaigns finish
+        setTimeout(() => setLoading(false), 800)
     }
 
     const handleDeleteDraft = async (e: React.MouseEvent, id: string) => {
