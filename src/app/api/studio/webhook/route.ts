@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { uploadUrlToCloudinary, applyLogoOverlay } from '@/lib/cloudinary-server';
+import { uploadUrlToCloudinary, robustUploadToCloudinary, applyLogoOverlay } from '@/lib/cloudinary-server';
 
 export const maxDuration = 60; // Webhook needs time to upload to Cloudinary and composite the logo
 
@@ -38,13 +38,14 @@ export async function POST(req: NextRequest) {
         // Read context from URL query params (reliable) — falls back to body metadata
         const { searchParams } = new URL(req.url);
         const postIdFromUrl = searchParams.get('postId');
+        const messageIdFromUrl = searchParams.get('messageId');
         const idxFromUrl = searchParams.get('idx');
         const formatFromUrl = searchParams.get('format');
 
         const { messageId: messageIdFromBody, postId: postIdFromBody, idx: idxFromBody, format: formatFromBody } = metadata || {};
         
         const postId = postIdFromUrl || postIdFromBody;
-        const messageId = messageIdFromBody; // messageId is specifically for StudioMessage
+        const messageId = messageIdFromUrl || messageIdFromBody; // messageId is specifically for StudioMessage
         const idx = idxFromUrl ? parseInt(idxFromUrl) : (idxFromBody ?? 0);
         const format = formatFromUrl || formatFromBody || 'vertical';
 
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
 
             // Update Post
             await prisma.$executeRawUnsafe(
-                `UPDATE "SocialPost" SET "imageUrl" = (CASE WHEN "imageUrl" IS NULL OR "imageUrl" = '' THEN $1 ELSE "imageUrl" END), metadata = COALESCE(metadata, '{}'::jsonb) || $2::jsonb, status = 'APPROVED' WHERE id = $3`,
+                `UPDATE "SocialPost" SET "imageUrl" = (CASE WHEN "imageUrl" IS NULL OR "imageUrl" = '' THEN $1 ELSE "imageUrl" END), "metadata" = COALESCE("metadata", '{}'::jsonb) || $2::jsonb, "status" = 'APPROVED' WHERE "id" = $3`,
                 finalUrl,
                 metaUpdate,
                 postId
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
             
             // Update Campaign (for thumbnail/preview)
             await prisma.$executeRawUnsafe(
-                `UPDATE "PublicityCampaign" SET "imageUrl" = (CASE WHEN "imageUrl" IS NULL OR "imageUrl" = '' THEN $1 ELSE "imageUrl" END) WHERE id = (SELECT "campaignId" FROM "SocialPost" WHERE id = $2)`,
+                `UPDATE "PublicityCampaign" SET "imageUrl" = (CASE WHEN "imageUrl" IS NULL OR "imageUrl" = '' THEN $1 ELSE "imageUrl" END) WHERE "id" = (SELECT "campaignId" FROM "SocialPost" WHERE "id" = $2)`,
                 finalUrl,
                 postId
             );
@@ -131,7 +132,7 @@ export async function POST(req: NextRequest) {
             const jsonToMerge = JSON.stringify(imagesToMerge);
 
             await prisma.$executeRawUnsafe(
-                `UPDATE "StudioMessage" SET images = COALESCE(images, '{}'::jsonb) || $1::jsonb WHERE id = $2`,
+                `UPDATE "StudioMessage" SET "images" = COALESCE("images", '{}'::jsonb) || $1::jsonb WHERE "id" = $2`,
                 jsonToMerge,
                 messageId
             );

@@ -855,6 +855,7 @@ model SocialPost {
   aiPrompt        String?       @db.Text
   targetPersona   String?
   marketingAngle  String?
+  metadata        Json?         // New: Stores multi-image carousel indices (img_N_format)
   
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
