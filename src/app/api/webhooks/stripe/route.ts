@@ -6,12 +6,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/db'
 
-
+const STRIPE_API_VERSION = '2025-02-24.acacia' as const
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET
 
 export async function POST(request: NextRequest) {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-        apiVersion: '2025-02-24.acacia',
+        apiVersion: STRIPE_API_VERSION,
     })
 
     if (!WEBHOOK_SECRET) {
@@ -43,9 +43,9 @@ export async function POST(request: NextRequest) {
 
     // --- MANEJAR EVENTOS ---
     try {
-        // Caso 1: Checkout Session con pago inmediato (Tarjeta)
-        // Para SPEI/OXXO este evento llega con payment_status='unpaid'.
-        // En ese caso NO sumamos créditos; esperamos checkout.session.async_payment_succeeded.
+        // ✅ CASO 1: Pago con Tarjeta (Inmediato)
+        // Para SPEI/OXXO este evento llega con payment_status='unpaid' → lo ignoramos aquí.
+        // Los pagos async se manejan en checkout.session.async_payment_succeeded.
         if (event.type === 'checkout.session.completed') {
             const session = event.data.object as Stripe.Checkout.Session
             const metadata = session.metadata
@@ -53,18 +53,24 @@ export async function POST(request: NextRequest) {
             if (session.payment_status === 'paid' && metadata?.type === 'CREDIT_PURCHASE') {
                 const userId = metadata.userId
                 const creditsToAdd = parseInt(metadata.credits || '0')
-                const paymentIntentId = session.payment_intent as string
+                // 🔑 Clave única: usar `session.id` como fallback cuando payment_intent es null
+                // (ocurre con customer_balance/SPEI si se completan de forma inmediata)
+                const transactionId = (session.payment_intent as string) || session.id
 
-                if (userId && creditsToAdd > 0 && paymentIntentId) {
-                    await processCreditPurchase(userId, creditsToAdd, paymentIntentId, session.amount_total! / 100, session.currency!, 'Compra de créditos (Tarjeta)')
+                if (userId && creditsToAdd > 0 && transactionId) {
+                    await processCreditPurchase(
+                        userId, creditsToAdd, transactionId,
+                        session.amount_total! / 100, session.currency!,
+                        'Compra de créditos (Tarjeta)'
+                    )
                 }
             } else if (metadata?.type === 'BUSINESS_SUBSCRIPTION_MONTHLY') {
                 console.log(`🏢 Suscripción completada para negocio: ${metadata.businessId}`)
             }
         }
 
-        // Caso 2: 🔥 CRÍTICO — Pago asíncrono confirmado (SPEI / OXXO / Transferencia bancaria)
-        // Stripe dispara este evento DÍAS DESPUÉS cuando el banco confirma la transferencia.
+        // ✅ CASO 2: Pago Async Confirmado (SPEI / OXXO)
+        // 🔥 CRÍTICO — Este evento se dispara DÍAS DESPUÉS cuando el banco confirma.
         // Sin este handler, los usuarios de SPEI/OXXO NUNCA reciben sus créditos.
         if (event.type === 'checkout.session.async_payment_succeeded') {
             const session = event.data.object as Stripe.Checkout.Session
@@ -75,33 +81,43 @@ export async function POST(request: NextRequest) {
                     level: 'INFO',
                     source: 'StripeWebhook',
                     message: `💸 Pago async confirmado (SPEI/OXXO): session ${session.id}`,
-                    metadata: { sessionId: session.id, userId: metadata?.userId }
+                    metadata: { sessionId: session.id, userId: metadata?.userId, paymentIntent: session.payment_intent }
                 }
             })
 
             if (metadata?.type === 'CREDIT_PURCHASE') {
                 const userId = metadata.userId
                 const creditsToAdd = parseInt(metadata.credits || '0')
-                const paymentIntentId = session.payment_intent as string
+                // 🔑 FIX CRÍTICO SPEI: Para customer_balance (SPEI), session.payment_intent es NULL.
+                // Usamos session.id como transactionId único para evitar que se pierdan los créditos.
+                const transactionId = (session.payment_intent as string) || `spei_${session.id}`
 
-                if (userId && creditsToAdd > 0 && paymentIntentId) {
-                    await processCreditPurchase(userId, creditsToAdd, paymentIntentId, session.amount_total! / 100, session.currency!, 'Compra de créditos (SPEI/OXXO)')
+                if (userId && creditsToAdd > 0) {
+                    await processCreditPurchase(
+                        userId, creditsToAdd, transactionId,
+                        session.amount_total! / 100, session.currency!,
+                        'Compra de créditos (SPEI/OXXO)'
+                    )
                 }
             }
         }
 
-        // Caso 3: Payment Intent Directo (Fallback)
-        if (event.type === 'payment_intent.succeeded') {
-            const paymentIntent = event.data.object as Stripe.PaymentIntent
-            const metadata = paymentIntent.metadata
-            const userId = metadata?.userId
-            const creditsToAdd = parseInt(metadata?.credits || '0')
-            const isCreditPurchase = metadata?.type === 'CREDIT_PURCHASE'
-
-            if (userId && creditsToAdd > 0 && isCreditPurchase) {
-                await processCreditPurchase(userId, creditsToAdd, paymentIntent.id, paymentIntent.amount / 100, paymentIntent.currency, 'Compra de créditos (PaymentIntent directo)')
-            }
+        // ✅ CASO 3: Fallo async (SPEI vence sin pago) — Log de diagnóstico
+        if (event.type === 'checkout.session.async_payment_failed') {
+            const session = event.data.object as Stripe.Checkout.Session
+            await prisma.systemLog.create({
+                data: {
+                    level: 'WARN',
+                    source: 'StripeWebhook',
+                    message: `⚠️ Pago async FALLÓ: session ${session.id}`,
+                    metadata: { sessionId: session.id, userId: session.metadata?.userId }
+                }
+            })
         }
+
+        // ❌ ELIMINADO: payment_intent.succeeded — causaba RIESGO DE DOBLE CRÉDITO.
+        // checkout.session.completed ya maneja tarjeta.
+        // checkout.session.async_payment_succeeded ya maneja SPEI/OXXO.
 
     } catch (error) {
         console.error('Error procesando el evento de webhook:', error)
@@ -119,55 +135,54 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true })
 }
 
-// Función auxiliar para no repetir código
-async function processCreditPurchase(userId: string, credits: number, transactionId: string, amount: number, currency: string, description: string = 'Compra de créditos') {
-    // Verificar si ya se procesó
+// Función auxiliar reutilizable (idempotente por transactionId)
+async function processCreditPurchase(
+    userId: string, credits: number, transactionId: string,
+    amount: number, currency: string, description: string = 'Compra de créditos'
+) {
+    // 🛡️ Idempotencia: Si ya se procesó, salir silenciosamente
     const existing = await prisma.payment.findUnique({
-        where: { transactionId: transactionId }
+        where: { transactionId }
     })
-
-    if (existing) return;
+    if (existing) {
+        console.log(`[StripeWebhook] Pago ${transactionId} ya procesado. Saliendo.`)
+        return;
+    }
 
     await prisma.$transaction([
         prisma.payment.create({
             data: {
-                userId: userId,
-                amount: amount,
+                userId,
+                amount,
                 currency: currency.toUpperCase(),
-                transactionId: transactionId,
+                transactionId,
                 status: 'COMPLETED',
                 creditsAdded: credits
             }
         }),
         prisma.user.update({
             where: { id: userId },
-            data: {
-                credits: { increment: credits }
-            }
+            data: { credits: { increment: credits } }
         }),
         prisma.creditTransaction.create({
             data: {
-                userId: userId,
+                userId,
                 amount: credits,
-                description: description,
+                description,
                 relatedId: transactionId,
-                details: {
-                    gateway: 'stripe',
-                    amount: amount,
-                    currency: currency
-                }
+                details: { gateway: 'stripe', amount, currency }
             }
         })
     ])
 
     await prisma.systemLog.create({
         data: {
-            level: 'INFO',
+            level: 'SUCCESS',
             source: 'PaymentService',
             message: `✅ ${credits} créditos sumados al usuario ${userId}`,
             metadata: { transactionId, credits, userId }
         }
     })
 
-    console.log(`✅ ${credits} créditos sumados al usuario ${userId}`)
+    console.log(`✅ ${credits} créditos sumados al usuario ${userId} via ${transactionId}`)
 }

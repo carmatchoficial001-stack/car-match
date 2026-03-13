@@ -14,7 +14,7 @@ const EXCHANGE_API = 'https://api.exchangerate-api.com/v4/latest/MXN'
 export async function POST(request: NextRequest) {
     // Inicializar Stripe con la clave secreta (desde .env)
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-        apiVersion: '2024-12-18.acacia' as any,
+        apiVersion: '2025-02-24.acacia' as any,
     })
 
     try {
