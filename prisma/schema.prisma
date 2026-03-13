@@ -876,6 +876,7 @@ enum SocialPlatform {
 
 enum PostStatus {
   DRAFT
+  PREVIEW
   APPROVED
   SCHEDULED
   PUBLISHED

@@ -1,41 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { uploadUrlToCloudinary, robustUploadToCloudinary, applyLogoOverlay } from '@/lib/cloudinary-server';
 
-export const maxDuration = 60; // Webhook needs time to upload to Cloudinary and composite the logo
+export const maxDuration = 30; // Webhook is now fast — no Cloudinary upload
 
 /**
- * Webhook handler for Fal.ai asynchronous generation
+ * 🚀 WORKBENCH WEBHOOK — Saves Fal.ai URL instantly for preview display.
+ * Cloudinary finalization happens later via user action.
  */
 export async function POST(req: NextRequest) {
     try {
         const data = await req.json();
         
-        // --- 🕵️‍♂️ PERSISTENT DEBUG LOGGING ---
+        // --- 🕵️‍♂️ DEBUG LOGGING ---
         await prisma.systemLog.create({
             data: {
                 level: 'INFO',
                 source: 'STUDIO-WEBHOOK',
-                message: `Webhook received for URL: ${req.url}`,
-                metadata: data
+                message: `Webhook received`,
+                metadata: { url: req.url }
             }
         });
         
-        // Fal.ai webhook payload structure
         const { request_id, status, payload, metadata } = data;
 
         if (status !== 'OK') {
-            console.error(`[STUDIO-WEBHOOK] Generation failed for request ${request_id}:`, data);
+            console.error(`[STUDIO-WEBHOOK] Generation failed for ${request_id}:`, data);
             return NextResponse.json({ ok: false });
         }
 
-        const imageUrl = payload?.images?.[0]?.url;
-        if (!imageUrl) {
-            console.error(`[STUDIO-WEBHOOK] No image URL in payload:`, data);
+        const rawImageUrl = payload?.images?.[0]?.url;
+        if (!rawImageUrl) {
+            console.error(`[STUDIO-WEBHOOK] No image URL in payload`);
             return NextResponse.json({ ok: false });
         }
 
-        // Read context from URL query params (reliable) — falls back to body metadata
+        // Read context from URL query params + body metadata
         const { searchParams } = new URL(req.url);
         const postIdFromUrl = searchParams.get('postId');
         const messageIdFromUrl = searchParams.get('messageId');
@@ -45,65 +44,49 @@ export async function POST(req: NextRequest) {
         const { messageId: messageIdFromBody, postId: postIdFromBody, idx: idxFromBody, format: formatFromBody } = metadata || {};
         
         const postId = postIdFromUrl || postIdFromBody;
-        const messageId = messageIdFromUrl || messageIdFromBody; // messageId is specifically for StudioMessage
+        const messageId = messageIdFromUrl || messageIdFromBody;
         const idx = idxFromUrl ? parseInt(idxFromUrl) : (idxFromBody ?? 0);
         const format = formatFromUrl || formatFromBody || 'vertical';
 
-        // 🛡️ Guard: We MUST have either a postId or a messageId to work
         if (!postId && !messageId) {
             await prisma.systemLog.create({
                 data: {
                     level: 'ERROR',
                     source: 'STUDIO-WEBHOOK',
-                    message: `Identification missing (No postId or messageId).`,
+                    message: `Missing identification (no postId or messageId)`,
                     metadata: { url: req.url, bodyMetadata: metadata }
                 }
             });
             return NextResponse.json({ ok: false, error: 'Missing identification' });
         }
 
-        console.log(`[STUDIO-WEBHOOK] Received image for ${messageId || postId} [${idx}/${format}]`);
+        console.log(`[STUDIO-WEBHOOK] Saving preview for ${postId || messageId} [${idx}/${format}]`);
 
-        // 1. Robust Upload to Cloudinary
-        const uploadRes = await robustUploadToCloudinary(imageUrl, 'carmatch/publicity');
-        
-        if (!uploadRes.success) {
-            await prisma.systemLog.create({
-                data: {
-                    level: 'ERROR',
-                    source: 'STUDIO-WEBHOOK',
-                    message: `Cloudinary upload FAILED for ${messageId || postId}`,
-                    metadata: { error: uploadRes.error, imageUrl }
-                }
-            });
-            return NextResponse.json({ ok: false });
-        }
-
-        const secureUrl = uploadRes.secure_url!;
-        const publicId = uploadRes.public_id!;
-
-        // 2. Atomic Database Update
+        // --- 🖼️ SAVE RAW FAL.AI URL INSTANTLY (No Cloudinary) ---
         if (postId) {
-            // Apply CarMatch logo overlay naturally via Cloudinary URL transformation
-            const finalUrl = applyLogoOverlay(publicId) || secureUrl;
-
             const metaUpdate = JSON.stringify({
-                [`img_${idx}_${format}`]: finalUrl,
-                '_lastUpdate': Date.now()
+                [`img_${idx}_${format}`]: rawImageUrl,
+                '_lastUpdate': Date.now(),
+                '_isPreview': true  // Flag indicating this needs Cloudinary finalization
             });
 
-            // Update Post
             await prisma.$executeRawUnsafe(
-                `UPDATE "SocialPost" SET "imageUrl" = (CASE WHEN "imageUrl" IS NULL OR "imageUrl" = '' THEN $1 ELSE "imageUrl" END), "metadata" = COALESCE("metadata", '{}'::jsonb) || $2::jsonb, "status" = 'APPROVED' WHERE "id" = $3`,
-                finalUrl,
+                `UPDATE "SocialPost" 
+                 SET "imageUrl" = (CASE WHEN "imageUrl" IS NULL OR "imageUrl" = '' THEN $1 ELSE "imageUrl" END), 
+                     "metadata" = COALESCE("metadata", '{}'::jsonb) || $2::jsonb,
+                     "status" = 'PREVIEW'
+                 WHERE "id" = $3`,
+                rawImageUrl,
                 metaUpdate,
                 postId
             );
-            
-            // Update Campaign (for thumbnail/preview)
+
+            // Update Campaign thumbnail too (for instant preview in the list)
             await prisma.$executeRawUnsafe(
-                `UPDATE "PublicityCampaign" SET "imageUrl" = (CASE WHEN "imageUrl" IS NULL OR "imageUrl" = '' THEN $1 ELSE "imageUrl" END) WHERE "id" = (SELECT "campaignId" FROM "SocialPost" WHERE "id" = $2)`,
-                finalUrl,
+                `UPDATE "PublicityCampaign" 
+                 SET "imageUrl" = (CASE WHEN "imageUrl" IS NULL OR "imageUrl" = '' THEN $1 ELSE "imageUrl" END) 
+                 WHERE "id" = (SELECT "campaignId" FROM "SocialPost" WHERE "id" = $2)`,
+                rawImageUrl,
                 postId
             );
 
@@ -111,29 +94,28 @@ export async function POST(req: NextRequest) {
                 data: {
                     level: 'SUCCESS',
                     source: 'STUDIO-WEBHOOK',
-                    message: `Post ${postId} updated successfully with image ${idx}`,
-                    metadata: { finalUrl }
+                    message: `Post ${postId} [${idx}/${format}] PREVIEW saved instantly`,
+                    metadata: { rawImageUrl }
                 }
             });
 
         } else if (messageId) {
+            // Chat flow: still save directly to StudioMessage
             const imagesToMerge: Record<string, any> = {
-                [`img_${idx}_${format}`]: secureUrl,
+                [`img_${idx}_${format}`]: rawImageUrl,
                 '_lastUpdate': Date.now(),
                 '_isBatchWorking': false 
             };
 
-            if (format === 'square') imagesToMerge['square'] = secureUrl;
+            if (format === 'square') imagesToMerge['square'] = rawImageUrl;
             if (idx === 0) {
-                if (format === 'vertical') imagesToMerge['vertical'] = secureUrl;
-                if (format === 'horizontal') imagesToMerge['horizontal'] = secureUrl;
+                if (format === 'vertical') imagesToMerge['vertical'] = rawImageUrl;
+                if (format === 'horizontal') imagesToMerge['horizontal'] = rawImageUrl;
             }
-
-            const jsonToMerge = JSON.stringify(imagesToMerge);
 
             await prisma.$executeRawUnsafe(
                 `UPDATE "StudioMessage" SET "images" = COALESCE("images", '{}'::jsonb) || $1::jsonb WHERE "id" = $2`,
-                jsonToMerge,
+                JSON.stringify(imagesToMerge),
                 messageId
             );
 
@@ -141,8 +123,8 @@ export async function POST(req: NextRequest) {
                 data: {
                     level: 'SUCCESS',
                     source: 'STUDIO-WEBHOOK',
-                    message: `StudioMessage ${messageId} updated successfully`,
-                    metadata: { secureUrl }
+                    message: `StudioMessage ${messageId} updated with preview`,
+                    metadata: { rawImageUrl }
                 }
             });
         }

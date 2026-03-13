@@ -5,11 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
     Sparkles, Camera, Video, ChevronRight, LayoutGrid, 
     Zap, Palette, PlayCircle, Star, History, MessageSquare, 
-    Trash2, Megaphone, Check, Copy, RefreshCw, X 
+    Trash2, Megaphone, Check, Copy, RefreshCw, X, ShieldCheck
 } from 'lucide-react'
 import ImageChat from '@/components/admin/ImageChat'
 import { getCampaigns, deleteCampaign, getSystemLogs } from '@/app/admin/actions/image-chat-actions'
 import { getStudioConversations, deleteStudioConversation } from '@/app/admin/actions/studio-history-actions'
+import { finalizeCampaignPost } from '@/app/admin/actions/finalize-campaign-action'
 
 type PublicityView = 'HUB' | 'PHOTO_CHAT' | 'VIDEO_CHAT' | 'CAMPAIGNS' | 'LOGS'
 type CampaignSubType = 'PUBLISHED' | 'DRAFTS'
@@ -22,6 +23,7 @@ export default function PublicityTab() {
     const [loading, setLoading] = useState(false)
     const [activeDraftId, setActiveDraftId] = useState<string | undefined>(undefined)
     const [systemLogs, setSystemLogs] = useState<any[]>([])
+    const [finalizingIds, setFinalizingIds] = useState<Set<string>>(new Set())
 
     // Load data when entering CAMPAIGNS or HUB
     useEffect(() => {
@@ -91,6 +93,23 @@ export default function PublicityTab() {
             alert('Error al eliminar la campaña')
         }
         setLoading(false)
+    }
+
+    const handleFinalizeCampaign = async (e: React.MouseEvent, campaignId: string, postId: string) => {
+        e.stopPropagation()
+        setFinalizingIds(prev => new Set(prev).add(campaignId))
+        try {
+            const res = await finalizeCampaignPost(postId)
+            if (res.success) {
+                // Refresh campaigns to show the final branded image
+                const campsRes = await getCampaigns()
+                if (campsRes.success) setCampaigns(campsRes.campaigns)
+            } else {
+                alert('Error al finalizar: ' + res.error)
+            }
+        } finally {
+            setFinalizingIds(prev => { const next = new Set(prev); next.delete(campaignId); return next })
+        }
     }
 
     // --- RENDERERS ---
@@ -188,11 +207,18 @@ export default function PublicityTab() {
                                 <div className="space-y-12 pb-12">
                                 {/* Final Campaigns Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                    {campaigns.map((camp) => (
-                                        <div key={camp.id} className="bg-[#111114] border border-white/10 rounded-[2.5rem] overflow-hidden flex flex-col group hover:border-emerald-500/30 transition-all shadow-2xl relative">
+                                    {campaigns.map((camp) => {
+                                        const post = camp.posts?.[0];
+                                        const isPreview = post?.status === 'PREVIEW';
+                                        const isFinalizing = finalizingIds.has(camp.id);
+                                        return (
+                                        <div key={camp.id} className={`bg-[#111114] border rounded-[2.5rem] overflow-hidden flex flex-col group transition-all shadow-2xl relative ${
+                                            isPreview 
+                                                ? 'border-amber-500/30 hover:border-amber-500/60' 
+                                                : 'border-white/10 hover:border-emerald-500/30'
+                                        }`}>
                                             <div className="aspect-[16/9] bg-black relative overflow-hidden">
                                                 {(() => {
-                                                    const post = camp.posts?.[0];
                                                     if (!post?.imageUrl) {
                                                         return (
                                                             <div className="w-full h-full flex flex-col items-center justify-center gap-3">
@@ -202,36 +228,44 @@ export default function PublicityTab() {
                                                         );
                                                     }
 
-                                                    // Extract all images from metadata (img_N_vertical)
+                                                    // Extract all images from metadata
                                                     const meta = (post.metadata || {}) as any;
                                                     const extraImages = Object.keys(meta)
                                                         .filter(k => k.startsWith('img_') && k.endsWith('_vertical'))
-                                                        .sort((a, b) => {
-                                                            const idxA = parseInt(a.split('_')[1]);
-                                                            const idxB = parseInt(b.split('_')[1]);
-                                                            return idxA - idxB;
-                                                        })
+                                                        .sort((a, b) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]))
                                                         .map(k => meta[k]);
 
-                                                    if (extraImages.length > 1) {
-                                                        return (
-                                                            <div className="w-full h-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide">
-                                                                {extraImages.map((url: string, i: number) => (
-                                                                    <img 
-                                                                        key={i} 
-                                                                        src={url} 
-                                                                        className="w-full h-full object-cover shrink-0 snap-center" 
-                                                                        alt={`${camp.title} - ${i}`} 
-                                                                    />
-                                                                ))}
-                                                                <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-black text-white uppercase border border-white/10">
-                                                                    Desliza » {extraImages.length} Fotos
+                                                    return (
+                                                        <>
+                                                            {extraImages.length > 1 ? (
+                                                                <div className="w-full h-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide">
+                                                                    {extraImages.map((url: string, i: number) => (
+                                                                        <img key={i} src={url} className="w-full h-full object-cover shrink-0 snap-center" alt={`${camp.title} - ${i}`} />
+                                                                    ))}
+                                                                    <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-black text-white uppercase border border-white/10">
+                                                                        Desliza » {extraImages.length} Fotos
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        );
-                                                    }
+                                                            ) : (
+                                                                <img src={post.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" alt={camp.title} />
+                                                            )}
 
-                                                    return <img src={post.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" alt={camp.title} />;
+                                                            {/* PREVIEW BADGE */}
+                                                            {isPreview && !isFinalizing && (
+                                                                <div className="absolute top-3 left-3 bg-amber-500/90 backdrop-blur-md px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                                                                    <span className="text-[8px] font-black text-black uppercase tracking-widest">⚡ Preview · Sin Logo</span>
+                                                                </div>
+                                                            )}
+
+                                                            {/* FINALIZING OVERLAY */}
+                                                            {isFinalizing && (
+                                                                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+                                                                    <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin" />
+                                                                    <span className="text-xs font-black text-emerald-400 uppercase tracking-widest">Sellando con Logo...</span>
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    );
                                                 })()}
                                             </div>
                                             <div className="p-6 space-y-4">
@@ -273,6 +307,17 @@ export default function PublicityTab() {
                                                     <span className="text-[7px] text-zinc-600 font-bold uppercase self-center ml-auto">Todas las Redes</span>
                                                 </div>
                                                 
+                                                {/* Finalize Button for PREVIEW posts */}
+                                                {isPreview && post && (
+                                                    <button 
+                                                        onClick={(e) => handleFinalizeCampaign(e, camp.id, post.id)}
+                                                        disabled={isFinalizing}
+                                                        className="w-full py-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-[10px] font-black uppercase tracking-widest text-amber-400 hover:bg-amber-500 hover:text-black transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                                    >
+                                                        <ShieldCheck className="w-3.5 h-3.5" />
+                                                        {isFinalizing ? 'Subiendo a Cloudinary...' : 'Finalizar y Sellar con Logo'}
+                                                    </button>
+                                                )}
                                                 <button 
                                                     onClick={() => {
                                                         navigator.clipboard.writeText(camp.posts?.[0]?.content || '');
@@ -284,7 +329,8 @@ export default function PublicityTab() {
                                                 </button>
                                             </div>
                                         </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
 
                                 {/* Ongoing Drafts Section (consolidated history) */}
