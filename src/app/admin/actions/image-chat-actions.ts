@@ -577,6 +577,11 @@ export async function saveStudioToCampaign(data: {
         
         let finalCaption = fixBranding(data.caption || '¡Mira lo nuevo en CarMatch Social!');
 
+        // 🛡️ User specifically requested to keep this slogan
+        if (!finalCaption.toLowerCase().includes('carmatchapp.net')) {
+            finalCaption += '\n\n👇 Compra, vende y descubre en carmatchapp.net ✨';
+        }
+
         if (hasExistingImages && data.images) {
             primaryImage = data.images['img_0_vertical'] || data.images['vertical'] || data.images['square'] || Object.values(data.images).find(v => typeof v === 'string' && v.startsWith('http')) || '';
         }
