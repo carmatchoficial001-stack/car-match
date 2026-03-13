@@ -519,6 +519,7 @@ export async function saveStudioToCampaign(data: {
     videoScript: string;
     userId: string;
     photoCount?: number;
+    images?: Record<string, any>; // <-- Added to receive already generated chat images
 }) {
     try {
         console.log('[CAMPAIGN] Saving studio result to persistent campaign...');
@@ -575,7 +576,15 @@ export async function saveStudioToCampaign(data: {
             finalCaption += ' ✨ Compra, vende y descubre en carmatchapp.net';
         }
 
-        // 3. Create ONE Universal Post for all social media platforms
+        // 3. Extract primary image from the provided chat images or default to empty
+        let primaryImage = '';
+        const hasExistingImages = data.images && Object.keys(data.images).some(k => k.startsWith('img_') || k === 'square' || k === 'vertical');
+        
+        if (hasExistingImages && data.images) {
+            primaryImage = data.images['img_0_vertical'] || data.images['vertical'] || data.images['square'] || Object.values(data.images).find(v => typeof v === 'string' && v.startsWith('http')) || '';
+        }
+
+        // 4. Create ONE Universal Post for all social media platforms
         const post = await prisma.socialPost.create({
             data: {
                 campaignId: campaign.id,
@@ -583,10 +592,26 @@ export async function saveStudioToCampaign(data: {
                 content: finalCaption,
                 videoScript: data.videoScript || '',
                 aiPrompt: data.imagePrompt || '',
-                status: 'DRAFT',
-                targetPersona: 'Universal Diffusion'
+                status: hasExistingImages ? 'PREVIEW' : 'DRAFT',
+                targetPersona: 'Universal Diffusion',
+                imageUrl: primaryImage,
+                metadata: { 
+                    strategy: data.strategy || 'Estrategia de Difusión', 
+                    originalPrompt: data.imagePrompt || '',
+                    ...(data.images || {})
+                }
             }
         });
+
+        // Update Campaign thumbnail instantly if we have an image
+        if (primaryImage) {
+            await prisma.publicityCampaign.update({
+                where: { id: campaign.id },
+                data: { imageUrl: primaryImage }
+            });
+            console.log(`[CAMPAIGN] 🖼️ Bypassing Fal.ai generation: Used ${Object.keys(data.images || {}).length} existing images from the Chat.`);
+            return { success: true, campaignId: campaign.id };
+        }
 
         // 🛡️ Ensure minimum photoCount for campaigns (Content + Final Slide)
         const photoCount = Math.max(2, data.photoCount || 2);

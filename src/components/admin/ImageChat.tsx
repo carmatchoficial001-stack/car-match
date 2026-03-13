@@ -234,7 +234,10 @@ export default function ImageChat({ initialConversationId }: { initialConversati
                 imagePrompt: result.type === 'PROMPT_READY' ? result.imagePrompt : undefined,
                 images: result.images || {},
                 platforms: result.type === 'PROMPT_READY' ? result.platforms : undefined,
-                campaignProposal: result.type === 'PROMPT_READY' ? result.campaignProposal : undefined,
+                campaignProposal: result.type === 'PROMPT_READY' && result.campaignProposal ? {
+                    ...result.campaignProposal,
+                    photoCount: result.campaignProposal.photoCount || 3
+                } : undefined,
                 timestamp: new Date()
             }
 
@@ -304,6 +307,7 @@ export default function ImageChat({ initialConversationId }: { initialConversati
             // Find the photoCount from the message that contains this proposal
             const messageWithPhotoCount = messages.find(m => m.campaignProposal?.title === proposal.title);
             const photoCount = (messageWithPhotoCount?.images as any)?._photoCount || 1;
+            const images = messageWithPhotoCount?.images;
 
             const res = await saveStudioToCampaign({
                 title: proposal.title,
@@ -312,10 +316,11 @@ export default function ImageChat({ initialConversationId }: { initialConversati
                 imagePrompt: proposal.imagePrompt,
                 videoScript: proposal.videoScript,
                 userId: 'admin',
-                photoCount
+                photoCount,
+                images
             })
             if (!res.success) throw new Error(res.error)
-            alert('🚀 ¡Campaña lanzada! Las imágenes se generan en segundo plano. Ve a la pestaña "Campañas" para verla.')
+            alert('🚀 ¡Campaña lista! Las imágenes han sido guardadas. Ve a la pestaña "Historias de Campañas" para Finalizar y Sellar con logo.')
         } catch (error: any) {
             alert('Error: ' + error.message)
         } finally {
