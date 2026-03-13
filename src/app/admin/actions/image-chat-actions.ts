@@ -553,7 +553,8 @@ export async function saveStudioToCampaign(data: {
         // 2. Create the Campaign record
         const fixBranding = (text: string) => {
             if (!text) return text;
-            return text.replace(/CarMatch(?!\s+Social)/gi, "CarMatch Social");
+            // Reemplaza CarMatch por CarMatch Social, excepto si ya es "CarMatch Social" o es parte del link "carmatchapp.net"
+            return text.replace(/carmatch(?!\s*social)(?!app\.net)/gi, "CarMatch Social");
         };
 
         const campaign = await prisma.publicityCampaign.create({
@@ -570,16 +571,12 @@ export async function saveStudioToCampaign(data: {
             }
         });
 
-        // 🛡️ Safety: Ensure "carmatchapp.net" is in the caption
-        let finalCaption = data.caption || '¡Mira lo nuevo en CarMatch Social!';
-        if (!finalCaption.toLowerCase().includes('carmatchapp.net')) {
-            finalCaption += ' ✨ Compra, vende y descubre en carmatchapp.net';
-        }
-
         // 3. Extract primary image from the provided chat images or default to empty
         let primaryImage = '';
         const hasExistingImages = data.images && Object.keys(data.images).some(k => k.startsWith('img_') || k === 'square' || k === 'vertical');
         
+        let finalCaption = fixBranding(data.caption || '¡Mira lo nuevo en CarMatch Social!');
+
         if (hasExistingImages && data.images) {
             primaryImage = data.images['img_0_vertical'] || data.images['vertical'] || data.images['square'] || Object.values(data.images).find(v => typeof v === 'string' && v.startsWith('http')) || '';
         }
