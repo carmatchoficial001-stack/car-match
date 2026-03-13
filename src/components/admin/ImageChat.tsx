@@ -320,7 +320,16 @@ export default function ImageChat({ initialConversationId }: { initialConversati
                 images
             })
             if (!res.success) throw new Error(res.error)
-            alert('🚀 ¡Campaña lista! Las imágenes han sido guardadas. Ve a la pestaña "Historias de Campañas" para Finalizar y Sellar con logo.')
+            
+            // Si no había imágenes previas (Campaña Automática directa), el backend las mandó a generar. 
+            // Si sí había imágenes previas (Concepto finalizado del chat), el backend hizo bypass.
+            const hasImages = images && Object.keys(images).some(k => k.startsWith('img_') || k === 'square' || k === 'vertical');
+            
+            if (hasImages) {
+                 alert('🚀 ¡Campaña lista! Las imágenes han sido guardadas. Ve a la pestaña "Historias de Campañas" para Finalizar y Sellar con logo.')
+            } else {
+                 alert('🚀 ¡Campaña programada! Las imágenes se están generando en segundo plano en Fal.ai. Ve a la pestaña "Historias de Campañas" en unos minutos y haz click en refrescar.')
+            }
         } catch (error: any) {
             alert('Error: ' + error.message)
         } finally {
@@ -541,8 +550,13 @@ function PromptProposalCard({
 }) {
     const [copied, setCopied] = useState(false)
     const statusStr = (msg.images as any)?._status || ''
-    const isGenerating = statusStr.startsWith('generating')
-    const photoCount = (msg.images as any)?._photoCount || 11
+    
+    // 🛡️ Force isGenerating false if it's an auto-campaign proposal without images
+    const isAutoCampaignProposal = msg.id.startsWith('proposal-');
+    // 🛡️ ONLY show generating if the status explicitly says so. Empty status means it's just a proposal or completed.
+    const isGenerating = isAutoCampaignProposal ? false : statusStr.startsWith('generating')
+    
+    const photoCount = (msg.images as any)?._photoCount || 3
     const lastUpdate = (msg.images as any)?._lastUpdate || 0
     const isStuck = isGenerating && lastUpdate > 0 && (Date.now() - lastUpdate) > 45 * 1000 
     const currentPhotos = Object.keys(msg.images || {}).filter(k => k.startsWith('img_')).length
@@ -606,7 +620,7 @@ function PromptProposalCard({
                                 <div className="flex items-center justify-between mb-2 px-1">
                                     <span className="text-[9px] font-black text-white uppercase tracking-widest flex items-center gap-2">
                                         <Loader2 className="w-3 h-3 text-violet-400 animate-spin" />
-                                        {progress < 100 ? 'Componiendo Pack...' : 'Finalizando...'}
+                                        {progress < 100 && photoCount > 0 ? 'Componiendo Pack...' : 'Generando Concepto...'}
                                     </span>
                                     <span className="text-[9px] font-black text-violet-400">{progress}%</span>
                                 </div>
@@ -638,10 +652,12 @@ function PromptProposalCard({
                             <button
                                 onClick={onCreateCampaign}
                                 disabled={isLoading}
-                                className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 py-4 rounded-2xl text-sm font-black text-white uppercase tracking-widest transition-all shadow-2xl shadow-emerald-500/30 active:scale-95"
+                                className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 py-4 rounded-2xl text-[11px] font-black text-white uppercase tracking-widest transition-all shadow-2xl shadow-emerald-500/30 active:scale-95"
                             >
                                 <Zap className="w-5 h-5 fill-current" />
-                                Crear Campaña → Publicar en todas las redes
+                                {isAutoCampaignProposal 
+                                    ? "Crear Campaña & Generar Imágenes" 
+                                    : "Llevar a Campaña Instántaneamente"}
                             </button>
                         )}
                         <div className="flex items-center gap-2">
