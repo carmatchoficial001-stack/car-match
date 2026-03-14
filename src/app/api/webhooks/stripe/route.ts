@@ -21,6 +21,20 @@ export async function POST(request: NextRequest) {
     const body = await request.text()
     const sig = request.headers.get('stripe-signature')
 
+    // --- 🕵️‍♂️ LOG DE INICIO (TOP PRIORITY) ---
+    await prisma.systemLog.create({
+        data: {
+            level: 'INFO',
+            source: 'StripeWebhook',
+            message: `Webhook POST recibido - Iniciando verificación`,
+            metadata: {
+                url: request.url,
+                sig: sig?.substring(0, 20) + '...',
+                bodyLength: body.length
+            }
+        }
+    })
+
     let event: Stripe.Event
 
     try {
@@ -28,15 +42,23 @@ export async function POST(request: NextRequest) {
         event = stripe.webhooks.constructEvent(body, sig, WEBHOOK_SECRET)
     } catch (err: any) {
         console.error(`Webhook Error: ${err.message}`)
+        await prisma.systemLog.create({
+            data: {
+                level: 'ERROR',
+                source: 'StripeWebhook',
+                message: `Error de Firma: ${err.message}`,
+                metadata: { sig: sig?.substring(0, 20), bodyPreview: body.substring(0, 100) }
+            }
+        })
         return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 })
     }
 
-    // --- LOG DE DIAGNÓSTICO ---
+    // --- LOG DE EVENTO ---
     await prisma.systemLog.create({
         data: {
             level: 'INFO',
             source: 'StripeWebhook',
-            message: `Evento recibido: ${event.type}`,
+            message: `Evento verificado: ${event.type}`,
             metadata: { eventId: event.id, type: event.type }
         }
     })
