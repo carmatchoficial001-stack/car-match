@@ -187,9 +187,10 @@ export default function PublicityTab() {
 
                     <button 
                         onClick={loadAllData} 
-                        className="hidden md:flex p-2 text-zinc-500 hover:text-white active:rotate-180 transition-all"
+                        className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-zinc-400 hover:text-white active:scale-95 transition-all"
                     >
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Refrescar</span>
                     </button>
                 </div>
 
