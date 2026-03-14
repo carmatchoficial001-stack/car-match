@@ -526,16 +526,6 @@ export async function saveStudioToCampaign(data: {
     try {
         console.log('[CAMPAIGN] Saving studio result to persistent campaign...');
 
-        // 🛡️ Basic Rate Limit / Concurrency Protection (Simple Semaphore)
-        // Check if there's a campaign created in the last 15 seconds to avoid double-triggers
-        const recentCampaign = await prisma.publicityCampaign.findFirst({
-            where: { createdAt: { gte: new Date(Date.now() - 15000) } }
-        });
-        if (recentCampaign) {
-            console.warn('[CAMPAIGN] Batch already in progress. Skipping duplicate trigger.');
-            return { success: true, campaignId: recentCampaign.id };
-        }
-
         // 1. Build webhook URL so Fal.ai can call back after generating
         // Prioritize NEXTAUTH_URL or VERCEL_URL for production stability
         const baseUrl = process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
