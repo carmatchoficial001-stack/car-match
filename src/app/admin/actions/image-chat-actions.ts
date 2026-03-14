@@ -426,6 +426,7 @@ export async function processNextImageBatch(messageId: string) {
         // 🚀 TRIGGER ASYNC GENERATION
         const { headers: nextHeaders } = require('next/headers');
         const headersList = await nextHeaders();
+        const host = headersList.get('host') || 'localhost:3000';
         const protocol = host.includes('localhost') ? 'http' : 'https';
         // 🏗️ ENFORCE CANONICAL WWW DOMAIN (Avoid 307 redirect failures)
         const canonicalHost = (host === 'carmatchapp.net') ? 'www.carmatchapp.net' : host;
@@ -552,7 +553,7 @@ export async function saveStudioToCampaign(data: {
         // 🏗️ ENFORCE CANONICAL WWW DOMAIN (Avoid 307 redirect failures)
         const canonicalHost = (finalHost === 'carmatchapp.net') ? 'www.carmatchapp.net' : finalHost;
         const webhookUrl = `${protocol}://${canonicalHost}/api/studio/webhook`;
-旋
+
         // 2. Create the Campaign record
         const fixBranding = (text: string) => {
             if (!text) return text;
