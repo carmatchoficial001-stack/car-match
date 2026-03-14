@@ -49,7 +49,20 @@ export async function triggerFalAsyncGeneration(params: {
         throw new Error(`Fal Queue Error: ${response.status} - ${err}`);
     }
 
-    return await response.json();
+    const resData = await response.json();
+    console.log(`[FAL-QUEUE] ✅ Queued ${idx}/${format} for ${postId || messageId}: ${resData.request_id}`);
+    
+    // Optional: Log request_id to DB for tracing
+    await prisma.systemLog.create({
+        data: {
+            level: 'INFO',
+            source: 'STUDIO-TRIGGER',
+            message: `Fal.ai Queued: ${resData.request_id}`,
+            metadata: { request_id: resData.request_id, postId, messageId, idx }
+        }
+    });
+
+    return resData;
 }
 
 export async function performFalGeneration(params: {

@@ -82,9 +82,8 @@ function ensureGoldenRulesCompliance(data: any) {
     // 1. Force rebranding to "CarMatch Social"
     const fixBranding = (text: string) => {
         if (!text) return text;
-        // Replace "CarMatch" with "CarMatch Social" if "Social" isn't already there
-        // Use a regex to avoid double "Social Social"
-        return text.replace(/CarMatch(?!\s+Social)/gi, "CarMatch Social");
+        // Reemplaza CarMatch por CarMatch Social, protegiendo enlaces .net
+        return text.replace(/carmatch(?!\s*social)(?!(app)?\.net)/gi, "CarMatch Social");
     };
 
     // 2. Force mandatory link "carmatchapp.net"
@@ -92,8 +91,9 @@ function ensureGoldenRulesCompliance(data: any) {
         if (!text) return text;
         const link = "carmatchapp.net";
         const fullPhrase = "Compra, vende y descubre en carmatchapp.net";
+        // Búsqueda insensible a mayúsculas y más estricta
         if (!text.toLowerCase().includes(link)) {
-            return `${text.trim()} ✨ ${fullPhrase}`;
+            return `${text.trim()}\n\n👇 ${fullPhrase} ✨`;
         }
         return text;
     };
@@ -553,8 +553,8 @@ export async function saveStudioToCampaign(data: {
         // 2. Create the Campaign record
         const fixBranding = (text: string) => {
             if (!text) return text;
-            // Reemplaza CarMatch por CarMatch Social, excepto si ya es "CarMatch Social" o es parte del link "carmatchapp.net"
-            return text.replace(/carmatch(?!\s*social)(?!app\.net)/gi, "CarMatch Social");
+            // Reemplaza CarMatch por CarMatch Social, protegiendo enlaces .net
+            return text.replace(/carmatch(?!\s*social)(?!(app)?\.net)/gi, "CarMatch Social");
         };
 
         const campaign = await prisma.publicityCampaign.create({

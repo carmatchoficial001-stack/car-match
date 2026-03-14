@@ -9,17 +9,22 @@ export const maxDuration = 30; // Webhook is now fast — no Cloudinary upload
  */
 export async function POST(req: NextRequest) {
     try {
-        const data = await req.json();
-        
-        // --- 🕵️‍♂️ DEBUG LOGGING ---
+        // --- 🕵️‍♂️ DEBUG LOGGING (TOP PRIORITY) ---
+        // Log instantly before even parsing JSON to detect reachability
         await prisma.systemLog.create({
             data: {
                 level: 'INFO',
                 source: 'STUDIO-WEBHOOK',
-                message: `Webhook received`,
-                metadata: { url: req.url }
+                message: `Webhook POST received - Starting parse`,
+                metadata: { 
+                    url: req.url,
+                    method: req.method,
+                    contentType: req.headers.get('content-type')
+                }
             }
         });
+
+        const data = await req.json();
         
         const { request_id, status, payload, metadata } = data;
 
