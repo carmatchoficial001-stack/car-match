@@ -411,30 +411,34 @@ export async function suggestCampaignFromInventory(targetCountry: string = 'MX')
         // Clean up markdown code blocks if present
         const jsonString = cleanJsonResponse(text)
 
+        let campaignData: any;
         try {
-            let campaignData = JSON.parse(jsonString)
-
-            // 🛡️ APPLY COMPLIANCE
-            campaignData = ensureAutopilotCompliance(campaignData);
-
-            // Ensure videoScript is a string
-            if (Array.isArray(campaignData.videoScript)) {
-                campaignData.videoScript = campaignData.videoScript.join(' ')
-            } else if (typeof campaignData.videoScript === 'object') {
-                campaignData.videoScript = JSON.stringify(campaignData.videoScript)
+            campaignData = JSON.parse(jsonString);
+        } catch (parseErr) {
+            console.warn('[AUTO-PILOT] Primary JSON parse failed, using hardcoded fallback:', parseErr);
+            try {
+                campaignData = JSON.parse(FALLBACK_STRATEGY_JSON);
+            } catch {
+                return { success: false, error: 'Error al procesar la respuesta de IA.' };
             }
-
-            // 3. Initiate ASYNC Tasks
-            console.log('[AUTO-PILOT] Iniciando tareas IA asíncronas...')
-
-            // Mock vehicle object for UI compatibility
-            const vehicleMock = { title: `Campaña: ${randomBrandHook.hook}`, price: 0, currency: 'USD', description: campaignData.strategy || 'Estrategia de CarMatch Social' }
-
-            return { success: true, vehicle: vehicleMock, campaignData }
-        } catch (e) {
-            console.error('Error parsing campaign JSON or starting AI:', e)
-            return { success: false, error: 'Error al generar la estrategia o iniciar IA.' }
         }
+
+        // 🛡️ APPLY COMPLIANCE
+        campaignData = ensureAutopilotCompliance(campaignData);
+
+        // Ensure videoScript is a string
+        if (Array.isArray(campaignData.videoScript)) {
+            campaignData.videoScript = campaignData.videoScript.join(' ')
+        } else if (typeof campaignData.videoScript === 'object') {
+            campaignData.videoScript = JSON.stringify(campaignData.videoScript)
+        }
+
+        console.log('[AUTO-PILOT] Iniciando tareas IA asíncronas...')
+
+        // Mock vehicle object for UI compatibility
+        const vehicleMock = { title: `Campaña: ${randomBrandHook.hook}`, price: 0, currency: 'USD', description: campaignData.strategy || 'Estrategia de CarMatch Social' }
+
+        return { success: true, vehicle: vehicleMock, campaignData }
 
     } catch (error) {
         console.error('Error in auto-pilot:', error)
